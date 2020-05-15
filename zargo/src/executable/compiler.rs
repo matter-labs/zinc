@@ -26,20 +26,17 @@ pub enum Error {
 impl Compiler {
     pub fn build(
         verbosity: usize,
-        witness_path: &PathBuf,
-        public_data_path: &PathBuf,
-        circuit_path: &PathBuf,
-        source_file_paths: &[PathBuf],
+        data_path: &PathBuf,
+        build_path: &PathBuf,
+        source_path: &PathBuf,
     ) -> Result<(), Error> {
         let mut child = process::Command::new(BINARY_NAME_DEFAULT)
             .args(vec!["-v"; verbosity])
-            .arg("--witness")
-            .arg(witness_path)
-            .arg("--public-data")
-            .arg(public_data_path)
-            .arg("--output")
-            .arg(circuit_path)
-            .args(source_file_paths)
+            .arg("--data")
+            .arg(data_path)
+            .arg("--build")
+            .arg(build_path)
+            .arg(source_path)
             .spawn()
             .map_err(Error::Spawning)?;
 

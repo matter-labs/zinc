@@ -69,9 +69,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::error::Error;
     use crate::lexical::stream::TokenStream;
@@ -122,14 +119,14 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_semicolon() {
-        let input = "use jabberwocky";
+        let input = r#"use jabberwocky"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 16),
@@ -138,7 +135,7 @@ mod tests {
             None,
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

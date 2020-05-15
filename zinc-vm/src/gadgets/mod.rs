@@ -1,11 +1,11 @@
 pub mod arithmetic;
 pub mod arrays;
 pub mod auto_const;
+pub mod bits;
 pub mod boolean;
 pub mod comparison;
 mod conditional_select;
 pub mod types;
-pub mod bits;
 
 pub use arithmetic::*;
 pub use arrays::*;

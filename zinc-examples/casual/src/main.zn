@@ -1,3 +1,11 @@
-fn main() -> u8 {
-    42
+contract Test {
+    data: [[[[u8; 8]; 8]; 8]; 8];
+
+    const TEST: u8 = 42;
+
+    pub fn main(mut self, arg: u8) -> u8 {
+        self.data[7][7][7][7] = 42;
+
+        arg + Self::TEST + self.data[7][7][7][7]
+    }
 }

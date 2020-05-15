@@ -4,6 +4,8 @@
 
 use std::fmt;
 
+use crate::source::module::file::index::INDEX as FILE_INDEX;
+
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Location {
     pub file_index: Option<usize>,
@@ -68,12 +70,7 @@ impl fmt::Display for Location {
                 Some(file_index) => write!(
                     f,
                     "{}:{}:{}",
-                    crate::file::INDEX
-                        .read()
-                        .expect(crate::PANIC_MUTEX_SYNC)
-                        .get(file_index)
-                        .expect(crate::PANIC_FILE_INDEX)
-                        .to_string_lossy(),
+                    FILE_INDEX.get(file_index).to_string_lossy(),
                     line,
                     column,
                 ),

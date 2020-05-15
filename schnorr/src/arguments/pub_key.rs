@@ -1,10 +1,13 @@
-use crate::arguments::{fr_into_hex, Error};
+use std::io::Read;
+
+use serde_json::json;
+use structopt::StructOpt;
+
 use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::{eddsa, jubjub};
-use serde_json::json;
-use std::io::Read;
-use structopt::StructOpt;
+
+use crate::arguments::{fr_into_hex, Error};
 
 #[derive(StructOpt)]
 #[structopt(name = "gen-key", about = "recover public key from private key")]

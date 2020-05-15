@@ -82,16 +82,18 @@ impl Type {
 
     pub fn try_from_semantic(r#type: &SemanticType) -> Option<Self> {
         match r#type {
-            SemanticType::Unit => Some(Self::unit()),
-            SemanticType::Boolean => Some(Self::boolean()),
-            SemanticType::IntegerUnsigned { bitlength } => Some(Self::integer_unsigned(*bitlength)),
-            SemanticType::IntegerSigned { bitlength } => Some(Self::integer_signed(*bitlength)),
-            SemanticType::Field => Some(Self::field()),
-            SemanticType::Array { r#type, size } => {
-                Self::try_from_semantic(r#type).map(|r#type| Self::array(r#type, *size))
+            SemanticType::Unit(_) => Some(Self::unit()),
+            SemanticType::Boolean(_) => Some(Self::boolean()),
+            SemanticType::IntegerUnsigned { bitlength, .. } => {
+                Some(Self::integer_unsigned(*bitlength))
             }
-            SemanticType::Tuple { types } => {
-                match types
+            SemanticType::IntegerSigned { bitlength, .. } => Some(Self::integer_signed(*bitlength)),
+            SemanticType::Field(_) => Some(Self::field()),
+            SemanticType::Array(inner) => Self::try_from_semantic(&*inner.r#type)
+                .map(|r#type| Self::array(r#type, inner.size)),
+            SemanticType::Tuple(inner) => {
+                match inner
+                    .types
                     .iter()
                     .filter_map(Self::try_from_semantic)
                     .collect::<Vec<Type>>()
@@ -100,8 +102,8 @@ impl Type {
                     _ => None,
                 }
             }
-            SemanticType::Structure(structure) => {
-                match structure
+            SemanticType::Structure(inner) => {
+                match inner
                     .fields
                     .iter()
                     .filter_map(|(name, r#type)| {
@@ -113,9 +115,7 @@ impl Type {
                     _ => None,
                 }
             }
-            SemanticType::Enumeration(enumeration) => {
-                Some(Self::integer_unsigned(enumeration.bitlength))
-            }
+            SemanticType::Enumeration(inner) => Some(Self::integer_unsigned(inner.bitlength)),
             _ => None,
         }
     }

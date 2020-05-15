@@ -1,5 +1,5 @@
 //!
-//! The circuit directories.
+//! The project directories.
 //!
 
 pub mod build;

@@ -1,7 +1,5 @@
 use crate::core::{InternalVM, VMInstruction, VirtualMachine};
-use crate::{Engine, Result, gadgets};
-
-
+use crate::{gadgets, Engine, Result};
 
 use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::instructions::BitXor;

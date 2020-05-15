@@ -30,13 +30,13 @@ impl Builder {
         let location = self
             .location
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
+            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location"));
 
         match self.size_expression.take() {
             Some(size_expression) => ArrayExpression::new_repeated(
                 location,
                 self.elements.pop().unwrap_or_else(|| {
-                    panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "expression")
+                    panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "expression")
                 }),
                 size_expression,
             ),

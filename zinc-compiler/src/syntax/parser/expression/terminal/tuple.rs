@@ -122,9 +122,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Error;
     use super::Parser;
     use crate::lexical::stream::TokenStream;
@@ -146,12 +143,12 @@ mod tests {
         let expected = Ok((
             ExpressionTree::new(
                 Location::new(1, 1),
-                ExpressionTreeNode::operand(ExpressionOperand::Unit),
+                ExpressionTreeNode::operand(ExpressionOperand::LiteralUnit(Location::new(1, 1))),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -173,7 +170,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -201,7 +198,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -249,14 +246,14 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_comma_or_parenthesis_right() {
-        let input = r#"(42, 69]"#;
+        let input = r#"(42, 64]"#;
 
         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 8),
@@ -265,7 +262,7 @@ mod tests {
             None,
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

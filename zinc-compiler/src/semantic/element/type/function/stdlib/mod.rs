@@ -21,6 +21,7 @@ use std::fmt;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
@@ -89,60 +90,98 @@ impl Function {
         }
     }
 
-    pub fn call(self, elements: Vec<Element>) -> Result<Type, Error> {
+    pub fn call(self, location: Option<Location>, elements: Vec<Element>) -> Result<Type, Error> {
         match self {
-            Self::CryptoSha256(inner) => inner.call(elements),
-            Self::CryptoPedersen(inner) => inner.call(elements),
-            Self::CryptoSchnorrSignatureVerify(inner) => inner.call(elements),
+            Self::CryptoSha256(inner) => inner.call(location, elements),
+            Self::CryptoPedersen(inner) => inner.call(location, elements),
+            Self::CryptoSchnorrSignatureVerify(inner) => inner.call(location, elements),
 
-            Self::ConvertToBits(inner) => inner.call(elements),
-            Self::ConvertFromBitsUnsigned(inner) => inner.call(elements),
-            Self::ConvertFromBitsSigned(inner) => inner.call(elements),
-            Self::ConvertFromBitsField(inner) => inner.call(elements),
+            Self::ConvertToBits(inner) => inner.call(location, elements),
+            Self::ConvertFromBitsUnsigned(inner) => inner.call(location, elements),
+            Self::ConvertFromBitsSigned(inner) => inner.call(location, elements),
+            Self::ConvertFromBitsField(inner) => inner.call(location, elements),
 
-            Self::ArrayReverse(inner) => inner.call(elements),
-            Self::ArrayTruncate(inner) => inner.call(elements),
-            Self::ArrayPad(inner) => inner.call(elements),
+            Self::ArrayReverse(inner) => inner.call(location, elements),
+            Self::ArrayTruncate(inner) => inner.call(location, elements),
+            Self::ArrayPad(inner) => inner.call(location, elements),
 
-            Self::FfInvert(inner) => inner.call(elements),
+            Self::FfInvert(inner) => inner.call(location, elements),
         }
     }
 
     pub fn identifier(&self) -> &'static str {
         match self {
-            Self::CryptoSha256(inner) => inner.identifier(),
-            Self::CryptoPedersen(inner) => inner.identifier(),
-            Self::CryptoSchnorrSignatureVerify(inner) => inner.identifier(),
+            Self::CryptoSha256(inner) => inner.identifier,
+            Self::CryptoPedersen(inner) => inner.identifier,
+            Self::CryptoSchnorrSignatureVerify(inner) => inner.identifier,
 
-            Self::ConvertToBits(inner) => inner.identifier(),
-            Self::ConvertFromBitsUnsigned(inner) => inner.identifier(),
-            Self::ConvertFromBitsSigned(inner) => inner.identifier(),
-            Self::ConvertFromBitsField(inner) => inner.identifier(),
+            Self::ConvertToBits(inner) => inner.identifier,
+            Self::ConvertFromBitsUnsigned(inner) => inner.identifier,
+            Self::ConvertFromBitsSigned(inner) => inner.identifier,
+            Self::ConvertFromBitsField(inner) => inner.identifier,
 
-            Self::ArrayReverse(inner) => inner.identifier(),
-            Self::ArrayTruncate(inner) => inner.identifier(),
-            Self::ArrayPad(inner) => inner.identifier(),
+            Self::ArrayReverse(inner) => inner.identifier,
+            Self::ArrayTruncate(inner) => inner.identifier,
+            Self::ArrayPad(inner) => inner.identifier,
 
-            Self::FfInvert(inner) => inner.identifier(),
+            Self::FfInvert(inner) => inner.identifier,
         }
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {
         match self {
-            Self::CryptoSha256(inner) => inner.builtin_identifier(),
-            Self::CryptoPedersen(inner) => inner.builtin_identifier(),
-            Self::CryptoSchnorrSignatureVerify(inner) => inner.builtin_identifier(),
+            Self::CryptoSha256(inner) => inner.builtin_identifier,
+            Self::CryptoPedersen(inner) => inner.builtin_identifier,
+            Self::CryptoSchnorrSignatureVerify(inner) => inner.builtin_identifier,
 
-            Self::ConvertToBits(inner) => inner.builtin_identifier(),
-            Self::ConvertFromBitsUnsigned(inner) => inner.builtin_identifier(),
-            Self::ConvertFromBitsSigned(inner) => inner.builtin_identifier(),
-            Self::ConvertFromBitsField(inner) => inner.builtin_identifier(),
+            Self::ConvertToBits(inner) => inner.builtin_identifier,
+            Self::ConvertFromBitsUnsigned(inner) => inner.builtin_identifier,
+            Self::ConvertFromBitsSigned(inner) => inner.builtin_identifier,
+            Self::ConvertFromBitsField(inner) => inner.builtin_identifier,
 
-            Self::ArrayReverse(inner) => inner.builtin_identifier(),
-            Self::ArrayTruncate(inner) => inner.builtin_identifier(),
-            Self::ArrayPad(inner) => inner.builtin_identifier(),
+            Self::ArrayReverse(inner) => inner.builtin_identifier,
+            Self::ArrayTruncate(inner) => inner.builtin_identifier,
+            Self::ArrayPad(inner) => inner.builtin_identifier,
 
-            Self::FfInvert(inner) => inner.builtin_identifier(),
+            Self::FfInvert(inner) => inner.builtin_identifier,
+        }
+    }
+
+    pub fn set_location(&mut self, location: Location) {
+        match self {
+            Self::CryptoSha256(inner) => inner.location = Some(location),
+            Self::CryptoPedersen(inner) => inner.location = Some(location),
+            Self::CryptoSchnorrSignatureVerify(inner) => inner.location = Some(location),
+
+            Self::ConvertToBits(inner) => inner.location = Some(location),
+            Self::ConvertFromBitsUnsigned(inner) => inner.location = Some(location),
+            Self::ConvertFromBitsSigned(inner) => inner.location = Some(location),
+            Self::ConvertFromBitsField(inner) => inner.location = Some(location),
+
+            Self::ArrayReverse(inner) => inner.location = Some(location),
+            Self::ArrayTruncate(inner) => inner.location = Some(location),
+            Self::ArrayPad(inner) => inner.location = Some(location),
+
+            Self::FfInvert(inner) => inner.location = Some(location),
+        }
+    }
+
+    pub fn location(&self) -> Option<Location> {
+        match self {
+            Self::CryptoSha256(inner) => inner.location,
+            Self::CryptoPedersen(inner) => inner.location,
+            Self::CryptoSchnorrSignatureVerify(inner) => inner.location,
+
+            Self::ConvertToBits(inner) => inner.location,
+            Self::ConvertFromBitsUnsigned(inner) => inner.location,
+            Self::ConvertFromBitsSigned(inner) => inner.location,
+            Self::ConvertFromBitsField(inner) => inner.location,
+
+            Self::ArrayReverse(inner) => inner.location,
+            Self::ArrayTruncate(inner) => inner.location,
+            Self::ArrayPad(inner) => inner.location,
+
+            Self::FfInvert(inner) => inner.location,
         }
     }
 }

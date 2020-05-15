@@ -13,6 +13,8 @@ use crate::syntax::tree::r#type::Type;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Statement {
     pub location: Location,
+    pub is_public: bool,
+    pub is_constant: bool,
     pub identifier: Identifier,
     pub argument_bindings: Vec<BindingPattern>,
     pub return_type: Option<Type>,
@@ -22,6 +24,8 @@ pub struct Statement {
 impl Statement {
     pub fn new(
         location: Location,
+        is_public: bool,
+        is_constant: bool,
         identifier: Identifier,
         argument_bindings: Vec<BindingPattern>,
         return_type: Option<Type>,
@@ -29,6 +33,8 @@ impl Statement {
     ) -> Self {
         Self {
             location,
+            is_public,
+            is_constant,
             identifier,
             argument_bindings,
             return_type,

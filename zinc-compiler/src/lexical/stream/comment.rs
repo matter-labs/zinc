@@ -68,7 +68,7 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                     size += 1;
                     column += 1;
                     lines += 1;
-                    let comment = Comment::new(input[2..size - 1].to_owned());
+                    let comment = Comment::new_line(input[2..size - 1].to_owned());
                     return Ok((size, lines, column, comment));
                 }
                 Some(_) => {
@@ -76,7 +76,7 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                     column += 1;
                 }
                 None => {
-                    let comment = Comment::new(input[2..size].to_owned());
+                    let comment = Comment::new_line(input[2..size].to_owned());
                     return Ok((size, lines, column, comment));
                 }
             },
@@ -101,7 +101,7 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                 Some('/') => {
                     size += 1;
                     column += 1;
-                    let comment = Comment::new(input[2..size - 2].to_owned());
+                    let comment = Comment::new_block(input[2..size - 2].to_owned());
                     return Ok((size, lines, column, comment));
                 }
                 Some(_) => {
@@ -123,12 +123,13 @@ mod tests {
 
     #[test]
     fn ok_line_with_break() {
-        let input = "//mega ultra comment text\n";
+        let input = r#"//mega ultra comment text
+"#;
         let expected = Ok((
             input.len(),
             input.lines().count(),
             input.len() + 1,
-            Comment::new("mega ultra comment text".to_owned()),
+            Comment::new_line("mega ultra comment text".to_owned()),
         ));
         let result = parse(input);
         assert_eq!(result, expected);
@@ -136,12 +137,12 @@ mod tests {
 
     #[test]
     fn ok_line_with_eof() {
-        let input = "//mega ultra comment text";
+        let input = r#"//mega ultra comment text"#;
         let expected = Ok((
             input.len(),
             input.lines().count() - 1,
             input.len() + 1,
-            Comment::new("mega ultra comment text".to_owned()),
+            Comment::new_line("mega ultra comment text".to_owned()),
         ));
         let result = parse(input);
         assert_eq!(result, expected);
@@ -154,7 +155,7 @@ mod tests {
             input.len(),
             input.lines().count() - 1,
             input.len() + 1,
-            Comment::new("This is the mega ultra test application!".to_owned()),
+            Comment::new_block("This is the mega ultra test application!".to_owned()),
         ));
         let result = parse(input);
         assert_eq!(result, expected);
@@ -169,7 +170,7 @@ mod tests {
             input.len(),
             input.lines().count() - 1,
             input.lines().last().unwrap_or("").len() + 1,
-            Comment::new("\n    This is the mega ultra test application!\n".to_owned()),
+            Comment::new_block("\n    This is the mega ultra test application!\n".to_owned()),
         ));
         let result = parse(input);
         assert_eq!(result, expected);
@@ -177,7 +178,7 @@ mod tests {
 
     #[test]
     fn error_not_a_comment() {
-        let input = "not a comment text";
+        let input = r#"not a comment text"#;
         let expected = Err(Error::NotAComment);
         let result = parse(input);
         assert_eq!(result, expected);
@@ -185,7 +186,7 @@ mod tests {
 
     #[test]
     fn error_not_a_comment_one_slash() {
-        let input = "/almost a comment text";
+        let input = r#"/almost a comment text"#;
         let expected = Err(Error::NotAComment);
         let result = parse(input);
         assert_eq!(result, expected);

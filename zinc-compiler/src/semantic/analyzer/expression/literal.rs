@@ -9,6 +9,7 @@ use crate::generator::expression::operand::Operand as GeneratorExpressionOperand
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
+use crate::semantic::element::constant::string::String as StringConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::Element;
@@ -45,15 +46,10 @@ impl Analyzer {
     pub fn integer(
         literal: IntegerLiteral,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
-        let location = literal.location;
-
         let constant = IntegerConstant::try_from(&literal)
             .map(Constant::Integer)
             .map_err(|error| {
-                Error::Element(
-                    location,
-                    ElementError::Constant(ConstantError::Integer(error)),
-                )
+                Error::Element(ElementError::Constant(ConstantError::Integer(error)))
             })?;
 
         let intermediate = GeneratorConstant::try_from_semantic(&constant)
@@ -67,6 +63,9 @@ impl Analyzer {
     /// Converts the syntax string literal to a semantic string literal.
     ///
     pub fn string(literal: StringLiteral) -> Result<Element, Error> {
-        Ok(Element::Constant(Constant::String(literal.inner.inner)))
+        Ok(Element::Constant(Constant::String(StringConstant::new(
+            literal.location,
+            literal.into(),
+        ))))
     }
 }

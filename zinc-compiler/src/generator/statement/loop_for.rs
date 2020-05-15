@@ -9,7 +9,8 @@ use zinc_bytecode::Instruction;
 
 use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::block::Expression as BlockExpression;
-use crate::generator::expression::operand::constant::Constant;
+use crate::generator::expression::operand::constant::boolean::Boolean as BooleanConstant;
+use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::r#type::Type;
 use crate::lexical::token::location::Location;
@@ -64,8 +65,8 @@ impl Statement {
         let index_size = index_type.size();
         let index_address = bytecode
             .borrow_mut()
-            .declare_variable(Some(self.index_variable_name), index_type);
-        Constant::new_integer(
+            .define_variable(Some(self.index_variable_name), index_size);
+        IntegerConstant::new(
             self.initial_value.clone(),
             self.index_variable_is_signed,
             self.index_variable_bitlength,
@@ -80,10 +81,10 @@ impl Statement {
         );
 
         let while_allowed_address = if self.while_condition.is_some() {
-            let while_allowed = Constant::new_boolean(true);
+            let while_allowed = BooleanConstant::new(true);
             let while_allowed_address = bytecode
                 .borrow_mut()
-                .declare_variable(None, while_allowed.r#type());
+                .define_variable(None, Type::boolean().size());
             while_allowed.write_all_to_bytecode(bytecode.clone());
             bytecode.borrow_mut().push_instruction(
                 Instruction::Store(zinc_bytecode::Store::new(while_allowed_address)),
@@ -109,7 +110,7 @@ impl Statement {
             bytecode
                 .borrow_mut()
                 .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
-            Constant::new_boolean(false).write_all_to_bytecode(bytecode.clone());
+            BooleanConstant::new(false).write_all_to_bytecode(bytecode.clone());
             bytecode.borrow_mut().push_instruction(
                 Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
                     while_allowed_address,
@@ -146,7 +147,7 @@ impl Statement {
                 Instruction::Load(zinc_bytecode::Load::new(index_address)),
                 Some(self.location),
             );
-            Constant::new_min(self.index_variable_is_signed, self.index_variable_bitlength)
+            IntegerConstant::new_min(self.index_variable_is_signed, self.index_variable_bitlength)
                 .write_all_to_bytecode(bytecode.clone());
             bytecode
                 .borrow_mut()
@@ -158,7 +159,7 @@ impl Statement {
                 Instruction::Load(zinc_bytecode::Load::new(index_address)),
                 Some(self.location),
             );
-            Constant::new_integer(
+            IntegerConstant::new(
                 BigInt::one(),
                 self.index_variable_is_signed,
                 self.index_variable_bitlength,
@@ -180,7 +181,7 @@ impl Statement {
                 Instruction::Load(zinc_bytecode::Load::new(index_address)),
                 Some(self.location),
             );
-            Constant::new_max(self.index_variable_is_signed, self.index_variable_bitlength)
+            IntegerConstant::new_max(self.index_variable_is_signed, self.index_variable_bitlength)
                 .write_all_to_bytecode(bytecode.clone());
             bytecode
                 .borrow_mut()
@@ -192,7 +193,7 @@ impl Statement {
                 Instruction::Load(zinc_bytecode::Load::new(index_address)),
                 Some(self.location),
             );
-            Constant::new_integer(
+            IntegerConstant::new(
                 BigInt::one(),
                 self.index_variable_is_signed,
                 self.index_variable_bitlength,

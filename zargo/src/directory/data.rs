@@ -1,5 +1,5 @@
 //!
-//! The circuit `data` directory.
+//! The project `data` directory.
 //!
 
 use std::fs;
@@ -21,13 +21,16 @@ pub enum Error {
 }
 
 impl Directory {
-    pub fn create(path: &PathBuf) -> Result<(), Error> {
+    pub fn path(path: &PathBuf) -> PathBuf {
         let mut path = path.to_owned();
         if path.is_dir() && !path.ends_with(DIRECTORY_NAME_DEFAULT) {
             path.push(PathBuf::from(DIRECTORY_NAME_DEFAULT));
         }
+        path
+    }
 
-        fs::create_dir_all(&path).map_err(Error::Creating)
+    pub fn create(path: &PathBuf) -> Result<(), Error> {
+        fs::create_dir_all(&Self::path(path)).map_err(Error::Creating)
     }
 
     pub fn remove(path: &PathBuf) -> Result<(), Error> {

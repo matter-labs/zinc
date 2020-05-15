@@ -7,8 +7,9 @@ use std::rc::Rc;
 
 use crate::generator::expression::operand::list::builder::Builder as GeneratorListExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
-use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
+use crate::semantic::analyzer::rule::Rule as TranslationRule;
+use crate::semantic::element::argument_list::ArgumentList as ArgumentListElement;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
@@ -25,19 +26,22 @@ impl Analyzer {
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,
         list: ListExpression,
+        rule: TranslationRule,
     ) -> Result<(Element, GeneratorExpressionOperand), Error> {
-        let mut expressions = Vec::with_capacity(list.len());
+        let location = list.location;
+
+        let mut arguments = Vec::with_capacity(list.len());
         let mut builder = GeneratorListExpressionBuilder::default();
 
         for expression in list.elements.into_iter() {
-            let (element, expression) = ExpressionAnalyzer::new(scope.clone())
-                .analyze(expression, TranslationHint::Value)?;
-            expressions.push(element);
+            let (element, expression) =
+                ExpressionAnalyzer::new(scope.clone(), rule).analyze(expression)?;
+            arguments.push(element);
 
             builder.push_expression(expression);
         }
 
-        let element = Element::ArgumentList(expressions);
+        let element = Element::ArgumentList(ArgumentListElement::new(location, arguments));
         let intermediate = GeneratorExpressionOperand::List(builder.finish());
 
         Ok((element, intermediate))

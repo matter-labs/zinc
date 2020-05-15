@@ -17,7 +17,7 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#struct::builder::Builder as StructStatementBuilder;
 use crate::syntax::tree::statement::r#struct::Statement as StructStatement;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "structure type must have an identifier, e.g. `struct Data { ... }`";
 
 #[derive(Debug, Clone, Copy)]
@@ -134,9 +134,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::error::Error;
     use crate::lexical::stream::TokenStream;
@@ -166,7 +163,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -189,7 +186,7 @@ mod tests {
             )),
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -215,7 +212,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -255,7 +252,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -270,14 +267,14 @@ mod tests {
             Some(super::HINT_EXPECTED_IDENTIFIER),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_bracket_curly_right() {
-        let input = "struct Data { a: u8 );";
+        let input = r#"struct Data { a: u8 );"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 21),
@@ -286,7 +283,7 @@ mod tests {
             None,
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

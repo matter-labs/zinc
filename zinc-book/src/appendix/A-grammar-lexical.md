@@ -23,6 +23,8 @@ keyword =
   | 'mod'
   | 'use'
   | 'impl'
+  | 'contract'
+  | 'pub'
 
   | 'for'
   | 'in'
@@ -47,14 +49,26 @@ keyword =
   | 'as'
 
   | 'Self'
+  | 'self'
+
+  | 'static'
+  | 'ref'
+  | 'extern'
+  | 'return'
+  | 'loop'
+  | 'break'
+  | 'continue'
+  | 'trait'
 ;
 
 literal = boolean | integer | string ;
 boolean = 'true' | 'false' ;
 integer =
     '0'
-  | digit - '0', { digit }
-  | '0x', hex_digit, { hex_digit }
+  | '0b', binary_digit | '_', { binary_digit | '_' }
+  | '0o', octal_digit | '_', { octal_digit | '_' }
+  | decimal_digit - '0', { decimal_digit | '_' }
+  | '0x', hexadecimal_digit | '_', { hexadecimal_digit | '_' }
 ;
 string = '"', { ANY - '"' | '\', ANY }, '"' ;
 
@@ -121,9 +135,13 @@ alpha =
   | 'v' | 'w' | 'x' | 'y' | 'z'
 ;
 
-digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+binary_digit = '0' | '1' ;
 
-hex_digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+octal_digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' ;
+
+decimal_digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+
+hexadecimal_digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
   | 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
   | 'a' | 'b' | 'c' | 'd' | 'e' | 'f'
 ;
@@ -132,12 +150,10 @@ hex_digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
 
 ### The Zinc alphabet
 
-
 |    Group     |                     Characters                      |
 |--------------|-----------------------------------------------------|
 | whitespaces  | \t \n \r <Space>                                    |
 | lowercase    | A B C D E F G H I J K L M N O P Q R S T U V W X Y Z |
 | uppercase    | a b c d e f g h i j k l m n o p q r s t u v w x y z |
 | numbers      | 0 1 2 3 4 5 6 7 8 9                                 |
-| symbols      | + - * / % < = > ⎮ & ^ _ ! ~ ( ) [ ] { } " , . : ;  |
-
+| symbols      | + - * / % < = > ⎮ & ^ _ ! ~ ( ) [ ] { } " , . : ;   |

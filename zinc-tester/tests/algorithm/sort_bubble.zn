@@ -33,9 +33,9 @@ fn main(mut array: [u8; ARRAY_SIZE], direction: Direction) -> [u8; ARRAY_SIZE] {
     for i in 0..ARRAY_SIZE {
         for j in 0..ARRAY_SIZE {
             if match direction {
+                Direction::None => false,
                 Direction::Ascending => array[i] < array[j],
                 Direction::Descending => array[i] > array[j],
-                Direction::None => false,
             } {
                 let temp = array[j];
                 array[j] = array[i];

@@ -1,0 +1,11 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "4"
+//#     },
+//#     "expect": "12"
+//# } ] }
+
+fn main(witness: u8) -> u8 {
+    1 + { 2 + 2 * witness } + 1
+}

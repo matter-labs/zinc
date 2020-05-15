@@ -6,6 +6,9 @@
 //#     "expect": "23"
 //# } ] }
 
+const FIRST: ((u8, u8), (u8, u8)) = ((42, 2), (3, 111));
+const SECOND: ((u8, u8), (u8, u8)) = ((42, 2), (3, 111));
+
 fn main(witness: u8) -> u8 {
-    (((42, 2), (3, 111)).1.1 - ((42, 2), (3, 111)).0.0) / witness
+    (FIRST.1.1 - SECOND.0.0) / witness
 }

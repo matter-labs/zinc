@@ -17,9 +17,9 @@ use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 use crate::syntax::tree::variant::builder::Builder as VariantBuilder;
 use crate::syntax::tree::variant::Variant;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "enumeration variant must have an identifier, e.g. `Value = 42`";
-static HINT_EXPECTED_VALUE: &str = "enumeration variant must be initialized, e.g. `Value = 42`";
+pub static HINT_EXPECTED_VALUE: &str = "enumeration variant must be initialized, e.g. `Value = 42`";
 
 #[derive(Default)]
 pub struct Parser {
@@ -88,9 +88,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::error::Error;
     use crate::lexical::stream::TokenStream;
@@ -105,7 +102,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let input = "A = 1";
+        let input = r#"A = 1"#;
 
         let expected = Ok((
             Variant::new(
@@ -119,14 +116,14 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_value() {
-        let input = "A";
+        let input = r#"A"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_value(
             Location::new(1, 2),
@@ -134,21 +131,21 @@ mod tests {
             Some(super::HINT_EXPECTED_VALUE),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_integer_literal() {
-        let input = "A = id";
+        let input = r#"A = id"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_integer_literal(
             Location::new(1, 5),
             Lexeme::Identifier(LexicalIdentifier::new("id".to_owned())),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

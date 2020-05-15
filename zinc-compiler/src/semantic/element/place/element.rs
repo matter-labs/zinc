@@ -7,8 +7,9 @@ use std::fmt;
 use num_bigint::BigInt;
 
 use crate::generator::expression::Expression as GeneratorExpression;
-use crate::semantic::element::access::Field as FieldAccess;
-use crate::semantic::element::access::Index as IndexAccess;
+use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
+use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
+use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 
 #[derive(Debug, Clone)]
@@ -31,8 +32,11 @@ pub enum Element {
         end: BigInt,
         access: IndexAccess,
     },
-    Field {
-        access: FieldAccess,
+    StackField {
+        access: StackFieldAccess,
+    },
+    ContractField {
+        access: ContractFieldAccess,
     },
 }
 
@@ -43,7 +47,8 @@ impl fmt::Display for Element {
             Self::IndexConstant { constant, .. } => write!(f, "[{}]", constant.value),
             Self::IndexRange { start, end, .. } => write!(f, "[{} .. {}]", start, end),
             Self::IndexRangeInclusive { start, end, .. } => write!(f, "[{} ..= {}]", start, end),
-            Self::Field { access } => write!(f, ".{}", access.position),
+            Self::StackField { access } => write!(f, ".{}", access.position),
+            Self::ContractField { access } => write!(f, ".{}", access.position),
         }
     }
 }

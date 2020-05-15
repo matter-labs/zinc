@@ -24,12 +24,12 @@ impl Builder {
         let location = self
             .location
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
+            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location"));
 
         let name = self
             .name
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "name"));
+            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "name"));
 
         Identifier::new(location, name)
     }

@@ -17,11 +17,10 @@ use crate::syntax::parser::pattern_binding_list::Parser as BindingPatternListPar
 use crate::syntax::parser::r#type::Parser as TypeParser;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#fn::builder::Builder as FnStatementBuilder;
-use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "function must have an identifier, e.g. `fn sum(...) { ... }`";
-static HINT_EXPECTED_ARGUMENT_LIST: &str =
+pub static HINT_EXPECTED_ARGUMENT_LIST: &str =
     "function must have the argument list, e.g. `fn sum(a: u8, b: u8) { ... }`";
 
 #[derive(Debug, Clone, Copy)]
@@ -63,7 +62,7 @@ impl Parser {
         mut self,
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
-    ) -> Result<(FnStatement, Option<Token>), Error> {
+    ) -> Result<(FnStatementBuilder, Option<Token>), Error> {
         loop {
             match self.state {
                 State::KeywordFn => {
@@ -166,7 +165,7 @@ impl Parser {
                         BlockExpressionParser::default().parse(stream, self.next.take())?;
 
                     self.builder.set_body(expression);
-                    return Ok((self.builder.finish(), next));
+                    return Ok((self.builder, next));
                 }
             }
         }
@@ -175,9 +174,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::error::Error;
     use crate::lexical::stream::TokenStream;
@@ -200,13 +196,15 @@ mod tests {
         let expected = Ok((
             FnStatement::new(
                 Location::new(1, 1),
+                false,
+                false,
                 Identifier::new(Location::new(1, 4), "f".to_owned()),
                 vec![BindingPattern::new(
                     Location::new(1, 6),
-                    BindingPatternVariant::Binding(Identifier::new(
-                        Location::new(1, 6),
-                        "a".to_owned(),
-                    )),
+                    BindingPatternVariant::new_binding(
+                        Identifier::new(Location::new(1, 6), "a".to_owned()),
+                        false,
+                    ),
                     Type::new(Location::new(1, 9), TypeVariant::field()),
                 )],
                 None,
@@ -215,7 +213,9 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default()
+            .parse(TokenStream::new(input).wrap(), None)
+            .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);
     }
@@ -227,13 +227,15 @@ mod tests {
         let expected = Ok((
             FnStatement::new(
                 Location::new(1, 1),
+                false,
+                false,
                 Identifier::new(Location::new(1, 4), "f".to_owned()),
                 vec![BindingPattern::new(
                     Location::new(1, 6),
-                    BindingPatternVariant::Binding(Identifier::new(
-                        Location::new(1, 6),
-                        "a".to_owned(),
-                    )),
+                    BindingPatternVariant::new_binding(
+                        Identifier::new(Location::new(1, 6), "a".to_owned()),
+                        false,
+                    ),
                     Type::new(Location::new(1, 9), TypeVariant::field()),
                 )],
                 Some(Type::new(Location::new(1, 19), TypeVariant::field())),
@@ -242,7 +244,9 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default()
+            .parse(TokenStream::new(input).wrap(), None)
+            .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);
     }
@@ -257,7 +261,9 @@ mod tests {
             Some(super::HINT_EXPECTED_IDENTIFIER),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default()
+            .parse(TokenStream::new(input).wrap(), None)
+            .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);
     }
@@ -273,7 +279,9 @@ mod tests {
             Some(super::HINT_EXPECTED_ARGUMENT_LIST),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default()
+            .parse(TokenStream::new(input).wrap(), None)
+            .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);
     }
@@ -289,7 +297,9 @@ mod tests {
             None,
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default()
+            .parse(TokenStream::new(input).wrap(), None)
+            .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);
     }

@@ -27,9 +27,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(9, 6),
         ElementError::Value(ValueError::Structure(
             StructureValueError::FieldDoesNotExist {
+                location: Location::new(9, 7),
                 type_identifier: "Data".to_owned(),
                 field_name: "b".to_owned(),
             },
@@ -52,14 +52,14 @@ struct Data {
 fn main() {
     let result = Data {
         a: 42,
-        c: 69,
+        c: 64,
     };
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(10, 9),
         ElementError::Value(ValueError::Structure(StructureValueError::FieldExpected {
+            location: Location::new(10, 9),
             type_identifier: "Data".to_owned(),
             position: 2,
             expected: "b".to_owned(),
@@ -87,13 +87,13 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(8, 9),
         ElementError::Value(ValueError::Structure(
             StructureValueError::FieldInvalidType {
+                location: Location::new(8, 12),
                 type_identifier: "Data".to_owned(),
                 field_name: "a".to_owned(),
-                expected: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-                found: Type::boolean().to_string(),
+                expected: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+                found: Type::boolean(None).to_string(),
             },
         )),
     )));
@@ -115,15 +115,15 @@ fn main() {
     let result = Data {
         a: 42,
         b: 25,
-        c: 69,
+        c: 64,
     };
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 9),
         ElementError::Value(ValueError::Structure(
             StructureValueError::FieldOutOfRange {
+                location: Location::new(11, 9),
                 type_identifier: "Data".to_owned(),
                 expected: 2,
                 found: 3,

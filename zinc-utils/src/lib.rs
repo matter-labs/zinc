@@ -3,3 +3,4 @@
 //!
 
 pub mod euclidean;
+pub mod logger;

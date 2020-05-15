@@ -1,15 +1,15 @@
+use crate::core::VirtualMachine;
 use crate::core::{InternalVM, VMInstruction};
-use crate::core::{VirtualMachine};
-use crate::{Engine, Result};
-use zinc_bytecode::{StorageStore, StorageLoad};
-use franklin_crypto::bellman::ConstraintSystem;
 use crate::gadgets::Scalar;
+use crate::{Engine, Result};
+use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::scalar::ScalarType;
+use zinc_bytecode::{StorageLoad, StorageStore};
 
 impl<E, CS> VMInstruction<E, CS> for StorageStore
-    where
-        E: Engine,
-        CS: ConstraintSystem<E>,
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result {
         for _ in 0..self.size {
@@ -20,9 +20,9 @@ impl<E, CS> VMInstruction<E, CS> for StorageStore
 }
 
 impl<E, CS> VMInstruction<E, CS> for StorageLoad
-    where
-        E: Engine,
-        CS: ConstraintSystem<E>,
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result {
         for _ in 0..self.size {

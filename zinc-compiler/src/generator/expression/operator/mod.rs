@@ -7,8 +7,8 @@ use zinc_bytecode::builtins::BuiltinIdentifier;
 use crate::generator::expression::operand::place::Place;
 use crate::generator::expression::Expression;
 use crate::generator::r#type::Type;
-use crate::semantic::element::access::Field as FieldAccess;
-use crate::semantic::element::access::Index as IndexAccess;
+use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
+use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::r#type::Type as SemanticType;
 
 ///
@@ -16,6 +16,8 @@ use crate::semantic::element::r#type::Type as SemanticType;
 ///
 #[derive(Debug, Clone)]
 pub enum Operator {
+    None,
+
     // assignment
     Assignment {
         place: Place,
@@ -24,42 +26,52 @@ pub enum Operator {
     AssignmentBitwiseOr {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentBitwiseXor {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentBitwiseAnd {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentBitwiseShiftLeft {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentBitwiseShiftRight {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentAddition {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentSubtraction {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentMultiplication {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentDivision {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentRemainder {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
 
     // binary logical
@@ -111,12 +123,12 @@ pub enum Operator {
 
     // tuple or structure slice
     Slice {
-        access: FieldAccess,
+        access: StackFieldAccess,
     },
 
     // call
     Call {
-        unique_id: usize,
+        type_id: usize,
         input_size: usize,
     },
     CallDebug {
@@ -142,13 +154,13 @@ impl Operator {
         Self::Index { expression, access }
     }
 
-    pub fn slice(access: FieldAccess) -> Self {
+    pub fn slice(access: StackFieldAccess) -> Self {
         Self::Slice { access }
     }
 
-    pub fn call(unique_id: usize, input_size: usize) -> Self {
+    pub fn call(type_id: usize, input_size: usize) -> Self {
         Self::Call {
-            unique_id,
+            type_id,
             input_size,
         }
     }

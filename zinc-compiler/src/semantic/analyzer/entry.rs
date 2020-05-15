@@ -6,81 +6,44 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::error::Error as CompilerError;
-use crate::generator::Tree;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
+use crate::semantic::analyzer::statement::Context as StatementAnalyzerContext;
 use crate::semantic::error::Error;
-use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::Tree as SyntaxTree;
+use crate::source::module::Module as SourceModule;
+use crate::syntax::tree::module::Module as SyntaxModule;
 
 ///
-/// Analyzes the circuit entry, which must be located in the `main.zn` file.
+/// Analyzes the project entry, which must be located in the `main.zn` file.
 ///
-/// To analyze a circuit module, use the module analyzer.
+/// To analyze a project module, use the module analyzer.
 ///
-pub struct Analyzer {
-    scope_stack: ScopeStack,
-}
-
-impl Default for Analyzer {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+pub struct Analyzer {}
 
 impl Analyzer {
-    pub fn new() -> Self {
-        Self {
-            scope_stack: ScopeStack::new_global(),
-        }
-    }
+    pub fn analyze(
+        module: SyntaxModule,
+        dependencies: HashMap<String, SourceModule>,
+    ) -> Result<Rc<RefCell<Scope>>, Error> {
+        let scope =
+            StatementAnalyzer::module(module, dependencies, StatementAnalyzerContext::Entry)?;
 
-    pub fn compile(
-        self,
-        program: SyntaxTree,
-        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
-    ) -> Result<Tree, CompilerError> {
-        let mut intermediate = Tree::new();
+        let main_function_location = scope.borrow().get_main_location();
+        let contract_location = scope.borrow().get_contract_location();
 
-        let mut analyzer = StatementAnalyzer::new(self.scope_stack.top(), dependencies);
-        for statement in program.statements.into_iter() {
-            if let Some(statement) = analyzer
-                .local_mod(statement)
-                .map_err(CompilerError::Semantic)?
-            {
-                intermediate.statements.push(statement);
-            }
+        if main_function_location.is_none() && contract_location.is_none() {
+            return Err(Error::EntryPointMissing);
         }
 
-        Scope::resolve_item(
-            self.scope_stack.top(),
-            crate::semantic::element::r#type::function::user::FUNCTION_MAIN_IDENTIFIER,
-        )
-        .map_err(|_| Error::EntryPointMissing)
-        .map_err(CompilerError::Semantic)?;
+        if let (Some(main_location), Some(contract_location)) =
+            (main_function_location, contract_location)
+        {
+            return Err(Error::EntryPointAmbiguous {
+                main: main_location,
+                contract: contract_location,
+            });
+        }
 
-        Ok(intermediate)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::error::Error;
-    use crate::semantic::error::Error as SemanticError;
-
-    #[test]
-    fn error_test() {
-        let input = r#"
-fn another() -> u8 {
-    42
-}
-"#;
-
-        let expected = Err(Error::Semantic(SemanticError::EntryPointMissing));
-
-        let result = crate::semantic::tests::compile_entry(input);
-
-        assert_eq!(result, expected);
+        Ok(scope)
     }
 }

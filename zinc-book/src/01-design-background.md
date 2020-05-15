@@ -1,12 +1,12 @@
 # Design background
 
-The goal of Zinc is to make writing safe zero-knowledge programs and ZKP-based
+The goal of Zinc is to make writing safe zero-knowledge circuits and ZKP-based
 smart contracts easy. It has been designed with the following principles in mind:
 
 - **Security**. It should be easy to write deterministic and secure programs.
 Conversely, it should be hard to write code to exploit some possible
 vulnerabilities found in other programming languages.
-- **Safety**. The language must enforce the most strict semantics available,
+- **Safety**. The language must enforce the strictest semantics available,
 such as a strong static explicit type system.
 - **Efficiency**. The code should compile to the most efficient circuit possible.
 - **Cost-exposition**. Performance costs that cannot be optimized efficiently

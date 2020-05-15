@@ -4,10 +4,12 @@
 
 # Rust build
 /target/
-/osxcross/
 
 # Book build
 /zinc-book/build/
+
+# Visual Studio Code extension build
+/vscode/*.vsix
 
 # Zinc build
 /zinc-examples/*/build/

@@ -1,4 +1,3 @@
-
 # Syntax grammar (EBNF)
 
 ```
@@ -14,6 +13,7 @@ module_local_statement =
   | mod_statement
   | use_statement
   | impl_statement
+  | contract_statement
   | empty_statement
 ;
 
@@ -31,16 +31,37 @@ implementation_local_statement =
   | empty_statement
 ;
 
-type_statement = 'type', identifier, '=', type ;
-struct_statement = 'struct', '{', field_list, '}' ;
-enum_statement = 'enum', '{', variant_list, '}' ;
-fn_statement = 'fn', identifier, '(', field_list, ')', [ '->', type ], block_expression ;
-mod_statement = 'mod', identifier ;
-use_statement = 'use', path_expression ;
+contract_local_statement =
+    field_statement
+  | const_statement
+  | fn_statement
+  | empty_statement
+;
+
+field_statement = [ 'pub' ], [ 'const' ], identifier, ':', type, ';' ;
+
+type_statement = [ 'pub' ], 'type', identifier, '=', type, ';' ;
+
+struct_statement = [ 'pub' ], 'struct', '{', field_list, '}' ;
+
+enum_statement = [ 'pub' ], 'enum', '{', variant_list, '}' ;
+
+fn_statement = [ 'pub' ], [ 'const' ], 'fn', identifier, '(', pattern_binding_list, ')', [ '->', type ], block_expression ;
+
+mod_statement = [ 'pub' ], 'mod', identifier, ';' ;
+
+use_statement = [ 'pub' ], 'use', path_expression, ';' ;
+
 impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}' ;
-const_statement = 'const', identifier, ':', type, '=', expression ;
-let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression ;
+
+const_statement = [ 'pub' ], 'const', identifier, ':', type, '=', expression, ';' ;
+
+let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression, ';' ;
+
 loop_statement = 'for', identifier, 'in', expression, [ 'while', expression ], block_expression ;
+
+contract_statement = 'contract', '{', { contract_local_statement }, '}' ;
+
 empty_statement = ';' ;
 
 (* Expressions *)
@@ -73,9 +94,11 @@ operand_terminal =
   | struct_expression
   | literal
   | identifier
+  | 'Self'
+  | 'self'
 ;
 
-expression_list = [ expression, { ',', expression } ] ;
+expression_list = [ expression, { ',', expression } | ',' ] ;
 
 block_expression = '{', { function_local_statement }, [ expression ], '}' ;
 
@@ -122,10 +145,17 @@ pattern_match =
   | '_'
 ;
 
+pattern_binding =
+    [ 'mut' ], identifier, ':', type
+  | [ 'mut' ], 'self'
+  | '_', ':', type
+;
+pattern_binding_list = [ pattern_binding, { ',', pattern_binding } | ',' ] ;
+
 field = identifier, ':', type ;
-field_list = [ field, { ',', field } ] ;
+field_list = [ field, { ',', field } | ',' ] ;
 
 variant = identifier, '=', integer ;
-variant_list = [ variant, { ',', variant } ] ;
+variant_list = [ variant, { ',', variant } | ',' ] ;
 
 ```

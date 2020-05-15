@@ -21,9 +21,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 37),
         ElementError::Value(ValueError::Tuple(TupleValueError::FieldDoesNotExist {
-            type_identifier: Type::tuple(vec![Type::boolean(); 3]).to_string(),
+            location: Location::new(3, 38),
+            type_identifier: Type::tuple(Some(Location::new(3, 38)), vec![Type::boolean(None); 3])
+                .to_string(),
             field_index: 5,
         })),
     )));

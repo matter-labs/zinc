@@ -14,30 +14,31 @@ use crate::semantic::scope::Scope;
 /// to allow shared access.
 ///
 pub struct Stack {
-    elements: Vec<Rc<RefCell<Scope>>>,
+    pub elements: Vec<Rc<RefCell<Scope>>>,
 }
 
-static PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE: &str =
-    "Scope stack balance is kept by the evaluation logic";
+impl Default for Stack {
+    ///
+    /// Initializes a scope stack starting from the global scope.
+    ///
+    fn default() -> Self {
+        let mut elements = Vec::with_capacity(Self::ELEMENTS_INITIAL_CAPACITY);
+        elements.push(Scope::new_global().wrap());
+        Self { elements }
+    }
+}
+
+static THERE_MUST_ALWAYS_BE_A_SCOPE: &str = "Scope stack balance is kept by the evaluation logic";
 
 impl Stack {
-    const STACK_SCOPE_INITIAL_CAPACITY: usize = 16;
+    const ELEMENTS_INITIAL_CAPACITY: usize = 16;
 
     ///
     /// Initializes a nested scope stack with an explicit parent.
     ///
     pub fn new(root: Rc<RefCell<Scope>>) -> Self {
-        let mut elements = Vec::with_capacity(Self::STACK_SCOPE_INITIAL_CAPACITY);
+        let mut elements = Vec::with_capacity(Self::ELEMENTS_INITIAL_CAPACITY);
         elements.push(root);
-        Self { elements }
-    }
-
-    ///
-    /// Initializes a scope stack starting from the global scope.
-    ///
-    pub fn new_global() -> Self {
-        let mut elements = Vec::with_capacity(Self::STACK_SCOPE_INITIAL_CAPACITY);
-        elements.push(Rc::new(RefCell::new(Scope::new_global())));
         Self { elements }
     }
 
@@ -48,7 +49,7 @@ impl Stack {
         self.elements
             .last()
             .cloned()
-            .expect(PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE)
+            .expect(THERE_MUST_ALWAYS_BE_A_SCOPE)
     }
 
     ///
@@ -59,18 +60,9 @@ impl Stack {
     }
 
     ///
-    /// Pushes the current scope deeper and sets the current one to `scope`.
-    ///
-    pub fn push_scope(&mut self, scope: Rc<RefCell<Scope>>) {
-        self.elements.push(scope);
-    }
-
-    ///
     /// Removes the deepest scope from the current hierarchy.
     ///
     pub fn pop(&mut self) {
-        self.elements
-            .pop()
-            .expect(PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE);
+        self.elements.pop().expect(THERE_MUST_ALWAYS_BE_A_SCOPE);
     }
 }

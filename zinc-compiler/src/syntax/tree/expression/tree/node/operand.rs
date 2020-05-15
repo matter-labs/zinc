@@ -2,6 +2,7 @@
 //! The expression operand.
 //!
 
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::array::Expression as ArrayExpression;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
 use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
@@ -19,7 +20,7 @@ use crate::syntax::tree::tuple_index::TupleIndex;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operand {
     /// a unit value `()`
-    Unit,
+    LiteralUnit(Location),
     /// `true` or `false`
     LiteralBoolean(BooleanLiteral),
     /// `42`, `0x101010`, etc.

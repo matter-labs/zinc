@@ -1,5 +1,5 @@
 //!
-//! The Zargo circuit manager binary.
+//! The Zargo project manager binary.
 //!
 
 mod command;
@@ -18,7 +18,7 @@ const EXIT_CODE_SUCCESS: i32 = 0;
 const EXIT_CODE_FAILURE: i32 = 1;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "zargo", about = "Zinc's circuit manager")]
+#[structopt(name = "zargo", about = "Zinc's project manager")]
 struct Arguments {
     #[structopt(
         short = "v",
@@ -43,7 +43,7 @@ fn main() {
 }
 
 fn main_inner(args: Arguments) -> Result<(), CommandError> {
-    zinc_bytecode::logger::init_logger("zargo", args.verbosity);
+    zinc_utils::logger::init_logger("zargo", args.verbosity);
 
     args.command.execute()
 }

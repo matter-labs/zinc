@@ -8,9 +8,12 @@ pub mod string;
 pub mod symbol;
 pub mod word;
 
+use std::cell::RefCell;
 use std::collections::VecDeque;
+use std::rc::Rc;
 
 use crate::lexical::error::Error;
+use crate::lexical::token::lexeme::comment::Comment;
 use crate::lexical::token::lexeme::identifier::Identifier;
 use crate::lexical::token::lexeme::literal::string::String as StringLiteral;
 use crate::lexical::token::lexeme::literal::Literal;
@@ -31,7 +34,7 @@ pub struct TokenStream<'a> {
 }
 
 impl<'a> TokenStream<'a> {
-    const DEQUE_LOOK_AHEAD_INITIAL_CAPACITY: usize = 16;
+    const LOOK_AHEAD_INITIAL_CAPACITY: usize = 16;
 
     ///
     /// Initializes a stream without a file identifier.
@@ -42,8 +45,12 @@ impl<'a> TokenStream<'a> {
             input,
             offset: 0,
             location: Location::new_beginning(None),
-            look_ahead: VecDeque::with_capacity(Self::DEQUE_LOOK_AHEAD_INITIAL_CAPACITY),
+            look_ahead: VecDeque::with_capacity(Self::LOOK_AHEAD_INITIAL_CAPACITY),
         }
+    }
+
+    pub fn wrap(self) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(self))
     }
 
     ///
@@ -55,7 +62,7 @@ impl<'a> TokenStream<'a> {
             input,
             offset: 0,
             location: Location::new_beginning(Some(file)),
-            look_ahead: VecDeque::with_capacity(Self::DEQUE_LOOK_AHEAD_INITIAL_CAPACITY),
+            look_ahead: VecDeque::with_capacity(Self::LOOK_AHEAD_INITIAL_CAPACITY),
         }
     }
 
@@ -82,8 +89,9 @@ impl<'a> TokenStream<'a> {
             let token = self.advance()?;
             self.look_ahead.push_back(token);
         }
+
         self.look_ahead
-            .back()
+            .get(distance - 1)
             .ok_or_else(|| Error::unexpected_end(self.location))
     }
 
@@ -114,9 +122,12 @@ impl<'a> TokenStream<'a> {
 
             if character == '/' {
                 match self::comment::parse(&self.input[self.offset..]) {
-                    Ok((size, lines, column, _comment)) => {
+                    Ok((size, lines, column, comment)) => {
                         self.location.line += lines;
-                        self.location.column = column;
+                        self.location.column = match comment {
+                            Comment::Line { .. } => 1,
+                            Comment::Block { .. } => column,
+                        };
                         self.offset += size;
                         continue;
                     }

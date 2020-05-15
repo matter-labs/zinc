@@ -20,6 +20,8 @@ pub enum Keyword {
     Mod,
     Use,
     Impl,
+    Contract,
+    Pub,
 
     // controls
     For,
@@ -42,18 +44,19 @@ pub enum Keyword {
     // operators
     As,
 
-    // special
+    // aliases
     SelfUppercase,
+    SelfLowercase,
 
     // reserved
-    SelfLowercase,
-    Pub,
+    Static,
     Ref,
     Extern,
     Return,
     Loop,
     Break,
     Continue,
+    Trait,
 }
 
 impl Keyword {
@@ -95,6 +98,8 @@ impl TryFrom<&str> for Keyword {
             "mod" => return Ok(Self::Mod),
             "use" => return Ok(Self::Use),
             "impl" => return Ok(Self::Impl),
+            "contract" => return Ok(Self::Contract),
+            "pub" => return Ok(Self::Pub),
 
             "for" => return Ok(Self::For),
             "in" => return Ok(Self::In),
@@ -112,15 +117,16 @@ impl TryFrom<&str> for Keyword {
             "as" => return Ok(Self::As),
 
             "Self" => return Ok(Self::SelfUppercase),
-
             "self" => return Ok(Self::SelfLowercase),
-            "pub" => return Ok(Self::Pub),
+
+            "static" => return Ok(Self::Static),
             "ref" => return Ok(Self::Ref),
             "extern" => return Ok(Self::Extern),
             "return" => return Ok(Self::Return),
             "loop" => return Ok(Self::Loop),
             "break" => return Ok(Self::Break),
             "continue" => return Ok(Self::Continue),
+            "trait" => return Ok(Self::Trait),
 
             _ => {}
         }
@@ -191,6 +197,8 @@ impl fmt::Display for Keyword {
             Self::Mod => write!(f, "mod"),
             Self::Use => write!(f, "use"),
             Self::Impl => write!(f, "impl"),
+            Self::Contract => write!(f, "contract"),
+            Self::Pub => write!(f, "pub"),
 
             Self::For => write!(f, "for"),
             Self::In => write!(f, "in"),
@@ -210,15 +218,16 @@ impl fmt::Display for Keyword {
             Self::As => write!(f, "as"),
 
             Self::SelfUppercase => write!(f, "Self"),
-
             Self::SelfLowercase => write!(f, "self"),
-            Self::Pub => write!(f, "pub"),
+
+            Self::Static => write!(f, "static"),
             Self::Ref => write!(f, "ref"),
             Self::Extern => write!(f, "extern"),
             Self::Return => write!(f, "return"),
             Self::Loop => write!(f, "loop"),
             Self::Break => write!(f, "break"),
             Self::Continue => write!(f, "continue"),
+            Self::Trait => write!(f, "trait"),
         }
     }
 }

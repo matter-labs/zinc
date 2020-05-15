@@ -7,16 +7,18 @@ use std::ops::Deref;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
-use crate::semantic::scope::builtin::BuiltInItems;
+use crate::semantic::scope::builtin::BuiltInTypeId;
 
 #[derive(Debug, Clone)]
 pub struct Function {
-    builtin_identifier: BuiltinIdentifier,
-    identifier: &'static str,
-    return_type: Box<Type>,
+    pub location: Option<Location>,
+    pub builtin_identifier: BuiltinIdentifier,
+    pub identifier: &'static str,
+    pub return_type: Box<Type>,
 }
 
 impl Function {
@@ -26,106 +28,113 @@ impl Function {
 
     pub fn new(builtin_identifier: BuiltinIdentifier) -> Self {
         Self {
+            location: None,
             builtin_identifier,
             identifier: "verify",
-            return_type: Box::new(Type::boolean()),
+            return_type: Box::new(Type::boolean(None)),
         }
     }
 
-    pub fn identifier(&self) -> &'static str {
-        self.identifier
-    }
-
-    pub fn builtin_identifier(&self) -> BuiltinIdentifier {
-        self.builtin_identifier
-    }
-
-    pub fn call(self, actual_elements: Vec<Element>) -> Result<Type, Error> {
+    pub fn call(
+        self,
+        location: Option<Location>,
+        actual_elements: Vec<Element>,
+    ) -> Result<Type, Error> {
         let mut actual_params = Vec::with_capacity(actual_elements.len());
         for (index, element) in actual_elements.into_iter().enumerate() {
+            let location = element.location();
+
             let r#type = match element {
                 Element::Value(value) => value.r#type(),
                 Element::Constant(constant) => constant.r#type(),
                 element => {
-                    return Err(Error::argument_not_evaluable(
-                        self.identifier.to_owned(),
-                        index + 1,
-                        element.to_string(),
-                    ))
+                    return Err(Error::ArgumentNotEvaluable {
+                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        function: self.identifier.to_owned(),
+                        position: index + 1,
+                        found: element.to_string(),
+                    })
                 }
             };
-            actual_params.push(r#type);
+
+            actual_params.push((r#type, location));
         }
 
         match actual_params.get(Self::ARGUMENT_INDEX_SIGNATURE) {
-            Some(Type::Structure(structure))
-                if structure.unique_id == BuiltInItems::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE => {}
-            Some(r#type) => {
-                return Err(Error::argument_type(
-                    self.identifier.to_owned(),
-                    "signature".to_owned(),
-                    Self::ARGUMENT_INDEX_SIGNATURE + 1,
-                    "std::crypto::schnorr::Signature { r: std::crypto::ecc::Point, s: field, pk: std::crypto::ecc::Point }".to_owned(),
-                    r#type.to_string(),
-                ))
-            }
+            Some((Type::Structure(structure), _location))
+                if structure.type_id == BuiltInTypeId::StdCryptoSchnorrSignature as usize => {}
+            Some((r#type, location)) => {
+                return Err(Error::ArgumentType {
+                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    function: self.identifier.to_owned(),
+                    name: "signature".to_owned(),
+                    position: Self::ARGUMENT_INDEX_SIGNATURE + 1,
+                    expected: "std::crypto::schnorr::Signature { r: std::crypto::ecc::Point, s: field, pk: std::crypto::ecc::Point }".to_owned(),
+                    found: r#type.to_string(),
+                })
+            },
             None => {
-                return Err(Error::argument_count(
-                    self.identifier.to_owned(),
-                    Self::ARGUMENT_COUNT,
-                    actual_params.len(),
-                ))
+                return Err(Error::ArgumentCount {
+                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    function: self.identifier.to_owned(),
+                    expected: Self::ARGUMENT_COUNT,
+                    found: actual_params.len(),
+                })
             }
         }
 
         match actual_params.get(Self::ARGUMENT_INDEX_MESSAGE) {
-            Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
-                (Type::Boolean, size)
+            Some((Type::Array(array), location)) => match (array.r#type.deref(), array.size) {
+                (Type::Boolean(_), size)
                     if size % crate::BITLENGTH_BYTE == 0
                         && size > 0
                         && size <= crate::LIMIT_SCHNORR_MESSAGE_BITS => {}
                 (r#type, size) => {
-                    return Err(Error::argument_type(
-                        self.identifier.to_owned(),
-                        "message".to_owned(),
-                        Self::ARGUMENT_INDEX_MESSAGE + 1,
-                        format!(
+                    return Err(Error::ArgumentType {
+                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        function: self.identifier.to_owned(),
+                        name: "message".to_owned(),
+                        position: Self::ARGUMENT_INDEX_MESSAGE + 1,
+                        expected: format!(
                             "[bool; N], 0 < N <= {}, N % {} == 0",
                             crate::BITLENGTH_MAX_INT,
                             crate::BITLENGTH_BYTE
                         ),
-                        format!("[{}; {}]", r#type, size),
-                    ));
+                        found: format!("array [{}; {}]", r#type, size),
+                    });
                 }
             },
-            Some(r#type) => {
-                return Err(Error::argument_type(
-                    self.identifier.to_owned(),
-                    "message".to_owned(),
-                    Self::ARGUMENT_INDEX_MESSAGE + 1,
-                    format!(
+            Some((r#type, location)) => {
+                return Err(Error::ArgumentType {
+                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    function: self.identifier.to_owned(),
+                    name: "message".to_owned(),
+                    position: Self::ARGUMENT_INDEX_MESSAGE + 1,
+                    expected: format!(
                         "[bool; N], 0 < N <= {}, N % {} == 0",
                         crate::BITLENGTH_MAX_INT,
                         crate::BITLENGTH_BYTE
                     ),
-                    r#type.to_string(),
-                ));
+                    found: r#type.to_string(),
+                });
             }
             None => {
-                return Err(Error::argument_count(
-                    self.identifier.to_owned(),
-                    Self::ARGUMENT_COUNT,
-                    actual_params.len(),
-                ));
+                return Err(Error::ArgumentCount {
+                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    function: self.identifier.to_owned(),
+                    expected: Self::ARGUMENT_COUNT,
+                    found: actual_params.len(),
+                });
             }
         }
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
-            return Err(Error::argument_count(
-                self.identifier.to_owned(),
-                Self::ARGUMENT_COUNT,
-                actual_params.len(),
-            ));
+            return Err(Error::ArgumentCount {
+                location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                function: self.identifier.to_owned(),
+                expected: Self::ARGUMENT_COUNT,
+                found: actual_params.len(),
+            });
         }
 
         Ok(*self.return_type)
@@ -134,6 +143,6 @@ impl Function {
 
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "fn std::crypto::schnorr::{}(signature: std::crypto::schnorr::Signature, message: [bool; N]) -> bool", self.identifier)
+        write!(f, "crypto::schnorr::{}(signature: std::crypto::schnorr::Signature, message: [bool; N]) -> bool", self.identifier)
     }
 }

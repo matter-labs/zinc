@@ -8,8 +8,8 @@ use crate::lexical::token::location::Location;
 use crate::syntax::tree::identifier::Identifier;
 
 ///
-/// Paths are the `::` expressions which exist at compile time only.
-/// Paths are usually coerced to place, value, constant or type expressions.
+/// Paths are the `::` expressions which only exist at compile-time.
+/// They are usually coerced to place, value, constant or type expressions.
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Path {
@@ -32,7 +32,7 @@ impl Path {
     pub fn last(&self) -> &Identifier {
         self.elements
             .last()
-            .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS)
+            .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)
     }
 }
 

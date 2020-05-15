@@ -73,7 +73,7 @@ impl Parser {
                 State::Type => {
                     let (array_type, next) = TypeParser::default().parse(stream.clone(), None)?;
                     self.next = next;
-                    self.builder.set_array_type_variant(array_type.variant);
+                    self.builder.set_array_type(array_type);
                     self.state = State::Semicolon;
                 }
                 State::Semicolon => {
@@ -124,9 +124,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::error::Error;
     use crate::lexical::stream::TokenStream;
@@ -145,13 +142,13 @@ mod tests {
 
     #[test]
     fn ok() {
-        let input = "[field; 8]";
+        let input = r#"[field; 8]"#;
 
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
                 TypeVariant::array(
-                    TypeVariant::field(),
+                    Type::new(Location::new(1, 2), TypeVariant::field()),
                     ExpressionTree::new(
                         Location::new(1, 9),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
@@ -166,20 +163,20 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn ok_size_expression() {
-        let input = "[field; 4 * 4]";
+        let input = r#"[field; 4 * 4]"#;
 
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
                 TypeVariant::array(
-                    TypeVariant::field(),
+                    Type::new(Location::new(1, 2), TypeVariant::field()),
                     ExpressionTree::new_with_leaves(
                         Location::new(1, 11),
                         ExpressionTreeNode::operator(ExpressionOperator::Multiplication),
@@ -207,29 +204,32 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn ok_nested() {
-        let input = "[[field; 8]; 8]";
+        let input = r#"[[field; 8]; 8]"#;
 
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
                 TypeVariant::array(
-                    TypeVariant::array(
-                        TypeVariant::field(),
-                        ExpressionTree::new(
-                            Location::new(1, 10),
-                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
-                                IntegerLiteral::new(
-                                    Location::new(1, 10),
-                                    LexicalIntegerLiteral::new_decimal("8".to_owned()),
-                                ),
-                            )),
+                    Type::new(
+                        Location::new(1, 2),
+                        TypeVariant::array(
+                            Type::new(Location::new(1, 3), TypeVariant::field()),
+                            ExpressionTree::new(
+                                Location::new(1, 10),
+                                ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                    IntegerLiteral::new(
+                                        Location::new(1, 10),
+                                        LexicalIntegerLiteral::new_decimal("8".to_owned()),
+                                    ),
+                                )),
+                            ),
                         ),
                     ),
                     ExpressionTree::new(
@@ -246,14 +246,14 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_semicolon() {
-        let input = "[field, 8]";
+        let input = r#"[field, 8]"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 7),
@@ -262,14 +262,14 @@ mod tests {
             None,
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_bracket_square_right() {
-        let input = "[field; 8)";
+        let input = r#"[field; 8)"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
             Location::new(1, 10),
@@ -278,7 +278,7 @@ mod tests {
             None,
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

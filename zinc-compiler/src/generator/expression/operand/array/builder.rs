@@ -24,7 +24,7 @@ impl Builder {
         match self.size.take() {
             Some(size) => {
                 let expression = self.expressions.pop().unwrap_or_else(|| {
-                    panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "expression")
+                    panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "expression")
                 });
 
                 ArrayExpression::new_repeated(expression, size)

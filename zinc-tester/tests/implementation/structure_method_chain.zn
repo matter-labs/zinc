@@ -1,0 +1,55 @@
+//# { "cases": [ {
+//#     "case": "first",
+//#     "input": {
+//#         "witness": "42"
+//#     },
+//#     "expect": "1008"
+//# }, {
+//#     "case": "second",
+//#     "input": {
+//#         "witness": "64"
+//#     },
+//#     "expect": "1536"
+//# }, {
+//#     "case": "third",
+//#     "input": {
+//#         "witness": "1000000"
+//#     },
+//#     "expect": "24000000"
+//# } ] }
+
+struct Data {
+    a: field,
+}
+
+impl Data {
+    pub fn new(a: field) -> Self {
+        Self {
+            a: a,
+        }
+    }
+
+    pub fn double(self) -> Self {
+        Self { a: self.a * 2 as field }
+    }
+
+    pub fn triple(self) -> Self {
+        Self { a: self.a * 3 as field }
+    }
+
+    pub fn quadruple(self) -> Self {
+        Self { a: self.a * 4 as field }
+    }
+
+    pub fn into_inner(self) -> field {
+        self.a
+    }
+}
+
+fn main(witness: field) -> field {
+    Data::new(witness)
+        .double()
+        .triple()
+        .quadruple()
+        .into_inner()
+}

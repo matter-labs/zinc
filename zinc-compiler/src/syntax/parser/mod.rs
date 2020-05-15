@@ -21,7 +21,7 @@ use crate::lexical::stream::TokenStream;
 use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::Token;
 use crate::syntax::parser::statement::local_mod::Parser as ModuleLocalStatementParser;
-use crate::syntax::tree::Tree;
+use crate::syntax::tree::module::Module;
 
 #[derive(Default)]
 pub struct Parser {
@@ -32,12 +32,12 @@ impl Parser {
     ///
     /// The top-level parser. Parses a list of module level statements.
     ///
-    pub fn parse(mut self, input: &str, file: Option<usize>) -> Result<Tree, Error> {
+    pub fn parse(mut self, input: &str, file: Option<usize>) -> Result<Module, Error> {
         let stream = match file {
             Some(file) => TokenStream::new_with_file(input, file),
             None => TokenStream::new(input),
-        };
-        let stream = Rc::new(RefCell::new(stream));
+        }
+        .wrap();
 
         let mut statements = Vec::new();
         loop {
@@ -55,7 +55,7 @@ impl Parser {
             }
         }
 
-        Ok(Tree { statements })
+        Ok(Module::new(statements))
     }
 }
 

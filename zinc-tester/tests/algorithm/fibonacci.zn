@@ -1,17 +1,31 @@
 //# { "cases": [ {
-//#     "case": "default",
-//#     "input": {},
+//#     "case": "one",
+//#     "input": {
+//#         "n": "12"
+//#     },
 //#     "expect": "89"
+//# }, {
+//#     "case": "two",
+//#     "input": {
+//#         "n": "14"
+//#     },
+//#     "expect": "233"
+//# }, {
+//#     "case": "three",
+//#     "input": {
+//#         "n": "16"
+//#     },
+//#     "expect": "610"
 //# } ] }
 
-const INDEX: u8 = 10;
+const INDEX: u8 = 16;
 
-fn main() -> field {
+fn main(n: u8) -> field {
     let mut value_1: field = 0;
     let mut value_2: field = 1;
     let mut fibo = value_1;
 
-    for i in 1..=INDEX {
+    for i in 1..=INDEX while i + 2 <= n {
         fibo = value_1 + value_2;
         value_1 = value_2;
         value_2 = fibo;

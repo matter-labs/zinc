@@ -18,10 +18,10 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#const::builder::Builder as ConstStatementBuilder;
 use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "constant must have an identifier, e.g. `const DATA: u8 = 42;`";
-static HINT_EXPECTED_TYPE: &str = "constant must have a type, e.g. `const DATA: u8 = 42;`";
-static HINT_EXPECTED_VALUE: &str = "constant must be initialized, e.g. `const DATA: u8 = 42;`";
+pub static HINT_EXPECTED_TYPE: &str = "constant must have a type, e.g. `const DATA: u8 = 42;`";
+pub static HINT_EXPECTED_VALUE: &str = "constant must be initialized, e.g. `const DATA: u8 = 42;`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -164,9 +164,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::error::Error;
     use crate::lexical::stream::TokenStream;
@@ -206,7 +203,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -221,7 +218,7 @@ mod tests {
             Some(super::HINT_EXPECTED_IDENTIFIER),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -236,7 +233,7 @@ mod tests {
             Some(super::HINT_EXPECTED_TYPE),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -251,14 +248,14 @@ mod tests {
             Some(super::HINT_EXPECTED_VALUE),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_semicolon() {
-        let input = "const A: u64 = 42";
+        let input = r#"const A: u64 = 42"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 18),
@@ -267,7 +264,7 @@ mod tests {
             None,
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

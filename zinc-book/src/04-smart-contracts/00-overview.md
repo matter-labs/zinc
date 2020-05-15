@@ -1,0 +1,42 @@
+# Smart contracts
+
+A Zinc smart contract consists of the entry file `<contract_name>.zn`, where
+the contract itself is declared, and many module files, which can be imported
+into the main file.
+
+## Example
+
+### Entry point file
+
+```rust,no_run,noplaypen
+/// 
+/// 'src/cube_deposit.zn'
+///
+/// Triples the deposited amount.
+///
+
+mod simple_math;
+
+use simple_math::cube;
+
+contract CubeDeposit {
+    // ...
+
+    pub fn deposit(amount: u64) -> u64 {
+        cube(amount)
+    }
+}
+```
+
+### Module `simple_math` file
+
+```rust,no_run,noplaypen
+/// 
+/// 'src/simple_math.zn'
+/// 
+
+/// Returns x^3.
+fn cube(x: u64) -> u64 {
+    x * x * x
+}
+```

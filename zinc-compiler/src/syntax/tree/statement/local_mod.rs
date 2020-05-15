@@ -3,6 +3,7 @@
 //!
 
 use crate::lexical::token::location::Location;
+use crate::syntax::tree::statement::contract::Statement as ContractStatement;
 use crate::syntax::tree::statement::module::Statement as ModStatement;
 use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 use crate::syntax::tree::statement::r#enum::Statement as EnumStatement;
@@ -22,6 +23,7 @@ pub enum Statement {
     Mod(ModStatement),
     Use(UseStatement),
     Impl(ImplStatement),
+    Contract(ContractStatement),
     Empty(Location),
 }
 
@@ -36,6 +38,7 @@ impl Statement {
             Self::Mod(inner) => inner.location,
             Self::Use(inner) => inner.location,
             Self::Impl(inner) => inner.location,
+            Self::Contract(inner) => inner.location,
             Self::Empty(location) => *location,
         }
     }

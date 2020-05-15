@@ -12,7 +12,7 @@ use crate::syntax::tree::identifier::Identifier;
 pub struct Expression {
     pub location: Location,
     pub identifier: Identifier,
-    pub is_struct: bool,
+    pub is_structure: bool,
     pub fields: Vec<(Identifier, ExpressionTree)>,
 }
 
@@ -20,13 +20,13 @@ impl Expression {
     pub fn new(
         location: Location,
         identifier: Identifier,
-        is_struct: bool,
+        is_structure: bool,
         fields: Vec<(Identifier, ExpressionTree)>,
     ) -> Self {
         Self {
             location,
             identifier,
-            is_struct,
+            is_structure,
             fields,
         }
     }

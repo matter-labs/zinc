@@ -3,51 +3,36 @@
 //!
 
 use std::fmt;
-use std::ops::Deref;
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 
-pub static FUNCTION_MAIN_IDENTIFIER: &str = "main";
-
 #[derive(Debug, Clone)]
 pub struct Function {
-    identifier: String,
-    unique_id: usize,
-    formal_params: Vec<(String, Type)>,
-    return_type: Box<Type>,
+    pub location: Location,
+    pub identifier: String,
+    pub type_id: usize,
+    pub formal_params: Vec<(String, Type)>,
+    pub return_type: Box<Type>,
 }
 
 impl Function {
     pub fn new(
+        location: Location,
         identifier: String,
-        unique_id: usize,
+        type_id: usize,
         arguments: Vec<(String, Type)>,
         return_type: Type,
     ) -> Self {
         Self {
+            location,
             identifier,
             formal_params: arguments,
             return_type: Box::new(return_type),
-            unique_id,
+            type_id,
         }
-    }
-
-    pub fn identifier(&self) -> &str {
-        self.identifier.as_str()
-    }
-
-    pub fn unique_id(&self) -> usize {
-        self.unique_id
-    }
-
-    pub fn formal_params(&self) -> &[(String, Type)] {
-        self.formal_params.as_slice()
-    }
-
-    pub fn return_type(&self) -> &Type {
-        self.return_type.deref()
     }
 
     pub fn input_size(&self) -> usize {
@@ -64,39 +49,54 @@ impl Function {
     pub fn call(self, actual_elements: Vec<Element>) -> Result<Type, Error> {
         let mut actual_params = Vec::with_capacity(actual_elements.len());
         for (index, element) in actual_elements.into_iter().enumerate() {
+            let location = element.location();
+
             let (r#type, is_constant) = match element {
                 Element::Value(value) => (value.r#type(), false),
                 Element::Constant(constant) => (constant.r#type(), true),
                 element => {
-                    return Err(Error::argument_not_evaluable(
-                        self.identifier.to_owned(),
-                        index + 1,
-                        element.to_string(),
-                    ))
+                    return Err(Error::ArgumentNotEvaluable {
+                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        function: self.identifier.to_owned(),
+                        position: index + 1,
+                        found: element.to_string(),
+                    })
                 }
             };
-            actual_params.push((r#type, is_constant));
+
+            actual_params.push((r#type, is_constant, location));
+        }
+
+        if actual_params.len() != self.formal_params.len() {
+            return Err(Error::ArgumentCount {
+                location: self.location,
+                function: self.identifier.to_owned(),
+                expected: self.formal_params.len(),
+                found: actual_params.len(),
+            });
         }
 
         let formal_params_length = self.formal_params.len();
         for (index, (name, r#type)) in self.formal_params.into_iter().enumerate() {
             match actual_params.get(index) {
-                Some((actual_type, _is_constant)) if actual_type == &r#type => {}
-                Some((actual_type, _is_constant)) => {
-                    return Err(Error::argument_type(
-                        self.identifier.to_owned(),
+                Some((actual_type, _is_constant, _location)) if actual_type == &r#type => {}
+                Some((actual_type, _is_constant, location)) => {
+                    return Err(Error::ArgumentType {
+                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        function: self.identifier.to_owned(),
                         name,
-                        index + 1,
-                        r#type.to_string(),
-                        actual_type.to_string(),
-                    ))
+                        position: index + 1,
+                        expected: r#type.to_string(),
+                        found: actual_type.to_string(),
+                    })
                 }
                 None => {
-                    return Err(Error::argument_count(
-                        self.identifier.to_owned(),
-                        formal_params_length,
-                        actual_params.len(),
-                    ))
+                    return Err(Error::ArgumentCount {
+                        location: self.location,
+                        function: self.identifier.to_owned(),
+                        expected: formal_params_length,
+                        found: actual_params.len(),
+                    })
                 }
             }
         }

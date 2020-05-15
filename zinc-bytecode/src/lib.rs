@@ -1,4 +1,3 @@
-pub mod logger;
 pub mod scalar;
 
 pub mod builtins;

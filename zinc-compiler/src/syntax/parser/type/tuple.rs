@@ -80,7 +80,7 @@ impl Parser {
                             let (element_type, next) =
                                 TypeParser::default().parse(stream.clone(), Some(token))?;
                             self.next = next;
-                            self.builder.push_tuple_element_type(element_type.variant);
+                            self.builder.push_tuple_element_type(element_type);
                             self.state = State::CommaOrParenthesisRight;
                         }
                     }
@@ -112,9 +112,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::error::Error;
     use crate::lexical::stream::TokenStream;
@@ -132,69 +129,72 @@ mod tests {
 
     #[test]
     fn ok_unit() {
-        let input = "()";
+        let input = r#"()"#;
 
         let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::unit()), None));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn ok_single() {
-        let input = "(field)";
+        let input = r#"(field)"#;
 
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::tuple(vec![TypeVariant::Field]),
+                TypeVariant::tuple(vec![Type::new(Location::new(1, 2), TypeVariant::Field)]),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn ok_single_with_comma() {
-        let input = "(field,)";
+        let input = r#"(field,)"#;
 
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::tuple(vec![TypeVariant::Field]),
+                TypeVariant::tuple(vec![Type::new(Location::new(1, 2), TypeVariant::Field)]),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn ok_multiple() {
-        let input = "(field, (), [u8; 4])";
+        let input = r#"(field, (), [u8; 4])"#;
 
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
                 TypeVariant::tuple(vec![
-                    TypeVariant::Field,
-                    TypeVariant::Unit,
-                    TypeVariant::array(
-                        TypeVariant::integer_unsigned(8),
-                        ExpressionTree::new(
-                            Location::new(1, 18),
-                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
-                                IntegerLiteral::new(
-                                    Location::new(1, 18),
-                                    LexicalIntegerLiteral::new_decimal("4".to_owned()),
-                                ),
-                            )),
+                    Type::new(Location::new(1, 2), TypeVariant::Field),
+                    Type::new(Location::new(1, 9), TypeVariant::Unit),
+                    Type::new(
+                        Location::new(1, 13),
+                        TypeVariant::array(
+                            Type::new(Location::new(1, 14), TypeVariant::integer_unsigned(8)),
+                            ExpressionTree::new(
+                                Location::new(1, 18),
+                                ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                    IntegerLiteral::new(
+                                        Location::new(1, 18),
+                                        LexicalIntegerLiteral::new_decimal("4".to_owned()),
+                                    ),
+                                )),
+                            ),
                         ),
                     ),
                 ]),
@@ -202,34 +202,37 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn ok_nested() {
-        let input = "((field, field),)";
+        let input = r#"((field, field),)"#;
 
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::tuple(vec![TypeVariant::tuple(vec![
-                    TypeVariant::Field,
-                    TypeVariant::Field,
-                ])]),
+                TypeVariant::tuple(vec![Type::new(
+                    Location::new(1, 2),
+                    TypeVariant::tuple(vec![
+                        Type::new(Location::new(1, 3), TypeVariant::Field),
+                        Type::new(Location::new(1, 10), TypeVariant::Field),
+                    ]),
+                )]),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_comma_or_parenthesis_right() {
-        let input = "(field;)";
+        let input = r#"(field;)"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 7),
@@ -238,7 +241,7 @@ mod tests {
             None,
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

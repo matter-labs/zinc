@@ -7,6 +7,7 @@ use std::rc::Rc;
 
 use crate::error::Error;
 use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::lexeme::symbol::Symbol;
 use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::Token;
@@ -60,6 +61,24 @@ impl Parser {
                                 .eat_operand(ExpressionOperand::Identifier(identifier), location);
                             self.state = State::DoubleColonOrEnd;
                         }
+                        Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::SelfLowercase),
+                            location,
+                        } => {
+                            let identifier = Identifier::new(location, keyword.to_string());
+                            self.builder
+                                .eat_operand(ExpressionOperand::Identifier(identifier), location);
+                            self.state = State::DoubleColonOrEnd;
+                        }
+                        Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::SelfUppercase),
+                            location,
+                        } => {
+                            let identifier = Identifier::new(location, keyword.to_string());
+                            self.builder
+                                .eat_operand(ExpressionOperand::Identifier(identifier), location);
+                            self.state = State::DoubleColonOrEnd;
+                        }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::expected_identifier(
                                 location, lexeme, None,
@@ -87,9 +106,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::lexical::stream::TokenStream;
     use crate::lexical::token::lexeme::symbol::Symbol;
@@ -120,7 +136,7 @@ mod tests {
             )),
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -163,7 +179,7 @@ mod tests {
             )),
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

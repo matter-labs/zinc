@@ -2,9 +2,9 @@
 pub mod testing_utils;
 
 pub mod builtins;
+pub mod contracts;
 pub mod flow;
 pub mod memory;
-pub mod contracts;
 
 pub mod assert;
 pub mod call_builtin;

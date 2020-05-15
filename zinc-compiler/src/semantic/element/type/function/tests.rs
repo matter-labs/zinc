@@ -9,11 +9,12 @@ use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::element::Element;
 use crate::semantic::element::Error as ElementError;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
-fn error_argument_count() {
+fn error_argument_count_lesser() {
     let input = r#"
 fn another(x: u8) -> u8 {
     42
@@ -24,14 +25,40 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 24),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "another".to_owned(),
-            1,
-            0,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(7, 17),
+            function: "another".to_owned(),
+            expected: 1,
+            found: 0,
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_argument_count_greater() {
+    let input = r#"
+fn another(x: u8) -> u8 {
+    42
+}
+
+fn main() {
+    let value = another(1, 2);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(7, 17),
+            function: "another".to_owned(),
+            expected: 1,
+            found: 2,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -50,16 +77,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 24),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "another".to_owned(),
-            "x".to_owned(),
-            1,
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            Type::boolean().to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(7, 25),
+            function: "another".to_owned(),
+            name: "x".to_owned(),
+            position: 1,
+            expected: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -76,17 +103,15 @@ fn main() -> [u8; 2] {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
-        ElementError::Type(TypeError::Function(
-            FunctionTypeError::argument_constantness(
-                "truncate".to_owned(),
-                "new_length".to_owned(),
-                2,
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
-        )),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentConstantness {
+            location: Location::new(5, 33),
+            function: "truncate".to_owned(),
+            name: "new_length".to_owned(),
+            position: 2,
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -107,16 +132,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(9, 24),
-        ElementError::Type(TypeError::Function(
-            FunctionTypeError::argument_not_evaluable(
-                "another".to_owned(),
-                1,
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
-        )),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentNotEvaluable {
+            location: Location::new(9, 25),
+            function: "another".to_owned(),
+            position: 1,
+            found: Element::Type(Type::integer_unsigned(None, crate::BITLENGTH_BYTE)).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -135,15 +158,15 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 5),
-        ElementError::Type(TypeError::Function(FunctionTypeError::return_type(
-            "another".to_owned(),
-            Type::boolean().to_string(),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            Location::new(2, 17),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ReturnType {
+            location: Location::new(3, 5),
+            function: "another".to_owned(),
+            expected: Type::boolean(None).to_string(),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+            reference: Location::new(2, 17),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -160,12 +183,48 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 24),
-        ElementError::Type(TypeError::Function(FunctionTypeError::non_callable(
-            Type::tuple(vec![Type::integer_unsigned(crate::BITLENGTH_BYTE); 2]).to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::NonCallable {
+            location: Location::new(5, 17),
+            name: Element::Type(Type::tuple(
+                Some(Location::new(5, 17)),
+                vec![Type::integer_unsigned(None, crate::BITLENGTH_BYTE); 2],
+            ))
+            .to_string(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_function_method_self_not_first() {
+    let input = r#"
+struct Data {
+    value: u8,
+}
+
+impl Data {
+    fn method(value: u8, self) -> u8 {
+        value
+    }
+}
+
+fn main() {
+    let data = Data { value: 42 };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::FunctionMethodSelfNotFirst {
+            location: Location::new(7, 8),
+            function: "method".to_owned(),
+            position: 2,
+            reference: Location::new(7, 26),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 

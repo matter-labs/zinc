@@ -15,27 +15,23 @@ path = "src/cli/zvm.rs"
 [dependencies]
 log = "0.4"
 env_logger = "0.7"
-clap = "2.33.0"
-rand = "0.4.5"
-colored = "1.9.0"
-serde_json = "1.0.44"
-structopt = "0.3.8"
-lazy_static = "1.4.0"
-hex = "0.4.0"
+structopt = "0.3"
 failure = "0.1"
+colored = "1.9"
+
+serde_json = "1.0"
+
+lazy_static = "1.4"
+rand = "0.4"
+hex = "0.4"
+
+num-bigint = "0.2"
+num-traits = "0.2"
 
 pairing = { package = "pairing_ce", version = "0.17.0" }
 bellman = { package = "bellman_ce", version = "0.3.0" }
-franklin_crypto = { package = "franklin-crypto", git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc"}
+franklin_crypto = { package = "franklin-crypto", git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc" }
 ff = { package = "ff_ce", version = "0.6.0", features = ["derive"] }
-
-num-bigint = "0.2.3"
-num-traits = "0.2.8"
-num-integer = "0.1.41"
 
 zinc-bytecode = { path = "../zinc-bytecode" }
 zinc-utils = { path = "../zinc-utils" }
-
-[build-dependencies]
-clap = "2.33.0"
-num-bigint = "0.2.3"

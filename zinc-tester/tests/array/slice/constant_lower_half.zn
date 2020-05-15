@@ -1,0 +1,14 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {},
+//#     "expect": ["1", "2", "3", "4", "5"]
+//# } ] }
+
+const LENGTH_INPUT: u8 = 10;
+const LENGTH_OUTPUT: u8 = 5;
+
+const ARRAY: [u8; LENGTH_INPUT] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+fn main() -> [u8; LENGTH_OUTPUT] {
+    ARRAY[0..LENGTH_OUTPUT]
+}

@@ -128,9 +128,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::lexical::stream::TokenStream;
     use crate::lexical::token::lexeme::literal::boolean::Boolean as LexicalBooleanLiteral;
@@ -150,7 +147,7 @@ mod tests {
 
     #[test]
     fn ok_literal_boolean() {
-        let input = "true";
+        let input = r#"true"#;
 
         let expected = Ok((
             MatchPattern::new(
@@ -163,14 +160,14 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn ok_literal_integer() {
-        let input = "42";
+        let input = r#"42"#;
 
         let expected = Ok((
             MatchPattern::new(
@@ -183,14 +180,14 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn ok_binding() {
-        let input = "value";
+        let input = r#"value"#;
 
         let expected = Ok((
             MatchPattern::new(
@@ -203,14 +200,14 @@ mod tests {
             Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn ok_path() {
-        let input = "data::Inner::VALUE";
+        let input = r#"data::Inner::VALUE"#;
 
         let expected = Ok((
             MatchPattern::new(
@@ -245,21 +242,21 @@ mod tests {
             Some(Token::new(Lexeme::Eof, Location::new(1, 19))),
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn ok_wildcard() {
-        let input = "_";
+        let input = r#"_"#;
 
         let expected = Ok((
             MatchPattern::new(Location::new(1, 1), MatchPatternVariant::Wildcard),
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

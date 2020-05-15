@@ -18,7 +18,7 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#for::builder::Builder as ForStatementBuilder;
 use crate::syntax::tree::statement::r#for::Statement as ForStatement;
 
-static HINT_EXPECTED_INDEX_IDENTIFIER: &str =
+pub static HINT_EXPECTED_INDEX_IDENTIFIER: &str =
     "for-loops must have the index identifier, e.g. `for i in 0..10 { ... }`";
 
 #[derive(Debug, Clone, Copy)]
@@ -172,9 +172,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::error::Error;
     use crate::lexical::stream::TokenStream;
@@ -228,7 +225,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -294,7 +291,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -309,7 +306,7 @@ mod tests {
             Some(super::HINT_EXPECTED_INDEX_IDENTIFIER),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -325,7 +322,7 @@ mod tests {
             None,
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -341,7 +338,7 @@ mod tests {
             None,
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

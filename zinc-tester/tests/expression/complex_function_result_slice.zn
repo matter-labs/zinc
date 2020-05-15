@@ -1,0 +1,23 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "16"
+//#     },
+//#     "expect": "64"
+//# } ] }
+
+struct Data {
+    a: (bool, [u8; 2]),
+    b: (u8, [u8; 4]),
+}
+
+fn foo() -> Data {
+    Data {
+        a: (false, [8, 9]),
+        b: (1, [2, 3, 4, 5]),
+    }
+}
+
+fn main(witness: u8) -> u8 {
+    witness * foo().b.1[2]
+}

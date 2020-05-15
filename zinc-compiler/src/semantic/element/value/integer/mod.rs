@@ -8,6 +8,8 @@ pub mod error;
 
 use std::fmt;
 
+use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::enumeration::Enumeration;
 use crate::semantic::element::r#type::Type;
 
@@ -20,14 +22,16 @@ use self::error::Error;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
+    pub location: Option<Location>,
     pub is_signed: bool,
     pub bitlength: usize,
     pub enumeration: Option<Enumeration>,
 }
 
 impl Integer {
-    pub fn new(is_signed: bool, bitlength: usize) -> Self {
+    pub fn new(location: Option<Location>, is_signed: bool, bitlength: usize) -> Self {
         Self {
+            location,
             is_signed,
             bitlength,
             enumeration: None,
@@ -41,7 +45,7 @@ impl Integer {
     pub fn r#type(&self) -> Type {
         match self.enumeration {
             Some(ref enumeration) => Type::Enumeration(enumeration.to_owned()),
-            None => Type::scalar(self.is_signed, self.bitlength),
+            None => Type::scalar(self.location, self.is_signed, self.bitlength),
         }
     }
 
@@ -55,241 +59,366 @@ impl Integer {
             }
     }
 
-    pub fn equals(self, other: Self) -> Result<(), Error> {
+    pub fn equals(self, other: Self) -> Result<GeneratorExpressionOperator, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchEquals {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
-        Ok(())
+        let operator = GeneratorExpressionOperator::Equals;
+
+        Ok(operator)
     }
 
-    pub fn not_equals(self, other: Self) -> Result<(), Error> {
+    pub fn not_equals(self, other: Self) -> Result<GeneratorExpressionOperator, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchNotEquals {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
-        Ok(())
+        let operator = GeneratorExpressionOperator::NotEquals;
+
+        Ok(operator)
     }
 
-    pub fn greater_equals(self, other: Self) -> Result<(), Error> {
+    pub fn greater_equals(self, other: Self) -> Result<GeneratorExpressionOperator, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreaterEquals {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
-        Ok(())
+        let operator = GeneratorExpressionOperator::GreaterEquals;
+
+        Ok(operator)
     }
 
-    pub fn lesser_equals(self, other: Self) -> Result<(), Error> {
+    pub fn lesser_equals(self, other: Self) -> Result<GeneratorExpressionOperator, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchLesserEquals {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
-        Ok(())
+        let operator = GeneratorExpressionOperator::LesserEquals;
+
+        Ok(operator)
     }
 
-    pub fn greater(self, other: Self) -> Result<(), Error> {
+    pub fn greater(self, other: Self) -> Result<GeneratorExpressionOperator, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreater {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
-        Ok(())
+        let operator = GeneratorExpressionOperator::Greater;
+
+        Ok(operator)
     }
 
-    pub fn lesser(self, other: Self) -> Result<(), Error> {
+    pub fn lesser(self, other: Self) -> Result<GeneratorExpressionOperator, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchLesser {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
-        Ok(())
+        let operator = GeneratorExpressionOperator::Lesser;
+
+        Ok(operator)
     }
 
-    pub fn bitwise_or(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_or(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseOr {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
         }
 
-        Ok(self)
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
+        }
+
+        let operator = GeneratorExpressionOperator::BitwiseOr;
+
+        Ok((self, operator))
     }
 
-    pub fn bitwise_xor(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_xor(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseXor {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
         }
 
-        Ok(self)
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
+        }
+
+        let operator = GeneratorExpressionOperator::BitwiseXor;
+
+        Ok((self, operator))
     }
 
-    pub fn bitwise_and(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_and(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseAnd {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
         }
 
-        Ok(self)
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
+        }
+
+        let operator = GeneratorExpressionOperator::BitwiseAnd;
+
+        Ok((self, operator))
     }
 
-    pub fn bitwise_shift_left(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_left(
+        self,
+        other: Self,
+    ) -> Result<(Self, GeneratorExpressionOperator), Error> {
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
         }
 
         if other.is_signed {
             return Err(
-                Error::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned {
+                Error::OperatorBitwiseShiftLeftSecondOperatorExpectedUnsigned {
+                    location: other.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: other.to_string(),
                 },
             );
         }
 
-        Ok(self)
+        let operator = GeneratorExpressionOperator::BitwiseShiftLeft;
+
+        Ok((self, operator))
     }
 
-    pub fn bitwise_shift_right(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_right(
+        self,
+        other: Self,
+    ) -> Result<(Self, GeneratorExpressionOperator), Error> {
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
         }
 
         if other.is_signed {
             return Err(
                 Error::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned {
+                    location: other.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: other.to_string(),
                 },
             );
         }
 
-        Ok(self)
+        let operator = GeneratorExpressionOperator::BitwiseShiftRight;
+
+        Ok((self, operator))
     }
 
-    pub fn add(self, other: Self) -> Result<Self, Error> {
+    pub fn add(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchAddition {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
-        Ok(self)
+        let operator = GeneratorExpressionOperator::Addition;
+
+        Ok((self, operator))
     }
 
-    pub fn subtract(self, other: Self) -> Result<Self, Error> {
+    pub fn subtract(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchSubtraction {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
-        Ok(self)
+        let operator = GeneratorExpressionOperator::Subtraction;
+
+        Ok((self, operator))
     }
 
-    pub fn multiply(self, other: Self) -> Result<Self, Error> {
+    pub fn multiply(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchMultiplication {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
-        Ok(self)
+        let operator = GeneratorExpressionOperator::Multiplication;
+
+        Ok((self, operator))
     }
 
-    pub fn divide(self, other: Self) -> Result<Self, Error> {
+    pub fn divide(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchDivision {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldDivision);
+            return Err(Error::ForbiddenFieldDivision {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
         }
 
-        Ok(self)
+        let operator = GeneratorExpressionOperator::Division;
+
+        Ok((self, operator))
     }
 
-    pub fn remainder(self, other: Self) -> Result<Self, Error> {
+    pub fn remainder(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchRemainder {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldRemainder);
+            return Err(Error::ForbiddenFieldRemainder {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
         }
 
-        Ok(self)
+        let operator = GeneratorExpressionOperator::Remainder;
+
+        Ok((self, operator))
     }
 
-    pub fn cast(mut self, is_signed: bool, bitlength: usize) -> Result<Self, Error> {
-        self.is_signed = is_signed;
-        self.bitlength = bitlength;
-        self.enumeration = None;
+    pub fn cast(
+        self,
+        is_signed: bool,
+        bitlength: usize,
+    ) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
+        let operator = if self.is_signed != is_signed || self.bitlength != bitlength {
+            GeneratorExpressionOperator::casting(&Type::scalar(self.location, is_signed, bitlength))
+        } else {
+            None
+        };
 
-        Ok(self)
+        let result = Self {
+            location: self.location,
+            is_signed,
+            bitlength,
+            enumeration: None,
+        };
+
+        Ok((result, operator))
     }
 
-    pub fn bitwise_not(self) -> Result<Self, Error> {
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+    pub fn bitwise_not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
         }
 
-        Ok(self)
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
+        }
+
+        let operator = GeneratorExpressionOperator::BitwiseNot;
+
+        Ok((self, operator))
     }
 
-    pub fn negate(mut self) -> Result<Self, Error> {
+    pub fn negate(mut self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldNegation);
+            return Err(Error::ForbiddenFieldNegation {
+                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            });
         }
 
         self.is_signed = true;
 
-        Ok(self)
+        let operator = GeneratorExpressionOperator::Negation;
+
+        Ok((self, operator))
     }
 }
 
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "<integer> of type '{}'", self.r#type())
+        write!(f, "<runtime> of type '{}'", self.r#type())
     }
 }

@@ -25,13 +25,13 @@ fn main() -> u8 {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 5),
-        ElementError::Type(TypeError::Structure(StructureTypeError::DuplicateField {
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Structure(StructureTypeError::DuplicateField {
+            location: Location::new(5, 5),
             type_identifier: "Data".to_owned(),
             field_name: "b".to_owned(),
-        })),
-    )));
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 

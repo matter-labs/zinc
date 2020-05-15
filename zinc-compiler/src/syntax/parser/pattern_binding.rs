@@ -17,20 +17,20 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::pattern_binding::builder::Builder as BindingPatternBuilder;
 use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
 
-static HINT_EXPECTED_TYPE: &str =
+pub static HINT_EXPECTED_TYPE: &str =
     "function argument must have a type, e.g. `fn sum(a: u8, b: u8) {}`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    KeywordMutOrIdentifierOrWildcard,
-    IdentifierOrWildcard,
+    MutOrNext,
+    Binding,
     Colon,
     Type,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::KeywordMutOrIdentifierOrWildcard
+        State::MutOrNext
     }
 }
 
@@ -45,7 +45,11 @@ impl Parser {
     ///
     /// Parses a binding pattern.
     ///
+    /// 'a: u8'
     /// 'mut a: u8'
+    /// '_: u8'
+    /// 'self'
+    /// 'mut self'
     ///
     pub fn parse(
         mut self,
@@ -54,31 +58,31 @@ impl Parser {
     ) -> Result<(BindingPattern, Option<Token>), Error> {
         loop {
             match self.state {
-                State::KeywordMutOrIdentifierOrWildcard => {
+                State::MutOrNext => {
                     match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Mut),
                             location,
                         } => {
                             self.builder.set_location(location);
-                            self.builder.set_is_binding_mutable();
-                            self.state = State::IdentifierOrWildcard;
+                            self.builder.set_is_mutable();
+                            self.state = State::Binding;
                         }
                         token => {
                             self.builder.set_location(token.location);
                             self.next = Some(token);
-                            self.state = State::IdentifierOrWildcard;
+                            self.state = State::Binding;
                         }
                     }
                 }
-                State::IdentifierOrWildcard => {
+                State::Binding => {
                     match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
                         } => {
                             self.builder
-                                .set_binding(Identifier::new(location, identifier.inner));
+                                .set_identifier(Identifier::new(location, identifier.inner));
                             self.state = State::Colon;
                         }
                         Token {
@@ -87,6 +91,14 @@ impl Parser {
                         } => {
                             self.builder.set_is_wildcard();
                             self.state = State::Colon;
+                        }
+                        Token {
+                            lexeme: Lexeme::Keyword(Keyword::SelfLowercase),
+                            location,
+                        } => {
+                            self.builder.set_self_location(location);
+                            self.builder.set_is_self_alias();
+                            return Ok((self.builder.finish(), None));
                         }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::expected_binding_pattern(
@@ -122,9 +134,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::error::Error;
     use crate::lexical::stream::TokenStream;
@@ -132,6 +141,9 @@ mod tests {
     use crate::lexical::token::lexeme::Lexeme;
     use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
     use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
     use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
@@ -140,81 +152,139 @@ mod tests {
 
     #[test]
     fn ok_binding() {
-        let input = "value: u8";
+        let input = r#"value: u8"#;
 
         let expected = Ok((
             BindingPattern::new(
                 Location::new(1, 1),
-                BindingPatternVariant::Binding(Identifier::new(
-                    Location::new(1, 1),
-                    "value".to_owned(),
-                )),
+                BindingPatternVariant::new_binding(
+                    Identifier::new(Location::new(1, 1), "value".to_owned()),
+                    false,
+                ),
                 Type::new(Location::new(1, 8), TypeVariant::integer_unsigned(8)),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
-    fn ok_mutable_binding() {
-        let input = "mut value: u8";
+    fn ok_binding_mutable() {
+        let input = r#"mut value: u8"#;
 
         let expected = Ok((
             BindingPattern::new(
                 Location::new(1, 1),
-                BindingPatternVariant::MutableBinding(Identifier::new(
-                    Location::new(1, 5),
-                    "value".to_owned(),
-                )),
+                BindingPatternVariant::new_binding(
+                    Identifier::new(Location::new(1, 5), "value".to_owned()),
+                    true,
+                ),
                 Type::new(Location::new(1, 12), TypeVariant::integer_unsigned(8)),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn ok_wildcard() {
-        let input = "_: u8";
+        let input = r#"_: u8"#;
 
         let expected = Ok((
             BindingPattern::new(
                 Location::new(1, 1),
-                BindingPatternVariant::Wildcard,
+                BindingPatternVariant::new_wildcard(),
                 Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(8)),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_self_alias() {
+        let input = r#"self"#;
+
+        let expected = Ok((
+            BindingPattern::new(
+                Location::new(1, 1),
+                BindingPatternVariant::new_self_alias(Location::new(1, 1), false),
+                Type::new(
+                    Location::new(1, 1),
+                    TypeVariant::alias(ExpressionTree::new(
+                        Location::new(1, 1),
+                        ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                            Identifier::new(
+                                Location::new(1, 1),
+                                Keyword::SelfUppercase.to_string(),
+                            ),
+                        )),
+                    )),
+                ),
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_self_alias_mutable() {
+        let input = r#"mut self"#;
+
+        let expected = Ok((
+            BindingPattern::new(
+                Location::new(1, 1),
+                BindingPatternVariant::new_self_alias(Location::new(1, 5), true),
+                Type::new(
+                    Location::new(1, 5),
+                    TypeVariant::alias(ExpressionTree::new(
+                        Location::new(1, 5),
+                        ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                            Identifier::new(
+                                Location::new(1, 5),
+                                Keyword::SelfUppercase.to_string(),
+                            ),
+                        )),
+                    )),
+                ),
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_binding_pattern() {
-        let input = "mut bool: bool";
+        let input = r#"mut bool: bool"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_binding_pattern(
             Location::new(1, 5),
             Lexeme::Keyword(Keyword::Bool),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_type() {
-        let input = "mut value";
+        let input = r#"mut value"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
             Location::new(1, 10),
@@ -222,7 +292,7 @@ mod tests {
             Some(super::HINT_EXPECTED_TYPE),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

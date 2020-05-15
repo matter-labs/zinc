@@ -17,9 +17,9 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#type::builder::Builder as TypeStatementBuilder;
 use crate::syntax::tree::statement::r#type::Statement as TypeStatement;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "type alias must have an identifier, e.g. `type Complex = (u8, field);`";
-static HINT_EXPECTED_TYPE: &str =
+pub static HINT_EXPECTED_TYPE: &str =
     "type alias must be initialized, e.g. `type Complex = (u8, field);`";
 
 #[derive(Debug, Clone, Copy)]
@@ -134,9 +134,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::error::Error;
     use crate::lexical::stream::TokenStream;
@@ -162,7 +159,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -177,7 +174,7 @@ mod tests {
             Some(super::HINT_EXPECTED_IDENTIFIER),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -192,14 +189,14 @@ mod tests {
             Some(super::HINT_EXPECTED_TYPE),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_semicolon() {
-        let input = "type Data = field";
+        let input = r#"type Data = field"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 18),
@@ -208,7 +205,7 @@ mod tests {
             None,
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

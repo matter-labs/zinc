@@ -1,5 +1,5 @@
 //!
-//! The integer constant element tests.
+//! The constant integer element tests.
 //!
 
 #![cfg(test)]
@@ -20,98 +20,146 @@ use crate::semantic::error::Error as SemanticError;
 #[test]
 fn ok_minimal_bitlength() {
     assert_eq!(
-        IntegerConstant::minimal_bitlength(&BigInt::from_str("0").unwrap_or_default(), false),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("0").unwrap_or_default(),
+            false,
+            Location::default()
+        ),
         Ok(crate::BITLENGTH_BYTE * 1),
     );
     assert_eq!(
-        IntegerConstant::minimal_bitlength(&BigInt::from_str("255").unwrap_or_default(), false),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("255").unwrap_or_default(),
+            false,
+            Location::default()
+        ),
         Ok(crate::BITLENGTH_BYTE * 1),
     );
     assert_eq!(
-        IntegerConstant::minimal_bitlength(&BigInt::from_str("256").unwrap_or_default(), false),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("256").unwrap_or_default(),
+            false,
+            Location::default()
+        ),
         Ok(crate::BITLENGTH_BYTE * 2),
     );
     assert_eq!(
-        IntegerConstant::minimal_bitlength(&BigInt::from_str("65535").unwrap_or_default(), false),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("65535").unwrap_or_default(),
+            false,
+            Location::default()
+        ),
         Ok(crate::BITLENGTH_BYTE * 2),
     );
     assert_eq!(
-        IntegerConstant::minimal_bitlength(&BigInt::from_str("65536").unwrap_or_default(), false),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("65536").unwrap_or_default(),
+            false,
+            Location::default()
+        ),
         Ok(crate::BITLENGTH_BYTE * 3),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
             &BigInt::from_str("4294967295").unwrap_or_default(),
-            false
+            false,
+            Location::default(),
         ),
         Ok(crate::BITLENGTH_BYTE * 4),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
             &BigInt::from_str("4294967296").unwrap_or_default(),
-            false
+            false,
+            Location::default(),
         ),
         Ok(crate::BITLENGTH_BYTE * 5),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
             &BigInt::from_str("18446744073709551615").unwrap_or_default(),
-            false
+            false,
+            Location::default(),
         ),
         Ok(crate::BITLENGTH_BYTE * 8),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
             &BigInt::from_str("18446744073709551616").unwrap_or_default(),
-            false
+            false,
+            Location::default(),
         ),
         Ok(crate::BITLENGTH_BYTE * 9),
     );
     assert_eq!(
-        IntegerConstant::minimal_bitlength(&BigInt::from_str("-128").unwrap_or_default(), true),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("-128").unwrap_or_default(),
+            true,
+            Location::default()
+        ),
         Ok(crate::BITLENGTH_BYTE * 1),
     );
     assert_eq!(
-        IntegerConstant::minimal_bitlength(&BigInt::from_str("127").unwrap_or_default(), true),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("127").unwrap_or_default(),
+            true,
+            Location::default()
+        ),
         Ok(crate::BITLENGTH_BYTE * 1),
     );
     assert_eq!(
-        IntegerConstant::minimal_bitlength(&BigInt::from_str("128").unwrap_or_default(), true),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("128").unwrap_or_default(),
+            true,
+            Location::default()
+        ),
         Ok(crate::BITLENGTH_BYTE * 2),
     );
     assert_eq!(
-        IntegerConstant::minimal_bitlength(&BigInt::from_str("32767").unwrap_or_default(), true),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("32767").unwrap_or_default(),
+            true,
+            Location::default()
+        ),
         Ok(crate::BITLENGTH_BYTE * 2),
     );
     assert_eq!(
-        IntegerConstant::minimal_bitlength(&BigInt::from_str("32768").unwrap_or_default(), true),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("32768").unwrap_or_default(),
+            true,
+            Location::default()
+        ),
         Ok(crate::BITLENGTH_BYTE * 3),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
             &BigInt::from_str("2147483647").unwrap_or_default(),
-            true
+            true,
+            Location::default(),
         ),
         Ok(crate::BITLENGTH_BYTE * 4),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
             &BigInt::from_str("2147483648").unwrap_or_default(),
-            true
+            true,
+            Location::default(),
         ),
         Ok(crate::BITLENGTH_BYTE * 5),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
             &BigInt::from_str("9223372036854775807").unwrap_or_default(),
-            true
+            true,
+            Location::default(),
         ),
         Ok(crate::BITLENGTH_BYTE * 8),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
             &BigInt::from_str("9223372036854775808").unwrap_or_default(),
-            true
+            true,
+            Location::default(),
         ),
         Ok(crate::BITLENGTH_BYTE * 9),
     );
@@ -126,10 +174,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 19),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
-                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::semantic::tests::PANIC_TEST_DATA),
+                location: Location::new(3, 19),
+                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::panic::TEST_DATA),
                 bitlength: crate::BITLENGTH_FIELD,
             },
         )),
@@ -149,10 +197,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 17),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
-                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::semantic::tests::PANIC_TEST_DATA),
+                location: Location::new(3, 17),
+                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::panic::TEST_DATA),
                 bitlength: crate::BITLENGTH_FIELD,
             },
         )),
@@ -177,10 +225,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 9),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
-                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::semantic::tests::PANIC_TEST_DATA),
+                location: Location::new(5, 9),
+                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::panic::TEST_DATA),
                 bitlength: crate::BITLENGTH_FIELD,
             },
         )),
@@ -195,16 +243,16 @@ fn main() {
 fn error_types_mismatch_greater_equals() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 >= 69 as u128;
+    let value = 42 as u64 >= 64 as u128;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreaterEquals {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(3, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -222,16 +270,16 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value >= 69;
+    let value = Default::Value >= 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreaterEquals {
-                first: "enum Default".to_owned(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(7, 17),
+                first: "enumeration Default".to_owned(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -249,7 +297,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -258,11 +306,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreaterEquals {
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                location: Location::new(11, 17),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -276,16 +324,16 @@ fn main() {
 fn error_types_mismatch_lesser_equals() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 <= 69 as u128;
+    let value = 42 as u64 <= 64 as u128;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesserEquals {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(3, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -303,16 +351,16 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value <= 69;
+    let value = Default::Value <= 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesserEquals {
-                first: "enum Default".to_owned(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(7, 17),
+                first: "enumeration Default".to_owned(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -330,7 +378,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -339,11 +387,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesserEquals {
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                location: Location::new(11, 17),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -357,16 +405,16 @@ fn main() {
 fn error_types_mismatch_greater() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 > 69 as u128;
+    let value = 42 as u64 > 64 as u128;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreater {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(3, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -384,16 +432,16 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value > 69;
+    let value = Default::Value > 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreater {
-                first: "enum Default".to_owned(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(7, 17),
+                first: "enumeration Default".to_owned(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -411,7 +459,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -420,11 +468,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreater {
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                location: Location::new(11, 17),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -438,16 +486,16 @@ fn main() {
 fn error_types_mismatch_lesser() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 < 69 as u128;
+    let value = 42 as u64 < 64 as u128;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesser {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(3, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -465,16 +513,16 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value < 69;
+    let value = Default::Value < 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesser {
-                first: "enum Default".to_owned(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(7, 17),
+                first: "enumeration Default".to_owned(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -492,7 +540,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -501,11 +549,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesser {
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                location: Location::new(11, 17),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -519,16 +567,16 @@ fn main() {
 fn error_types_mismatch_bitwise_or() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 | 69 as u128;
+    let value = 42 as u64 | 64 as u128;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseOr {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(3, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -546,16 +594,16 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value | 69;
+    let value = Default::Value | 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseOr {
-                first: "enum Default".to_owned(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(7, 17),
+                first: "enumeration Default".to_owned(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -573,7 +621,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -582,11 +630,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseOr {
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                location: Location::new(11, 17),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -600,16 +648,16 @@ fn main() {
 fn error_types_mismatch_bitwise_xor() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 ^ 69 as u128;
+    let value = 42 as u64 ^ 64 as u128;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseXor {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(3, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -627,16 +675,16 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value ^ 69;
+    let value = Default::Value ^ 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseXor {
-                first: "enum Default".to_owned(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(7, 17),
+                first: "enumeration Default".to_owned(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -654,7 +702,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -663,11 +711,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseXor {
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                location: Location::new(11, 17),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -681,16 +729,16 @@ fn main() {
 fn error_types_mismatch_bitwise_and() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 & 69 as u128;
+    let value = 42 as u64 & 64 as u128;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseAnd {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(3, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -708,16 +756,16 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value & 69;
+    let value = Default::Value & 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseAnd {
-                first: "enum Default".to_owned(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(7, 17),
+                first: "enumeration Default".to_owned(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -735,7 +783,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -744,11 +792,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseAnd {
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                location: Location::new(11, 17),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -762,16 +810,16 @@ fn main() {
 fn error_types_mismatch_addition() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 + 69 as u128;
+    let value = 42 as u64 + 64 as u128;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchAddition {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(3, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -789,16 +837,16 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value + 69;
+    let value = Default::Value + 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchAddition {
-                first: "enum Default".to_owned(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(7, 17),
+                first: "enumeration Default".to_owned(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -816,7 +864,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -825,11 +873,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchAddition {
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                location: Location::new(11, 17),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -843,16 +891,16 @@ fn main() {
 fn error_types_mismatch_subtraction() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 - 69 as u128;
+    let value = 42 as u64 - 64 as u128;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchSubtraction {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(3, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -870,16 +918,16 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value - 69;
+    let value = Default::Value - 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchSubtraction {
-                first: "enum Default".to_owned(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(7, 17),
+                first: "enumeration Default".to_owned(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -893,11 +941,11 @@ fn main() {
 fn error_types_mismatch_subtraction_two_enumerations() {
     let input = r#"
 enum One {
-    Value = 42,
+    Value = 64,
 }
 
 enum Two {
-    Value = 69,
+    Value = 42,
 }
 
 fn main() {
@@ -906,11 +954,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchSubtraction {
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                location: Location::new(11, 17),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -924,16 +972,16 @@ fn main() {
 fn error_types_mismatch_multiplication() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 * 69 as u128;
+    let value = 42 as u64 * 64 as u128;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchMultiplication {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(3, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -951,16 +999,16 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value * 69;
+    let value = Default::Value * 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchMultiplication {
-                first: "enum Default".to_owned(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(7, 17),
+                first: "enumeration Default".to_owned(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -978,7 +1026,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 5,
 }
 
 fn main() {
@@ -987,11 +1035,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchMultiplication {
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                location: Location::new(11, 17),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -1005,16 +1053,16 @@ fn main() {
 fn error_types_mismatch_division() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 / 69 as u128;
+    let value = 42 as u64 / 64 as u128;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchDivision {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(3, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -1032,16 +1080,16 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value / 69;
+    let value = Default::Value / 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchDivision {
-                first: "enum Default".to_owned(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(7, 17),
+                first: "enumeration Default".to_owned(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1059,7 +1107,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -1068,11 +1116,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchDivision {
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                location: Location::new(11, 17),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -1086,16 +1134,16 @@ fn main() {
 fn error_types_mismatch_remainder() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 % 69 as u128;
+    let value = 42 as u64 % 64 as u128;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchRemainder {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(3, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -1113,16 +1161,16 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value % 69;
+    let value = Default::Value % 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchRemainder {
-                first: "enum Default".to_owned(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(7, 17),
+                first: "enumeration Default".to_owned(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1140,7 +1188,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -1149,11 +1197,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchRemainder {
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                location: Location::new(11, 17),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -1172,11 +1220,16 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 21),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OperatorBitwiseShiftLeftSecondOperatorExpectedUnsigned {
-                found: IntegerConstant::new(BigInt::from(-2), true, crate::BITLENGTH_BYTE)
-                    .to_string(),
+                location: Location::new(3, 25),
+                found: IntegerConstant::new(
+                    Location::new(3, 25),
+                    BigInt::from(-2),
+                    true,
+                    crate::BITLENGTH_BYTE,
+                )
+                .to_string(),
             },
         )),
     )));
@@ -1195,11 +1248,16 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned {
-                found: IntegerConstant::new(BigInt::from(-2), true, crate::BITLENGTH_BYTE)
-                    .to_string(),
+                location: Location::new(3, 24),
+                found: IntegerConstant::new(
+                    Location::new(3, 24),
+                    BigInt::from(-2),
+                    true,
+                    crate::BITLENGTH_BYTE,
+                )
+                .to_string(),
             },
         )),
     )));
@@ -1218,11 +1276,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowAddition {
+                location: Location::new(3, 18),
                 value: BigInt::from(-170),
-                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1241,11 +1299,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 26),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowAddition {
+                location: Location::new(3, 17),
                 value: BigInt::from(142),
-                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1264,11 +1322,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowAddition {
+                location: Location::new(3, 17),
                 value: BigInt::from(297),
-                r#type: Type::integer(false, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, false, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1287,11 +1345,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 21),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowSubtraction {
+                location: Location::new(3, 18),
                 value: BigInt::from(-142),
-                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1310,11 +1368,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 28),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowSubtraction {
+                location: Location::new(3, 18),
                 value: BigInt::from(150),
-                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1333,11 +1391,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowSubtraction {
+                location: Location::new(3, 17),
                 value: BigInt::from(-213),
-                r#type: Type::integer(false, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, false, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1356,11 +1414,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowMultiplication {
+                location: Location::new(3, 18),
                 value: BigInt::from(-200),
-                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1379,11 +1437,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowMultiplication {
+                location: Location::new(3, 17),
                 value: BigInt::from(200),
-                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1402,11 +1460,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowMultiplication {
+                location: Location::new(3, 17),
                 value: BigInt::from(420),
-                r#type: Type::integer(false, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, false, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1425,11 +1483,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowDivision {
+                location: Location::new(3, 18),
                 value: BigInt::from(128),
-                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1448,11 +1506,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 21),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowCasting {
+                location: Location::new(3, 17),
                 value: BigInt::from(200),
-                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1471,11 +1529,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 23),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowCasting {
+                location: Location::new(3, 19),
                 value: BigInt::from(-100),
-                r#type: Type::integer(false, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, false, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1494,11 +1552,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 17),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowNegation {
+                location: Location::new(3, 19),
                 value: BigInt::from(128),
-                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1517,11 +1575,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 17),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowNegation {
+                location: Location::new(3, 18),
                 value: BigInt::from(-200),
-                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));
@@ -1540,9 +1598,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 29),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::ForbiddenFieldDivision,
+            IntegerConstantError::ForbiddenFieldDivision {
+                location: Location::new(3, 17),
+            },
         )),
     )));
 
@@ -1560,9 +1619,31 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 29),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::ForbiddenFieldRemainder,
+            IntegerConstantError::ForbiddenFieldRemainder {
+                location: Location::new(3, 17),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_signed_bitwise_or() {
+    let input = r#"
+fn main() {
+    let value = -42 | -1;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ForbiddenSignedBitwise {
+                location: Location::new(3, 18),
+            },
         )),
     )));
 
@@ -1580,9 +1661,31 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 29),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::ForbiddenFieldBitwise,
+            IntegerConstantError::ForbiddenFieldBitwise {
+                location: Location::new(3, 17),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_signed_bitwise_xor() {
+    let input = r#"
+fn main() {
+    let value = -42 ^ -1;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ForbiddenSignedBitwise {
+                location: Location::new(3, 18),
+            },
         )),
     )));
 
@@ -1600,9 +1703,31 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 29),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::ForbiddenFieldBitwise,
+            IntegerConstantError::ForbiddenFieldBitwise {
+                location: Location::new(3, 17),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_signed_bitwise_and() {
+    let input = r#"
+fn main() {
+    let value = -42 & -1;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ForbiddenSignedBitwise {
+                location: Location::new(3, 18),
+            },
         )),
     )));
 
@@ -1620,9 +1745,31 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 29),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::ForbiddenFieldBitwise,
+            IntegerConstantError::ForbiddenFieldBitwise {
+                location: Location::new(3, 17),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_signed_bitwise_shift_left() {
+    let input = r#"
+fn main() {
+    let value = -42 << 1;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ForbiddenSignedBitwise {
+                location: Location::new(3, 18),
+            },
         )),
     )));
 
@@ -1640,9 +1787,31 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 29),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::ForbiddenFieldBitwise,
+            IntegerConstantError::ForbiddenFieldBitwise {
+                location: Location::new(3, 17),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_signed_bitwise_shift_right() {
+    let input = r#"
+fn main() {
+    let value = -42 >> 1;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ForbiddenSignedBitwise {
+                location: Location::new(3, 18),
+            },
         )),
     )));
 
@@ -1660,9 +1829,31 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 29),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::ForbiddenFieldBitwise,
+            IntegerConstantError::ForbiddenFieldBitwise {
+                location: Location::new(3, 17),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_signed_bitwise_not() {
+    let input = r#"
+fn main() {
+    let value = ~-42;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ForbiddenSignedBitwise {
+                location: Location::new(3, 19),
+            },
         )),
     )));
 
@@ -1680,9 +1871,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 17),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::ForbiddenFieldBitwise,
+            IntegerConstantError::ForbiddenFieldBitwise {
+                location: Location::new(3, 19),
+            },
         )),
     )));
 
@@ -1700,9 +1892,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 17),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::ForbiddenFieldNegation,
+            IntegerConstantError::ForbiddenFieldNegation {
+                location: Location::new(3, 19),
+            },
         )),
     )));
 
@@ -1720,8 +1913,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
-        ElementError::Constant(ConstantError::Integer(IntegerConstantError::ZeroDivision)),
+        ElementError::Constant(ConstantError::Integer(IntegerConstantError::ZeroDivision {
+            location: Location::new(3, 22),
+        })),
     )));
 
     let result = crate::semantic::tests::compile_entry(input);
@@ -1738,8 +1932,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
-        ElementError::Constant(ConstantError::Integer(IntegerConstantError::ZeroRemainder)),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ZeroRemainder {
+                location: Location::new(3, 22),
+            },
+        )),
     )));
 
     let result = crate::semantic::tests::compile_entry(input);

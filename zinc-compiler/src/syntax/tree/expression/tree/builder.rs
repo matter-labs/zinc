@@ -168,16 +168,16 @@ impl Builder {
             return self
                 .left
                 .take()
-                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "left"));
+                .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "left"));
         }
 
         ExpressionTree::new_with_leaves(
-            self.location
-                .take()
-                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")),
+            self.location.take().unwrap_or_else(|| {
+                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location")
+            }),
             self.value
                 .take()
-                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "value")),
+                .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "value")),
             self.left.take(),
             self.right.take(),
         )

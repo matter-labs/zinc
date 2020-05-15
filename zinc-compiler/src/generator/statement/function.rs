@@ -23,7 +23,8 @@ pub struct Statement {
     pub input_arguments: Vec<(String, Type)>,
     pub body: Expression,
     pub output_type: Option<Type>,
-    pub unique_id: usize,
+    pub type_id: usize,
+    pub is_contract_entry: bool,
     pub is_main: bool,
 }
 
@@ -34,7 +35,8 @@ impl Statement {
         input_arguments: Vec<(String, SemanticType)>,
         body: Expression,
         output_type: SemanticType,
-        unique_id: usize,
+        type_id: usize,
+        is_contract_entry: bool,
         is_main: bool,
     ) -> Self {
         let input_arguments = input_arguments
@@ -53,7 +55,8 @@ impl Statement {
             input_arguments,
             body,
             output_type,
-            unique_id,
+            type_id,
+            is_contract_entry,
             is_main,
         }
     }
@@ -63,24 +66,26 @@ impl Statement {
             .output_type
             .as_ref()
             .map(|r#type| r#type.size())
-            .unwrap_or(0);
+            .unwrap_or_default();
 
-        if self.is_main {
-            bytecode.borrow_mut().start_main_function(
-                self.unique_id,
+        if self.is_main || self.is_contract_entry {
+            bytecode.borrow_mut().start_entry_function(
+                self.location,
+                self.identifier,
+                self.type_id,
                 self.input_arguments.clone(),
                 self.output_type,
             );
         } else {
             bytecode
                 .borrow_mut()
-                .start_function(self.unique_id, self.identifier);
+                .start_function(self.location, self.type_id, self.identifier);
         }
 
         for (argument_name, argument_type) in self.input_arguments.into_iter() {
             bytecode
                 .borrow_mut()
-                .declare_variable(Some(argument_name), argument_type);
+                .define_variable(Some(argument_name), argument_type.size());
         }
 
         self.body.write_all_to_bytecode(bytecode.clone());

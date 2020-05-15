@@ -4,6 +4,7 @@
 
 use std::fmt;
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
 use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
 
@@ -12,16 +13,25 @@ use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Boolean {
+    pub location: Location,
     pub inner: bool,
 }
 
 impl Boolean {
-    pub fn new(inner: bool) -> Self {
-        Self { inner }
+    pub fn new(location: Location, inner: bool) -> Self {
+        Self { location, inner }
+    }
+
+    pub fn is_true(&self) -> bool {
+        self.inner
+    }
+
+    pub fn is_false(&self) -> bool {
+        !self.inner
     }
 
     pub fn r#type(&self) -> Type {
-        Type::boolean()
+        Type::boolean(None)
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
@@ -30,50 +40,64 @@ impl Boolean {
 
     pub fn or(self, other: Self) -> Self {
         let result = self.inner || other.inner;
-        Self { inner: result }
+        Self {
+            location: self.location,
+            inner: result,
+        }
     }
 
     pub fn xor(self, other: Self) -> Self {
         let result = !self.inner && other.inner || self.inner && !other.inner;
-        Self { inner: result }
+        Self {
+            location: self.location,
+            inner: result,
+        }
     }
 
     pub fn and(self, other: Self) -> Self {
         let result = self.inner && other.inner;
-        Self { inner: result }
+        Self {
+            location: self.location,
+            inner: result,
+        }
     }
 
     pub fn equals(self, other: Self) -> Self {
         let result = self.inner == other.inner;
-        Self { inner: result }
+        Self {
+            location: self.location,
+            inner: result,
+        }
     }
 
     pub fn not_equals(self, other: Self) -> Self {
         let result = self.inner != other.inner;
-        Self { inner: result }
+        Self {
+            location: self.location,
+            inner: result,
+        }
     }
 
     pub fn not(self) -> Self {
         let result = !self.inner;
-        Self { inner: result }
-    }
-}
-
-impl From<bool> for Boolean {
-    fn from(value: bool) -> Self {
-        Self::new(value)
+        Self {
+            location: self.location,
+            inner: result,
+        }
     }
 }
 
 impl From<BooleanLiteral> for Boolean {
-    fn from(value: BooleanLiteral) -> Self {
-        let value: bool = value.into();
-        Self::from(value)
+    fn from(literal: BooleanLiteral) -> Self {
+        Self {
+            location: literal.location,
+            inner: literal.into(),
+        }
     }
 }
 
 impl fmt::Display for Boolean {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "boolean constant '{}'", self.inner)
+        write!(f, "'{}'", self.inner)
     }
 }

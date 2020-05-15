@@ -20,33 +20,17 @@ pub struct Command {
     )]
     verbosity: usize,
 
-    #[structopt(
-        long = "circuit",
-        help = "Path to the circuit binary file",
-        default_value = "./build/default.znb"
-    )]
-    circuit: PathBuf,
+    #[structopt(long = "build", help = "Path to the binary data file")]
+    binary_path: PathBuf,
 
-    #[structopt(
-        long = "proving-key",
-        help = "Path to the proving key file",
-        default_value = "./data/proving-key"
-    )]
+    #[structopt(long = "witness", help = "Path to the witness JSON file")]
+    witness_path: PathBuf,
+
+    #[structopt(long = "public-data", help = "Path to the public data JSON file")]
+    public_data_path: PathBuf,
+
+    #[structopt(long = "proving-key", help = "Path to the proving key file")]
     proving_key: PathBuf,
-
-    #[structopt(
-        long = "witness",
-        help = "Path to the witness JSON file",
-        default_value = "./data/witness.json"
-    )]
-    witness: PathBuf,
-
-    #[structopt(
-        long = "public-data",
-        help = "Path to the public data JSON file to write",
-        default_value = "./data/public-data.json"
-    )]
-    public_data: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -59,10 +43,10 @@ impl Command {
     pub fn execute(self) -> Result<(), Error> {
         VirtualMachine::prove(
             self.verbosity,
-            &self.circuit,
+            &self.binary_path,
             &self.proving_key,
-            &self.witness,
-            &self.public_data,
+            &self.witness_path,
+            &self.public_data_path,
         )
         .map_err(Error::VirtualMachine)?;
 

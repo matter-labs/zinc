@@ -1,0 +1,24 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "8"
+//#     },
+//#     "expect": "48"
+//# } ] }
+
+enum List {
+    FIRST = 1,
+    SECOND = 2,
+    THIRD = 3,
+}
+
+impl List {
+    pub fn multiply(mut self, other: Self) -> Self {
+        self *= other;
+        self
+    }
+}
+
+fn main(witness: u8) -> u8 {
+    (List::SECOND.multiply(List::THIRD) as u8) * witness
+}

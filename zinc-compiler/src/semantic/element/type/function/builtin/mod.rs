@@ -10,6 +10,8 @@ pub mod error;
 
 use std::fmt;
 
+use crate::lexical::token::location::Location;
+
 use self::assert::Function as AssertFunction;
 use self::debug::Function as DebugFunction;
 
@@ -30,8 +32,22 @@ impl Function {
 
     pub fn identifier(&self) -> &'static str {
         match self {
-            Self::Assert(inner) => inner.identifier(),
-            Self::Debug(inner) => inner.identifier(),
+            Self::Assert(inner) => inner.identifier,
+            Self::Debug(inner) => inner.identifier,
+        }
+    }
+
+    pub fn set_location(&mut self, location: Location) {
+        match self {
+            Self::Assert(inner) => inner.location = Some(location),
+            Self::Debug(inner) => inner.location = Some(location),
+        }
+    }
+
+    pub fn location(&self) -> Option<Location> {
+        match self {
+            Self::Assert(inner) => inner.location,
+            Self::Debug(inner) => inner.location,
         }
     }
 }

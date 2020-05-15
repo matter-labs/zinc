@@ -15,7 +15,7 @@
 //#     "input": {
 //#         "witness": "255"
 //#     },
-//#     "expect": "69"
+//#     "expect": "64"
 //# }, {
 //#     "case": "another",
 //#     "input": {
@@ -29,7 +29,7 @@ fn main(witness: u8) -> u8 {
         1 => 10,
         2 => 20,
         inner => match inner {
-            255 => 69,
+            255 => 64,
             _ => 42,
         },
     }

@@ -16,8 +16,8 @@ use crate::syntax::tree::field::builder::Builder as FieldBuilder;
 use crate::syntax::tree::field::Field;
 use crate::syntax::tree::identifier::Identifier;
 
-static HINT_EXPECTED_IDENTIFIER: &str = "structure field must have an identifier, e.g. `a: u8`";
-static HINT_EXPECTED_TYPE: &str = "structure field must have a type, e.g. `a: u8`";
+pub static HINT_EXPECTED_IDENTIFIER: &str = "structure field must have an identifier, e.g. `a: u8`";
+pub static HINT_EXPECTED_TYPE: &str = "structure field must have a type, e.g. `a: u8`";
 
 #[derive(Default)]
 pub struct Parser {
@@ -76,9 +76,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::error::Error;
     use crate::lexical::stream::TokenStream;
@@ -93,7 +90,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let input = "id: u232";
+        let input = r#"id: u232"#;
 
         let expected = Ok((
             Field::new(
@@ -104,14 +101,14 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
 
     #[test]
     fn error_expected_type() {
-        let input = "id";
+        let input = r#"id"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
             Location::new(1, 3),
@@ -119,7 +116,7 @@ mod tests {
             Some(HINT_EXPECTED_TYPE),
         )));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

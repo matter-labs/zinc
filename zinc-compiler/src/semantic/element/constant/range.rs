@@ -6,6 +6,7 @@ use std::fmt;
 
 use num_bigint::BigInt;
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
 
 ///
@@ -15,6 +16,7 @@ use crate::semantic::element::r#type::Type;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Range {
+    pub location: Location,
     pub start: BigInt,
     pub end: BigInt,
     pub is_signed: bool,
@@ -22,8 +24,15 @@ pub struct Range {
 }
 
 impl Range {
-    pub fn new(start: BigInt, end: BigInt, is_signed: bool, bitlength: usize) -> Self {
+    pub fn new(
+        location: Location,
+        start: BigInt,
+        end: BigInt,
+        is_signed: bool,
+        bitlength: usize,
+    ) -> Self {
         Self {
+            location,
             start,
             end,
             is_signed,
@@ -32,11 +41,11 @@ impl Range {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::range(self.bounds_type())
+        Type::range(Some(self.location), self.bounds_type())
     }
 
     pub fn bounds_type(&self) -> Type {
-        Type::scalar(self.is_signed, self.bitlength)
+        Type::scalar(Some(self.location), self.is_signed, self.bitlength)
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
@@ -48,7 +57,7 @@ impl fmt::Display for Range {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "range '{} .. {}' of type '{}'",
+            "'{} .. {}' of type '{}'",
             self.start,
             self.end,
             self.bounds_type()

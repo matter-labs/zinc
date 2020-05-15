@@ -23,12 +23,12 @@ impl Builder {
 
     pub fn finish(mut self) -> UseStatement {
         UseStatement::new(
-            self.location
-                .take()
-                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")),
+            self.location.take().unwrap_or_else(|| {
+                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location")
+            }),
             self.path
                 .take()
-                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "path")),
+                .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "path")),
         )
     }
 }
