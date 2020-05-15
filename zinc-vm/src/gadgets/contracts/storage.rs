@@ -404,11 +404,11 @@ mod tests {
                 }
             }
 
-            pub fn new(depth: usize, fields: usize) -> Self {
+            pub fn new(depth: usize) -> Self {
                 let mut result = Self {
                     depth: depth,
                     tree: vec![vec![]; 1 << (depth + 1)],
-                    leaf_values: vec![vec![E::Fr::zero(); fields]; 1 << depth],
+                    leaf_values: vec![vec![E::Fr::zero()]; 1 << depth],
                 };
 
                 result.rebuild_tree();
@@ -531,7 +531,7 @@ mod tests {
 
         let mut cs = TestConstraintSystem::<Bn256>::new();
 
-        let storage_test_dummy = StorageTestDummy::<Bn256>::new(DEPTH_OF_TEST_TREE, 1);
+        let storage_test_dummy = StorageTestDummy::<Bn256>::new(DEPTH_OF_TEST_TREE);
 
         let mut storage_gadget =
             StorageGadget::new(cs.namespace(|| "gadget creation"), storage_test_dummy).unwrap();
