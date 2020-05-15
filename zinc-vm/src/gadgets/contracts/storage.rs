@@ -359,7 +359,6 @@ mod tests {
         fn add_Fr_to_hash<E: Engine>(left: Vec<u8>, right_Fr: E::Fr) -> Vec<u8> {
             let mut right_buf = vec![];
             right_Fr.into_repr().write_le(&mut right_buf).unwrap();
-            right_buf.resize(256 / 8, 0);
 
             let mut right = vec![];
             for i in right_buf {
