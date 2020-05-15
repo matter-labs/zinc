@@ -14,11 +14,8 @@ pub mod merkle_tree_storage {
     pub const ROOT_HASH_TRUNCATED_BITS: usize = 248;
 
     pub trait MerkleTreeStorage<E: Engine> {
-        /// Returns number of fields in each slot
-        fn fields(&self) -> Result<usize>;
-
         /// Returns depth of merkle tree
-        fn depth(&self) -> Result<usize>;
+        fn depth(&self) -> usize;
 
         /// Loads root hash
         fn root_hash(&self) -> Result<E::Fr>;
@@ -27,6 +24,6 @@ pub mod merkle_tree_storage {
         fn load(&self, index: &BigInt) -> Result<MerkleTreeLeaf<E>>;
 
         /// Stores value to storage, returns previous leaf value with authentication path
-        fn store(&mut self, index: &BigInt, value: &Vec<E::Fr>) -> Result<MerkleTreeLeaf<E>>;
+        fn store(&mut self, index: &BigInt, value: &[E::Fr]) -> Result<MerkleTreeLeaf<E>>;
     }
 }

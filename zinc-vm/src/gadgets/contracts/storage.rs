@@ -146,12 +146,11 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
         })
     }
 
-    pub fn load<CS>(&self, mut cs: CS, index: &Scalar<E>) -> Result<Vec<Scalar<E>>>
+    pub fn load<CS>(&self, mut cs: CS, fields: usize, index: &Scalar<E>) -> Result<Vec<Scalar<E>>>
     where
         CS: ConstraintSystem<E>,
     {
-        let depth = self.storage.depth()?;
-        let fields = self.storage.fields()?;
+        let depth = self.storage.depth();
         let mut index_bits = index
             .to_expression::<CS>()
             .into_bits_le_strict(cs.namespace(|| "index into bits fixed strict"))?;
@@ -241,12 +240,12 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
         Ok(leaf)
     }
 
-    pub fn store<CS>(&mut self, mut cs: CS, index: &Scalar<E>, value: &Vec<Scalar<E>>) -> Result<()>
+    pub fn store<CS>(&mut self, mut cs: CS, index: &Scalar<E>, value: &[Scalar<E>]) -> Result<()>
     where
         CS: ConstraintSystem<E>,
     {
-        let depth = self.storage.depth()?;
-        let fields = self.storage.fields()?;
+        let depth = self.storage.depth();
+        let fields = value.len();
         let mut index_bits = index
             .to_expression::<CS>()
             .into_bits_le_strict(cs.namespace(|| "index into bits fixed strict"))?;
@@ -448,12 +447,8 @@ mod tests {
         }
 
         impl<E: Engine> MerkleTreeStorage<E> for StorageTestDummy<E> {
-            fn fields(&self) -> Result<usize> {
-                Ok(self.fields)
-            }
-
-            fn depth(&self) -> Result<usize> {
-                Ok(self.depth)
+            fn depth(&self) -> usize {
+                self.depth
             }
 
             fn root_hash(&self) -> Result<E::Fr> {
@@ -504,7 +499,7 @@ mod tests {
                 Ok(result)
             }
 
-            fn store(&mut self, index: &BigInt, value: &Vec<E::Fr>) -> Result<MerkleTreeLeaf<E>> {
+            fn store(&mut self, index: &BigInt, value: &[E::Fr]) -> Result<MerkleTreeLeaf<E>> {
                 let index = index.to_usize().unwrap();
 
                 let mut result = MerkleTreeLeaf::<E> {
@@ -528,7 +523,7 @@ mod tests {
 
                 result.authentication_path.reverse();
 
-                self.leaf_values[index] = value.clone();
+                self.leaf_values[index] = value.to_vec();
 
                 self.rebuild_tree();
 
@@ -549,7 +544,7 @@ mod tests {
 
     #[test]
     fn test_storage_gadget_small() {
-        const DEPTH_OF_TEST_TREE: usize = 3;
+        const DEPTH_OF_TEST_TREE: usize = 2;
         const FIELDS: usize = 1;
 
         let mut rng = XorShiftRng::from_seed([0x5dbe6259, 0x8d313d76, 0x3237db17, 0xe5bc0654]);
@@ -591,6 +586,7 @@ mod tests {
                 let loaded_result = storage_gadget
                     .load(
                         cs.namespace(|| format!("load :: index({})", i)),
+                        FIELDS,
                         &Scalar::<Bn256>::new_constant_fr(
                             Fr::from_str(&i.to_string()).unwrap(),
                             ScalarType::Field,
