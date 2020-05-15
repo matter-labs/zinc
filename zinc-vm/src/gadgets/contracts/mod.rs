@@ -11,7 +11,6 @@ pub mod merkle_tree_storage {
 
     pub mod merkle_tree_hash {
         use super::*;
-        use zinc_bytecode::data::values::ScalarValue::Bool;
 
         pub trait MerkleTreeHash<E: Engine>: Sized {
             fn execute<CS>(&self, cs: CS, preimage: &[Boolean]) -> Result<Vec<Boolean>>
