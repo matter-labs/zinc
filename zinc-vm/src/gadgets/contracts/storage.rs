@@ -115,10 +115,10 @@ where
                 conditional_select(
                     cs.namespace(|| {
                         format!(
-                        "node hash preimage: left part conditional select: {} bit (deep equals {})",
-                        bit_id,
-                        depth - 1 - index,
-                    )
+                            "node hash preimage: left part conditional select: {} bit (deep equals {})",
+                            bit_id,
+                            depth - 1 - index,
+                        )
                     }),
                     index_bit,
                     &node_hash_bit_scalar,
