@@ -41,8 +41,14 @@ where
                 *bit,
             )?);
             let bit_scalar = Scalar::<E>::from_boolean(
-                cs.namespace(|| format!("{} bit of vertex hash of authentication path to scalar (deep equals {})", bit_id, depth - index)),
-                bit_boolean
+                cs.namespace(|| {
+                    format!(
+                        "{} bit of vertex hash of authentication path to scalar (deep equals {})",
+                        bit_id,
+                        depth - index
+                    )
+                }),
+                bit_boolean,
             )?;
             vertex_hash.push(bit_scalar);
         }
@@ -61,10 +67,7 @@ where
     Ok((leaf, authentication_path))
 }
 
-fn enfoce_leaf_value_hash<E, CS>(
-    mut cs: CS,
-    leaf_value: &[Scalar<E>],
-) -> Result<Vec<Boolean>>
+fn enfoce_leaf_value_hash<E, CS>(mut cs: CS, leaf_value: &[Scalar<E>]) -> Result<Vec<Boolean>>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -117,10 +120,7 @@ where
         assert_eq!(i.len(), 256);
     }
 
-    let mut current_hash = enfoce_leaf_value_hash(
-        cs.namespace(|| "leaf value hash"),
-        leaf_value,
-    )?;
+    let mut current_hash = enfoce_leaf_value_hash(cs.namespace(|| "leaf value hash"), leaf_value)?;
 
     for (index, (vertex_hash, index_bit)) in authentication_path.iter().zip(index_bits).enumerate()
     {
@@ -340,20 +340,20 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
 
 #[cfg(test)]
 mod tests {
+    use super::StorageGadget;
     use super::*;
     use crate::gadgets::contracts::merkle_tree_storage::{MerkleTreeLeaf, MerkleTreeStorage};
+    use crate::gadgets::{Scalar, ScalarType};
     use crate::{Engine, Result};
     use ff::{Field, PrimeField, PrimeFieldRepr};
-    use num_bigint::BigInt;
-    use num_traits::cast::ToPrimitive;
-    use sha2::{Digest, Sha256};
-    use super::StorageGadget;
-    use crate::gadgets::{Scalar, ScalarType};
     use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::num::AllocatedNum;
     use franklin_crypto::circuit::test::TestConstraintSystem;
+    use num_bigint::BigInt;
+    use num_traits::cast::ToPrimitive;
     use pairing::bn256::{Bn256, Fr};
     use rand::{Rng, SeedableRng, XorShiftRng};
+    use sha2::{Digest, Sha256};
 
     mod storage_test_dummy {
         use super::*;
