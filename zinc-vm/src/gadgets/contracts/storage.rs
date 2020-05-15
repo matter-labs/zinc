@@ -121,7 +121,7 @@ where
     CS: ConstraintSystem<E>,
     H: MerkleTreeHash<E>,
 {
-    assert!(leaf_value.len() != 0);
+    // index_bits and authentication_path should be length equals `depth`
     assert_eq!(index_bits.len(), depth);
     assert_eq!(authentication_path.len(), depth);
 
