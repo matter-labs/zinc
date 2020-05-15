@@ -2,7 +2,7 @@ use crate::core::RuntimeError;
 use crate::gadgets::comparison::eq;
 use crate::gadgets::conditional_select;
 use crate::gadgets::contracts::merkle_tree_storage::{
-    merkle_tree_hash::MerkleTreeHash, MerkleTreeStorage, ROOT_HASH_TRUNCATED_BITS,
+    merkle_tree_hash::MerkleTreeHasher, MerkleTreeStorage, ROOT_HASH_TRUNCATED_BITS,
 };
 use crate::gadgets::utils::fr_to_bigint_unsigned;
 use crate::gadgets::{Scalar, ScalarType};
@@ -83,7 +83,7 @@ fn enforce_merkle_tree_path<E, CS, H>(
 where
     E: Engine,
     CS: ConstraintSystem<E>,
-    H: MerkleTreeHash<E>,
+    H: MerkleTreeHasher<E>,
 {
     assert_eq!(index_bits.len(), depth);
     assert_eq!(authentication_path.len(), depth);
@@ -202,7 +202,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
     ) -> Result<Vec<Scalar<E>>>
     where
         CS: ConstraintSystem<E>,
-        H: MerkleTreeHash<E>,
+        H: MerkleTreeHasher<E>,
     {
         let depth = self.storage.depth();
         let mut index_bits = index.get_bits_le(cs.namespace(|| "index into bits"))?;
@@ -258,7 +258,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
     ) -> Result<()>
     where
         CS: ConstraintSystem<E>,
-        H: MerkleTreeHash<E>,
+        H: MerkleTreeHasher<E>,
     {
         let depth = self.storage.depth();
         let mut index_bits = index.get_bits_le(cs.namespace(|| "index into bits"))?;

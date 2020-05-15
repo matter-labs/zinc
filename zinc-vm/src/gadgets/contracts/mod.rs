@@ -14,7 +14,7 @@ pub mod merkle_tree_storage {
     pub mod merkle_tree_hash {
         use super::*;
 
-        pub trait MerkleTreeHash<E: Engine>: Sized {
+        pub trait MerkleTreeHasher<E: Engine> {
             fn hash_width(&self) -> usize;
 
             fn leaf_value_hash<CS>(&self, cs: CS, leaf_value: &[Scalar<E>]) -> Result<Vec<Boolean>>
@@ -33,7 +33,7 @@ pub mod merkle_tree_storage {
 
         pub struct Sha256Hasher;
 
-        impl<E: Engine> MerkleTreeHash<E> for Sha256Hasher {
+        impl<E: Engine> MerkleTreeHasher<E> for Sha256Hasher {
             fn hash_width(&self) -> usize {
                 256
             }
