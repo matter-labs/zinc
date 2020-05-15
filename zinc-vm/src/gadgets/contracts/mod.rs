@@ -7,8 +7,8 @@ pub mod merkle_tree_storage {
     use num_bigint::BigInt;
 
     pub struct MerkleTreeLeaf<E: Engine> {
-        pub leaf_value: Vec<E::Fr>,
-        pub authentication_path: Vec<Vec<bool>>,
+        pub leaf_value: Vec<Option<E::Fr>>,
+        pub authentication_path: Vec<Vec<Option<bool>>>,
     }
 
     pub const ROOT_HASH_TRUNCATED_BITS: usize = 248;
@@ -21,9 +21,13 @@ pub mod merkle_tree_storage {
         fn root_hash(&self) -> Result<E::Fr>;
 
         /// Loads leaf value with authentication path
-        fn load(&self, index: &BigInt) -> Result<MerkleTreeLeaf<E>>;
+        fn load(&self, index: &Option<BigInt>) -> Result<MerkleTreeLeaf<E>>;
 
         /// Stores value to storage, returns previous leaf value with authentication path
-        fn store(&mut self, index: &BigInt, value: &[E::Fr]) -> Result<MerkleTreeLeaf<E>>;
+        fn store(
+            &mut self,
+            index: &Option<BigInt>,
+            value: &[Option<E::Fr>],
+        ) -> Result<MerkleTreeLeaf<E>>;
     }
 }

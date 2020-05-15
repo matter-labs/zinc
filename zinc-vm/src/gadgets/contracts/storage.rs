@@ -18,8 +18,8 @@ pub struct StorageGadget<E: Engine, S: MerkleTreeStorage<E>> {
 fn alloc_leaf_and_authentication_path<E, CS>(
     mut cs: CS,
     depth: usize,
-    leaf_value: Vec<Option<E::Fr>>,
-    authentication_path_value: Vec<Vec<Option<bool>>>,
+    leaf_value: &Vec<Option<E::Fr>>,
+    authentication_path_value: &Vec<Vec<Option<bool>>>,
 ) -> Result<(Vec<Scalar<E>>, Vec<Vec<Scalar<E>>>)>
 where
     E: Engine,
@@ -202,7 +202,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
         })
     }
 
-    pub fn load<CS>(&self, mut cs: CS, fields: usize, index: &Scalar<E>) -> Result<Vec<Scalar<E>>>
+    pub fn load<CS>(&self, mut cs: CS, index: &Scalar<E>) -> Result<Vec<Scalar<E>>>
     where
         CS: ConstraintSystem<E>,
     {
@@ -210,29 +210,15 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
         let mut index_bits = index.get_bits_le(cs.namespace(|| "index into bits"))?;
         index_bits.truncate(depth);
 
-        let (leaf_value, authentication_path_value) = if let Some(index) = index.get_value() {
-            let merkle_tree_leaf = self.storage.load(&fr_to_bigint_unsigned(&index))?;
-            (
-                merkle_tree_leaf
-                    .leaf_value
-                    .iter()
-                    .map(|field| Some(*field))
-                    .collect(),
-                merkle_tree_leaf
-                    .authentication_path
-                    .iter()
-                    .map(|hash| hash.iter().map(|bit| Some(*bit)).collect())
-                    .collect(),
-            )
-        } else {
-            (vec![None; fields], vec![vec![None; 256]; depth])
-        };
+        let merkle_tree_leaf = self
+            .storage
+            .load(&index.get_value().map(|field| fr_to_bigint_unsigned(&field)))?;
 
         let (leaf, authentication_path) = alloc_leaf_and_authentication_path(
             cs.namespace(|| "alloc leaf and authentication path"),
             depth,
-            leaf_value,
-            authentication_path_value,
+            &merkle_tree_leaf.leaf_value,
+            &merkle_tree_leaf.authentication_path,
         )?;
 
         let authorized_root_hash = enforce_merkle_tree_path(
@@ -267,36 +253,19 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
         let mut index_bits = index.get_bits_le(cs.namespace(|| "index into bits"))?;
         index_bits.truncate(depth);
 
-        let (leaf_value, authentication_path_value) = if let Some(index) = index.get_value() {
-            let merkle_tree_leaf = self.storage.store(
-                &fr_to_bigint_unsigned(&index),
-                &value
-                    .iter()
-                    .map(|field| field.get_value())
-                    .filter_map(|field| field)
-                    .collect::<Vec<E::Fr>>(),
-            )?;
-            (
-                merkle_tree_leaf
-                    .leaf_value
-                    .iter()
-                    .map(|field| Some(*field))
-                    .collect(),
-                merkle_tree_leaf
-                    .authentication_path
-                    .iter()
-                    .map(|hash| hash.iter().map(|bit| Some(*bit)).collect())
-                    .collect(),
-            )
-        } else {
-            (vec![None; fields], vec![vec![None; 256]; depth])
-        };
+        let merkle_tree_leaf = self.storage.store(
+            &index.get_value().map(|field| fr_to_bigint_unsigned(&field)),
+            &value
+                .iter()
+                .map(|field| field.get_value())
+                .collect::<Vec<Option<E::Fr>>>(),
+        )?;
 
         let (leaf, authentication_path) = alloc_leaf_and_authentication_path(
             cs.namespace(|| "alloc leaf and authentication path"),
             depth,
-            leaf_value,
-            authentication_path_value,
+            &merkle_tree_leaf.leaf_value,
+            &merkle_tree_leaf.authentication_path,
         )?;
 
         let authorized_root_hash = enforce_merkle_tree_path(
@@ -456,11 +425,16 @@ mod tests {
                 Ok(E::Fr::from_repr(hash_repr).unwrap())
             }
 
-            fn load(&self, index: &BigInt) -> Result<MerkleTreeLeaf<E>> {
+            fn load(&self, index: &Option<BigInt>) -> Result<MerkleTreeLeaf<E>> {
+                let index = index.as_ref().unwrap();
+
                 let index = index.to_usize().unwrap();
 
                 let mut result = MerkleTreeLeaf::<E> {
-                    leaf_value: self.leaf_values[index].clone(),
+                    leaf_value: self.leaf_values[index]
+                        .iter()
+                        .map(|field| Some(*field))
+                        .collect(),
                     authentication_path: vec![],
                 };
 
@@ -470,7 +444,7 @@ mod tests {
                     let mut cur_auth_path_vertex_hash = vec![];
                     for i in &self.tree[next ^ 1usize] {
                         for j in (0..8).rev() {
-                            cur_auth_path_vertex_hash.push((i >> j) & 1u8 != 0);
+                            cur_auth_path_vertex_hash.push(Some(((i >> j) & 1u8) == 1u8));
                         }
                     }
                     result.authentication_path.push(cur_auth_path_vertex_hash);
@@ -483,11 +457,24 @@ mod tests {
                 Ok(result)
             }
 
-            fn store(&mut self, index: &BigInt, value: &[E::Fr]) -> Result<MerkleTreeLeaf<E>> {
+            fn store(
+                &mut self,
+                index: &Option<BigInt>,
+                value: &[Option<E::Fr>],
+            ) -> Result<MerkleTreeLeaf<E>> {
+                let index = index.as_ref().unwrap();
+                let value = &value
+                    .iter()
+                    .map(|field| field.unwrap())
+                    .collect::<Vec<E::Fr>>();
+
                 let index = index.to_usize().unwrap();
 
                 let mut result = MerkleTreeLeaf::<E> {
-                    leaf_value: self.leaf_values[index].clone(),
+                    leaf_value: self.leaf_values[index]
+                        .iter()
+                        .map(|field| Some(*field))
+                        .collect(),
                     authentication_path: vec![],
                 };
 
@@ -497,7 +484,7 @@ mod tests {
                     let mut cur_auth_path_vertex_hash = vec![];
                     for i in &self.tree[next ^ 1usize] {
                         for j in (0..8).rev() {
-                            cur_auth_path_vertex_hash.push((i >> j) & 1u8 != 0);
+                            cur_auth_path_vertex_hash.push(Some(((i >> j) & 1u8) == 1u8));
                         }
                     }
                     result.authentication_path.push(cur_auth_path_vertex_hash);
@@ -562,7 +549,6 @@ mod tests {
                 let loaded_result = storage_gadget
                     .load(
                         cs.namespace(|| format!("load :: index({})", i)),
-                        cur_vec.len(),
                         &Scalar::<Bn256>::new_constant_fr(
                             Fr::from_str(&i.to_string()).unwrap(),
                             ScalarType::Field,
