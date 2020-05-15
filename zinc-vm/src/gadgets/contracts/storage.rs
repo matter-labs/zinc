@@ -29,12 +29,12 @@ where
     let mut authentication_path = Vec::new();
 
     for (index, hash_bits) in authentication_path_value.iter().enumerate() {
-        let mut vertex_hash = Vec::new();
+        let mut node_hash = Vec::new();
         for (bit_id, bit) in hash_bits.iter().enumerate() {
             let bit_boolean = Boolean::from(AllocatedBit::alloc(
                 cs.namespace(|| {
                     format!(
-                        "{} bit of vertex hash of authentication path (deep equals {})",
+                        "{} bit of node hash of authentication path (deep equals {})",
                         bit_id,
                         depth - index
                     )
@@ -44,16 +44,16 @@ where
             let bit_scalar = Scalar::<E>::from_boolean(
                 cs.namespace(|| {
                     format!(
-                        "{} bit of vertex hash of authentication path to scalar (deep equals {})",
+                        "{} bit of node hash of authentication path to scalar (deep equals {})",
                         bit_id,
                         depth - index
                     )
                 }),
                 bit_boolean,
             )?;
-            vertex_hash.push(bit_scalar);
+            node_hash.push(bit_scalar);
         }
-        authentication_path.push(vertex_hash);
+        authentication_path.push(node_hash);
     }
 
     let mut leaf = Vec::new();
@@ -129,12 +129,12 @@ where
 
     let hash_width = current_hash.len();
 
-    for (index, (vertex_hash, index_bit)) in authentication_path.iter().zip(index_bits).enumerate()
+    for (index, (node_hash, index_bit)) in authentication_path.iter().zip(index_bits).enumerate()
     {
         let mut hash_preimage = vec![Boolean::Constant(false); hash_width * 2];
 
-        for (bit_id, (current_hash_bit, vertex_hash_bit_scalar)) in
-            current_hash.into_iter().zip(vertex_hash).enumerate()
+        for (bit_id, (current_hash_bit, node_hash_bit_scalar)) in
+            current_hash.into_iter().zip(node_hash).enumerate()
         {
             let current_hash_bit_scalar = Scalar::<E>::from_boolean(
                 cs.namespace(|| {
@@ -150,32 +150,32 @@ where
             hash_preimage[bit_id] = conditional_select(
                     cs.namespace(|| {
                         format!(
-                            "vertex hash preimage: left part conditional select: {} bit (deep equals {})",
+                            "node hash preimage: left part conditional select: {} bit (deep equals {})",
                             bit_id,
                             depth - 1 - index
                         )
                     }),
                     index_bit,
-                    &vertex_hash_bit_scalar,
+                    &node_hash_bit_scalar,
                     &current_hash_bit_scalar,
-                )?.to_boolean(cs.namespace(|| format!("vertex hash preimage: left part to boolean: {} bit (deep equals {})", bit_id, depth - 1 - index)))?;
+                )?.to_boolean(cs.namespace(|| format!("node hash preimage: left part to boolean: {} bit (deep equals {})", bit_id, depth - 1 - index)))?;
 
             hash_preimage[hash_width + bit_id] = conditional_select(
                     cs.namespace(|| {
                         format!(
-                            "vertex hash preimage: right part conditional select: {} bit (deep equals {})",
+                            "node hash preimage: right part conditional select: {} bit (deep equals {})",
                             hash_width + bit_id,
                             depth - 1 - index
                         )
                     }),
                     index_bit,
                     &current_hash_bit_scalar,
-                    &vertex_hash_bit_scalar,
-                )?.to_boolean(cs.namespace(|| format!("vertex hash preimage: right part to boolean: {} bit (deep equals {})", bit_id, depth - 1 - index)))?;
+                    &node_hash_bit_scalar,
+                )?.to_boolean(cs.namespace(|| format!("node hash preimage: right part to boolean: {} bit (deep equals {})", bit_id, depth - 1 - index)))?;
         }
 
         current_hash = hasher.execute(
-            cs.namespace(|| format!("vertex hash (deep equals {})", depth - 1 - index)),
+            cs.namespace(|| format!("node hash (deep equals {})", depth - 1 - index)),
             &hash_preimage,
         )?;
     }
@@ -455,18 +455,18 @@ mod tests {
                     authentication_path: vec![],
                 };
 
-                let mut cur_vertex = 1;
+                let mut cur_node = 1;
                 for i in (0..self.depth).rev() {
-                    let next = cur_vertex * 2 + ((index >> i) & 1usize);
-                    let mut cur_auth_path_vertex_hash = vec![];
+                    let next = cur_node * 2 + ((index >> i) & 1usize);
+                    let mut cur_auth_path_node_hash = vec![];
                     for i in &self.tree[next ^ 1usize] {
                         for j in (0..8).rev() {
-                            cur_auth_path_vertex_hash.push(Some(((i >> j) & 1u8) == 1u8));
+                            cur_auth_path_node_hash.push(Some(((i >> j) & 1u8) == 1u8));
                         }
                     }
-                    result.authentication_path.push(cur_auth_path_vertex_hash);
+                    result.authentication_path.push(cur_auth_path_node_hash);
 
-                    cur_vertex = next;
+                    cur_node = next;
                 }
 
                 result.authentication_path.reverse();
@@ -495,18 +495,18 @@ mod tests {
                     authentication_path: vec![],
                 };
 
-                let mut cur_vertex = 1;
+                let mut cur_node = 1;
                 for i in (0..self.depth).rev() {
-                    let next = cur_vertex * 2 + ((index >> i) & 1usize);
-                    let mut cur_auth_path_vertex_hash = vec![];
+                    let next = cur_node * 2 + ((index >> i) & 1usize);
+                    let mut cur_auth_path_node_hash = vec![];
                     for i in &self.tree[next ^ 1usize] {
                         for j in (0..8).rev() {
-                            cur_auth_path_vertex_hash.push(Some(((i >> j) & 1u8) == 1u8));
+                            cur_auth_path_node_hash.push(Some(((i >> j) & 1u8) == 1u8));
                         }
                     }
-                    result.authentication_path.push(cur_auth_path_vertex_hash);
+                    result.authentication_path.push(cur_auth_path_node_hash);
 
-                    cur_vertex = next;
+                    cur_node = next;
                 }
 
                 result.authentication_path.reverse();
