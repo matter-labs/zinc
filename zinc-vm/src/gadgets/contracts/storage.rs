@@ -27,8 +27,16 @@ where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    let mut authentication_path = Vec::new();
+    let mut leaf = Vec::new();
+    for (index, field) in leaf_value.iter().enumerate() {
+        let field_allocated_num = AllocatedNum::alloc(
+            cs.namespace(|| format!("leaf value: {} field", index)),
+            || Ok(field.grab()?),
+        )?;
+        leaf.push(Scalar::<E>::from(field_allocated_num));
+    }
 
+    let mut authentication_path = Vec::new();
     for (index, hash_bits) in authentication_path_value.iter().enumerate() {
         let mut node_hash = Vec::new();
         for (bit_id, bit) in hash_bits.iter().enumerate() {
@@ -57,15 +65,6 @@ where
         authentication_path.push(node_hash);
     }
 
-    let mut leaf = Vec::new();
-    for (index, field) in leaf_value.iter().enumerate() {
-        let field_allocated_num = AllocatedNum::alloc(
-            cs.namespace(|| format!("leaf value: field with index {}", index)),
-            || Ok(field.grab()?),
-        )?;
-        leaf.push(Scalar::<E>::from(field_allocated_num));
-    }
-
     Ok((leaf, authentication_path))
 }
 
@@ -86,9 +85,11 @@ where
     CS: ConstraintSystem<E>,
     H: MerkleTreeHash<E>,
 {
-    // index_bits and authentication_path should be length equals `depth`
     assert_eq!(index_bits.len(), depth);
     assert_eq!(authentication_path.len(), depth);
+    for node_hash in authentication_path {
+        assert_eq!(node_hash.len(), hasher.hash_width());
+    }
 
     let mut current_hash =
         hasher.leaf_value_hash(cs.namespace(|| "leaf value hash"), leaf_value)?;
@@ -504,7 +505,6 @@ mod tests {
                 result.authentication_path.reverse();
 
                 self.leaf_values[index] = value.to_vec();
-
                 self.rebuild_tree();
 
                 Ok(result)
