@@ -3,6 +3,8 @@ mod storage;
 pub use self::storage::*;
 
 pub mod merkle_tree_storage {
+    use crate::core::RuntimeError;
+    use crate::gadgets::Scalar;
     use crate::{Engine, Result};
     use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::boolean::Boolean;
@@ -13,7 +15,16 @@ pub mod merkle_tree_storage {
         use super::*;
 
         pub trait MerkleTreeHash<E: Engine>: Sized {
-            fn execute<CS>(&self, cs: CS, preimage: &[Boolean]) -> Result<Vec<Boolean>>
+            fn leaf_value_hash<CS>(&self, cs: CS, leaf_value: &[Scalar<E>]) -> Result<Vec<Boolean>>
+            where
+                CS: ConstraintSystem<E>;
+
+            fn node_hash<CS>(
+                &self,
+                cs: CS,
+                left_node: &[Boolean],
+                right_node: &[Boolean],
+            ) -> Result<Vec<Boolean>>
             where
                 CS: ConstraintSystem<E>;
         }
@@ -21,18 +32,46 @@ pub mod merkle_tree_storage {
         pub struct Sha256Hasher;
 
         impl<E: Engine> MerkleTreeHash<E> for Sha256Hasher {
-            fn execute<CS>(&self, mut cs: CS, preimage: &[Boolean]) -> Result<Vec<Boolean>>
+            fn leaf_value_hash<CS>(
+                &self,
+                mut cs: CS,
+                leaf_value: &[Scalar<E>],
+            ) -> Result<Vec<Boolean>>
             where
                 CS: ConstraintSystem<E>,
             {
-                let mut preimage = preimage
-                    .iter()
-                    .map(|boolean| boolean.clone())
-                    .collect::<Vec<Boolean>>();
-                while (preimage.len() % 8 != 0) {
-                    preimage.push(Boolean::Constant(false));
+                let mut preimage = Vec::new();
+
+                for (index, field) in leaf_value.iter().enumerate() {
+                    let mut field_bits = field.to_expression::<CS>().into_bits_le_strict(
+                        cs.namespace(|| format!("{} field of leaf value to bits", index)),
+                    )?;
+                    field_bits.resize(256, Boolean::Constant(false));
+
+                    preimage.append(&mut field_bits);
                 }
-                Ok(sha256(cs.namespace(|| "sha256 hash"), &preimage)?)
+
+                Ok(sha256(cs.namespace(|| "sha256"), &preimage)?)
+            }
+
+            fn node_hash<CS>(
+                &self,
+                mut cs: CS,
+                left_node: &[Boolean],
+                right_node: &[Boolean],
+            ) -> Result<Vec<Boolean>>
+            where
+                CS: ConstraintSystem<E>,
+            {
+                if (left_node.len() != 256 || right_node.len() != 256) {
+                    return Err(RuntimeError::AssertionError(
+                        "Incorrect node hash width".into(),
+                    ));
+                }
+                Ok(sha256(
+                    cs.namespace(|| "sha256"),
+                    &[left_node, right_node].concat(),
+                )?)
             }
         }
     }

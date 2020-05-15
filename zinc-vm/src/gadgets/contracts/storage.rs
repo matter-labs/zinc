@@ -69,41 +69,6 @@ where
     Ok((leaf, authentication_path))
 }
 
-fn enfoce_leaf_value_hash<E, CS, H>(
-    mut cs: CS,
-    hasher: &H,
-    leaf_value: &[Scalar<E>],
-) -> Result<Vec<Boolean>>
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-    H: MerkleTreeHash<E>,
-{
-    let mut leaf_value_hash: Vec<Boolean> = Vec::new();
-
-    for (index, field) in leaf_value.iter().enumerate() {
-        let mut field_bits = field.to_expression::<CS>().into_bits_le_strict(
-            cs.namespace(|| format!("{} field of leaf value to bits", index)),
-        )?;
-
-        let mut preimage = Vec::new();
-        preimage.append(&mut leaf_value_hash);
-        preimage.append(&mut field_bits);
-
-        leaf_value_hash = hasher.execute(
-            cs.namespace(|| {
-                format!(
-                    "hash of previous leaf value hash with next field (index {})",
-                    index
-                )
-            }),
-            &preimage,
-        )?;
-    }
-
-    Ok(leaf_value_hash)
-}
-
 /// Enforcing single leaf of merkle tree
 /// Returns root hash variable
 ///
@@ -126,12 +91,11 @@ where
     assert_eq!(authentication_path.len(), depth);
 
     let mut current_hash =
-        enfoce_leaf_value_hash(cs.namespace(|| "leaf value hash"), hasher, leaf_value)?;
-
-    let hash_width = current_hash.len();
+        hasher.leaf_value_hash(cs.namespace(|| "leaf value hash"), leaf_value)?;
 
     for (index, (node_hash, index_bit)) in authentication_path.iter().zip(index_bits).enumerate() {
-        let mut hash_preimage = vec![Boolean::Constant(false); hash_width * 2];
+        let mut left_node = Vec::new();
+        let mut right_node = Vec::new();
 
         for (bit_id, (current_hash_bit, node_hash_bit_scalar)) in
             current_hash.into_iter().zip(node_hash).enumerate()
@@ -147,50 +111,55 @@ where
                 current_hash_bit,
             )?;
 
-            hash_preimage[bit_id] = conditional_select(
-                cs.namespace(|| {
-                    format!(
+            left_node.push(
+                conditional_select(
+                    cs.namespace(|| {
+                        format!(
                         "node hash preimage: left part conditional select: {} bit (deep equals {})",
                         bit_id,
                         depth - 1 - index,
                     )
-                }),
-                index_bit,
-                &node_hash_bit_scalar,
-                &current_hash_bit_scalar,
-            )?
-            .to_boolean(cs.namespace(|| {
-                format!(
-                    "node hash preimage: left part to boolean: {} bit (deep equals {})",
-                    bit_id,
-                    depth - 1 - index,
-                )
-            }))?;
-
-            hash_preimage[hash_width + bit_id] = conditional_select(
-                cs.namespace(|| {
+                    }),
+                    index_bit,
+                    &node_hash_bit_scalar,
+                    &current_hash_bit_scalar,
+                )?
+                .to_boolean(cs.namespace(|| {
                     format!(
-                        "node hash preimage: right part conditional select: {} bit (deep equals {})",
-                        hash_width + bit_id,
+                        "node hash preimage: left part to boolean: {} bit (deep equals {})",
+                        bit_id,
                         depth - 1 - index,
                     )
-                }),
-                index_bit,
-                &current_hash_bit_scalar,
-                &node_hash_bit_scalar,
-            )?
-            .to_boolean(cs.namespace(|| {
-                format!(
-                    "node hash preimage: right part to boolean: {} bit (deep equals {})",
-                    bit_id,
-                    depth - 1 - index,
-                )
-            }))?;
+                }))?,
+            );
+
+            right_node.push(
+                conditional_select(
+                    cs.namespace(|| {
+                        format!(
+                            "node hash preimage: right part conditional select: {} bit (deep equals {})",
+                            bit_id,
+                            depth - 1 - index,
+                        )
+                    }),
+                    index_bit,
+                    &current_hash_bit_scalar,
+                    &node_hash_bit_scalar,
+                )?
+                .to_boolean(cs.namespace(|| {
+                    format!(
+                        "node hash preimage: right part to boolean: {} bit (deep equals {})",
+                        bit_id,
+                        depth - 1 - index,
+                    )
+                }))?,
+            );
         }
 
-        current_hash = hasher.execute(
+        current_hash = hasher.node_hash(
             cs.namespace(|| format!("node hash (deep equals {})", depth - 1 - index)),
-            &hash_preimage,
+            &left_node,
+            &right_node,
         )?;
     }
 
@@ -358,7 +327,7 @@ mod tests {
     use crate::gadgets::contracts::merkle_tree_storage::{MerkleTreeLeaf, MerkleTreeStorage};
     use crate::gadgets::{Scalar, ScalarType};
     use crate::{Engine, Result};
-    use ff::{Field, PrimeField, PrimeFieldRepr};
+    use ff::{PrimeField, PrimeFieldRepr};
     use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::num::AllocatedNum;
     use franklin_crypto::circuit::test::TestConstraintSystem;
@@ -371,10 +340,7 @@ mod tests {
     mod storage_test_dummy {
         use super::*;
 
-        fn sha256_of_concat<E: Engine>(left: Vec<u8>, right: Vec<u8>) -> Vec<u8> {
-            let mut preimage: Vec<u8> = vec![];
-            preimage.append(&mut left.clone());
-            preimage.append(&mut right.clone());
+        fn sha256<E: Engine>(preimage: Vec<u8>) -> Vec<u8> {
             let mut h = Sha256::new();
             h.input(&preimage);
             let result = h.result();
@@ -382,29 +348,30 @@ mod tests {
             result.as_slice().to_vec()
         }
 
-        fn add_Fr_to_hash<E: Engine>(left: Vec<u8>, right_Fr: E::Fr) -> Vec<u8> {
-            let mut right_buf = vec![];
-            right_Fr.into_repr().write_le(&mut right_buf).unwrap();
-
-            let mut right = vec![];
-            for i in right_buf {
-                let mut cur_byte: u8 = 0;
-                for j in (0..8) {
-                    cur_byte <<= 1;
-                    cur_byte += ((i >> j) & 1u8);
-                }
-                right.push(cur_byte);
-            }
-
-            sha256_of_concat::<E>(left, right)
+        fn sha256_of_concat<E: Engine>(left: Vec<u8>, right: Vec<u8>) -> Vec<u8> {
+            sha256::<E>([left.as_slice(), right.as_slice()].concat())
         }
 
-        fn sha256_of_leaf_value<E: Engine>(leaf_value: Vec<E::Fr>) -> Vec<u8> {
+        fn leaf_value_hash<E: Engine>(leaf_value: Vec<E::Fr>) -> Vec<u8> {
             let mut res = vec![];
-            for i in leaf_value {
-                res = add_Fr_to_hash::<E>(res, i);
+            for field in leaf_value {
+                let mut field_vec = vec![];
+                field.into_repr().write_le(&mut field_vec).unwrap();
+                field_vec.resize(256 / 8, 0);
+
+                let mut field_vec_be = vec![];
+                for i in field_vec {
+                    let mut cur_byte: u8 = 0;
+                    for j in (0..8) {
+                        cur_byte <<= 1;
+                        cur_byte += ((i >> j) & 1u8);
+                    }
+                    field_vec_be.push(cur_byte);
+                }
+
+                res.append(&mut field_vec_be);
             }
-            res
+            sha256::<E>(res)
         }
 
         pub struct StorageTestDummy<E: Engine> {
@@ -422,9 +389,8 @@ mod tests {
                             self.tree[i * 2 + 1].clone(),
                         );
                     } else {
-                        self.tree[i] = sha256_of_leaf_value::<E>(
-                            self.leaf_values[i - (1 << self.depth)].clone(),
-                        );
+                        self.tree[i] =
+                            leaf_value_hash::<E>(self.leaf_values[i - (1 << self.depth)].clone());
                     }
                 }
             }
@@ -433,7 +399,7 @@ mod tests {
                 let mut result = Self {
                     depth: depth,
                     tree: vec![vec![]; 1 << (depth + 1)],
-                    leaf_values: vec![vec![E::Fr::zero()]; 1 << depth],
+                    leaf_values: vec![vec![]; 1 << depth],
                 };
 
                 result.rebuild_tree();
