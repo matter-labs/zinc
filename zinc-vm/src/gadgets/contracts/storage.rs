@@ -1,3 +1,4 @@
+use crate::core::RuntimeError;
 use crate::gadgets::comparison::eq;
 use crate::gadgets::conditional_select;
 use crate::gadgets::contracts::merkle_tree_storage::{
@@ -129,8 +130,7 @@ where
 
     let hash_width = current_hash.len();
 
-    for (index, (node_hash, index_bit)) in authentication_path.iter().zip(index_bits).enumerate()
-    {
+    for (index, (node_hash, index_bit)) in authentication_path.iter().zip(index_bits).enumerate() {
         let mut hash_preimage = vec![Boolean::Constant(false); hash_width * 2];
 
         for (bit_id, (current_hash_bit, node_hash_bit_scalar)) in
@@ -148,30 +148,44 @@ where
             )?;
 
             hash_preimage[bit_id] = conditional_select(
-                    cs.namespace(|| {
-                        format!(
-                            "node hash preimage: left part conditional select: {} bit (deep equals {})",
-                            bit_id,
-                            depth - 1 - index
-                        )
-                    }),
-                    index_bit,
-                    &node_hash_bit_scalar,
-                    &current_hash_bit_scalar,
-                )?.to_boolean(cs.namespace(|| format!("node hash preimage: left part to boolean: {} bit (deep equals {})", bit_id, depth - 1 - index)))?;
+                cs.namespace(|| {
+                    format!(
+                        "node hash preimage: left part conditional select: {} bit (deep equals {})",
+                        bit_id,
+                        depth - 1 - index,
+                    )
+                }),
+                index_bit,
+                &node_hash_bit_scalar,
+                &current_hash_bit_scalar,
+            )?
+            .to_boolean(cs.namespace(|| {
+                format!(
+                    "node hash preimage: left part to boolean: {} bit (deep equals {})",
+                    bit_id,
+                    depth - 1 - index,
+                )
+            }))?;
 
             hash_preimage[hash_width + bit_id] = conditional_select(
-                    cs.namespace(|| {
-                        format!(
-                            "node hash preimage: right part conditional select: {} bit (deep equals {})",
-                            hash_width + bit_id,
-                            depth - 1 - index
-                        )
-                    }),
-                    index_bit,
-                    &current_hash_bit_scalar,
-                    &node_hash_bit_scalar,
-                )?.to_boolean(cs.namespace(|| format!("node hash preimage: right part to boolean: {} bit (deep equals {})", bit_id, depth - 1 - index)))?;
+                cs.namespace(|| {
+                    format!(
+                        "node hash preimage: right part conditional select: {} bit (deep equals {})",
+                        hash_width + bit_id,
+                        depth - 1 - index,
+                    )
+                }),
+                index_bit,
+                &current_hash_bit_scalar,
+                &node_hash_bit_scalar,
+            )?
+            .to_boolean(cs.namespace(|| {
+                format!(
+                    "node hash preimage: right part to boolean: {} bit (deep equals {})",
+                    bit_id,
+                    depth - 1 - index,
+                )
+            }))?;
         }
 
         current_hash = hasher.execute(
@@ -209,7 +223,13 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
         })
     }
 
-    pub fn load<CS, H>(&self, mut cs: CS, hasher: &H, index: &Scalar<E>) -> Result<Vec<Scalar<E>>>
+    pub fn load<CS, H>(
+        &self,
+        mut cs: CS,
+        hasher: &H,
+        fields: usize,
+        index: &Scalar<E>,
+    ) -> Result<Vec<Scalar<E>>>
     where
         CS: ConstraintSystem<E>,
         H: MerkleTreeHash<E>,
@@ -228,6 +248,12 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
             &merkle_tree_leaf.leaf_value,
             &merkle_tree_leaf.authentication_path,
         )?;
+
+        if leaf.len() != fields {
+            return Err(RuntimeError::AssertionError(
+                "Incorrect number of slot fields returned from storage".into(),
+            ));
+        }
 
         let authorized_root_hash = enforce_merkle_tree_path(
             cs.namespace(|| "enforce merkle tree path"),
@@ -570,6 +596,7 @@ mod tests {
                     .load(
                         cs.namespace(|| format!("load :: index({})", i)),
                         &hasher,
+                        cur_vec.len(),
                         &Scalar::<Bn256>::new_constant_fr(
                             Fr::from_str(&i.to_string()).unwrap(),
                             ScalarType::Field,
