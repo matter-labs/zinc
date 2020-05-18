@@ -17,24 +17,49 @@ pub struct StorageGadget<E: Engine, S: MerkleTreeStorage<E>> {
     root_hash: Scalar<E>,
 }
 
-fn alloc_leaf_and_authentication_path<E, CS>(
-    mut cs: CS,
-    depth: usize,
-    leaf_value: &Vec<Option<E::Fr>>,
-    authentication_path_value: &Vec<Vec<Option<bool>>>,
-) -> Result<(Vec<Scalar<E>>, Vec<Vec<Scalar<E>>>)>
+fn alloc_leaf_fields<E, CS>(mut cs: CS, leaf_value: &Vec<Option<E::Fr>>) -> Result<Vec<Scalar<E>>>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    let mut leaf = Vec::new();
-    for (index, field) in leaf_value.iter().enumerate() {
+    let mut leaf_fields = Vec::new();
+    for (index, field_value) in leaf_value.iter().enumerate() {
         let field_allocated_num = AllocatedNum::alloc(
             cs.namespace(|| format!("leaf value: {} field", index)),
-            || Ok(field.grab()?),
+            || Ok(field_value.grab()?),
         )?;
-        leaf.push(Scalar::<E>::from(field_allocated_num));
+        leaf_fields.push(Scalar::<E>::from(field_allocated_num));
     }
+
+    Ok(leaf_fields)
+}
+
+fn alloc_leaf_hash<E, CS>(mut cs: CS, leaf_hash_value: &Vec<Option<bool>>) -> Result<Vec<Boolean>>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    let mut leaf_hash = Vec::new();
+    for (bit_id, bit_value) in leaf_hash_value.iter().enumerate() {
+        leaf_hash.push(Boolean::from(AllocatedBit::alloc(
+            cs.namespace(|| format!("{} bit of leaf hash", bit_id)),
+            *bit_value,
+        )?));
+    }
+
+    Ok(leaf_hash)
+}
+
+fn alloc_authentication_path<E, CS>(
+    mut cs: CS,
+    depth: usize,
+    authentication_path_value: &Vec<Vec<Option<bool>>>,
+) -> Result<Vec<Vec<Scalar<E>>>>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    assert_eq!(authentication_path_value.len(), depth);
 
     let mut authentication_path = Vec::new();
     for (index, hash_bits) in authentication_path_value.iter().enumerate() {
@@ -65,7 +90,12 @@ where
         authentication_path.push(node_hash);
     }
 
-    Ok((leaf, authentication_path))
+    Ok(authentication_path)
+}
+
+enum AllocatedLeaf<E: Engine> {
+    LeafFields(Vec<Scalar<E>>),
+    LeafHash(Vec<Boolean>),
 }
 
 /// Enforcing single leaf of merkle tree
@@ -77,7 +107,7 @@ fn enforce_merkle_tree_path<E, CS, H>(
     depth: usize,
     hasher: &H,
     index_bits: &[Scalar<E>],
-    leaf_value: &[Scalar<E>],
+    leaf: &AllocatedLeaf<E>,
     authentication_path: &Vec<Vec<Scalar<E>>>,
 ) -> Result<Scalar<E>>
 where
@@ -91,8 +121,12 @@ where
         assert_eq!(node_hash.len(), hasher.hash_width());
     }
 
-    let mut current_hash =
-        hasher.leaf_value_hash(cs.namespace(|| "leaf value hash"), leaf_value)?;
+    let mut current_hash = match leaf {
+        AllocatedLeaf::LeafFields(leaf_value) => {
+            hasher.leaf_value_hash(cs.namespace(|| "leaf value hash"), leaf_value)?
+        }
+        AllocatedLeaf::LeafHash(leaf_hash) => leaf_hash.clone(),
+    };
 
     for (index, (node_hash, index_bit)) in authentication_path.iter().zip(index_bits).enumerate() {
         let mut left_node = Vec::new();
@@ -212,14 +246,18 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
             .storage
             .load(&index.get_value().map(|field| fr_to_bigint_unsigned(&field)))?;
 
-        let (leaf, authentication_path) = alloc_leaf_and_authentication_path(
-            cs.namespace(|| "alloc leaf and authentication path"),
-            depth,
+        let leaf_fields = alloc_leaf_fields(
+            cs.namespace(|| "alloc leaf fields"),
             &merkle_tree_leaf.leaf_value,
+        )?;
+
+        let authentication_path = alloc_authentication_path(
+            cs.namespace(|| "alloc authentication path"),
+            depth,
             &merkle_tree_leaf.authentication_path,
         )?;
 
-        if leaf.len() != fields {
+        if leaf_fields.len() != fields {
             return Err(RuntimeError::AssertionError(
                 "Incorrect number of slot fields returned from storage".into(),
             ));
@@ -230,7 +268,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
             depth,
             hasher,
             &index_bits,
-            &leaf,
+            &AllocatedLeaf::LeafFields(leaf_fields.clone()),
             &authentication_path,
         )?;
 
@@ -246,7 +284,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
             &Boolean::Constant(true),
         )?;
 
-        Ok(leaf)
+        Ok(leaf_fields)
     }
 
     pub fn store<CS, H>(
@@ -272,10 +310,14 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
                 .collect::<Vec<Option<E::Fr>>>(),
         )?;
 
-        let (leaf, authentication_path) = alloc_leaf_and_authentication_path(
-            cs.namespace(|| "alloc leaf and authentication path"),
+        let leaf_hash = alloc_leaf_hash(
+            cs.namespace(|| "alloc leaf hash"),
+            &merkle_tree_leaf.leaf_value_hash,
+        )?;
+
+        let authentication_path = alloc_authentication_path(
+            cs.namespace(|| "alloc authentication path"),
             depth,
-            &merkle_tree_leaf.leaf_value,
             &merkle_tree_leaf.authentication_path,
         )?;
 
@@ -284,7 +326,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
             depth,
             hasher,
             &index_bits,
-            &leaf,
+            &AllocatedLeaf::LeafHash(leaf_hash),
             &authentication_path,
         )?;
 
@@ -305,7 +347,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
             depth,
             hasher,
             &index_bits,
-            &value,
+            &AllocatedLeaf::LeafFields(value.to_vec()),
             &authentication_path,
         )?;
 
@@ -445,6 +487,15 @@ mod tests {
                         .iter()
                         .map(|field| Some(*field))
                         .collect(),
+                    leaf_value_hash: {
+                        let mut hash = vec![];
+                        for i in leaf_value_hash::<E>(self.leaf_values[index].clone()) {
+                            for j in (0..8).rev() {
+                                hash.push(Some(((i >> j) & 1u8) == 1u8))
+                            }
+                        }
+                        hash
+                    },
                     authentication_path: vec![],
                 };
 
@@ -485,6 +536,15 @@ mod tests {
                         .iter()
                         .map(|field| Some(*field))
                         .collect(),
+                    leaf_value_hash: {
+                        let mut hash = vec![];
+                        for i in leaf_value_hash::<E>(self.leaf_values[index].clone()) {
+                            for j in (0..8).rev() {
+                                hash.push(Some(((i >> j) & 1u8) == 1u8))
+                            }
+                        }
+                        hash
+                    },
                     authentication_path: vec![],
                 };
 

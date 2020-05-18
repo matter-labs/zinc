@@ -84,6 +84,7 @@ pub mod merkle_tree_storage {
 
     pub struct MerkleTreeLeaf<E: Engine> {
         pub leaf_value: Vec<Option<E::Fr>>,
+        pub leaf_value_hash: Vec<Option<bool>>,
         pub authentication_path: Vec<Vec<Option<bool>>>,
     }
 
