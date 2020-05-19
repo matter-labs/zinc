@@ -24,6 +24,8 @@ pub enum Error {
     Writing(io::Error),
 }
 
+pub static ENTRY_FILE_NAME_DEFAULT: &str = "main";
+
 impl Contract {
     pub fn new(name: &str) -> Self {
         Self {
@@ -49,7 +51,11 @@ impl Contract {
             if !path.ends_with(super::DIRECTORY_NAME_DEFAULT) {
                 path.push(PathBuf::from(super::DIRECTORY_NAME_DEFAULT));
             }
-            let file_name = format!("{}.{}", self.name, super::SOURCE_FILE_EXTENSION_DEFAULT);
+            let file_name = format!(
+                "{}.{}",
+                ENTRY_FILE_NAME_DEFAULT,
+                super::SOURCE_FILE_EXTENSION_DEFAULT
+            );
             path.push(PathBuf::from(file_name));
         }
 
@@ -73,7 +79,7 @@ contract {} {{
 }}
 "#,
             self.name,
-            self.name.to_title_case(),
+            self.name.to_title_case().replace(" ", ""),
         )
     }
 }

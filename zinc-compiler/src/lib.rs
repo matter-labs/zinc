@@ -6,7 +6,7 @@
 #![allow(clippy::implicit_hasher)]
 #![allow(clippy::should_implement_trait)]
 #![allow(clippy::too_many_arguments)]
-#![recursion_limit = "1024"]
+#![allow(clippy::type_complexity)]
 
 pub(crate) mod error;
 pub(crate) mod generator;
@@ -20,12 +20,9 @@ pub use self::error::Error;
 pub use self::generator::bytecode::Bytecode;
 pub use self::generator::program::Program;
 pub use self::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
-pub use self::semantic::analyzer::module::Analyzer as ModuleAnalyzer;
 pub use self::semantic::scope::Scope;
 pub use self::source::error::Error as SourceError;
 pub use self::source::Source;
-pub use self::syntax::parser::Parser;
-pub use self::syntax::tree::module::Module;
 
 pub const BASE_BINARY: usize = 2;
 pub const BASE_OCTAL: usize = 8;

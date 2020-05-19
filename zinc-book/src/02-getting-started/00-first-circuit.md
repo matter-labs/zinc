@@ -32,7 +32,7 @@ Let's create our first circuit, which will be able to prove knowledge of
 some `sha256` hash preimage:
 
 ```
-zargo new --circuit preimage
+zargo new --type circuit preimage
 cd preimage
 ```
 

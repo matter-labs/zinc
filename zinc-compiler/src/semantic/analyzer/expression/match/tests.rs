@@ -13,7 +13,7 @@ use crate::semantic::analyzer::expression::r#match::error::Error as MatchExpress
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
-use crate::source::module::Module as SourceModule;
+use crate::source::Source;
 
 #[test]
 fn ok_boolean() {
@@ -247,7 +247,7 @@ fn error_branch_pattern_path_expected_constant() {
 type X = field;
 "#;
 
-    let binary = r#"
+    let entry = r#"
 mod module_1;
 
 fn main() -> u8 {
@@ -266,13 +266,15 @@ fn main() -> u8 {
         }),
     )));
 
-    let module_1 = SourceModule::test(module_1, HashMap::new()).expect(crate::panic::TEST_DATA);
-
-    let dependencies: HashMap<String, SourceModule> = vec![("module_1".to_owned(), module_1)]
+    let result = crate::semantic::tests::compile_entry_with_dependencies(
+        entry,
+        vec![(
+            "module_1".to_owned(),
+            Source::test(module_1, HashMap::new()),
+        )]
         .into_iter()
-        .collect();
-
-    let result = crate::semantic::tests::compile_entry_with_dependencies(binary, dependencies);
+        .collect::<HashMap<String, Source>>(),
+    );
 
     assert_eq!(result, expected);
 }

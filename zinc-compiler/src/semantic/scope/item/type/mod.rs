@@ -11,6 +11,7 @@ use std::fmt;
 use std::rc::Rc;
 
 use crate::generator::statement::Statement as GeneratorStatement;
+use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::statement::contract::Analyzer as ContractStatementAnalyzer;
 use crate::semantic::analyzer::statement::r#enum::Analyzer as EnumStatementAnalyzer;
@@ -34,56 +35,79 @@ pub struct Type {
     pub location: Option<Location>,
     pub item_id: usize,
     pub state: RefCell<Option<State>>,
-    pub is_self_alias: bool,
 }
 
 impl Type {
     ///
-    /// Creates an unresolved type, which must be resolved during the second pass or when
+    /// Creates an declared type, which must be defined during the second pass or when
     /// the item is referenced for the first time.
     ///
     /// Is used during module items hoisting.
     ///
-    pub fn new_unresolved(
+    /// If the declared type is a contract, its items are hoisted to be defined later.
+    ///
+    pub fn new_declared(
         location: Option<Location>,
         inner: TypeStatementVariant,
         scope: Rc<RefCell<Scope>>,
-    ) -> Self {
+    ) -> Result<Self, Error> {
         let item_id = ITEM_INDEX.next(format!("type {}", inner.identifier().name));
+        log::trace!("Declared type with ID {}", item_id);
 
-        Self {
+        let (inner, scope) = match inner {
+            TypeStatementVariant::Contract(statement) => {
+                let scope = Scope::new_child(statement.identifier.name.clone(), scope);
+                ContractStatementAnalyzer::declare(scope, statement)
+                    .map(|(statement, scope)| (TypeStatementVariant::Contract(statement), scope))?
+            }
+            TypeStatementVariant::Struct(statement) => {
+                let scope = Scope::new_child(statement.identifier.name.clone(), scope);
+                (TypeStatementVariant::Struct(statement), scope)
+            }
+            TypeStatementVariant::Enum(statement) => {
+                let scope = Scope::new_child(statement.identifier.name.clone(), scope);
+                (TypeStatementVariant::Enum(statement), scope)
+            }
+            inner => (inner, scope),
+        };
+
+        Ok(Self {
             location,
             item_id,
-            state: RefCell::new(Some(State::Unresolved { inner, scope })),
-            is_self_alias: false,
-        }
+            state: RefCell::new(Some(State::Declared { inner, scope })),
+        })
     }
 
     ///
-    /// Creates a resolved type, which is ready to be used from anywhere.
+    /// Creates a defined type, which is ready to be used from anywhere.
     ///
     /// Is used for items which are not hoisted.
     ///
-    pub fn new_resolved(
+    pub fn new_defined(
         location: Option<Location>,
         inner: TypeElement,
-        is_self_alias: bool,
+        is_alias: bool,
         intermediate: Option<GeneratorStatement>,
     ) -> Self {
-        let mut title = inner.to_string();
-        if is_self_alias {
-            title.push_str(" (Self)")
-        }
+        let title = format!(
+            "{}{}",
+            inner.to_string(),
+            if is_alias {
+                format!(" ({})", Keyword::SelfUppercase.to_string())
+            } else {
+                "".to_owned()
+            }
+        );
         let item_id = ITEM_INDEX.next(title);
+        log::trace!("Defined type with ID {}", item_id);
 
         Self {
             location,
             item_id,
-            state: RefCell::new(Some(State::Resolved {
+            state: RefCell::new(Some(State::Defined {
                 inner,
                 intermediate,
             })),
-            is_self_alias,
         }
     }
 
@@ -96,56 +120,57 @@ impl Type {
         Self {
             location: None,
             item_id,
-            state: RefCell::new(Some(State::Resolved {
+            state: RefCell::new(Some(State::Defined {
                 inner,
                 intermediate: None,
             })),
-            is_self_alias: false,
         }
     }
 
     ///
-    /// Analyzes the unresolved item and puts the resolved one in its place.
+    /// Defines the declared type.
     ///
-    /// The method is able to detect reference loops. It happens out of the box when the
-    /// method is reentered before the resolved item is put into `variant`, which means that
-    /// the item is taken twice during resolution.
+    /// The method is able to detect reference loops. It happens naturally when the method
+    /// is reentered before the item being defined is put back into `variant`, which means that
+    /// the item is taken twice during its resolution process.
     ///
-    pub fn resolve(&self) -> Result<TypeElement, Error> {
+    pub fn define(&self) -> Result<TypeElement, Error> {
         let variant = self.state.borrow_mut().take();
 
         match variant {
-            Some(State::Unresolved { inner, scope }) => {
+            Some(State::Declared { inner, scope }) => {
+                log::trace!("Defining type with ID {}", self.item_id);
+
                 let (r#type, intermediate) = match inner {
                     TypeStatementVariant::Type(inner) => {
-                        (TypeStatementAnalyzer::analyze(scope, inner)?, None)
+                        (TypeStatementAnalyzer::define(scope, inner)?, None)
                     }
                     TypeStatementVariant::Struct(inner) => {
-                        (StructStatementAnalyzer::analyze(scope, inner)?, None)
+                        (StructStatementAnalyzer::define(scope, inner)?, None)
                     }
                     TypeStatementVariant::Enum(inner) => {
-                        (EnumStatementAnalyzer::analyze(scope, inner)?, None)
+                        (EnumStatementAnalyzer::define(scope, inner)?, None)
                     }
                     TypeStatementVariant::Fn(inner, context) => {
-                        FnStatementAnalyzer::analyze(scope, inner, context)?
+                        FnStatementAnalyzer::define(scope, inner, context)?
                     }
                     TypeStatementVariant::Contract(inner) => {
-                        (ContractStatementAnalyzer::analyze(scope, inner)?, None)
+                        (ContractStatementAnalyzer::define(scope, inner)?, None)
                     }
                 };
 
-                self.state.replace(Some(State::Resolved {
+                self.state.replace(Some(State::Defined {
                     inner: r#type.clone(),
                     intermediate,
                 }));
 
                 Ok(r#type)
             }
-            Some(State::Resolved {
+            Some(State::Defined {
                 inner,
                 intermediate,
             }) => {
-                self.state.replace(Some(State::Resolved {
+                self.state.replace(Some(State::Defined {
                     inner: inner.clone(),
                     intermediate,
                 }));
@@ -158,20 +183,16 @@ impl Type {
         }
     }
 
-    pub fn is_resolved(&self) -> bool {
-        match self.state.borrow().as_ref() {
-            Some(State::Resolved { .. }) => true,
-            _ => false,
-        }
-    }
-
+    ///
+    /// Checks whether the type is a contract.
+    ///
     pub fn is_contract(&self) -> bool {
         match self.state.borrow().as_ref() {
-            Some(State::Unresolved {
+            Some(State::Declared {
                 inner: TypeStatementVariant::Contract(_),
                 ..
             }) => true,
-            Some(State::Resolved {
+            Some(State::Defined {
                 inner: TypeElement::Contract(_),
                 ..
             }) => true,
@@ -179,11 +200,10 @@ impl Type {
         }
     }
 
+    ///
+    /// Extracts the intermediate representation from the element.
+    ///
     pub fn get_intermediate(&self) -> Vec<GeneratorStatement> {
-        if self.is_self_alias {
-            return vec![];
-        }
-
         self.state
             .borrow()
             .as_ref()
@@ -195,8 +215,8 @@ impl Type {
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.state.borrow().as_ref() {
-            Some(State::Unresolved { inner, .. }) => write!(f, "{}", inner.identifier().name),
-            Some(State::Resolved { inner, .. }) => write!(f, "{}", inner),
+            Some(State::Declared { inner, .. }) => write!(f, "{}", inner.identifier().name),
+            Some(State::Defined { inner, .. }) => write!(f, "{}", inner),
             None => match self.location {
                 Some(location) => write!(f, "<resolving {}>", location),
                 None => write!(f, "<resolving>"),

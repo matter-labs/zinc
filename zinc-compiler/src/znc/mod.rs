@@ -2,16 +2,14 @@
 //! The Zinc compiler binary.
 //!
 
-#![recursion_limit = "1024"]
-
 mod arguments;
 mod error;
 
-use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Write;
 use std::process;
 
+use zinc_compiler::Bytecode;
 use zinc_compiler::Source;
 
 use self::arguments::Arguments;
@@ -19,6 +17,8 @@ use self::error::Error;
 use self::error::OutputError;
 
 static BINARY_NAME: &str = "znc";
+static WITNESS_TEMPLATE_SUFFIX: &str = "_witness";
+static PUBLIC_DATA_TEMPLATE_SUFFIX: &str = "_public_data";
 
 const EXIT_CODE_SUCCESS: i32 = 0;
 const EXIT_CODE_FAILURE: i32 = 1;
@@ -38,28 +38,30 @@ fn main_inner() -> Result<(), Error> {
 
     zinc_utils::logger::init_logger(BINARY_NAME, args.verbosity);
 
-    let bytecode = Source::try_from(&args.source_path)
+    let bytecode = Source::try_from_path(&args.source_path, true)
         .map_err(Error::Source)?
         .compile()
         .map_err(Error::Source)?;
+    let compiled_entries = Bytecode::unwrap_rc(bytecode).into_entries();
 
-    for entry_id in bytecode.borrow().entries() {
-        let entry_name = bytecode.borrow().entry_name(entry_id).to_owned();
-
+    for (entry_name, entry_data) in compiled_entries.into_iter() {
         let mut bytecode_path = args.build_path.clone();
         bytecode_path.push(format!("{}.znb", entry_name));
 
         let mut witness_template_path = args.data_path.clone();
-        witness_template_path.push(format!("{}_witness.json", entry_name));
+        witness_template_path.push(format!("{}{}.json", entry_name, WITNESS_TEMPLATE_SUFFIX));
 
         let mut public_data_template_path = args.data_path.clone();
-        public_data_template_path.push(format!("{}_public_data.json", entry_name));
+        public_data_template_path.push(format!(
+            "{}{}.json",
+            entry_name, PUBLIC_DATA_TEMPLATE_SUFFIX
+        ));
 
         if !witness_template_path.exists() {
             File::create(&witness_template_path)
                 .map_err(OutputError::Creating)
                 .map_err(Error::WitnessTemplateOutput)?
-                .write_all(bytecode.borrow().input_template_bytes(entry_id).as_slice())
+                .write_all(entry_data.witness_template.as_slice())
                 .map_err(OutputError::Writing)
                 .map_err(Error::WitnessTemplateOutput)?;
             log::info!("Witness template written to {:?}", witness_template_path);
@@ -73,7 +75,7 @@ fn main_inner() -> Result<(), Error> {
         File::create(&public_data_template_path)
             .map_err(OutputError::Creating)
             .map_err(Error::PublicDataTemplateOutput)?
-            .write_all(bytecode.borrow().output_template_bytes(entry_id).as_slice())
+            .write_all(entry_data.public_data_template.as_slice())
             .map_err(OutputError::Writing)
             .map_err(Error::PublicDataTemplateOutput)?;
         log::info!(
@@ -84,7 +86,7 @@ fn main_inner() -> Result<(), Error> {
         File::create(&bytecode_path)
             .map_err(OutputError::Creating)
             .map_err(Error::BytecodeOutput)?
-            .write_all(bytecode.borrow().to_bytes(entry_id).as_slice())
+            .write_all(entry_data.bytecode.as_slice())
             .map_err(OutputError::Writing)
             .map_err(Error::BytecodeOutput)?;
         log::info!("Compiled to {:?}", bytecode_path);

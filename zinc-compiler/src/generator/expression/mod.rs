@@ -67,7 +67,7 @@ impl Expression {
                     Operator::AssignmentBitwiseOr {
                         place,
                         expression,
-                        operator,
+                        operator: _,
                     } => Self::assignment_with_operation(
                         bytecode.clone(),
                         place,
@@ -78,7 +78,7 @@ impl Expression {
                     Operator::AssignmentBitwiseXor {
                         place,
                         expression,
-                        operator,
+                        operator: _,
                     } => Self::assignment_with_operation(
                         bytecode.clone(),
                         place,
@@ -89,7 +89,7 @@ impl Expression {
                     Operator::AssignmentBitwiseAnd {
                         place,
                         expression,
-                        operator,
+                        operator: _,
                     } => Self::assignment_with_operation(
                         bytecode.clone(),
                         place,
@@ -100,7 +100,7 @@ impl Expression {
                     Operator::AssignmentBitwiseShiftLeft {
                         place,
                         expression,
-                        operator,
+                        operator: _,
                     } => Self::assignment_with_operation(
                         bytecode.clone(),
                         place,
@@ -111,7 +111,7 @@ impl Expression {
                     Operator::AssignmentBitwiseShiftRight {
                         place,
                         expression,
-                        operator,
+                        operator: _,
                     } => Self::assignment_with_operation(
                         bytecode.clone(),
                         place,
@@ -122,7 +122,7 @@ impl Expression {
                     Operator::AssignmentAddition {
                         place,
                         expression,
-                        operator,
+                        operator: _,
                     } => Self::assignment_with_operation(
                         bytecode.clone(),
                         place,
@@ -133,7 +133,7 @@ impl Expression {
                     Operator::AssignmentSubtraction {
                         place,
                         expression,
-                        operator,
+                        operator: _,
                     } => Self::assignment_with_operation(
                         bytecode.clone(),
                         place,
@@ -144,7 +144,7 @@ impl Expression {
                     Operator::AssignmentMultiplication {
                         place,
                         expression,
-                        operator,
+                        operator: _,
                     } => Self::assignment_with_operation(
                         bytecode.clone(),
                         place,
@@ -155,7 +155,7 @@ impl Expression {
                     Operator::AssignmentDivision {
                         place,
                         expression,
-                        operator,
+                        operator: _,
                     } => Self::assignment_with_operation(
                         bytecode.clone(),
                         place,
@@ -166,7 +166,7 @@ impl Expression {
                     Operator::AssignmentRemainder {
                         place,
                         expression,
-                        operator,
+                        operator: _,
                     } => Self::assignment_with_operation(
                         bytecode.clone(),
                         place,

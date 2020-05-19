@@ -14,14 +14,14 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a compile-time only enumeration declaration statement.
+    /// Defines a compile-time only enumeration type.
     ///
-    pub fn analyze(scope: Rc<RefCell<Scope>>, statement: EnumStatement) -> Result<Type, Error> {
+    pub fn define(scope: Rc<RefCell<Scope>>, statement: EnumStatement) -> Result<Type, Error> {
         let r#type = Type::enumeration(
             statement.location,
-            statement.identifier.name,
+            statement.identifier.name.clone(),
             statement.variants,
-            Some(Scope::new_child(scope)),
+            Some(scope),
         )?;
 
         Ok(r#type)

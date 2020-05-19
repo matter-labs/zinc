@@ -31,12 +31,12 @@ pub struct Constant {
 
 impl Constant {
     ///
-    /// Creates an unresolved constant, which must be resolved during the second pass or when
+    /// Creates an declared constant, which must be defined during the second pass or when
     /// the item is referenced for the first time.
     ///
     /// Is used during module items hoisting.
     ///
-    pub fn new_unresolved(
+    pub fn new_declared(
         location: Location,
         inner: ConstStatement,
         scope: Rc<RefCell<Scope>>,
@@ -46,39 +46,44 @@ impl Constant {
         Self {
             location,
             item_id,
-            state: RefCell::new(Some(State::Unresolved { inner, scope })),
+            state: RefCell::new(Some(State::Declared { inner, scope })),
         }
     }
 
     ///
-    /// Creates a resolved constant, which is ready to be used from anywhere.
+    /// Creates a defined constant, which is ready to be used from anywhere.
     ///
-    /// Is used for non-module level constants which are not hoisted.
-    ///
-    pub fn new_resolved(location: Location, inner: ConstantElement) -> Self {
+    pub fn new_defined(location: Location, inner: ConstantElement) -> Self {
         let item_id = ITEM_INDEX.next(inner.to_string());
 
         Self {
             location,
             item_id,
-            state: RefCell::new(Some(State::Resolved { inner })),
+            state: RefCell::new(Some(State::Defined { inner })),
         }
     }
 
-    pub fn resolve(&self) -> Result<ConstantElement, Error> {
+    ///
+    /// Defines the declared constant.
+    ///
+    /// The method is able to detect reference loops. It happens naturally when the method
+    /// is reentered before the item being defined is put back into `variant`, which means that
+    /// the item is taken twice during its resolution process.
+    ///
+    pub fn define(&self) -> Result<ConstantElement, Error> {
         let variant = self.state.borrow_mut().take();
 
         match variant {
-            Some(State::Unresolved { inner, scope }) => {
-                let resolved = ConstStatementAnalyzer::analyze(scope, inner)?;
-                self.state.replace(Some(State::Resolved {
-                    inner: resolved.clone(),
+            Some(State::Declared { inner, scope }) => {
+                let defined = ConstStatementAnalyzer::define(scope, inner)?;
+                self.state.replace(Some(State::Defined {
+                    inner: defined.clone(),
                 }));
 
-                Ok(resolved)
+                Ok(defined)
             }
-            Some(State::Resolved { inner }) => {
-                self.state.replace(Some(State::Resolved {
+            Some(State::Defined { inner }) => {
+                self.state.replace(Some(State::Defined {
                     inner: inner.clone(),
                 }));
 
@@ -89,20 +94,13 @@ impl Constant {
             })),
         }
     }
-
-    pub fn is_resolved(&self) -> bool {
-        match self.state.borrow().as_ref() {
-            Some(State::Resolved { .. }) => true,
-            _ => false,
-        }
-    }
 }
 
 impl fmt::Display for Constant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.state.borrow().as_ref() {
-            Some(State::Unresolved { inner, .. }) => write!(f, "{}", inner.identifier.name),
-            Some(State::Resolved { inner, .. }) => write!(f, "{}", inner),
+            Some(State::Declared { inner, .. }) => write!(f, "{}", inner.identifier.name),
+            Some(State::Defined { inner, .. }) => write!(f, "{}", inner),
             None => write!(f, "<resolving {}>", self.location),
         }
     }

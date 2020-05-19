@@ -8,7 +8,9 @@ pub mod module;
 pub mod r#type;
 pub mod variable;
 
+use std::cell::RefCell;
 use std::fmt;
+use std::rc::Rc;
 
 use crate::generator::statement::Statement as GeneratorStatement;
 use crate::lexical::token::location::Location;
@@ -33,30 +35,38 @@ pub enum Item {
 }
 
 impl Item {
-    pub fn resolve(&self) -> Result<(), Error> {
+    ///
+    /// Wraps the item into `Rc<RefCell<_>>` simplifying most of initializations.
+    ///
+    pub fn wrap(self) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(self))
+    }
+
+    ///
+    /// Internally defines the item.
+    ///
+    /// Has no effect if the item has been already defined.
+    ///
+    pub fn define(&self) -> Result<(), Error> {
         match self {
             Self::Variable(_) => {}
             Self::Constant(inner) => {
-                inner.resolve()?;
+                inner.define()?;
             }
             Self::Type(inner) => {
-                inner.resolve()?;
+                inner.define()?;
             }
             Self::Module(inner) => {
-                inner.resolve()?;
+                inner.define()?;
             }
         }
 
         Ok(())
     }
 
-    pub fn is_resolved(&self) -> bool {
-        match self {
-            Self::Constant(inner) => inner.is_resolved(),
-            _ => true,
-        }
-    }
-
+    ///
+    /// The location where the item has been declared.
+    ///
     pub fn location(&self) -> Option<Location> {
         match self {
             Self::Variable(inner) => Some(inner.location),
@@ -66,7 +76,10 @@ impl Item {
         }
     }
 
-    pub fn item_index_id(&self) -> usize {
+    ///
+    /// The globally allocated item ID.
+    ///
+    pub fn item_id(&self) -> usize {
         match self {
             Self::Variable(inner) => inner.item_id,
             Self::Constant(inner) => inner.item_id,
@@ -75,6 +88,9 @@ impl Item {
         }
     }
 
+    ///
+    /// Extracts the intermediate representation from the element.
+    ///
     pub fn get_intermediate(&self) -> Vec<GeneratorStatement> {
         match self {
             Self::Variable(_) => vec![],

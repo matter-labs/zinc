@@ -4,21 +4,25 @@
 
 mod merkle;
 
+use self::merkle::Sha256Digest;
+
+const TREE_HEIGHT: u8 = 10;
+
 struct PublicInput {
     address: field,
     balance: field,
-    root_hash: merkle::Sha256Digest,
+    root_hash: Sha256Digest,
 }
 
 fn main(
     address: field,
     balance: field,
-    merkle_path: [merkle::Sha256Digest; 10]
+    merkle_path: [Sha256Digest; TREE_HEIGHT]
 ) -> PublicInput {
-    let leaf_hash = merkle::balance_hash(balance); // call a function from `merkle`
+    let leaf_hash = self::merkle::balance_hash(balance); // call a function from `merkle`
 
     // call a function from `merkle`
-    let root_hash = merkle::restore_root_hash(
+    let root_hash = self::merkle::restore_root_hash(
         leaf_hash,
         address,
         merkle_path,

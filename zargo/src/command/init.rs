@@ -9,10 +9,10 @@ use std::str::FromStr;
 use failure::Fail;
 use structopt::StructOpt;
 
+use crate::directory::source::circuit::Circuit as CircuitFile;
+use crate::directory::source::circuit::Error as CircuitFileError;
 use crate::directory::source::contract::Contract as ContractFile;
 use crate::directory::source::contract::Error as ContractFileError;
-use crate::directory::source::main::Error as MainFileError;
-use crate::directory::source::main::Main as MainFile;
 use crate::directory::source::Directory as SourceDirectory;
 use crate::directory::source::Error as SourceDirectoryError;
 use crate::manifest::project_type::ProjectType;
@@ -53,7 +53,7 @@ pub enum Error {
     )]
     ProjectNameInvalid(OsString),
     #[fail(
-        display = "project type must be either 'circuit' or 'contract', found {}",
+        display = "project type must be either `circuit` or `contract`, found `{}`",
         _0
     )]
     ProjectTypeInvalid(String),
@@ -66,7 +66,7 @@ pub enum Error {
     #[fail(display = "source directory {}", _0)]
     SourceDirectory(SourceDirectoryError),
     #[fail(display = "main file {}", _0)]
-    MainFile(MainFileError),
+    CircuitFile(CircuitFileError),
     #[fail(display = "contract file {}", _0)]
     ContractFile(ContractFileError),
 }
@@ -105,10 +105,10 @@ impl Command {
 
         match project_type {
             ProjectType::Circuit => {
-                if !MainFile::exists_at(&self.path) {
-                    MainFile::new(&project_name)
+                if !CircuitFile::exists_at(&self.path) {
+                    CircuitFile::new(&project_name)
                         .write_to(&self.path)
-                        .map_err(Error::MainFile)?;
+                        .map_err(Error::CircuitFile)?;
                 }
             }
             ProjectType::Contract => {

@@ -20,12 +20,9 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a compile-time only constant declaration statement.
+    /// Defines a compile-time only constant item.
     ///
-    pub fn analyze(
-        scope: Rc<RefCell<Scope>>,
-        statement: ConstStatement,
-    ) -> Result<Constant, Error> {
+    pub fn define(scope: Rc<RefCell<Scope>>, statement: ConstStatement) -> Result<Constant, Error> {
         let expression_location = statement.expression.location;
 
         let (element, _intermediate) =

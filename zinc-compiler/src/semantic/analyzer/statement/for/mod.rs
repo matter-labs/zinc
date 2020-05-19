@@ -34,9 +34,9 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a for-loop statement and returns its IR for the next compiler phase.
+    /// Defines a for-loop and returns its IR for the next compiler phase.
     ///
-    pub fn analyze(
+    pub fn define(
         scope: Rc<RefCell<Scope>>,
         statement: ForStatement,
     ) -> Result<GeneratorForLoopStatement, Error> {
@@ -73,7 +73,7 @@ impl Analyzer {
                 }
             };
 
-        scope_stack.push();
+        scope_stack.push(None);
 
         let index_location = statement.index_identifier.location;
         let index_identifier = statement.index_identifier.name.to_owned();

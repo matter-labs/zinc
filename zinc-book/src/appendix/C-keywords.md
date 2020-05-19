@@ -47,8 +47,10 @@ as
 
 #### Aliases
 ```rust,no_run,noplaypen
-Self
+crate
+super
 self
+Self
 ```
 
 ## Reserved

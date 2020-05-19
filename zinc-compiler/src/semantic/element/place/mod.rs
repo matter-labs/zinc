@@ -26,7 +26,6 @@ use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::scope::item::variable::memory_type::MemoryType as VariableItemMemoryType;
 use crate::semantic::scope::item::Item as ScopeItem;
-use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
 
 use self::element::Element as PlaceElement;
@@ -291,23 +290,25 @@ impl Place {
                 })
             }
             Type::Contract(ref contract) => {
-                if let Ok(ScopeItem::Variable(variable)) =
-                    Scope::resolve_item(contract.scope.clone(), &identifier, false)
-                {
-                    let position = match variable.memory_type {
-                        VariableItemMemoryType::ContractStorage { index } => index,
-                        _ => panic!(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
-                    };
-                    let element_size = variable.r#type.size();
-                    let access = DotAccessVariant::ContractField(ContractFieldAccess::new(
-                        position,
-                        element_size,
-                    ));
+                let item = contract.scope.borrow().resolve_item(&identifier, false);
 
-                    self.r#type = variable.r#type;
-                    self.total_size = self.r#type.size();
+                if let Ok(item) = item {
+                    if let ScopeItem::Variable(ref variable) = *item.borrow() {
+                        let position = match variable.memory_type {
+                            VariableItemMemoryType::ContractStorage { index } => index,
+                            _ => panic!(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
+                        };
+                        let element_size = variable.r#type.size();
+                        let access = DotAccessVariant::ContractField(ContractFieldAccess::new(
+                            position,
+                            element_size,
+                        ));
 
-                    return Ok((self, access));
+                        self.r#type = variable.r#type.to_owned();
+                        self.total_size = self.r#type.size();
+
+                        return Ok((self, access));
+                    }
                 }
 
                 Err(Error::ContractFieldDoesNotExist {

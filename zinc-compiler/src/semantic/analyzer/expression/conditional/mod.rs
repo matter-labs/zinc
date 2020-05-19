@@ -96,7 +96,7 @@ impl Analyzer {
         }
         builder.set_condition(condition);
 
-        scope_stack.push();
+        scope_stack.push(None);
         let (main_result, main_block) = BlockAnalyzer::analyze(
             scope_stack.top(),
             conditional.main_block,
@@ -107,7 +107,7 @@ impl Analyzer {
         builder.set_main_block(main_block);
 
         let else_type = if let Some(else_block) = conditional.else_block {
-            scope_stack.push();
+            scope_stack.push(None);
             let (else_result, else_block) =
                 BlockAnalyzer::analyze(scope_stack.top(), else_block, TranslationRule::Value)?;
             let else_type = Type::from_element(&else_result, scope_stack.top())?;
@@ -192,7 +192,7 @@ impl Analyzer {
             }
         };
 
-        scope_stack.push();
+        scope_stack.push(None);
         let (main_result, _) = BlockAnalyzer::analyze(
             scope_stack.top(),
             conditional.main_block,
@@ -211,7 +211,7 @@ impl Analyzer {
         scope_stack.pop();
 
         let (else_type, else_result) = if let Some(else_block) = conditional.else_block {
-            scope_stack.push();
+            scope_stack.push(None);
             let (else_result, _) =
                 BlockAnalyzer::analyze(scope_stack.top(), else_block, TranslationRule::Constant)?;
             let else_result = match else_result {

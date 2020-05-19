@@ -17,17 +17,6 @@ pub struct Stack {
     pub elements: Vec<Rc<RefCell<Scope>>>,
 }
 
-impl Default for Stack {
-    ///
-    /// Initializes a scope stack starting from the global scope.
-    ///
-    fn default() -> Self {
-        let mut elements = Vec::with_capacity(Self::ELEMENTS_INITIAL_CAPACITY);
-        elements.push(Scope::new_global().wrap());
-        Self { elements }
-    }
-}
-
 static THERE_MUST_ALWAYS_BE_A_SCOPE: &str = "Scope stack balance is kept by the evaluation logic";
 
 impl Stack {
@@ -55,8 +44,13 @@ impl Stack {
     ///
     /// Pushes the current scope deeper and initializes a new one with it as the parent.
     ///
-    pub fn push(&mut self) {
-        self.elements.push(Scope::new_child(self.top()));
+    pub fn push(&mut self, name: Option<String>) {
+        let name = match name {
+            Some(name) => format!("{} {}", self.top().borrow().name, name),
+            None => format!("{} => {}", self.top().borrow().name, "child"),
+        };
+
+        self.elements.push(Scope::new_child(name, self.top()));
     }
 
     ///

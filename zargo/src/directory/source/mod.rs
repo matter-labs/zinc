@@ -2,8 +2,8 @@
 //! The project `src` directory.
 //!
 
+pub mod circuit;
 pub mod contract;
-pub mod main;
 
 use std::fs;
 use std::io;

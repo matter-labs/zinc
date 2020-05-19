@@ -17,9 +17,9 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a compile-time only structure declaration statement.
+    /// Defines a compile-time only structure type.
     ///
-    pub fn analyze(scope: Rc<RefCell<Scope>>, statement: StructStatement) -> Result<Type, Error> {
+    pub fn define(scope: Rc<RefCell<Scope>>, statement: StructStatement) -> Result<Type, Error> {
         let mut fields: Vec<(String, Type)> = Vec::with_capacity(statement.fields.len());
         for field in statement.fields.into_iter() {
             if fields
@@ -43,9 +43,9 @@ impl Analyzer {
 
         let r#type = Type::structure(
             Some(statement.location),
-            statement.identifier.name.clone(),
+            statement.identifier.name,
             fields,
-            Some(Scope::new_child(scope)),
+            Some(scope),
         );
 
         Ok(r#type)

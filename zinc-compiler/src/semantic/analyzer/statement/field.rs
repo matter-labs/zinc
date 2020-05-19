@@ -15,9 +15,9 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a contract field declaration statement.
+    /// Defines a contract storage field.
     ///
-    pub fn analyze(
+    pub fn define(
         scope: Rc<RefCell<Scope>>,
         statement: FieldStatement,
         index: usize,

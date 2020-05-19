@@ -835,7 +835,7 @@ impl Integer {
         }
 
         if value.is_negative() && !is_signed {
-            panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
+            panic!(crate::panic::VALIDATED_DURING_LEXICAL_ANALYSIS);
         }
 
         Ok(bitlength)

@@ -15,11 +15,11 @@ use crate::program::ProgramData;
 use crate::runners::TestRunner;
 use crate::Summary;
 
-pub struct ProofCheckRunner {
+pub struct Runner {
     pub verbosity: usize,
 }
 
-impl TestRunner for ProofCheckRunner {
+impl TestRunner for Runner {
     fn run(
         &self,
         test_file_path: &PathBuf,
@@ -30,7 +30,7 @@ impl TestRunner for ProofCheckRunner {
         let program = match ProgramData::compile(test_file.code.as_str()) {
             Ok(program) => program,
             Err(error) => {
-                summary.lock().expect(crate::PANIC_MUTEX_SYNC).invalid += 1;
+                summary.lock().expect(crate::panic::MUTEX_SYNC).invalid += 1;
                 println!(
                     "[INTEGRATION] {} {} (compiler: {})",
                     "INVALID".red(),
@@ -44,7 +44,7 @@ impl TestRunner for ProofCheckRunner {
         let params = match zinc_vm::setup::<Bn256>(&program) {
             Ok(params) => params,
             Err(error) => {
-                summary.lock().expect(crate::PANIC_MUTEX_SYNC).invalid += 1;
+                summary.lock().expect(crate::panic::MUTEX_SYNC).invalid += 1;
                 println!(
                     "[INTEGRATION] {} {} (setup: {})",
                     "FAILED".red(),
@@ -66,7 +66,7 @@ impl TestRunner for ProofCheckRunner {
             let program_data = match ProgramData::new(&test_case.input, test_file.code.as_str()) {
                 Ok(program_data) => program_data,
                 Err(error) => {
-                    summary.lock().expect(crate::PANIC_MUTEX_SYNC).invalid += 1;
+                    summary.lock().expect(crate::panic::MUTEX_SYNC).invalid += 1;
                     println!(
                         "[INTEGRATION] {} {} (input data: {})",
                         "INVALID".red(),
@@ -78,7 +78,7 @@ impl TestRunner for ProofCheckRunner {
             };
 
             if test_data.ignore || test_case.ignore {
-                summary.lock().expect(crate::PANIC_MUTEX_SYNC).ignored += 1;
+                summary.lock().expect(crate::panic::MUTEX_SYNC).ignored += 1;
                 println!("[INTEGRATION] {} {}", "IGNORE".yellow(), case_name);
                 continue;
             }
@@ -91,7 +91,7 @@ impl TestRunner for ProofCheckRunner {
                 Ok((output, proof)) => {
                     let output_json = output.to_json();
                     if test_case.expect != output_json {
-                        summary.lock().expect(crate::PANIC_MUTEX_SYNC).failed += 1;
+                        summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;
                         println!(
                             "[INTEGRATION] {} {} (expected {}, but got {})",
                             "FAILED".bright_red(),
@@ -104,7 +104,7 @@ impl TestRunner for ProofCheckRunner {
                 }
                 Err(error) => {
                     if test_case.should_panic {
-                        summary.lock().expect(crate::PANIC_MUTEX_SYNC).passed += 1;
+                        summary.lock().expect(crate::panic::MUTEX_SYNC).passed += 1;
                         if self.verbosity > 0 {
                             println!(
                                 "[INTEGRATION] {} {} (panicked)",
@@ -113,7 +113,7 @@ impl TestRunner for ProofCheckRunner {
                             );
                         }
                     } else {
-                        summary.lock().expect(crate::PANIC_MUTEX_SYNC).failed += 1;
+                        summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;
                         println!(
                             "[INTEGRATION] {} {} ({})",
                             "FAILED".bright_red(),
@@ -129,7 +129,7 @@ impl TestRunner for ProofCheckRunner {
                 Ok(success) => {
                     if success {
                     } else {
-                        summary.lock().expect(crate::PANIC_MUTEX_SYNC).failed += 1;
+                        summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;
                         println!(
                             "[INTEGRATION] {} {} (verification failed)",
                             "FAILED".bright_red(),
@@ -138,7 +138,7 @@ impl TestRunner for ProofCheckRunner {
                     }
                 }
                 Err(error) => {
-                    summary.lock().expect(crate::PANIC_MUTEX_SYNC).failed += 1;
+                    summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;
                     println!(
                         "[INTEGRATION] {} {} (verify: {})",
                         "FAILED".bright_red(),

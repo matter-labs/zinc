@@ -95,11 +95,10 @@ impl Structure {
             if name == identifier.name.as_str() {
                 let access = StackFieldAccess::new(index, offset, r#type.size(), total_size);
 
-                return Ok((
-                    Value::try_from_type(r#type, self.location)
-                        .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
-                    access,
-                ));
+                let result = Value::try_from_type(r#type, self.location)
+                    .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
+
+                return Ok((result, access));
             }
             offset += r#type.size();
         }

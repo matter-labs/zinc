@@ -94,8 +94,7 @@ operand_terminal =
   | struct_expression
   | literal
   | identifier
-  | 'Self'
-  | 'self'
+  | 'crate' | 'super' | 'self' | 'Self'
 ;
 
 expression_list = [ expression, { ',', expression } | ',' ] ;
@@ -134,7 +133,7 @@ type =
   | 'field'
   | '[', type, ';', expression, ']'
   | '(', type, { ',', type }, ')'
-  | expression
+  | identifier | 'crate' | 'super' | 'self' | 'Self', { '::', identifier | 'crate' | 'super' | 'self' | 'Self' }
 ;
 
 pattern_match =

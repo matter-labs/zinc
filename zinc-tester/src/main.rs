@@ -2,12 +2,13 @@
 //! The Zinc tester binary.
 //!
 
-mod arguments;
-mod data;
-mod directory;
-mod file;
-mod program;
-mod runners;
+pub mod arguments;
+pub mod data;
+pub mod directory;
+pub mod file;
+pub mod panic;
+pub mod program;
+pub mod runners;
 
 use std::convert::TryFrom;
 use std::fmt;
@@ -25,19 +26,14 @@ use structopt::StructOpt;
 use self::data::TestData;
 use self::directory::TestDirectory;
 use self::file::TestFile;
-use self::runners::EvaluationTestRunner;
-use self::runners::ProofCheckRunner;
+use self::runners::evaluation::Runner as EvaluationRunner;
+use self::runners::proof_check::Runner as ProofCheckRunner;
 use self::runners::TestRunner;
 
 const EXIT_CODE_SUCCESS: i32 = 0;
 const EXIT_CODE_FAILURE: i32 = 1;
 
 static TESTS_DIRECTORY: &str = "zinc-tester/tests/";
-
-static PANIC_TEST_DIRECTORY_INVALID: &str = "The test files directory must be valid";
-static PANIC_LAST_SHARED_REFERENCE: &str = "There are no other references at this point";
-static PANIC_MUTEX_SYNC: &str = "Mutexes never panic";
-static PANIC_MAIN_ENTRY_ID: &str = "The 'main' entry ID always exists";
 
 fn main() {
     let args = arguments::Arguments::from_args();
@@ -47,7 +43,7 @@ fn main() {
         };
         main_inner(runner)
     } else {
-        let runner = EvaluationTestRunner {
+        let runner = EvaluationRunner {
             verbosity: args.verbosity,
         };
         main_inner(runner)
@@ -84,7 +80,7 @@ fn main_inner<R: TestRunner>(runner: R) -> Summary {
     let summary = Arc::new(Mutex::new(Summary::default()));
 
     TestDirectory::new(&PathBuf::from(TESTS_DIRECTORY))
-        .expect(PANIC_TEST_DIRECTORY_INVALID)
+        .expect(crate::panic::TEST_DIRECTORY_INVALID)
         .file_paths
         .into_par_iter()
         .map(|test_file_path| {
@@ -98,9 +94,9 @@ fn main_inner<R: TestRunner>(runner: R) -> Summary {
         .collect::<Vec<()>>();
 
     Arc::try_unwrap(summary)
-        .expect(PANIC_LAST_SHARED_REFERENCE)
+        .expect(crate::panic::LAST_SHARED_REFERENCE)
         .into_inner()
-        .expect(PANIC_LAST_SHARED_REFERENCE)
+        .expect(crate::panic::LAST_SHARED_REFERENCE)
 }
 
 #[derive(Debug, Default)]

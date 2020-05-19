@@ -43,9 +43,9 @@ impl Analyzer {
 
         let function = match operand_1 {
             Element::Type(Type::Function(function)) => function,
-            Element::Path(path) => match Scope::resolve_path(scope.clone(), &path)? {
-                ScopeItem::Type(r#type) => {
-                    let r#type = r#type.resolve()?;
+            Element::Path(path) => match *Scope::resolve_path(scope.clone(), &path)?.borrow() {
+                ScopeItem::Type(ref r#type) => {
+                    let r#type = r#type.define()?;
                     match r#type {
                         Type::Function(function) => function,
                         r#type => {
@@ -58,7 +58,7 @@ impl Analyzer {
                         }
                     }
                 }
-                item => {
+                ref item => {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
                         FunctionTypeError::NonCallable {
                             location: function_location.unwrap_or(location),

@@ -2,7 +2,7 @@
 //! The 'Uniswap' contract factory.
 //!
 
-type Address = u160;
+use crate::types::Address;
 
 struct Factory {
     address: Address,

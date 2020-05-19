@@ -3,7 +3,6 @@
 //!
 
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use failure::Fail;
 use serde_json::Value as JsonValue;
@@ -15,7 +14,6 @@ use zinc_compiler::Bytecode;
 use zinc_compiler::EntryAnalyzer;
 use zinc_compiler::Error as CompilerError;
 use zinc_compiler::Program as IntermediateProgram;
-use zinc_compiler::Scope;
 use zinc_compiler::Source;
 
 pub struct ProgramData {
@@ -43,29 +41,21 @@ impl ProgramData {
     }
 
     pub fn compile(code: &str) -> Result<BytecodeProgram, Error> {
-        let lines = code.lines().collect::<Vec<&str>>();
-
-        let source = Source::test(code, HashMap::new())
-            .map_err(|error| error.format(lines.as_slice()))
-            .map_err(Error::Compiler)?;
-
-        let scope = EntryAnalyzer::analyze(source.entry.tree, source.modules)
+        let scope = EntryAnalyzer::define(Source::test(code, HashMap::new()))
             .map_err(CompilerError::Semantic)
-            .map_err(|error| error.format(lines.as_slice()))
+            .map_err(|error| error.format())
             .map_err(Error::Compiler)?;
 
         let bytecode = Bytecode::new().wrap();
-        IntermediateProgram::new(Scope::get_intermediate(scope))
+        IntermediateProgram::new(scope.borrow().get_intermediate())
             .write_all_to_bytecode(bytecode.clone());
-        let bytecode = Rc::try_unwrap(bytecode)
-            .expect(crate::PANIC_LAST_SHARED_REFERENCE)
-            .into_inner();
 
-        let entry_id = bytecode
-            .entry_id(zinc_compiler::FUNCTION_MAIN_IDENTIFIER)
-            .expect(crate::PANIC_MAIN_ENTRY_ID);
-        let program = BytecodeProgram::from_bytes(bytecode.to_bytes(entry_id).as_slice())
-            .map_err(Error::Program)?;
+        let main_entry = Bytecode::unwrap_rc(bytecode)
+            .into_entries()
+            .remove(zinc_compiler::FUNCTION_MAIN_IDENTIFIER)
+            .expect(crate::panic::MAIN_ENTRY_ID);
+        let program =
+            BytecodeProgram::from_bytes(main_entry.bytecode.as_slice()).map_err(Error::Program)?;
 
         Ok(program)
     }

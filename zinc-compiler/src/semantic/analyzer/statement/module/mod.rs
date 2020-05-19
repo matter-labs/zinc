@@ -14,6 +14,8 @@ impl Analyzer {
     ///
     /// Analyzes a compile-time only module declaration statement.
     ///
+    /// Is not used for now.
+    ///
     pub fn analyze(statement: ModStatement) -> Result<Identifier, Error> {
         Ok(statement.identifier)
     }

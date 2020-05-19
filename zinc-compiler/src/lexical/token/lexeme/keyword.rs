@@ -45,8 +45,10 @@ pub enum Keyword {
     As,
 
     // aliases
-    SelfUppercase,
+    Crate,
+    Super,
     SelfLowercase,
+    SelfUppercase,
 
     // reserved
     Static,
@@ -66,6 +68,13 @@ impl Keyword {
 
     pub fn new_integer_signed(bitlength: usize) -> Self {
         Self::IntegerSigned { bitlength }
+    }
+
+    pub fn is_alias(name: &str) -> bool {
+        name == Self::Crate.to_string().as_str()
+            || name == Self::Super.to_string().as_str()
+            || name == Self::SelfLowercase.to_string().as_str()
+            || name == Self::SelfUppercase.to_string().as_str()
     }
 }
 
@@ -116,8 +125,10 @@ impl TryFrom<&str> for Keyword {
 
             "as" => return Ok(Self::As),
 
-            "Self" => return Ok(Self::SelfUppercase),
+            "crate" => return Ok(Self::Crate),
+            "super" => return Ok(Self::Super),
             "self" => return Ok(Self::SelfLowercase),
+            "Self" => return Ok(Self::SelfUppercase),
 
             "static" => return Ok(Self::Static),
             "ref" => return Ok(Self::Ref),
@@ -217,8 +228,10 @@ impl fmt::Display for Keyword {
 
             Self::As => write!(f, "as"),
 
-            Self::SelfUppercase => write!(f, "Self"),
+            Self::Crate => write!(f, "crate"),
+            Self::Super => write!(f, "super"),
             Self::SelfLowercase => write!(f, "self"),
+            Self::SelfUppercase => write!(f, "Self"),
 
             Self::Static => write!(f, "static"),
             Self::Ref => write!(f, "ref"),

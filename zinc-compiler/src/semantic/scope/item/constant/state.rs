@@ -11,11 +11,11 @@ use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
 #[derive(Debug, Clone)]
 pub enum State {
-    /// Waiting to be resolved during the second pass
-    Unresolved {
+    /// Waiting to be defined during the second pass
+    Declared {
         inner: ConstStatement,
         scope: Rc<RefCell<Scope>>,
     },
-    /// Resolved element ready to be used from anywhere
-    Resolved { inner: ConstantElement },
+    /// Defined element ready to be used from anywhere
+    Defined { inner: ConstantElement },
 }

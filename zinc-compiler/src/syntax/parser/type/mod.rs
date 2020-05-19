@@ -52,6 +52,24 @@ impl Parser {
             | token
             @
             Token {
+                lexeme: Lexeme::Keyword(Keyword::Crate),
+                ..
+            }
+            | token
+            @
+            Token {
+                lexeme: Lexeme::Keyword(Keyword::Super),
+                ..
+            }
+            | token
+            @
+            Token {
+                lexeme: Lexeme::Keyword(Keyword::SelfLowercase),
+                ..
+            }
+            | token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::SelfUppercase),
                 ..
             } => {

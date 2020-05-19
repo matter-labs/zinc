@@ -2,16 +2,16 @@
 //! Uniswap Exchange Interface V1.
 //!
 
-mod factory;
+mod types;
 mod transaction;
 mod utils;
+mod factory;
 
-use factory::Factory;
-use transaction::Transaction;
-
-type Balance = u248;
-type Address = u160;
-type Timestamp = u64;
+use self::factory::Factory;
+use self::transaction::Transaction;
+use self::types::Balance;
+use self::types::Address;
+use self::types::Timestamp;
 
 const ZERO_ADDRESS: Address = 0;
 const ZERO_BALANCE: Balance = 0;

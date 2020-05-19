@@ -14,7 +14,7 @@ use crate::semantic::scope::builtin::BuiltInTypeId;
 ///
 /// It is initialized with some built-in and standard library types.
 ///
-/// The type index considers type aliases equal to the type they point to.
+/// The index treats type aliases equal to the type they point to.
 ///
 pub struct Index {
     pub inner: RwLock<HashMap<usize, String>>,
@@ -32,11 +32,11 @@ impl Index {
             inner: RwLock::new(HashMap::with_capacity(Self::INITIAL_CAPACITY)),
         };
         index.next_with_id(
-            "function std::crypto::ecc::Point".to_owned(),
+            "structure std::crypto::ecc::Point".to_owned(),
             BuiltInTypeId::StdCryptoEccPoint as usize,
         );
         index.next_with_id(
-            "function std::crypto::schnorr::Signature".to_owned(),
+            "structure std::crypto::schnorr::Signature".to_owned(),
             BuiltInTypeId::StdCryptoSchnorrSignature as usize,
         );
         index

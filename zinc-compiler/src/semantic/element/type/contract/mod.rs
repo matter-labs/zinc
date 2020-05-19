@@ -35,7 +35,7 @@ impl Contract {
         type_id: usize,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
-        let scope = scope.unwrap_or_else(|| Scope::new(None).wrap());
+        let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());
 
         let contract = Self {
             location,
@@ -44,9 +44,7 @@ impl Contract {
             scope: scope.clone(),
         };
 
-        scope
-            .borrow_mut()
-            .define_self(Type::Contract(contract.clone()));
+        Scope::define_type_self_alias(scope, Type::Contract(contract.clone()));
 
         contract
     }

@@ -8,7 +8,9 @@ use std::sync::RwLock;
 use lazy_static::lazy_static;
 
 ///
-/// The item index where the unique IDs for all declared types are recorded.
+/// The item index where the unique IDs for all declared items are recorded.
+///
+/// The index treats item aliases (`crate`, `super`, `self`) equal to the item they point to.
 ///
 pub struct Index {
     pub inner: RwLock<HashMap<usize, String>>,

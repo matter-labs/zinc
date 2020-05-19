@@ -2,7 +2,7 @@
 //! The 'Uniswap' utils.
 //!
 
-type Balance = u248;
+use crate::types::Balance;
 
 const ZERO_INTEGER: Balance = 0;
 

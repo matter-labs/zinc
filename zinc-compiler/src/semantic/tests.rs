@@ -10,15 +10,16 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::error::Error;
+use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 use crate::semantic::analyzer::module::Analyzer as ModuleAnalyzer;
 use crate::semantic::error::Error as SemanticError;
+use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
-use crate::source::module::Module as SourceModule;
 use crate::source::Source;
+use crate::syntax::parser::Parser;
 use crate::syntax::tree::module::Module as SyntaxModule;
-use crate::Parser;
 
 pub(crate) fn compile_entry(input: &str) -> Result<(), Error> {
     compile_entry_with_dependencies(input, HashMap::new())
@@ -26,23 +27,60 @@ pub(crate) fn compile_entry(input: &str) -> Result<(), Error> {
 
 pub(crate) fn compile_entry_with_dependencies(
     input: &str,
-    dependencies: HashMap<String, SourceModule>,
+    dependencies: HashMap<String, Source>,
 ) -> Result<(), Error> {
-    let source = Source::test(input, dependencies)?;
-    EntryAnalyzer::analyze(source.entry.tree, source.modules)?;
+    EntryAnalyzer::define(Source::test(input, dependencies)).map_err(Error::Semantic)?;
 
     Ok(())
 }
 
-pub(crate) fn compile_module(input: &str) -> Result<Rc<RefCell<Scope>>, Error> {
-    compile_module_with_dependencies(input, HashMap::new())
+pub(crate) fn compile_module(
+    input: &str,
+    scope: Rc<RefCell<Scope>>,
+    scope_crate: Rc<RefCell<Scope>>,
+    scope_super: Rc<RefCell<Scope>>,
+) -> Result<Rc<RefCell<Scope>>, Error> {
+    compile_module_with_dependencies(input, scope, HashMap::new(), scope_crate, scope_super)
 }
 
 pub(crate) fn compile_module_with_dependencies(
     input: &str,
-    dependencies: HashMap<String, SourceModule>,
+    scope: Rc<RefCell<Scope>>,
+    dependencies: HashMap<String, Source>,
+    scope_crate: Rc<RefCell<Scope>>,
+    scope_super: Rc<RefCell<Scope>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
-    let scope = ModuleAnalyzer::analyze(SourceModule::test(input, dependencies)?)?;
+    let module = Parser::default().parse(input, None)?;
+    let (module, implementation_scopes) = ModuleAnalyzer::declare(
+        scope.clone(),
+        module,
+        dependencies,
+        scope_crate.clone(),
+        false,
+    )?;
+
+    let crate_item = scope_crate
+        .borrow()
+        .items
+        .borrow()
+        .get(&Keyword::SelfLowercase.to_string())
+        .cloned()
+        .unwrap();
+    let super_item = scope_super
+        .borrow()
+        .items
+        .borrow()
+        .get(&Keyword::SelfLowercase.to_string())
+        .cloned()
+        .unwrap();
+
+    ModuleAnalyzer::define(
+        scope.clone(),
+        module,
+        implementation_scopes,
+        crate_item,
+        Some(super_item),
+    )?;
 
     Ok(scope)
 }
@@ -130,7 +168,13 @@ fn main() -> u8 {
         location: Location::new(2, 1),
     });
 
-    let result = crate::semantic::tests::compile_module(input).unwrap_err();
+    let result = crate::semantic::tests::compile_module(
+        input,
+        Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+        Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+        Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+    )
+    .unwrap_err();
 
     assert_eq!(result, expected);
 }
@@ -147,7 +191,13 @@ contract Uniswap {
         location: Location::new(2, 1),
     });
 
-    let result = crate::semantic::tests::compile_module(input).unwrap_err();
+    let result = crate::semantic::tests::compile_module(
+        input,
+        Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+        Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+        Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+    )
+    .unwrap_err();
 
     assert_eq!(result, expected);
 }

@@ -71,15 +71,18 @@ impl Parser {
                             self.state = State::BracketCurlyLeftOrEnd;
                         }
                         Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::Crate),
+                            location,
+                        }
+                        | Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::Super),
+                            location,
+                        }
+                        | Token {
                             lexeme: Lexeme::Keyword(keyword @ Keyword::SelfLowercase),
                             location,
-                        } => {
-                            self.builder.set_location(location);
-                            let identifier = Identifier::new(location, keyword.to_string());
-                            self.builder.set_identifier(identifier);
-                            self.state = State::BracketCurlyLeftOrEnd;
                         }
-                        Token {
+                        | Token {
                             lexeme: Lexeme::Keyword(keyword @ Keyword::SelfUppercase),
                             location,
                         } => {
@@ -226,7 +229,45 @@ mod tests {
     }
 
     #[test]
-    fn ok_self_lowercase() {
+    fn ok_keyword_crate() {
+        let input = r#"crate"#;
+
+        let expected = Ok((
+            StructureExpression::new(
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 1), Keyword::Crate.to_string()),
+                false,
+                vec![],
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
+        ));
+
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_keyword_super() {
+        let input = r#"super"#;
+
+        let expected = Ok((
+            StructureExpression::new(
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 1), Keyword::Super.to_string()),
+                false,
+                vec![],
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
+        ));
+
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_keyword_self_lowercase() {
         let input = r#"self"#;
 
         let expected = Ok((
@@ -245,7 +286,7 @@ mod tests {
     }
 
     #[test]
-    fn ok_self_uppercase() {
+    fn ok_keyword_self_uppercase() {
         let input = r#"Self"#;
 
         let expected = Ok((

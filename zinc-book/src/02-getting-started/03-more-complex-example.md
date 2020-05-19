@@ -15,7 +15,7 @@ as the secret witness data. The public data will be the Merkle tree root hash.
 Let's create a new circuit called `merkle-proof`:
 
 ```bash
-zargo new --circuit merkle-proof
+zargo new --type circuit merkle-proof
 cd merkle-proof
 ```
 

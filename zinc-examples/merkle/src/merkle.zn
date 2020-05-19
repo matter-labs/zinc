@@ -5,6 +5,8 @@
 use std::crypto::sha256;
 use std::array::truncate;
 
+use crate::TREE_HEIGHT;
+
 type Sha256Digest = u248;
 
 fn balance_hash(balance: field) -> Sha256Digest {
@@ -32,7 +34,7 @@ fn merkle_node_hash(left: Sha256Digest, right: Sha256Digest) -> Sha256Digest {
 fn restore_root_hash(
     leaf_hash: Sha256Digest,
     address: field,
-    merkle_path: [Sha256Digest; 10],
+    merkle_path: [Sha256Digest; TREE_HEIGHT],
 ) -> Sha256Digest
 {
     let address_bits = std::convert::to_bits(address);

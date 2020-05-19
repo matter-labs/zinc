@@ -3,47 +3,53 @@
 //!
 
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
-use crate::semantic::analyzer::statement::Context as StatementAnalyzerContext;
 use crate::semantic::error::Error;
+use crate::semantic::scope::item::module::Module as ScopeModuleItem;
+use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
-use crate::source::module::Module as SourceModule;
-use crate::syntax::tree::module::Module as SyntaxModule;
+use crate::source::Source;
 
 ///
-/// Analyzes the project entry, which must be located in the `main.zn` file.
-///
-/// To analyze a project module, use the module analyzer.
+/// Analyzes the application entry.
 ///
 pub struct Analyzer {}
 
 impl Analyzer {
-    pub fn analyze(
-        module: SyntaxModule,
-        dependencies: HashMap<String, SourceModule>,
-    ) -> Result<Rc<RefCell<Scope>>, Error> {
-        let scope =
-            StatementAnalyzer::module(module, dependencies, StatementAnalyzerContext::Entry)?;
+    ///
+    /// 1. Defines the entry module aliases.
+    /// 2. Calls the module statements analyzer.
+    /// 3. Defines the module items forcibly.
+    /// 4. Validates entry points.
+    ///
+    pub fn define(module: Source) -> Result<Rc<RefCell<Scope>>, Error> {
+        let entry = ScopeModuleItem::new_entry(module)?;
+        entry.borrow().define()?;
 
-        let main_function_location = scope.borrow().get_main_location();
-        let contract_location = scope.borrow().get_contract_location();
+        let entry = entry.borrow();
+        if let ScopeItem::Module(ref module) = *entry {
+            let scope = module.scope()?;
 
-        if main_function_location.is_none() && contract_location.is_none() {
-            return Err(Error::EntryPointMissing);
+            let main_function_location = scope.borrow().get_main_location();
+            let contract_location = scope.borrow().get_contract_location();
+
+            if main_function_location.is_none() && contract_location.is_none() {
+                return Err(Error::EntryPointMissing);
+            }
+
+            if let (Some(main_location), Some(contract_location)) =
+                (main_function_location, contract_location)
+            {
+                return Err(Error::EntryPointAmbiguous {
+                    main: main_location,
+                    contract: contract_location,
+                });
+            }
+
+            Ok(scope)
+        } else {
+            panic!(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
         }
-
-        if let (Some(main_location), Some(contract_location)) =
-            (main_function_location, contract_location)
-        {
-            return Err(Error::EntryPointAmbiguous {
-                main: main_location,
-                contract: contract_location,
-            });
-        }
-
-        Ok(scope)
     }
 }

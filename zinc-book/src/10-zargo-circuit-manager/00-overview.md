@@ -57,7 +57,7 @@ Executes the full cycle of proof verification, that is, performs
 
 ```bash
 # create a new circuit called 'zircuit'
-zargo new zircuit
+zargo new --type circuit zircuit
 cd zircuit/
 
 # write some code
@@ -70,7 +70,7 @@ zargo proof-check
 
 ```bash
 # create a new circuit called 'zircuit'
-zargo new zircuit
+zargo new --type circuit zircuit
 cd zircuit/
 
 # write some code

@@ -1,8 +1,7 @@
 //!
-//! This example shows how to verify that provers know the preimage
-//! of a given hash digest.
+//! This example shows how to verify that prover knows the preimage of a given hash digest.
 //!
-//! Note that we truncate one byte from digest since u256 type is not supported.
+//! Note that we truncate one byte from digest since the `u256` type is not supported.
 //!
 
 use std::crypto::sha256;
@@ -15,6 +14,6 @@ const SHA256_HASH_SIZE: u64 = 256;
 
 fn main(preimage: field) -> [bool; SHA256_HASH_SIZE] {
     let preimage_bits: [bool; FIELD_SIZE] = to_bits(preimage);
-    let preimage_bits_padded: [bool; FIELD_SIZE_PADDED] = pad(preimage_bits, 256, false);
+    let preimage_bits_padded: [bool; FIELD_SIZE_PADDED] = pad(preimage_bits, SHA256_HASH_SIZE, false);
     sha256(preimage_bits_padded)
 }

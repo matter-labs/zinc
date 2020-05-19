@@ -20,7 +20,6 @@ use crate::generator::expression::operator::Operator as GeneratorExpressionOpera
 use crate::lexical::token::location::Location;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::item::Item as ScopeItem;
-use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
 
 use self::access::dot::Dot as DotAccessVariant;
@@ -51,7 +50,7 @@ pub enum Element {
     /// The second operand of the function call operator
     ArgumentList(ArgumentList),
 
-    /// Path to be resolved in the scope
+    /// Path to be defined in the scope
     Path(Path),
     /// Memory descriptor (`lvalue`)
     Place(Place),
@@ -1528,16 +1527,24 @@ impl Element {
                         }
                     };
 
-                    match Scope::resolve_item(scope, &identifier, false) {
-                        Ok(ScopeItem::Type(r#type)) => {
-                            let r#type = r#type.resolve()?;
-                            Ok((
-                                Element::Type(r#type),
-                                DotAccessVariant::Method {
-                                    instance: Self::Place(place),
-                                },
-                            ))
-                        }
+                    let item = scope.borrow().resolve_item(&identifier, false);
+                    match item {
+                        Ok(item) => match *item.borrow() {
+                            ScopeItem::Type(ref r#type) => {
+                                let r#type = r#type.define()?;
+                                Ok((
+                                    Element::Type(r#type),
+                                    DotAccessVariant::Method {
+                                        instance: Self::Place(place),
+                                    },
+                                ))
+                            }
+                            _ => place
+                                .structure_field(identifier)
+                                .map(|(place, access)| (Element::Place(place), access))
+                                .map_err(Error::Place)
+                                .map_err(SemanticError::Element),
+                        },
                         _ => place
                             .structure_field(identifier)
                             .map(|(place, access)| (Element::Place(place), access))
@@ -1578,16 +1585,26 @@ impl Element {
                         }
                     };
 
-                    match Scope::resolve_item(scope, &identifier, false) {
-                        Ok(ScopeItem::Type(r#type)) => {
-                            let r#type = r#type.resolve()?;
-                            Ok((
-                                Element::Type(r#type),
-                                DotAccessVariant::Method {
-                                    instance: Self::Value(value),
-                                },
-                            ))
-                        }
+                    let item = scope.borrow().resolve_item(&identifier, false);
+                    match item {
+                        Ok(item) => match *item.borrow() {
+                            ScopeItem::Type(ref r#type) => {
+                                let r#type = r#type.define()?;
+                                Ok((
+                                    Element::Type(r#type),
+                                    DotAccessVariant::Method {
+                                        instance: Self::Value(value),
+                                    },
+                                ))
+                            }
+                            _ => value
+                                .structure_field(identifier)
+                                .map(|(value, access)| {
+                                    (Element::Value(value), DotAccessVariant::StackField(access))
+                                })
+                                .map_err(Error::Value)
+                                .map_err(SemanticError::Element),
+                        },
                         _ => value
                             .structure_field(identifier)
                             .map(|(value, access)| {
@@ -1636,16 +1653,29 @@ impl Element {
                         }
                     };
 
-                    match Scope::resolve_item(scope, &identifier, false) {
-                        Ok(ScopeItem::Type(r#type)) => {
-                            let r#type = r#type.resolve()?;
-                            Ok((
-                                Element::Type(r#type),
-                                DotAccessVariant::Method {
-                                    instance: Self::Constant(constant),
-                                },
-                            ))
-                        }
+                    let item = scope.borrow().resolve_item(&identifier, false);
+                    match item {
+                        Ok(item) => match *item.borrow() {
+                            ScopeItem::Type(ref r#type) => {
+                                let r#type = r#type.define()?;
+                                Ok((
+                                    Element::Type(r#type),
+                                    DotAccessVariant::Method {
+                                        instance: Self::Constant(constant),
+                                    },
+                                ))
+                            }
+                            _ => constant
+                                .structure_field(identifier)
+                                .map(|(constant, access)| {
+                                    (
+                                        Element::Constant(constant),
+                                        DotAccessVariant::StackField(access),
+                                    )
+                                })
+                                .map_err(Error::Constant)
+                                .map_err(SemanticError::Element),
+                        },
                         _ => constant
                             .structure_field(identifier)
                             .map(|(constant, access)| {

@@ -1,92 +1,97 @@
 //!
-//! The source code.
+//! The source code module.
 //!
 
+pub mod directory;
 pub mod error;
-pub mod module;
+pub mod file;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::convert::TryFrom;
+use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
 
-use crate::error::Error as CompilerError;
 use crate::generator::bytecode::Bytecode;
-use crate::generator::program::Program;
-use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
-use crate::semantic::scope::Scope;
 
+use self::directory::Directory;
 use self::error::Error;
-use self::module::file::File;
-use self::module::Module;
+use self::file::File;
 
-///
-/// The Zinc project source code, which consists of the entry root module and dependency modules.
-///
 #[derive(Debug, Clone)]
-pub struct Source {
-    pub path: PathBuf,
-    pub entry: File,
-    pub modules: HashMap<String, Module>,
+pub enum Source {
+    File(File),
+    Directory(Directory),
 }
 
 impl Source {
-    pub fn compile(self) -> Result<Rc<RefCell<Bytecode>>, Error> {
-        let lines: Vec<&str> = self.entry.code.lines().collect();
+    ///
+    /// Initializes an application module representation.
+    ///
+    pub fn try_from_path(path: &PathBuf, is_entry: bool) -> Result<Self, Error> {
+        let file_type = fs::metadata(path).map_err(Error::FileMetadata)?.file_type();
 
-        let scope = EntryAnalyzer::analyze(self.entry.tree, self.modules)
-            .map_err(CompilerError::Semantic)
-            .map_err(|error| error.format(lines.as_slice()))
-            .map_err(Error::Compiling)?;
-
-        let bytecode = Bytecode::new().wrap();
-        Program::new(Scope::get_intermediate(scope)).write_all_to_bytecode(bytecode.clone());
-
-        Ok(bytecode)
-    }
-
-    pub fn test(input: &str, dependencies: HashMap<String, Module>) -> Result<Self, CompilerError> {
-        Ok(Self {
-            path: PathBuf::from("test.zn"),
-            entry: File::test(input)?,
-            modules: dependencies,
-        })
-    }
-}
-
-impl TryFrom<&PathBuf> for Source {
-    type Error = Error;
-
-    fn try_from(path: &PathBuf) -> Result<Self, Self::Error> {
-        let module = Module::try_from(path).map_err(|error| Error::RootModule {
-            path: path.to_owned().into_os_string(),
-            inner: error,
-        })?;
-
-        match module {
-            Module::File(file) => {
-                if file.is_application_entry() {
-                    Ok(Self {
-                        path: path.to_owned(),
-                        entry: file,
-                        modules: HashMap::new(),
-                    })
-                } else {
-                    Err(Error::EntrySourceFileNotFound)
-                }
-            }
-            Module::Directory(directory) => {
-                if !directory.entry.is_application_entry() {
-                    return Err(Error::EntrySourceFileNotFound);
-                }
-
-                Ok(Self {
-                    path: directory.path,
-                    entry: directory.entry,
-                    modules: directory.modules,
-                })
-            }
+        if file_type.is_dir() {
+            return Directory::try_from_path(path, is_entry).map(Self::Directory);
         }
+
+        if file_type.is_file() {
+            return File::try_from_path(path).map(Self::File);
+        }
+
+        Err(Error::FileTypeUnknown)
+    }
+
+    ///
+    /// Gets all the intermediate represenation scattered around the application scope tree and
+    /// writes it to the bytecode.
+    ///
+    pub fn compile(self) -> Result<Rc<RefCell<Bytecode>>, Error> {
+        match self {
+            Self::File(inner) => inner.compile(),
+            Self::Directory(inner) => inner.compile(),
+        }
+    }
+
+    ///
+    /// Gets the file or directory name.
+    ///
+    pub fn name(&self) -> &str {
+        match self {
+            Self::File(inner) => inner.name.as_str(),
+            Self::Directory(inner) => inner.name.as_str(),
+        }
+    }
+
+    ///
+    /// Checks whether the module is the application entry point file.
+    ///
+    pub fn is_application_entry(&self) -> bool {
+        match self {
+            Self::File(file) => file.is_application_entry(),
+            Self::Directory(_directory) => false,
+        }
+    }
+
+    ///
+    /// Checks whether the module is the module entry point file.
+    ///
+    pub fn is_module_entry(&self) -> bool {
+        match self {
+            Self::File(file) => file.is_module_entry(),
+            Self::Directory(_directory) => false,
+        }
+    }
+
+    ///
+    /// Initialized a test module.
+    ///
+    pub fn test(input: &str, dependencies: HashMap<String, Source>) -> Self {
+        if dependencies.is_empty() {
+            File::test(input).map(Self::File)
+        } else {
+            Directory::test(input, dependencies).map(Self::Directory)
+        }
+        .expect(crate::panic::TEST_DATA)
     }
 }

@@ -22,9 +22,9 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a compile-time only import statement.
+    /// Defines an item imported by the compile-time only `use` statement.
     ///
-    pub fn analyze(scope: Rc<RefCell<Scope>>, statement: UseStatement) -> Result<(), Error> {
+    pub fn define(scope: Rc<RefCell<Scope>>, statement: UseStatement) -> Result<(), Error> {
         let path_location = statement.path.location;
 
         let path = match ExpressionAnalyzer::new(scope.clone(), TranslationRule::Path)
@@ -40,12 +40,9 @@ impl Analyzer {
                 )))
             }
         };
+
         let item = Scope::resolve_path(scope.clone(), &path)?;
-        let path_last_element = path
-            .elements
-            .last()
-            .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
-        Scope::define_item(scope, path_last_element.to_owned(), item)?;
+        Scope::define_item(scope, path.last().to_owned(), item)?;
 
         Ok(())
     }

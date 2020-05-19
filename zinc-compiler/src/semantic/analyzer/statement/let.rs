@@ -19,9 +19,9 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a variable declaration statement and returns its IR for the next compiler phase.
+    /// Defines a variable and returns its IR for the next compiler phase.
     ///
-    pub fn analyze(
+    pub fn define(
         scope: Rc<RefCell<Scope>>,
         statement: LetStatement,
     ) -> Result<Option<GeneratorDeclarationStatement>, Error> {

@@ -1,9 +1,13 @@
+//!
+//! The Zinc tester arguments.
+//!
+
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "zinc-tester",
-    about = "integration test runner for zinc framework"
+    about = "The integration test runner for the Zinc framework"
 )]
 pub struct Arguments {
     #[structopt(

@@ -7,6 +7,9 @@ use std::fmt;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::Element;
 
+///
+/// A function argument list.
+///
 #[derive(Debug, Clone)]
 pub struct ArgumentList {
     pub location: Location,

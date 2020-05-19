@@ -10,10 +10,10 @@ pub static VALIDATED_DURING_SEMANTIC_ANALYSIS: &str = "Validated during semantic
 
 // auxiliary
 pub static MUTEX_SYNC: &str = "Mutexes never panic";
+pub static LAST_SHARED_REFERENCE: &str = "There are no other references at this point";
 pub static JSON_TEMPLATE_SERIALIZATION: &str = "JSON serialization never panicks: ";
 pub static BUILDER_REQUIRES_VALUE: &str = "The builder requires a value: ";
 pub static LOCATION_ALWAYS_EXISTS: &str = "Location always exists";
 
 // test
-#[allow(dead_code)]
 pub static TEST_DATA: &str = "Test data is always valid";

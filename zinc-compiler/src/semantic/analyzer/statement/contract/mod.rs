@@ -20,23 +20,14 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a compile-time only contract declaration statement.
-    /// Works in four phases:
+    /// Initializes the contract type and declares the hoisted items.
+    /// Removes the hoisted item statements from the contract statement.
+    /// Returns the statement and allocated scope.
     ///
-    /// 1. Initializes the contract type.
-    /// 2. Declares the hoisted items.
-    /// 3. Defines the instant items.
-    /// 4. Resolves the hoisted items forcibly.
-    ///
-    pub fn analyze(scope: Rc<RefCell<Scope>>, statement: ContractStatement) -> Result<Type, Error> {
-        let scope = Scope::new_child(scope);
-
-        let r#type = Type::contract(
-            Some(statement.location),
-            statement.identifier.name.clone(),
-            Some(scope.clone()),
-        );
-
+    pub fn declare(
+        scope: Rc<RefCell<Scope>>,
+        mut statement: ContractStatement,
+    ) -> Result<(ContractStatement, Rc<RefCell<Scope>>), Error> {
         let mut instant_statements = Vec::with_capacity(statement.statements.len());
         for hoisted_statement in statement.statements.into_iter() {
             match hoisted_statement {
@@ -54,15 +45,30 @@ impl Analyzer {
             }
         }
 
+        statement.statements = instant_statements;
+
+        Ok((statement, scope))
+    }
+
+    ///
+    /// Defines the instant items and forcibly defines the hoisted ones.
+    ///
+    pub fn define(scope: Rc<RefCell<Scope>>, statement: ContractStatement) -> Result<Type, Error> {
         let mut contract_field_index = 0;
-        for instant_statement in instant_statements.into_iter() {
+        for instant_statement in statement.statements.into_iter() {
             if let ContractLocalStatement::Field(statement) = instant_statement {
-                FieldStatementAnalyzer::analyze(scope.clone(), statement, contract_field_index)?;
+                FieldStatementAnalyzer::define(scope.clone(), statement, contract_field_index)?;
                 contract_field_index += 1;
             }
         }
 
-        scope.borrow().resolve()?;
+        let r#type = Type::contract(
+            Some(statement.location),
+            statement.identifier.name.clone(),
+            Some(scope.clone()),
+        );
+
+        scope.borrow().define()?;
 
         Ok(r#type)
     }

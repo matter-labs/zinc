@@ -2,12 +2,8 @@
 //! The test runners.
 //!
 
-mod evaluation;
-mod proof_check;
-
-pub use self::evaluation::EvaluationTestRunner;
-pub use self::proof_check::ProofCheckRunner;
-pub use crate::Summary;
+pub mod evaluation;
+pub mod proof_check;
 
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -15,6 +11,7 @@ use std::sync::Mutex;
 
 use crate::data::TestData;
 use crate::file::TestFile;
+use crate::Summary;
 
 pub trait TestRunner: Sync + Send {
     fn run(

@@ -37,21 +37,15 @@ impl Structure {
         fields: Vec<(String, Type)>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
-        let scope = scope.unwrap_or_else(|| Scope::new(None).wrap());
+        let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());
 
-        let structure = Self {
+        Self {
             location,
             identifier,
             type_id,
             fields,
-            scope: scope.clone(),
-        };
-
-        scope
-            .borrow_mut()
-            .define_self(Type::Structure(structure.clone()));
-
-        structure
+            scope,
+        }
     }
 }
 

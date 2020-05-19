@@ -14,9 +14,14 @@ pub mod place;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use num_bigint::BigInt;
+
 use zinc_bytecode::Instruction;
 
 use crate::generator::bytecode::Bytecode;
+use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
+use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
+use crate::semantic::element::place::element::Element as SemanticPlaceElement;
 use crate::semantic::element::place::memory_type::MemoryType;
 
 use self::array::Expression as ArrayExpression;
@@ -85,7 +90,29 @@ impl Operand {
                     let element_size = inner.element_size;
                     let total_size = inner.total_size;
 
-                    inner.load_storage(bytecode.clone());
+                    if let Some(SemanticPlaceElement::ContractField {
+                        access:
+                            ContractFieldAccess {
+                                position,
+                                element_size,
+                            },
+                    }) = inner.elements.first()
+                    {
+                        IntegerConstant::new(
+                            BigInt::from(*position),
+                            false,
+                            crate::BITLENGTH_FIELD,
+                        )
+                        .write_all_to_bytecode(bytecode.clone());
+                        bytecode.borrow_mut().push_instruction(
+                            Instruction::StorageLoad(zinc_bytecode::StorageLoad::new(
+                                *element_size,
+                            )),
+                            Some(inner.identifier.location),
+                        );
+
+                        inner.elements.remove(0);
+                    }
 
                     let is_indexed = !inner.elements.is_empty();
 

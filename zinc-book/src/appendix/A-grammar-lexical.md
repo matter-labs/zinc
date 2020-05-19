@@ -48,8 +48,10 @@ keyword =
 
   | 'as'
 
-  | 'Self'
+  | 'crate'
+  | 'super'
   | 'self'
+  | 'Self'
 
   | 'static'
   | 'ref'

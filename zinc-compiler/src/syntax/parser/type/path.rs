@@ -62,15 +62,18 @@ impl Parser {
                             self.state = State::DoubleColonOrEnd;
                         }
                         Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::Crate),
+                            location,
+                        }
+                        | Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::Super),
+                            location,
+                        }
+                        | Token {
                             lexeme: Lexeme::Keyword(keyword @ Keyword::SelfLowercase),
                             location,
-                        } => {
-                            let identifier = Identifier::new(location, keyword.to_string());
-                            self.builder
-                                .eat_operand(ExpressionOperand::Identifier(identifier), location);
-                            self.state = State::DoubleColonOrEnd;
                         }
-                        Token {
+                        | Token {
                             lexeme: Lexeme::Keyword(keyword @ Keyword::SelfUppercase),
                             location,
                         } => {

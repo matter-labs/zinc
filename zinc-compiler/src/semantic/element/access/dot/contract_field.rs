@@ -6,7 +6,7 @@
 pub struct ContractField {
     /// The position of the element in the contract storage
     pub position: usize,
-    /// The size of contract storage field
+    /// The size of the contract storage field
     pub element_size: usize,
 }
 

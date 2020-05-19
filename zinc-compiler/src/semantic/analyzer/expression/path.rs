@@ -34,18 +34,18 @@ impl Translator {
         let path_last_identifier = path.last().to_owned();
 
         match rule {
-            TranslationRule::Place => match Scope::resolve_path(scope, &path)? {
-                ScopeItem::Variable(variable) => Ok((
+            TranslationRule::Place => match *Scope::resolve_path(scope, &path)?.borrow() {
+                ScopeItem::Variable(ref variable) => Ok((
                     Element::Place(Place::new(
                         path_last_identifier,
-                        variable.r#type,
+                        variable.r#type.to_owned(),
                         variable.is_mutable,
-                        variable.memory_type.into(),
+                        variable.memory_type.to_owned().into(),
                     )),
                     None,
                 )),
-                ScopeItem::Constant(constant) => {
-                    let mut constant = constant.resolve()?;
+                ScopeItem::Constant(ref constant) => {
+                    let mut constant = constant.define()?;
                     constant.set_location(location);
 
                     let intermediate = GeneratorConstant::try_from_semantic(&constant);
@@ -55,16 +55,16 @@ impl Translator {
                         intermediate.map(GeneratorExpressionOperand::Constant),
                     ))
                 }
-                ScopeItem::Type(r#type) => {
-                    let mut r#type = r#type.resolve()?;
+                ScopeItem::Type(ref r#type) => {
+                    let mut r#type = r#type.define()?;
                     r#type.set_location(location);
 
                     Ok((Element::Type(r#type), None))
                 }
                 ScopeItem::Module(_) => Ok((Element::Module(path_last_identifier), None)),
             },
-            TranslationRule::Value => match Scope::resolve_path(scope, &path)? {
-                ScopeItem::Variable(variable) => {
+            TranslationRule::Value => match *Scope::resolve_path(scope, &path)?.borrow() {
+                ScopeItem::Variable(ref variable) => {
                     let value = Value::try_from_type(&variable.r#type, Some(location))
                         .map_err(ElementError::Value)
                         .map_err(Error::Element)?;
@@ -77,7 +77,7 @@ impl Translator {
                                 path_last_identifier,
                                 r#type,
                                 variable.is_mutable,
-                                variable.memory_type.into(),
+                                variable.memory_type.to_owned().into(),
                             )
                             .into()
                         })
@@ -85,8 +85,8 @@ impl Translator {
 
                     Ok((element, intermediate))
                 }
-                ScopeItem::Constant(constant) => {
-                    let mut constant = constant.resolve()?;
+                ScopeItem::Constant(ref constant) => {
+                    let mut constant = constant.define()?;
                     constant.set_location(location);
 
                     let intermediate = GeneratorConstant::try_from_semantic(&constant)
@@ -95,17 +95,17 @@ impl Translator {
                     let element = Element::Constant(constant);
                     Ok((element, intermediate))
                 }
-                ScopeItem::Type(r#type) => {
-                    let mut r#type = r#type.resolve()?;
+                ScopeItem::Type(ref r#type) => {
+                    let mut r#type = r#type.define()?;
                     r#type.set_location(location);
 
                     Ok((Element::Type(r#type), None))
                 }
                 ScopeItem::Module(_) => Ok((Element::Module(path_last_identifier), None)),
             },
-            TranslationRule::Constant => match Scope::resolve_path(scope, &path)? {
-                ScopeItem::Constant(constant) => {
-                    let mut constant = constant.resolve()?;
+            TranslationRule::Constant => match *Scope::resolve_path(scope, &path)?.borrow() {
+                ScopeItem::Constant(ref constant) => {
+                    let mut constant = constant.define()?;
                     constant.set_location(location);
 
                     let intermediate = GeneratorConstant::try_from_semantic(&constant)
@@ -114,15 +114,15 @@ impl Translator {
                     let element = Element::Constant(constant);
                     Ok((element, intermediate))
                 }
-                item => Err(Error::Expression(ExpressionError::NonConstantElement {
+                ref item => Err(Error::Expression(ExpressionError::NonConstantElement {
                     location: path.location,
                     found: item.to_string(),
                 })),
             },
 
-            TranslationRule::Type => match Scope::resolve_path(scope, &path)? {
-                ScopeItem::Type(r#type) => {
-                    let mut r#type = r#type.resolve()?;
+            TranslationRule::Type => match *Scope::resolve_path(scope, &path)?.borrow() {
+                ScopeItem::Type(ref r#type) => {
+                    let mut r#type = r#type.define()?;
                     r#type.set_location(location);
 
                     Ok((Element::Type(r#type), None))

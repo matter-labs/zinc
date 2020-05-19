@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use crate::source::module::file::index::INDEX as FILE_INDEX;
+use crate::source::file::index::INDEX as FILE_INDEX;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Location {
@@ -28,7 +28,7 @@ impl Location {
 
     ///
     /// Creates a location with a file identifier.
-    /// The file identifier can be used to get its path from the global type index.
+    /// The file identifier can be used to get its contents from the global index.
     ///
     pub fn new_beginning(file_index: Option<usize>) -> Self {
         Self {
@@ -39,7 +39,7 @@ impl Location {
     }
 
     ///
-    /// Creates a location by shifting the original down by `lines` and
+    /// Creates a location by shifting the original one down by `lines` and
     /// setting the column to `column`.
     ///
     pub fn shifted_down(&self, lines: usize, column: usize) -> Self {
@@ -51,7 +51,7 @@ impl Location {
     }
 
     ///
-    /// Creates a location by shifting the original right by `columns`.
+    /// Creates a location by shifting the original one rightward by `columns`.
     ///
     pub fn shifted_right(&self, columns: usize) -> Self {
         Self {
@@ -70,7 +70,7 @@ impl fmt::Display for Location {
                 Some(file_index) => write!(
                     f,
                     "{}:{}:{}",
-                    FILE_INDEX.get(file_index).to_string_lossy(),
+                    FILE_INDEX.get_path(file_index).to_string_lossy(),
                     line,
                     column,
                 ),

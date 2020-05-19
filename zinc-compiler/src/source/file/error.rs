@@ -30,7 +30,7 @@ impl fmt::Display for Error {
             }
             Self::StemNotFound => write!(f, "file name not found"),
 
-            Self::Compiling(inner) => write!(f, "compiling: {}", inner),
+            Self::Compiling(inner) => write!(f, "{}", inner),
         }
     }
 }

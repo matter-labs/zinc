@@ -588,8 +588,13 @@ impl Analyzer {
         let (place, operator) = callback(operand_1, operand_2).map_err(Error::Element)?;
 
         if !place.is_mutable {
-            let item_location =
-                Scope::resolve_item(self.scope_stack.top(), &place.identifier, true)?.location();
+            let item_location = self
+                .scope_stack
+                .top()
+                .borrow()
+                .resolve_item(&place.identifier, true)?
+                .borrow()
+                .location();
 
             return Err(Error::Element(ElementError::Place(
                 PlaceError::MutatingImmutableMemory {

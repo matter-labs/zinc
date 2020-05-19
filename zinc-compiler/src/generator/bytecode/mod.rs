@@ -2,6 +2,7 @@
 //! The Zinc VM bytecode.
 //!
 
+pub mod compiled_entry;
 pub mod metadata;
 
 use std::cell::RefCell;
@@ -14,8 +15,9 @@ use zinc_bytecode::Program;
 
 use crate::generator::r#type::Type;
 use crate::lexical::token::location::Location;
-use crate::source::module::file::index::INDEX as FILE_INDEX;
+use crate::source::file::index::INDEX as FILE_INDEX;
 
+use self::compiled_entry::CompiledEntry;
 use self::metadata::Metadata;
 
 ///
@@ -23,17 +25,19 @@ use self::metadata::Metadata;
 ///
 #[derive(Debug, PartialEq)]
 pub struct Bytecode {
+    /// The Zinc VM instructions written by the bytecode generator
     instructions: Vec<Instruction>,
-
+    /// Metadata of each application entry
     entry_metadata: HashMap<usize, Metadata>,
+    /// Data stack addresses of variables declared at runtime
     variable_addresses: HashMap<String, usize>,
+    /// Bytecode addresses of the functions written to the bytecode
     function_addresses: HashMap<usize, usize>,
+    /// The pointer which is reset at the beginning of each function
     data_stack_pointer: usize,
-
+    /// The location pointer used to pass debug information to the VM
     current_location: Location,
 }
-
-static ENSURED_WHILE_RETURNING_ENTRIES: &str = "Ensured while returning the entries";
 
 impl Default for Bytecode {
     fn default() -> Self {
@@ -42,30 +46,26 @@ impl Default for Bytecode {
 }
 
 impl Bytecode {
-    const INSTRUCTION_VECTOR_INITIAL_SIZE: usize = 1024;
-    const FUNCTION_ADDRESSES_HASHMAP_INITIAL_SIZE: usize = 16;
-    const VARIABLE_ADDRESSES_HASHMAP_INITIAL_SIZE: usize = 16;
-    const ENTRY_METADATA_HASHMAP_INITIAL_SIZE: usize = 4;
+    const INSTRUCTIONS_INITIAL_CAPACITY: usize = 1024;
+    const FUNCTION_ADDRESSES_INITIAL_CAPACITY: usize = 16;
+    const VARIABLE_ADDRESSES_INITIAL_CAPACITY: usize = 16;
+    const ENTRY_METADATA_INITIAL_CAPACITY: usize = 16;
 
     ///
     /// Creates a new bytecode instance with the placeholders for the entry `Call` and
     /// `Exit` instructions.
     ///
     pub fn new() -> Self {
-        let mut instructions = Vec::with_capacity(Self::INSTRUCTION_VECTOR_INITIAL_SIZE);
+        let mut instructions = Vec::with_capacity(Self::INSTRUCTIONS_INITIAL_CAPACITY);
         instructions.push(Instruction::NoOperation(zinc_bytecode::NoOperation));
         instructions.push(Instruction::NoOperation(zinc_bytecode::NoOperation));
 
         Self {
             instructions,
 
-            entry_metadata: HashMap::with_capacity(Self::ENTRY_METADATA_HASHMAP_INITIAL_SIZE),
-            variable_addresses: HashMap::with_capacity(
-                Self::VARIABLE_ADDRESSES_HASHMAP_INITIAL_SIZE,
-            ),
-            function_addresses: HashMap::with_capacity(
-                Self::FUNCTION_ADDRESSES_HASHMAP_INITIAL_SIZE,
-            ),
+            entry_metadata: HashMap::with_capacity(Self::ENTRY_METADATA_INITIAL_CAPACITY),
+            variable_addresses: HashMap::with_capacity(Self::VARIABLE_ADDRESSES_INITIAL_CAPACITY),
+            function_addresses: HashMap::with_capacity(Self::FUNCTION_ADDRESSES_INITIAL_CAPACITY),
             data_stack_pointer: 0,
 
             current_location: Location::new_beginning(None),
@@ -80,10 +80,19 @@ impl Bytecode {
     }
 
     ///
-    /// Returns an array of entry IDs, which are actually type IDs of the corresponding functions.
+    /// Extracts the bytecode from `Rc<RefCell<_>>`.
     ///
-    pub fn entries(&self) -> Vec<usize> {
-        self.entry_metadata.keys().copied().collect()
+    pub fn unwrap_rc(bytecode: Rc<RefCell<Self>>) -> Self {
+        Rc::try_unwrap(bytecode)
+            .expect(crate::panic::LAST_SHARED_REFERENCE)
+            .into_inner()
+    }
+
+    ///
+    /// Returns the variable address in the function data stack frame.
+    ///
+    pub fn get_variable_address(&self, name: &str) -> Option<usize> {
+        self.variable_addresses.get(name).copied()
     }
 
     ///
@@ -96,7 +105,10 @@ impl Bytecode {
         self.data_stack_pointer = 0;
 
         if let Some(file_index) = location.file_index {
-            let file_path = FILE_INDEX.get(file_index).to_string_lossy().to_string();
+            let file_path = FILE_INDEX
+                .get_path(file_index)
+                .to_string_lossy()
+                .to_string();
             self.instructions.push(Instruction::FileMarker(
                 zinc_bytecode::instructions::FileMarker::new(file_path),
             ));
@@ -163,79 +175,6 @@ impl Bytecode {
         self.instructions.push(instruction)
     }
 
-    pub fn get_function_address(&self, type_id: usize) -> Option<usize> {
-        self.function_addresses.get(&type_id).copied()
-    }
-
-    pub fn get_variable_address(&self, name: &str) -> Option<usize> {
-        self.variable_addresses.get(name).copied()
-    }
-
-    ///
-    /// Returns the entry ID by its function name.
-    ///
-    pub fn entry_id(&self, name: &str) -> Option<usize> {
-        for (id, metadata) in self.entry_metadata.iter() {
-            if name == metadata.entry_name.as_str() {
-                return Some(*id);
-            }
-        }
-
-        None
-    }
-
-    ///
-    /// Returns the entry function name by its ID.
-    ///
-    pub fn entry_name(&self, entry_id: usize) -> &str {
-        self.entry_metadata
-            .get(&entry_id)
-            .expect(ENSURED_WHILE_RETURNING_ENTRIES)
-            .entry_name
-            .as_str()
-    }
-
-    ///
-    /// Returns the entry's input arguments as a structure initialized with its default values.
-    ///
-    pub fn input_template_bytes(&self, entry_id: usize) -> Vec<u8> {
-        let input_type = self
-            .entry_metadata
-            .get(&entry_id)
-            .expect(ENSURED_WHILE_RETURNING_ENTRIES)
-            .input_fields_as_struct()
-            .into();
-        let input_template_value = TemplateValue::default_from_type(&input_type);
-
-        match serde_json::to_string_pretty(&input_template_value.to_json()) {
-            Ok(json) => (json + "\n").into_bytes(),
-            Err(error) => panic!(
-                crate::panic::JSON_TEMPLATE_SERIALIZATION.to_owned() + error.to_string().as_str()
-            ),
-        }
-    }
-
-    ///
-    /// Returns the entry's output type value initialized with its default value.
-    ///
-    pub fn output_template_bytes(&self, entry_id: usize) -> Vec<u8> {
-        let output_bytecode_type = self
-            .entry_metadata
-            .get(&entry_id)
-            .expect(ENSURED_WHILE_RETURNING_ENTRIES)
-            .output_type
-            .to_owned()
-            .into();
-        let output_value_template = TemplateValue::default_from_type(&output_bytecode_type);
-
-        match serde_json::to_string_pretty(&output_value_template.to_json()) {
-            Ok(json) => (json + "\n").into_bytes(),
-            Err(error) => panic!(
-                crate::panic::JSON_TEMPLATE_SERIALIZATION.to_owned() + error.to_string().as_str()
-            ),
-        }
-    }
-
     ///
     /// Generates the bytecode for the entry specified with `entry_id`.
     ///
@@ -243,47 +182,76 @@ impl Bytecode {
     /// of the function stored as `address`es with their actual addresses in the bytecode,
     /// since the addresses are only known after the functions are written thereto.
     ///
-    pub fn to_bytes(&self, entry_id: usize) -> Vec<u8> {
-        let metadata = self
-            .entry_metadata
-            .get(&entry_id)
-            .expect(ENSURED_WHILE_RETURNING_ENTRIES);
+    pub fn into_entries(self) -> HashMap<String, CompiledEntry> {
+        let mut data = HashMap::with_capacity(self.entry_metadata.len());
 
-        let mut instructions = self.instructions.clone();
-        instructions[0] =
-            Instruction::Call(zinc_bytecode::Call::new(entry_id, metadata.input_size()));
-        instructions[1] = Instruction::Exit(zinc_bytecode::Exit::new(metadata.output_size()));
+        for (entry_id, metadata) in self.entry_metadata.into_iter() {
+            let mut instructions = self.instructions.clone();
+            instructions[0] =
+                Instruction::Call(zinc_bytecode::Call::new(entry_id, metadata.input_size()));
+            instructions[1] = Instruction::Exit(zinc_bytecode::Exit::new(metadata.output_size()));
 
-        for instruction in instructions.iter_mut() {
-            if let Instruction::Call(zinc_bytecode::Call {
-                address: ref mut type_id,
-                ..
-            }) = instruction
-            {
-                let address = self
-                    .get_function_address(*type_id)
-                    .expect(ENSURED_WHILE_RETURNING_ENTRIES);
-                *type_id = address;
-            }
-        }
-
-        for (index, instruction) in instructions.iter().enumerate() {
-            match instruction {
-                instruction @ Instruction::FileMarker(_)
-                | instruction @ Instruction::FunctionMarker(_)
-                | instruction @ Instruction::LineMarker(_)
-                | instruction @ Instruction::ColumnMarker(_) => {
-                    log::trace!("{:03} {:?}", index, instruction)
+            for instruction in instructions.iter_mut() {
+                if let Instruction::Call(zinc_bytecode::Call {
+                    address: ref mut type_id,
+                    ..
+                }) = instruction
+                {
+                    *type_id = self
+                        .function_addresses
+                        .get(&type_id)
+                        .copied()
+                        .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
                 }
-                instruction => log::debug!("{:03} {:?}", index, instruction),
             }
+
+            for (index, instruction) in instructions.iter().enumerate() {
+                match instruction {
+                    instruction @ Instruction::FileMarker(_)
+                    | instruction @ Instruction::FunctionMarker(_)
+                    | instruction @ Instruction::LineMarker(_)
+                    | instruction @ Instruction::ColumnMarker(_) => {
+                        log::trace!("{:03} {:?}", index, instruction)
+                    }
+                    instruction => log::debug!("{:03} {:?}", index, instruction),
+                }
+            }
+
+            let bytecode = Program::new(
+                metadata.input_fields_as_struct().into(),
+                metadata.output_type.clone().into(),
+                instructions,
+            )
+            .to_bytes();
+
+            let input_template_value =
+                TemplateValue::default_from_type(&metadata.input_fields_as_struct().into());
+            let witness_template =
+                match serde_json::to_string_pretty(&input_template_value.to_json()) {
+                    Ok(json) => (json + "\n").into_bytes(),
+                    Err(error) => panic!(
+                        crate::panic::JSON_TEMPLATE_SERIALIZATION.to_owned()
+                            + error.to_string().as_str()
+                    ),
+                };
+
+            let output_value_template =
+                TemplateValue::default_from_type(&metadata.output_type.into());
+            let public_data_template =
+                match serde_json::to_string_pretty(&output_value_template.to_json()) {
+                    Ok(json) => (json + "\n").into_bytes(),
+                    Err(error) => panic!(
+                        crate::panic::JSON_TEMPLATE_SERIALIZATION.to_owned()
+                            + error.to_string().as_str()
+                    ),
+                };
+
+            data.insert(
+                metadata.entry_name,
+                CompiledEntry::new(bytecode, witness_template, public_data_template),
+            );
         }
 
-        Program::new(
-            metadata.input_fields_as_struct().into(),
-            metadata.output_type.to_owned().into(),
-            instructions,
-        )
-        .to_bytes()
+        data
     }
 }

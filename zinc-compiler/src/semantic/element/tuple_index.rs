@@ -6,6 +6,9 @@ use std::fmt;
 
 use crate::lexical::token::location::Location;
 
+///
+/// A tuple expression field identifier, e.g. `(1, 2, 3).2`.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct TupleIndex {
     pub location: Location,

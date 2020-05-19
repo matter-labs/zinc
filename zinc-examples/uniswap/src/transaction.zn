@@ -2,10 +2,10 @@
 //! The contract transaction.
 //!
 
-type Address = u160;
-type Integer = u248;
-type Timestamp = u64;
-type Hash = [bool; 256];
+use crate::types::Address;
+use crate::types::Integer;
+use crate::types::Timestamp;
+use crate::types::Hash;
 
 struct Block {
     timestamp: Timestamp,

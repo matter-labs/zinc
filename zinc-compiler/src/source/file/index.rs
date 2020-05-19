@@ -11,7 +11,15 @@ use lazy_static::lazy_static;
 /// The global file path array where a `Location` can get the file path by its index.
 ///
 pub struct Index {
-    pub inner: RwLock<Vec<PathBuf>>,
+    pub inner: RwLock<Vec<Data>>,
+}
+
+///
+/// The indexed file contents, which are its path and source code text.
+///
+pub struct Data {
+    pub path: PathBuf,
+    pub code: String,
 }
 
 lazy_static! {
@@ -27,22 +35,26 @@ impl Index {
         }
     }
 
-    pub fn next(&self, path: &PathBuf) -> usize {
+    pub fn next(&self, path: &PathBuf, code: String) -> usize {
         let mut index = self.inner.write().expect(crate::panic::MUTEX_SYNC);
         let sequence_id = index.len();
 
         log::debug!("File ID {:06} for {:?}", sequence_id, path);
 
-        index.push(path.to_owned());
+        index.push(Data {
+            path: path.to_owned(),
+            code,
+        });
         sequence_id
     }
 
-    pub fn get(&self, index: usize) -> PathBuf {
+    pub fn get_path(&self, index: usize) -> PathBuf {
         self.inner
             .read()
             .expect(crate::panic::MUTEX_SYNC)
             .get(index)
             .expect(crate::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
+            .path
             .to_owned()
     }
 }

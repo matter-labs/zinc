@@ -49,10 +49,6 @@ impl<'a> TokenStream<'a> {
         }
     }
 
-    pub fn wrap(self) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(self))
-    }
-
     ///
     /// Initializes a stream with a file identifier.
     /// The file identifier can be used to get its path from the global type index.
@@ -64,6 +60,13 @@ impl<'a> TokenStream<'a> {
             location: Location::new_beginning(Some(file)),
             look_ahead: VecDeque::with_capacity(Self::LOOK_AHEAD_INITIAL_CAPACITY),
         }
+    }
+
+    ///
+    /// Wraps the stream into `Rc<RefCell<_>>` simplifying most of initializations.
+    ///
+    pub fn wrap(self) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(self))
     }
 
     ///

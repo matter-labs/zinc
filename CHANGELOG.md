@@ -11,7 +11,7 @@
 - implemented simple smart contracts
 - forbidden the bitwise operations on signed integers
 - allowed to declare constants, types, functions, and modules in arbitrary order
-- implemented nested modules with the access to the root module
+- implemented nested modules with the access to the root and parent modules
 
 #### Compiler
 

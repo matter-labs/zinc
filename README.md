@@ -104,7 +104,7 @@ Then, follow the example to create and use your first circuit:
 
 ```bash
 # create a new circuit called 'zircuit'
-zargo new zircuit
+zargo new --type circuit zircuit
 cd zircuit/
 
 # write some code in the circuit
@@ -131,7 +131,7 @@ zargo verify < './data/proof.txt'
 
 ```bash
 # create a new circuit called 'zircuit'
-zargo new zircuit
+zargo new --type circuit zircuit
 cd zircuit/
 
 # write some code in the circuit

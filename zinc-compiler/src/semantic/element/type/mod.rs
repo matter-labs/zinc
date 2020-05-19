@@ -342,17 +342,21 @@ impl Type {
             Element::Value(value) => value.r#type(),
             Element::Constant(constant) => constant.r#type(),
             Element::Type(r#type) => r#type.to_owned(),
-            Element::Path(path) => match Scope::resolve_path(scope, &path)? {
-                ScopeItem::Variable(variable) => {
-                    let mut r#type = variable.r#type;
+            Element::Path(path) => match *Scope::resolve_path(scope, &path)?.borrow() {
+                ScopeItem::Variable(ref variable) => {
+                    let mut r#type = variable.r#type.to_owned();
                     r#type.set_location(path.last().location);
                     r#type
                 }
-                ScopeItem::Constant(constant) => {
-                    let mut constant = constant.resolve()?;
+                ScopeItem::Constant(ref constant) => {
+                    let mut constant = constant.define()?;
                     constant.set_location(path.last().location);
-
                     constant.r#type()
+                }
+                ScopeItem::Type(ref r#type) => {
+                    let mut r#type = r#type.define()?;
+                    r#type.set_location(path.last().location);
+                    r#type
                 }
                 _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
             },
@@ -361,7 +365,6 @@ impl Type {
                 r#type.set_location(place.identifier.location);
                 r#type
             }
-
             _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
     }

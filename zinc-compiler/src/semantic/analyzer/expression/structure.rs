@@ -41,9 +41,13 @@ impl Analyzer {
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         let identifier_location = structure.identifier.location;
 
-        let r#type = match Scope::resolve_item(scope.clone(), &structure.identifier, true)? {
-            ScopeItem::Type(r#type) => {
-                let r#type = r#type.resolve()?;
+        let r#type = match *scope
+            .borrow()
+            .resolve_item(&structure.identifier, true)?
+            .borrow()
+        {
+            ScopeItem::Type(ref r#type) => {
+                let r#type = r#type.define()?;
                 match r#type {
                     Type::Structure(mut structure) => {
                         structure.location = Some(identifier_location);
@@ -59,7 +63,7 @@ impl Analyzer {
                     }
                 }
             }
-            _item => {
+            ref _item => {
                 return Err(Error::Element(ElementError::Type(
                     TypeError::NotStructure {
                         location: identifier_location,

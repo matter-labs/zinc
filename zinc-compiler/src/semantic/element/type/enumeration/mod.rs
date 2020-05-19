@@ -14,7 +14,6 @@ use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::variant::Variant;
@@ -44,7 +43,7 @@ impl Enumeration {
         variants: Vec<Variant>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Result<Self, Error> {
-        let scope = scope.unwrap_or_else(|| Scope::new(None).wrap());
+        let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());
 
         let mut variants_bigint = Vec::with_capacity(variants.len());
         for variant in variants.into_iter() {
@@ -85,10 +84,6 @@ impl Enumeration {
 
             Scope::define_constant(scope.clone(), identifier, Constant::Integer(constant))?;
         }
-
-        scope
-            .borrow_mut()
-            .define_self(Type::Enumeration(enumeration.clone()));
 
         enumeration.values.sort();
 

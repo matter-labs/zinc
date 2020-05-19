@@ -72,10 +72,7 @@ let mut c: u8 = 2 + 2;
     let mut result = Vec::with_capacity(expected.len());
     let mut stream = TokenStream::new(input);
     loop {
-        match stream
-            .next()
-            .expect(crate::panic::VALIDATED_DURING_LEXICAL_ANALYSIS)
-        {
+        match stream.next().expect(crate::panic::TEST_DATA) {
             Token {
                 lexeme: Lexeme::Eof,
                 ..

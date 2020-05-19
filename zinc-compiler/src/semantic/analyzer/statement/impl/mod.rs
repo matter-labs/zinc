@@ -9,31 +9,46 @@ pub mod error;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::semantic::analyzer::statement::error::Error as StatementError;
+use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
 use crate::semantic::analyzer::statement::r#impl::error::Error as ImplStatementError;
-use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
+use crate::semantic::scope::item::r#type::state::State as ScopeTypeItemState;
+use crate::semantic::scope::item::r#type::statement::Statement as TypeStatementVariant;
+use crate::semantic::scope::item::r#type::statement::Statement as ScopeTypeItemStatement;
+use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
+use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
 use crate::syntax::tree::statement::r#impl::Statement as ImplStatement;
 
 pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes an implementation statement and returns its IR for the next compiler phase.
+    /// Acquires the type being implemented and declares the hoisted items.
     ///
-    pub fn analyze(scope: Rc<RefCell<Scope>>, statement: ImplStatement) -> Result<Type, Error> {
+    /// Also declares the `Self` alias for the type being implemented.
+    ///
+    pub fn declare(
+        scope: Rc<RefCell<Scope>>,
+        statement: ImplStatement,
+    ) -> Result<Rc<RefCell<Scope>>, Error> {
         let identifier_location = statement.identifier.location;
 
-        let (r#type, type_scope) = match Scope::resolve_item(scope, &statement.identifier, true)? {
-            ScopeItem::Type(r#type) => {
-                let r#type = r#type.resolve()?;
-                let scope = match r#type {
-                    Type::Structure(ref inner) => inner.scope.to_owned(),
-                    Type::Enumeration(ref inner) => inner.scope.to_owned(),
-                    _type => {
+        let item = scope.borrow().resolve_item(&statement.identifier, true)?;
+
+        let scope = match *item.borrow() {
+            ScopeItem::Type(ScopeTypeItem { ref state, .. }) => match state.borrow().as_ref() {
+                Some(ScopeTypeItemState::Declared {
+                    ref inner,
+                    ref scope,
+                }) => match inner {
+                    ScopeTypeItemStatement::Struct(_) => scope.to_owned(),
+                    ScopeTypeItemStatement::Enum(_) => scope.to_owned(),
+                    ref _statement => {
                         return Err(Error::Statement(StatementError::Impl(
                             ImplStatementError::ExpectedStructureOrEnumeration {
                                 location: identifier_location,
@@ -41,10 +56,24 @@ impl Analyzer {
                             },
                         )))
                     }
-                };
-                (r#type, scope)
-            }
-            _item => {
+                },
+                Some(ScopeTypeItemState::Defined {
+                    inner: ref r#type, ..
+                }) => match r#type {
+                    Type::Structure(ref inner) => inner.scope.to_owned(),
+                    Type::Enumeration(ref inner) => inner.scope.to_owned(),
+                    ref _type => {
+                        return Err(Error::Statement(StatementError::Impl(
+                            ImplStatementError::ExpectedStructureOrEnumeration {
+                                location: identifier_location,
+                                found: statement.identifier.name,
+                            },
+                        )))
+                    }
+                },
+                None => todo!(),
+            },
+            ref _item => {
                 return Err(Error::Statement(StatementError::Impl(
                     ImplStatementError::ExpectedStructureOrEnumeration {
                         location: identifier_location,
@@ -54,8 +83,30 @@ impl Analyzer {
             }
         };
 
-        StatementAnalyzer::implementation(statement, type_scope)?;
+        scope
+            .borrow()
+            .items
+            .borrow_mut()
+            .insert(Keyword::SelfUppercase.to_string(), item);
 
-        Ok(r#type)
+        for hoisted_statement in statement.statements.into_iter() {
+            match hoisted_statement {
+                ImplementationLocalStatement::Const(statement) => {
+                    Scope::declare_constant(scope.clone(), statement)?;
+                }
+                ImplementationLocalStatement::Fn(statement) => {
+                    Scope::declare_type(
+                        scope.clone(),
+                        TypeStatementVariant::Fn(
+                            statement,
+                            FnStatementAnalyzerContext::Implementation,
+                        ),
+                    )?;
+                }
+                ImplementationLocalStatement::Empty(_location) => {}
+            }
+        }
+
+        Ok(scope)
     }
 }

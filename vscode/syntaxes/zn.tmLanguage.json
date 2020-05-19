@@ -28,7 +28,7 @@
 				},
 				{
 					"name": "keyword.aliases.zn",
-					"match": "\\b(Self|self)\\b"
+					"match": "\\b(crate|super|self|Self)\\b"
 				},
 				{
 					"name": "keyword.reserved.zn",

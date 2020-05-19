@@ -23,13 +23,13 @@ use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVari
 use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
 
 ///
-/// The context lets the analyzer know of file type where the analyzed statements are defined.
+/// The context lets the analyzer know where the function is declared.
 ///
 #[derive(Debug, Clone, Copy)]
 pub enum Context {
     /// The module root namespace.
     Module,
-    /// The ordinar implementation namespace.
+    /// The type implementation namespace.
     Implementation,
     /// The contract definition namespace.
     Contract,
@@ -39,9 +39,9 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes the function statement.
+    /// Defines the function statement.
     ///
-    pub fn analyze(
+    pub fn define(
         scope: Rc<RefCell<Scope>>,
         statement: FnStatement,
         context: Context,
@@ -109,7 +109,7 @@ impl Analyzer {
             None => Type::unit(None),
         };
 
-        scope_stack.push();
+        scope_stack.push(Some(statement.identifier.name.clone()));
         for argument_binding in statement.argument_bindings.into_iter() {
             match argument_binding.variant {
                 BindingPatternVariant::Binding {

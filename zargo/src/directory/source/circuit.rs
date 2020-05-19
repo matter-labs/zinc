@@ -11,8 +11,8 @@ use failure::Fail;
 use serde_derive::Deserialize;
 
 #[derive(Deserialize)]
-pub struct Main {
-    pub circuit_name: String,
+pub struct Circuit {
+    pub name: String,
 }
 
 #[derive(Debug, Fail)]
@@ -23,12 +23,12 @@ pub enum Error {
     Writing(io::Error),
 }
 
-pub static FILE_NAME_DEFAULT: &str = "main.zn";
+pub static ENTRY_FILE_NAME_DEFAULT: &str = "main";
 
-impl Main {
+impl Circuit {
     pub fn new(circuit_name: &str) -> Self {
         Self {
-            circuit_name: circuit_name.to_owned(),
+            name: circuit_name.to_owned(),
         }
     }
 
@@ -38,7 +38,7 @@ impl Main {
             if !path.ends_with(super::DIRECTORY_NAME_DEFAULT) {
                 path.push(PathBuf::from(super::DIRECTORY_NAME_DEFAULT));
             }
-            path.push(PathBuf::from(FILE_NAME_DEFAULT));
+            path.push(PathBuf::from(ENTRY_FILE_NAME_DEFAULT));
         }
         path.exists()
     }
@@ -49,7 +49,12 @@ impl Main {
             if !path.ends_with(super::DIRECTORY_NAME_DEFAULT) {
                 path.push(PathBuf::from(super::DIRECTORY_NAME_DEFAULT));
             }
-            path.push(PathBuf::from(FILE_NAME_DEFAULT));
+            let file_name = format!(
+                "{}.{}",
+                ENTRY_FILE_NAME_DEFAULT,
+                super::SOURCE_FILE_EXTENSION_DEFAULT
+            );
+            path.push(PathBuf::from(file_name));
         }
 
         let mut file = File::create(&path).map_err(Error::Creating)?;
@@ -69,7 +74,7 @@ fn main(witness: u8) -> u8 {{
     witness
 }}
 "#,
-            self.circuit_name
+            self.name
         )
     }
 }

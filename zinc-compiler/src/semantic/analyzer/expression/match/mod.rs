@@ -270,7 +270,7 @@ impl Analyzer {
                 MatchPatternVariant::Binding(identifier) => {
                     is_exhausted = true;
 
-                    scope_stack.push();
+                    scope_stack.push(None);
                     Scope::define_variable(
                         scope_stack.top(),
                         identifier.clone(),
@@ -566,7 +566,7 @@ impl Analyzer {
                 MatchPatternVariant::Binding(identifier) => {
                     is_exhausted = true;
 
-                    scope_stack.push();
+                    scope_stack.push(None);
                     Scope::define_constant(
                         scope_stack.top(),
                         identifier.clone(),
