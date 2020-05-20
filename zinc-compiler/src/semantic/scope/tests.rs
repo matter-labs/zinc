@@ -4,11 +4,14 @@
 
 #![cfg(test)]
 
+use std::collections::HashMap;
+
 use crate::error::Error;
 use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::location::Location;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::error::Error as ScopeError;
+use crate::source::Source;
 
 #[test]
 fn ok_current_scope() {
@@ -511,6 +514,346 @@ fn main() -> u8 { first() }
     )));
 
     let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_reference_loop_implementation_function_direct() {
+    let input = r#"
+struct Data {
+    value: u8,
+}
+
+impl Data {
+    fn method(self, value: u8) -> u8 {
+        self.another(value)
+    }
+
+    fn another(self, value: u8) -> u8 {
+        self.method(value)
+    }
+}
+
+fn main() -> Data {
+    Data { value: Data { value: 42 }.method(54) }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ReferenceLoop {
+            location: Location::new(7, 5),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_reference_loop_implementation_function_indirect() {
+    let input = r#"
+struct Data {
+    value: u8,
+}
+
+impl Data {
+    fn method(self, value: u8) -> u8 {
+        self.another(value)
+    }
+
+    fn another(self, value: u8) -> u8 {
+        self.yet_another(value)
+    }
+
+    fn and_another(self, value: u8) -> u8 {
+        self.method(value)
+    }
+
+    fn yet_another(self, value: u8) -> u8 {
+        self.and_another(value)
+    }
+}
+
+fn main() -> Data {
+    Data { value: Data { value: 42 }.method(54) }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ReferenceLoop {
+            location: Location::new(7, 5),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_reference_loop_contract_function_direct() {
+    let input = r#"
+contract Data {
+    value: u8;
+
+    pub fn method(self) -> u8 {
+        self.another(self.value)
+    }
+
+    pub fn another(self) -> u8 {
+        self.method(self.value)
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ReferenceLoop {
+            location: Location::new(5, 5),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_reference_loop_contract_function_indirect() {
+    let input = r#"
+contract Data {
+    value: u8;
+
+    pub fn method(self) -> u8 {
+        self.another(self.value)
+    }
+
+    pub fn another(self) -> u8 {
+        self.yet_another(self.value)
+    }
+
+    pub fn and_another(self) -> u8 {
+        self.method(self.value)
+    }
+
+    pub fn yet_another(self) -> u8 {
+        self.and_another(self.value)
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ReferenceLoop {
+            location: Location::new(5, 5),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_reference_loop_function_between_modules_direct() {
+    let other = r#"
+fn call() -> u8 { crate::call() }
+"#;
+
+    let entry = r#"
+mod other;
+
+fn call() -> u8 { other::call() }
+
+fn main() -> u8 { call() }
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ReferenceLoop {
+            location: Location::new(2, 1),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_with_dependencies(
+        entry,
+        vec![("other".to_owned(), Source::test(other, HashMap::new()))]
+            .into_iter()
+            .collect::<HashMap<String, Source>>(),
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_reference_loop_function_between_modules_indirect() {
+    let third = r#"
+fn call() -> u8 { crate::call() }
+"#;
+
+    let second = r#"
+mod third;
+
+fn call() -> u8 { third::call() }
+"#;
+
+    let first = r#"
+mod second;
+
+fn call() -> u8 { second::call() }
+"#;
+
+    let entry = r#"
+mod first;
+
+fn call() -> u8 { first::call() }
+
+fn main() -> u8 { call() }
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ReferenceLoop {
+            location: Location::new(2, 1),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_with_dependencies(
+        entry,
+        vec![(
+            "first".to_owned(),
+            Source::test(
+                first,
+                vec![(
+                    "second".to_owned(),
+                    Source::test(
+                        second,
+                        vec![("third".to_owned(), Source::test(third, HashMap::new()))]
+                            .into_iter()
+                            .collect::<HashMap<String, Source>>(),
+                    ),
+                )]
+                .into_iter()
+                .collect::<HashMap<String, Source>>(),
+            ),
+        )]
+        .into_iter()
+        .collect::<HashMap<String, Source>>(),
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_reference_loop_implementation_function_between_modules_direct() {
+    let other = r#"
+struct Other { value: u8 }
+
+impl Other {
+    pub fn call() -> u8 { crate::Call::call() }
+}
+"#;
+
+    let entry = r#"
+mod other;
+
+use self::other::Other;
+
+struct Call { value: u8 }
+
+impl Call {
+    pub fn call() -> u8 { self::other::Other::call() }
+}
+
+fn main() -> u8 { Call { value: 42 }.call() }
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ReferenceLoop {
+            location: Location::new(5, 5),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_with_dependencies(
+        entry,
+        vec![("other".to_owned(), Source::test(other, HashMap::new()))]
+            .into_iter()
+            .collect::<HashMap<String, Source>>(),
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_reference_loop_implementation_function_between_modules_indirect() {
+    let third = r#"
+use crate::Call;
+
+struct Third { value: u8 }
+
+impl Third {
+    pub fn call() -> u8 { Call::call() }
+}
+"#;
+
+    let second = r#"
+mod third;
+
+struct Second { value: u8 }
+
+impl Second {
+    pub fn call() -> u8 { third::Third::call() }
+}
+"#;
+
+    let first = r#"
+mod second;
+
+struct First { value: u8 }
+
+impl First {
+    pub fn call() -> u8 { second::Second::call() }
+}
+"#;
+
+    let entry = r#"
+mod first;
+
+struct Call { value: u8 }
+
+impl Call {
+    pub fn call() -> u8 { self::first::First::Call() }
+}
+
+fn main() -> u8 { Call { value: 42 }.call() }
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ReferenceLoop {
+            location: Location::new(7, 5),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_with_dependencies(
+        entry,
+        vec![(
+            "first".to_owned(),
+            Source::test(
+                first,
+                vec![(
+                    "second".to_owned(),
+                    Source::test(
+                        second,
+                        vec![("third".to_owned(), Source::test(third, HashMap::new()))]
+                            .into_iter()
+                            .collect::<HashMap<String, Source>>(),
+                    ),
+                )]
+                .into_iter()
+                .collect::<HashMap<String, Source>>(),
+            ),
+        )]
+        .into_iter()
+        .collect::<HashMap<String, Source>>(),
+    );
 
     assert_eq!(result, expected);
 }

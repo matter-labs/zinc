@@ -171,22 +171,8 @@ impl Module {
                     inner: scope.clone(),
                 }));
 
-                let crate_item = scope_crate
-                    .borrow()
-                    .items
-                    .borrow()
-                    .get(&Keyword::SelfLowercase.to_string())
-                    .cloned()
-                    .unwrap();
-                let super_item = scope_super.map(|scope| {
-                    scope
-                        .borrow()
-                        .items
-                        .borrow()
-                        .get(&Keyword::SelfLowercase.to_string())
-                        .cloned()
-                        .unwrap()
-                });
+                let crate_item = Scope::get_module_self_alias(scope_crate);
+                let super_item = scope_super.map(Scope::get_module_self_alias);
 
                 ModuleAnalyzer::define(
                     scope.clone(),

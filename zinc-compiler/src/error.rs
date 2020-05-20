@@ -1852,7 +1852,7 @@ impl Error {
                     )
                         .as_str(),
                     location,
-                    Some(format!("create a file called `{}.zn` inside the `src` directory", name).as_str()), // TODO: src -> nested directory
+                    Some(format!("create a file called `{}.zn` inside the module directory", name).as_str()),
                 )
             }Self::Semantic(SemanticError::ForbiddenConstantFunction { location }) => {
                 Self::format_line( "constant functions are temporarily forbidden",

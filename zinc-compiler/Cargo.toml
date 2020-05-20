@@ -2,7 +2,7 @@
 name = "zinc-compiler"
 version = "0.1.5"
 authors = [
-    "hedgar2017 <hedgar2017@gmail.com>",
+    "Alex Zarudnyy <hedgar2017@gmail.com>",
     "Alexander Movchan <am@matterlabs.dev>",
 ]
 edition = "2018"

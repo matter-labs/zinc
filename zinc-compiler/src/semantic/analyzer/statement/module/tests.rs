@@ -1243,7 +1243,7 @@ fn main() -> Other {
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
                         )
-                    ),]
+                    )]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )

@@ -1,13 +1,19 @@
-struct Data {
-    value: u8,
-}
+contract Data {
+    value: u8;
 
-impl Data {
-    fn method(self, value: u8) -> u8 {
-        value
+    pub fn method(self) -> u8 {
+        self.another(self.value)
     }
-}
 
-fn main() -> Data {
-    Data { value: Data { value: 42 }.method(54) }
+    pub fn another(self) -> u8 {
+        self.yet_another(self.value)
+    }
+
+    pub fn and_another(self) -> u8 {
+        self.method(self.value)
+    }
+
+    pub fn yet_another(self) -> u8 {
+        self.and_another(self.value)
+    }
 }

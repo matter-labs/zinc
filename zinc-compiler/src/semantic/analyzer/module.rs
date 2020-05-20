@@ -143,17 +143,9 @@ impl Analyzer {
         crate_item: Rc<RefCell<ScopeItem>>,
         super_item: Option<Rc<RefCell<ScopeItem>>>,
     ) -> Result<(), Error> {
-        scope
-            .borrow()
-            .items
-            .borrow_mut()
-            .insert(Keyword::Crate.to_string(), crate_item);
+        Scope::insert_item(scope.clone(), Keyword::Crate.to_string(), crate_item);
         if let Some(super_item) = super_item {
-            scope
-                .borrow()
-                .items
-                .borrow_mut()
-                .insert(Keyword::Super.to_string(), super_item);
+            Scope::insert_item(scope.clone(), Keyword::Super.to_string(), super_item);
         }
 
         for statement in module.statements.into_iter() {

@@ -59,20 +59,8 @@ pub(crate) fn compile_module_with_dependencies(
         false,
     )?;
 
-    let crate_item = scope_crate
-        .borrow()
-        .items
-        .borrow()
-        .get(&Keyword::SelfLowercase.to_string())
-        .cloned()
-        .unwrap();
-    let super_item = scope_super
-        .borrow()
-        .items
-        .borrow()
-        .get(&Keyword::SelfLowercase.to_string())
-        .cloned()
-        .unwrap();
+    let crate_item = Scope::get_module_self_alias(scope_crate);
+    let super_item = Scope::get_module_self_alias(scope_super);
 
     ModuleAnalyzer::define(
         scope.clone(),

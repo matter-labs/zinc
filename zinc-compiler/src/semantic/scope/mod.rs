@@ -45,10 +45,10 @@ use self::item::Item;
 ///
 #[derive(Debug, Clone)]
 pub struct Scope {
-    pub name: String,
-    pub parent: Option<Rc<RefCell<Self>>>,
-    pub items: RefCell<HashMap<String, Rc<RefCell<Item>>>>,
-    pub is_built_in: bool,
+    name: String,
+    parent: Option<Rc<RefCell<Self>>>,
+    items: RefCell<HashMap<String, Rc<RefCell<Item>>>>,
+    is_built_in: bool,
 }
 
 impl Scope {
@@ -75,7 +75,7 @@ impl Scope {
     pub fn new_global(name: String) -> Self {
         Self {
             name,
-            parent: Some(BuiltInScope::initialize().wrap()),
+            parent: Some(BuiltInScope::initialize()),
             items: RefCell::new(HashMap::with_capacity(Self::ITEMS_INITIAL_CAPACITY)),
             is_built_in: false,
         }
@@ -127,7 +127,14 @@ impl Scope {
     }
 
     ///
-    /// Defines an item of arbitrary type.
+    /// Inserts an item, does not check if the item has been already declared.
+    ///
+    pub fn insert_item(scope: Rc<RefCell<Scope>>, name: String, item: Rc<RefCell<Item>>) {
+        scope.borrow().items.borrow_mut().insert(name, item);
+    }
+
+    ///
+    /// Defines an item of arbitrary type, checks if the item has been already declared.
     ///
     pub fn define_item(
         scope: Rc<RefCell<Scope>>,
@@ -321,6 +328,9 @@ impl Scope {
     ///
     /// Since `Self` is a reserved keyword, it is not checked for being already declared.
     ///
+    /// TODO: remove and initialize with the same item reference as in `struct` or `enum`. Causes
+    /// reference loop error during referencing `Self` which has been fully defined yet.
+    ///
     pub fn define_type_self_alias(scope: Rc<RefCell<Scope>>, r#type: Type) {
         let name = Keyword::SelfUppercase.to_string();
         let item = Item::Type(TypeItem::new_defined(r#type.location(), r#type, true, None));
@@ -371,6 +381,20 @@ impl Scope {
     }
 
     ///
+    /// Returns the module `self` alias. Panics if the scope does not belong to a module or
+    /// the alias has not been declared yet.
+    ///
+    pub fn get_module_self_alias(scope: Rc<RefCell<Scope>>) -> Rc<RefCell<Item>> {
+        scope
+            .borrow()
+            .items
+            .borrow()
+            .get(&Keyword::SelfLowercase.to_string())
+            .cloned()
+            .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+    }
+
+    ///
     /// Resolves an item at the specified path by looking through modules and type scopes.
     ///
     pub fn resolve_path(
@@ -392,7 +416,10 @@ impl Scope {
             }
 
             current_scope = match *item.borrow() {
-                Item::Module(ref module) => module.scope()?,
+                Item::Module(ref module) => {
+                    module.define()?;
+                    module.scope()?
+                }
                 Item::Type(ref r#type) => {
                     let r#type = r#type.define()?;
                     match r#type {

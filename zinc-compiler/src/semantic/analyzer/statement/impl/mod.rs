@@ -15,6 +15,7 @@ use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerCo
 use crate::semantic::analyzer::statement::r#impl::error::Error as ImplStatementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
+use crate::semantic::scope::error::Error as ScopeError;
 use crate::semantic::scope::item::r#type::state::State as ScopeTypeItemState;
 use crate::semantic::scope::item::r#type::statement::Statement as TypeStatementVariant;
 use crate::semantic::scope::item::r#type::statement::Statement as ScopeTypeItemStatement;
@@ -71,7 +72,11 @@ impl Analyzer {
                         )))
                     }
                 },
-                None => todo!(),
+                None => {
+                    return Err(Error::Scope(ScopeError::ReferenceLoop {
+                        location: identifier_location,
+                    }))
+                }
             },
             ref _item => {
                 return Err(Error::Statement(StatementError::Impl(
@@ -83,11 +88,7 @@ impl Analyzer {
             }
         };
 
-        scope
-            .borrow()
-            .items
-            .borrow_mut()
-            .insert(Keyword::SelfUppercase.to_string(), item);
+        Scope::insert_item(scope.clone(), Keyword::SelfUppercase.to_string(), item);
 
         for hoisted_statement in statement.statements.into_iter() {
             match hoisted_statement {
