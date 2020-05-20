@@ -19,7 +19,7 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes the function argument list.
+    /// Analyzes the function argument list expression.
     ///
     /// Returns the semantic element and the intermediate representation.
     ///
@@ -27,6 +27,20 @@ impl Analyzer {
         scope: Rc<RefCell<Scope>>,
         list: ListExpression,
         rule: TranslationRule,
+    ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
+        match rule {
+            TranslationRule::Constant => Self::constant(scope, list).map(|element| (element, None)),
+            _rule => Self::runtime(scope, list)
+                .map(|(element, intermediate)| (element, Some(intermediate))),
+        }
+    }
+
+    ///
+    /// Returns the runtime function argument list semantic element and intermediate representation.
+    ///
+    fn runtime(
+        scope: Rc<RefCell<Scope>>,
+        list: ListExpression,
     ) -> Result<(Element, GeneratorExpressionOperand), Error> {
         let location = list.location;
 
@@ -35,7 +49,8 @@ impl Analyzer {
 
         for expression in list.elements.into_iter() {
             let (element, expression) =
-                ExpressionAnalyzer::new(scope.clone(), rule).analyze(expression)?;
+                ExpressionAnalyzer::new(scope.clone(), TranslationRule::Value)
+                    .analyze(expression)?;
             arguments.push(element);
 
             builder.push_expression(expression);
@@ -45,5 +60,25 @@ impl Analyzer {
         let intermediate = GeneratorExpressionOperand::List(builder.finish());
 
         Ok((element, intermediate))
+    }
+
+    ///
+    /// Returns the constant function argument list semantic element.
+    ///
+    fn constant(scope: Rc<RefCell<Scope>>, list: ListExpression) -> Result<Element, Error> {
+        let location = list.location;
+
+        let mut arguments = Vec::with_capacity(list.len());
+
+        for expression in list.elements.into_iter() {
+            let (element, _intermediate) =
+                ExpressionAnalyzer::new(scope.clone(), TranslationRule::Constant)
+                    .analyze(expression)?;
+            arguments.push(element);
+        }
+
+        let element = Element::ArgumentList(ArgumentListElement::new(location, arguments));
+
+        Ok(element)
     }
 }

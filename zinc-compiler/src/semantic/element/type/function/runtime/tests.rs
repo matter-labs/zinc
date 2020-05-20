@@ -1,5 +1,5 @@
 //!
-//! The function tests.
+//! The runtime function tests.
 //!
 
 #![cfg(test)]

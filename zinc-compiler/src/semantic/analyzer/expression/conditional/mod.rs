@@ -42,7 +42,7 @@ impl Analyzer {
             TranslationRule::Constant => {
                 Self::constant(scope, conditional).map(|element| (element, None))
             }
-            _rule => Self::value(scope, conditional)
+            _rule => Self::runtime(scope, conditional)
                 .map(|(element, intermediate)| (element, Some(intermediate))),
         }
     }
@@ -50,7 +50,7 @@ impl Analyzer {
     ///
     /// Returns the runtime conditional semantic element and intermediate representation.
     ///
-    fn value(
+    fn runtime(
         scope: Rc<RefCell<Scope>>,
         conditional: ConditionalExpression,
     ) -> Result<(Element, GeneratorExpressionOperand), Error> {

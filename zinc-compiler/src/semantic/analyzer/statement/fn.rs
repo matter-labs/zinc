@@ -55,9 +55,7 @@ impl Analyzer {
         }
 
         if statement.is_constant {
-            Err(Error::ForbiddenConstantFunction {
-                location: statement.location,
-            })
+            Self::constant(scope, statement, context).map(|r#type| (r#type, None))
         } else {
             Self::runtime(scope, statement, context).map(|(r#type, intermediate)| {
                 (r#type, Some(GeneratorStatement::Function(intermediate)))
@@ -168,12 +166,8 @@ impl Analyzer {
                 .unwrap_or(statement.location),
         };
 
-        let rule = if statement.is_constant {
-            TranslationRule::Constant
-        } else {
-            TranslationRule::Value
-        };
-        let (result, body) = BlockAnalyzer::analyze(scope_stack.top(), statement.body, rule)?;
+        let (result, intermediate) =
+            BlockAnalyzer::analyze(scope_stack.top(), statement.body, TranslationRule::Value)?;
         scope_stack.pop();
 
         let result_type = Type::from_element(&result, scope_stack.top())?;
@@ -200,7 +194,7 @@ impl Analyzer {
             false
         };
 
-        let (r#type, type_id) = Type::new_user_defined_function(
+        let (r#type, type_id) = Type::runtime_function(
             statement.location,
             statement.identifier.name.clone(),
             arguments.clone(),
@@ -211,7 +205,7 @@ impl Analyzer {
             location,
             statement.identifier.name,
             arguments,
-            body,
+            intermediate,
             expected_type,
             type_id,
             is_contract_entry,
@@ -219,5 +213,138 @@ impl Analyzer {
         );
 
         Ok((r#type, intermediate))
+    }
+
+    ///
+    /// Analyzes a constant function statement.
+    ///
+    fn constant(
+        scope: Rc<RefCell<Scope>>,
+        statement: FnStatement,
+        context: Context,
+    ) -> Result<Type, Error> {
+        let mut scope_stack = ScopeStack::new(scope);
+
+        let mut arguments = Vec::with_capacity(statement.argument_bindings.len());
+        for (index, argument_binding) in statement.argument_bindings.iter().enumerate() {
+            let identifier = match argument_binding.variant {
+                BindingPatternVariant::Binding { ref identifier, .. } => identifier.name.to_owned(),
+                BindingPatternVariant::Wildcard => continue,
+                BindingPatternVariant::SelfAlias { .. } => {
+                    if index != 0 {
+                        return Err(Error::Element(ElementError::Type(TypeError::Function(
+                            FunctionTypeError::FunctionMethodSelfNotFirst {
+                                location: statement.identifier.location,
+                                function: statement.identifier.name.clone(),
+                                position: index + 1,
+                                reference: argument_binding.location,
+                            },
+                        ))));
+                    }
+
+                    Keyword::SelfLowercase.to_string()
+                }
+            };
+
+            arguments.push((
+                identifier,
+                Type::from_syntax_type(argument_binding.r#type.to_owned(), scope_stack.top())?,
+            ));
+        }
+
+        let expected_type = match statement.return_type {
+            Some(ref r#type) => Type::from_syntax_type(r#type.to_owned(), scope_stack.top())?,
+            None => Type::unit(None),
+        };
+
+        scope_stack.push(Some(statement.identifier.name.clone()));
+        for argument_binding in statement.argument_bindings.into_iter() {
+            match argument_binding.variant {
+                BindingPatternVariant::Binding {
+                    identifier,
+                    is_mutable,
+                } => {
+                    let r#type =
+                        Type::from_syntax_type(argument_binding.r#type, scope_stack.top())?;
+
+                    Scope::define_variable(
+                        scope_stack.top(),
+                        identifier,
+                        is_mutable,
+                        r#type,
+                        MemoryType::Stack,
+                    )?;
+                }
+                BindingPatternVariant::Wildcard => continue,
+                BindingPatternVariant::SelfAlias {
+                    location,
+                    is_mutable,
+                } => {
+                    let identifier = Identifier::new(location, Keyword::SelfLowercase.to_string());
+                    let r#type =
+                        Type::from_syntax_type(argument_binding.r#type, scope_stack.top())?;
+
+                    let memory_type = match context {
+                        Context::Contract => MemoryType::ContractInstance,
+                        Context::Module => MemoryType::Stack,
+                        Context::Implementation => MemoryType::Stack,
+                    };
+
+                    Scope::define_variable(
+                        scope_stack.top(),
+                        identifier,
+                        is_mutable,
+                        r#type,
+                        memory_type,
+                    )?;
+                }
+            }
+        }
+
+        let return_expression_location = match statement
+            .body
+            .expression
+            .as_ref()
+            .map(|expression| expression.location)
+        {
+            Some(location) => location,
+            None => statement
+                .body
+                .statements
+                .last()
+                .map(|statement| statement.location())
+                .unwrap_or(statement.location),
+        };
+
+        let (result, _intermediate) = BlockAnalyzer::analyze(
+            scope_stack.top(),
+            statement.body.clone(),
+            TranslationRule::Value,
+        )?;
+        scope_stack.pop();
+
+        let result_type = Type::from_element(&result, scope_stack.top())?;
+        if expected_type != result_type {
+            return Err(Error::Element(ElementError::Type(TypeError::Function(
+                FunctionTypeError::ReturnType {
+                    location: return_expression_location,
+                    function: statement.identifier.name.clone(),
+                    expected: expected_type.to_string(),
+                    found: result_type.to_string(),
+                    reference: statement
+                        .return_type
+                        .map(|r#type| r#type.location)
+                        .unwrap_or(statement.location),
+                },
+            ))));
+        }
+
+        Ok(Type::constant_function(
+            statement.location,
+            statement.identifier.name.clone(),
+            arguments,
+            expected_type,
+            statement.body,
+        ))
     }
 }

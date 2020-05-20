@@ -43,6 +43,10 @@ impl Expression {
         }
     }
 
+    pub fn push_element(&mut self, element: Element) {
+        self.elements.push(element)
+    }
+
     pub fn push_operand(&mut self, operand: Operand) {
         self.elements.push(Element::Operand(operand))
     }

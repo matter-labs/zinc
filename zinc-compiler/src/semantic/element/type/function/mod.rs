@@ -2,12 +2,11 @@
 //! The semantic analyzer function element.
 //!
 
-mod tests;
-
 pub mod builtin;
+pub mod constant;
 pub mod error;
+pub mod runtime;
 pub mod stdlib;
-pub mod user;
 
 use std::fmt;
 
@@ -15,10 +14,12 @@ use zinc_bytecode::builtins::BuiltinIdentifier;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
+use crate::syntax::tree::expression::block::Expression as BlockExpression;
 
 use self::builtin::Function as BuiltInFunction;
+use self::constant::Function as ConstantFunction;
+use self::runtime::Function as RuntimeFunction;
 use self::stdlib::Function as StandardLibraryFunction;
-use self::user::Function as UserFunction;
 
 ///
 /// Describes a function, which is a special type.
@@ -31,9 +32,12 @@ pub enum Function {
     /// These functions are declared in a virtual built-in scope and implemented in the VM
     /// as built-in function calls.
     StandardLibrary(StandardLibraryFunction),
-    /// Ordinar functions declared anywhere within a project. There is a special `main` function,
+    /// Runtime functions declared anywhere within a project. There is a special `main` function,
     /// which is also declared by user, but serves as the circuit entry point.
-    UserDefined(UserFunction),
+    Runtime(RuntimeFunction),
+    /// Constant functions declared anywhere within a project. There are executed at compile-time
+    /// only and do not produce the intermediate representation.
+    Constant(ConstantFunction),
 }
 
 impl Function {
@@ -49,14 +53,14 @@ impl Function {
         Self::StandardLibrary(StandardLibraryFunction::new(identifier))
     }
 
-    pub fn new_user_defined(
+    pub fn new_runtime(
         location: Location,
         identifier: String,
         type_id: usize,
         arguments: Vec<(String, Type)>,
         return_type: Type,
     ) -> Self {
-        Self::UserDefined(UserFunction::new(
+        Self::Runtime(RuntimeFunction::new(
             location,
             identifier,
             type_id,
@@ -65,11 +69,30 @@ impl Function {
         ))
     }
 
+    pub fn new_constant(
+        location: Location,
+        identifier: String,
+        type_id: usize,
+        arguments: Vec<(String, Type)>,
+        return_type: Type,
+        body: BlockExpression,
+    ) -> Self {
+        Self::Constant(ConstantFunction::new(
+            location,
+            identifier,
+            type_id,
+            arguments,
+            return_type,
+            body,
+        ))
+    }
+
     pub fn identifier(&self) -> String {
         match self {
             Self::BuiltIn(inner) => inner.identifier().to_owned(),
             Self::StandardLibrary(inner) => inner.identifier().to_owned(),
-            Self::UserDefined(inner) => inner.identifier.to_owned(),
+            Self::Runtime(inner) => inner.identifier.to_owned(),
+            Self::Constant(inner) => inner.identifier.to_owned(),
         }
     }
 
@@ -77,7 +100,8 @@ impl Function {
         match self {
             Self::BuiltIn(inner) => inner.set_location(value),
             Self::StandardLibrary(inner) => inner.set_location(value),
-            Self::UserDefined(inner) => inner.location = value,
+            Self::Runtime(inner) => inner.location = value,
+            Self::Constant(inner) => inner.location = value,
         }
     }
 
@@ -85,7 +109,8 @@ impl Function {
         match self {
             Self::BuiltIn(inner) => inner.location(),
             Self::StandardLibrary(inner) => inner.location(),
-            Self::UserDefined(inner) => Some(inner.location),
+            Self::Runtime(inner) => Some(inner.location),
+            Self::Constant(inner) => Some(inner.location),
         }
     }
 }
@@ -95,7 +120,8 @@ impl fmt::Display for Function {
         match self {
             Self::BuiltIn(inner) => write!(f, "built-in {}", inner),
             Self::StandardLibrary(inner) => write!(f, "std::{}", inner),
-            Self::UserDefined(inner) => write!(f, "{}", inner),
+            Self::Runtime(inner) => write!(f, "{}", inner),
+            Self::Constant(inner) => write!(f, "{}", inner),
         }
     }
 }

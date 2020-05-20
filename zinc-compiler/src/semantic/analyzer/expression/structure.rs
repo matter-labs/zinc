@@ -77,7 +77,7 @@ impl Analyzer {
             TranslationRule::Constant => {
                 Self::constant(scope, structure, r#type).map(|element| (element, None))
             }
-            _rule => Self::value(scope, structure, r#type)
+            _rule => Self::runtime(scope, structure, r#type)
                 .map(|(element, intermediate)| (element, Some(intermediate))),
         }
     }
@@ -85,7 +85,7 @@ impl Analyzer {
     ///
     /// Returns the runtime structure value semantic element and intermediate representation.
     ///
-    fn value(
+    fn runtime(
         scope: Rc<RefCell<Scope>>,
         structure: StructureExpression,
         r#type: StructureType,

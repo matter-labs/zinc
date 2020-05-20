@@ -32,6 +32,7 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::item::r#type::index::INDEX as TYPE_INDEX;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
+use crate::syntax::tree::expression::block::Expression as BlockExpression;
 use crate::syntax::tree::r#type::variant::Variant as SyntaxTypeVariant;
 use crate::syntax::tree::r#type::Type as SyntaxType;
 use crate::syntax::tree::variant::Variant;
@@ -175,7 +176,7 @@ impl Type {
         Enumeration::new(location, identifier, type_id, variants, scope).map(Self::Enumeration)
     }
 
-    pub fn new_user_defined_function(
+    pub fn runtime_function(
         location: Location,
         identifier: String,
         arguments: Vec<(String, Self)>,
@@ -184,7 +185,7 @@ impl Type {
         let type_id = TYPE_INDEX.next(format!("function {}", identifier));
 
         (
-            Self::Function(Function::new_user_defined(
+            Self::Function(Function::new_runtime(
                 location,
                 identifier,
                 type_id,
@@ -193,6 +194,25 @@ impl Type {
             )),
             type_id,
         )
+    }
+
+    pub fn constant_function(
+        location: Location,
+        identifier: String,
+        arguments: Vec<(String, Self)>,
+        return_type: Self,
+        body: BlockExpression,
+    ) -> Self {
+        let type_id = TYPE_INDEX.next(format!("function {}", identifier));
+
+        Self::Function(Function::new_constant(
+            location,
+            identifier,
+            type_id,
+            arguments,
+            return_type,
+            body,
+        ))
     }
 
     pub fn contract(

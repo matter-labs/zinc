@@ -24,6 +24,7 @@ pub mod r#type;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::generator::expression::element::Element as GeneratorExpressionElement;
 use crate::generator::expression::operand::constant::integer::Integer as GeneratorExpressionIntegerConstant;
 use crate::generator::expression::operand::constant::Constant as GeneratorExpressionConstant;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
@@ -38,6 +39,7 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::element::Element as PlaceElement;
 use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::place::Place;
+use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::unit::Unit as UnitValue;
 use crate::semantic::element::value::Value;
@@ -450,9 +452,18 @@ impl Analyzer {
 
                 ExpressionOperator::Call => {
                     self.left_local(tree.left, operator, rule)?;
+
+                    // forces the constant translation rule, which prevents the arguments to be written to the IR
+                    let rule = match self.evaluation_stack.top() {
+                        StackElement::Evaluated(Element::Type(Type::Function(
+                            FunctionType::Constant(_),
+                        ))) => TranslationRule::Constant,
+                        _element => self.rule,
+                    };
+
                     self.right_local(tree.right, operator, rule)?;
                     let intermediate = self.call(tree.location, rule)?;
-                    self.intermediate.push_operator(tree.location, intermediate);
+                    self.intermediate.push_element(intermediate);
                 }
                 ExpressionOperator::CallBuiltIn => {
                     self.next_call_type = CallType::BuiltIn;
@@ -865,7 +876,7 @@ impl Analyzer {
         &mut self,
         location: Location,
         rule: TranslationRule,
-    ) -> Result<GeneratorExpressionOperator, Error> {
+    ) -> Result<GeneratorExpressionElement, Error> {
         let call_type = self.next_call_type.take();
 
         let (operand_2, _intermediate_2) =
@@ -876,7 +887,7 @@ impl Analyzer {
             TranslationRule::Type,
         )?;
 
-        let (element, operator) = CallAnalyzer::analyze(
+        let (element, intermediate) = CallAnalyzer::analyze(
             self.scope_stack.top(),
             operand_1,
             operand_2,
@@ -886,7 +897,7 @@ impl Analyzer {
 
         self.evaluation_stack.push(StackElement::Evaluated(element));
 
-        Ok(operator)
+        Ok(intermediate)
     }
 
     ///
@@ -941,8 +952,7 @@ impl Analyzer {
                 ExpressionOperand::Structure(inner) => {
                     StructureAnalyzer::analyze(scope, inner, rule)
                 }
-                ExpressionOperand::List(inner) => ListAnalyzer::analyze(scope, inner, rule)
-                    .map(|(element, intermediate)| (element, Some(intermediate))),
+                ExpressionOperand::List(inner) => ListAnalyzer::analyze(scope, inner, rule),
                 ExpressionOperand::Block(inner) => {
                     BlockAnalyzer::analyze(scope, inner, rule).map(|(element, intermediate)| {
                         (

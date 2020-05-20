@@ -328,7 +328,7 @@ impl Scope {
     ///
     /// Since `Self` is a reserved keyword, it is not checked for being already declared.
     ///
-    /// TODO: remove and initialize with the same item reference as in `struct` or `enum`. Causes
+    /// Will be removed and initialized with the same item reference as in `struct` or `enum`. Causes
     /// reference loop error during referencing `Self` which has been fully defined yet.
     ///
     pub fn define_type_self_alias(scope: Rc<RefCell<Scope>>, r#type: Type) {

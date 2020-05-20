@@ -1,6 +1,8 @@
 //!
-//! The semantic analyzer user-defined function element.
+//! The semantic analyzer runtime function element.
 //!
+
+mod tests;
 
 use std::fmt;
 
@@ -51,9 +53,9 @@ impl Function {
         for (index, element) in actual_elements.into_iter().enumerate() {
             let location = element.location();
 
-            let (r#type, is_constant) = match element {
-                Element::Value(value) => (value.r#type(), false),
-                Element::Constant(constant) => (constant.r#type(), true),
+            let r#type = match element {
+                Element::Value(value) => value.r#type(),
+                Element::Constant(constant) => constant.r#type(),
                 element => {
                     return Err(Error::ArgumentNotEvaluable {
                         location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
@@ -64,7 +66,7 @@ impl Function {
                 }
             };
 
-            actual_params.push((r#type, is_constant, location));
+            actual_params.push((r#type, location));
         }
 
         if actual_params.len() != self.formal_params.len() {
@@ -79,8 +81,8 @@ impl Function {
         let formal_params_length = self.formal_params.len();
         for (index, (name, r#type)) in self.formal_params.into_iter().enumerate() {
             match actual_params.get(index) {
-                Some((actual_type, _is_constant, _location)) if actual_type == &r#type => {}
-                Some((actual_type, _is_constant, location)) => {
+                Some((actual_type, _location)) if actual_type == &r#type => {}
+                Some((actual_type, location)) => {
                     return Err(Error::ArgumentType {
                         location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),

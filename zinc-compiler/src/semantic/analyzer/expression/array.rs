@@ -41,7 +41,7 @@ impl Analyzer {
             TranslationRule::Constant => {
                 Self::constant(scope, array).map(|element| (element, None))
             }
-            _rule => Self::value(scope, array)
+            _rule => Self::runtime(scope, array)
                 .map(|(element, intermediate)| (element, Some(intermediate))),
         }
     }
@@ -49,7 +49,7 @@ impl Analyzer {
     ///
     /// Returns the runtime array value semantic element and intermediate representation.
     ///
-    fn value(
+    fn runtime(
         scope: Rc<RefCell<Scope>>,
         array: ArrayExpression,
     ) -> Result<(Element, GeneratorExpressionOperand), Error> {

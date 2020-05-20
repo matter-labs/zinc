@@ -7,6 +7,9 @@ pub mod r#type;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::generator::expression::element::Element as GeneratorExpressionElement;
+use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
+use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
@@ -38,7 +41,7 @@ impl Analyzer {
         operand_2: Element,
         mut call_type: CallType,
         location: Location,
-    ) -> Result<(Element, GeneratorExpressionOperator), Error> {
+    ) -> Result<(Element, GeneratorExpressionElement), Error> {
         let function_location = operand_1.location();
 
         let function = match operand_1 {
@@ -92,7 +95,7 @@ impl Analyzer {
             input_size += Type::from_element(element, scope.clone())?.size();
         }
 
-        let (return_type, intermediate) = match function {
+        let (element, intermediate) = match function {
             FunctionType::BuiltIn(function) => {
                 match call_type {
                     CallType::BuiltIn => {}
@@ -116,10 +119,23 @@ impl Analyzer {
                                 Error::Element(ElementError::Type(TypeError::Function(error)))
                             })?;
 
+                        let element = Element::Value(
+                            Value::try_from_type(&return_type, None)
+                                .map_err(ElementError::Value)
+                                .map_err(Error::Element)?,
+                        );
+
                         let intermediate =
                             GeneratorExpressionOperator::call_debug(format, argument_types);
 
-                        (return_type, intermediate)
+                        (
+                            element,
+                            GeneratorExpressionElement::Operator {
+                                location: function_location
+                                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                                operator: intermediate,
+                            },
+                        )
                     }
                     BuiltInFunctionType::Assert(function) => {
                         let (return_type, message) = function
@@ -128,9 +144,22 @@ impl Analyzer {
                                 Error::Element(ElementError::Type(TypeError::Function(error)))
                             })?;
 
+                        let element = Element::Value(
+                            Value::try_from_type(&return_type, None)
+                                .map_err(ElementError::Value)
+                                .map_err(Error::Element)?,
+                        );
+
                         let intermediate = GeneratorExpressionOperator::call_assert(message);
 
-                        (return_type, intermediate)
+                        (
+                            element,
+                            GeneratorExpressionElement::Operator {
+                                location: function_location
+                                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                                operator: intermediate,
+                            },
+                        )
                     }
                 }
             }
@@ -152,15 +181,27 @@ impl Analyzer {
                         Error::Element(ElementError::Type(TypeError::Function(error)))
                     })?;
 
+                let element = Element::Value(
+                    Value::try_from_type(&return_type, None)
+                        .map_err(ElementError::Value)
+                        .map_err(Error::Element)?,
+                );
+
                 let intermediate = GeneratorExpressionOperator::call_std(
                     builtin_identifier,
                     input_size,
                     return_type.size(),
                 );
 
-                (return_type, intermediate)
+                (
+                    element,
+                    GeneratorExpressionElement::Operator {
+                        location: function_location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        operator: intermediate,
+                    },
+                )
             }
-            FunctionType::UserDefined(function) => {
+            FunctionType::Runtime(function) => {
                 if let CallType::BuiltIn = call_type {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
                         FunctionTypeError::BuiltIn(BuiltInFunctionTypeError::Unknown {
@@ -170,21 +211,57 @@ impl Analyzer {
                     ))));
                 }
 
-                let intermediate = GeneratorExpressionOperator::call(function.type_id, input_size);
+                let location = function.location;
+                let type_id = function.type_id;
 
                 let return_type = function.call(argument_list.arguments).map_err(|error| {
                     Error::Element(ElementError::Type(TypeError::Function(error)))
                 })?;
 
-                (return_type, intermediate)
+                let element = Element::Value(
+                    Value::try_from_type(&return_type, None)
+                        .map_err(ElementError::Value)
+                        .map_err(Error::Element)?,
+                );
+
+                let intermediate = GeneratorExpressionOperator::call(type_id, input_size);
+
+                (
+                    element,
+                    GeneratorExpressionElement::Operator {
+                        location,
+                        operator: intermediate,
+                    },
+                )
+            }
+            FunctionType::Constant(function) => {
+                if let CallType::BuiltIn = call_type {
+                    return Err(Error::Element(ElementError::Type(TypeError::Function(
+                        FunctionTypeError::BuiltIn(BuiltInFunctionTypeError::Unknown {
+                            location: function_location.unwrap_or(location),
+                            function: function.identifier,
+                        }),
+                    ))));
+                }
+
+                let arguments = function
+                    .validate(argument_list.arguments)
+                    .map_err(|error| {
+                        Error::Element(ElementError::Type(TypeError::Function(error)))
+                    })?;
+
+                let constant = function.call(arguments, scope)?;
+
+                let intermediate = GeneratorConstant::try_from_semantic(&constant)
+                    .map(GeneratorExpressionOperand::Constant)
+                    .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+
+                (
+                    Element::Constant(constant),
+                    GeneratorExpressionElement::Operand(intermediate),
+                )
             }
         };
-
-        let element = Element::Value(
-            Value::try_from_type(&return_type, None)
-                .map_err(ElementError::Value)
-                .map_err(Error::Element)?,
-        );
 
         Ok((element, intermediate))
     }

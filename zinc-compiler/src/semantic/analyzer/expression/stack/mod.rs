@@ -26,6 +26,10 @@ impl Stack {
         }
     }
 
+    pub fn top(&self) -> &Element {
+        self.elements.last().expect(THERE_MUST_ALWAYS_BE_AN_OPERAND)
+    }
+
     pub fn push(&mut self, element: Element) {
         self.elements.push(element);
     }

@@ -37,7 +37,7 @@ impl Analyzer {
             TranslationRule::Constant => {
                 Self::constant(scope, tuple).map(|element| (element, None))
             }
-            _rule => Self::value(scope, tuple)
+            _rule => Self::runtime(scope, tuple)
                 .map(|(element, intermediate)| (element, Some(intermediate))),
         }
     }
@@ -45,7 +45,7 @@ impl Analyzer {
     ///
     /// Returns the runtime tuple value semantic element and intermediate representation.
     ///
-    fn value(
+    fn runtime(
         scope: Rc<RefCell<Scope>>,
         tuple: TupleExpression,
     ) -> Result<(Element, GeneratorExpressionOperand), Error> {
