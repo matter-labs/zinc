@@ -324,21 +324,6 @@ impl Scope {
     }
 
     ///
-    /// Defines the `Self` alias within a type implementation.
-    ///
-    /// Since `Self` is a reserved keyword, it is not checked for being already declared.
-    ///
-    /// Will be removed and initialized with the same item reference as in `struct` or `enum`. Causes
-    /// reference loop error during referencing `Self` which has been fully defined yet.
-    ///
-    pub fn define_type_self_alias(scope: Rc<RefCell<Scope>>, r#type: Type) {
-        let name = Keyword::SelfUppercase.to_string();
-        let item = Item::Type(TypeItem::new_defined(r#type.location(), r#type, true, None));
-
-        scope.borrow().items.borrow_mut().insert(name, item.wrap());
-    }
-
-    ///
     /// Declares a module, saving its representation to define itself later during the second
     /// pass or referencing for the first time.
     ///
@@ -416,10 +401,7 @@ impl Scope {
             }
 
             current_scope = match *item.borrow() {
-                Item::Module(ref module) => {
-                    module.define()?;
-                    module.scope()?
-                }
+                Item::Module(ref module) => module.define()?,
                 Item::Type(ref r#type) => {
                     let r#type = r#type.define()?;
                     match r#type {
@@ -505,10 +487,10 @@ impl Scope {
             .iter()
             .filter_map(|(name, item)| {
                 if Keyword::is_alias(name.as_str()) {
-                    None
-                } else {
-                    Some(item.borrow().get_intermediate())
+                    return None;
                 }
+
+                Some(item.borrow().get_intermediate())
             })
             .flatten()
             .collect()

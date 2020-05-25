@@ -10,8 +10,11 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
+use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
+use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 
 ///
@@ -44,7 +47,17 @@ impl Contract {
             scope: scope.clone(),
         };
 
-        Scope::define_type_self_alias(scope, Type::Contract(contract.clone()));
+        Scope::insert_item(
+            scope,
+            Keyword::SelfUppercase.to_string(),
+            ScopeItem::Type(ScopeTypeItem::new_defined(
+                location,
+                Type::Contract(contract.clone()),
+                true,
+                None,
+            ))
+            .wrap(),
+        );
 
         contract
     }

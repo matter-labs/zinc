@@ -1,7 +1,11 @@
-pub const fn cube(a: u8) -> u8 {
-    a * a * a
+pub const fn square(a: u8) -> u8 {
+    a * a
 }
 
-fn main() -> u8 {
-    self::cube(5)
+fn main() {
+    dbg!("{}^2 = {}", 5, self::square(5));
+    dbg!("{}^2 = {}", 6, self::square(6));
+    dbg!("{}^2 = {}", 7, self::square(7));
+    dbg!("{}^2 = {}", 8, self::square(8));
+    dbg!("{}^2 = {}", 9, self::square(9));
 }

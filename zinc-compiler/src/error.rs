@@ -1854,14 +1854,10 @@ impl Error {
                     location,
                     Some(format!("create a file called `{}.zn` inside the module directory", name).as_str()),
                 )
-            }Self::Semantic(SemanticError::ForbiddenConstantFunction { location }) => {
-                Self::format_line( "constant functions are temporarily forbidden",
-                    location,
-                    None,
-                )
             }
         }
     }
+
     fn format_message(message: &str, help: Option<&str>) -> String {
         let mut strings = Vec::with_capacity(8);
         strings.push(String::new());
@@ -1876,6 +1872,7 @@ impl Error {
         strings.push(String::new());
         strings.join("\n")
     }
+
     fn format_line(message: &str, location: Location, help: Option<&str>) -> String {
         let index = FILE_INDEX.inner.read().expect(crate::panic::MUTEX_SYNC);
         let context = index
@@ -1922,6 +1919,7 @@ impl Error {
         strings.push(String::new());
         strings.join("\n")
     }
+
     fn format_line_with_reference(
         message: &str,
         location: Location,
@@ -2005,6 +2003,7 @@ impl Error {
         strings.push(String::new());
         strings.join("\n")
     }
+
     fn format_range(
         message: &'static str,
         start: Location,
@@ -2059,16 +2058,19 @@ impl Error {
         strings.join("\n")
     }
 }
+
 impl From<LexicalError> for Error {
     fn from(error: LexicalError) -> Self {
         Self::Lexical(error)
     }
 }
+
 impl From<SyntaxError> for Error {
     fn from(error: SyntaxError) -> Self {
         Self::Syntax(error)
     }
 }
+
 impl From<SemanticError> for Error {
     fn from(error: SemanticError) -> Self {
         Self::Semantic(error)

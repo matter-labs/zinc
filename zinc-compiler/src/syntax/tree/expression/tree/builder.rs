@@ -27,7 +27,7 @@ impl Builder {
            /      \                          /      \
           /        \            ->          /        \
          /          \                      /          \
-        X            X                   Node           X
+        X            X                   Node          X
 
     If the left branch is occupied:
 

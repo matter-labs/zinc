@@ -16,27 +16,11 @@ pub enum Error {
     Statement(StatementError),
 
     EntryPointMissing,
-    EntryPointAmbiguous {
-        main: Location,
-        contract: Location,
-    },
-    EntryPointConstant {
-        location: Location,
-    },
-    FunctionMainBeyondEntry {
-        location: Location,
-    },
-    ContractBeyondEntry {
-        location: Location,
-    },
-    ModuleFileNotFound {
-        location: Location,
-        name: String,
-    },
-
-    ForbiddenConstantFunction {
-        location: Location, // TODO: implement
-    },
+    EntryPointAmbiguous { main: Location, contract: Location },
+    EntryPointConstant { location: Location },
+    FunctionMainBeyondEntry { location: Location },
+    ContractBeyondEntry { location: Location },
+    ModuleFileNotFound { location: Location, name: String },
 }
 
 impl From<ScopeError> for Error {
