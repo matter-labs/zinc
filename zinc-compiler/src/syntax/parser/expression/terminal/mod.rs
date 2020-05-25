@@ -7,7 +7,6 @@ pub mod block;
 pub mod conditional;
 pub mod list;
 pub mod r#match;
-pub mod structure;
 pub mod tuple;
 
 use std::cell::RefCell;
@@ -33,7 +32,6 @@ use self::array::Parser as ArrayExpressionParser;
 use self::block::Parser as BlockExpressionParser;
 use self::conditional::Parser as ConditionalExpressionParser;
 use self::r#match::Parser as MatchExpressionParser;
-use self::structure::Parser as StructureExpressionParser;
 use self::tuple::Parser as TupleExpressionParser;
 
 #[derive(Default)]
@@ -112,51 +110,43 @@ impl Parser {
                             (ExpressionOperand::Match(operand), location, token)
                         })
                 }
-                token
-                @
                 Token {
-                    lexeme: Lexeme::Identifier(..),
-                    ..
+                    lexeme: Lexeme::Keyword(keyword @ Keyword::Crate),
+                    location,
                 }
-                | token
-                @
-                Token {
-                    lexeme: Lexeme::Keyword(Keyword::Crate),
-                    ..
+                | Token {
+                    lexeme: Lexeme::Keyword(keyword @ Keyword::Super),
+                    location,
                 }
-                | token
-                @
-                Token {
-                    lexeme: Lexeme::Keyword(Keyword::Super),
-                    ..
+                | Token {
+                    lexeme: Lexeme::Keyword(keyword @ Keyword::SelfLowercase),
+                    location,
                 }
-                | token
-                @
-                Token {
-                    lexeme: Lexeme::Keyword(Keyword::SelfLowercase),
-                    ..
-                }
-                | token
-                @
-                Token {
-                    lexeme: Lexeme::Keyword(Keyword::SelfUppercase),
-                    ..
+                | Token {
+                    lexeme: Lexeme::Keyword(keyword @ Keyword::SelfUppercase),
+                    location,
                 } => {
-                    let location = token.location;
-                    let (expression, next) =
-                        StructureExpressionParser::default().parse(stream, Some(token))?;
-                    if expression.is_structure {
-                        Ok((ExpressionOperand::Structure(expression), location, next))
-                    } else {
-                        let mut builder = IdentifierBuilder::default();
-                        builder.set_location(expression.identifier.location);
-                        builder.set_name(expression.identifier.name);
-                        Ok((
-                            ExpressionOperand::Identifier(builder.finish()),
-                            location,
-                            next,
-                        ))
-                    }
+                    let mut builder = IdentifierBuilder::default();
+                    builder.set_location(location);
+                    builder.set_name(keyword.to_string());
+                    Ok((
+                        ExpressionOperand::Identifier(builder.finish()),
+                        location,
+                        None,
+                    ))
+                }
+                Token {
+                    lexeme: Lexeme::Identifier(identifier),
+                    location,
+                } => {
+                    let mut builder = IdentifierBuilder::default();
+                    builder.set_location(location);
+                    builder.set_name(identifier.inner);
+                    Ok((
+                        ExpressionOperand::Identifier(builder.finish()),
+                        location,
+                        None,
+                    ))
                 }
                 Token {
                     lexeme: Lexeme::Literal(LexicalLiteral::Boolean(boolean)),

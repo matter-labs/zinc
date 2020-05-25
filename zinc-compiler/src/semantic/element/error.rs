@@ -338,6 +338,15 @@ pub enum Error {
         found: String,
     },
 
+    OperatorStructureFirstOperandExpectedType {
+        location: Location,
+        found: String,
+    },
+    OperatorStructureSecondOperandExpectedEvaluable {
+        location: Location,
+        found: String,
+    },
+
     Place(PlaceError),
     Value(ValueError),
     Constant(ConstantError),

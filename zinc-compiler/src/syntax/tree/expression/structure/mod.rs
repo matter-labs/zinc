@@ -11,23 +11,11 @@ use crate::syntax::tree::identifier::Identifier;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
-    pub identifier: Identifier,
-    pub is_structure: bool,
     pub fields: Vec<(Identifier, ExpressionTree)>,
 }
 
 impl Expression {
-    pub fn new(
-        location: Location,
-        identifier: Identifier,
-        is_structure: bool,
-        fields: Vec<(Identifier, ExpressionTree)>,
-    ) -> Self {
-        Self {
-            location,
-            identifier,
-            is_structure,
-            fields,
-        }
+    pub fn new(location: Location, fields: Vec<(Identifier, ExpressionTree)>) -> Self {
+        Self { location, fields }
     }
 }

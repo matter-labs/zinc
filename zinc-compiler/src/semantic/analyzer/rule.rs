@@ -86,6 +86,8 @@ impl Rule {
             ExpressionOperator::Call => Self::Type,
 
             ExpressionOperator::Path => Self::Path,
+
+            ExpressionOperator::Structure => Self::Type,
         }
     }
 
@@ -151,6 +153,8 @@ impl Rule {
             ExpressionOperator::Call => rule.constant_or_value(),
 
             ExpressionOperator::Path => Self::Path,
+
+            ExpressionOperator::Structure => rule.constant_or_value(),
         }
     }
 

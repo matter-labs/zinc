@@ -14,30 +14,6 @@ use crate::semantic::error::Error as SemanticError;
 use crate::syntax::tree::identifier::Identifier;
 
 #[test]
-fn error_alias_does_not_point_to_structure() {
-    let input = r#"
-type X = field;
-
-fn main() {
-    let data = X {
-        value: 42,
-    };
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::NotStructure {
-            location: Location::new(5, 16),
-            found: "X".to_owned(),
-        },
-    ))));
-
-    let result = crate::semantic::tests::compile_entry(input);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
 fn error_alias_does_not_point_to_type() {
     let input = r#"
 fn main() {

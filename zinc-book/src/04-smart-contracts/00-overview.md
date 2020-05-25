@@ -1,7 +1,7 @@
 # Smart contracts
 
-A Zinc smart contract consists of the entry file `<contract_name>.zn`, where
-the contract itself is declared, and many module files, which can be imported
+A Zinc smart contract consists of the entry file `main.zn`, where the contract
+itself is declared, and zero or more modules, whose contents can be imported
 into the main file.
 
 ## Example

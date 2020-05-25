@@ -1,11 +1,15 @@
-pub const fn square(a: u8) -> u8 {
-    a * a
+struct Data {
+    a: (bool, [u8; 2]),
+    b: (u8, [u8; 4]),
 }
 
-fn main() {
-    dbg!("{}^2 = {}", 5, self::square(5));
-    dbg!("{}^2 = {}", 6, self::square(6));
-    dbg!("{}^2 = {}", 7, self::square(7));
-    dbg!("{}^2 = {}", 8, self::square(8));
-    dbg!("{}^2 = {}", 9, self::square(9));
+fn foo() -> Data {
+    Data {
+        a: (false, [8, 9]),
+        b: (1, [2, 3, 4, 5]),
+    }
+}
+
+fn main(witness: u8) -> u8 {
+    witness * foo().b.1[2]
 }

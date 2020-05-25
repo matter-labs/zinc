@@ -23,62 +23,71 @@ use self::error::Error;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Structure {
     pub location: Location,
-    pub r#type: StructureType,
-    pub values: Vec<(String, Constant)>,
+    pub r#type: Option<StructureType>,
+    pub values: Vec<(Identifier, Constant)>,
 }
 
 impl Structure {
-    pub fn new(location: Location, r#type: StructureType) -> Self {
+    pub fn new(location: Location) -> Self {
         Self {
             location,
-            r#type,
+            r#type: None,
             values: vec![],
         }
     }
 
     pub fn r#type(&self) -> Type {
-        Type::Structure(self.r#type.to_owned())
+        self.r#type
+            .clone()
+            .map(Type::Structure)
+            .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
         self.r#type == other.r#type
     }
 
-    pub fn push(&mut self, identifier: Identifier, value: Constant) -> Result<(), Error> {
-        match self.r#type.fields.get(self.values.len()) {
-            Some((expected_name, expected_type)) => {
-                if &identifier.name != expected_name {
-                    return Err(Error::FieldExpected {
-                        location: identifier.location,
-                        type_identifier: self.r#type.identifier.to_owned(),
-                        position: self.values.len() + 1,
-                        expected: expected_name.to_owned(),
-                        found: identifier.name,
-                    });
-                }
+    pub fn push(&mut self, identifier: Identifier, value: Constant) {
+        self.values.push((identifier, value));
+    }
 
-                let r#type = value.r#type();
-                if &r#type != expected_type {
-                    return Err(Error::FieldInvalidType {
-                        location: value.location(),
-                        type_identifier: self.r#type.identifier.to_owned(),
-                        field_name: expected_name.to_owned(),
-                        expected: expected_type.to_string(),
-                        found: r#type.to_string(),
+    pub fn validate(&mut self, expected: StructureType) -> Result<(), Error> {
+        for (index, (identifier, constant)) in self.values.iter().enumerate() {
+            match expected.fields.get(index) {
+                Some((expected_name, expected_type)) => {
+                    if &identifier.name != expected_name {
+                        return Err(Error::FieldExpected {
+                            location: identifier.location,
+                            type_identifier: expected.identifier.to_owned(),
+                            position: index + 1,
+                            expected: expected_name.to_owned(),
+                            found: identifier.name.to_owned(),
+                        });
+                    }
+
+                    let r#type = constant.r#type();
+                    if &r#type != expected_type {
+                        return Err(Error::FieldInvalidType {
+                            location: constant.location(),
+                            type_identifier: expected.identifier.to_owned(),
+                            field_name: expected_name.to_owned(),
+                            expected: expected_type.to_string(),
+                            found: r#type.to_string(),
+                        });
+                    }
+                }
+                None => {
+                    return Err(Error::FieldOutOfRange {
+                        location: identifier.location,
+                        type_identifier: expected.identifier.to_owned(),
+                        expected: expected.fields.len(),
+                        found: index + 1,
                     });
                 }
-            }
-            None => {
-                return Err(Error::FieldOutOfRange {
-                    location: identifier.location,
-                    type_identifier: self.r#type.identifier.to_owned(),
-                    expected: self.r#type.fields.len(),
-                    found: self.values.len() + 1,
-                });
             }
         }
 
-        self.values.push((identifier.name, value));
+        self.r#type = Some(expected);
 
         Ok(())
     }
@@ -90,7 +99,7 @@ impl Structure {
         for (index, (name, value)) in self.values.into_iter().enumerate() {
             let element_size = value.r#type().size();
 
-            if name == identifier.name.as_str() {
+            if name.name == identifier.name {
                 let access = StackFieldAccess::new(index, offset, element_size, total_size);
 
                 return Ok((value, access));
@@ -101,7 +110,10 @@ impl Structure {
 
         Err(Error::FieldDoesNotExist {
             location: identifier.location,
-            type_identifier: self.r#type.identifier,
+            type_identifier: self
+                .r#type
+                .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+                .identifier,
             field_name: identifier.name,
         })
     }
@@ -112,10 +124,13 @@ impl fmt::Display for Structure {
         write!(
             f,
             "'{}' with fields {{ {} }}",
-            self.r#type.identifier,
+            self.r#type
+                .as_ref()
+                .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+                .identifier,
             self.values
                 .iter()
-                .map(|(name, value)| format!("{}: {}", name, value))
+                .map(|(identifier, value)| format!("{}: {}", identifier.name, value))
                 .collect::<Vec<String>>()
                 .join(", "),
         )

@@ -70,4 +70,7 @@ pub enum Operator {
 
     // compile-time access
     Path,
+
+    // structure literal
+    Structure,
 }

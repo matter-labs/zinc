@@ -7,7 +7,6 @@ use std::rc::Rc;
 
 use crate::error::Error;
 use crate::lexical::stream::TokenStream;
-use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::lexeme::symbol::Symbol;
 use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::Token;
@@ -18,13 +17,12 @@ use crate::syntax::tree::expression::structure::Expression as StructureExpressio
 use crate::syntax::tree::identifier::Identifier;
 
 pub static HINT_EXPECTED_IDENTIFIER: &str =
-    "structure field must have an identifier, e.g. `Data { a: 42 }`";
-pub static HINT_EXPECTED_VALUE: &str = "structure field must be initialized, e.g. `Data { a: 42 }`";
+    "structure field must have an identifier, e.g. `{ a: 42 }`";
+pub static HINT_EXPECTED_VALUE: &str = "structure field must be initialized, e.g. `{ a: 42 }`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Identifier,
-    BracketCurlyLeftOrEnd,
+    BracketCurlyLeft,
     IdentifierOrBracketCurlyRight,
     Colon,
     Expression,
@@ -33,7 +31,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        State::Identifier
+        State::BracketCurlyLeft
     }
 }
 
@@ -49,7 +47,7 @@ impl Parser {
     /// Parses a structure literal.
     ///
     /// '
-    /// Data { a: 1, b: true, c: (10, 20) }
+    /// { a: 1, b: true, c: (10, 20) }
     /// '
     ///
     pub fn parse(
@@ -59,65 +57,24 @@ impl Parser {
     ) -> Result<(StructureExpression, Option<Token>), Error> {
         loop {
             match self.state {
-                State::Identifier => {
+                State::BracketCurlyLeft => {
                     match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
-                            lexeme: Lexeme::Identifier(identifier),
+                            lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             location,
                         } => {
                             self.builder.set_location(location);
-                            let identifier = Identifier::new(location, identifier.inner);
-                            self.builder.set_identifier(identifier);
-                            self.state = State::BracketCurlyLeftOrEnd;
-                        }
-                        Token {
-                            lexeme: Lexeme::Keyword(keyword @ Keyword::Crate),
-                            location,
-                        }
-                        | Token {
-                            lexeme: Lexeme::Keyword(keyword @ Keyword::Super),
-                            location,
-                        }
-                        | Token {
-                            lexeme: Lexeme::Keyword(keyword @ Keyword::SelfLowercase),
-                            location,
-                        }
-                        | Token {
-                            lexeme: Lexeme::Keyword(keyword @ Keyword::SelfUppercase),
-                            location,
-                        } => {
-                            self.builder.set_location(location);
-                            let identifier = Identifier::new(location, keyword.to_string());
-                            self.builder.set_identifier(identifier);
-                            self.state = State::BracketCurlyLeftOrEnd;
+
+                            self.state = State::IdentifierOrBracketCurlyRight
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::expected_identifier(
-                                location, lexeme, None,
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
+                                location,
+                                vec!["{"],
+                                lexeme,
+                                None,
                             )));
                         }
-                    }
-                }
-                State::BracketCurlyLeftOrEnd => {
-                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
-                        token
-                        @
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
-                            ..
-                        } => {
-                            match stream.borrow_mut().look_ahead(2)? {
-                                Token {
-                                    lexeme: Lexeme::Symbol(Symbol::Colon),
-                                    ..
-                                } => {}
-                                _ => return Ok((self.builder.finish(), Some(token))),
-                            }
-
-                            self.builder.set_is_structure();
-                            self.state = State::IdentifierOrBracketCurlyRight;
-                        }
-                        token => return Ok((self.builder.finish(), Some(token))),
                     }
                 }
                 State::IdentifierOrBracketCurlyRight => {
@@ -195,12 +152,10 @@ mod tests {
     use super::Error;
     use super::Parser;
     use crate::lexical::stream::TokenStream;
-    use crate::lexical::token::lexeme::keyword::Keyword;
     use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
     use crate::lexical::token::lexeme::symbol::Symbol;
     use crate::lexical::token::lexeme::Lexeme;
     use crate::lexical::token::location::Location;
-    use crate::lexical::token::Token;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::expression::structure::Expression as StructureExpression;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
@@ -210,104 +165,9 @@ mod tests {
     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 
     #[test]
-    fn ok_identifier() {
-        let input = r#"test"#;
-
-        let expected = Ok((
-            StructureExpression::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), "test".to_owned()),
-                false,
-                vec![],
-            ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 5))),
-        ));
-
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_keyword_crate() {
-        let input = r#"crate"#;
-
-        let expected = Ok((
-            StructureExpression::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), Keyword::Crate.to_string()),
-                false,
-                vec![],
-            ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
-        ));
-
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_keyword_super() {
-        let input = r#"super"#;
-
-        let expected = Ok((
-            StructureExpression::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), Keyword::Super.to_string()),
-                false,
-                vec![],
-            ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
-        ));
-
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_keyword_self_lowercase() {
-        let input = r#"self"#;
-
-        let expected = Ok((
-            StructureExpression::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), Keyword::SelfLowercase.to_string()),
-                false,
-                vec![],
-            ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 5))),
-        ));
-
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_keyword_self_uppercase() {
-        let input = r#"Self"#;
-
-        let expected = Ok((
-            StructureExpression::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), Keyword::SelfUppercase.to_string()),
-                false,
-                vec![],
-            ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 5))),
-        ));
-
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_struct_single() {
+    fn ok_single() {
         let input = r#"
-Test {
+{
     a: 1,
 }
 "#;
@@ -315,8 +175,6 @@ Test {
         let expected = Ok((
             StructureExpression::new(
                 Location::new(2, 1),
-                Identifier::new(Location::new(2, 1), "Test".to_owned()),
-                true,
                 vec![(
                     Identifier::new(Location::new(3, 5), "a".to_owned()),
                     ExpressionTree::new(
@@ -339,9 +197,9 @@ Test {
     }
 
     #[test]
-    fn ok_struct_multiple() {
+    fn ok_multiple() {
         let input = r#"
-Test {
+{
     a: 1,
     b: 2,
     c: 3,
@@ -351,8 +209,6 @@ Test {
         let expected = Ok((
             StructureExpression::new(
                 Location::new(2, 1),
-                Identifier::new(Location::new(2, 1), "Test".to_owned()),
-                true,
                 vec![
                     (
                         Identifier::new(Location::new(3, 5), "a".to_owned()),
@@ -402,10 +258,10 @@ Test {
 
     #[test]
     fn error_expected_identifier_or_bracket_curly_right() {
-        let input = r#"Data { ) : 42 }"#;
+        let input = r#"{ ) : 42 }"#;
 
         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_identifier(
-            Location::new(1, 8),
+            Location::new(1, 3),
             Lexeme::Symbol(Symbol::ParenthesisRight),
             Some(super::HINT_EXPECTED_IDENTIFIER),
         )));
@@ -417,10 +273,10 @@ Test {
 
     #[test]
     fn error_expected_value() {
-        let input = r#"Data { a: 42, b }"#;
+        let input = r#"{ a: 42, b }"#;
 
         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_value(
-            Location::new(1, 17),
+            Location::new(1, 12),
             Lexeme::Symbol(Symbol::BracketCurlyRight),
             Some(super::HINT_EXPECTED_VALUE),
         )));
@@ -432,10 +288,10 @@ Test {
 
     #[test]
     fn error_expected_comma_or_bracket_curly_right() {
-        let input = r#"Data { a: 42 )"#;
+        let input = r#"{ a: 42 )"#;
 
         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 14),
+            Location::new(1, 9),
             vec![",", "}"],
             Lexeme::Symbol(Symbol::ParenthesisRight),
             None,

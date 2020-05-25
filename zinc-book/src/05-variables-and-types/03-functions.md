@@ -28,7 +28,7 @@ assert!(result == 100, "the weird sum is incorrect");
 
 Constant functions are called at compile-time, thus they may only accept and
 return constant expressions. Such functions are useful when you need to use
-a lot of similar parameterized values, but you are not willing to repeat the
+a lot of similar parameterized values, and you are not willing to repeat the
 calculating code each time.
 
 ```rust,no_run,noplaypen

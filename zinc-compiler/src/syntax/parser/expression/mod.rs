@@ -16,6 +16,7 @@ pub mod mul_div_rem;
 pub mod or;
 pub mod path;
 pub mod range;
+pub mod structure;
 pub mod terminal;
 pub mod xor;
 

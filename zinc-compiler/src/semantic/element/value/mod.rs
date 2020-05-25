@@ -757,7 +757,7 @@ impl Value {
                 location.or_else(|| inner.location),
                 inner.types.to_owned(),
             )),
-            Type::Structure(inner) => Self::Structure(Structure::new(
+            Type::Structure(inner) => Self::Structure(Structure::new_with_type(
                 location.or_else(|| inner.location),
                 inner.to_owned(),
             )),

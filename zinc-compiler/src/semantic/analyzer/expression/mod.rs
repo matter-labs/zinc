@@ -475,6 +475,12 @@ impl Analyzer {
                     self.right_local(tree.right, operator, rule)?;
                     self.path()?;
                 }
+
+                ExpressionOperator::Structure => {
+                    self.left_local(tree.left, operator, rule)?;
+                    self.right_local(tree.right, operator, rule)?;
+                    self.structure()?;
+                }
             },
         }
 
@@ -916,6 +922,27 @@ impl Analyzer {
         )?;
 
         let result = Element::path(operand_1, operand_2).map_err(Error::Element)?;
+        self.evaluation_stack.push(StackElement::Evaluated(result));
+
+        Ok(())
+    }
+
+    ///
+    /// Analyzes the structure initialization operation.
+    ///
+    fn structure(&mut self) -> Result<(), Error> {
+        let (operand_2, _) = Self::evaluate(
+            self.scope_stack.top(),
+            self.evaluation_stack.pop(),
+            self.rule,
+        )?;
+        let (operand_1, _) = Self::evaluate(
+            self.scope_stack.top(),
+            self.evaluation_stack.pop(),
+            TranslationRule::Type,
+        )?;
+
+        let result = Element::structure(operand_1, operand_2).map_err(Error::Element)?;
         self.evaluation_stack.push(StackElement::Evaluated(result));
 
         Ok(())

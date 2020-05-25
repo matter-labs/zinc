@@ -221,7 +221,6 @@ fn main() -> u8 {
     .is_ok());
 }
 
-#[ignore]
 #[test]
 fn ok_module_structures_flat() {
     let one = r#"
@@ -344,7 +343,6 @@ fn main() -> Together {
     .is_ok());
 }
 
-#[ignore]
 #[test]
 fn ok_module_structures_vertical() {
     let one = r#"

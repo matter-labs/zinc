@@ -84,17 +84,16 @@ operand_access = operand_path, {
   | '.', integer | identifier
   | [ '!' ], '(', expression_list, ')'
 } ;
-operand_path = operand_terminal, { '::', operand_terminal } ;
+operand_path = operand_terminal, { '::', operand_terminal }, [ structure_expression ] ;
 operand_terminal =
     tuple_expression
   | block_expression
   | array_expression
   | conditional_expression
   | match_expression
-  | struct_expression
   | literal
   | identifier
-  | 'crate' | 'super' | 'self' | 'Self'
+  | alias
 ;
 
 expression_list = [ expression, { ',', expression } | ',' ] ;
@@ -116,9 +115,11 @@ tuple_expression =
   | '(', expression, ',', [ expression, { ',', expression } ], ')'
 ;
 
-struct_expression = identifier, '{', field_list, '}';
+structure_expression = '{', field_list, '}';
 
 (* Parts *)
+alias = 'crate' | 'super' | 'self' | 'Self'
+
 type =
     '(', ')'
   | 'bool'
@@ -133,7 +134,7 @@ type =
   | 'field'
   | '[', type, ';', expression, ']'
   | '(', type, { ',', type }, ')'
-  | identifier | 'crate' | 'super' | 'self' | 'Self', { '::', identifier | 'crate' | 'super' | 'self' | 'Self' }
+  | identifier | alias, { '::', identifier | alias }
 ;
 
 pattern_match =

@@ -89,7 +89,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Structure(
             StructureValueError::FieldInvalidType {
-                location: Location::new(8, 12),
+                location: Location::new(8, 9),
                 type_identifier: "Data".to_owned(),
                 field_name: "a".to_owned(),
                 expected: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),

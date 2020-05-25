@@ -18,6 +18,8 @@ use std::fmt;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::lexical::token::location::Location;
+use crate::semantic::element::constant::error::Error as ConstantError;
+use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::syntax::tree::identifier::Identifier;
@@ -1736,6 +1738,41 @@ impl Element {
         path.push_element(identifier);
 
         Ok(Self::Path(path))
+    }
+
+    pub fn structure(self, other: Self) -> Result<Self, Error> {
+        match self {
+            Element::Type(Type::Structure(r#type)) => match other {
+                Element::Value(Value::Structure(mut structure)) => {
+                    structure
+                        .validate(r#type)
+                        .map_err(ValueError::Structure)
+                        .map_err(Error::Value)?;
+
+                    Ok(Self::Value(Value::Structure(structure)))
+                }
+                Element::Constant(Constant::Structure(mut structure)) => {
+                    structure
+                        .validate(r#type)
+                        .map_err(ConstantError::Structure)
+                        .map_err(Error::Constant)?;
+
+                    Ok(Self::Constant(Constant::Structure(structure)))
+                }
+                element => Err(Error::OperatorStructureSecondOperandExpectedEvaluable {
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    found: element.to_string(),
+                }),
+            },
+            element => Err(Error::OperatorStructureFirstOperandExpectedType {
+                location: element
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                found: element.to_string(),
+            }),
+        }
     }
 
     pub fn location(&self) -> Option<Location> {

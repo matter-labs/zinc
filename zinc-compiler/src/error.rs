@@ -113,7 +113,8 @@ impl Error {
             ),
             Self::Lexical(LexicalError::UnexpectedEnd { location }) => {
                 Self::format_line( "unexpected end of input", location, None)
-            }Self::Syntax(SyntaxError::ExpectedOneOf {
+            }
+            Self::Syntax(SyntaxError::ExpectedOneOf {
                 location,
                 expected,
                 found,
@@ -214,7 +215,8 @@ impl Error {
                     location,
                     None,
                 )
-            }Self::Semantic(SemanticError::Element(ElementError::OperatorAssignmentFirstOperandExpectedPlace{ location, found })) => {
+            }
+            Self::Semantic(SemanticError::Element(ElementError::OperatorAssignmentFirstOperandExpectedPlace{ location, found })) => {
                 Self::format_line( format!(
                         "the assignment operator `=` expected a memory place as the first operand, found `{}`",
                         found,
@@ -1087,7 +1089,28 @@ impl Error {
                     location,
                     None,
                 )
-            }Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType { location, expected, found })))) |
+            }
+            Self::Semantic(SemanticError::Element(ElementError::OperatorStructureFirstOperandExpectedType{ location, found })) => {
+                Self::format_line( format!(
+                    "the path must point to a structure type, found `{}`",
+                    found,
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::OperatorStructureSecondOperandExpectedEvaluable { location, found })) => {
+                Self::format_line( format!(
+                    "the structure type expected a structure literal, found `{}`",
+                    found,
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType { location, expected, found })))) |
             Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Array(ArrayConstantError::PushingInvalidType { location, expected, found })))) => {
                 Self::format_line( format!(
                         "expected `{}`, found `{}`",
@@ -1143,7 +1166,8 @@ impl Error {
                     location,
                     Some("left slice range bound must be lesser or equal to the right one"),
                 )
-            }Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Tuple(TupleValueError::FieldDoesNotExist { location, type_identifier, field_index })))) |
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Tuple(TupleValueError::FieldDoesNotExist { location, type_identifier, field_index })))) |
             Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Tuple(TupleConstantError::FieldDoesNotExist { location, type_identifier, field_index })))) |
             Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::TupleFieldDoesNotExist { location, type_identifier, field_index }))) => {
                 Self::format_line( format!(
@@ -1154,7 +1178,8 @@ impl Error {
                     location,
                     None,
                 )
-            }Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Structure(StructureValueError::FieldDoesNotExist { location, type_identifier, field_name })))) |
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Structure(StructureValueError::FieldDoesNotExist { location, type_identifier, field_name })))) |
             Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Structure(StructureConstantError::FieldDoesNotExist { location, type_identifier, field_name })))) |
             Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::StructureFieldDoesNotExist { location, type_identifier, field_name }))) => {
                 Self::format_line( format!(
@@ -1509,16 +1534,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::NotStructure { location, found }))) => {
-                Self::format_line( format!(
-                        "expected structure type, found `{}`",
-                        found
-                    )
-                        .as_str(),
-                    location,
-                    None,
-                )
-            }Self::Semantic(SemanticError::Scope(ScopeError::ItemRedeclared { location, name, reference })) => {
+            Self::Semantic(SemanticError::Scope(ScopeError::ItemRedeclared { location, name, reference })) => {
                 Self::format_line_with_reference(format!(
                         "item `{}` already declared here",
                         name
@@ -1561,7 +1577,8 @@ impl Error {
                     location,
                     Some("consider removing circular references between the items"),
                 )
-            }Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::ArgumentCount { location, function, expected, found })))) => {
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::ArgumentCount { location, function, expected, found })))) => {
                 Self::format_line( format!(
                         "function `{}` expected {} arguments, found {}",
                         function, expected, found
@@ -1714,7 +1731,8 @@ impl Error {
                     location,
                     Some("consider giving the field a unique name"),
                 )
-            }Self::Semantic(SemanticError::Expression(ExpressionError::NonConstantElement { location, found })) => {
+            }
+            Self::Semantic(SemanticError::Expression(ExpressionError::NonConstantElement { location, found })) => {
                 Self::format_line( format!("attempt to use a non-constant value `{}` in a constant expression", found).as_str(),
                     location,
                     None,
@@ -1783,7 +1801,8 @@ impl Error {
                     Some(reference),
                     None,
                 )
-            }Self::Semantic(SemanticError::Statement(StatementError::For(ForStatementError::WhileExpectedBooleanCondition { location, found }))) => {
+            }
+            Self::Semantic(SemanticError::Statement(StatementError::For(ForStatementError::WhileExpectedBooleanCondition { location, found }))) => {
                 Self::format_line( format!("expected `bool`, found `{}`", found).as_str(),
                     location,
                     None,
@@ -1814,7 +1833,8 @@ impl Error {
                     location,
                     Some("only structures and enumerations can have an implementation"),
                 )
-            }Self::Semantic(SemanticError::EntryPointMissing) => {
+            }
+            Self::Semantic(SemanticError::EntryPointMissing) => {
                 Self::format_message(
                     "the project entry point is missing",
                     Some("create the `main` function or a contract definition in the entry point file"),
