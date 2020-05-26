@@ -819,9 +819,9 @@ impl Integer {
         } else {
             value >= &exponent
         } {
-            if bitlength == crate::BITLENGTH_MAX_INT {
-                exponent <<= crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
-                bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
+            if bitlength == crate::BITLENGTH_INTEGER_MAX {
+                exponent <<= crate::BITLENGTH_FIELD - crate::BITLENGTH_INTEGER_MAX;
+                bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_INTEGER_MAX;
             } else if bitlength == crate::BITLENGTH_FIELD {
                 return Err(Error::IntegerTooLarge {
                     location,

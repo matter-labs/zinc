@@ -21,7 +21,7 @@ where
             cs.namespace(|| "type check"),
             &condition,
             &old_value,
-            self.scalar_type,
+            self.r#type.to_owned(),
         )?;
 
         vm.push(Cell::Value(new_value))

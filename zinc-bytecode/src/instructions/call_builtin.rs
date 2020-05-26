@@ -1,8 +1,11 @@
-use crate::builtins::BuiltinIdentifier;
-use crate::{Instruction, InstructionInfo};
-use serde_derive::{Deserialize, Serialize};
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+use crate::builtin::BuiltinIdentifier;
+use crate::Instruction;
+use crate::InstructionInfo;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CallBuiltin {
     pub identifier: BuiltinIdentifier,
     pub inputs_count: usize,
@@ -27,7 +30,7 @@ impl InstructionInfo for CallBuiltin {
         )
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::CallBuiltin((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::CallBuiltin(self)
     }
 }

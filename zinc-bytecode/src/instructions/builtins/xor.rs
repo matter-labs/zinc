@@ -1,7 +1,7 @@
 use crate::{Instruction, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Xor;
 
 impl InstructionInfo for Xor {
@@ -9,7 +9,7 @@ impl InstructionInfo for Xor {
         "xor".into()
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Xor((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Xor(self)
     }
 }

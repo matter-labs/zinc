@@ -1,5 +1,5 @@
 use crate::core::EvaluationStack;
-use crate::gadgets::{Scalar, ScalarType};
+use crate::gadgets::Scalar;
 use crate::stdlib::NativeFunction;
 use crate::{Engine, Result};
 
@@ -7,6 +7,7 @@ use bellman::ConstraintSystem;
 use ff::PrimeField;
 
 use franklin_crypto::circuit::num::AllocatedNum;
+use zinc_bytecode::ScalarType;
 
 pub struct FieldFromBits;
 

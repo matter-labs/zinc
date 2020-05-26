@@ -34,7 +34,7 @@ impl Builder {
                 panic!(
                     "{}{}",
                     crate::panic::BUILDER_REQUIRES_VALUE,
-                    "branch expression"
+                    "branch pattern"
                 )
             })
             .1 = Some(value);

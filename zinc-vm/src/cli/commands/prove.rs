@@ -4,8 +4,8 @@ use pairing::bn256::Bn256;
 use std::fs;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use zinc_bytecode::data::values::Value;
-use zinc_bytecode::program::Program;
+use zinc_bytecode::Program;
+use zinc_bytecode::TemplateValue;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "prove", about = "Executes circuit and prints program's output")]
@@ -40,7 +40,7 @@ impl ProveCommand {
         let witness_json = fs::read_to_string(&self.witness_path)
             .error_with_path(|| self.witness_path.to_string_lossy())?;
         let witness_value = serde_json::from_str(&witness_json)?;
-        let witness_struct = Value::from_typed_json(&witness_value, &program.input)?;
+        let witness_struct = TemplateValue::from_typed_json(&witness_value, &program.input)?;
 
         let (pubdata, proof) = zinc_vm::prove::<Bn256>(&program, &params, &witness_struct)?;
 

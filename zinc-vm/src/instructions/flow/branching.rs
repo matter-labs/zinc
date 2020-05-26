@@ -40,7 +40,8 @@ where
 mod tests {
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use std::cmp;
-    use zinc_bytecode::scalar::{IntegerType, ScalarType};
+    use zinc_bytecode::IntegerType;
+    use zinc_bytecode::ScalarType;
     use zinc_bytecode::*;
 
     #[test]
@@ -58,18 +59,18 @@ mod tests {
         for (a, b) in data.iter() {
             VMTestRunner::new()
                 .add(PushConst::new((*a).into(), IntegerType::I8.into()))
-                .add(Store::new(0))
+                .add(Store::new(0, 1))
                 .add(PushConst::new((*b).into(), IntegerType::I8.into()))
-                .add(Store::new(1))
-                .add(Load::new(1))
-                .add(Load::new(0))
+                .add(Store::new(1, 1))
+                .add(Load::new(1, 1))
+                .add(Load::new(0, 1))
                 .add(Gt)
                 .add(If)
-                .add(Load::new(0))
-                .add(Load::new(1))
+                .add(Load::new(0, 1))
+                .add(Load::new(1, 1))
                 .add(Else)
-                .add(Load::new(1))
-                .add(Load::new(0))
+                .add(Load::new(1, 1))
+                .add(Load::new(0, 1))
                 .add(EndIf)
                 .test(&[cmp::max(*a, *b), cmp::min(*a, *b)])?;
         }
@@ -93,20 +94,20 @@ mod tests {
         for (c, r) in data.iter() {
             VMTestRunner::new()
                 .add(PushConst::new(0.into(), IntegerType::I8.into()))
-                .add(Store::new(0))
+                .add(Store::new(0, 1))
                 .add(PushConst::new((*c).into(), ScalarType::Boolean))
                 .add(If)
                 .add(PushConst::new(1.into(), IntegerType::I8.into()))
-                .add(Load::new(0))
+                .add(Load::new(0, 1))
                 .add(Add)
-                .add(Store::new(0))
+                .add(Store::new(0, 1))
                 .add(Else)
-                .add(Load::new(0))
+                .add(Load::new(0, 1))
                 .add(PushConst::new(1.into(), IntegerType::I8.into()))
                 .add(Sub)
-                .add(Store::new(0))
+                .add(Store::new(0, 1))
                 .add(EndIf)
-                .add(Load::new(0))
+                .add(Load::new(0, 1))
                 .test(&[*r])?;
         }
         Ok(())

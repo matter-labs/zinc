@@ -5,8 +5,8 @@ use crate::core::{InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::stdlib::crypto::VerifySchnorrSignature;
 use crate::{stdlib, Engine};
-use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::instructions::CallBuiltin;
+use zinc_bytecode::BuiltinIdentifier;
 
 impl<E, CS> VMInstruction<E, CS> for CallBuiltin
 where

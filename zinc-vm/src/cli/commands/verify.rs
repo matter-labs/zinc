@@ -6,8 +6,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::exit;
 use structopt::StructOpt;
-use zinc_bytecode::data::values::Value;
 use zinc_bytecode::Program;
+use zinc_bytecode::TemplateValue;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "verify", about = "Verifies the proof using verifying key")]
@@ -57,7 +57,7 @@ impl VerifyCommand {
         let output_text = fs::read_to_string(&self.public_data_path)
             .error_with_path(|| self.public_data_path.to_string_lossy())?;
         let output_value = serde_json::from_str(output_text.as_str())?;
-        let output_struct = Value::from_typed_json(&output_value, &program.output)?;
+        let output_struct = TemplateValue::from_typed_json(&output_value, &program.output)?;
 
         // Verify
         let verified = zinc_vm::verify(&key, &proof, &output_struct)?;

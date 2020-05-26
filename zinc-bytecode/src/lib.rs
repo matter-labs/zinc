@@ -1,21 +1,26 @@
-pub mod scalar;
-
-pub mod builtins;
-pub mod data;
+mod builtin;
+mod data;
 pub mod instructions;
-pub mod program;
-pub mod vlq;
+mod program;
 
+pub use self::builtin::BuiltinIdentifier;
+pub use self::data::r#type::scalar::integer::Type as IntegerType;
+pub use self::data::r#type::scalar::Type as ScalarType;
+pub use self::data::r#type::Type as DataType;
+pub use self::data::value::JsonValueError as TemplateValueError;
+pub use self::data::value::Value as TemplateValue;
+pub use self::program::Program;
 pub use instructions::*;
-pub use program::*;
 
-use crate::instructions::FileMarker;
-use serde_derive::{Deserialize, Serialize};
 use std::fmt;
+
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
 pub trait InstructionInfo: PartialEq + fmt::Debug + Sized {
     fn to_assembly(&self) -> String;
-    fn wrap(&self) -> Instruction;
+
+    fn wrap(self) -> Instruction;
 }
 
 #[derive(Debug, PartialEq)]
@@ -32,29 +37,14 @@ pub enum Instruction {
 
     // Stack
     PushConst(PushConst),
-    Pop(Pop),
     Slice(Slice),
-    Swap(Swap),
-    Tee(Tee),
+    Copy(Copy),
 
     // Storage
     Load(Load),
-    LoadSequence(LoadSequence),
     LoadByIndex(LoadByIndex),
-    LoadSequenceByIndex(LoadSequenceByIndex),
-
     Store(Store),
-    StoreSequence(StoreSequence),
     StoreByIndex(StoreByIndex),
-    StoreSequenceByIndex(StoreSequenceByIndex),
-
-    LoadGlobal(LoadGlobal),
-    LoadSequenceGlobal(LoadSequenceGlobal),
-    LoadByIndexGlobal(LoadByIndexGlobal),
-    LoadSequenceByIndexGlobal(LoadSequenceByIndexGlobal),
-
-    StoreGlobal(StoreGlobal),
-    StoreSequenceGlobal(StoreSequenceGlobal),
 
     // Contract Storage
     StorageStore(StorageStore),
@@ -131,28 +121,13 @@ macro_rules! dispatch_instruction {
             Instruction::NoOperation($pattern) => $expression,
 
             Instruction::PushConst($pattern) => $expression,
-            Instruction::Pop($pattern) => $expression,
             Instruction::Slice($pattern) => $expression,
-            Instruction::Swap($pattern) => $expression,
-            Instruction::Tee($pattern) => $expression,
+            Instruction::Copy($pattern) => $expression,
 
             Instruction::Load($pattern) => $expression,
-            Instruction::LoadSequence($pattern) => $expression,
             Instruction::LoadByIndex($pattern) => $expression,
-            Instruction::LoadSequenceByIndex($pattern) => $expression,
-
             Instruction::Store($pattern) => $expression,
-            Instruction::StoreSequence($pattern) => $expression,
             Instruction::StoreByIndex($pattern) => $expression,
-            Instruction::StoreSequenceByIndex($pattern) => $expression,
-
-            Instruction::LoadGlobal($pattern) => $expression,
-            Instruction::LoadSequenceGlobal($pattern) => $expression,
-            Instruction::LoadByIndexGlobal($pattern) => $expression,
-            Instruction::LoadSequenceByIndexGlobal($pattern) => $expression,
-
-            Instruction::StoreGlobal($pattern) => $expression,
-            Instruction::StoreSequenceGlobal($pattern) => $expression,
 
             Instruction::StorageStore($pattern) => $expression,
             Instruction::StorageLoad($pattern) => $expression,

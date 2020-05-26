@@ -17,7 +17,7 @@ impl InstructionInfo for LineMarker {
         format!("marker: line = \"{}\"", self.line)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::LineMarker((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::LineMarker(self)
     }
 }

@@ -46,7 +46,7 @@ impl Builder {
         let main_block = self
             .main_block
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "main_block"));
+            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "main block"));
 
         let else_block = self.else_block.take();
 

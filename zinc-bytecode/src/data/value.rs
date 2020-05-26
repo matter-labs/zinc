@@ -1,33 +1,17 @@
-use num_bigint::BigInt;
-use num_traits::Num;
-use serde_derive::{Deserialize, Serialize};
-use serde_json as json;
-
-use crate::data::types::{DataType, IntegerType, ScalarType};
-use failure::Fail;
 use std::collections::HashSet;
 use std::fmt;
 
-#[allow(dead_code)]
-fn serialize_bigint_into_string<S>(bigint: &BigInt, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    let s = bigint.to_string();
-    serializer.serialize_str(&s)
-}
+use failure::Fail;
+use num_bigint::BigInt;
+use num_traits::Num;
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+use serde_json::Map as JsonMap;
+use serde_json::Value as JsonValue;
 
-#[allow(dead_code)]
-fn deserialize_bigint_from_string<'de, D>(deserializer: D) -> Result<BigInt, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    use serde::de::{Deserialize, Error};
-
-    let str = String::deserialize(deserializer)?;
-    BigInt::from_str_radix(&str, 10)
-        .map_err(|_| D::Error::invalid_value(serde::de::Unexpected::Str(&str), &"a decimal number"))
-}
+use crate::data::r#type::scalar::integer::Type as IntegerType;
+use crate::data::r#type::scalar::Type as ScalarType;
+use crate::data::r#type::Type as DataType;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StructField {
@@ -37,15 +21,14 @@ pub struct StructField {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ScalarValue {
-    Field(BigInt),
     Bool(bool),
     Integer(BigInt, IntegerType),
+    Field(BigInt),
 }
 
 impl ScalarValue {
     pub fn to_bigint(&self) -> BigInt {
         match self {
-            ScalarValue::Field(value) | ScalarValue::Integer(value, _) => value.clone(),
             ScalarValue::Bool(value) => {
                 if *value {
                     BigInt::from(1)
@@ -53,6 +36,7 @@ impl ScalarValue {
                     BigInt::from(0)
                 }
             }
+            ScalarValue::Field(value) | ScalarValue::Integer(value, _) => value.clone(),
         }
     }
 }
@@ -70,14 +54,18 @@ impl Value {
     pub fn default_from_type(data_type: &DataType) -> Self {
         match data_type {
             DataType::Unit => Value::Unit,
-            DataType::Enum => Value::Scalar(ScalarValue::Field(0.into())),
             DataType::Scalar(scalar_type) => match scalar_type {
-                ScalarType::Field => Value::Scalar(ScalarValue::Field(0.into())),
                 ScalarType::Boolean => Value::Scalar(ScalarValue::Bool(false)),
                 ScalarType::Integer(int_type) => {
-                    Value::Scalar(ScalarValue::Integer(0.into(), *int_type))
+                    Value::Scalar(ScalarValue::Integer(0.into(), int_type.to_owned()))
                 }
+                ScalarType::Field => Value::Scalar(ScalarValue::Field(0.into())),
             },
+            DataType::Enum => Value::Scalar(ScalarValue::Field(0.into())),
+
+            DataType::Array(data_type, len) => {
+                Value::Array(vec![Value::default_from_type(data_type); *len])
+            }
             DataType::Struct(fields) => Value::Struct(
                 fields
                     .iter()
@@ -87,12 +75,12 @@ impl Value {
                     })
                     .collect(),
             ),
-            DataType::Array(data_type, len) => {
-                Value::Array(vec![Value::default_from_type(data_type); *len])
-            }
-            DataType::Tuple(fields) => {
-                Value::Array(fields.iter().map(|t| Value::default_from_type(t)).collect())
-            }
+            DataType::Tuple(fields) => Value::Array(
+                fields
+                    .iter()
+                    .map(|r#type| Value::default_from_type(r#type))
+                    .collect(),
+            ),
         }
     }
 
@@ -167,49 +155,53 @@ impl Value {
 
 // Pretty json de/serialization
 impl Value {
-    pub fn to_json(&self) -> json::Value {
+    pub fn to_json(&self) -> JsonValue {
         match self {
-            Value::Unit => json::Value::String("unit".into()),
+            Value::Unit => JsonValue::String("unit".into()),
             Value::Scalar(scalar) => match scalar {
                 ScalarValue::Field(value) => {
                     if value <= &BigInt::from(std::u64::MAX) {
-                        json::Value::String(value.to_str_radix(10))
+                        JsonValue::String(value.to_str_radix(10))
                     } else {
-                        json::Value::String(String::from("0x") + value.to_str_radix(16).as_str())
+                        JsonValue::String(String::from("0x") + value.to_str_radix(16).as_str())
                     }
                 }
                 ScalarValue::Integer(value, int_type) => {
                     if value <= &BigInt::from(std::u64::MAX) || int_type.is_signed {
-                        json::Value::String(value.to_str_radix(10))
+                        JsonValue::String(value.to_str_radix(10))
                     } else {
-                        json::Value::String(String::from("0x") + value.to_str_radix(16).as_str())
+                        JsonValue::String(String::from("0x") + value.to_str_radix(16).as_str())
                     }
                 }
-                ScalarValue::Bool(value) => json::Value::Bool(*value),
+                ScalarValue::Bool(value) => JsonValue::Bool(*value),
             },
+            Value::Array(values) => JsonValue::Array(values.iter().map(Self::to_json).collect()),
             Value::Struct(fields) => {
-                let mut object = json::Map::<String, serde_json::Value>::new();
+                let mut object = JsonMap::<String, JsonValue>::new();
                 for field in fields.iter() {
                     object.insert(field.field.clone(), field.value.to_json());
                 }
-                json::Value::Object(object)
+                JsonValue::Object(object)
             }
-            Value::Array(values) => json::Value::Array(values.iter().map(Self::to_json).collect()),
         }
     }
 
-    pub fn from_typed_json(value: &json::Value, dtype: &DataType) -> Result<Self, JsonValueError> {
-        match dtype {
+    pub fn from_typed_json(
+        value: &JsonValue,
+        data_type: &DataType,
+    ) -> Result<Self, JsonValueError> {
+        match data_type {
             DataType::Unit => Self::unit_from_json(value),
-            DataType::Scalar(t) => Self::scalar_from_json(value, t),
+            DataType::Scalar(inner) => Self::scalar_from_json(value, inner),
             DataType::Enum => Self::field_from_json(value),
+
+            DataType::Array(inner, size) => Self::array_from_json(value, inner, *size),
+            DataType::Tuple(inner) => Self::tuple_from_json(value, inner),
             DataType::Struct(fields) => Self::struct_from_json(value, fields),
-            DataType::Tuple(dtype) => Self::tuple_from_json(value, dtype),
-            DataType::Array(dtype, size) => Self::array_from_json(value, dtype, *size),
         }
     }
 
-    fn unit_from_json(value: &json::Value) -> Result<Self, JsonValueError> {
+    fn unit_from_json(value: &JsonValue) -> Result<Self, JsonValueError> {
         if let Some(s) = value.as_str() {
             if s == "unit" {
                 return Ok(Value::Unit);
@@ -223,17 +215,17 @@ impl Value {
     }
 
     fn scalar_from_json(
-        value: &json::Value,
+        value: &JsonValue,
         scalar_type: &ScalarType,
     ) -> Result<Self, JsonValueError> {
         match scalar_type {
-            ScalarType::Field => Self::field_from_json(value),
             ScalarType::Boolean => Self::boolean_from_json(value),
-            ScalarType::Integer(itype) => Self::integer_from_json(value, itype),
+            ScalarType::Integer(inner) => Self::integer_from_json(value, inner),
+            ScalarType::Field => Self::field_from_json(value),
         }
     }
 
-    fn field_from_json(value: &json::Value) -> Result<Self, JsonValueError> {
+    fn field_from_json(value: &JsonValue) -> Result<Self, JsonValueError> {
         let value_string = value
             .as_str()
             .ok_or_else(|| JsonValueErrorType::TypeError {
@@ -250,12 +242,12 @@ impl Value {
         let bigint = bigint_result
             .map_err(|_| JsonValueErrorType::InvalidNumberFormat(value_string.into()))?;
 
-        // TODO: overflow check.
+        // TODO: overflow check
 
         Ok(Value::Scalar(ScalarValue::Field(bigint)))
     }
 
-    fn boolean_from_json(value: &json::Value) -> Result<Self, JsonValueError> {
+    fn boolean_from_json(value: &JsonValue) -> Result<Self, JsonValueError> {
         let value_bool = value
             .as_bool()
             .ok_or_else(|| JsonValueErrorType::TypeError {
@@ -266,16 +258,14 @@ impl Value {
         Ok(Value::Scalar(ScalarValue::Bool(value_bool)))
     }
 
-    fn integer_from_json(
-        value: &json::Value,
-        _itype: &IntegerType,
-    ) -> Result<Self, JsonValueError> {
-        // TODO: overflow check.
+    fn integer_from_json(value: &JsonValue, _type: &IntegerType) -> Result<Self, JsonValueError> {
+        // TODO: overflow check
+
         Self::field_from_json(value)
     }
 
     fn struct_from_json(
-        value: &json::Value,
+        value: &JsonValue,
         field_types: &[(String, DataType)],
     ) -> Result<Self, JsonValueError> {
         let object = value
@@ -308,7 +298,7 @@ impl Value {
         Ok(Value::Struct(field_values))
     }
 
-    fn tuple_from_json(value: &json::Value, types: &[DataType]) -> Result<Self, JsonValueError> {
+    fn tuple_from_json(value: &JsonValue, types: &[DataType]) -> Result<Self, JsonValueError> {
         let array = value
             .as_array()
             .ok_or_else(|| JsonValueErrorType::type_error("tuple (json array)", value))?;
@@ -331,7 +321,7 @@ impl Value {
     }
 
     fn array_from_json(
-        value: &json::Value,
+        value: &JsonValue,
         dtype: &DataType,
         size: usize,
     ) -> Result<Self, JsonValueError> {
@@ -436,14 +426,14 @@ pub enum JsonValueErrorType {
 }
 
 impl JsonValueErrorType {
-    fn type_error(expected: &str, actual: &json::Value) -> Self {
+    fn type_error(expected: &str, actual: &JsonValue) -> Self {
         let actual_string: String = match actual {
-            json::Value::Null => "null".into(),
-            json::Value::Bool(value) => format!("boolean ({})", value),
-            json::Value::Number(value) => format!("number ({})", value),
-            json::Value::String(value) => format!("string (\"{}\")", value),
-            json::Value::Array(_) => "array".into(),
-            json::Value::Object(_) => "structure".into(),
+            JsonValue::Null => "null".into(),
+            JsonValue::Bool(value) => format!("boolean ({})", value),
+            JsonValue::Number(value) => format!("number ({})", value),
+            JsonValue::String(value) => format!("string (\"{}\")", value),
+            JsonValue::Array(_) => "array".into(),
+            JsonValue::Object(_) => "structure".into(),
         };
 
         JsonValueErrorType::TypeError {

@@ -16,18 +16,12 @@ pub struct Arguments {
     )]
     pub verbosity: usize,
     #[structopt(
-        short = "d",
         long = "data",
         parse(from_os_str),
         help = "The witness and public data directory path"
     )]
     pub data_path: PathBuf,
-    #[structopt(
-        short = "o",
-        long = "build",
-        parse(from_os_str),
-        help = "The build directory path"
-    )]
+    #[structopt(long = "build", parse(from_os_str), help = "The build directory path")]
     pub build_path: PathBuf,
     #[structopt(parse(from_os_str), help = "The source file or `src` directory path")]
     pub source_path: PathBuf,

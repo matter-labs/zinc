@@ -69,7 +69,7 @@ impl Builder {
                 Keyword::IntegerUnsigned { bitlength } => TypeVariant::integer_unsigned(bitlength),
                 Keyword::IntegerSigned { bitlength } => TypeVariant::integer_signed(bitlength),
                 Keyword::Field => TypeVariant::field(),
-                keyword => panic!("{}{}", BUILDER_TYPE_INVALID_KEYWORD, keyword),
+                keyword => panic!("{}{}", self::BUILDER_TYPE_INVALID_KEYWORD, keyword),
             }
         } else if let Some(array_type) = self.array_type.take() {
             TypeVariant::array(
@@ -83,7 +83,7 @@ impl Builder {
         } else if self.is_unit {
             TypeVariant::unit()
         } else {
-            panic!(VALIDATED_BY_THE_TYPE_PARSER);
+            panic!(self::VALIDATED_BY_THE_TYPE_PARSER);
         };
 
         Type::new(location, variant)

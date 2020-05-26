@@ -1,35 +1,27 @@
-use crate::scalar::{IntegerType, ScalarType};
-use crate::{Instruction, InstructionInfo};
-use serde_derive::{Deserialize, Serialize};
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+
+use crate::data::r#type::scalar::Type as ScalarType;
+use crate::Instruction;
+use crate::InstructionInfo;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Cast {
-    pub scalar_type: ScalarType,
+    pub r#type: ScalarType,
 }
 
 impl Cast {
-    pub fn new(scalar_type: ScalarType) -> Self {
-        Self { scalar_type }
-    }
-
-    #[deprecated(note = "this is temporary fix")]
-    pub fn new_integer(signed: bool, length: usize) -> Self {
-        Self::new(
-            IntegerType {
-                is_signed: signed,
-                bitlength: length,
-            }
-            .into(),
-        )
+    pub fn new(r#type: ScalarType) -> Self {
+        Self { r#type }
     }
 }
 
 impl InstructionInfo for Cast {
     fn to_assembly(&self) -> String {
-        format!("cast {}", self.scalar_type)
+        format!("cast {}", self.r#type)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Cast((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Cast(self)
     }
 }

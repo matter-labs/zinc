@@ -1,7 +1,7 @@
 use crate::{Instruction, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Le;
 
 impl InstructionInfo for Le {
@@ -9,7 +9,7 @@ impl InstructionInfo for Le {
         "le".into()
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Le((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Le(self)
     }
 }

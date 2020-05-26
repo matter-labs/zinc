@@ -38,10 +38,7 @@ fn main_inner() -> Result<(), Error> {
 
     zinc_utils::logger::init_logger(BINARY_NAME, args.verbosity);
 
-    let bytecode = Source::try_from_path(&args.source_path, true)
-        .map_err(Error::Source)?
-        .compile()
-        .map_err(Error::Source)?;
+    let bytecode = Source::try_from_path(&args.source_path, true)?.compile()?;
     let compiled_entries = Bytecode::unwrap_rc(bytecode).into_entries();
 
     for (entry_name, entry_data) in compiled_entries.into_iter() {

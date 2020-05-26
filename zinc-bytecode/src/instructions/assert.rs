@@ -1,7 +1,10 @@
-use crate::{Instruction, InstructionInfo};
-use serde_derive::{Deserialize, Serialize};
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
-#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
+use crate::Instruction;
+use crate::InstructionInfo;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Assert {
     pub message: Option<String>,
 }
@@ -20,7 +23,7 @@ impl InstructionInfo for Assert {
         }
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Assert((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Assert(self)
     }
 }

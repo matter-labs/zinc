@@ -1,6 +1,6 @@
 use failure::Fail;
 use std::io;
-use zinc_bytecode::data::values::JsonValueError;
+use zinc_bytecode::TemplateValueError;
 use zinc_vm::{RuntimeError, VerificationError};
 
 use hex::FromHexError;
@@ -23,7 +23,7 @@ pub enum Error {
         display = "invalid json structure: {}\nNote: remove the file ./data/witness.json so the compiler may recreate it",
         _0
     )]
-    JsonValue(JsonValueError),
+    JsonValue(TemplateValueError),
 
     #[fail(display = "failed to decode program: {}", _0)]
     ProgramDecoding(String),
@@ -53,8 +53,8 @@ impl From<serde_json::Error> for Error {
     }
 }
 
-impl From<JsonValueError> for Error {
-    fn from(error: JsonValueError) -> Self {
+impl From<TemplateValueError> for Error {
+    fn from(error: TemplateValueError) -> Self {
         Error::JsonValue(error)
     }
 }

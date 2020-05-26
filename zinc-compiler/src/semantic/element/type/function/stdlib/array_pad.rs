@@ -5,7 +5,7 @@
 use std::fmt;
 use std::ops::Deref;
 
-use zinc_bytecode::builtins::BuiltinIdentifier;
+use zinc_bytecode::BuiltinIdentifier;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::Constant;

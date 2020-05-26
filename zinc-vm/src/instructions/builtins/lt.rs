@@ -29,7 +29,8 @@ mod test {
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use ff::Field;
     use pairing::bn256::Fr;
-    use zinc_bytecode::scalar::{IntegerType, ScalarType};
+    use zinc_bytecode::IntegerType;
+    use zinc_bytecode::ScalarType;
     use zinc_bytecode::*;
 
     #[test]

@@ -1,10 +1,11 @@
 use crate::auto_const;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::conditional_select::conditional_select;
-use crate::gadgets::{utils, Scalar, ScalarType};
+use crate::gadgets::{utils, Scalar};
 use crate::{gadgets, Engine, Result, RuntimeError};
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::Assignment;
+use zinc_bytecode::ScalarType;
 use zinc_utils::euclidean;
 
 pub fn div_rem_conditional<E, CS>(

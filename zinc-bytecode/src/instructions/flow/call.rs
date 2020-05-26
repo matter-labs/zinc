@@ -22,7 +22,7 @@ impl InstructionInfo for Call {
         format!("call {} {}", self.address, self.inputs_count)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Call((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Call(self)
     }
 }

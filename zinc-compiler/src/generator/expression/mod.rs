@@ -11,15 +11,17 @@ use std::rc::Rc;
 
 use num_bigint::BigInt;
 
-use zinc_bytecode::builtins::BuiltinIdentifier;
-use zinc_bytecode::data::types::DataType;
-use zinc_bytecode::data::types::ScalarType;
+use zinc_bytecode::BuiltinIdentifier;
+use zinc_bytecode::DataType;
 use zinc_bytecode::Instruction;
+use zinc_bytecode::ScalarType;
 
 use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::operand::place::Place;
 use crate::lexical::token::location::Location;
+use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
+use crate::semantic::element::place::element::Element as SemanticPlaceElement;
 use crate::semantic::element::place::memory_type::MemoryType;
 
 use self::element::Element;
@@ -402,15 +404,13 @@ impl Expression {
 
                 bytecode.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::StoreSequenceByIndex(zinc_bytecode::StoreSequenceByIndex::new(
+                        Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(
                             address,
                             total_size,
                             element_size,
                         ))
                     } else {
-                        Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
-                            address, total_size,
-                        ))
+                        Instruction::Store(zinc_bytecode::Store::new(address, total_size))
                     },
                     Some(location),
                 );
@@ -420,14 +420,34 @@ impl Expression {
                 let total_size = place.total_size;
                 let address = bytecode.borrow_mut().define_variable(None, total_size);
 
-                let storage_index = place.load_storage(bytecode.clone());
+                let storage_index = if let Some(SemanticPlaceElement::ContractField {
+                    access:
+                        ContractFieldAccess {
+                            position,
+                            element_size,
+                        },
+                }) = place.elements.first()
+                {
+                    let position = *position;
+
+                    IntegerConstant::new(BigInt::from(position), false, crate::BITLENGTH_FIELD)
+                        .write_all_to_bytecode(bytecode.clone());
+                    bytecode.borrow_mut().push_instruction(
+                        Instruction::StorageLoad(zinc_bytecode::StorageLoad::new(*element_size)),
+                        Some(place.identifier.location),
+                    );
+
+                    place.elements.remove(0);
+
+                    position
+                } else {
+                    panic!(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+                };
 
                 let is_indexed = !place.elements.is_empty();
 
                 bytecode.borrow_mut().push_instruction(
-                    Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
-                        address, total_size,
-                    )),
+                    Instruction::Store(zinc_bytecode::Store::new(address, total_size)),
                     Some(location),
                 );
 
@@ -439,23 +459,19 @@ impl Expression {
 
                 bytecode.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::StoreSequenceByIndex(zinc_bytecode::StoreSequenceByIndex::new(
+                        Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(
                             address,
                             total_size,
                             element_size,
                         ))
                     } else {
-                        Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
-                            address, total_size,
-                        ))
+                        Instruction::Store(zinc_bytecode::Store::new(address, total_size))
                     },
                     Some(location),
                 );
 
                 bytecode.borrow_mut().push_instruction(
-                    Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(
-                        address, total_size,
-                    )),
+                    Instruction::Load(zinc_bytecode::Load::new(address, total_size)),
                     Some(location),
                 );
 
@@ -490,20 +506,18 @@ impl Expression {
                     place.write_all_to_bytecode(bytecode.clone());
                     bytecode
                         .borrow_mut()
-                        .push_instruction(Instruction::Tee(zinc_bytecode::Tee), Some(location));
+                        .push_instruction(Instruction::Copy(zinc_bytecode::Copy), Some(location));
                 }
 
                 bytecode.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::LoadSequenceByIndex(zinc_bytecode::LoadSequenceByIndex::new(
+                        Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
                             address,
                             total_size,
                             element_size,
                         ))
                     } else {
-                        Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(
-                            address, total_size,
-                        ))
+                        Instruction::Load(zinc_bytecode::Load::new(address, total_size))
                     },
                     Some(location),
                 );
@@ -516,15 +530,13 @@ impl Expression {
 
                 bytecode.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::StoreSequenceByIndex(zinc_bytecode::StoreSequenceByIndex::new(
+                        Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(
                             address,
                             total_size,
                             element_size,
                         ))
                     } else {
-                        Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
-                            address, total_size,
-                        ))
+                        Instruction::Store(zinc_bytecode::Store::new(address, total_size))
                     },
                     Some(location),
                 );
@@ -534,14 +546,34 @@ impl Expression {
                 let total_size = place.total_size;
                 let address = bytecode.borrow_mut().define_variable(None, total_size);
 
-                let storage_index = place.load_storage(bytecode.clone());
+                let storage_index = if let Some(SemanticPlaceElement::ContractField {
+                    access:
+                        ContractFieldAccess {
+                            position,
+                            element_size,
+                        },
+                }) = place.elements.first()
+                {
+                    let position = *position;
+
+                    IntegerConstant::new(BigInt::from(position), false, crate::BITLENGTH_FIELD)
+                        .write_all_to_bytecode(bytecode.clone());
+                    bytecode.borrow_mut().push_instruction(
+                        Instruction::StorageLoad(zinc_bytecode::StorageLoad::new(*element_size)),
+                        Some(place.identifier.location),
+                    );
+
+                    place.elements.remove(0);
+
+                    position
+                } else {
+                    panic!(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+                };
 
                 let is_indexed = !place.elements.is_empty();
 
                 bytecode.borrow_mut().push_instruction(
-                    Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
-                        address, total_size,
-                    )),
+                    Instruction::Store(zinc_bytecode::Store::new(address, total_size)),
                     Some(location),
                 );
 
@@ -549,20 +581,18 @@ impl Expression {
                     place.write_all_to_bytecode(bytecode.clone());
                     bytecode
                         .borrow_mut()
-                        .push_instruction(Instruction::Tee(zinc_bytecode::Tee), Some(location));
+                        .push_instruction(Instruction::Copy(zinc_bytecode::Copy), Some(location));
                 }
 
                 bytecode.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::LoadSequenceByIndex(zinc_bytecode::LoadSequenceByIndex::new(
+                        Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
                             address,
                             total_size,
                             element_size,
                         ))
                     } else {
-                        Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(
-                            address, total_size,
-                        ))
+                        Instruction::Load(zinc_bytecode::Load::new(address, total_size))
                     },
                     Some(location),
                 );
@@ -575,23 +605,19 @@ impl Expression {
 
                 bytecode.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::StoreSequenceByIndex(zinc_bytecode::StoreSequenceByIndex::new(
+                        Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(
                             address,
                             total_size,
                             element_size,
                         ))
                     } else {
-                        Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
-                            address, total_size,
-                        ))
+                        Instruction::Store(zinc_bytecode::Store::new(address, total_size))
                     },
                     Some(location),
                 );
 
                 bytecode.borrow_mut().push_instruction(
-                    Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(
-                        address, total_size,
-                    )),
+                    Instruction::Load(zinc_bytecode::Load::new(address, total_size)),
                     Some(location),
                 );
 

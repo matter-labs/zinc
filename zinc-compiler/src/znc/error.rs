@@ -13,6 +13,12 @@ pub enum Error {
     BytecodeOutput(OutputError),
 }
 
+impl From<SourceError> for Error {
+    fn from(inner: SourceError) -> Self {
+        Self::Source(inner)
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {

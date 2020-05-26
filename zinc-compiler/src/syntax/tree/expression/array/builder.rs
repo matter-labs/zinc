@@ -36,7 +36,11 @@ impl Builder {
             Some(size_expression) => ArrayExpression::new_repeated(
                 location,
                 self.elements.pop().unwrap_or_else(|| {
-                    panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "expression")
+                    panic!(
+                        "{}{}",
+                        crate::panic::BUILDER_REQUIRES_VALUE,
+                        "size expression"
+                    )
                 }),
                 size_expression,
             ),

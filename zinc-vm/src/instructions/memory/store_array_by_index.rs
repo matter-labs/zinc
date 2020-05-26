@@ -3,9 +3,9 @@ use crate::core::{RuntimeError, VirtualMachine};
 use crate::gadgets::Scalar;
 use crate::{gadgets, Engine};
 use franklin_crypto::bellman::ConstraintSystem;
-use zinc_bytecode::StoreSequenceByIndex;
+use zinc_bytecode::StoreByIndex;
 
-impl<E, CS> VMInstruction<E, CS> for StoreSequenceByIndex
+impl<E, CS> VMInstruction<E, CS> for StoreByIndex
 where
     E: Engine,
     CS: ConstraintSystem<E>,

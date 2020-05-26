@@ -4,9 +4,10 @@ use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::gadgets;
-use crate::gadgets::{ScalarType, ScalarTypeExpectation};
+use crate::gadgets::ScalarTypeExpectation;
 use crate::Engine;
 use zinc_bytecode::instructions::Rem;
+use zinc_bytecode::ScalarType;
 
 impl<E, CS> VMInstruction<E, CS> for Rem
 where
@@ -38,7 +39,7 @@ where
 mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zinc_bytecode::scalar::IntegerType;
+    use zinc_bytecode::IntegerType;
     use zinc_bytecode::*;
 
     #[test]

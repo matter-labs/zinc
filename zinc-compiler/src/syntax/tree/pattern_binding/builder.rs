@@ -73,7 +73,7 @@ impl Builder {
                     panic!(
                         "{}{}",
                         crate::panic::BUILDER_REQUIRES_VALUE,
-                        "self_location"
+                        "self location"
                     )
                 });
 

@@ -54,7 +54,7 @@ impl Builder {
             panic!(
                 "{}{}",
                 crate::panic::BUILDER_REQUIRES_VALUE,
-                "scrutinee_type"
+                "scrutinee type"
             )
         });
 
@@ -72,7 +72,7 @@ impl Builder {
                     panic!(
                         "{}{}",
                         crate::panic::BUILDER_REQUIRES_VALUE,
-                        "wildcard_branch"
+                        "wildcard branch"
                     )
                 });
                 MatchExpression::new(

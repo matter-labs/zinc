@@ -1,10 +1,12 @@
-use serde_derive::{Deserialize, Serialize};
 use std::fmt::Debug;
 
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+
 /// Built-in function identifier.
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum BuiltinIdentifier {
-    CryptoSha256 = 1,
+    CryptoSha256,
     CryptoPedersen,
     ToBits,
     UnsignedFromBits,

@@ -4,9 +4,10 @@ use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::gadgets;
-use crate::gadgets::{ScalarType, ScalarTypeExpectation};
+use crate::gadgets::ScalarTypeExpectation;
 use crate::Engine;
 use zinc_bytecode::instructions::Add;
+use zinc_bytecode::ScalarType;
 
 impl<E, CS> VMInstruction<E, CS> for Add
 where

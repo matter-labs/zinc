@@ -16,4 +16,4 @@ pub static BUILDER_REQUIRES_VALUE: &str = "The builder requires a value: ";
 pub static LOCATION_ALWAYS_EXISTS: &str = "Location always exists";
 
 // test
-pub static TEST_DATA: &str = "Test data is always valid";
+pub static TEST_DATA_VALID: &str = "Test data is always valid";

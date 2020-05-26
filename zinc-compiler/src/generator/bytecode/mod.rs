@@ -9,9 +9,9 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use zinc_bytecode::data::values::Value as TemplateValue;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::Program;
+use zinc_bytecode::TemplateValue;
 
 use crate::generator::r#type::Type;
 use crate::lexical::token::location::Location;
@@ -222,7 +222,7 @@ impl Bytecode {
                 metadata.output_type.clone().into(),
                 instructions,
             )
-            .to_bytes();
+            .into_bytes();
 
             let input_template_value =
                 TemplateValue::default_from_type(&metadata.input_fields_as_struct().into());

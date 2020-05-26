@@ -12,7 +12,7 @@ where
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let value = vm
             .operations()
-            .constant_bigint(&self.value, self.scalar_type)?;
+            .constant_bigint(&self.value, self.scalar_type.to_owned())?;
         vm.push(Cell::Value(value))
     }
 }
@@ -21,7 +21,7 @@ where
 mod tests {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zinc_bytecode::scalar::IntegerType;
+    use zinc_bytecode::IntegerType;
 
     #[test]
     fn test_push() -> Result<(), TestingError> {

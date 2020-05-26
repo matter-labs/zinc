@@ -1,9 +1,11 @@
 use crate::auto_const;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::{Scalar, ScalarType};
+use crate::gadgets::Scalar;
 use crate::{gadgets, Engine, Result};
 use franklin_crypto::bellman::ConstraintSystem;
-use zinc_bytecode::scalar::IntegerType;
+
+use zinc_bytecode::IntegerType;
+use zinc_bytecode::ScalarType;
 
 pub fn abs<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
 where
@@ -23,14 +25,13 @@ where
                     return Ok(scalar.clone());
                 }
 
-                let extended_type = IntegerType {
+                let scalar_type = ScalarType::Integer(IntegerType {
                     is_signed: true,
                     bitlength: int_type.bitlength + 1,
-                }
-                .into();
+                });
 
-                let scalar = scalar.with_type_unchecked(extended_type);
-                let zero = Scalar::new_constant_int(0, extended_type);
+                let scalar = scalar.with_type_unchecked(scalar_type.clone());
+                let zero = Scalar::new_constant_int(0, scalar_type);
                 let neg = gadgets::neg(cs.namespace(|| "neg"), &scalar)?;
                 let lt0 = gadgets::lt(cs.namespace(|| "lt"), &scalar, &zero)?;
                 gadgets::conditional_select(

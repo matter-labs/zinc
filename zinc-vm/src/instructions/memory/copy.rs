@@ -1,9 +1,9 @@
 use crate::core::{InternalVM, VMInstruction, VirtualMachine};
 use crate::{Engine, Result};
 use bellman::ConstraintSystem;
-use zinc_bytecode::instructions::Tee;
+use zinc_bytecode::instructions::Copy;
 
-impl<E, CS> VMInstruction<E, CS> for Tee
+impl<E, CS> VMInstruction<E, CS> for Copy
 where
     E: Engine,
     CS: ConstraintSystem<E>,

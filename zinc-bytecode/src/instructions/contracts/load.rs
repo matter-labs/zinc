@@ -19,7 +19,7 @@ impl InstructionInfo for StorageLoad {
         format!("storage_load {}", self.size)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::StorageLoad((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::StorageLoad(self)
     }
 }

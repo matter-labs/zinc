@@ -62,19 +62,13 @@ impl Expression {
 
         self.scrutinee.write_all_to_bytecode(bytecode.clone());
         bytecode.borrow_mut().push_instruction(
-            Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
-                scrutinee_address,
-                scrutinee_size,
-            )),
+            Instruction::Store(zinc_bytecode::Store::new(scrutinee_address, scrutinee_size)),
             Some(self.location),
         );
 
         for (branch_pattern, branch_expression) in self.branches.into_iter() {
             bytecode.borrow_mut().push_instruction(
-                Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(
-                    scrutinee_address,
-                    scrutinee_size,
-                )),
+                Instruction::Load(zinc_bytecode::Load::new(scrutinee_address, scrutinee_size)),
                 Some(self.location),
             );
             branch_pattern.write_all_to_bytecode(bytecode.clone());

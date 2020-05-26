@@ -5,9 +5,10 @@ use crate::auto_const;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::{ScalarType, ScalarTypeExpectation};
+use crate::gadgets::ScalarTypeExpectation;
 use crate::{gadgets, Engine};
 use zinc_bytecode::instructions::Mul;
+use zinc_bytecode::ScalarType;
 
 impl<E, CS> VMInstruction<E, CS> for Mul
 where

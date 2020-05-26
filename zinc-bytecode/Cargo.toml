@@ -6,7 +6,7 @@ authors = [
     "hedgar2017 <hedgar2017@gmail.com>",
 ]
 edition = "2018"
-description = "The Zinc bytecode"
+description = "The Zinc VM bytecode"
 
 [dependencies]
 log = "0.4"

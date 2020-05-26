@@ -1,7 +1,7 @@
-use crate::gadgets::ScalarType;
 use failure::Fail;
 use franklin_crypto::bellman::SynthesisError;
 use num_bigint::BigInt;
+use zinc_bytecode::ScalarType;
 
 pub type Result<T = ()> = std::result::Result<T, RuntimeError>;
 

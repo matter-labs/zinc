@@ -67,20 +67,16 @@ impl Operand {
                     if is_indexed {
                         inner.write_all_to_bytecode(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(
-                            Instruction::LoadSequenceByIndex(
-                                zinc_bytecode::LoadSequenceByIndex::new(
-                                    address,
-                                    total_size,
-                                    element_size,
-                                ),
-                            ),
+                            Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
+                                address,
+                                total_size,
+                                element_size,
+                            )),
                             Some(location),
                         );
                     } else {
                         bytecode.borrow_mut().push_instruction(
-                            Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(
-                                address, total_size,
-                            )),
+                            Instruction::Load(zinc_bytecode::Load::new(address, total_size)),
                             Some(location),
                         );
                     }

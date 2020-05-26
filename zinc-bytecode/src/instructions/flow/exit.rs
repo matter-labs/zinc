@@ -18,7 +18,7 @@ impl InstructionInfo for Exit {
         "exit".into()
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Exit((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Exit(self)
     }
 }

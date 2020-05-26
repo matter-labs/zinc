@@ -1,24 +1,28 @@
-use crate::{Instruction, InstructionInfo};
-use serde_derive::{Deserialize, Serialize};
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
-/// Loads value from data stack and pushes it onto evaluation stack.
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+use crate::Instruction;
+use crate::InstructionInfo;
+
+/// Loads several values from data stack and pushes them onto evaluation stack.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Load {
     pub address: usize,
+    pub len: usize,
 }
 
 impl Load {
-    pub fn new(address: usize) -> Self {
-        Self { address }
+    pub fn new(address: usize, len: usize) -> Self {
+        Self { address, len }
     }
 }
 
 impl InstructionInfo for Load {
     fn to_assembly(&self) -> String {
-        format!("load {}", self.address)
+        format!("load_array {} {}", self.address, self.len)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Load((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Load(self)
     }
 }

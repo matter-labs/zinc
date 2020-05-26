@@ -1,8 +1,9 @@
-use crate::gadgets::{Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant};
+use crate::gadgets::{Scalar, ScalarTypeExpectation, ScalarVariant};
 use crate::{Engine, Result};
 use ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
+use zinc_bytecode::ScalarType;
 
 pub fn conditional_select<E, CS>(
     mut cs: CS,

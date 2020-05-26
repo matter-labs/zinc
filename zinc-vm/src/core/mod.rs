@@ -8,14 +8,15 @@ pub use state::*;
 
 use crate::core::location::CodeLocation;
 use crate::errors::MalformedBytecode;
-use crate::gadgets::{Gadgets, Scalar, ScalarType};
+use crate::gadgets::{Gadgets, Scalar};
 use crate::Engine;
 use colored::Colorize;
 use franklin_crypto::bellman::ConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
 use std::marker::PhantomData;
-use zinc_bytecode::data::types as object_types;
-use zinc_bytecode::program::Program;
+use zinc_bytecode::DataType;
+use zinc_bytecode::Program;
+use zinc_bytecode::ScalarType;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 
 pub trait VMInstruction<E, CS>: InstructionInfo
@@ -130,7 +131,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
 
     fn init_root_frame(
         &mut self,
-        input_type: &object_types::DataType,
+        input_type: &DataType,
         inputs: Option<&[BigInt]>,
     ) -> Result<(), RuntimeError> {
         self.state
@@ -197,29 +198,29 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
     }
 }
 
-fn data_type_into_scalar_types(dtype: &object_types::DataType) -> Vec<ScalarType> {
-    fn internal(types: &mut Vec<ScalarType>, dtype: &object_types::DataType) {
+fn data_type_into_scalar_types(dtype: &DataType) -> Vec<ScalarType> {
+    fn internal(types: &mut Vec<ScalarType>, dtype: &DataType) {
         match dtype {
-            object_types::DataType::Unit => {}
-            object_types::DataType::Scalar(scalar_type) => {
-                types.push(*scalar_type);
+            DataType::Unit => {}
+            DataType::Scalar(scalar_type) => {
+                types.push(scalar_type.to_owned());
             }
-            object_types::DataType::Enum => {
+            DataType::Enum => {
                 types.push(ScalarType::Field);
             }
-            object_types::DataType::Struct(fields) => {
-                for (_, t) in fields {
-                    internal(types, t);
+            DataType::Struct(fields) => {
+                for (_, r#type) in fields {
+                    internal(types, r#type);
                 }
             }
-            object_types::DataType::Tuple(fields) => {
-                for t in fields {
-                    internal(types, t);
+            DataType::Tuple(fields) => {
+                for r#type in fields {
+                    internal(types, r#type);
                 }
             }
-            object_types::DataType::Array(t, size) => {
+            DataType::Array(r#type, size) => {
                 for _ in 0..*size {
-                    internal(types, t.as_ref());
+                    internal(types, r#type.as_ref());
                 }
             }
         }

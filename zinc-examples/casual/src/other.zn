@@ -1,3 +1,0 @@
-struct Other {
-    value: u8,
-}

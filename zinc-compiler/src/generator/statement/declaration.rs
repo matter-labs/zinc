@@ -52,7 +52,7 @@ impl Statement {
             );
         }
         bytecode.borrow_mut().push_instruction(
-            Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(address, size)),
+            Instruction::Store(zinc_bytecode::Store::new(address, size)),
             Some(self.location),
         );
     }

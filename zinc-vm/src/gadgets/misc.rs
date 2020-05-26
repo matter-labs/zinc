@@ -6,10 +6,11 @@ use ff::Field;
 use num_bigint::BigInt;
 
 use crate::core::RuntimeError;
-use crate::gadgets::{utils, Gadget, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant};
+use crate::gadgets::{utils, Gadget, Scalar, ScalarTypeExpectation, ScalarVariant};
 use crate::{gadgets, Engine};
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::Assignment;
+use zinc_bytecode::ScalarType;
 
 pub struct Gadgets<E, CS>
 where
@@ -59,7 +60,7 @@ where
         let mut cs = self.cs_namespace();
 
         let variable = cs.alloc(|| "variable", || value.grab())?;
-        let scalar = Scalar::new_unchecked_variable(value, variable, scalar_type);
+        let scalar = Scalar::new_unchecked_variable(value, variable, scalar_type.clone());
 
         match scalar_type {
             ScalarType::Field => {
@@ -68,7 +69,7 @@ where
                 gadgets::arithmetic::add(cs.namespace(|| "dummy constraint"), &scalar, &one)?;
                 Ok(scalar)
             }
-            _ => {
+            scalar_type => {
                 let condition = Scalar::new_constant_fr(E::Fr::one(), ScalarType::Boolean);
                 gadgets::types::conditional_type_check(
                     cs.namespace(|| "type check"),
@@ -89,7 +90,7 @@ where
             Some(
                 utils::bigint_to_fr::<E>(bigint).ok_or(RuntimeError::ValueOverflow {
                     value: bigint.clone(),
-                    scalar_type,
+                    scalar_type: scalar_type.clone(),
                 })?,
             )
         } else {
@@ -106,7 +107,7 @@ where
     ) -> Result<Scalar<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value).ok_or_else(|| RuntimeError::ValueOverflow {
             value: value.clone(),
-            scalar_type,
+            scalar_type: scalar_type.clone(),
         })?;
 
         Ok(Scalar::new_constant_fr(value, scalar_type))

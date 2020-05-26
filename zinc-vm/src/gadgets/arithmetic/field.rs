@@ -49,7 +49,7 @@ mod tests {
     use pairing::bn256::{Bn256, Fr};
 
     use crate::gadgets::Scalar;
-    use zinc_bytecode::scalar::ScalarType;
+    use zinc_bytecode::ScalarType;
 
     #[test]
     fn test_inverse() {

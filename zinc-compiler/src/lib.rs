@@ -32,7 +32,7 @@ pub const BASE_HEXADECIMAL: usize = 16;
 pub const BITLENGTH_BOOLEAN: usize = 1;
 pub const BITLENGTH_BYTE: usize = 8;
 pub const BITLENGTH_INDEX: usize = 64;
-pub const BITLENGTH_MAX_INT: usize = 248;
+pub const BITLENGTH_INTEGER_MAX: usize = 248;
 pub const BITLENGTH_FIELD: usize = 254;
 pub const BITLENGTH_SHA256_HASH: usize = 256;
 

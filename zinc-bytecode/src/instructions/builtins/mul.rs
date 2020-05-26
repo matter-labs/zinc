@@ -1,7 +1,7 @@
 use crate::{Instruction, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Mul;
 
 impl InstructionInfo for Mul {
@@ -9,7 +9,7 @@ impl InstructionInfo for Mul {
         "mul".into()
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Mul((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Mul(self)
     }
 }

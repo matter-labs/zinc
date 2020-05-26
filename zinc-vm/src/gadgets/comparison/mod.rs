@@ -9,7 +9,7 @@ use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::BigInt;
-use zinc_bytecode::scalar::ScalarType;
+use zinc_bytecode::ScalarType;
 
 pub fn gt<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
 where

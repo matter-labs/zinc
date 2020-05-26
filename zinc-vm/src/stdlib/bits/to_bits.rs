@@ -1,10 +1,14 @@
-use crate::core::EvaluationStack;
-use crate::gadgets::{IntegerType, Scalar, ScalarType};
-use crate::stdlib::NativeFunction;
-use crate::{gadgets, Engine, Result, RuntimeError};
 use bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;
 use num_bigint::BigInt;
+
+use zinc_bytecode::IntegerType;
+use zinc_bytecode::ScalarType;
+
+use crate::core::EvaluationStack;
+use crate::gadgets::Scalar;
+use crate::stdlib::NativeFunction;
+use crate::{gadgets, Engine, Result, RuntimeError};
 
 pub struct ToBits;
 
@@ -18,6 +22,7 @@ impl<E: Engine> NativeFunction<E> for ToBits {
         let expr = scalar.to_expression::<CS>();
 
         let mut bits = match scalar.get_type() {
+            ScalarType::Boolean => vec![scalar.to_boolean(cs.namespace(|| "to_boolean"))?],
             ScalarType::Integer(t) => {
                 if t.is_signed {
                     signed_to_bits(cs.namespace(|| "signed_to_bits"), scalar)?
@@ -25,7 +30,6 @@ impl<E: Engine> NativeFunction<E> for ToBits {
                     expr.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.bitlength)?
                 }
             }
-            ScalarType::Boolean => vec![scalar.to_boolean(cs.namespace(|| "to_boolean"))?],
             ScalarType::Field => {
                 expr.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict"))?
             }

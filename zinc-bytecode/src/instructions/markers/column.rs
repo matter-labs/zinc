@@ -17,7 +17,7 @@ impl InstructionInfo for ColumnMarker {
         format!("marker: column = \"{}\"", self.column)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::ColumnMarker((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::ColumnMarker(self)
     }
 }

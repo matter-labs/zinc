@@ -1,2 +1,2 @@
-pub mod types;
-pub mod values;
+pub mod r#type;
+pub mod value;

@@ -5,8 +5,8 @@ use crate::core::{InternalVM, RuntimeError, VMInstruction, VirtualMachine};
 use crate::Engine;
 use num_bigint::ToBigInt;
 use num_traits::Signed;
-use zinc_bytecode::data::values::Value;
 use zinc_bytecode::instructions::Dbg;
+use zinc_bytecode::TemplateValue;
 
 impl<E, CS> VMInstruction<E, CS> for Dbg
 where
@@ -17,7 +17,9 @@ where
         let mut values = Vec::with_capacity(self.arg_types.len());
 
         for arg_type in self.arg_types.iter().rev() {
-            let size = Value::default_from_type(arg_type).to_flat_values().len();
+            let size = TemplateValue::default_from_type(arg_type)
+                .to_flat_values()
+                .len();
 
             if vm.debugging {
                 let mut flat = Vec::with_capacity(size);
@@ -28,7 +30,8 @@ where
                     flat.push(value);
                 }
                 flat.reverse();
-                let value = Value::from_flat_values(arg_type, &flat).expect("value size is known");
+                let value =
+                    TemplateValue::from_flat_values(arg_type, &flat).expect("value size is known");
                 values.push(value);
             };
         }

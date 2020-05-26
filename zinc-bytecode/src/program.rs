@@ -1,6 +1,8 @@
-use crate::data::types::DataType;
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+
+use crate::data::r#type::Type as DataType;
 use crate::Instruction;
-use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Program {
@@ -18,11 +20,11 @@ impl Program {
         }
     }
 
-    pub fn to_bytes(&self) -> Vec<u8> {
-        bincode::serialize(self).expect("Failed to serialize program")
-    }
-
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
         bincode::deserialize(bytes).map_err(|e| format!("{:?}", e))
+    }
+
+    pub fn into_bytes(self) -> Vec<u8> {
+        bincode::serialize(&self).expect("Failed to serialize program")
     }
 }

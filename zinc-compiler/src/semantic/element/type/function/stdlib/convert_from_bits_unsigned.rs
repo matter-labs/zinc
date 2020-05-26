@@ -5,7 +5,7 @@
 use std::fmt;
 use std::ops::Deref;
 
-use zinc_bytecode::builtins::BuiltinIdentifier;
+use zinc_bytecode::BuiltinIdentifier;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::function::error::Error;
@@ -60,7 +60,7 @@ impl Function {
             Some((Type::Array(array), location)) => match (array.r#type.deref(), array.size) {
                 (Type::Boolean(_), size)
                     if crate::BITLENGTH_BYTE <= size
-                        && size <= crate::BITLENGTH_MAX_INT
+                        && size <= crate::BITLENGTH_INTEGER_MAX
                         && size % crate::BITLENGTH_BYTE == 0 =>
                 {
                     Type::integer_unsigned(None, size)
@@ -74,7 +74,7 @@ impl Function {
                         expected: format!(
                             "[bool; N], {} <= N <= {}, N % {} == 0",
                             crate::BITLENGTH_BYTE,
-                            crate::BITLENGTH_MAX_INT,
+                            crate::BITLENGTH_INTEGER_MAX,
                             crate::BITLENGTH_BYTE
                         ),
                         found: format!("array [{}; {}]", r#type, size),
@@ -90,7 +90,7 @@ impl Function {
                     expected: format!(
                         "[bool; N], {} <= N <= {}, N % {} == 0",
                         crate::BITLENGTH_BYTE,
-                        crate::BITLENGTH_MAX_INT,
+                        crate::BITLENGTH_INTEGER_MAX,
                         crate::BITLENGTH_BYTE
                     ),
                     found: r#type.to_string(),

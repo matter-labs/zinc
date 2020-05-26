@@ -1,11 +1,12 @@
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::{utils, Scalar, ScalarType, ScalarTypeExpectation};
+use crate::gadgets::{utils, Scalar, ScalarTypeExpectation};
 use crate::RuntimeError;
 use crate::{Engine, Result};
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;
+use zinc_bytecode::ScalarType;
 
 use crate::gadgets::utils::bigint_to_fr;
 use num_bigint::{BigInt, Sign};
@@ -36,7 +37,7 @@ where
                 let result_fr =
                     bigint_to_fr::<E>(&result_value).ok_or(RuntimeError::ValueOverflow {
                         value: result_value,
-                        scalar_type,
+                        scalar_type: scalar_type.clone(),
                     })?;
                 Ok(Scalar::new_constant_fr(result_fr, scalar_type))
             }

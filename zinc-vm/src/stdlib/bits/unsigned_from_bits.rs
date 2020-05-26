@@ -7,7 +7,7 @@ use bellman::ConstraintSystem;
 use ff::PrimeField;
 
 use franklin_crypto::circuit::num::AllocatedNum;
-use zinc_bytecode::scalar::IntegerType;
+use zinc_bytecode::IntegerType;
 
 pub struct UnsignedFromBits {
     bit_length: usize,

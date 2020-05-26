@@ -7,7 +7,7 @@ use franklin_crypto::bellman::{Circuit, ConstraintSystem, SynthesisError};
 use num_bigint::BigInt;
 use rand::ThreadRng;
 
-use zinc_bytecode::program::Program;
+use zinc_bytecode::Program;
 
 use crate::constraint_systems::{DebugConstraintSystem, DuplicateRemovingCS};
 use crate::core::VirtualMachine;
@@ -16,7 +16,7 @@ use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
 use failure::Fail;
 use franklin_crypto::circuit::test::TestConstraintSystem;
-use zinc_bytecode::data::values::Value;
+use zinc_bytecode::TemplateValue;
 
 struct VMCircuit<'a> {
     program: &'a Program,
@@ -37,7 +37,7 @@ impl<E: Engine> Circuit<E> for VMCircuit<'_> {
     }
 }
 
-pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
+pub fn run<E: Engine>(program: &Program, inputs: &TemplateValue) -> Result<TemplateValue> {
     let cs = DebugConstraintSystem::<Bn256>::default();
     let mut vm = VirtualMachine::new(cs, true);
 
@@ -71,17 +71,18 @@ pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
         .map(|v| v.expect("`run` always computes witness"))
         .collect::<Vec<_>>();
 
-    let value = Value::from_flat_values(&program.output, &output_flat).ok_or_else(|| {
-        TypeSizeError::Output {
-            expected: 0,
-            actual: 0,
-        }
-    })?;
+    let value =
+        TemplateValue::from_flat_values(&program.output, &output_flat).ok_or_else(|| {
+            TypeSizeError::Output {
+                expected: 0,
+                actual: 0,
+            }
+        })?;
 
     Ok(value)
 }
 
-pub fn debug<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
+pub fn debug<E: Engine>(program: &Program, inputs: &TemplateValue) -> Result<TemplateValue> {
     let cs = TestConstraintSystem::<Bn256>::new();
     let mut vm = VirtualMachine::new(cs, true);
 
@@ -127,12 +128,13 @@ pub fn debug<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
         .map(|v| v.expect("`run` always computes witness"))
         .collect::<Vec<_>>();
 
-    let value = Value::from_flat_values(&program.output, &output_flat).ok_or_else(|| {
-        TypeSizeError::Output {
-            expected: 0,
-            actual: 0,
-        }
-    })?;
+    let value =
+        TemplateValue::from_flat_values(&program.output, &output_flat).ok_or_else(|| {
+            TypeSizeError::Output {
+                expected: 0,
+                actual: 0,
+            }
+        })?;
 
     Ok(value)
 }
@@ -157,8 +159,8 @@ pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>> {
 pub fn prove<E: Engine>(
     program: &Program,
     params: &Parameters<E>,
-    witness: &Value,
-) -> Result<(Value, Proof<E>)> {
+    witness: &TemplateValue,
+) -> Result<(TemplateValue, Proof<E>)> {
     let rng = &mut rand::thread_rng();
 
     let witness_flat = witness.to_flat_values();
@@ -188,12 +190,10 @@ pub fn prove<E: Engine>(
                     .map(|v| v.expect("`prove` always computes witness"))
                     .collect();
 
-                let value =
-                    Value::from_flat_values(&program.output, &output_flat).ok_or_else(|| {
-                        TypeSizeError::Output {
-                            expected: 0,
-                            actual: 0,
-                        }
+                let value = TemplateValue::from_flat_values(&program.output, &output_flat)
+                    .ok_or_else(|| TypeSizeError::Output {
+                        expected: 0,
+                        actual: 0,
                     })?;
 
                 Ok((value, proof))
@@ -215,7 +215,7 @@ pub enum VerificationError {
 pub fn verify<E: Engine>(
     key: &VerifyingKey<E>,
     proof: &Proof<E>,
-    public_input: &Value,
+    public_input: &TemplateValue,
 ) -> std::result::Result<bool, VerificationError> {
     let public_input_flat = public_input
         .to_flat_values()

@@ -1,4 +1,5 @@
 mod scalar_type;
+
 pub use scalar_type::*;
 
 use bellman::{ConstraintSystem, Variable};
@@ -14,6 +15,7 @@ use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::Assignment;
 use num_bigint::{BigInt, ToBigInt};
+use zinc_bytecode::ScalarType;
 
 /// Scalar is a primitive value that can be stored on the stack and operated by VM's instructions.
 #[derive(Debug, Clone)]
@@ -73,7 +75,7 @@ impl<E: Engine> Scalar<E> {
     pub fn new_constant_bigint(value: &BigInt, scalar_type: ScalarType) -> Result<Self> {
         let fr = utils::bigint_to_fr::<E>(value).ok_or(RuntimeError::ValueOverflow {
             value: value.clone(),
-            scalar_type,
+            scalar_type: scalar_type.clone(),
         })?;
         Ok(Self::new_constant_fr(fr, scalar_type))
     }
@@ -117,13 +119,13 @@ impl<E: Engine> Scalar<E> {
     }
 
     pub fn get_type(&self) -> ScalarType {
-        self.scalar_type
+        self.scalar_type.to_owned()
     }
 
     pub fn get_value(&self) -> Option<E::Fr> {
         match &self.variant {
-            ScalarVariant::Constant(constant) => Some(constant.value),
-            ScalarVariant::Variable(variable) => variable.value,
+            ScalarVariant::Constant(constant) => Some(constant.value.to_owned()),
+            ScalarVariant::Variable(variable) => variable.value.to_owned(),
         }
     }
 
@@ -137,7 +139,7 @@ impl<E: Engine> Scalar<E> {
 
     pub fn get_constant(&self) -> Result<E::Fr> {
         match &self.variant {
-            ScalarVariant::Constant(constant) => Ok(constant.value),
+            ScalarVariant::Constant(constant) => Ok(constant.value.to_owned()),
             _ => Err(RuntimeError::ExpectedConstant),
         }
     }
@@ -171,7 +173,7 @@ impl<E: Engine> Scalar<E> {
     pub fn lc<CS: ConstraintSystem<E>>(&self) -> LinearCombination<E> {
         match &self.variant {
             ScalarVariant::Constant(constant) => {
-                LinearCombination::zero() + (constant.value, CS::one())
+                LinearCombination::zero() + (constant.value.to_owned(), CS::one())
             }
             ScalarVariant::Variable(variable) => LinearCombination::zero() + variable.variable,
         }
@@ -181,7 +183,7 @@ impl<E: Engine> Scalar<E> {
         let num = self.to_expression::<CS>();
         let bits = match self.scalar_type {
             ScalarType::Field => num.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict")),
-            scalar_type => num.into_bits_le_fixed(
+            ref scalar_type => num.into_bits_le_fixed(
                 cs.namespace(|| "into_bits_le_fixed"),
                 scalar_type.bit_length::<E>(),
             ),

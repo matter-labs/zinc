@@ -143,7 +143,7 @@ impl TryFrom<&str> for Keyword {
         }
 
         const INTEGER_BITLENGTH_RANGE: RangeInclusive<usize> =
-            crate::BITLENGTH_BYTE..=crate::BITLENGTH_MAX_INT;
+            crate::BITLENGTH_BYTE..=crate::BITLENGTH_INTEGER_MAX;
 
         if let Some("u") = input.get(..1) {
             let bitlength = &input[1..];

@@ -17,7 +17,7 @@ impl InstructionInfo for FunctionMarker {
         format!("marker: function = \"{}\"", self.function)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::FunctionMarker((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::FunctionMarker(self)
     }
 }

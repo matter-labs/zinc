@@ -6,7 +6,7 @@ use crate::core::{RuntimeError, VirtualMachine};
 use crate::gadgets;
 use crate::Engine;
 use zinc_bytecode::instructions::Neg;
-use zinc_bytecode::scalar::ScalarType;
+use zinc_bytecode::ScalarType;
 
 impl<E, CS> VMInstruction<E, CS> for Neg
 where
@@ -44,7 +44,7 @@ where
 mod test {
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use zinc_bytecode::instructions::*;
-    use zinc_bytecode::scalar::IntegerType;
+    use zinc_bytecode::IntegerType;
 
     #[test]
     fn test_neg() -> Result<(), TestingError> {

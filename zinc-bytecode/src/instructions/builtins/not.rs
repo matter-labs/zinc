@@ -1,7 +1,7 @@
 use crate::{Instruction, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Not;
 
 impl InstructionInfo for Not {
@@ -9,7 +9,7 @@ impl InstructionInfo for Not {
         "not".into()
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Not((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Not(self)
     }
 }

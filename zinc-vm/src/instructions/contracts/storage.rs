@@ -3,7 +3,7 @@ use crate::core::{InternalVM, VMInstruction};
 use crate::gadgets::Scalar;
 use crate::{Engine, Result};
 use franklin_crypto::bellman::ConstraintSystem;
-use zinc_bytecode::scalar::ScalarType;
+use zinc_bytecode::ScalarType;
 use zinc_bytecode::{StorageLoad, StorageStore};
 
 impl<E, CS> VMInstruction<E, CS> for StorageStore

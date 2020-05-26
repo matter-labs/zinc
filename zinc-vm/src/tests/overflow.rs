@@ -1,7 +1,7 @@
 use crate::instructions::testing_utils::{TestingError, VMTestRunner};
 use crate::RuntimeError;
 use zinc_bytecode::instructions::*;
-use zinc_bytecode::scalar::IntegerType;
+use zinc_bytecode::IntegerType;
 
 #[test]
 fn unsigned_positive_overflow_fail() {

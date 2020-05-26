@@ -17,7 +17,7 @@ impl InstructionInfo for FileMarker {
         format!("marker: file = \"{}\"", self.file)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::FileMarker((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::FileMarker(self)
     }
 }

@@ -1,6 +1,6 @@
 use crate::{Engine, RuntimeError};
 use ff::PrimeField;
-pub use zinc_bytecode::scalar::*;
+use zinc_bytecode::ScalarType;
 
 pub trait ScalarTypeExpectation: Sized {
     fn expect_same(left: Self, right: Self) -> Result<Self, RuntimeError>;
@@ -56,7 +56,7 @@ impl ScalarTypeExpectation for ScalarType {
         match self {
             ScalarType::Field => E::Fr::NUM_BITS as usize,
             ScalarType::Boolean => 1,
-            ScalarType::Integer(int_type) => int_type.bitlength,
+            ScalarType::Integer(inner) => inner.bitlength,
         }
     }
 }

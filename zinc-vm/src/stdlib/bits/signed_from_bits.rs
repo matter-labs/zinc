@@ -9,7 +9,7 @@ use num_bigint::BigInt;
 
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
-use zinc_bytecode::scalar::IntegerType;
+use zinc_bytecode::IntegerType;
 
 pub struct SignedFromBits {
     bit_length: usize,

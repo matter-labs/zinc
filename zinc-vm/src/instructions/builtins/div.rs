@@ -4,9 +4,10 @@ use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::gadgets;
-use crate::gadgets::{Scalar, ScalarType, ScalarTypeExpectation};
+use crate::gadgets::{Scalar, ScalarTypeExpectation};
 use crate::Engine;
 use zinc_bytecode::instructions::Div;
+use zinc_bytecode::ScalarType;
 
 impl<E, CS> VMInstruction<E, CS> for Div
 where
@@ -65,7 +66,7 @@ where
 mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zinc_bytecode::scalar::IntegerType;
+    use zinc_bytecode::IntegerType;
     use zinc_bytecode::*;
 
     #[test]

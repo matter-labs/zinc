@@ -1,25 +1,28 @@
-use crate::{Instruction, InstructionInfo};
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
-use serde_derive::{Deserialize, Serialize};
+use crate::Instruction;
+use crate::InstructionInfo;
 
-/// Stores value from evaluation stack in data stack.
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+/// Stores several values from evaluation stack in data stack.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Store {
-    pub index: usize,
+    pub address: usize,
+    pub len: usize,
 }
 
 impl Store {
-    pub fn new(index: usize) -> Self {
-        Self { index }
+    pub fn new(address: usize, len: usize) -> Self {
+        Self { address, len }
     }
 }
 
 impl InstructionInfo for Store {
     fn to_assembly(&self) -> String {
-        format!("store {}", self.index)
+        format!("store_array {} {}", self.address, self.len)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Store((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Store(self)
     }
 }

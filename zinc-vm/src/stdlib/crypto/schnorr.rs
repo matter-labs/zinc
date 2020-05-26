@@ -134,7 +134,7 @@ mod tests {
     use franklin_crypto::circuit::test::TestConstraintSystem;
     use pairing::bn256::{Bn256, Fr};
 
-    use zinc_bytecode::scalar::ScalarType;
+    use zinc_bytecode::ScalarType;
 
     use super::*;
     use franklin_crypto::alt_babyjubjub::AltJubjubBn256;

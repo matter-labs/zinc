@@ -4,15 +4,16 @@ use serde_derive::Serialize;
 use crate::Instruction;
 use crate::InstructionInfo;
 
+/// Copies the top element from the stack.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct NoOperation;
+pub struct Copy;
 
-impl InstructionInfo for NoOperation {
+impl InstructionInfo for Copy {
     fn to_assembly(&self) -> String {
-        "noop".into()
+        "copy".into()
     }
 
     fn wrap(self) -> Instruction {
-        Instruction::NoOperation(self)
+        Instruction::Copy(self)
     }
 }

@@ -92,6 +92,6 @@ impl Source {
         } else {
             Directory::test(input, dependencies).map(Self::Directory)
         }
-        .expect(crate::panic::TEST_DATA)
+        .expect(crate::panic::TEST_DATA_VALID)
     }
 }

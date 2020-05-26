@@ -6,7 +6,7 @@ use failure::Fail;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
-use zinc_bytecode::data::types::DataType;
+use zinc_bytecode::DataType;
 use zinc_bytecode::{Call, Instruction, InstructionInfo, Program};
 
 type TestVirtualMachine = VirtualMachine<Bn256, TestConstraintSystem<Bn256>>;

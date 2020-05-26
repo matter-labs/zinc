@@ -7,9 +7,9 @@ use std::collections::HashMap;
 use failure::Fail;
 use serde_json::Value as JsonValue;
 
-use zinc_bytecode::data::values::JsonValueError;
-use zinc_bytecode::data::values::Value;
-use zinc_bytecode::program::Program as BytecodeProgram;
+use zinc_bytecode::Program as BytecodeProgram;
+use zinc_bytecode::TemplateValue;
+use zinc_bytecode::TemplateValueError;
 use zinc_compiler::Bytecode;
 use zinc_compiler::EntryAnalyzer;
 use zinc_compiler::Error as CompilerError;
@@ -18,7 +18,7 @@ use zinc_compiler::Source;
 
 pub struct ProgramData {
     pub program: BytecodeProgram,
-    pub input: Value,
+    pub input: TemplateValue,
 }
 
 #[derive(Debug, Fail)]
@@ -27,15 +27,15 @@ pub enum Error {
     Compiler(String),
     #[fail(display = "program: {}", _0)]
     Program(String),
-    #[fail(display = "JSON type value: {}", _0)]
-    JsonTypeValue(JsonValueError),
+    #[fail(display = "template value: {}", _0)]
+    TemplateValue(TemplateValueError),
 }
 
 impl ProgramData {
     pub fn new(witness: &JsonValue, code: &str) -> Result<Self, Error> {
         let program = Self::compile(code)?;
-        let input =
-            Value::from_typed_json(witness, &program.input).map_err(Error::JsonTypeValue)?;
+        let input = TemplateValue::from_typed_json(witness, &program.input)
+            .map_err(Error::TemplateValue)?;
 
         Ok(Self { program, input })
     }

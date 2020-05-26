@@ -1,9 +1,12 @@
-use crate::scalar::ScalarType;
-use crate::{Instruction, InstructionInfo};
 use num_bigint::BigInt;
-use serde_derive::{Deserialize, Serialize};
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+use crate::data::r#type::scalar::Type as ScalarType;
+use crate::Instruction;
+use crate::InstructionInfo;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PushConst {
     pub value: BigInt,
     pub scalar_type: ScalarType,
@@ -24,7 +27,7 @@ impl InstructionInfo for PushConst {
         format!("push {} as {}", self.value, self.scalar_type)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::PushConst((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::PushConst(self)
     }
 }

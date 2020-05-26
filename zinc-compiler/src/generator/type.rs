@@ -2,9 +2,9 @@
 //! The generator type.
 //!
 
-use zinc_bytecode::data::types::DataType;
-use zinc_bytecode::scalar::IntegerType;
-use zinc_bytecode::scalar::ScalarType;
+use zinc_bytecode::DataType;
+use zinc_bytecode::IntegerType;
+use zinc_bytecode::ScalarType;
 
 use crate::semantic::element::r#type::Type as SemanticType;
 

@@ -73,10 +73,7 @@ impl Statement {
         )
         .write_all_to_bytecode(bytecode.clone());
         bytecode.borrow_mut().push_instruction(
-            Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
-                index_address,
-                index_size,
-            )),
+            Instruction::Store(zinc_bytecode::Store::new(index_address, index_size)),
             Some(self.location),
         );
 
@@ -87,7 +84,7 @@ impl Statement {
                 .define_variable(None, Type::boolean().size());
             while_allowed.write_all_to_bytecode(bytecode.clone());
             bytecode.borrow_mut().push_instruction(
-                Instruction::Store(zinc_bytecode::Store::new(while_allowed_address)),
+                Instruction::Store(zinc_bytecode::Store::new(while_allowed_address, 1)),
                 Some(self.location),
             );
             Some(while_allowed_address)
@@ -112,7 +109,7 @@ impl Statement {
                 .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
             BooleanConstant::new(false).write_all_to_bytecode(bytecode.clone());
             bytecode.borrow_mut().push_instruction(
-                Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
+                Instruction::Store(zinc_bytecode::Store::new(
                     while_allowed_address,
                     Type::boolean().size(),
                 )),
@@ -124,7 +121,7 @@ impl Statement {
             );
 
             bytecode.borrow_mut().push_instruction(
-                Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(
+                Instruction::Load(zinc_bytecode::Load::new(
                     while_allowed_address,
                     Type::boolean().size(),
                 )),
@@ -144,7 +141,7 @@ impl Statement {
 
         if self.is_reversed {
             bytecode.borrow_mut().push_instruction(
-                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                Instruction::Load(zinc_bytecode::Load::new(index_address, 1)),
                 Some(self.location),
             );
             IntegerConstant::new_min(self.index_variable_is_signed, self.index_variable_bitlength)
@@ -156,7 +153,7 @@ impl Statement {
                 .borrow_mut()
                 .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
             bytecode.borrow_mut().push_instruction(
-                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                Instruction::Load(zinc_bytecode::Load::new(index_address, 1)),
                 Some(self.location),
             );
             IntegerConstant::new(
@@ -169,7 +166,7 @@ impl Statement {
                 .borrow_mut()
                 .push_instruction(Instruction::Sub(zinc_bytecode::Sub), Some(self.location));
             bytecode.borrow_mut().push_instruction(
-                Instruction::Store(zinc_bytecode::Store::new(index_address)),
+                Instruction::Store(zinc_bytecode::Store::new(index_address, 1)),
                 Some(self.location),
             );
             bytecode.borrow_mut().push_instruction(
@@ -178,7 +175,7 @@ impl Statement {
             );
         } else {
             bytecode.borrow_mut().push_instruction(
-                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                Instruction::Load(zinc_bytecode::Load::new(index_address, 1)),
                 Some(self.location),
             );
             IntegerConstant::new_max(self.index_variable_is_signed, self.index_variable_bitlength)
@@ -190,7 +187,7 @@ impl Statement {
                 .borrow_mut()
                 .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
             bytecode.borrow_mut().push_instruction(
-                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                Instruction::Load(zinc_bytecode::Load::new(index_address, 1)),
                 Some(self.location),
             );
             IntegerConstant::new(
@@ -203,7 +200,7 @@ impl Statement {
                 .borrow_mut()
                 .push_instruction(Instruction::Add(zinc_bytecode::Add), Some(self.location));
             bytecode.borrow_mut().push_instruction(
-                Instruction::Store(zinc_bytecode::Store::new(index_address)),
+                Instruction::Store(zinc_bytecode::Store::new(index_address, 1)),
                 Some(self.location),
             );
             bytecode.borrow_mut().push_instruction(

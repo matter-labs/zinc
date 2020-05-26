@@ -9,10 +9,10 @@ use num_bigint::BigInt;
 use num_traits::One;
 use num_traits::Zero;
 
-use zinc_bytecode::scalar::IntegerType;
-use zinc_bytecode::scalar::ScalarType;
 use zinc_bytecode::Instruction;
+use zinc_bytecode::IntegerType;
 use zinc_bytecode::PushConst;
+use zinc_bytecode::ScalarType;
 
 use crate::generator::bytecode::Bytecode;
 use crate::semantic::element::constant::integer::Integer as SemanticIntegerConstant;

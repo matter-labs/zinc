@@ -1,10 +1,11 @@
 use crate::auto_const;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::{Scalar, ScalarType, ScalarTypeExpectation};
+use crate::gadgets::{Scalar, ScalarTypeExpectation};
 use crate::{Engine, Result};
 use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;
+use zinc_bytecode::ScalarType;
 
 pub fn bit_and<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
 where

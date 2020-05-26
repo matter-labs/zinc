@@ -391,7 +391,7 @@ fn main() {
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: format!(
                 "[bool; N], 0 < N <= {}, N % {} == 0",
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
                 crate::BITLENGTH_BYTE
             ),
             found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
@@ -429,7 +429,7 @@ fn main() {
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: format!(
                 "[bool; N], 0 < N <= {}, N % {} == 0",
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
                 crate::BITLENGTH_BYTE
             ),
             found: Type::array(Some(Location::new(13, 34)), Type::boolean(None), 0).to_string(),
@@ -467,7 +467,7 @@ fn main() {
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: format!(
                 "[bool; N], 0 < N <= {}, N % {} == 0",
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
                 crate::BITLENGTH_BYTE
             ),
             found: Type::array(
@@ -510,7 +510,7 @@ fn main() {
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: format!(
                 "[bool; N], 0 < N <= {}, N % {} == 0",
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
                 crate::BITLENGTH_BYTE
             ),
             found: Type::array(Some(Location::new(13, 34)), Type::boolean(None), 4).to_string(),
@@ -583,7 +583,7 @@ fn main() {
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
                 crate::BITLENGTH_BYTE
             ),
             found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
@@ -612,7 +612,7 @@ fn main() {
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
                 crate::BITLENGTH_BYTE
             ),
             found: Type::array(Some(Location::new(3, 38)), Type::boolean(None), 0).to_string(),
@@ -641,13 +641,13 @@ fn main() {
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
                 crate::BITLENGTH_BYTE
             ),
             found: Type::array(
                 Some(Location::new(3, 38)),
                 Type::boolean(None),
-                crate::BITLENGTH_MAX_INT + crate::BITLENGTH_BYTE,
+                crate::BITLENGTH_INTEGER_MAX + crate::BITLENGTH_BYTE,
             )
             .to_string(),
         }),
@@ -675,7 +675,7 @@ fn main() {
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
                 crate::BITLENGTH_BYTE
             ),
             found: Type::array(Some(Location::new(3, 38)), Type::boolean(None), 4).to_string(),
@@ -748,7 +748,7 @@ fn main() {
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
                 crate::BITLENGTH_BYTE
             ),
             found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
@@ -777,7 +777,7 @@ fn main() {
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
                 crate::BITLENGTH_BYTE
             ),
             found: Type::array(Some(Location::new(3, 36)), Type::boolean(None), 0).to_string(),
@@ -806,13 +806,13 @@ fn main() {
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
                 crate::BITLENGTH_BYTE
             ),
             found: Type::array(
                 Some(Location::new(3, 36)),
                 Type::boolean(None),
-                crate::BITLENGTH_MAX_INT + crate::BITLENGTH_BYTE,
+                crate::BITLENGTH_INTEGER_MAX + crate::BITLENGTH_BYTE,
             )
             .to_string(),
         }),
@@ -840,7 +840,7 @@ fn main() {
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
                 crate::BITLENGTH_BYTE
             ),
             found: Type::array(Some(Location::new(3, 36)), Type::boolean(None), 4).to_string(),
@@ -962,7 +962,7 @@ fn main() {
             found: Type::array(
                 Some(Location::new(3, 35)),
                 Type::boolean(None),
-                crate::BITLENGTH_MAX_INT,
+                crate::BITLENGTH_INTEGER_MAX,
             )
             .to_string(),
         }),
@@ -1426,7 +1426,7 @@ fn main() -> [u8; 4] {
                 location: Location::new(3, 31),
                 value: IntegerConstant::new(
                     Location::new(3, 31),
-                    BigInt::from_str("18446744073709551616").expect(crate::panic::TEST_DATA),
+                    BigInt::from_str("18446744073709551616").expect(crate::panic::TEST_DATA_VALID),
                     false,
                     72,
                 )

@@ -1,7 +1,7 @@
 use crate::{Instruction, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Eq;
 
 impl InstructionInfo for Eq {
@@ -9,7 +9,7 @@ impl InstructionInfo for Eq {
         "eq".into()
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Eq((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Eq(self)
     }
 }

@@ -74,8 +74,7 @@ impl File {
         let tree = Parser::default()
             .parse(&code, Some(next_file_id))
             .map_err(|error| error.format())
-            .map_err(Error::Compiling)
-            .map_err(SourceError::File)?;
+            .map_err(SourceError::Compiling)?;
 
         Ok(Self {
             path: path.to_owned(),

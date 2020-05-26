@@ -8,7 +8,7 @@ use std::sync::RwLock;
 use lazy_static::lazy_static;
 
 ///
-/// The global file path array where a `Location` can get the file path by its index.
+/// The global file index where a `Location` instance can get the file contents by its index.
 ///
 pub struct Index {
     pub inner: RwLock<Vec<Data>>,

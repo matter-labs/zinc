@@ -3,8 +3,8 @@ use pairing::bn256::Bn256;
 use std::fs;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use zinc_bytecode::data::values::Value;
-use zinc_bytecode::program::Program;
+use zinc_bytecode::Program;
+use zinc_bytecode::TemplateValue;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "debug", about = "Executes circuit with additional checks")]
@@ -28,7 +28,7 @@ impl DebugCommand {
         let input_text = fs::read_to_string(&self.input_path)
             .error_with_path(|| self.input_path.to_string_lossy())?;
         let json = serde_json::from_str(&input_text)?;
-        let input = Value::from_typed_json(&json, &program.input)?;
+        let input = TemplateValue::from_typed_json(&json, &program.input)?;
 
         let output = zinc_vm::debug::<Bn256>(&program, &input)?;
 

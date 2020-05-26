@@ -30,7 +30,7 @@ mod tests {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
 
-    use zinc_bytecode::scalar::ScalarType;
+    use zinc_bytecode::ScalarType;
     use zinc_bytecode::*;
 
     #[test]

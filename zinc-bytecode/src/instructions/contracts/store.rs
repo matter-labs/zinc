@@ -19,7 +19,7 @@ impl InstructionInfo for StorageStore {
         format!("storage_store {}", self.size)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::StorageStore((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::StorageStore(self)
     }
 }

@@ -569,7 +569,7 @@ fn main() {
             location: Location::new(4, 5),
             found: Element::Value(
                 Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
-                    .expect(crate::panic::TEST_DATA),
+                    .expect(crate::panic::TEST_DATA_VALID),
             )
             .to_string(),
         },
@@ -594,7 +594,7 @@ fn main() {
             location: Location::new(4, 10),
             found: Element::Value(
                 Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
-                    .expect(crate::panic::TEST_DATA),
+                    .expect(crate::panic::TEST_DATA_VALID),
             )
             .to_string(),
         },
@@ -619,7 +619,7 @@ fn main() {
             location: Location::new(4, 5),
             found: Element::Value(
                 Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
-                    .expect(crate::panic::TEST_DATA),
+                    .expect(crate::panic::TEST_DATA_VALID),
             )
             .to_string(),
         },
@@ -644,7 +644,7 @@ fn main() {
             location: Location::new(4, 11),
             found: Element::Value(
                 Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
-                    .expect(crate::panic::TEST_DATA),
+                    .expect(crate::panic::TEST_DATA_VALID),
             )
             .to_string(),
         },
@@ -1219,7 +1219,7 @@ fn main() {
             location: Location::new(4, 23),
             found: Element::Value(
                 Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
-                    .expect(crate::panic::TEST_DATA),
+                    .expect(crate::panic::TEST_DATA_VALID),
             )
             .to_string(),
         },
@@ -1266,7 +1266,7 @@ fn main() {
             location: Location::new(4, 23),
             found: Element::Value(
                 Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
-                    .expect(crate::panic::TEST_DATA),
+                    .expect(crate::panic::TEST_DATA_VALID),
             )
             .to_string(),
         },

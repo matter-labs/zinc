@@ -18,7 +18,7 @@ impl InstructionInfo for Return {
         format!("ret {}", self.outputs_count)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Return((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Return(self)
     }
 }

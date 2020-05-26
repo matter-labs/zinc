@@ -30,7 +30,7 @@ pub mod prelude {
 /// # use ff::PrimeField;
 /// # use pairing::bn256::{Bn256, Fr};
 /// # use franklin_crypto::circuit::test::TestConstraintSystem;
-/// # use zinc_bytecode::scalar::ScalarType;
+/// # use zinc_bytecode::ScalarType;
 /// # use bellman::ConstraintSystem;
 /// use zinc_vm::auto_const;
 /// use zinc_vm::gadgets::Scalar;

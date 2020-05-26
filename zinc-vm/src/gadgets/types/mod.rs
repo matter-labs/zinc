@@ -3,7 +3,10 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::expression::Expression;
 use num_bigint::BigInt;
 
-use crate::gadgets::{utils, IntegerType, Scalar, ScalarType, ScalarTypeExpectation};
+use zinc_bytecode::IntegerType;
+use zinc_bytecode::ScalarType;
+
+use crate::gadgets::{utils, Scalar, ScalarTypeExpectation};
 use crate::{Engine, Result, RuntimeError};
 
 pub fn conditional_type_check<E, CS>(
@@ -19,10 +22,6 @@ where
     condition.get_type().assert_type(ScalarType::Boolean)?;
 
     match scalar_type {
-        ScalarType::Field => {
-            // Always safe to cast into field
-            Ok(scalar.as_field())
-        }
         ScalarType::Boolean => {
             // Check as u1 integer, then changet type to Boolean
             let checked = conditional_type_check(cs, condition, scalar, IntegerType::U1.into())?;
@@ -30,6 +29,10 @@ where
         }
         ScalarType::Integer(int_type) => {
             conditional_int_type_check(cs, condition, scalar, int_type)
+        }
+        ScalarType::Field => {
+            // Always safe to cast into field
+            Ok(scalar.as_field())
         }
     }
 }

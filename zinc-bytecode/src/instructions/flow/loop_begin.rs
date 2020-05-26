@@ -18,7 +18,7 @@ impl InstructionInfo for LoopBegin {
         format!("loop_begin {}", self.iterations)
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::LoopBegin((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::LoopBegin(self)
     }
 }

@@ -1,8 +1,11 @@
-use crate::data::types::DataType;
-use crate::{Instruction, InstructionInfo};
-use serde_derive::{Deserialize, Serialize};
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
-#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
+use crate::data::r#type::Type as DataType;
+use crate::Instruction;
+use crate::InstructionInfo;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Dbg {
     pub format: String,
     pub arg_types: Vec<DataType>,
@@ -19,7 +22,7 @@ impl InstructionInfo for Dbg {
         "dbg".into()
     }
 
-    fn wrap(&self) -> Instruction {
-        Instruction::Dbg((*self).clone())
+    fn wrap(self) -> Instruction {
+        Instruction::Dbg(self)
     }
 }

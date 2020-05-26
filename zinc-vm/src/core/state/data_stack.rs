@@ -198,8 +198,9 @@ impl<E: Engine> DataStack<E> {
 mod tests {
     use num_bigint::{BigInt, ToBigInt};
     use pairing::bn256::Bn256;
+    use zinc_bytecode::ScalarType;
 
-    use crate::gadgets::{Gadgets, ScalarType};
+    use crate::gadgets::Gadgets;
 
     use super::*;
     use franklin_crypto::circuit::test::TestConstraintSystem;

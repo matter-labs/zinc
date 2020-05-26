@@ -26,7 +26,7 @@ where
 mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zinc_bytecode::scalar::IntegerType;
+    use zinc_bytecode::IntegerType;
     use zinc_bytecode::*;
 
     #[test]
