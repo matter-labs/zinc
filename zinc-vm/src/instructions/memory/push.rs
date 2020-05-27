@@ -2,7 +2,7 @@ use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
-use zinc_bytecode::instructions::PushConst;
+use zinc_bytecode::PushConst;
 
 impl<E, CS> VMInstruction<E, CS> for PushConst
 where

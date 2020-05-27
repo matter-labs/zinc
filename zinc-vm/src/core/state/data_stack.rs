@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
 
 use crate::core::Cell;
-use crate::errors::MalformedBytecode;
+use crate::error::MalformedBytecode;
+use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::{Gadgets, Scalar};
 use crate::Engine;
-use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
 use std::fmt;
 

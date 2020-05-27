@@ -1,3 +1,7 @@
+//!
+//! The Zinc VM template value.
+//!
+
 use std::collections::HashSet;
 use std::fmt;
 

@@ -1,10 +1,12 @@
 use crate::core::{InternalVM, VMInstruction, VirtualMachine};
-use crate::{gadgets, Engine, Result};
+use crate::error::Result;
+use crate::gadgets;
+use crate::Engine;
 
 use franklin_crypto::bellman::ConstraintSystem;
-use zinc_bytecode::instructions::BitXor;
+use zinc_bytecode::BitwiseXor;
 
-impl<E, CS> VMInstruction<E, CS> for BitXor
+impl<E, CS> VMInstruction<E, CS> for BitwiseXor
 where
     E: Engine,
     CS: ConstraintSystem<E>,

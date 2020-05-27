@@ -1,7 +1,9 @@
 use crate::core::EvaluationStack;
+use crate::error::MalformedBytecode;
+use crate::error::Result;
 use crate::gadgets::{utils, Scalar};
 use crate::stdlib::NativeFunction;
-use crate::{Engine, MalformedBytecode, Result};
+use crate::Engine;
 
 use bellman::ConstraintSystem;
 use ff::PrimeField;

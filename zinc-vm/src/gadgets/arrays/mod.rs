@@ -1,7 +1,8 @@
+use crate::error::Result;
 use crate::gadgets;
 use crate::gadgets::utils::math;
 use crate::gadgets::Scalar;
-use crate::{Engine, Result};
+use crate::Engine;
 use bellman::ConstraintSystem;
 
 /// Select single value from array based on index bits.

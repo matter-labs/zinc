@@ -1,8 +1,12 @@
+//!
+//! The Zinc VM bytecode program.
+//!
+
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
 use crate::data::r#type::Type as DataType;
-use crate::Instruction;
+use crate::instruction::Instruction;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Program {

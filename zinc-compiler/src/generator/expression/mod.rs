@@ -78,7 +78,7 @@ impl Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::BitOr(zinc_bytecode::BitOr),
+                        Instruction::BitwiseOr(zinc_bytecode::BitwiseOr),
                         location,
                     ),
                     Operator::AssignmentBitwiseXor {
@@ -89,7 +89,7 @@ impl Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::BitXor(zinc_bytecode::BitXor),
+                        Instruction::BitwiseXor(zinc_bytecode::BitwiseXor),
                         location,
                     ),
                     Operator::AssignmentBitwiseAnd {
@@ -100,7 +100,7 @@ impl Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::BitAnd(zinc_bytecode::BitAnd),
+                        Instruction::BitwiseAnd(zinc_bytecode::BitwiseAnd),
                         location,
                     ),
                     Operator::AssignmentBitwiseShiftLeft {
@@ -111,7 +111,7 @@ impl Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::BitShiftLeft(zinc_bytecode::BitShiftLeft),
+                        Instruction::BitwiseShiftLeft(zinc_bytecode::BitwiseShiftLeft),
                         location,
                     ),
                     Operator::AssignmentBitwiseShiftRight {
@@ -122,7 +122,7 @@ impl Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::BitShiftRight(zinc_bytecode::BitShiftRight),
+                        Instruction::BitwiseShiftRight(zinc_bytecode::BitwiseShiftRight),
                         location,
                     ),
                     Operator::AssignmentAddition {
@@ -230,27 +230,27 @@ impl Expression {
 
                     Operator::BitwiseOr => Self::binary(
                         bytecode.clone(),
-                        Instruction::BitOr(zinc_bytecode::BitOr),
+                        Instruction::BitwiseOr(zinc_bytecode::BitwiseOr),
                         location,
                     ),
                     Operator::BitwiseXor => Self::binary(
                         bytecode.clone(),
-                        Instruction::BitXor(zinc_bytecode::BitXor),
+                        Instruction::BitwiseXor(zinc_bytecode::BitwiseXor),
                         location,
                     ),
                     Operator::BitwiseAnd => Self::binary(
                         bytecode.clone(),
-                        Instruction::BitAnd(zinc_bytecode::BitAnd),
+                        Instruction::BitwiseAnd(zinc_bytecode::BitwiseAnd),
                         location,
                     ),
                     Operator::BitwiseShiftLeft => Self::binary(
                         bytecode.clone(),
-                        Instruction::BitShiftLeft(zinc_bytecode::BitShiftLeft),
+                        Instruction::BitwiseShiftLeft(zinc_bytecode::BitwiseShiftLeft),
                         location,
                     ),
                     Operator::BitwiseShiftRight => Self::binary(
                         bytecode.clone(),
-                        Instruction::BitShiftRight(zinc_bytecode::BitShiftRight),
+                        Instruction::BitwiseShiftRight(zinc_bytecode::BitwiseShiftRight),
                         location,
                     ),
 
@@ -297,7 +297,7 @@ impl Expression {
                     ),
                     Operator::BitwiseNot => Self::unary(
                         bytecode.clone(),
-                        Instruction::BitNot(zinc_bytecode::BitNot),
+                        Instruction::BitwiseNot(zinc_bytecode::BitwiseNot),
                         location,
                     ),
                     Operator::Negation => Self::unary(
@@ -682,7 +682,7 @@ impl Expression {
         location: Location,
     ) {
         bytecode.borrow_mut().push_instruction(
-            Instruction::CallBuiltin(zinc_bytecode::CallBuiltin::new(
+            Instruction::CallStd(zinc_bytecode::CallStd::new(
                 identifier,
                 input_size,
                 output_size,

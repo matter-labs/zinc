@@ -1,5 +1,4 @@
 use std::fmt;
-use std::fmt::{Error, Formatter};
 
 pub struct CodeLocation {
     pub file: Option<String>,
@@ -20,7 +19,7 @@ impl CodeLocation {
 }
 
 impl fmt::Display for CodeLocation {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let file = match &self.file {
             Some(file) => file.as_str(),
             None => "<unknown file>",

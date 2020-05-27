@@ -1,7 +1,8 @@
 use crate::core::{InternalVM, VMInstruction, VirtualMachine};
-use crate::{Engine, Result};
+use crate::error::Result;
+use crate::Engine;
 use bellman::ConstraintSystem;
-use zinc_bytecode::instructions::Copy;
+use zinc_bytecode::Copy;
 
 impl<E, CS> VMInstruction<E, CS> for Copy
 where

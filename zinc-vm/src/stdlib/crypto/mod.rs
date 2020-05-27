@@ -1,8 +1,3 @@
-mod schnorr;
-pub use schnorr::*;
-
-mod sha256;
-pub use sha256::*;
-
-mod pedersen;
-pub use pedersen::*;
+pub mod pedersen;
+pub mod schnorr;
+pub mod sha256;

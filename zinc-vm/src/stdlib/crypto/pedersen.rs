@@ -1,9 +1,12 @@
+use bellman::ConstraintSystem;
+use franklin_crypto::circuit::pedersen_hash::pedersen_hash;
+use franklin_crypto::circuit::pedersen_hash::Personalization;
+
 use crate::core::EvaluationStack;
+use crate::error::Result;
 use crate::gadgets::Scalar;
 use crate::stdlib::NativeFunction;
-use crate::{Engine, Result};
-use bellman::ConstraintSystem;
-use franklin_crypto::circuit::pedersen_hash::{pedersen_hash, Personalization};
+use crate::Engine;
 
 pub struct Pedersen {
     message_length: usize,

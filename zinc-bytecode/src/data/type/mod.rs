@@ -1,3 +1,7 @@
+//!
+//! The Zinc VM template type.
+//!
+
 pub mod scalar;
 
 use serde_derive::Deserialize;

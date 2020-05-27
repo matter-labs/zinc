@@ -4,7 +4,7 @@ use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::{gadgets, Engine};
-use zinc_bytecode::instructions::Ne;
+use zinc_bytecode::Ne;
 
 impl<E, CS> VMInstruction<E, CS> for Ne
 where

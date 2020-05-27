@@ -2,7 +2,7 @@ use crate::core::{InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
-use zinc_bytecode::instructions::Load;
+use zinc_bytecode::Load;
 
 impl<E, CS> VMInstruction<E, CS> for Load
 where

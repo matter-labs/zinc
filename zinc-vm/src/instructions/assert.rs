@@ -4,7 +4,7 @@ use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::{gadgets, Engine};
-use zinc_bytecode::instructions::Assert;
+use zinc_bytecode::Assert;
 
 impl<E, CS> VMInstruction<E, CS> for Assert
 where

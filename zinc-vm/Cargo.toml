@@ -10,15 +10,15 @@ description = "The Zinc virtual machine"
 
 [[bin]]
 name = "zvm"
-path = "src/cli/zvm.rs"
+path = "src/zvm/mod.rs"
 
 [dependencies]
 log = "0.4"
 env_logger = "0.7"
 structopt = "0.3"
+
 failure = "0.1"
 colored = "1.9"
-
 serde_json = "1.0"
 
 lazy_static = "1.4"

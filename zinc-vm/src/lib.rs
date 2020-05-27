@@ -1,22 +1,35 @@
-pub mod constraint_systems;
-mod core;
-mod errors;
-pub mod gadgets;
-mod instructions;
-pub mod stdlib;
+//!
+//! The Zinc virtual machine library.
+//!
 
 #[cfg(test)]
 mod tests;
 
-mod facade;
-pub use facade::*;
+pub(crate) mod constraint_systems;
+pub(crate) mod core;
+pub(crate) mod error;
+pub mod facade;
+pub mod gadgets;
+pub(crate) mod instructions;
+pub(crate) mod stdlib;
 
-use franklin_crypto::alt_babyjubjub::{AltJubjubBn256, JubjubEngine};
+use std::fmt;
+
 use lazy_static::lazy_static;
-use pairing::bn256::Bn256;
-use std::fmt::Debug;
 
-pub trait Engine: JubjubEngine + Debug {
+use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
+use franklin_crypto::alt_babyjubjub::JubjubEngine;
+use pairing::bn256::Bn256;
+
+pub use self::error::RuntimeError;
+pub use self::facade::debug;
+pub use self::facade::prove;
+pub use self::facade::run;
+pub use self::facade::setup;
+pub use self::facade::verify;
+pub use self::facade::VerificationError;
+
+pub trait Engine: fmt::Debug + JubjubEngine {
     fn jubjub_params<'a>() -> &'a Self::Params;
 }
 

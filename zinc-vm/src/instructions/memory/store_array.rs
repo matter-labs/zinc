@@ -2,7 +2,7 @@ use crate::core::{InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
-use zinc_bytecode::instructions::Store;
+use zinc_bytecode::Store;
 
 impl<E, CS> VMInstruction<E, CS> for Store
 where

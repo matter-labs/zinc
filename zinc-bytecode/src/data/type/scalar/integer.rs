@@ -1,3 +1,7 @@
+//!
+//! The Zinc VM template integer scalar type.
+//!
+
 use std::fmt;
 
 use num_bigint::BigInt;

@@ -4,7 +4,7 @@ use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
-use zinc_bytecode::instructions::Or;
+use zinc_bytecode::Or;
 
 impl<E, CS> VMInstruction<E, CS> for Or
 where

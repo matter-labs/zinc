@@ -1,9 +1,9 @@
 use crate::core::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
-use crate::errors::MalformedBytecode;
+use crate::error::MalformedBytecode;
+use crate::error::Result;
+use crate::error::RuntimeError;
 use crate::gadgets::Gadgets;
 use crate::stdlib::NativeFunction;
-use crate::Result;
-use crate::RuntimeError;
 use crate::{gadgets, Engine};
 use franklin_crypto::bellman::ConstraintSystem;
 
@@ -146,7 +146,7 @@ where
 
         let branch = Branch {
             condition,
-            is_full: false,
+            has_else: false,
         };
 
         self.top_frame()?.blocks.push(Block::Branch(branch));
@@ -171,10 +171,10 @@ where
             )),
         }?;
 
-        if branch.is_full {
+        if branch.has_else {
             return Err(MalformedBytecode::UnexpectedElse.into());
         } else {
-            branch.is_full = true;
+            branch.has_else = true;
         }
 
         let condition = branch.condition.clone();
@@ -208,7 +208,7 @@ where
             Some(_) | None => Err(MalformedBytecode::UnexpectedEndIf),
         }?;
 
-        if branch.is_full {
+        if branch.has_else {
             self.state
                 .evaluation_stack
                 .merge(self.cs.namespace(), &branch.condition)?;

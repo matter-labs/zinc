@@ -1,4 +1,5 @@
-use crate::{Engine, RuntimeError};
+use crate::error::RuntimeError;
+use crate::Engine;
 use ff::PrimeField;
 use zinc_bytecode::ScalarType;
 

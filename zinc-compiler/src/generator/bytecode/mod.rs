@@ -109,9 +109,10 @@ impl Bytecode {
                 .get_path(file_index)
                 .to_string_lossy()
                 .to_string();
-            self.instructions.push(Instruction::FileMarker(
-                zinc_bytecode::instructions::FileMarker::new(file_path),
-            ));
+            self.instructions
+                .push(Instruction::FileMarker(zinc_bytecode::FileMarker::new(
+                    file_path,
+                )));
         }
         self.instructions.push(Instruction::FunctionMarker(
             zinc_bytecode::FunctionMarker::new(identifier),

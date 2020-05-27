@@ -2,12 +2,15 @@ use bellman::ConstraintSystem;
 use ff::PrimeField;
 use franklin_crypto::circuit::baby_eddsa::EddsaSignature;
 use franklin_crypto::circuit::ecc::EdwardsPoint;
-use franklin_crypto::jubjub::{FixedGenerators, JubjubParams};
+use franklin_crypto::jubjub::FixedGenerators;
+use franklin_crypto::jubjub::JubjubParams;
 
 use crate::core::EvaluationStack;
+use crate::error::MalformedBytecode;
+use crate::error::Result;
 use crate::gadgets::Scalar;
 use crate::stdlib::NativeFunction;
-use crate::{Engine, MalformedBytecode, Result};
+use crate::Engine;
 
 pub struct VerifySchnorrSignature {
     msg_len: usize,

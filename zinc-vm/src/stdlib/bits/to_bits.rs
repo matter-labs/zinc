@@ -6,9 +6,12 @@ use zinc_bytecode::IntegerType;
 use zinc_bytecode::ScalarType;
 
 use crate::core::EvaluationStack;
+use crate::error::Result;
+use crate::error::RuntimeError;
+use crate::gadgets;
 use crate::gadgets::Scalar;
 use crate::stdlib::NativeFunction;
-use crate::{gadgets, Engine, Result, RuntimeError};
+use crate::Engine;
 
 pub struct ToBits;
 

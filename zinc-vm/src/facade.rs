@@ -1,22 +1,34 @@
+//!
+//! The Zinc virtual machine facade.
+//!
+
 use std::fmt::Debug;
 
-use bellman::groth16;
-use bellman::pairing::bn256::Bn256;
-use franklin_crypto::bellman::groth16::{Parameters, Proof, VerifyingKey};
-use franklin_crypto::bellman::{Circuit, ConstraintSystem, SynthesisError};
+use failure::Fail;
 use num_bigint::BigInt;
 use rand::ThreadRng;
 
-use zinc_bytecode::Program;
+use bellman::groth16;
+use bellman::pairing::bn256::Bn256;
+use franklin_crypto::bellman::groth16::Parameters;
+use franklin_crypto::bellman::groth16::Proof;
+use franklin_crypto::bellman::groth16::VerifyingKey;
+use franklin_crypto::bellman::Circuit;
+use franklin_crypto::bellman::ConstraintSystem;
+use franklin_crypto::bellman::SynthesisError;
+use franklin_crypto::circuit::test::TestConstraintSystem;
 
-use crate::constraint_systems::{DebugConstraintSystem, DuplicateRemovingCS};
+use zinc_bytecode::Program;
+use zinc_bytecode::TemplateValue;
+
+use crate::constraint_systems::debug::DebugConstraintSystem;
+use crate::constraint_systems::duplicate_removing::DuplicateRemovingCS;
 use crate::core::VirtualMachine;
-pub use crate::errors::{MalformedBytecode, Result, RuntimeError, TypeSizeError};
+use crate::error::Result;
+use crate::error::RuntimeError;
+use crate::error::TypeSizeError;
 use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
-use failure::Fail;
-use franklin_crypto::circuit::test::TestConstraintSystem;
-use zinc_bytecode::TemplateValue;
 
 struct VMCircuit<'a> {
     program: &'a Program,

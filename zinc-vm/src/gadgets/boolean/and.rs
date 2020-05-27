@@ -1,7 +1,8 @@
 use crate::auto_const;
+use crate::error::Result;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::{Scalar, ScalarTypeExpectation};
-use crate::{Engine, Result};
+use crate::Engine;
 use ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;

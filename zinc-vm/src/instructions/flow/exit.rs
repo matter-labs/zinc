@@ -4,7 +4,7 @@ use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
-use zinc_bytecode::instructions::Exit;
+use zinc_bytecode::Exit;
 
 impl<E, CS> VMInstruction<E, CS> for Exit
 where

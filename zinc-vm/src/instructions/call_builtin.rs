@@ -1,14 +1,26 @@
-extern crate franklin_crypto;
+use franklin_crypto::bellman::ConstraintSystem;
 
-use self::franklin_crypto::bellman::ConstraintSystem;
-use crate::core::{InternalVM, VMInstruction};
-use crate::core::{RuntimeError, VirtualMachine};
-use crate::stdlib::crypto::VerifySchnorrSignature;
-use crate::{stdlib, Engine};
-use zinc_bytecode::instructions::CallBuiltin;
 use zinc_bytecode::BuiltinIdentifier;
+use zinc_bytecode::CallStd;
 
-impl<E, CS> VMInstruction<E, CS> for CallBuiltin
+use crate::core::InternalVM;
+use crate::core::RuntimeError;
+use crate::core::VMInstruction;
+use crate::core::VirtualMachine;
+use crate::stdlib::array::pad::Pad;
+use crate::stdlib::array::reverse::Reverse;
+use crate::stdlib::array::truncate::Truncate;
+use crate::stdlib::bits::field_from_bits::FieldFromBits;
+use crate::stdlib::bits::signed_from_bits::SignedFromBits;
+use crate::stdlib::bits::to_bits::ToBits;
+use crate::stdlib::bits::unsigned_from_bits::UnsignedFromBits;
+use crate::stdlib::crypto::pedersen::Pedersen;
+use crate::stdlib::crypto::schnorr::VerifySchnorrSignature;
+use crate::stdlib::crypto::sha256::Sha256;
+use crate::stdlib::ff::inverse::Inverse;
+use crate::Engine;
+
+impl<E, CS> VMInstruction<E, CS> for CallStd
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -18,40 +30,20 @@ where
             BuiltinIdentifier::CryptoSchnorrSignatureVerify => {
                 vm.call_native(VerifySchnorrSignature::new(self.inputs_count)?)
             }
-            BuiltinIdentifier::FieldInverse => vm.call_native(stdlib::ff::Inverse),
-            BuiltinIdentifier::CryptoSha256 => {
-                vm.call_native(stdlib::crypto::Sha256::new(self.inputs_count)?)
-            }
-            BuiltinIdentifier::CryptoPedersen => {
-                vm.call_native(stdlib::crypto::Pedersen::new(self.inputs_count)?)
-            }
-            BuiltinIdentifier::ToBits => vm.call_native(stdlib::bits::ToBits),
+            BuiltinIdentifier::FieldInverse => vm.call_native(Inverse),
+            BuiltinIdentifier::CryptoSha256 => vm.call_native(Sha256::new(self.inputs_count)?),
+            BuiltinIdentifier::CryptoPedersen => vm.call_native(Pedersen::new(self.inputs_count)?),
+            BuiltinIdentifier::ToBits => vm.call_native(ToBits),
             BuiltinIdentifier::UnsignedFromBits => {
-                vm.call_native(stdlib::bits::UnsignedFromBits::new(self.inputs_count))
+                vm.call_native(UnsignedFromBits::new(self.inputs_count))
             }
             BuiltinIdentifier::SignedFromBits => {
-                vm.call_native(stdlib::bits::SignedFromBits::new(self.inputs_count))
+                vm.call_native(SignedFromBits::new(self.inputs_count))
             }
-            BuiltinIdentifier::FieldFromBits => vm.call_native(stdlib::bits::FieldFromBits),
-            BuiltinIdentifier::ArrayReverse => {
-                vm.call_native(stdlib::array::Reverse::new(self.inputs_count)?)
-            }
-            BuiltinIdentifier::ArrayTruncate => {
-                vm.call_native(stdlib::array::Truncate::new(self.inputs_count)?)
-            }
-            BuiltinIdentifier::ArrayPad => {
-                vm.call_native(stdlib::array::Pad::new(self.inputs_count)?)
-            }
+            BuiltinIdentifier::FieldFromBits => vm.call_native(FieldFromBits),
+            BuiltinIdentifier::ArrayReverse => vm.call_native(Reverse::new(self.inputs_count)?),
+            BuiltinIdentifier::ArrayTruncate => vm.call_native(Truncate::new(self.inputs_count)?),
+            BuiltinIdentifier::ArrayPad => vm.call_native(Pad::new(self.inputs_count)?),
         }
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use crate::instructions::testing_utils::TestingError;
-
-    #[test]
-    fn test_cast() -> Result<(), TestingError> {
-        Ok(())
     }
 }

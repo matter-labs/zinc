@@ -19,8 +19,7 @@ pub struct Loop {
 #[derive(Debug)]
 pub struct Branch<E: Engine> {
     pub condition: Scalar<E>,
-    /// False if there is only one case (If-Endif), true if two cases (If-Else-Endif).
-    pub is_full: bool,
+    pub has_else: bool,
 }
 
 #[derive(Debug)]

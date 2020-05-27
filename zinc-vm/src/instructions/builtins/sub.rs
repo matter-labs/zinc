@@ -7,8 +7,8 @@ use crate::core::{RuntimeError, VirtualMachine};
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::ScalarTypeExpectation;
 use crate::{gadgets, Engine};
-use zinc_bytecode::instructions::Sub;
 use zinc_bytecode::ScalarType;
+use zinc_bytecode::Sub;
 
 impl<E, CS> VMInstruction<E, CS> for Sub
 where

@@ -1,3 +1,7 @@
+//!
+//! The Zinc VM template scalar type.
+//!
+
 pub mod integer;
 
 use std::fmt;

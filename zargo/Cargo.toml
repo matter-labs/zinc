@@ -3,7 +3,7 @@ name = "zargo"
 version = "0.1.5"
 authors = ["hedgar2017 <hedgar2017@gmail.com>"]
 edition = "2018"
-description = "The Zinc's project manager"
+description = "The Zinc project manager"
 
 [[bin]]
 name = "zargo"

@@ -1,8 +1,9 @@
 pub mod prelude {
-    pub use crate::constraint_systems::ConstantCS;
+    pub use crate::constraint_systems::noop::ConstantCS;
     pub use crate::gadgets::{Scalar, ScalarVariant};
 
-    use crate::{Engine, Result};
+    use crate::error::Result;
+    use crate::Engine;
 
     pub trait ToConstant: Sized {
         fn to_constant(&self) -> Result<Self>;

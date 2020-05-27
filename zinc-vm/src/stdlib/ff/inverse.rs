@@ -1,8 +1,10 @@
 use bellman::ConstraintSystem;
 
 use crate::core::EvaluationStack;
+use crate::error::Result;
+use crate::gadgets;
 use crate::stdlib::NativeFunction;
-use crate::{gadgets, Engine, Result};
+use crate::Engine;
 
 pub struct Inverse;
 

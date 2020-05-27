@@ -2,12 +2,12 @@ mod internal;
 pub mod location;
 mod state;
 
-pub use crate::errors::RuntimeError;
+pub use crate::error::RuntimeError;
 pub use internal::*;
 pub use state::*;
 
 use crate::core::location::CodeLocation;
-use crate::errors::MalformedBytecode;
+use crate::error::MalformedBytecode;
 use crate::gadgets::{Gadgets, Scalar};
 use crate::Engine;
 use colored::Colorize;

@@ -4,7 +4,7 @@ use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
-use zinc_bytecode::instructions::Eq;
+use zinc_bytecode::Eq;
 
 impl<E, CS> VMInstruction<E, CS> for Eq
 where

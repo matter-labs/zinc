@@ -1,7 +1,8 @@
 use crate::core::VirtualMachine;
 use crate::core::{InternalVM, VMInstruction};
+use crate::error::Result;
 use crate::gadgets::Scalar;
-use crate::{Engine, Result};
+use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::ScalarType;
 use zinc_bytecode::{StorageLoad, StorageStore};

@@ -1,11 +1,14 @@
-use crate::auto_const;
-use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::Scalar;
-use crate::{Engine, Result};
 use ff::Field;
-use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
+use franklin_crypto::bellman::ConstraintSystem;
+use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::Assignment;
+
+use crate::auto_const;
+use crate::error::Result;
+use crate::gadgets::auto_const::prelude::*;
+use crate::gadgets::Scalar;
+use crate::Engine;
 
 pub fn inverse<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
 where
@@ -46,10 +49,12 @@ mod tests {
     use bellman::ConstraintSystem;
     use ff::Field;
     use franklin_crypto::circuit::test::TestConstraintSystem;
-    use pairing::bn256::{Bn256, Fr};
+    use pairing::bn256::Bn256;
+    use pairing::bn256::Fr;
+
+    use zinc_bytecode::ScalarType;
 
     use crate::gadgets::Scalar;
-    use zinc_bytecode::ScalarType;
 
     #[test]
     fn test_inverse() {

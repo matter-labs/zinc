@@ -1,8 +1,11 @@
 use crate::auto_const;
+use crate::error::Result;
+use crate::error::RuntimeError;
+use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::conditional_select::conditional_select;
 use crate::gadgets::{utils, Scalar};
-use crate::{gadgets, Engine, Result, RuntimeError};
+use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::Assignment;
 use zinc_bytecode::ScalarType;

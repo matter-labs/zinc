@@ -5,7 +5,7 @@ use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 
 use crate::{gadgets, Engine};
-use zinc_bytecode::instructions::Cast;
+use zinc_bytecode::Cast;
 
 impl<E, CS> VMInstruction<E, CS> for Cast
 where

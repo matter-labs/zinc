@@ -1,8 +1,9 @@
+use crate::error::Result;
+use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::{utils, Scalar, ScalarTypeExpectation};
-use crate::RuntimeError;
-use crate::{Engine, Result};
+use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;

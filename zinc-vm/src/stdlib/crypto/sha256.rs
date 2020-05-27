@@ -1,9 +1,12 @@
-use crate::core::EvaluationStack;
-use crate::gadgets::Scalar;
-use crate::stdlib::NativeFunction;
-use crate::{Engine, MalformedBytecode, Result};
 use bellman::ConstraintSystem;
 use franklin_crypto::circuit::sha256::sha256;
+
+use crate::core::EvaluationStack;
+use crate::error::MalformedBytecode;
+use crate::error::Result;
+use crate::gadgets::Scalar;
+use crate::stdlib::NativeFunction;
+use crate::Engine;
 
 pub struct Sha256 {
     message_length: usize,

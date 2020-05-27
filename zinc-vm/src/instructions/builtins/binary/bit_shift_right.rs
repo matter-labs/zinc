@@ -1,12 +1,14 @@
 use crate::core::{InternalVM, VMInstruction, VirtualMachine};
 
-use crate::{gadgets, Engine, Result};
+use crate::error::Result;
+use crate::gadgets;
+use crate::Engine;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::instructions::BitShiftRight;
+use zinc_bytecode::BitwiseShiftRight;
 
-impl<E, CS> VMInstruction<E, CS> for BitShiftRight
+impl<E, CS> VMInstruction<E, CS> for BitwiseShiftRight
 where
     E: Engine,
     CS: ConstraintSystem<E>,

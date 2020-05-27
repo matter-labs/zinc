@@ -1,11 +1,12 @@
 use crate::core::{InternalVM, VMInstruction, VirtualMachine};
-use crate::{Engine, Result};
+use crate::error::Result;
+use crate::Engine;
 
 use crate::gadgets;
 use franklin_crypto::bellman::ConstraintSystem;
-use zinc_bytecode::instructions::BitAnd;
+use zinc_bytecode::BitwiseAnd;
 
-impl<E, CS> VMInstruction<E, CS> for BitAnd
+impl<E, CS> VMInstruction<E, CS> for BitwiseAnd
 where
     E: Engine,
     CS: ConstraintSystem<E>,

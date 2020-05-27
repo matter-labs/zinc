@@ -5,7 +5,7 @@ use crate::core::{InternalVM, RuntimeError, VMInstruction, VirtualMachine};
 use crate::Engine;
 use num_bigint::ToBigInt;
 use num_traits::Signed;
-use zinc_bytecode::instructions::Dbg;
+use zinc_bytecode::Dbg;
 use zinc_bytecode::TemplateValue;
 
 impl<E, CS> VMInstruction<E, CS> for Dbg

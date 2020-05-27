@@ -5,7 +5,7 @@ use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::gadgets;
 use crate::Engine;
-use zinc_bytecode::instructions::Not;
+use zinc_bytecode::Not;
 
 impl<E, CS> VMInstruction<E, CS> for Not
 where

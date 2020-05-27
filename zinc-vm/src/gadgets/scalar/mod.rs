@@ -6,8 +6,10 @@ use bellman::{ConstraintSystem, Variable};
 use num_traits::ToPrimitive;
 use std::fmt;
 
+use crate::error::Result;
+use crate::error::RuntimeError;
 use crate::gadgets::utils;
-use crate::{Engine, Result, RuntimeError};
+use crate::Engine;
 use ff::{Field, PrimeField};
 use franklin_crypto::bellman::{LinearCombination, SynthesisError};
 use franklin_crypto::circuit::boolean::{AllocatedBit, Boolean};

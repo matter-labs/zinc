@@ -1,7 +1,15 @@
-use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-use crate::RuntimeError;
-use zinc_bytecode::instructions::*;
+//!
+//! The Zinc VM overflow tests.
+//!
+
+use zinc_bytecode::Add;
 use zinc_bytecode::IntegerType;
+use zinc_bytecode::PushConst;
+use zinc_bytecode::Sub;
+
+use crate::error::RuntimeError;
+use crate::instructions::testing_utils::TestingError;
+use crate::instructions::testing_utils::VMTestRunner;
 
 #[test]
 fn unsigned_positive_overflow_fail() {

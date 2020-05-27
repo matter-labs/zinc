@@ -1,9 +1,9 @@
 use crate::core::Cell;
-use crate::errors::MalformedBytecode;
+use crate::error::MalformedBytecode;
+use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::Scalar;
 use crate::Engine;
-use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
 use std::fmt;
 
@@ -27,6 +27,7 @@ impl<E: Engine> EvaluationStack<E> {
                 RuntimeError::InternalError("Evaluation stack root frame missing".into())
             })?
             .push(value);
+
         Ok(())
     }
 

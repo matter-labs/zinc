@@ -1,2 +1,1 @@
-mod inverse;
-pub use self::inverse::*;
+pub mod inverse;

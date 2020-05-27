@@ -7,7 +7,7 @@ use crate::core::{RuntimeError, VirtualMachine};
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::ScalarTypeExpectation;
 use crate::{gadgets, Engine};
-use zinc_bytecode::instructions::Mul;
+use zinc_bytecode::Mul;
 use zinc_bytecode::ScalarType;
 
 impl<E, CS> VMInstruction<E, CS> for Mul

@@ -1,6 +1,7 @@
 use crate::core::EvaluationStack;
+use crate::error::Result;
 use crate::stdlib::NativeFunction;
-use crate::{Engine, Result};
+use crate::Engine;
 use bellman::ConstraintSystem;
 
 pub struct Reverse {
