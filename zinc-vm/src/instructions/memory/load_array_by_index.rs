@@ -1,6 +1,5 @@
-use crate::core::{Cell, VirtualMachine, VMInstruction};
-use crate::core::{RuntimeError};
-
+use crate::core::RuntimeError;
+use crate::core::{Cell, VMInstruction, VirtualMachine};
 
 use zinc_bytecode::instructions::LoadSequenceByIndex;
 

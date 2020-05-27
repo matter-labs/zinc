@@ -1,9 +1,9 @@
 extern crate franklin_crypto;
 
 use self::franklin_crypto::bellman::ConstraintSystem;
-use crate::core::{VirtualMachine, VMInstruction};
-use crate::core::{RuntimeError};
-use crate::{gadgets};
+use crate::core::RuntimeError;
+use crate::core::{VMInstruction, VirtualMachine};
+use crate::gadgets;
 use zinc_bytecode::instructions::Assert;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Assert {

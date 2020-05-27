@@ -1,4 +1,7 @@
-use crate::core::{VirtualMachine, RuntimeError, VMState};
+use crate::core::{RuntimeError, VMState, VirtualMachine};
+use crate::gadgets::contracts::merkle_tree_storage::merkle_tree_hash::Sha256Hasher;
+use crate::gadgets::StorageGadget;
+use crate::storage::dummy::DummyStorage;
 use crate::Engine;
 use bellman::pairing::bn256::Bn256;
 use colored::Colorize;
@@ -9,17 +12,19 @@ use num_bigint::{BigInt, ToBigInt};
 use zinc_bytecode::data::types::DataType;
 use zinc_bytecode::{Call, Instruction, InstructionInfo, Program};
 
-type TestVirtualMachine = VMState<Bn256, TestConstraintSystem<Bn256>, ()>;
+type TestVirtualMachine =
+    VMState<Bn256, TestConstraintSystem<Bn256>, DummyStorage<Bn256>, Sha256Hasher>;
 
 fn new_test_constrained_vm() -> TestVirtualMachine {
-    let cs = TestConstraintSystem::new();
-    TestVirtualMachine::new(cs, true)
+    let mut cs = TestConstraintSystem::new();
+    let storage = DummyStorage::new(20);
+    let storage_gadget = StorageGadget::new(cs.namespace(|| "storage"), storage).unwrap();
+    TestVirtualMachine::new(cs, true, storage_gadget)
 }
 
-fn assert_stack_eq<E, CS, BI>(vm: &mut VMState<E, CS, ()>, expected_stack: &[BI])
+fn assert_stack_eq<VM, BI>(vm: &mut VM, expected_stack: &[BI])
 where
-    E: Engine,
-    CS: ConstraintSystem<E>,
+    VM: VirtualMachine,
     BI: Into<BigInt> + Copy,
 {
     for (i, expected) in expected_stack.iter().enumerate() {

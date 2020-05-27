@@ -1,7 +1,6 @@
 extern crate franklin_crypto;
 
-
-use crate::core::{VirtualMachine, RuntimeError, VMInstruction};
+use crate::core::{RuntimeError, VMInstruction, VirtualMachine};
 
 use zinc_bytecode::{LoopBegin, LoopEnd};
 

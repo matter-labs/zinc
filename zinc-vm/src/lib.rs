@@ -4,6 +4,7 @@ mod errors;
 pub mod gadgets;
 mod instructions;
 pub mod stdlib;
+pub mod storage;
 
 #[cfg(test)]
 mod tests;

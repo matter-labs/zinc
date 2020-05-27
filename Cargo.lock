@@ -1181,6 +1181,7 @@ dependencies = [
  "pairing_ce",
  "rand",
  "serde_json",
+ "sha2",
  "structopt",
  "zinc-bytecode",
  "zinc-utils",

@@ -1,8 +1,7 @@
-
-use crate::core::{VirtualMachine, VMInstruction};
-use crate::core::{RuntimeError};
+use crate::core::RuntimeError;
+use crate::core::{VMInstruction, VirtualMachine};
+use crate::stdlib;
 use crate::stdlib::crypto::VerifySchnorrSignature;
-use crate::{stdlib};
 use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::instructions::CallBuiltin;
 

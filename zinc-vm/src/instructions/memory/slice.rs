@@ -1,5 +1,4 @@
-use crate::core::{Cell, VirtualMachine, RuntimeError, VMInstruction};
-
+use crate::core::{Cell, RuntimeError, VMInstruction, VirtualMachine};
 
 use zinc_bytecode::instructions::Slice;
 

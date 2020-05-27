@@ -1,6 +1,6 @@
 use crate::core::location::CodeLocation;
 use crate::core::{VMInstruction, VirtualMachine};
-use crate::{RuntimeError};
+use crate::RuntimeError;
 
 use zinc_bytecode::instructions::*;
 

@@ -5,41 +5,55 @@ use bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::groth16::{Parameters, Proof, VerifyingKey};
 use franklin_crypto::bellman::{Circuit, ConstraintSystem, SynthesisError};
 use num_bigint::BigInt;
-use rand::ThreadRng;
 
 use zinc_bytecode::program::Program;
 
 use crate::constraint_systems::{DebugConstraintSystem, DuplicateRemovingCS};
 use crate::core::{VMState, VirtualMachine};
 pub use crate::errors::{MalformedBytecode, Result, RuntimeError, TypeSizeError};
+use crate::gadgets::contracts::merkle_tree_storage::merkle_tree_hash::Sha256Hasher;
+use crate::gadgets::merkle_tree_storage::MerkleTreeStorage;
 use crate::gadgets::utils::bigint_to_fr;
+use crate::gadgets::StorageGadget;
+use crate::storage::dummy::DummyStorage;
 use crate::Engine;
 use failure::Fail;
 use franklin_crypto::circuit::test::TestConstraintSystem;
+use std::marker::PhantomData;
 use zinc_bytecode::data::values::Value;
 
-struct VMCircuit<'a> {
+struct VMCircuit<'a, E: Engine, S: MerkleTreeStorage<E>> {
     program: &'a Program,
     inputs: Option<&'a [BigInt]>,
     result: &'a mut Option<Result<Vec<Option<BigInt>>>>,
+    storage: S,
+
+    _pd: PhantomData<E>,
 }
 
-impl<E: Engine> Circuit<E> for VMCircuit<'_> {
+impl<E: Engine, S: MerkleTreeStorage<E>> Circuit<E> for VMCircuit<'_, E, S> {
     fn synthesize<CS: ConstraintSystem<E>>(
         self,
         cs: &mut CS,
     ) -> std::result::Result<(), SynthesisError> {
         // let cs = LoggingConstraintSystem::new(cs.namespace(|| "logging"));
-        let cs = DuplicateRemovingCS::new(cs.namespace(|| "duplicates removing"));
-        let mut vm = VMState::<_, _, ()>::new(cs, false);
+        let mut cs = DuplicateRemovingCS::new(cs.namespace(|| "duplicates removing"));
+        let storage = StorageGadget::<_, _, Sha256Hasher>::new(
+            cs.namespace(|| "storage init"),
+            self.storage,
+        )?;
+        let mut vm = VMState::new(cs.namespace(|| "vm"), false, storage);
         *self.result = Some(vm.run(self.program, self.inputs, |_| {}, |_| Ok(())));
         Ok(())
     }
 }
 
 pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
-    let cs = DebugConstraintSystem::<Bn256>::default();
-    let mut vm = VMState::<_, _, ()>::new(cs, true);
+    let mut cs = DebugConstraintSystem::<Bn256>::default();
+    let storage = DummyStorage::new(20);
+    let storage_gadget =
+        StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
+    let mut vm = VMState::new(cs, true, storage_gadget);
 
     let inputs_flat = inputs.to_flat_values();
 
@@ -82,8 +96,11 @@ pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
 }
 
 pub fn debug<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
-    let cs = TestConstraintSystem::<Bn256>::new();
-    let mut vm = VMState::<_, _, ()>::new(cs, true);
+    let mut cs = TestConstraintSystem::<Bn256>::new();
+    let storage = DummyStorage::new(20);
+    let storage_gadget =
+        StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
+    let mut vm = VMState::new(cs, true, storage_gadget);
 
     let inputs_flat = inputs.to_flat_values();
 
@@ -140,13 +157,18 @@ pub fn debug<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
 pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>> {
     let rng = &mut rand::thread_rng();
     let mut result = None;
+
+    let storage: DummyStorage<E> = unimplemented!(); // todo: add setup storage
+
     let circuit = VMCircuit {
         program,
         inputs: None,
         result: &mut result,
+        storage,
+        _pd: PhantomData,
     };
 
-    let params = groth16::generate_random_parameters::<E, VMCircuit, ThreadRng>(circuit, rng)?;
+    let params = groth16::generate_random_parameters::<E, _, _>(circuit, rng)?;
 
     match result.expect("vm should return either output or error") {
         Ok(_) => Ok(params),
@@ -163,12 +185,16 @@ pub fn prove<E: Engine>(
 
     let witness_flat = witness.to_flat_values();
 
+    let storage = DummyStorage::new(20);
+
     let (result, proof) = {
         let mut result = None;
         let circuit = VMCircuit {
             program,
             inputs: Some(&witness_flat),
             result: &mut result,
+            storage,
+            _pd: PhantomData,
         };
 
         let proof = groth16::create_random_proof(circuit, params, rng)

@@ -1,7 +1,7 @@
 extern crate franklin_crypto;
 
-use self::franklin_crypto::bellman::{SynthesisError};
-use crate::core::{VirtualMachine, RuntimeError, VMInstruction};
+use self::franklin_crypto::bellman::SynthesisError;
+use crate::core::{RuntimeError, VMInstruction, VirtualMachine};
 
 use num_bigint::ToBigInt;
 use num_traits::Signed;

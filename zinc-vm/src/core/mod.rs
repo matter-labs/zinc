@@ -6,8 +6,13 @@ pub use state::*;
 
 use crate::core::location::CodeLocation;
 use crate::errors::MalformedBytecode;
-use crate::gadgets::{Gadgets, Scalar, ScalarType};
-use crate::{Engine, Result, gadgets};
+use crate::gadgets::contracts::merkle_tree_storage::merkle_tree_hash::{
+    MerkleTreeHasher, Sha256Hasher,
+};
+use crate::gadgets::contracts::merkle_tree_storage::MerkleTreeStorage;
+use crate::gadgets::{Gadgets, Scalar, ScalarType, StorageGadget};
+use crate::stdlib::NativeFunction;
+use crate::{gadgets, Engine, Result};
 use colored::Colorize;
 use franklin_crypto::bellman::ConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
@@ -15,10 +20,8 @@ use std::marker::PhantomData;
 use zinc_bytecode::data::types as object_types;
 use zinc_bytecode::program::Program;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
-use crate::stdlib::NativeFunction;
 
-pub trait VMInstruction<VM: VirtualMachine>: InstructionInfo
-{
+pub trait VMInstruction<VM: VirtualMachine>: InstructionInfo {
     fn execute(&self, vm: &mut VM) -> Result;
 }
 
@@ -63,7 +66,11 @@ pub trait VirtualMachine {
 
     // Operations with contracts' storage
 
-    fn storage_load(&mut self, address: &Scalar<Self::E>, size: usize) -> Result<Vec<Scalar<Self::E>>>;
+    fn storage_load(
+        &mut self,
+        address: &Scalar<Self::E>,
+        size: usize,
+    ) -> Result<Vec<Scalar<Self::E>>>;
     fn storage_store(&mut self, address: &Scalar<Self::E>, value: &[Scalar<Self::E>]) -> Result;
 
     fn loop_begin(&mut self, iter_count: usize) -> Result;
@@ -82,23 +89,43 @@ pub trait VirtualMachine {
     fn condition_top(&mut self) -> Result<Scalar<Self::E>>;
 
     fn constraint_system(&mut self) -> &mut Self::CS;
-    fn operations(&mut self) -> Gadgets<Self::E, bellman::Namespace<Self::E, <<Self as VirtualMachine>::CS as ConstraintSystem<Self::E>>::Root>>;
+    fn operations(
+        &mut self,
+    ) -> Gadgets<
+        Self::E,
+        bellman::Namespace<
+            Self::E,
+            <<Self as VirtualMachine>::CS as ConstraintSystem<Self::E>>::Root,
+        >,
+    >;
     fn is_debugging(&self) -> bool;
     fn get_location(&mut self) -> CodeLocation;
     fn set_location(&mut self, location: CodeLocation);
 }
 
-pub struct VMState<E: Engine, CS: ConstraintSystem<E>, S> {
+pub struct VMState<E, CS, S, H>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+    S: MerkleTreeStorage<E>,
+    H: MerkleTreeHasher<E>,
+{
     pub(crate) debugging: bool,
     state: State<E>,
     cs: CounterNamespace<E, CS>,
     outputs: Vec<Scalar<E>>,
     pub(crate) location: CodeLocation,
-    _pd: PhantomData<S>,
+    storage: StorageGadget<E, S, H>,
 }
 
-impl<E: Engine, CS: ConstraintSystem<E>, S> VMState<E, CS, S> {
-    pub fn new(cs: CS, debugging: bool) -> Self {
+impl<E, CS, S, H> VMState<E, CS, S, H>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+    S: MerkleTreeStorage<E>,
+    H: MerkleTreeHasher<E>,
+{
+    pub fn new(mut cs: CS, debugging: bool, storage: StorageGadget<E, S, H>) -> Self {
         Self {
             debugging,
             state: State {
@@ -111,7 +138,7 @@ impl<E: Engine, CS: ConstraintSystem<E>, S> VMState<E, CS, S> {
             cs: CounterNamespace::new(cs),
             outputs: vec![],
             location: CodeLocation::new(),
-            _pd: PhantomData,
+            storage,
         }
     }
 
@@ -138,6 +165,7 @@ impl<E: Engine, CS: ConstraintSystem<E>, S> VMState<E, CS, S> {
         self.condition_push(one)?;
 
         self.init_root_frame(&program.input, inputs)?;
+        self.init_storage()?;
 
         let mut step = 0;
         while self.state.instruction_counter < program.bytecode.len() {
@@ -164,6 +192,22 @@ impl<E: Engine, CS: ConstraintSystem<E>, S> VMState<E, CS, S> {
         }
 
         self.get_outputs()
+    }
+
+    fn init_storage(&mut self) -> Result {
+        // TODO: add root_hash to public input
+
+        // Temporary fix to avoid "unconstrained" error
+        let root_hash = self.storage.root_hash()?;
+        let cs = self.constraint_system();
+
+        gadgets::add(
+            cs.namespace(|| "root_hash constraint"),
+            &root_hash,
+            &Scalar::new_constant_int(1, ScalarType::Field),
+        )?;
+
+        Ok(())
     }
 
     fn init_root_frame(
@@ -256,10 +300,12 @@ fn data_type_into_scalar_types(dtype: &object_types::DataType) -> Vec<ScalarType
     types
 }
 
-impl<E, CS, S> VirtualMachine for VMState<E, CS, S>
+impl<E, CS, S, H> VirtualMachine for VMState<E, CS, S, H>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
+    S: MerkleTreeStorage<E>,
+    H: MerkleTreeHasher<E>,
 {
     type E = E;
     type CS = CS;
@@ -295,12 +341,16 @@ where
         self.state.data_stack.set(address, cell)
     }
 
-    fn storage_load(&mut self, _address: &Scalar<Self::E>, _size: usize) -> Result<Vec<Scalar<Self::E>>> {
-        unimplemented!()
+    fn storage_load(
+        &mut self,
+        address: &Scalar<Self::E>,
+        size: usize,
+    ) -> Result<Vec<Scalar<Self::E>>> {
+        self.storage.load(self.cs.namespace(), size, address)
     }
 
-    fn storage_store(&mut self, _address: &Scalar<Self::E>, _value: &[Scalar<Self::E>]) -> Result {
-        unimplemented!()
+    fn storage_store(&mut self, address: &Scalar<Self::E>, value: &[Scalar<Self::E>]) -> Result {
+        self.storage.store(self.cs.namespace(), address, value)
     }
 
     fn loop_begin(&mut self, iterations: usize) -> Result {

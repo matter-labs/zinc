@@ -1,5 +1,5 @@
 use crate::core::{VMInstruction, VirtualMachine};
-use crate::{Result};
+use crate::Result;
 
 use crate::gadgets;
 use franklin_crypto::bellman::ConstraintSystem;

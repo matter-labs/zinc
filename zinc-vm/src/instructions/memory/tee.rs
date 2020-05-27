@@ -1,5 +1,5 @@
-use crate::core::{VirtualMachine, VMInstruction};
-use crate::{Result};
+use crate::core::{VMInstruction, VirtualMachine};
+use crate::Result;
 
 use zinc_bytecode::instructions::Tee;
 

@@ -1,13 +1,12 @@
 extern crate franklin_crypto;
 
 use self::franklin_crypto::bellman::ConstraintSystem;
-use crate::core::{Cell, VirtualMachine, VMInstruction};
-use crate::core::{RuntimeError};
-use crate::{gadgets};
+use crate::core::RuntimeError;
+use crate::core::{Cell, VMInstruction, VirtualMachine};
+use crate::gadgets;
 use zinc_bytecode::instructions::And;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for And
-{
+impl<VM: VirtualMachine> VMInstruction<VM> for And {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
