@@ -1,15 +1,11 @@
-use crate::core::{Cell, InternalVM, VMInstruction};
-use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
-use franklin_crypto::bellman::ConstraintSystem;
+use crate::core::{Cell, VirtualMachine, VMInstruction};
+use crate::core::{RuntimeError};
+
+
 use zinc_bytecode::instructions::StoreByIndex;
 
-impl<E, CS> VMInstruction<E, CS> for StoreByIndex
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
+impl<VM: VirtualMachine> VMInstruction<VM> for StoreByIndex {
+    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let value = vm.pop()?.value()?;
         let index = vm.pop()?.value()?;
 

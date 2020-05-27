@@ -1,15 +1,11 @@
-use crate::core::{InternalVM, VMInstruction, VirtualMachine};
-use crate::{gadgets, Engine, Result};
+use crate::core::{VirtualMachine, VMInstruction};
+use crate::{gadgets, Result};
 
 use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::instructions::BitXor;
 
-impl<E, CS> VMInstruction<E, CS> for BitXor
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result {
+impl<VM: VirtualMachine> VMInstruction<VM> for BitXor {
+    fn execute(&self, vm: &mut VM) -> Result {
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
         let cs = vm.constraint_system();

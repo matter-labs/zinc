@@ -10,7 +10,7 @@ use rand::ThreadRng;
 use zinc_bytecode::program::Program;
 
 use crate::constraint_systems::{DebugConstraintSystem, DuplicateRemovingCS};
-use crate::core::VirtualMachine;
+use crate::core::{VMState, VirtualMachine};
 pub use crate::errors::{MalformedBytecode, Result, RuntimeError, TypeSizeError};
 use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
@@ -31,7 +31,7 @@ impl<E: Engine> Circuit<E> for VMCircuit<'_> {
     ) -> std::result::Result<(), SynthesisError> {
         // let cs = LoggingConstraintSystem::new(cs.namespace(|| "logging"));
         let cs = DuplicateRemovingCS::new(cs.namespace(|| "duplicates removing"));
-        let mut vm = VirtualMachine::new(cs, false);
+        let mut vm = VMState::<_, _, ()>::new(cs, false);
         *self.result = Some(vm.run(self.program, self.inputs, |_| {}, |_| Ok(())));
         Ok(())
     }
@@ -39,7 +39,7 @@ impl<E: Engine> Circuit<E> for VMCircuit<'_> {
 
 pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
     let cs = DebugConstraintSystem::<Bn256>::default();
-    let mut vm = VirtualMachine::new(cs, true);
+    let mut vm = VMState::<_, _, ()>::new(cs, true);
 
     let inputs_flat = inputs.to_flat_values();
 
@@ -83,7 +83,7 @@ pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
 
 pub fn debug<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
     let cs = TestConstraintSystem::<Bn256>::new();
-    let mut vm = VirtualMachine::new(cs, true);
+    let mut vm = VMState::<_, _, ()>::new(cs, true);
 
     let inputs_flat = inputs.to_flat_values();
 

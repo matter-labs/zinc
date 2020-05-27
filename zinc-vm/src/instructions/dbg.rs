@@ -1,25 +1,21 @@
 extern crate franklin_crypto;
 
-use self::franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
-use crate::core::{InternalVM, RuntimeError, VMInstruction, VirtualMachine};
-use crate::Engine;
+use self::franklin_crypto::bellman::{SynthesisError};
+use crate::core::{VirtualMachine, RuntimeError, VMInstruction};
+
 use num_bigint::ToBigInt;
 use num_traits::Signed;
 use zinc_bytecode::data::values::Value;
 use zinc_bytecode::instructions::Dbg;
 
-impl<E, CS> VMInstruction<E, CS> for Dbg
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
+impl<VM: VirtualMachine> VMInstruction<VM> for Dbg {
+    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let mut values = Vec::with_capacity(self.arg_types.len());
 
         for arg_type in self.arg_types.iter().rev() {
             let size = Value::default_from_type(arg_type).to_flat_values().len();
 
-            if vm.debugging {
+            if vm.is_debugging() {
                 let mut flat = Vec::with_capacity(size);
                 for _ in 0..size {
                     let value = vm.pop()?.value()?.to_bigint().ok_or_else(|| {
@@ -34,7 +30,7 @@ where
         }
 
         if let Some(condition) = vm.condition_top()?.to_bigint() {
-            if condition.is_positive() && vm.debugging {
+            if condition.is_positive() && vm.is_debugging() {
                 let mut buffer = self.format.clone();
                 for value in values.into_iter().rev() {
                     let json = serde_json::to_string(&value.to_json()).expect("valid json");

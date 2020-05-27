@@ -1,15 +1,13 @@
-mod internal;
 pub mod location;
 mod state;
 
 pub use crate::errors::RuntimeError;
-pub use internal::*;
 pub use state::*;
 
 use crate::core::location::CodeLocation;
 use crate::errors::MalformedBytecode;
 use crate::gadgets::{Gadgets, Scalar, ScalarType};
-use crate::Engine;
+use crate::{Engine, Result, gadgets};
 use colored::Colorize;
 use franklin_crypto::bellman::ConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
@@ -17,13 +15,11 @@ use std::marker::PhantomData;
 use zinc_bytecode::data::types as object_types;
 use zinc_bytecode::program::Program;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
+use crate::stdlib::NativeFunction;
 
-pub trait VMInstruction<E, CS>: InstructionInfo
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
+pub trait VMInstruction<VM: VirtualMachine>: InstructionInfo
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError>;
+    fn execute(&self, vm: &mut VM) -> Result;
 }
 
 struct CounterNamespace<E: Engine, CS: ConstraintSystem<E>> {
@@ -48,15 +44,60 @@ impl<E: Engine, CS: ConstraintSystem<E>> CounterNamespace<E, CS> {
     }
 }
 
-pub struct VirtualMachine<E: Engine, CS: ConstraintSystem<E>> {
+/// This trait represents virtual machine's interface. It is used by instructions.
+pub trait VirtualMachine {
+    type E: Engine;
+    type CS: ConstraintSystem<Self::E>;
+
+    // Operations with stack
+
+    fn push(&mut self, cell: Cell<Self::E>) -> Result;
+    fn pop(&mut self) -> Result<Cell<Self::E>>;
+
+    // Operations with memory
+
+    fn load(&mut self, address: usize) -> Result<Cell<Self::E>>;
+    fn load_global(&mut self, address: usize) -> Result<Cell<Self::E>>;
+    fn store(&mut self, address: usize, cell: Cell<Self::E>) -> Result;
+    fn store_global(&mut self, address: usize, cell: Cell<Self::E>) -> Result;
+
+    // Operations with contracts' storage
+
+    fn storage_load(&mut self, address: &Scalar<Self::E>, size: usize) -> Result<Vec<Scalar<Self::E>>>;
+    fn storage_store(&mut self, address: &Scalar<Self::E>, value: &[Scalar<Self::E>]) -> Result;
+
+    fn loop_begin(&mut self, iter_count: usize) -> Result;
+    fn loop_end(&mut self) -> Result;
+
+    fn call(&mut self, address: usize, inputs_count: usize) -> Result;
+    fn ret(&mut self, outputs_count: usize) -> Result;
+
+    fn branch_then(&mut self) -> Result;
+    fn branch_else(&mut self) -> Result;
+    fn branch_end(&mut self) -> Result;
+
+    fn exit(&mut self, values_count: usize) -> Result;
+    fn call_native<F: NativeFunction<Self::E>>(&mut self, function: F) -> Result;
+
+    fn condition_top(&mut self) -> Result<Scalar<Self::E>>;
+
+    fn constraint_system(&mut self) -> &mut Self::CS;
+    fn operations(&mut self) -> Gadgets<Self::E, bellman::Namespace<Self::E, <<Self as VirtualMachine>::CS as ConstraintSystem<Self::E>>::Root>>;
+    fn is_debugging(&self) -> bool;
+    fn get_location(&mut self) -> CodeLocation;
+    fn set_location(&mut self, location: CodeLocation);
+}
+
+pub struct VMState<E: Engine, CS: ConstraintSystem<E>, S> {
     pub(crate) debugging: bool,
     state: State<E>,
     cs: CounterNamespace<E, CS>,
     outputs: Vec<Scalar<E>>,
     pub(crate) location: CodeLocation,
+    _pd: PhantomData<S>,
 }
 
-impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
+impl<E: Engine, CS: ConstraintSystem<E>, S> VMState<E, CS, S> {
     pub fn new(cs: CS, debugging: bool) -> Self {
         Self {
             debugging,
@@ -70,11 +111,8 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             cs: CounterNamespace::new(cs),
             outputs: vec![],
             location: CodeLocation::new(),
+            _pd: PhantomData,
         }
-    }
-
-    pub fn constraint_system(&mut self) -> &mut CS {
-        &mut self.cs.cs
     }
 
     pub fn run<CB, F>(
@@ -83,10 +121,10 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         inputs: Option<&[BigInt]>,
         mut instruction_callback: CB,
         mut check_cs: F,
-    ) -> Result<Vec<Option<BigInt>>, RuntimeError>
+    ) -> Result<Vec<Option<BigInt>>>
     where
         CB: FnMut(&CS) -> (),
-        F: FnMut(&CS) -> Result<(), RuntimeError>,
+        F: FnMut(&CS) -> Result,
     {
         self.cs.cs.enforce(
             || "ONE * ONE = ONE (do this to avoid `unconstrained` error)",
@@ -132,7 +170,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         &mut self,
         input_type: &object_types::DataType,
         inputs: Option<&[BigInt]>,
-    ) -> Result<(), RuntimeError> {
+    ) -> Result {
         self.state
             .frames_stack
             .push(FunctionFrame::new(0, std::usize::MAX));
@@ -153,7 +191,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         Ok(())
     }
 
-    fn get_outputs(&mut self) -> Result<Vec<Option<BigInt>>, RuntimeError> {
+    fn get_outputs(&mut self) -> Result<Vec<Option<BigInt>>> {
         let outputs_fr: Vec<_> = self.outputs.iter().map(|f| (*f).clone()).collect();
 
         let mut outputs_bigint = Vec::with_capacity(outputs_fr.len());
@@ -165,31 +203,19 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         Ok(outputs_bigint)
     }
 
-    pub fn operations(&mut self) -> Gadgets<E, bellman::Namespace<E, CS::Root>> {
-        Gadgets::new(self.cs.namespace())
-    }
-
-    pub fn condition_push(&mut self, element: Scalar<E>) -> Result<(), RuntimeError> {
+    pub fn condition_push(&mut self, element: Scalar<E>) -> Result {
         self.state.conditions_stack.push(element);
         Ok(())
     }
 
-    pub fn condition_pop(&mut self) -> Result<Scalar<E>, RuntimeError> {
+    pub fn condition_pop(&mut self) -> Result<Scalar<E>> {
         self.state
             .conditions_stack
             .pop()
             .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 
-    pub fn condition_top(&mut self) -> Result<Scalar<E>, RuntimeError> {
-        self.state
-            .conditions_stack
-            .last()
-            .map(|e| (*e).clone())
-            .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
-    }
-
-    fn top_frame(&mut self) -> Result<&mut FunctionFrame<E>, RuntimeError> {
+    fn top_frame(&mut self) -> Result<&mut FunctionFrame<E>> {
         self.state
             .frames_stack
             .last_mut()
@@ -228,4 +254,254 @@ fn data_type_into_scalar_types(dtype: &object_types::DataType) -> Vec<ScalarType
     let mut types = Vec::new();
     internal(&mut types, dtype);
     types
+}
+
+impl<E, CS, S> VirtualMachine for VMState<E, CS, S>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    type E = E;
+    type CS = CS;
+
+    fn push(&mut self, cell: Cell<E>) -> Result {
+        self.state.evaluation_stack.push(cell)
+    }
+
+    fn pop(&mut self) -> Result<Cell<E>> {
+        self.state.evaluation_stack.pop()
+    }
+
+    fn load(&mut self, address: usize) -> Result<Cell<E>> {
+        let offset = self.top_frame()?.stack_frame_begin;
+        self.state.data_stack.get(offset + address)
+    }
+
+    fn load_global(&mut self, address: usize) -> Result<Cell<E>> {
+        self.state.data_stack.get(address)
+    }
+
+    fn store(&mut self, address: usize, cell: Cell<E>) -> Result {
+        {
+            let frame = self.top_frame()?;
+            frame.stack_frame_end =
+                std::cmp::max(frame.stack_frame_end, frame.stack_frame_begin + address + 1);
+        }
+        let offset = self.top_frame()?.stack_frame_begin;
+        self.state.data_stack.set(offset + address, cell)
+    }
+
+    fn store_global(&mut self, address: usize, cell: Cell<E>) -> Result {
+        self.state.data_stack.set(address, cell)
+    }
+
+    fn storage_load(&mut self, _address: &Scalar<Self::E>, _size: usize) -> Result<Vec<Scalar<Self::E>>> {
+        unimplemented!()
+    }
+
+    fn storage_store(&mut self, _address: &Scalar<Self::E>, _value: &[Scalar<Self::E>]) -> Result {
+        unimplemented!()
+    }
+
+    fn loop_begin(&mut self, iterations: usize) -> Result {
+        let frame = self
+            .state
+            .frames_stack
+            .last_mut()
+            .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
+
+        frame.blocks.push(Block::Loop(Loop {
+            first_instruction_index: self.state.instruction_counter,
+            iterations_left: iterations - 1,
+        }));
+
+        Ok(())
+    }
+
+    fn loop_end(&mut self) -> Result {
+        let frame = self.state.frames_stack.last_mut().unwrap();
+
+        match frame.blocks.pop() {
+            Some(Block::Loop(mut loop_block)) => {
+                if loop_block.iterations_left != 0 {
+                    loop_block.iterations_left -= 1;
+                    self.state.instruction_counter = loop_block.first_instruction_index;
+                    frame.blocks.push(Block::Loop(loop_block));
+                }
+                Ok(())
+            }
+            _ => Err(MalformedBytecode::UnexpectedLoopEnd.into()),
+        }
+    }
+
+    fn call(&mut self, address: usize, inputs_count: usize) -> Result {
+        let offset = self.top_frame()?.stack_frame_end;
+        self.state
+            .frames_stack
+            .push(FunctionFrame::new(offset, self.state.instruction_counter));
+
+        for i in 0..inputs_count {
+            let arg = self.pop()?;
+            self.store(inputs_count - i - 1, arg)?;
+        }
+
+        self.state.instruction_counter = address;
+        Ok(())
+    }
+
+    fn ret(&mut self, outputs_count: usize) -> Result {
+        let mut outputs = Vec::new();
+        for _ in 0..outputs_count {
+            let output = self.pop()?;
+            outputs.push(output);
+        }
+
+        let frame = self
+            .state
+            .frames_stack
+            .pop()
+            .ok_or(MalformedBytecode::StackUnderflow)?;
+
+        self.state.instruction_counter = frame.return_address;
+
+        for p in outputs.into_iter().rev() {
+            self.push(p)?;
+        }
+
+        Ok(())
+    }
+
+    fn branch_then(&mut self) -> Result {
+        let condition = self.pop()?.value()?;
+
+        let prev = self.condition_top()?;
+
+        let cs = self.constraint_system();
+        let next = gadgets::boolean::and(cs.namespace(|| "branch"), &condition, &prev)?;
+        self.state.conditions_stack.push(next);
+
+        let branch = Branch {
+            condition,
+            is_full: false,
+        };
+
+        self.top_frame()?.blocks.push(Block::Branch(branch));
+
+        self.state.evaluation_stack.fork();
+        self.state.data_stack.fork();
+
+        Ok(())
+    }
+
+    fn branch_else(&mut self) -> Result {
+        let frame = self
+            .state
+            .frames_stack
+            .last_mut()
+            .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
+
+        let mut branch = match frame.blocks.pop() {
+            Some(Block::Branch(branch)) => Ok(branch),
+            Some(_) | None => Err(RuntimeError::MalformedBytecode(
+                MalformedBytecode::UnexpectedElse,
+            )),
+        }?;
+
+        if branch.is_full {
+            return Err(MalformedBytecode::UnexpectedElse.into());
+        } else {
+            branch.is_full = true;
+        }
+
+        let condition = branch.condition.clone();
+
+        frame.blocks.push(Block::Branch(branch));
+
+        self.condition_pop()?;
+        let prev = self.condition_top()?;
+        let cs = self.constraint_system();
+        let not_cond = gadgets::not(cs.namespace(|| "not"), &condition)?;
+        let next = self.operations().and(prev, not_cond)?;
+        self.condition_push(next)?;
+
+        self.state.data_stack.switch_branch()?;
+        self.state.evaluation_stack.fork();
+
+        Ok(())
+    }
+
+    fn branch_end(&mut self) -> Result {
+        self.condition_pop()?;
+
+        let frame = self
+            .state
+            .frames_stack
+            .last_mut()
+            .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
+
+        let branch = match frame.blocks.pop() {
+            Some(Block::Branch(branch)) => Ok(branch),
+            Some(_) | None => Err(MalformedBytecode::UnexpectedEndIf),
+        }?;
+
+        if branch.is_full {
+            self.state
+                .evaluation_stack
+                .merge(self.cs.namespace(), &branch.condition)?;
+        } else {
+            self.state.evaluation_stack.revert()?;
+        }
+
+        self.state
+            .data_stack
+            .merge(branch.condition, &mut Gadgets::new(self.cs.namespace()))?;
+
+        Ok(())
+    }
+
+    fn exit(&mut self, outputs_count: usize) -> Result {
+        for _ in 0..outputs_count {
+            let value = self.pop()?.value()?;
+            self.outputs.push(value);
+        }
+        self.outputs.reverse();
+
+        self.state.instruction_counter = std::usize::MAX;
+        Ok(())
+    }
+
+    fn call_native<F: NativeFunction<E>>(&mut self, function: F) -> Result {
+        let stack = &mut self.state.evaluation_stack;
+        let cs = &mut self.cs.cs;
+
+        function.execute(cs.namespace(|| "native function"), stack)
+    }
+
+    fn condition_top(&mut self) -> Result<Scalar<E>> {
+        self.state
+            .conditions_stack
+            .last()
+            .map(|e| (*e).clone())
+            .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
+    }
+
+    fn constraint_system(&mut self) -> &mut CS {
+        &mut self.cs.cs
+    }
+
+    fn operations(&mut self) -> Gadgets<E, bellman::Namespace<E, CS::Root>> {
+        Gadgets::new(self.cs.namespace())
+    }
+
+    fn is_debugging(&self) -> bool {
+        self.debugging
+    }
+
+    fn get_location(&mut self) -> CodeLocation {
+        self.location.clone()
+    }
+
+    fn set_location(&mut self, location: CodeLocation) {
+        self.location = location;
+    }
 }

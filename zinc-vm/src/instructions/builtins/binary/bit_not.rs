@@ -1,17 +1,13 @@
-use crate::core::{InternalVM, VMInstruction, VirtualMachine};
+use crate::core::{VirtualMachine, VMInstruction};
 
-use crate::{gadgets, Engine, Result};
+use crate::{gadgets, Result};
 
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::instructions::BitNot;
 
-impl<E, CS> VMInstruction<E, CS> for BitNot
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result {
+impl<VM: VirtualMachine> VMInstruction<VM> for BitNot {
+    fn execute(&self, vm: &mut VM) -> Result {
         let scalar = vm.pop()?.value()?;
         let cs = vm.constraint_system();
         let result = gadgets::bits::bit_not(cs.namespace(|| "bit_and"), &scalar)?;

@@ -1,19 +1,13 @@
-extern crate franklin_crypto;
 
-use self::franklin_crypto::bellman::ConstraintSystem;
-use crate::core::{InternalVM, VMInstruction};
-use crate::core::{RuntimeError, VirtualMachine};
+use crate::core::{VirtualMachine, VMInstruction};
+use crate::core::{RuntimeError};
 use crate::stdlib::crypto::VerifySchnorrSignature;
-use crate::{stdlib, Engine};
+use crate::{stdlib};
 use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::instructions::CallBuiltin;
 
-impl<E, CS> VMInstruction<E, CS> for CallBuiltin
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
+impl<VM: VirtualMachine> VMInstruction<VM> for CallBuiltin {
+    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         match self.identifier {
             BuiltinIdentifier::CryptoSchnorrSignatureVerify => {
                 vm.call_native(VerifySchnorrSignature::new(self.inputs_count)?)

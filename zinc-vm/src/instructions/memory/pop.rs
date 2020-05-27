@@ -1,15 +1,11 @@
-use crate::core::{InternalVM, VMInstruction};
-use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
-use franklin_crypto::bellman::ConstraintSystem;
+use crate::core::{VirtualMachine, VMInstruction};
+use crate::core::{RuntimeError};
+
+
 use zinc_bytecode::instructions::Pop;
 
-impl<E, CS> VMInstruction<E, CS> for Pop
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
+impl<VM: VirtualMachine> VMInstruction<VM> for Pop {
+    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         for _ in 0..self.count {
             vm.pop()?.value()?;
         }

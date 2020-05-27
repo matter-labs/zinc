@@ -1,6 +1,7 @@
 use std::fmt;
 use std::fmt::{Error, Formatter};
 
+#[derive(Clone)]
 pub struct CodeLocation {
     pub file: Option<String>,
     pub function: Option<String>,

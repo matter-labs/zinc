@@ -1,21 +1,18 @@
 extern crate franklin_crypto;
 
 use self::franklin_crypto::bellman::ConstraintSystem;
-use crate::core::{Cell, InternalVM, VMInstruction};
-use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
+use crate::core::{Cell, VirtualMachine, VMInstruction};
+use crate::core::{RuntimeError};
+use crate::{gadgets};
 use zinc_bytecode::instructions::Xor;
 
-impl<E, CS> VMInstruction<E, CS> for Xor
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
+impl<VM: VirtualMachine> VMInstruction<VM> for Xor {
+    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let xor = vm.operations().xor(left, right)?;
+        let cs = vm.constraint_system();
+        let xor = gadgets::comparison::ne(cs.namespace(|| "xor"), &left, &right)?;
 
         vm.push(Cell::Value(xor))
     }

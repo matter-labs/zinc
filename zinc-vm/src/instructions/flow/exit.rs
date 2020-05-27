@@ -1,17 +1,13 @@
 extern crate franklin_crypto;
 
-use self::franklin_crypto::bellman::ConstraintSystem;
-use crate::core::{InternalVM, VMInstruction};
-use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
+
+use crate::core::{VirtualMachine, VMInstruction};
+use crate::core::{RuntimeError};
+
 use zinc_bytecode::instructions::Exit;
 
-impl<E, CS> VMInstruction<E, CS> for Exit
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
+impl<VM: VirtualMachine> VMInstruction<VM> for Exit {
+    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         vm.exit(self.outputs_count)?;
         Ok(())
     }

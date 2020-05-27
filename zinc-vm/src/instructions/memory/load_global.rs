@@ -1,15 +1,11 @@
-use crate::core::{InternalVM, VMInstruction};
-use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
-use franklin_crypto::bellman::ConstraintSystem;
+use crate::core::{VirtualMachine, VMInstruction};
+use crate::core::{RuntimeError};
+
+
 use zinc_bytecode::LoadGlobal;
 
-impl<E, CS> VMInstruction<E, CS> for LoadGlobal
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
+impl<VM: VirtualMachine> VMInstruction<VM> for LoadGlobal {
+    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let value = vm.load_global(self.address)?;
         vm.push(value)
     }

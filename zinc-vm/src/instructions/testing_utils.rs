@@ -1,4 +1,4 @@
-use crate::core::{InternalVM, RuntimeError, VirtualMachine};
+use crate::core::{VirtualMachine, RuntimeError, VMState};
 use crate::Engine;
 use bellman::pairing::bn256::Bn256;
 use colored::Colorize;
@@ -9,14 +9,14 @@ use num_bigint::{BigInt, ToBigInt};
 use zinc_bytecode::data::types::DataType;
 use zinc_bytecode::{Call, Instruction, InstructionInfo, Program};
 
-type TestVirtualMachine = VirtualMachine<Bn256, TestConstraintSystem<Bn256>>;
+type TestVirtualMachine = VMState<Bn256, TestConstraintSystem<Bn256>, ()>;
 
 fn new_test_constrained_vm() -> TestVirtualMachine {
     let cs = TestConstraintSystem::new();
     TestVirtualMachine::new(cs, true)
 }
 
-fn assert_stack_eq<E, CS, BI>(vm: &mut VirtualMachine<E, CS>, expected_stack: &[BI])
+fn assert_stack_eq<E, CS, BI>(vm: &mut VMState<E, CS, ()>, expected_stack: &[BI])
 where
     E: Engine,
     CS: ConstraintSystem<E>,

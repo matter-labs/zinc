@@ -1,33 +1,36 @@
-use crate::core::VirtualMachine;
-use crate::core::{InternalVM, VMInstruction};
-use crate::gadgets::Scalar;
-use crate::{Engine, Result};
-use franklin_crypto::bellman::ConstraintSystem;
-use zinc_bytecode::scalar::ScalarType;
+
+use crate::core::{VirtualMachine, VMInstruction};
+use crate::{Result};
+
 use zinc_bytecode::{StorageLoad, StorageStore};
 
-impl<E, CS> VMInstruction<E, CS> for StorageStore
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result {
+impl<VM: VirtualMachine> VMInstruction<VM> for StorageStore {
+    fn execute(&self, vm: &mut VM) -> Result {
+        let address = vm.pop()?.value()?;
+
+        let mut values = Vec::with_capacity(self.size);
         for _ in 0..self.size {
-            vm.pop()?;
+            let v = vm.pop()?.value()?;
+            values.push(v);
         }
+        values.reverse();
+
+        vm.storage_store(&address, &values)?;
+
         Ok(())
     }
 }
 
-impl<E, CS> VMInstruction<E, CS> for StorageLoad
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result {
-        for _ in 0..self.size {
-            vm.push(Scalar::new_constant_int(0, ScalarType::Field).into())?;
+impl<VM: VirtualMachine> VMInstruction<VM> for StorageLoad {
+    fn execute(&self, vm: &mut VM) -> Result {
+        let address = vm.pop()?.value()?;
+
+        let values = vm.storage_load(&address, self.size)?;
+
+        for value in values {
+            vm.push(value.into())?;
         }
+
         Ok(())
     }
 }
