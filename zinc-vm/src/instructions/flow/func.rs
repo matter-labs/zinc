@@ -1,27 +1,18 @@
 extern crate franklin_crypto;
 
-use self::franklin_crypto::bellman::ConstraintSystem;
-use crate::core::{InternalVM, VMInstruction};
-use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
+use crate::core::RuntimeError;
+use crate::core::{VMInstruction, VirtualMachine};
+
 use zinc_bytecode::{Call, Return};
 
-impl<E, CS> VMInstruction<E, CS> for Call
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
+impl<VM: VirtualMachine> VMInstruction<VM> for Call {
+    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         vm.call(self.address, self.inputs_count)
     }
 }
 
-impl<E, CS> VMInstruction<E, CS> for Return
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
+impl<VM: VirtualMachine> VMInstruction<VM> for Return {
+    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         vm.ret(self.outputs_count)
     }
 }

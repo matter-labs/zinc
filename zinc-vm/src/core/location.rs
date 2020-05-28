@@ -1,5 +1,6 @@
 use std::fmt;
 
+#[derive(Clone)]
 pub struct CodeLocation {
     pub file: Option<String>,
     pub function: Option<String>,

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::BuiltinIdentifier;
@@ -26,6 +27,17 @@ where
     CS: ConstraintSystem<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
+=======
+use crate::core::RuntimeError;
+use crate::core::{VMInstruction, VirtualMachine};
+use crate::stdlib;
+use crate::stdlib::crypto::VerifySchnorrSignature;
+use zinc_bytecode::builtins::BuiltinIdentifier;
+use zinc_bytecode::instructions::CallBuiltin;
+
+impl<VM: VirtualMachine> VMInstruction<VM> for CallBuiltin {
+    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+>>>>>>> am/storage
         match self.identifier {
             BuiltinIdentifier::CryptoSchnorrSignatureVerify => {
                 vm.call_native(VerifySchnorrSignature::new(self.inputs_count)?)
