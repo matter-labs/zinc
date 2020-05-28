@@ -1,18 +1,24 @@
-use crate::auto_const;
-use crate::error::Result;
-use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::Scalar;
-use crate::Engine;
 use ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
+
 use zinc_bytecode::ScalarType;
 
-pub fn mul<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+use crate::auto_const;
+use crate::error::RuntimeError;
+use crate::gadgets::auto_const::prelude::*;
+use crate::gadgets::scalar::Scalar;
+use crate::Engine;
+
+pub fn mul<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    pub fn mul_inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+    pub fn mul_inner<E, CS>(
+        mut cs: CS,
+        left: &Scalar<E>,
+        right: &Scalar<E>,
+    ) -> Result<Scalar<E>, RuntimeError>
     where
         E: Engine,
         CS: ConstraintSystem<E>,

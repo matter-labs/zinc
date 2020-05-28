@@ -4,18 +4,18 @@
 
 use zinc_bytecode::Add;
 use zinc_bytecode::IntegerType;
-use zinc_bytecode::PushConst;
+use zinc_bytecode::Push;
 use zinc_bytecode::Sub;
 
 use crate::error::RuntimeError;
-use crate::instructions::testing_utils::TestingError;
-use crate::instructions::testing_utils::VMTestRunner;
+use crate::tests::TestingError;
+use crate::tests::VMTestRunner;
 
 #[test]
 fn unsigned_positive_overflow_fail() {
     let res = VMTestRunner::new()
-        .add(PushConst::new(255.into(), IntegerType::U8.into()))
-        .add(PushConst::new(1.into(), IntegerType::U8.into()))
+        .add(Push::new(255.into(), IntegerType::U8.into()))
+        .add(Push::new(1.into(), IntegerType::U8.into()))
         .add(Add)
         .test(&[256]);
 
@@ -28,8 +28,8 @@ fn unsigned_positive_overflow_fail() {
 #[test]
 fn unsigned_negative_overflow_fail() {
     let res = VMTestRunner::new()
-        .add(PushConst::new(254.into(), IntegerType::U8.into()))
-        .add(PushConst::new(255.into(), IntegerType::U8.into()))
+        .add(Push::new(254.into(), IntegerType::U8.into()))
+        .add(Push::new(255.into(), IntegerType::U8.into()))
         .add(Sub)
         .test(&[-1]);
 
@@ -42,8 +42,8 @@ fn unsigned_negative_overflow_fail() {
 #[test]
 fn signed_positive_overflow_fail() {
     let res = VMTestRunner::new()
-        .add(PushConst::new(127.into(), IntegerType::I8.into()))
-        .add(PushConst::new(1.into(), IntegerType::I8.into()))
+        .add(Push::new(127.into(), IntegerType::I8.into()))
+        .add(Push::new(1.into(), IntegerType::I8.into()))
         .add(Add)
         .test(&[128]);
 
@@ -56,8 +56,8 @@ fn signed_positive_overflow_fail() {
 #[test]
 fn signed_negative_overflow_fail() {
     let res = VMTestRunner::new()
-        .add(PushConst::new((-128).into(), IntegerType::I8.into()))
-        .add(PushConst::new(1.into(), IntegerType::I8.into()))
+        .add(Push::new((-128).into(), IntegerType::I8.into()))
+        .add(Push::new(1.into(), IntegerType::I8.into()))
         .add(Sub)
         .test(&[-129]);
 
@@ -70,8 +70,8 @@ fn signed_negative_overflow_fail() {
 #[test]
 fn unsigned_positive_overflow_ok() -> Result<(), TestingError> {
     VMTestRunner::new()
-        .add(PushConst::new(254.into(), IntegerType::U8.into()))
-        .add(PushConst::new(1.into(), IntegerType::U8.into()))
+        .add(Push::new(254.into(), IntegerType::U8.into()))
+        .add(Push::new(1.into(), IntegerType::U8.into()))
         .add(Add)
         .test(&[255])
 }
@@ -79,8 +79,8 @@ fn unsigned_positive_overflow_ok() -> Result<(), TestingError> {
 #[test]
 fn unsigned_negative_overflow_ok() -> Result<(), TestingError> {
     VMTestRunner::new()
-        .add(PushConst::new(255.into(), IntegerType::U8.into()))
-        .add(PushConst::new(255.into(), IntegerType::U8.into()))
+        .add(Push::new(255.into(), IntegerType::U8.into()))
+        .add(Push::new(255.into(), IntegerType::U8.into()))
         .add(Sub)
         .test(&[0])
 }
@@ -88,8 +88,8 @@ fn unsigned_negative_overflow_ok() -> Result<(), TestingError> {
 #[test]
 fn signed_positive_overflow_ok() -> Result<(), TestingError> {
     VMTestRunner::new()
-        .add(PushConst::new(126.into(), IntegerType::I8.into()))
-        .add(PushConst::new(1.into(), IntegerType::I8.into()))
+        .add(Push::new(126.into(), IntegerType::I8.into()))
+        .add(Push::new(1.into(), IntegerType::I8.into()))
         .add(Add)
         .test(&[127])
 }
@@ -97,8 +97,8 @@ fn signed_positive_overflow_ok() -> Result<(), TestingError> {
 #[test]
 fn signed_negative_overflow_ok() -> Result<(), TestingError> {
     VMTestRunner::new()
-        .add(PushConst::new((-127).into(), IntegerType::I8.into()))
-        .add(PushConst::new(1.into(), IntegerType::I8.into()))
+        .add(Push::new((-127).into(), IntegerType::I8.into()))
+        .add(Push::new(1.into(), IntegerType::I8.into()))
         .add(Sub)
         .test(&[-128])
 }

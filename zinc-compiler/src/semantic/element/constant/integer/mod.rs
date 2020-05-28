@@ -15,7 +15,7 @@ use num_traits::Num;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
 
-use zinc_utils::euclidean;
+use zinc_utils::math;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
@@ -568,7 +568,7 @@ impl Integer {
         }
 
         let (result, _remainder) =
-            euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroDivision {
+            math::euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroDivision {
                 location: other.location,
             })?;
         if result.is_negative() && !self.is_signed {
@@ -618,7 +618,7 @@ impl Integer {
         }
 
         let (_quotient, result) =
-            euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroRemainder {
+            math::euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroRemainder {
                 location: other.location,
             })?;
         if result.is_negative() && !self.is_signed {

@@ -1,11 +1,17 @@
-use crate::core::Cell;
+//!
+//! The VM state evaluation stack.
+//!
+
+use std::fmt;
+
+use franklin_crypto::bellman::ConstraintSystem;
+
+use crate::core::state::cell::Cell;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
 use crate::gadgets;
-use crate::gadgets::Scalar;
+use crate::gadgets::scalar::Scalar;
 use crate::Engine;
-use franklin_crypto::bellman::ConstraintSystem;
-use std::fmt;
 
 #[derive(Debug)]
 pub struct EvaluationStack<E: Engine> {
@@ -63,7 +69,7 @@ impl<E: Engine> EvaluationStack<E> {
         for (i, (t, e)) in then_case.into_iter().zip(else_case.into_iter()).enumerate() {
             match (t, e) {
                 (Cell::Value(tv), Cell::Value(ev)) => {
-                    let merged = gadgets::conditional_select(
+                    let merged = gadgets::conditional_select::conditional_select(
                         cs.namespace(|| format!("merge {}", i)),
                         condition,
                         &tv,

@@ -1,5 +1,9 @@
+//!
+//! The VM state cell.
+//!
+
 use crate::error::RuntimeError;
-use crate::gadgets::Scalar;
+use crate::gadgets::scalar::Scalar;
 use crate::Engine;
 
 #[derive(Debug, Clone)]

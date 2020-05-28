@@ -32,7 +32,7 @@ pub use self::instruction::markers::line::LineMarker;
 pub use self::instruction::memory::copy::Copy;
 pub use self::instruction::memory::load::Load;
 pub use self::instruction::memory::load_by_index::LoadByIndex;
-pub use self::instruction::memory::push_const::PushConst;
+pub use self::instruction::memory::push_const::Push;
 pub use self::instruction::memory::slice::Slice;
 pub use self::instruction::memory::store::Store;
 pub use self::instruction::memory::store_by_index::StoreByIndex;

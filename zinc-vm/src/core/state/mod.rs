@@ -1,14 +1,18 @@
-mod cell;
-mod data_stack;
-mod evaluation_stack;
+//!
+//! The VM state.
+//!
 
-pub use cell::*;
-pub use data_stack::*;
-pub use evaluation_stack::*;
+pub mod cell;
+pub mod data_stack;
+pub mod evaluation_stack;
 
-use crate::gadgets::Scalar;
-use crate::Engine;
 use std::fmt;
+
+use crate::gadgets::scalar::Scalar;
+use crate::Engine;
+
+use self::data_stack::DataStack;
+use self::evaluation_stack::EvaluationStack;
 
 #[derive(Debug)]
 pub struct Loop {
@@ -61,7 +65,7 @@ impl<E: Engine> fmt::Display for State<E> {
         writeln!(f, "{}", self.evaluation_stack)?;
         writeln!(
             f,
-            "Data Stack Offset: {}\n",
+            "Data stack offset: {}\n",
             self.frames_stack.last().unwrap().stack_frame_begin
         )?;
         writeln!(f, "{}", self.data_stack)?;

@@ -9,8 +9,6 @@ use franklin_crypto::bellman::SynthesisError;
 
 use zinc_bytecode::ScalarType;
 
-pub type Result<T = ()> = std::result::Result<T, RuntimeError>;
-
 #[derive(Debug, Fail)]
 pub enum TypeSizeError {
     #[fail(display = "expected input value of size {}, got {}", expected, actual)]
@@ -45,6 +43,15 @@ pub enum MalformedBytecode {
 
     #[fail(display = "conditional branches produced results of different sizes")]
     BranchStacksDoNotMatch,
+}
+
+#[derive(Debug, Fail)]
+pub enum VerificationError {
+    #[fail(display = "value overflow: value {} is not in the field", _0)]
+    ValueOverflow(BigInt),
+
+    #[fail(display = "failed to synthesize circuit: {}", _0)]
+    SynthesisError(SynthesisError),
 }
 
 #[derive(Debug, Fail)]

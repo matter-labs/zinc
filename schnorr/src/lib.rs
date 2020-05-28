@@ -1,7 +1,8 @@
 use rand::Rng;
 
 use franklin_crypto::bellman::pairing::ff::PrimeField;
-use franklin_crypto::{eddsa, jubjub};
+use franklin_crypto::eddsa;
+use franklin_crypto::jubjub;
 
 pub fn generate_private_key<E: jubjub::JubjubEngine>() -> eddsa::PrivateKey<E> {
     let mut rng = rand::OsRng::new().expect("failed to open randomness source");

@@ -1,10 +1,14 @@
-use bellman::ConstraintSystem;
-use franklin_crypto::circuit::sha256::sha256;
+//!
+//! The `std::crypto::sha256` function.
+//!
 
-use crate::core::EvaluationStack;
+use bellman::ConstraintSystem;
+use franklin_crypto::circuit::sha256;
+
+use crate::core::state::evaluation_stack::EvaluationStack;
 use crate::error::MalformedBytecode;
-use crate::error::Result;
-use crate::gadgets::Scalar;
+use crate::error::RuntimeError;
+use crate::gadgets::scalar::Scalar;
 use crate::stdlib::NativeFunction;
 use crate::Engine;
 
@@ -13,7 +17,7 @@ pub struct Sha256 {
 }
 
 impl Sha256 {
-    pub fn new(message_length: usize) -> Result<Self> {
+    pub fn new(message_length: usize) -> Result<Self, RuntimeError> {
         if message_length % 8 == 0 {
             Ok(Self { message_length })
         } else {
@@ -31,7 +35,7 @@ impl<E: Engine> NativeFunction<E> for Sha256 {
         &self,
         mut cs: CS,
         stack: &mut EvaluationStack<E>,
-    ) -> Result {
+    ) -> Result<(), RuntimeError> {
         let mut bits = Vec::new();
         for i in 0..self.message_length {
             let bit = stack
@@ -43,7 +47,7 @@ impl<E: Engine> NativeFunction<E> for Sha256 {
         }
         bits.reverse();
 
-        let digest_bits = sha256(cs.namespace(|| "sha256"), &bits)?;
+        let digest_bits = sha256::sha256(cs.namespace(|| "sha256"), &bits)?;
 
         assert_eq!(digest_bits.len(), 256);
 

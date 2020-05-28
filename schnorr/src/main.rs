@@ -4,7 +4,8 @@ use std::process::exit;
 
 use structopt::StructOpt;
 
-use self::arguments::{Arguments, Command};
+use self::arguments::Arguments;
+use self::arguments::Command;
 
 fn main() {
     let arguments: Arguments = Arguments::from_args();

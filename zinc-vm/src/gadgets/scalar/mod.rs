@@ -1,23 +1,30 @@
-mod scalar_type;
+pub mod scalar_type;
 
-pub use scalar_type::*;
-
-use bellman::{ConstraintSystem, Variable};
-use num_traits::ToPrimitive;
 use std::fmt;
 
-use crate::error::Result;
-use crate::error::RuntimeError;
-use crate::gadgets::utils;
-use crate::Engine;
-use ff::{Field, PrimeField};
-use franklin_crypto::bellman::{LinearCombination, SynthesisError};
-use franklin_crypto::circuit::boolean::{AllocatedBit, Boolean};
+use num_bigint::BigInt;
+use num_bigint::ToBigInt;
+use num_traits::ToPrimitive;
+
+use bellman::ConstraintSystem;
+use bellman::Variable;
+use ff::Field;
+use ff::PrimeField;
+use franklin_crypto::bellman::LinearCombination;
+use franklin_crypto::bellman::SynthesisError;
+use franklin_crypto::circuit::boolean::AllocatedBit;
+use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::Assignment;
-use num_bigint::{BigInt, ToBigInt};
+
 use zinc_bytecode::ScalarType;
+
+use crate::error::RuntimeError;
+use crate::gadgets::fr_bigint;
+use crate::Engine;
+
+use self::scalar_type::ScalarTypeExpectation;
 
 /// Scalar is a primitive value that can be stored on the stack and operated by VM's instructions.
 #[derive(Debug, Clone)]
@@ -74,8 +81,11 @@ impl<E: Engine> Scalar<E> {
         }
     }
 
-    pub fn new_constant_bigint(value: &BigInt, scalar_type: ScalarType) -> Result<Self> {
-        let fr = utils::bigint_to_fr::<E>(value).ok_or(RuntimeError::ValueOverflow {
+    pub fn new_constant_bigint(
+        value: &BigInt,
+        scalar_type: ScalarType,
+    ) -> Result<Self, RuntimeError> {
+        let fr = fr_bigint::bigint_to_fr::<E>(value).ok_or(RuntimeError::ValueOverflow {
             value: value.clone(),
             scalar_type: scalar_type.clone(),
         })?;
@@ -97,7 +107,7 @@ impl<E: Engine> Scalar<E> {
         Expression::new(self.get_value(), self.lc::<CS>())
     }
 
-    pub fn to_boolean<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Boolean> {
+    pub fn to_boolean<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Boolean, RuntimeError> {
         self.scalar_type.assert_type(ScalarType::Boolean)?;
 
         match &self.variant {
@@ -139,16 +149,16 @@ impl<E: Engine> Scalar<E> {
         self.get_value().grab()
     }
 
-    pub fn get_constant(&self) -> Result<E::Fr> {
+    pub fn get_constant(&self) -> Result<E::Fr, RuntimeError> {
         match &self.variant {
             ScalarVariant::Constant(constant) => Ok(constant.value.to_owned()),
             _ => Err(RuntimeError::ExpectedConstant),
         }
     }
 
-    pub fn get_constant_usize(&self) -> Result<usize> {
+    pub fn get_constant_usize(&self) -> Result<usize, RuntimeError> {
         let fr = self.get_constant()?;
-        let bigint = utils::fr_to_bigint(&fr, false);
+        let bigint = fr_bigint::fr_to_bigint(&fr, false);
         bigint
             .to_usize()
             .ok_or_else(|| RuntimeError::ExpectedUsize(bigint))
@@ -181,7 +191,10 @@ impl<E: Engine> Scalar<E> {
         }
     }
 
-    pub fn get_bits_le<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Vec<Self>> {
+    pub fn get_bits_le<CS: ConstraintSystem<E>>(
+        &self,
+        mut cs: CS,
+    ) -> Result<Vec<Self>, RuntimeError> {
         let num = self.to_expression::<CS>();
         let bits = match self.scalar_type {
             ScalarType::Field => num.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict")),
@@ -204,7 +217,10 @@ impl<E: Engine> Scalar<E> {
         }
     }
 
-    pub fn from_boolean<CS: ConstraintSystem<E>>(mut cs: CS, boolean: Boolean) -> Result<Self> {
+    pub fn from_boolean<CS: ConstraintSystem<E>>(
+        mut cs: CS,
+        boolean: Boolean,
+    ) -> Result<Self, RuntimeError> {
         match boolean {
             Boolean::Is(bit) => Ok(Self::new_unchecked_variable(
                 bit.get_value_field::<E>(),
@@ -224,7 +240,7 @@ impl<E: Engine> Scalar<E> {
         }
     }
 
-    pub fn as_constant_unchecked(&self) -> Result<Self> {
+    pub fn as_constant_unchecked(&self) -> Result<Self, RuntimeError> {
         Ok(Self::new_constant_fr(self.grab_value()?, self.get_type()))
     }
 }
@@ -233,7 +249,7 @@ impl<E: Engine> Scalar<E> {
 //    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 //        let value_str = self
 //            .value
-//            .map(|f| utils::fr_to_bigint(&f, self.is_signed()).to_string())
+//            .map(|f| fr_bigint::fr_to_bigint(&f, self.is_signed()).to_string())
 //            .unwrap_or_else(|| "none".into());
 //
 //        write!(
@@ -248,7 +264,7 @@ impl<E: Engine> fmt::Display for Scalar<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value_str = self
             .get_value()
-            .map(|f| utils::fr_to_bigint(&f, self.is_signed()).to_string())
+            .map(|f| fr_bigint::fr_to_bigint(&f, self.is_signed()).to_string())
             .unwrap_or_else(|| "none".into());
 
         let det = if self.is_constant() { "det" } else { "witness" };
@@ -259,7 +275,7 @@ impl<E: Engine> fmt::Display for Scalar<E> {
 impl<E: Engine> ToBigInt for Scalar<E> {
     fn to_bigint(&self) -> Option<BigInt> {
         self.get_value()
-            .map(|fr| utils::fr_to_bigint(&fr, self.is_signed()))
+            .map(|fr| fr_bigint::fr_to_bigint(&fr, self.is_signed()))
     }
 }
 

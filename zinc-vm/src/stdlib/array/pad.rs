@@ -1,16 +1,21 @@
-use crate::core::EvaluationStack;
+//!
+//! The `std::array::pad` function.
+//!
+
+use bellman::ConstraintSystem;
+
+use crate::core::state::evaluation_stack::EvaluationStack;
 use crate::error::MalformedBytecode;
-use crate::error::Result;
+use crate::error::RuntimeError;
 use crate::stdlib::NativeFunction;
 use crate::Engine;
-use bellman::ConstraintSystem;
 
 pub struct Pad {
     array_length: usize,
 }
 
 impl Pad {
-    pub fn new(inputs_count: usize) -> Result<Self> {
+    pub fn new(inputs_count: usize) -> Result<Self, RuntimeError> {
         inputs_count
             .checked_sub(2)
             .map(|array_length| Self { array_length })
@@ -24,7 +29,11 @@ impl Pad {
 }
 
 impl<E: Engine> NativeFunction<E> for Pad {
-    fn execute<CS: ConstraintSystem<E>>(&self, _cs: CS, stack: &mut EvaluationStack<E>) -> Result {
+    fn execute<CS: ConstraintSystem<E>>(
+        &self,
+        _cs: CS,
+        stack: &mut EvaluationStack<E>,
+    ) -> Result<(), RuntimeError> {
         let filler = stack.pop()?.value()?;
         let new_length = stack.pop()?.value()?.get_constant_usize()?;
 

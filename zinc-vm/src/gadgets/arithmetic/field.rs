@@ -5,17 +5,17 @@ use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::Assignment;
 
 use crate::auto_const;
-use crate::error::Result;
+use crate::error::RuntimeError;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::Scalar;
+use crate::gadgets::scalar::Scalar;
 use crate::Engine;
 
-pub fn inverse<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
+pub fn inverse<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
+    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
     where
         E: Engine,
         CS: ConstraintSystem<E>,
@@ -44,8 +44,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use bellman::ConstraintSystem;
     use ff::Field;
     use franklin_crypto::circuit::test::TestConstraintSystem;
@@ -54,7 +52,8 @@ mod tests {
 
     use zinc_bytecode::ScalarType;
 
-    use crate::gadgets::Scalar;
+    use crate::gadgets;
+    use crate::gadgets::scalar::Scalar;
 
     #[test]
     fn test_inverse() {
@@ -63,9 +62,12 @@ mod tests {
         let zero = Scalar::new_constant_int(0, ScalarType::Field);
         let one = Scalar::new_constant_int(1, ScalarType::Field);
 
-        assert!(inverse(cs.namespace(|| "zero"), &zero).is_err(), "zero");
+        assert!(
+            gadgets::arithmetic::field::inverse(cs.namespace(|| "zero"), &zero).is_err(),
+            "zero"
+        );
         assert_eq!(
-            inverse(cs.namespace(|| "one"), &one)
+            gadgets::arithmetic::field::inverse(cs.namespace(|| "one"), &one)
                 .unwrap()
                 .get_value()
                 .unwrap(),

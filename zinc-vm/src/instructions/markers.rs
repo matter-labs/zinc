@@ -1,22 +1,16 @@
-use crate::core::location::CodeLocation;
-use crate::core::{VMInstruction, VirtualMachine};
-<<<<<<< HEAD
-use crate::error::RuntimeError;
-use crate::Engine;
-use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::ColumnMarker;
 use zinc_bytecode::FileMarker;
 use zinc_bytecode::FunctionMarker;
 use zinc_bytecode::LineMarker;
-=======
-use crate::RuntimeError;
 
-use zinc_bytecode::instructions::*;
->>>>>>> am/storage
+use crate::core::location::Location;
+use crate::core::VMInstruction;
+use crate::core::VirtualMachine;
+use crate::error::RuntimeError;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for FileMarker {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        vm.set_location(CodeLocation {
+        vm.set_location(Location {
             file: Some(self.file.clone()),
             function: None,
             line: None,

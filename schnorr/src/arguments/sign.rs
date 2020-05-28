@@ -8,7 +8,8 @@ use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::eddsa;
 
-use crate::arguments::{fr_into_hex, Error};
+use crate::arguments::fr_into_hex;
+use crate::arguments::Error;
 
 #[derive(StructOpt)]
 #[structopt(name = "sign", about = "generate signature")]

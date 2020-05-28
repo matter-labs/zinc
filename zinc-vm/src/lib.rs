@@ -1,18 +1,7 @@
-<<<<<<< HEAD
 //!
 //! The Zinc virtual machine library.
 //!
-=======
-pub mod constraint_systems;
-mod core;
-mod errors;
-pub mod gadgets;
-mod instructions;
-pub mod stdlib;
-pub mod storage;
->>>>>>> am/storage
 
-#[cfg(test)]
 mod tests;
 
 pub(crate) mod constraint_systems;
@@ -22,6 +11,7 @@ pub mod facade;
 pub mod gadgets;
 pub(crate) mod instructions;
 pub(crate) mod stdlib;
+pub mod storage;
 
 use std::fmt;
 
@@ -32,12 +22,12 @@ use franklin_crypto::alt_babyjubjub::JubjubEngine;
 use pairing::bn256::Bn256;
 
 pub use self::error::RuntimeError;
+pub use self::error::VerificationError;
 pub use self::facade::debug;
 pub use self::facade::prove;
 pub use self::facade::run;
 pub use self::facade::setup;
 pub use self::facade::verify;
-pub use self::facade::VerificationError;
 
 pub trait Engine: fmt::Debug + JubjubEngine {
     fn jubjub_params<'a>() -> &'a Self::Params;

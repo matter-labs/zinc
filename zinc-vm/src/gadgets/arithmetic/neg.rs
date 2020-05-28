@@ -1,17 +1,18 @@
-use crate::auto_const;
-use crate::error::Result;
-use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::Scalar;
-use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::expression::Expression;
 
-pub fn neg<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
+use crate::auto_const;
+use crate::error::RuntimeError;
+use crate::gadgets::auto_const::prelude::*;
+use crate::gadgets::scalar::Scalar;
+use crate::Engine;
+
+pub fn neg<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
+    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
     where
         E: Engine,
         CS: ConstraintSystem<E>,

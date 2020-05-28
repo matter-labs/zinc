@@ -10,7 +10,7 @@ use num_traits::One;
 use num_traits::Zero;
 
 use zinc_bytecode::Instruction;
-use zinc_bytecode::PushConst;
+use zinc_bytecode::Push;
 use zinc_bytecode::ScalarType;
 
 use crate::generator::bytecode::Bytecode;
@@ -38,7 +38,7 @@ impl Boolean {
         };
 
         bytecode.borrow_mut().push_instruction(
-            Instruction::PushConst(PushConst::new(value, ScalarType::Boolean)),
+            Instruction::Push(Push::new(value, ScalarType::Boolean)),
             None,
         );
     }

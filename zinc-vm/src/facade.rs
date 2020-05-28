@@ -2,9 +2,8 @@
 //! The Zinc virtual machine facade.
 //!
 
-use std::fmt::Debug;
+use std::marker::PhantomData;
 
-use failure::Fail;
 use num_bigint::BigInt;
 
 use bellman::groth16;
@@ -20,36 +19,24 @@ use franklin_crypto::circuit::test::TestConstraintSystem;
 use zinc_bytecode::Program;
 use zinc_bytecode::TemplateValue;
 
-<<<<<<< HEAD
 use crate::constraint_systems::debug::DebugConstraintSystem;
 use crate::constraint_systems::duplicate_removing::DuplicateRemovingCS;
+use crate::core::VMState;
 use crate::core::VirtualMachine;
-use crate::error::Result;
 use crate::error::RuntimeError;
 use crate::error::TypeSizeError;
-=======
-use crate::constraint_systems::{DebugConstraintSystem, DuplicateRemovingCS};
-use crate::core::{VMState, VirtualMachine};
-pub use crate::errors::{MalformedBytecode, Result, RuntimeError, TypeSizeError};
-use crate::gadgets::contracts::merkle_tree_storage::merkle_tree_hash::Sha256Hasher;
-use crate::gadgets::merkle_tree_storage::MerkleTreeStorage;
->>>>>>> am/storage
-use crate::gadgets::utils::bigint_to_fr;
-use crate::gadgets::StorageGadget;
+use crate::error::VerificationError;
+use crate::gadgets::contract::storage::StorageGadget;
+use crate::gadgets::contract::MerkleTreeStorage;
+use crate::gadgets::contract::Sha256Hasher;
+use crate::gadgets::fr_bigint::bigint_to_fr;
 use crate::storage::dummy::DummyStorage;
 use crate::Engine;
-<<<<<<< HEAD
-=======
-use failure::Fail;
-use franklin_crypto::circuit::test::TestConstraintSystem;
-use std::marker::PhantomData;
-use zinc_bytecode::data::values::Value;
->>>>>>> am/storage
 
 struct VMCircuit<'a, E: Engine, S: MerkleTreeStorage<E>> {
     program: &'a Program,
     inputs: Option<&'a [BigInt]>,
-    result: &'a mut Option<Result<Vec<Option<BigInt>>>>,
+    result: &'a mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
     storage: S,
 
     _pd: PhantomData<E>,
@@ -72,18 +59,15 @@ impl<E: Engine, S: MerkleTreeStorage<E>> Circuit<E> for VMCircuit<'_, E, S> {
     }
 }
 
-<<<<<<< HEAD
-pub fn run<E: Engine>(program: &Program, inputs: &TemplateValue) -> Result<TemplateValue> {
-    let cs = DebugConstraintSystem::<Bn256>::default();
-    let mut vm = VirtualMachine::new(cs, true);
-=======
-pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
+pub fn run<E: Engine>(
+    program: &Program,
+    inputs: &TemplateValue,
+) -> Result<TemplateValue, RuntimeError> {
     let mut cs = DebugConstraintSystem::<Bn256>::default();
     let storage = DummyStorage::new(20);
     let storage_gadget =
         StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
     let mut vm = VMState::new(cs, true, storage_gadget);
->>>>>>> am/storage
 
     let inputs_flat = inputs.to_flat_values();
 
@@ -126,18 +110,15 @@ pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
     Ok(value)
 }
 
-<<<<<<< HEAD
-pub fn debug<E: Engine>(program: &Program, inputs: &TemplateValue) -> Result<TemplateValue> {
-    let cs = TestConstraintSystem::<Bn256>::new();
-    let mut vm = VirtualMachine::new(cs, true);
-=======
-pub fn debug<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
+pub fn debug<E: Engine>(
+    program: &Program,
+    inputs: &TemplateValue,
+) -> Result<TemplateValue, RuntimeError> {
     let mut cs = TestConstraintSystem::<Bn256>::new();
     let storage = DummyStorage::new(20);
     let storage_gadget =
         StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
     let mut vm = VMState::new(cs, true, storage_gadget);
->>>>>>> am/storage
 
     let inputs_flat = inputs.to_flat_values();
 
@@ -192,7 +173,7 @@ pub fn debug<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
     Ok(value)
 }
 
-pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>> {
+pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>, RuntimeError> {
     let rng = &mut rand::thread_rng();
     let mut result = None;
 
@@ -218,7 +199,7 @@ pub fn prove<E: Engine>(
     program: &Program,
     params: &Parameters<E>,
     witness: &TemplateValue,
-) -> Result<(TemplateValue, Proof<E>)> {
+) -> Result<(TemplateValue, Proof<E>), RuntimeError> {
     let rng = &mut rand::thread_rng();
 
     let witness_flat = witness.to_flat_values();
@@ -263,15 +244,6 @@ pub fn prove<E: Engine>(
             Err(err) => Err(err),
         },
     }
-}
-
-#[derive(Debug, Fail)]
-pub enum VerificationError {
-    #[fail(display = "value overflow: value {} is not in the field", _0)]
-    ValueOverflow(BigInt),
-
-    #[fail(display = "failed to synthesize circuit: {}", _0)]
-    SynthesisError(SynthesisError),
 }
 
 pub fn verify<E: Engine>(

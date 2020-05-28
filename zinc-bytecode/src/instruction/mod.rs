@@ -35,7 +35,7 @@ use self::markers::line::LineMarker;
 use self::memory::copy::Copy;
 use self::memory::load::Load;
 use self::memory::load_by_index::LoadByIndex;
-use self::memory::push_const::PushConst;
+use self::memory::push_const::Push;
 use self::memory::slice::Slice;
 use self::memory::store::Store;
 use self::memory::store_by_index::StoreByIndex;
@@ -69,7 +69,7 @@ pub enum Instruction {
     NoOperation(NoOperation),
 
     // evaluation stack
-    PushConst(PushConst),
+    Push(Push),
     Slice(Slice),
     Copy(Copy),
 
@@ -156,7 +156,7 @@ macro_rules! dispatch_instruction {
         match $pattern {
             Instruction::NoOperation($pattern) => $expression,
 
-            Instruction::PushConst($pattern) => $expression,
+            Instruction::Push($pattern) => $expression,
             Instruction::Slice($pattern) => $expression,
             Instruction::Copy($pattern) => $expression,
 

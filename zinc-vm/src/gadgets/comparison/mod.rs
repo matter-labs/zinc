@@ -1,19 +1,24 @@
-use crate::auto_const;
-use crate::error::Result;
-use crate::error::RuntimeError;
-use crate::gadgets;
-use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::{utils, Scalar, ScalarTypeExpectation};
-use crate::Engine;
+use num_bigint::BigInt;
+
 use ff::PrimeField;
-use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
+use franklin_crypto::bellman::ConstraintSystem;
+use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
-use num_bigint::BigInt;
+
 use zinc_bytecode::ScalarType;
 
-pub fn gt<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+use crate::auto_const;
+use crate::error::RuntimeError;
+use crate::gadgets;
+use crate::gadgets::auto_const::prelude::*;
+use crate::gadgets::fr_bigint;
+use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
+use crate::gadgets::scalar::Scalar;
+use crate::Engine;
+
+pub fn gt<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -21,7 +26,7 @@ where
     lt(cs, right, left)
 }
 
-pub fn ge<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+pub fn ge<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -29,16 +34,16 @@ where
     le(cs, right, left)
 }
 
-pub fn le<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+pub fn le<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
     let is_gt = gt(cs.namespace(|| "gt"), left, right)?;
-    gadgets::not(cs.namespace(|| "not"), &is_gt)
+    gadgets::logical::not::not(cs.namespace(|| "not"), &is_gt)
 }
 
-pub fn lt<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+pub fn lt<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -47,7 +52,7 @@ where
         mut cs: CS,
         left: &Scalar<E>,
         right: &Scalar<E>,
-    ) -> Result<Scalar<E>>
+    ) -> Result<Scalar<E>, RuntimeError>
     where
         E: Engine,
         CS: ConstraintSystem<E>,
@@ -75,7 +80,11 @@ where
     auto_const!(less_than_inner, cs, left, right)
 }
 
-fn less_than_field<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+fn less_than_field<E, CS>(
+    mut cs: CS,
+    left: &Scalar<E>,
+    right: &Scalar<E>,
+) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -127,14 +136,14 @@ fn less_than_integer<E, CS>(
     length: usize,
     left: &Scalar<E>,
     right: &Scalar<E>,
-) -> Result<Boolean>
+) -> Result<Boolean, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
     assert!(length < E::Fr::CAPACITY as usize);
     let base_bigint = (BigInt::from(1) << length) - BigInt::from(1);
-    let base = utils::bigint_to_fr::<E>(&base_bigint).unwrap();
+    let base = fr_bigint::bigint_to_fr::<E>(&base_bigint).unwrap();
 
     let expr =
         Expression::constant::<CS>(base) - left.to_expression::<CS>() + right.to_expression::<CS>();
@@ -151,12 +160,16 @@ fn boolean_or<E: Engine, CS: ConstraintSystem<E>>(
     Ok(Boolean::and(cs.namespace(|| "and"), &left.not(), &right.not())?.not())
 }
 
-pub fn eq<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+pub fn eq<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    fn add_inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+    fn add_inner<E, CS>(
+        mut cs: CS,
+        left: &Scalar<E>,
+        right: &Scalar<E>,
+    ) -> Result<Scalar<E>, RuntimeError>
     where
         E: Engine,
         CS: ConstraintSystem<E>,
@@ -172,11 +185,11 @@ where
     auto_const!(add_inner, cs, left, right)
 }
 
-pub fn ne<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+pub fn ne<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
     let t = eq(cs.namespace(|| "eq"), left, right)?;
-    gadgets::not(cs.namespace(|| "not"), &t)
+    gadgets::logical::not::not(cs.namespace(|| "not"), &t)
 }

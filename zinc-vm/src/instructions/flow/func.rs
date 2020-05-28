@@ -1,9 +1,9 @@
-extern crate franklin_crypto;
+use zinc_bytecode::Call;
+use zinc_bytecode::Return;
 
-use crate::core::RuntimeError;
-use crate::core::{VMInstruction, VirtualMachine};
-
-use zinc_bytecode::{Call, Return};
+use crate::core::VMInstruction;
+use crate::core::VirtualMachine;
+use crate::error::RuntimeError;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Call {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
@@ -36,9 +36,9 @@ mod tests {
     //            .add(ConditionalSelect)
     //            .add(Return::new(1))
     //            // func main
-    //            .add(PushConst::new_untyped(42.into()))
-    //            .add(PushConst::new_untyped(5.into()))
-    //            .add(PushConst::new_untyped(3.into()))
+    //            .add(Push::new_untyped(42.into()))
+    //            .add(Push::new_untyped(5.into()))
+    //            .add(Push::new_untyped(3.into()))
     //            .add(Call::new(2, 2))
     //            .test(&[3, 42])
     //    }

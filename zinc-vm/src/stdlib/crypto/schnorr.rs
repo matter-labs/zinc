@@ -1,3 +1,7 @@
+//!
+//! The `std::crypto::schnorr::Signature::verify` function.
+//!
+
 use bellman::ConstraintSystem;
 use ff::PrimeField;
 use franklin_crypto::circuit::baby_eddsa::EddsaSignature;
@@ -5,10 +9,10 @@ use franklin_crypto::circuit::ecc::EdwardsPoint;
 use franklin_crypto::jubjub::FixedGenerators;
 use franklin_crypto::jubjub::JubjubParams;
 
-use crate::core::EvaluationStack;
+use crate::core::state::evaluation_stack::EvaluationStack;
 use crate::error::MalformedBytecode;
-use crate::error::Result;
-use crate::gadgets::Scalar;
+use crate::error::RuntimeError;
+use crate::gadgets::scalar::Scalar;
 use crate::stdlib::NativeFunction;
 use crate::Engine;
 
@@ -17,7 +21,7 @@ pub struct VerifySchnorrSignature {
 }
 
 impl VerifySchnorrSignature {
-    pub fn new(args_count: usize) -> Result<Self> {
+    pub fn new(args_count: usize) -> Result<Self, RuntimeError> {
         if args_count < 6 {
             return Err(MalformedBytecode::InvalidArguments(
                 "schnorr::verify needs at least 6 arguments".into(),
@@ -32,7 +36,7 @@ impl VerifySchnorrSignature {
 }
 
 impl<E: Engine> NativeFunction<E> for VerifySchnorrSignature {
-    fn execute<CS>(&self, mut cs: CS, stack: &mut EvaluationStack<E>) -> Result
+    fn execute<CS>(&self, mut cs: CS, stack: &mut EvaluationStack<E>) -> Result<(), RuntimeError>
     where
         CS: ConstraintSystem<E>,
     {
@@ -98,7 +102,7 @@ pub fn verify_signature<E, CS>(
     message: &[Scalar<E>],
     signature: &EddsaSignature<E>,
     params: &E::Params,
-) -> Result<Scalar<E>>
+) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -107,7 +111,7 @@ where
         .iter()
         .enumerate()
         .map(|(i, bit)| bit.to_boolean(cs.namespace(|| format!("message bit {}", i))))
-        .collect::<Result<Vec<_>>>()?;
+        .collect::<Result<Vec<_>, RuntimeError>>()?;
 
     let public_generator = params
         .generator(FixedGenerators::SpendingKeyGenerator)
@@ -132,21 +136,30 @@ where
 
 #[cfg(test)]
 mod tests {
+    use rand::Rng;
+
+    use bellman::ConstraintSystem;
     use ff::Field;
-    use ff::{PrimeField, PrimeFieldRepr};
+    use ff::PrimeField;
+    use ff::PrimeFieldRepr;
+    use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
     use franklin_crypto::circuit::test::TestConstraintSystem;
-    use pairing::bn256::{Bn256, Fr};
+    use franklin_crypto::eddsa;
+    use franklin_crypto::jubjub;
+    use franklin_crypto::jubjub::JubjubEngine;
+    use pairing::bn256::Bn256;
+    use pairing::bn256::Fr;
 
     use zinc_bytecode::ScalarType;
 
-    use super::*;
-    use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
-    use franklin_crypto::jubjub::JubjubEngine;
-    use franklin_crypto::{eddsa, jubjub};
-    use rand::Rng;
+    use crate::core::state::evaluation_stack::EvaluationStack;
+    use crate::error::RuntimeError;
+    use crate::gadgets::scalar::Scalar;
+    use crate::stdlib::crypto::schnorr::VerifySchnorrSignature;
+    use crate::stdlib::NativeFunction;
 
     #[test]
-    fn test_verify() -> Result {
+    fn test_verify() -> Result<(), RuntimeError> {
         let params = AltJubjubBn256::new();
         let p_g = jubjub::FixedGenerators::SpendingKeyGenerator;
         let message = b"abc";

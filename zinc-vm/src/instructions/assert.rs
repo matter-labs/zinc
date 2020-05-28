@@ -1,24 +1,18 @@
-extern crate franklin_crypto;
+use franklin_crypto::bellman::ConstraintSystem;
 
-use self::franklin_crypto::bellman::ConstraintSystem;
-<<<<<<< HEAD
-use crate::core::{InternalVM, VMInstruction};
-use crate::core::{RuntimeError, VirtualMachine};
-use crate::{gadgets, Engine};
 use zinc_bytecode::Assert;
-=======
-use crate::core::RuntimeError;
-use crate::core::{VMInstruction, VirtualMachine};
+
+use crate::core::VMInstruction;
+use crate::core::VirtualMachine;
+use crate::error::RuntimeError;
 use crate::gadgets;
-use zinc_bytecode::instructions::Assert;
->>>>>>> am/storage
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Assert {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let value = vm.pop()?.value()?;
         let c = vm.condition_top()?;
         let cs = vm.constraint_system();
-        let not_c = gadgets::not(cs.namespace(|| "not"), &c)?;
+        let not_c = gadgets::logical::not::not(cs.namespace(|| "not"), &c)?;
         let cond_value = vm.operations().or(value, not_c)?;
         let message = match &self.message {
             Some(m) => Some(m.as_str()),
@@ -30,25 +24,25 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Assert {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
+    use crate::error::RuntimeError;
+    use crate::tests::TestingError;
+    use crate::tests::VMTestRunner;
 
     use zinc_bytecode::ScalarType;
-    use zinc_bytecode::*;
 
     #[test]
     fn test_assert_ok() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new(1.into(), ScalarType::Boolean))
-            .add(Assert::new(None))
+            .add(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
+            .add(zinc_bytecode::Assert::new(None))
             .test::<i32>(&[])
     }
 
     #[test]
     fn test_assert_fail() {
         let res = VMTestRunner::new()
-            .add(PushConst::new(0.into(), ScalarType::Boolean))
-            .add(Assert::new(None))
+            .add(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
+            .add(zinc_bytecode::Assert::new(None))
             .test::<i32>(&[]);
 
         match res {
@@ -60,11 +54,11 @@ mod tests {
     #[test]
     fn test_assert_in_condition() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new(0.into(), ScalarType::Boolean))
-            .add(If)
-            .add(PushConst::new(0.into(), ScalarType::Boolean))
-            .add(Assert::new(None))
-            .add(EndIf)
+            .add(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
+            .add(zinc_bytecode::If)
+            .add(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
+            .add(zinc_bytecode::Assert::new(None))
+            .add(zinc_bytecode::EndIf)
             .test::<i32>(&[])
     }
 }

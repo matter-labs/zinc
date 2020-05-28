@@ -1,7 +1,9 @@
-use crate::gadgets::contracts::merkle_tree_storage::MerkleTreeStorage;
-use crate::gadgets::merkle_tree_storage::MerkleTreeLeaf;
-use crate::{Engine, Result};
 use num_bigint::BigInt;
+
+use crate::error::RuntimeError;
+use crate::gadgets::contract::MerkleTreeLeaf;
+use crate::gadgets::contract::MerkleTreeStorage;
+use crate::Engine;
 
 pub struct SetupStorage {
     depth: usize,
@@ -22,7 +24,7 @@ impl<E: Engine> MerkleTreeStorage<E> for SetupStorage {
         None
     }
 
-    fn load(&self, _index: &Option<BigInt>) -> Result<MerkleTreeLeaf<E>> {
+    fn load(&self, _index: &Option<BigInt>) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
         unimplemented!()
     }
 
@@ -30,7 +32,7 @@ impl<E: Engine> MerkleTreeStorage<E> for SetupStorage {
         &mut self,
         _index: &Option<BigInt>,
         _value: &[Option<E::Fr>],
-    ) -> Result<MerkleTreeLeaf<E>> {
+    ) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
         unimplemented!()
     }
 }

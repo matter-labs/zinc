@@ -1,15 +1,16 @@
-mod gen_key;
-mod pub_key;
-mod sign;
-
-pub use gen_key::*;
-pub use pub_key::*;
-pub use sign::*;
+pub mod gen_key;
+pub mod pub_key;
+pub mod sign;
 
 use failure::Fail;
 use structopt::StructOpt;
 
-use franklin_crypto::bellman::pairing::ff::{PrimeField, PrimeFieldRepr};
+use franklin_crypto::bellman::pairing::ff::PrimeField;
+use franklin_crypto::bellman::pairing::ff::PrimeFieldRepr;
+
+use self::gen_key::GenKeyCommand;
+use self::pub_key::PubKeyCommand;
+use self::sign::SignCommand;
 
 #[derive(StructOpt)]
 #[structopt(
@@ -26,7 +27,6 @@ pub enum Command {
     GenKey(GenKeyCommand),
     PubKey(PubKeyCommand),
     Sign(SignCommand),
-    // Verify(commands::VerifyCommand),
 }
 
 pub fn fr_into_hex<Fr: PrimeField>(fr: Fr) -> String {

@@ -1,12 +1,16 @@
-use crate::gadgets::merkle_tree_storage::{
-    MerkleTreeLeaf, MerkleTreeStorage, ROOT_HASH_TRUNCATED_BITS,
-};
-use crate::{Engine, Result};
-use ff::{PrimeField, PrimeFieldRepr};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
+
+use ff::PrimeField;
+use ff::PrimeFieldRepr;
 use sha2::Digest;
 use sha2::Sha256;
+
+use crate::error::RuntimeError;
+use crate::gadgets::contract::MerkleTreeLeaf;
+use crate::gadgets::contract::MerkleTreeStorage;
+use crate::gadgets::contract::ROOT_HASH_TRUNCATED_BITS;
+use crate::Engine;
 
 fn sha256<E: Engine>(preimage: Vec<u8>) -> Vec<u8> {
     let mut h = Sha256::new();
@@ -100,7 +104,7 @@ impl<E: Engine> MerkleTreeStorage<E> for DummyStorage<E> {
         E::Fr::from_repr(hash_repr).ok()
     }
 
-    fn load(&self, index: &Option<BigInt>) -> Result<MerkleTreeLeaf<E>> {
+    fn load(&self, index: &Option<BigInt>) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
         let index = index.as_ref().unwrap();
 
         let index = index.to_usize().unwrap();
@@ -145,7 +149,7 @@ impl<E: Engine> MerkleTreeStorage<E> for DummyStorage<E> {
         &mut self,
         index: &Option<BigInt>,
         value: &[Option<E::Fr>],
-    ) -> Result<MerkleTreeLeaf<E>> {
+    ) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
         let index = index.as_ref().unwrap();
         let value = &value
             .iter()

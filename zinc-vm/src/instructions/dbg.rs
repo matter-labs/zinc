@@ -1,12 +1,14 @@
-extern crate franklin_crypto;
-
-use self::franklin_crypto::bellman::SynthesisError;
-use crate::core::{RuntimeError, VMInstruction, VirtualMachine};
-
 use num_bigint::ToBigInt;
 use num_traits::Signed;
+
+use franklin_crypto::bellman::SynthesisError;
+
 use zinc_bytecode::Dbg;
 use zinc_bytecode::TemplateValue;
+
+use crate::core::VMInstruction;
+use crate::core::VirtualMachine;
+use crate::error::RuntimeError;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Dbg {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
@@ -49,15 +51,13 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Dbg {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::instructions::testing_utils::VMTestRunner;
-    use zinc_bytecode::PushConst;
+    use crate::tests::VMTestRunner;
 
     #[test]
     fn test() {
         VMTestRunner::new()
-            .add(PushConst::new_field(42.into()))
-            .add(Dbg::new("Value: {}".into(), vec![]))
+            .add(zinc_bytecode::Push::new_field(42.into()))
+            .add(zinc_bytecode::Dbg::new("Value: {}".into(), vec![]))
             .test::<u32>(&[])
             .unwrap();
     }

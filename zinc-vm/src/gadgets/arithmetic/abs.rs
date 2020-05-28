@@ -1,20 +1,21 @@
-use crate::auto_const;
-use crate::error::Result;
-use crate::gadgets;
-use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::Scalar;
-use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::IntegerType;
 use zinc_bytecode::ScalarType;
 
-pub fn abs<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
+use crate::auto_const;
+use crate::error::RuntimeError;
+use crate::gadgets;
+use crate::gadgets::auto_const::prelude::*;
+use crate::gadgets::scalar::Scalar;
+use crate::Engine;
+
+pub fn abs<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
+    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
     where
         E: Engine,
         CS: ConstraintSystem<E>,
@@ -34,9 +35,10 @@ where
 
                 let scalar = scalar.with_type_unchecked(scalar_type.clone());
                 let zero = Scalar::new_constant_int(0, scalar_type);
-                let neg = gadgets::neg(cs.namespace(|| "neg"), &scalar)?;
-                let lt0 = gadgets::lt(cs.namespace(|| "lt"), &scalar, &zero)?;
-                gadgets::conditional_select(
+                let neg = gadgets::arithmetic::neg::neg(cs.namespace(|| "neg"), &scalar)?;
+                let lt0 = gadgets::comparison::lt(cs.namespace(|| "lt"), &scalar, &zero)?;
+
+                gadgets::conditional_select::conditional_select(
                     cs.namespace(|| "select"),
                     &lt0,
                     &neg.as_field(),

@@ -1,17 +1,21 @@
-use crate::error::Result;
-use crate::gadgets::{Scalar, ScalarTypeExpectation, ScalarVariant};
-use crate::Engine;
 use ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
+
 use zinc_bytecode::ScalarType;
+
+use crate::error::RuntimeError;
+use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
+use crate::gadgets::scalar::Scalar;
+use crate::gadgets::scalar::ScalarVariant;
+use crate::Engine;
 
 pub fn conditional_select<E, CS>(
     mut cs: CS,
     condition: &Scalar<E>,
     if_true: &Scalar<E>,
     if_false: &Scalar<E>,
-) -> Result<Scalar<E>>
+) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,

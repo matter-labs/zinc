@@ -1,32 +1,22 @@
 pub mod arithmetic;
 pub mod arrays;
 pub mod auto_const;
-pub mod bits;
-pub mod boolean;
+pub mod bitwise;
 pub mod comparison;
-mod conditional_select;
-pub mod contracts;
+pub mod conditional_select;
+pub mod contract;
+pub mod fr_bigint;
+pub mod logical;
+pub mod misc;
+pub mod scalar;
 pub mod types;
 
-pub use arithmetic::*;
-pub use arrays::*;
-pub use boolean::*;
-pub use comparison::*;
-pub use conditional_select::*;
-pub use contracts::*;
-pub use types::*;
-
-mod misc;
-mod scalar;
-pub mod utils;
-pub use scalar::*;
-
-use crate::Engine;
 use bellman::ConstraintSystem;
 
-pub use misc::*;
+use crate::error::RuntimeError;
+use crate::Engine;
 
-use crate::core::RuntimeError;
+use self::scalar::Scalar;
 
 pub trait Gadget<E: Engine> {
     type Input;
@@ -52,5 +42,3 @@ pub trait Gadget<E: Engine> {
         Ok(Self::output_into_vec(output))
     }
 }
-
-pub use misc::Gadgets;

@@ -1,7 +1,8 @@
-use crate::core::RuntimeError;
-use crate::core::{VMInstruction, VirtualMachine};
+use zinc_bytecode::Exit;
 
-use zinc_bytecode::instructions::Exit;
+use crate::core::VMInstruction;
+use crate::core::VirtualMachine;
+use crate::error::RuntimeError;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Exit {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
@@ -12,16 +13,15 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Exit {
 
 #[cfg(test)]
 mod tests {
-    //    use super::*;
-    //    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    //    use zinc_bytecode::*;
-    //
-    //    #[test]
-    //    fn test_exit() -> Result<(), TestingError> {
-    //        VMTestRunner::new()
-    //            .add(PushConst::new_untyped(1.into()))
-    //            .add(Exit::new(0))
-    //            .add(PushConst::new_untyped(2.into()))
-    //            .test(&[1])
-    //    }
+    use crate::tests::TestingError;
+    use crate::tests::VMTestRunner;
+
+    #[test]
+    fn test_exit() -> Result<(), TestingError> {
+        VMTestRunner::new()
+            .add(zinc_bytecode::Push::new_field(1.into()))
+            .add(zinc_bytecode::Exit::new(0))
+            .add(zinc_bytecode::Push::new_field(2.into()))
+            .test(&[1])
+    }
 }

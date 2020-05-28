@@ -1,15 +1,20 @@
+//!
+//! The logging constraint system.
+//!
+
+use std::marker::PhantomData;
+
 use num_bigint::BigInt;
 use num_traits::Signed;
 
 use bellman::ConstraintSystem;
-use failure::_core::marker::PhantomData;
 use franklin_crypto::bellman::Index;
 use franklin_crypto::bellman::LinearCombination;
 use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::bellman::Variable;
 use pairing::Engine;
 
-use crate::gadgets::utils;
+use crate::gadgets::fr_bigint;
 
 pub struct LoggingConstraintSystem<E, CS>(CS, PhantomData<E>)
 where
@@ -140,7 +145,7 @@ fn lc_to_string<E: Engine>(lc: &LinearCombination<E>) -> String {
 
     let mut is_first = true;
     for (var, c) in lc.as_ref() {
-        let c_value = utils::fr_to_bigint_signed(c);
+        let c_value = fr_bigint::fr_to_bigint_signed(c);
 
         let mut c_str = if c_value == BigInt::from(1) {
             " + ".into()

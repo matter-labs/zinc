@@ -1,9 +1,10 @@
-extern crate franklin_crypto;
+use zinc_bytecode::Else;
+use zinc_bytecode::EndIf;
+use zinc_bytecode::If;
 
-use crate::core::RuntimeError;
-use crate::core::{VMInstruction, VirtualMachine};
-
-use zinc_bytecode::{Else, EndIf, If};
+use crate::core::VMInstruction;
+use crate::core::VirtualMachine;
+use crate::error::RuntimeError;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for If {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
@@ -25,12 +26,15 @@ impl<VM: VirtualMachine> VMInstruction<VM> for EndIf {
 
 #[cfg(test)]
 mod tests {
-    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use std::cmp;
+
     use zinc_bytecode::IntegerType;
     use zinc_bytecode::ScalarType;
-    use zinc_bytecode::*;
 
+    use crate::tests::TestingError;
+    use crate::tests::VMTestRunner;
+
+    #[ignore]
     #[test]
     fn test_stack() -> Result<(), TestingError> {
         // let a = _;
@@ -45,26 +49,33 @@ mod tests {
 
         for (a, b) in data.iter() {
             VMTestRunner::new()
-                .add(PushConst::new((*a).into(), IntegerType::I8.into()))
-                .add(Store::new(0, 1))
-                .add(PushConst::new((*b).into(), IntegerType::I8.into()))
-                .add(Store::new(1, 1))
-                .add(Load::new(1, 1))
-                .add(Load::new(0, 1))
-                .add(Gt)
-                .add(If)
-                .add(Load::new(0, 1))
-                .add(Load::new(1, 1))
-                .add(Else)
-                .add(Load::new(1, 1))
-                .add(Load::new(0, 1))
-                .add(EndIf)
+                .add(zinc_bytecode::Push::new(
+                    (*a).into(),
+                    IntegerType::I8.into(),
+                ))
+                .add(zinc_bytecode::Store::new(0, 1))
+                .add(zinc_bytecode::Push::new(
+                    (*b).into(),
+                    IntegerType::I8.into(),
+                ))
+                .add(zinc_bytecode::Store::new(1, 1))
+                .add(zinc_bytecode::Load::new(1, 1))
+                .add(zinc_bytecode::Load::new(0, 1))
+                .add(zinc_bytecode::Gt)
+                .add(zinc_bytecode::If)
+                .add(zinc_bytecode::Load::new(0, 1))
+                .add(zinc_bytecode::Load::new(1, 1))
+                .add(zinc_bytecode::Else)
+                .add(zinc_bytecode::Load::new(1, 1))
+                .add(zinc_bytecode::Load::new(0, 1))
+                .add(zinc_bytecode::EndIf)
                 .test(&[cmp::max(*a, *b), cmp::min(*a, *b)])?;
         }
 
         Ok(())
     }
 
+    #[ignore]
     #[test]
     fn test_storage() -> Result<(), TestingError> {
         let _ = env_logger::builder().is_test(true).try_init();
@@ -80,21 +91,21 @@ mod tests {
 
         for (c, r) in data.iter() {
             VMTestRunner::new()
-                .add(PushConst::new(0.into(), IntegerType::I8.into()))
-                .add(Store::new(0, 1))
-                .add(PushConst::new((*c).into(), ScalarType::Boolean))
-                .add(If)
-                .add(PushConst::new(1.into(), IntegerType::I8.into()))
-                .add(Load::new(0, 1))
-                .add(Add)
-                .add(Store::new(0, 1))
-                .add(Else)
-                .add(Load::new(0, 1))
-                .add(PushConst::new(1.into(), IntegerType::I8.into()))
-                .add(Sub)
-                .add(Store::new(0, 1))
-                .add(EndIf)
-                .add(Load::new(0, 1))
+                .add(zinc_bytecode::Push::new(0.into(), IntegerType::I8.into()))
+                .add(zinc_bytecode::Store::new(0, 1))
+                .add(zinc_bytecode::Push::new((*c).into(), ScalarType::Boolean))
+                .add(zinc_bytecode::If)
+                .add(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
+                .add(zinc_bytecode::Load::new(0, 1))
+                .add(zinc_bytecode::Add)
+                .add(zinc_bytecode::Store::new(0, 1))
+                .add(zinc_bytecode::Else)
+                .add(zinc_bytecode::Load::new(0, 1))
+                .add(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
+                .add(zinc_bytecode::Sub)
+                .add(zinc_bytecode::Store::new(0, 1))
+                .add(zinc_bytecode::EndIf)
+                .add(zinc_bytecode::Load::new(0, 1))
                 .test(&[*r])?;
         }
         Ok(())

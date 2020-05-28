@@ -1,14 +1,18 @@
+//!
+//! The code location.
+//!
+
 use std::fmt;
 
 #[derive(Clone)]
-pub struct CodeLocation {
+pub struct Location {
     pub file: Option<String>,
     pub function: Option<String>,
     pub line: Option<usize>,
     pub column: Option<usize>,
 }
 
-impl CodeLocation {
+impl Location {
     pub fn new() -> Self {
         Self {
             file: None,
@@ -19,7 +23,7 @@ impl CodeLocation {
     }
 }
 
-impl fmt::Display for CodeLocation {
+impl fmt::Display for Location {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let file = match &self.file {
             Some(file) => file.as_str(),

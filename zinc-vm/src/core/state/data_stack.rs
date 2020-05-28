@@ -1,13 +1,19 @@
-use std::collections::BTreeMap;
+//!
+//! The VM state data stack.
+//!
 
-use crate::core::Cell;
+use std::collections::BTreeMap;
+use std::fmt;
+
+use franklin_crypto::bellman::ConstraintSystem;
+
+use crate::core::state::cell::Cell;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
 use crate::gadgets;
-use crate::gadgets::{Gadgets, Scalar};
+use crate::gadgets::misc::Gadgets;
+use crate::gadgets::scalar::Scalar;
 use crate::Engine;
-use franklin_crypto::bellman::ConstraintSystem;
-use std::fmt;
 
 #[derive(Debug)]
 struct CellDelta<E: Engine> {
@@ -151,7 +157,8 @@ impl<E: Engine> DataStack<E> {
                     let cs = ops
                         .constraint_system()
                         .namespace(|| format!("merge address {}", addr));
-                    let value = gadgets::conditional_select(cs, &condition, new, old)?;
+                    let value =
+                        gadgets::conditional_select::conditional_select(cs, &condition, new, old)?;
                     self.set(addr, Cell::Value(value))?;
                 }
             }
@@ -184,7 +191,8 @@ impl<E: Engine> DataStack<E> {
                     let cs = ops
                         .constraint_system()
                         .namespace(|| format!("merge address {}", addr));
-                    let value = gadgets::conditional_select(cs, &condition, new, old)?;
+                    let value =
+                        gadgets::conditional_select::conditional_select(cs, &condition, new, old)?;
                     self.set(*addr, Cell::Value(value))?;
                 }
             }
@@ -196,14 +204,19 @@ impl<E: Engine> DataStack<E> {
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::{BigInt, ToBigInt};
+    use num_bigint::BigInt;
+    use num_bigint::ToBigInt;
+
+    use franklin_crypto::circuit::test::TestConstraintSystem;
     use pairing::bn256::Bn256;
+
     use zinc_bytecode::ScalarType;
 
-    use crate::gadgets::Gadgets;
-
-    use super::*;
-    use franklin_crypto::circuit::test::TestConstraintSystem;
+    use crate::core::state::cell::Cell;
+    use crate::core::state::data_stack::DataStack;
+    use crate::gadgets::misc::Gadgets;
+    use crate::gadgets::scalar::Scalar;
+    use crate::Engine;
 
     fn assert_cell_eq<E: Engine>(cell: Cell<E>, value: BigInt) {
         let Cell::Value(v) = cell;
@@ -266,7 +279,7 @@ mod tests {
 
 impl<E: Engine> fmt::Display for DataStack<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "Data Stack:")?;
+        writeln!(f, "Data stack:")?;
 
         for (address, opt_cell) in self.memory.iter().enumerate() {
             match opt_cell {

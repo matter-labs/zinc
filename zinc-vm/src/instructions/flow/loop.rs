@@ -1,8 +1,9 @@
-extern crate franklin_crypto;
+use zinc_bytecode::LoopBegin;
+use zinc_bytecode::LoopEnd;
 
-use crate::core::{RuntimeError, VMInstruction, VirtualMachine};
-
-use zinc_bytecode::{LoopBegin, LoopEnd};
+use crate::core::VMInstruction;
+use crate::core::VirtualMachine;
+use crate::error::RuntimeError;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for LoopBegin {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
@@ -18,31 +19,30 @@ impl<VM: VirtualMachine> VMInstruction<VM> for LoopEnd {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zinc_bytecode::{Add, Load, PushConst, Store};
+    use crate::tests::TestingError;
+    use crate::tests::VMTestRunner;
 
     #[test]
     fn test_loop() -> Result<(), TestingError> {
         let _ = env_logger::builder().is_test(true).try_init();
 
         VMTestRunner::new()
-            .add(PushConst::new_field(0.into()))
-            .add(Store::new(0, 1))
-            .add(PushConst::new_field(0.into()))
-            .add(Store::new(1, 1))
-            .add(LoopBegin::new(10))
-            .add(Load::new(0, 1))
-            .add(PushConst::new_field(1.into()))
-            .add(Add)
-            .add(Store::new(0, 1))
-            .add(Load::new(0, 1))
-            .add(Load::new(1, 1))
-            .add(Add)
-            .add(Store::new(1, 1))
-            .add(LoopEnd)
-            .add(Load::new(0, 1))
-            .add(Load::new(1, 1))
+            .add(zinc_bytecode::Push::new_field(0.into()))
+            .add(zinc_bytecode::Store::new(0, 1))
+            .add(zinc_bytecode::Push::new_field(0.into()))
+            .add(zinc_bytecode::Store::new(1, 1))
+            .add(zinc_bytecode::LoopBegin::new(10))
+            .add(zinc_bytecode::Load::new(0, 1))
+            .add(zinc_bytecode::Push::new_field(1.into()))
+            .add(zinc_bytecode::Add)
+            .add(zinc_bytecode::Store::new(0, 1))
+            .add(zinc_bytecode::Load::new(0, 1))
+            .add(zinc_bytecode::Load::new(1, 1))
+            .add(zinc_bytecode::Add)
+            .add(zinc_bytecode::Store::new(1, 1))
+            .add(zinc_bytecode::LoopEnd)
+            .add(zinc_bytecode::Load::new(0, 1))
+            .add(zinc_bytecode::Load::new(1, 1))
             .test(&[55, 10])
     }
 }

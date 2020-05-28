@@ -1,3 +1,7 @@
+//!
+//! The duplicate removing constraint system.
+//!
+
 use std::collections::BTreeMap;
 use std::marker::PhantomData;
 

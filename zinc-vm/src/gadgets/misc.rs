@@ -1,16 +1,24 @@
 use std::marker::PhantomData;
 use std::mem;
 
-use bellman::{ConstraintSystem, Namespace};
-use ff::Field;
 use num_bigint::BigInt;
 
-use crate::core::RuntimeError;
-use crate::gadgets::{utils, Gadget, Scalar, ScalarTypeExpectation, ScalarVariant};
-use crate::{gadgets, Engine};
+use bellman::ConstraintSystem;
+use bellman::Namespace;
+use ff::Field;
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::Assignment;
+
 use zinc_bytecode::ScalarType;
+
+use crate::error::RuntimeError;
+use crate::gadgets;
+use crate::gadgets::fr_bigint;
+use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
+use crate::gadgets::scalar::Scalar;
+use crate::gadgets::scalar::ScalarVariant;
+use crate::gadgets::Gadget;
+use crate::Engine;
 
 pub struct Gadgets<E, CS>
 where
@@ -66,7 +74,7 @@ where
             ScalarType::Field => {
                 // Create some constraints to avoid unconstrained variable errors.
                 let one = Scalar::new_constant_fr(E::Fr::one(), ScalarType::Field);
-                gadgets::arithmetic::add(cs.namespace(|| "dummy constraint"), &scalar, &one)?;
+                gadgets::arithmetic::add::add(cs.namespace(|| "dummy constraint"), &scalar, &one)?;
                 Ok(scalar)
             }
             scalar_type => {
@@ -88,7 +96,7 @@ where
     ) -> Result<Scalar<E>, RuntimeError> {
         let fr = if let Some(bigint) = value {
             Some(
-                utils::bigint_to_fr::<E>(bigint).ok_or(RuntimeError::ValueOverflow {
+                fr_bigint::bigint_to_fr::<E>(bigint).ok_or(RuntimeError::ValueOverflow {
                     value: bigint.clone(),
                     scalar_type: scalar_type.clone(),
                 })?,
@@ -105,10 +113,11 @@ where
         value: &BigInt,
         scalar_type: ScalarType,
     ) -> Result<Scalar<E>, RuntimeError> {
-        let value = utils::bigint_to_fr::<E>(value).ok_or_else(|| RuntimeError::ValueOverflow {
-            value: value.clone(),
-            scalar_type: scalar_type.clone(),
-        })?;
+        let value =
+            fr_bigint::bigint_to_fr::<E>(value).ok_or_else(|| RuntimeError::ValueOverflow {
+                value: value.clone(),
+                scalar_type: scalar_type.clone(),
+            })?;
 
         Ok(Scalar::new_constant_fr(value, scalar_type))
     }
@@ -295,7 +304,7 @@ where
             return Err(RuntimeError::WitnessArrayIndex);
         }
         // let zero = Scalar::new_constant_int(0, index.get_type());
-        // let index = gadgets::conditional_select(self.cs_namespace(), condition, index, &zero)?;
+        // let index = gadgets::conditional_select::conditional_select(self.cs_namespace(), condition, index, &zero)?;
         self.enforcing_array_get(array, &index)
     }
 
@@ -380,7 +389,7 @@ where
                 //     let curr_index = Scalar::new_constant_int(i, ScalarType::Field);
                 //     let is_current_index = self.eq(curr_index, index.clone())?;
                 //     let cs = self.cs_namespace();
-                //     let value = gadgets::conditional_select(cs, &is_current_index, &value, p)?;
+                //     let value = gadgets::conditional_select::conditional_select(cs, &is_current_index, &value, p)?;
                 //     new_array.push(value);
                 // }
             }

@@ -1,10 +1,14 @@
+//!
+//! The `std::crypto::pedersen` function.
+//!
+
 use bellman::ConstraintSystem;
-use franklin_crypto::circuit::pedersen_hash::pedersen_hash;
+use franklin_crypto::circuit::pedersen_hash;
 use franklin_crypto::circuit::pedersen_hash::Personalization;
 
-use crate::core::EvaluationStack;
-use crate::error::Result;
-use crate::gadgets::Scalar;
+use crate::core::state::evaluation_stack::EvaluationStack;
+use crate::error::RuntimeError;
+use crate::gadgets::scalar::Scalar;
 use crate::stdlib::NativeFunction;
 use crate::Engine;
 
@@ -13,7 +17,7 @@ pub struct Pedersen {
 }
 
 impl Pedersen {
-    pub fn new(message_length: usize) -> Result<Self> {
+    pub fn new(message_length: usize) -> Result<Self, RuntimeError> {
         Ok(Self { message_length })
     }
 }
@@ -23,7 +27,7 @@ impl<E: Engine> NativeFunction<E> for Pedersen {
         &self,
         mut cs: CS,
         stack: &mut EvaluationStack<E>,
-    ) -> Result {
+    ) -> Result<(), RuntimeError> {
         let mut bits = Vec::new();
         for i in 0..self.message_length {
             let bit = stack
@@ -35,7 +39,7 @@ impl<E: Engine> NativeFunction<E> for Pedersen {
         }
         bits.reverse();
 
-        let digest = pedersen_hash(
+        let digest = pedersen_hash::pedersen_hash(
             cs,
             Personalization::NoteCommitment,
             bits.as_slice(),

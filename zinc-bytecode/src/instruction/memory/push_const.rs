@@ -11,12 +11,12 @@ use crate::instruction::Instruction;
 use crate::InstructionInfo;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct PushConst {
+pub struct Push {
     pub value: BigInt,
     pub scalar_type: ScalarType,
 }
 
-impl PushConst {
+impl Push {
     pub fn new(value: BigInt, scalar_type: ScalarType) -> Self {
         Self { value, scalar_type }
     }
@@ -26,12 +26,12 @@ impl PushConst {
     }
 }
 
-impl InstructionInfo for PushConst {
+impl InstructionInfo for Push {
     fn to_assembly(&self) -> String {
         format!("push {} as {}", self.value, self.scalar_type)
     }
 
     fn wrap(self) -> Instruction {
-        Instruction::PushConst(self)
+        Instruction::Push(self)
     }
 }

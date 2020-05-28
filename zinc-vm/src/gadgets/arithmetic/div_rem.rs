@@ -1,27 +1,28 @@
+use franklin_crypto::bellman::ConstraintSystem;
+use franklin_crypto::circuit::Assignment;
+
+use zinc_bytecode::ScalarType;
+use zinc_utils::math;
+
 use crate::auto_const;
-use crate::error::Result;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::conditional_select::conditional_select;
-use crate::gadgets::{utils, Scalar};
+use crate::gadgets::fr_bigint;
+use crate::gadgets::scalar::Scalar;
 use crate::Engine;
-use franklin_crypto::bellman::ConstraintSystem;
-use franklin_crypto::circuit::Assignment;
-use zinc_bytecode::ScalarType;
-use zinc_utils::euclidean;
 
 pub fn div_rem_conditional<E, CS>(
     mut cs: CS,
     condition: &Scalar<E>,
     left: &Scalar<E>,
     right: &Scalar<E>,
-) -> Result<(Scalar<E>, Scalar<E>)>
+) -> Result<(Scalar<E>, Scalar<E>), RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    let denom = conditional_select(
+    let denom = gadgets::conditional_select::conditional_select(
         cs.namespace(|| "select denominator"),
         condition,
         right,
@@ -36,7 +37,7 @@ pub fn div_rem_enforce<E, CS>(
     mut cs: CS,
     left: &Scalar<E>,
     right: &Scalar<E>,
-) -> Result<(Scalar<E>, Scalar<E>)>
+) -> Result<(Scalar<E>, Scalar<E>), RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -48,17 +49,18 @@ where
     let mut remainder_value: Option<E::Fr> = None;
 
     if let (Some(nom), Some(denom)) = (nominator.get_value(), denominator.get_value()) {
-        let nom_bi = utils::fr_to_bigint(&nom, nominator.is_signed());
-        let denom_bi = utils::fr_to_bigint(&denom, denominator.is_signed());
+        let nom_bi = fr_bigint::fr_to_bigint(&nom, nominator.is_signed());
+        let denom_bi = fr_bigint::fr_to_bigint(&denom, denominator.is_signed());
 
-        let (q, r) = euclidean::div_rem(&nom_bi, &denom_bi).ok_or(RuntimeError::DivisionByZero)?;
+        let (q, r) =
+            math::euclidean::div_rem(&nom_bi, &denom_bi).ok_or(RuntimeError::DivisionByZero)?;
 
-        quotient_value = utils::bigint_to_fr::<E>(&q);
-        remainder_value = utils::bigint_to_fr::<E>(&r);
+        quotient_value = fr_bigint::bigint_to_fr::<E>(&q);
+        remainder_value = fr_bigint::bigint_to_fr::<E>(&r);
     }
 
     let (quotient, remainder) = {
-        let qutioent_var = cs.alloc(|| "qutioent", || quotient_value.grab())?;
+        let qutioent_var = cs.alloc(|| "quotient", || quotient_value.grab())?;
 
         let remainder_var = cs.alloc(|| "remainder", || remainder_value.grab())?;
 
@@ -77,14 +79,14 @@ where
         (quotient, remainder)
     };
 
-    let abs_denominator = gadgets::abs(cs.namespace(|| "abs"), denominator)?;
-    let lt = gadgets::lt(
+    let abs_denominator = gadgets::arithmetic::abs::abs(cs.namespace(|| "abs"), denominator)?;
+    let lt = gadgets::comparison::lt(
         cs.namespace(|| "lt"),
         &remainder.as_field(),
         &abs_denominator.as_field(),
     )?;
     let zero = Scalar::new_constant_int(0, remainder.get_type());
-    let ge = gadgets::ge(cs.namespace(|| "ge"), &remainder, &zero)?;
+    let ge = gadgets::comparison::ge(cs.namespace(|| "ge"), &remainder, &zero)?;
     cs.enforce(
         || "0 <= rem < |denominator|",
         |lc| lc + CS::one() - &lt.lc::<CS>(),
