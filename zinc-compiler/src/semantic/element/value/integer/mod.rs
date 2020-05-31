@@ -158,7 +158,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise {
                 location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
             });
@@ -184,7 +184,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise {
                 location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
             });
@@ -210,7 +210,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise {
                 location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
             });
@@ -231,7 +231,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise {
                 location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
             });
@@ -261,7 +261,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise {
                 location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
             });
@@ -332,7 +332,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldDivision {
                 location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
             });
@@ -352,7 +352,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldRemainder {
                 location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
             });
@@ -391,7 +391,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise {
                 location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
             });
@@ -403,7 +403,7 @@ impl Integer {
     }
 
     pub fn negate(mut self) -> Result<(Self, GeneratorExpressionOperator), Error> {
-        if self.bitlength == crate::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldNegation {
                 location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
             });

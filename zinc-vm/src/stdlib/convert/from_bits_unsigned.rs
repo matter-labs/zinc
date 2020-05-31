@@ -43,7 +43,7 @@ impl<E: Engine> NativeFunction<E> for UnsignedFromBits {
 
         let mut bits = Vec::with_capacity(self.bit_length);
         for i in 0..self.bit_length {
-            let bit = stack.pop()?.value()?;
+            let bit = stack.pop()?.try_into_value()?;
             let boolean = bit.to_boolean(cs.namespace(|| format!("to_boolean {}", i)))?;
             bits.push(boolean);
         }

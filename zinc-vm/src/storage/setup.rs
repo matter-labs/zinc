@@ -3,6 +3,7 @@ use num_bigint::BigInt;
 use crate::error::RuntimeError;
 use crate::gadgets::contract::MerkleTreeLeaf;
 use crate::gadgets::contract::MerkleTreeStorage;
+use crate::gadgets::scalar::Scalar;
 use crate::Engine;
 
 pub struct SetupStorage {
@@ -31,7 +32,7 @@ impl<E: Engine> MerkleTreeStorage<E> for SetupStorage {
     fn store(
         &mut self,
         _index: &Option<BigInt>,
-        _value: &[Option<E::Fr>],
+        _value: &[Option<Scalar<E>>],
     ) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
         unimplemented!()
     }

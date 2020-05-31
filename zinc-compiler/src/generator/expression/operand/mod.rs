@@ -97,7 +97,7 @@ impl Operand {
                         IntegerConstant::new(
                             BigInt::from(*position),
                             false,
-                            crate::BITLENGTH_FIELD,
+                            zinc_const::BITLENGTH_FIELD,
                         )
                         .write_all_to_bytecode(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(

@@ -10,11 +10,11 @@ use crate::gadgets;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Lt {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let right = vm.pop()?.value()?;
-        let left = vm.pop()?.value()?;
+        let right = vm.pop()?.try_into_value()?;
+        let left = vm.pop()?.try_into_value()?;
 
         let cs = vm.constraint_system();
-        let lt = gadgets::comparison::lt(cs.namespace(|| "lt"), &left, &right)?;
+        let lt = gadgets::comparison::lesser_than(cs.namespace(|| "lt"), &left, &right)?;
 
         vm.push(Cell::Value(lt))
     }

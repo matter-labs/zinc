@@ -86,7 +86,7 @@ impl Function {
         match actual_params.get(Self::ARGUMENT_INDEX_MESSAGE) {
             Some((Type::Array(array), location)) => match (array.r#type.deref(), array.size) {
                 (Type::Boolean(_), size)
-                    if size % crate::BITLENGTH_BYTE == 0
+                    if size % zinc_const::BITLENGTH_BYTE == 0
                         && size > 0
                         && size <= crate::LIMIT_SCHNORR_MESSAGE_BITS => {}
                 (r#type, size) => {
@@ -97,8 +97,8 @@ impl Function {
                         position: Self::ARGUMENT_INDEX_MESSAGE + 1,
                         expected: format!(
                             "[bool; N], 0 < N <= {}, N % {} == 0",
-                            crate::BITLENGTH_INTEGER_MAX,
-                            crate::BITLENGTH_BYTE
+                            zinc_const::BITLENGTH_INTEGER_MAX,
+                            zinc_const::BITLENGTH_BYTE
                         ),
                         found: format!("array [{}; {}]", r#type, size),
                     });
@@ -112,8 +112,8 @@ impl Function {
                     position: Self::ARGUMENT_INDEX_MESSAGE + 1,
                     expected: format!(
                         "[bool; N], 0 < N <= {}, N % {} == 0",
-                        crate::BITLENGTH_INTEGER_MAX,
-                        crate::BITLENGTH_BYTE
+                        zinc_const::BITLENGTH_INTEGER_MAX,
+                        zinc_const::BITLENGTH_BYTE
                     ),
                     found: r#type.to_string(),
                 });

@@ -4,6 +4,7 @@
 
 mod tests;
 
+pub mod circuit;
 pub(crate) mod constraint_systems;
 pub(crate) mod core;
 pub(crate) mod error;

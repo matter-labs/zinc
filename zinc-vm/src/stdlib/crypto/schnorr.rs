@@ -50,34 +50,34 @@ impl<E: Engine> NativeFunction<E> for VerifySchnorrSignature {
 
         let mut message = Vec::new();
         for _ in 0..self.msg_len {
-            let bit = stack.pop()?.value()?;
+            let bit = stack.pop()?.try_into_value()?;
             message.push(bit);
         }
         // message.reverse();
 
         let pk_y = stack
             .pop()?
-            .value()?
+            .try_into_value()?
             .to_expression::<CS>()
             .into_number(cs.namespace(|| "to_number pk_y"))?;
         let pk_x = stack
             .pop()?
-            .value()?
+            .try_into_value()?
             .to_expression::<CS>()
             .into_number(cs.namespace(|| "to_number pk_x"))?;
         let s = stack
             .pop()?
-            .value()?
+            .try_into_value()?
             .to_expression::<CS>()
             .into_number(cs.namespace(|| "to_number s"))?;
         let r_y = stack
             .pop()?
-            .value()?
+            .try_into_value()?
             .to_expression::<CS>()
             .into_number(cs.namespace(|| "to_number r_y"))?;
         let r_x = stack
             .pop()?
-            .value()?
+            .try_into_value()?
             .to_expression::<CS>()
             .into_number(cs.namespace(|| "to_number r_x"))?;
 
@@ -224,7 +224,7 @@ mod tests {
             .unwrap()
             .execute(cs.namespace(|| "signature check"), &mut stack)?;
 
-        let is_valid = stack.pop()?.value()?;
+        let is_valid = stack.pop()?.try_into_value()?;
 
         assert_eq!(is_valid.get_value(), Some(Fr::one()), "success");
         assert!(cs.is_satisfied(), "unsatisfied");

@@ -14,8 +14,8 @@ use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Mul {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let right = vm.pop()?.value()?;
-        let left = vm.pop()?.value()?;
+        let right = vm.pop()?.try_into_value()?;
+        let left = vm.pop()?.try_into_value()?;
 
         let mul_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
 

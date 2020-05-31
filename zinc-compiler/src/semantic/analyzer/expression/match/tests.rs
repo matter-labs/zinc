@@ -294,7 +294,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchPatternInvalidType {
             location: Location::new(5, 9),
-            expected: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+            expected: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
             found: Type::boolean(None).to_string(),
             reference: Location::new(4, 24),
         }),
@@ -360,7 +360,7 @@ fn main() {
         ExpressionError::Match(MatchExpressionError::BranchExpressionInvalidType {
             location: Location::new(6, 14),
             expected: Type::boolean(None).to_string(),
-            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
             reference: Location::new(5, 14),
         }),
     )));

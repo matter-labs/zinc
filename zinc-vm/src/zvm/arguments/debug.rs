@@ -41,7 +41,7 @@ impl DebugCommand {
         fs::write(&self.output_path, &output_json)
             .error_with_path(|| self.output_path.to_string_lossy())?;
 
-        print!("{}", output_json);
+        println!("{}", output_json);
 
         Ok(())
     }

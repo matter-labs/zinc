@@ -38,7 +38,7 @@ pub mod prelude {
 /// use zinc_bytecode::ScalarType;
 ///
 /// use zinc_vm::auto_const;
-/// use zinc_vm::gadgets::Scalar;
+/// use zinc_vm::gadgets::scalar::Scalar;
 /// use zinc_vm::gadgets;
 /// use zinc_vm::gadgets::auto_const::prelude::*;
 ///

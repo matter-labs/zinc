@@ -2,10 +2,9 @@
 //! The VM core.
 //!
 
+pub mod counter;
 pub mod location;
 pub mod state;
-
-use std::marker::PhantomData;
 
 use colored::Colorize;
 use num_bigint::BigInt;
@@ -31,40 +30,19 @@ use crate::gadgets::scalar::Scalar;
 use crate::stdlib::NativeFunction;
 use crate::Engine;
 
+use self::counter::NamespaceCounter;
 use self::location::Location;
+use self::state::block::branch::Branch;
+use self::state::block::r#loop::Loop;
+use self::state::block::Block;
 use self::state::cell::Cell;
 use self::state::data_stack::DataStack;
 use self::state::evaluation_stack::EvaluationStack;
-use self::state::Block;
-use self::state::Branch;
-use self::state::FunctionFrame;
-use self::state::Loop;
+use self::state::function_frame::Frame;
 use self::state::State;
 
 pub trait VMInstruction<VM: VirtualMachine>: InstructionInfo {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError>;
-}
-
-struct CounterNamespace<E: Engine, CS: ConstraintSystem<E>> {
-    cs: CS,
-    counter: usize,
-    _pd: PhantomData<E>,
-}
-
-impl<E: Engine, CS: ConstraintSystem<E>> CounterNamespace<E, CS> {
-    fn new(cs: CS) -> Self {
-        Self {
-            cs,
-            counter: 0,
-            _pd: PhantomData,
-        }
-    }
-
-    fn namespace(&mut self) -> bellman::Namespace<E, CS::Root> {
-        let namespace = self.counter.to_string();
-        self.counter += 1;
-        self.cs.namespace(|| namespace)
-    }
 }
 
 /// This trait represents virtual machine's interface. It is used by instructions.
@@ -72,19 +50,17 @@ pub trait VirtualMachine {
     type E: Engine;
     type CS: ConstraintSystem<Self::E>;
 
-    // Operations with stack
+    // Operations with evaluation stack
 
     fn push(&mut self, cell: Cell<Self::E>) -> Result<(), RuntimeError>;
     fn pop(&mut self) -> Result<Cell<Self::E>, RuntimeError>;
 
-    // Operations with memory
+    // Operations with data stack
 
     fn load(&mut self, address: usize) -> Result<Cell<Self::E>, RuntimeError>;
-    fn load_global(&mut self, address: usize) -> Result<Cell<Self::E>, RuntimeError>;
     fn store(&mut self, address: usize, cell: Cell<Self::E>) -> Result<(), RuntimeError>;
-    fn store_global(&mut self, address: usize, cell: Cell<Self::E>) -> Result<(), RuntimeError>;
 
-    // Operations with contracts' storage
+    // Operations with contract storage
 
     fn storage_load(
         &mut self,
@@ -94,7 +70,7 @@ pub trait VirtualMachine {
     fn storage_store(
         &mut self,
         address: &Scalar<Self::E>,
-        value: &[Scalar<Self::E>],
+        values: &[Scalar<Self::E>],
     ) -> Result<(), RuntimeError>;
 
     fn loop_begin(&mut self, iter_count: usize) -> Result<(), RuntimeError>;
@@ -115,7 +91,7 @@ pub trait VirtualMachine {
 
     fn constraint_system(&mut self) -> &mut Self::CS;
 
-    fn operations(
+    fn gadgets(
         &mut self,
     ) -> Gadgets<
         Self::E,
@@ -139,12 +115,13 @@ where
     S: MerkleTreeStorage<E>,
     H: MerkleTreeHasher<E>,
 {
-    pub(crate) debugging: bool,
+    counter: NamespaceCounter<E, CS>,
     state: State<E>,
-    cs: CounterNamespace<E, CS>,
     outputs: Vec<Scalar<E>>,
-    pub(crate) location: Location,
     storage: StorageGadget<E, S, H>,
+
+    pub(crate) debugging: bool,
+    pub(crate) location: Location,
 }
 
 impl<E, CS, S, H> VMState<E, CS, S, H>
@@ -154,9 +131,9 @@ where
     S: MerkleTreeStorage<E>,
     H: MerkleTreeHasher<E>,
 {
-    pub fn new(mut cs: CS, debugging: bool, storage: StorageGadget<E, S, H>) -> Self {
+    pub fn new(cs: CS, storage: StorageGadget<E, S, H>, debugging: bool) -> Self {
         Self {
-            debugging,
+            counter: NamespaceCounter::new(cs),
             state: State {
                 instruction_counter: 0,
                 evaluation_stack: EvaluationStack::new(),
@@ -164,10 +141,11 @@ where
                 conditions_stack: vec![],
                 frames_stack: vec![],
             },
-            cs: CounterNamespace::new(cs),
             outputs: vec![],
-            location: Location::new(),
             storage,
+
+            debugging,
+            location: Location::new(),
         }
     }
 
@@ -182,14 +160,14 @@ where
         CB: FnMut(&CS) -> (),
         F: FnMut(&CS) -> Result<(), RuntimeError>,
     {
-        self.cs.cs.enforce(
+        self.counter.cs.enforce(
             || "ONE * ONE = ONE (do this to avoid `unconstrained` error)",
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
         );
         let one = self
-            .operations()
+            .gadgets()
             .constant_bigint(&1.into(), ScalarType::Boolean)?;
         self.condition_push(one)?;
 
@@ -199,7 +177,7 @@ where
         let mut step = 0;
         while self.state.instruction_counter < program.bytecode.len() {
             let namespace = format!("step={}, addr={}", step, self.state.instruction_counter);
-            self.cs.cs.push_namespace(|| namespace);
+            self.counter.cs.push_namespace(|| namespace);
             let instruction = &program.bytecode[self.state.instruction_counter];
             log::info!(
                 "{}:{} > {}",
@@ -209,14 +187,14 @@ where
             );
             self.state.instruction_counter += 1;
             let result = dispatch_instruction!(instruction => instruction.execute(self));
-            if let Err(err) = result.and(check_cs(&self.cs.cs)) {
+            if let Err(err) = result.and(check_cs(&self.counter.cs)) {
                 log::error!("{}\nat {}", err, self.location.to_string().blue());
                 return Err(err);
             }
 
             log::trace!("{}", self.state);
-            instruction_callback(&self.cs.cs);
-            self.cs.cs.pop_namespace();
+            instruction_callback(&self.counter.cs);
+            self.counter.cs.pop_namespace();
             step += 1;
         }
 
@@ -244,20 +222,18 @@ where
         input_type: &DataType,
         inputs: Option<&[BigInt]>,
     ) -> Result<(), RuntimeError> {
-        self.state
-            .frames_stack
-            .push(FunctionFrame::new(0, std::usize::MAX));
+        self.state.frames_stack.push(Frame::new(0, std::usize::MAX));
 
-        let types = data_type_into_scalar_types(&input_type);
+        let types = input_type.to_scalar_types();
 
         // Convert Option<&[BigInt]> to iterator of Option<&BigInt> and zip with types.
         let value_type_pairs: Vec<_> = match inputs {
-            Some(values) => values.iter().map(Some).zip(types).collect(),
+            Some(values) => values.iter().map(Option::Some).zip(types).collect(),
             None => std::iter::repeat(None).zip(types).collect(),
         };
 
         for (value, dtype) in value_type_pairs {
-            let variable = self.operations().allocate_witness(value, dtype)?;
+            let variable = self.gadgets().allocate_witness(value, dtype)?;
             self.push(Cell::Value(variable))?;
         }
 
@@ -269,7 +245,7 @@ where
 
         let mut outputs_bigint = Vec::with_capacity(outputs_fr.len());
         for o in outputs_fr.into_iter() {
-            let e = self.operations().output(o.clone())?;
+            let e = self.gadgets().output(o.clone())?;
             outputs_bigint.push(e.to_bigint());
         }
 
@@ -288,45 +264,12 @@ where
             .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 
-    fn top_frame(&mut self) -> Result<&mut FunctionFrame<E>, RuntimeError> {
+    fn top_frame(&mut self) -> Result<&mut Frame<E>, RuntimeError> {
         self.state
             .frames_stack
             .last_mut()
             .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
-}
-
-fn data_type_into_scalar_types(dtype: &DataType) -> Vec<ScalarType> {
-    fn internal(types: &mut Vec<ScalarType>, dtype: &DataType) {
-        match dtype {
-            DataType::Unit => {}
-            DataType::Scalar(scalar_type) => {
-                types.push(scalar_type.to_owned());
-            }
-            DataType::Enum => {
-                types.push(ScalarType::Field);
-            }
-            DataType::Struct(fields) => {
-                for (_, r#type) in fields {
-                    internal(types, r#type);
-                }
-            }
-            DataType::Tuple(fields) => {
-                for r#type in fields {
-                    internal(types, r#type);
-                }
-            }
-            DataType::Array(r#type, size) => {
-                for _ in 0..*size {
-                    internal(types, r#type.as_ref());
-                }
-            }
-        }
-    }
-
-    let mut types = Vec::new();
-    internal(&mut types, dtype);
-    types
 }
 
 impl<E, CS, S, H> VirtualMachine for VMState<E, CS, S, H>
@@ -348,26 +291,18 @@ where
     }
 
     fn load(&mut self, address: usize) -> Result<Cell<E>, RuntimeError> {
-        let offset = self.top_frame()?.stack_frame_begin;
-        self.state.data_stack.get(offset + address)
-    }
-
-    fn load_global(&mut self, address: usize) -> Result<Cell<E>, RuntimeError> {
-        self.state.data_stack.get(address)
+        let frame_start = self.top_frame()?.stack_frame_start;
+        self.state.data_stack.get(frame_start + address)
     }
 
     fn store(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError> {
-        {
-            let frame = self.top_frame()?;
-            frame.stack_frame_end =
-                std::cmp::max(frame.stack_frame_end, frame.stack_frame_begin + address + 1);
-        }
-        let offset = self.top_frame()?.stack_frame_begin;
-        self.state.data_stack.set(offset + address, cell)
-    }
+        let frame = self.top_frame()?;
+        frame.stack_frame_end =
+            std::cmp::max(frame.stack_frame_end, frame.stack_frame_start + address + 1);
 
-    fn store_global(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError> {
-        self.state.data_stack.set(address, cell)
+        let frame_start = frame.stack_frame_start;
+
+        self.state.data_stack.set(frame_start + address, cell)
     }
 
     fn storage_load(
@@ -375,7 +310,7 @@ where
         address: &Scalar<Self::E>,
         size: usize,
     ) -> Result<Vec<Scalar<Self::E>>, RuntimeError> {
-        self.storage.load(self.cs.namespace(), size, address)
+        self.storage.load(self.counter.next(), size, address)
     }
 
     fn storage_store(
@@ -383,7 +318,7 @@ where
         address: &Scalar<Self::E>,
         value: &[Scalar<Self::E>],
     ) -> Result<(), RuntimeError> {
-        self.storage.store(self.cs.namespace(), address, value)
+        self.storage.store(self.counter.next(), address, value)
     }
 
     fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
@@ -421,7 +356,7 @@ where
         let offset = self.top_frame()?.stack_frame_end;
         self.state
             .frames_stack
-            .push(FunctionFrame::new(offset, self.state.instruction_counter));
+            .push(Frame::new(offset, self.state.instruction_counter));
 
         for i in 0..inputs_count {
             let arg = self.pop()?;
@@ -455,7 +390,7 @@ where
     }
 
     fn branch_then(&mut self) -> Result<(), RuntimeError> {
-        let condition = self.pop()?.value()?;
+        let condition = self.pop()?.try_into_value()?;
 
         let prev = self.condition_top()?;
 
@@ -465,7 +400,7 @@ where
 
         let branch = Branch {
             condition,
-            has_else: false,
+            is_else: false,
         };
 
         self.top_frame()?.blocks.push(Block::Branch(branch));
@@ -490,10 +425,10 @@ where
             )),
         }?;
 
-        if branch.has_else {
+        if branch.is_else {
             return Err(MalformedBytecode::UnexpectedElse.into());
         } else {
-            branch.has_else = true;
+            branch.is_else = true;
         }
 
         let condition = branch.condition.clone();
@@ -504,7 +439,7 @@ where
         let prev = self.condition_top()?;
         let cs = self.constraint_system();
         let not_cond = gadgets::logical::not::not(cs.namespace(|| "not"), &condition)?;
-        let next = self.operations().and(prev, not_cond)?;
+        let next = self.gadgets().and(prev, not_cond)?;
         self.condition_push(next)?;
 
         self.state.data_stack.switch_branch()?;
@@ -527,24 +462,24 @@ where
             Some(_) | None => Err(MalformedBytecode::UnexpectedEndIf),
         }?;
 
-        if branch.has_else {
+        if branch.is_else {
             self.state
                 .evaluation_stack
-                .merge(self.cs.namespace(), &branch.condition)?;
+                .merge(self.counter.next(), &branch.condition)?;
         } else {
             self.state.evaluation_stack.revert()?;
         }
 
         self.state
             .data_stack
-            .merge(branch.condition, &mut Gadgets::new(self.cs.namespace()))?;
+            .merge(branch.condition, &mut Gadgets::new(self.counter.next()))?;
 
         Ok(())
     }
 
     fn exit(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
         for _ in 0..outputs_count {
-            let value = self.pop()?.value()?;
+            let value = self.pop()?.try_into_value()?;
             self.outputs.push(value);
         }
         self.outputs.reverse();
@@ -555,7 +490,7 @@ where
 
     fn call_native<F: NativeFunction<E>>(&mut self, function: F) -> Result<(), RuntimeError> {
         let stack = &mut self.state.evaluation_stack;
-        let cs = &mut self.cs.cs;
+        let cs = &mut self.counter.cs;
 
         function.execute(cs.namespace(|| "native function"), stack)
     }
@@ -569,11 +504,11 @@ where
     }
 
     fn constraint_system(&mut self) -> &mut CS {
-        &mut self.cs.cs
+        &mut self.counter.cs
     }
 
-    fn operations(&mut self) -> Gadgets<E, bellman::Namespace<E, CS::Root>> {
-        Gadgets::new(self.cs.namespace())
+    fn gadgets(&mut self) -> Gadgets<E, bellman::Namespace<E, CS::Root>> {
+        Gadgets::new(self.counter.next())
     }
 
     fn is_debugging(&self) -> bool {

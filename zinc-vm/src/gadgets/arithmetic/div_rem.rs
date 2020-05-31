@@ -60,19 +60,19 @@ where
     }
 
     let (quotient, remainder) = {
-        let qutioent_var = cs.alloc(|| "quotient", || quotient_value.grab())?;
+        let quotient_var = cs.alloc(|| "quotient", || quotient_value.grab())?;
 
         let remainder_var = cs.alloc(|| "remainder", || remainder_value.grab())?;
 
         cs.enforce(
             || "equality",
-            |lc| lc + qutioent_var,
+            |lc| lc + quotient_var,
             |lc| lc + &denominator.lc::<CS>(),
             |lc| lc + &nominator.lc::<CS>() - remainder_var,
         );
 
         let quotient =
-            Scalar::new_unchecked_variable(quotient_value, qutioent_var, ScalarType::Field);
+            Scalar::new_unchecked_variable(quotient_value, quotient_var, ScalarType::Field);
         let remainder =
             Scalar::new_unchecked_variable(remainder_value, remainder_var, ScalarType::Field);
 
@@ -80,13 +80,13 @@ where
     };
 
     let abs_denominator = gadgets::arithmetic::abs::abs(cs.namespace(|| "abs"), denominator)?;
-    let lt = gadgets::comparison::lt(
+    let lt = gadgets::comparison::lesser_than(
         cs.namespace(|| "lt"),
         &remainder.as_field(),
         &abs_denominator.as_field(),
     )?;
     let zero = Scalar::new_constant_int(0, remainder.get_type());
-    let ge = gadgets::comparison::ge(cs.namespace(|| "ge"), &remainder, &zero)?;
+    let ge = gadgets::comparison::greater_or_equals(cs.namespace(|| "ge"), &remainder, &zero)?;
     cs.enforce(
         || "0 <= rem < |denominator|",
         |lc| lc + CS::one() - &lt.lc::<CS>(),

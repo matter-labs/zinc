@@ -25,7 +25,7 @@ impl<E: Engine> NativeFunction<E> for ToBits {
         mut cs: CS,
         stack: &mut EvaluationStack<E>,
     ) -> Result<(), RuntimeError> {
-        let scalar = stack.pop()?.value()?;
+        let scalar = stack.pop()?.try_into_value()?;
         let expr = scalar.to_expression::<CS>();
 
         let mut bits = match scalar.get_type() {

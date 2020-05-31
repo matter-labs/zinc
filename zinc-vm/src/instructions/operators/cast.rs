@@ -9,7 +9,7 @@ use zinc_bytecode::Cast;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Cast {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let old_value = vm.pop()?.value()?;
+        let old_value = vm.pop()?.try_into_value()?;
 
         let condition = vm.condition_top()?;
         let cs = vm.constraint_system();

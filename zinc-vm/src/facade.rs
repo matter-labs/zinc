@@ -11,63 +11,34 @@ use bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::groth16::Parameters;
 use franklin_crypto::bellman::groth16::Proof;
 use franklin_crypto::bellman::groth16::VerifyingKey;
-use franklin_crypto::bellman::Circuit;
 use franklin_crypto::bellman::ConstraintSystem;
-use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_bytecode::Program;
 use zinc_bytecode::TemplateValue;
 
+use crate::circuit::VMCircuit;
 use crate::constraint_systems::debug::DebugConstraintSystem;
-use crate::constraint_systems::duplicate_removing::DuplicateRemovingCS;
 use crate::core::VMState;
 use crate::core::VirtualMachine;
 use crate::error::RuntimeError;
 use crate::error::TypeSizeError;
 use crate::error::VerificationError;
 use crate::gadgets::contract::storage::StorageGadget;
-use crate::gadgets::contract::MerkleTreeStorage;
 use crate::gadgets::contract::Sha256Hasher;
 use crate::gadgets::fr_bigint::bigint_to_fr;
 use crate::storage::dummy::DummyStorage;
 use crate::Engine;
-
-struct VMCircuit<'a, E: Engine, S: MerkleTreeStorage<E>> {
-    program: &'a Program,
-    inputs: Option<&'a [BigInt]>,
-    result: &'a mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
-    storage: S,
-
-    _pd: PhantomData<E>,
-}
-
-impl<E: Engine, S: MerkleTreeStorage<E>> Circuit<E> for VMCircuit<'_, E, S> {
-    fn synthesize<CS: ConstraintSystem<E>>(
-        self,
-        cs: &mut CS,
-    ) -> std::result::Result<(), SynthesisError> {
-        // let cs = LoggingConstraintSystem::new(cs.namespace(|| "logging"));
-        let mut cs = DuplicateRemovingCS::new(cs.namespace(|| "duplicates removing"));
-        let storage = StorageGadget::<_, _, Sha256Hasher>::new(
-            cs.namespace(|| "storage init"),
-            self.storage,
-        )?;
-        let mut vm = VMState::new(cs.namespace(|| "vm"), false, storage);
-        *self.result = Some(vm.run(self.program, self.inputs, |_| {}, |_| Ok(())));
-        Ok(())
-    }
-}
 
 pub fn run<E: Engine>(
     program: &Program,
     inputs: &TemplateValue,
 ) -> Result<TemplateValue, RuntimeError> {
     let mut cs = DebugConstraintSystem::<Bn256>::default();
-    let storage = DummyStorage::new(20);
+    let storage = DummyStorage::new(4);
     let storage_gadget =
         StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
-    let mut vm = VMState::new(cs, true, storage_gadget);
+    let mut vm = VMState::new(cs, storage_gadget, true);
 
     let inputs_flat = inputs.to_flat_values();
 
@@ -112,15 +83,17 @@ pub fn run<E: Engine>(
 
 pub fn debug<E: Engine>(
     program: &Program,
-    inputs: &TemplateValue,
+    input: &TemplateValue,
 ) -> Result<TemplateValue, RuntimeError> {
     let mut cs = TestConstraintSystem::<Bn256>::new();
-    let storage = DummyStorage::new(20);
+
+    let storage = DummyStorage::new(4);
     let storage_gadget =
         StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
-    let mut vm = VMState::new(cs, true, storage_gadget);
 
-    let inputs_flat = inputs.to_flat_values();
+    let mut vm = VMState::new(cs, storage_gadget, true);
+
+    let inputs_flat = input.to_flat_values();
 
     let mut num_constraints = 0;
     let result = vm.run(
@@ -145,7 +118,7 @@ pub fn debug<E: Engine>(
     log::trace!("{}", cs.pretty_print());
 
     if !cs.is_satisfied() {
-        log::error!("unsatisfied: {}", cs.which_is_unsatisfied().unwrap());
+        log::error!("Unsatisfied: {}", cs.which_is_unsatisfied().unwrap());
         return Err(RuntimeError::UnsatisfiedConstraint);
     }
 
@@ -177,7 +150,7 @@ pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>, RuntimeError
     let rng = &mut rand::thread_rng();
     let mut result = None;
 
-    let storage: DummyStorage<E> = unimplemented!(); // todo: add setup storage
+    let storage: DummyStorage<E> = DummyStorage::new(4);
 
     let circuit = VMCircuit {
         program,
@@ -204,7 +177,7 @@ pub fn prove<E: Engine>(
 
     let witness_flat = witness.to_flat_values();
 
-    let storage = DummyStorage::new(20);
+    let storage = DummyStorage::new(4);
 
     let (result, proof) = {
         let mut result = None;

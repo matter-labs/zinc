@@ -24,13 +24,46 @@ pub enum Type {
 impl Type {
     pub fn size(&self) -> usize {
         match self {
-            Type::Unit => 0,
-            Type::Scalar(_) => 1,
-            Type::Enum => 1,
+            Self::Unit => 0,
+            Self::Scalar(_) => 1,
+            Self::Enum => 1,
 
-            Type::Array(r#type, size) => r#type.size() * *size,
-            Type::Tuple(fields) => fields.iter().map(|r#type| r#type.size()).sum(),
-            Type::Struct(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
+            Self::Array(r#type, size) => r#type.size() * *size,
+            Self::Tuple(fields) => fields.iter().map(|r#type| r#type.size()).sum(),
+            Self::Struct(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
         }
+    }
+
+    pub fn to_scalar_types(&self) -> Vec<ScalarType> {
+        fn internal(types: &mut Vec<ScalarType>, dtype: &Type) {
+            match dtype {
+                Type::Unit => {}
+                Type::Scalar(scalar_type) => {
+                    types.push(scalar_type.to_owned());
+                }
+                Type::Enum => {
+                    types.push(ScalarType::Field);
+                }
+                Type::Struct(fields) => {
+                    for (_, r#type) in fields {
+                        internal(types, r#type);
+                    }
+                }
+                Type::Tuple(fields) => {
+                    for r#type in fields {
+                        internal(types, r#type);
+                    }
+                }
+                Type::Array(r#type, size) => {
+                    for _ in 0..*size {
+                        internal(types, r#type.as_ref());
+                    }
+                }
+            }
+        }
+
+        let mut types = Vec::new();
+        internal(&mut types, self);
+        types
     }
 }

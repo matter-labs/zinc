@@ -9,16 +9,16 @@ use crate::gadgets;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Assert {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let value = vm.pop()?.value()?;
+        let value = vm.pop()?.try_into_value()?;
         let c = vm.condition_top()?;
         let cs = vm.constraint_system();
         let not_c = gadgets::logical::not::not(cs.namespace(|| "not"), &c)?;
-        let cond_value = vm.operations().or(value, not_c)?;
+        let cond_value = vm.gadgets().or(value, not_c)?;
         let message = match &self.message {
             Some(m) => Some(m.as_str()),
             None => None,
         };
-        vm.operations().assert(cond_value, message)
+        vm.gadgets().assert(cond_value, message)
     }
 }
 

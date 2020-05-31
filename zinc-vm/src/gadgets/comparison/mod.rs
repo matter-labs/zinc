@@ -18,32 +18,48 @@ use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
 use crate::gadgets::scalar::Scalar;
 use crate::Engine;
 
-pub fn gt<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
+pub fn greater_than<E, CS>(
+    cs: CS,
+    left: &Scalar<E>,
+    right: &Scalar<E>,
+) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    lt(cs, right, left)
+    lesser_than(cs, right, left)
 }
 
-pub fn ge<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
+pub fn greater_or_equals<E, CS>(
+    cs: CS,
+    left: &Scalar<E>,
+    right: &Scalar<E>,
+) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    le(cs, right, left)
+    lesser_or_equals(cs, right, left)
 }
 
-pub fn le<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
+pub fn lesser_or_equals<E, CS>(
+    mut cs: CS,
+    left: &Scalar<E>,
+    right: &Scalar<E>,
+) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    let is_gt = gt(cs.namespace(|| "gt"), left, right)?;
+    let is_gt = greater_than(cs.namespace(|| "gt"), left, right)?;
     gadgets::logical::not::not(cs.namespace(|| "not"), &is_gt)
 }
 
-pub fn lt<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
+pub fn lesser_than<E, CS>(
+    cs: CS,
+    left: &Scalar<E>,
+    right: &Scalar<E>,
+) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -160,7 +176,7 @@ fn boolean_or<E: Engine, CS: ConstraintSystem<E>>(
     Ok(Boolean::and(cs.namespace(|| "and"), &left.not(), &right.not())?.not())
 }
 
-pub fn eq<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
+pub fn equals<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -185,11 +201,15 @@ where
     auto_const!(add_inner, cs, left, right)
 }
 
-pub fn ne<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
+pub fn not_equals<E, CS>(
+    mut cs: CS,
+    left: &Scalar<E>,
+    right: &Scalar<E>,
+) -> Result<Scalar<E>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    let t = eq(cs.namespace(|| "eq"), left, right)?;
+    let t = equals(cs.namespace(|| "eq"), left, right)?;
     gadgets::logical::not::not(cs.namespace(|| "not"), &t)
 }

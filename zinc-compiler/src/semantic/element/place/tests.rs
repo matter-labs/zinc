@@ -201,7 +201,7 @@ fn main() {
         ElementError::Place(PlaceError::MutatingWithDifferentType {
             location: Location::new(4, 5),
             expected: Type::boolean(None).to_string(),
-            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
         }),
     )));
 
@@ -282,7 +282,7 @@ fn main() {
                 "Data".to_owned(),
                 vec![(
                     "a".to_owned(),
-                    Type::integer_unsigned(None, crate::BITLENGTH_BYTE),
+                    Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE),
                 )],
                 None,
             )
@@ -396,7 +396,7 @@ fn main() {
             location: Location::new(4, 24),
             type_identifier: Type::tuple(
                 Some(Location::new(4, 24)),
-                vec![Type::integer_unsigned(None, crate::BITLENGTH_BYTE); 3],
+                vec![Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE); 3],
             )
             .to_string(),
             field_index: 5,

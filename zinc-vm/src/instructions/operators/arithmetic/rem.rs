@@ -11,8 +11,8 @@ use crate::gadgets;
 use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
 impl<VM: VirtualMachine> VMInstruction<VM> for Rem {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let right = vm.pop()?.value()?;
-        let left = vm.pop()?.value()?;
+        let right = vm.pop()?.try_into_value()?;
+        let left = vm.pop()?.try_into_value()?;
 
         let condition = vm.condition_top()?;
         let cs = vm.constraint_system();

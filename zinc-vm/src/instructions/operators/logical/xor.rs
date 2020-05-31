@@ -7,10 +7,10 @@ use crate::error::RuntimeError;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Xor {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let right = vm.pop()?.value()?;
-        let left = vm.pop()?.value()?;
+        let right = vm.pop()?.try_into_value()?;
+        let left = vm.pop()?.try_into_value()?;
 
-        let xor = vm.operations().xor(left, right)?;
+        let xor = vm.gadgets().xor(left, right)?;
 
         vm.push(Cell::Value(xor))
     }

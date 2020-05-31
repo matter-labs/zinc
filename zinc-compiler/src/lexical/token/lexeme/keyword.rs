@@ -143,7 +143,7 @@ impl TryFrom<&str> for Keyword {
         }
 
         const INTEGER_BITLENGTH_RANGE: RangeInclusive<usize> =
-            crate::BITLENGTH_BYTE..=crate::BITLENGTH_INTEGER_MAX;
+            zinc_const::BITLENGTH_BYTE..=zinc_const::BITLENGTH_INTEGER_MAX;
 
         if let Some("u") = input.get(..1) {
             let bitlength = &input[1..];
@@ -159,10 +159,10 @@ impl TryFrom<&str> for Keyword {
                     INTEGER_BITLENGTH_RANGE,
                 ));
             }
-            if bitlength % crate::BITLENGTH_BYTE != 0 {
+            if bitlength % zinc_const::BITLENGTH_BYTE != 0 {
                 return Err(Error::IntegerBitlengthNotMultipleOfEight(
                     bitlength,
-                    crate::BITLENGTH_BYTE,
+                    zinc_const::BITLENGTH_BYTE,
                 ));
             }
             return Ok(Self::new_integer_unsigned(bitlength));
@@ -182,10 +182,10 @@ impl TryFrom<&str> for Keyword {
                     INTEGER_BITLENGTH_RANGE,
                 ));
             }
-            if bitlength % crate::BITLENGTH_BYTE != 0 {
+            if bitlength % zinc_const::BITLENGTH_BYTE != 0 {
                 return Err(Error::IntegerBitlengthNotMultipleOfEight(
                     bitlength,
-                    crate::BITLENGTH_BYTE,
+                    zinc_const::BITLENGTH_BYTE,
                 ));
             }
             return Ok(Self::new_integer_signed(bitlength));

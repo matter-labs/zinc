@@ -18,8 +18,13 @@ pub struct EvaluationStack<E: Engine> {
     stack: Vec<Vec<Cell<E>>>,
 }
 
+impl<E: Engine> Default for EvaluationStack<E> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<E: Engine> EvaluationStack<E> {
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             stack: vec![vec![]],
@@ -66,15 +71,18 @@ impl<E: Engine> EvaluationStack<E> {
             return Err(MalformedBytecode::BranchStacksDoNotMatch.into());
         }
 
-        for (i, (t, e)) in then_case.into_iter().zip(else_case.into_iter()).enumerate() {
-            match (t, e) {
-                (Cell::Value(tv), Cell::Value(ev)) => {
+        for (index, (main_value, else_value)) in
+            then_case.into_iter().zip(else_case.into_iter()).enumerate()
+        {
+            match (main_value, else_value) {
+                (Cell::Value(main_value), Cell::Value(else_value)) => {
                     let merged = gadgets::conditional_select::conditional_select(
-                        cs.namespace(|| format!("merge {}", i)),
+                        cs.namespace(|| format!("merge {}", index)),
                         condition,
-                        &tv,
-                        &ev,
+                        &main_value,
+                        &else_value,
                     )?;
+
                     self.push(Cell::Value(merged))?;
                 }
             }
@@ -91,7 +99,7 @@ impl<E: Engine> EvaluationStack<E> {
 
 impl<E: Engine> fmt::Display for EvaluationStack<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "Evaluation Stack:")?;
+        writeln!(f, "Evaluation stack:")?;
 
         for frame in self.stack.iter().rev() {
             for cell in frame.iter().rev() {

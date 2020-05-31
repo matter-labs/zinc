@@ -24,5 +24,6 @@ lazy_static = "1.4"
 num-traits = "0.2"
 num-bigint = "0.2"
 
-zinc-bytecode = { path = "../zinc-bytecode" }
+zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }
+zinc-bytecode = { path = "../zinc-bytecode" }

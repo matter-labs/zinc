@@ -32,7 +32,7 @@ impl Function {
             return_type: Box::new(Type::array(
                 Some(Location::default()),
                 Type::boolean(None),
-                crate::BITLENGTH_SHA256_HASH,
+                zinc_const::BITLENGTH_SHA256_HASH,
             )),
         }
     }
@@ -64,14 +64,17 @@ impl Function {
 
         match actual_params.get(Self::ARGUMENT_INDEX_PREIMAGE) {
             Some((Type::Array(array), location)) => match (array.r#type.deref(), array.size) {
-                (Type::Boolean(_), size) if size > 0 && size % crate::BITLENGTH_BYTE == 0 => {}
+                (Type::Boolean(_), size) if size > 0 && size % zinc_const::BITLENGTH_BYTE == 0 => {}
                 (r#type, size) => {
                     return Err(Error::ArgumentType {
                         location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         name: "preimage".to_owned(),
                         position: Self::ARGUMENT_INDEX_PREIMAGE + 1,
-                        expected: format!("[bool; N], N > 0, N % {} == 0", crate::BITLENGTH_BYTE),
+                        expected: format!(
+                            "[bool; N], N > 0, N % {} == 0",
+                            zinc_const::BITLENGTH_BYTE
+                        ),
                         found: format!("array [{}; {}]", r#type, size),
                     })
                 }
@@ -82,7 +85,7 @@ impl Function {
                     function: self.identifier.to_owned(),
                     name: "preimage".to_owned(),
                     position: Self::ARGUMENT_INDEX_PREIMAGE + 1,
-                    expected: format!("[bool; N], N > 0, N % {} == 0", crate::BITLENGTH_BYTE),
+                    expected: format!("[bool; N], N > 0, N % {} == 0", zinc_const::BITLENGTH_BYTE),
                     found: r#type.to_string(),
                 })
             }

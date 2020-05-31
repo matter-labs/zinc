@@ -7,11 +7,11 @@ use crate::error::RuntimeError;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for LoadByIndex {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let index = vm.pop()?.value()?;
+        let index = vm.pop()?.try_into_value()?;
 
         let mut array = Vec::with_capacity(self.array_len);
         for i in 0..self.array_len {
-            let value = vm.load(self.address + i)?.value()?;
+            let value = vm.load(self.address + i)?.try_into_value()?;
             array.push(value);
         }
 
@@ -19,7 +19,7 @@ impl<VM: VirtualMachine> VMInstruction<VM> for LoadByIndex {
         let mut values = Vec::with_capacity(self.value_len);
         for i in 0..self.value_len {
             let value = vm
-                .operations()
+                .gadgets()
                 .conditional_array_get(&condition, &array[i..], &index)?;
             values.push(value);
         }

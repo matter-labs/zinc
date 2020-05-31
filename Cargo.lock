@@ -1079,8 +1079,13 @@ dependencies = [
  "serde_json",
  "structopt",
  "zinc-bytecode",
+ "zinc-const",
  "zinc-utils",
 ]
+
+[[package]]
+name = "zinc-const"
+version = "0.1.5"
 
 [[package]]
 name = "zinc-tester"
@@ -1131,5 +1136,6 @@ dependencies = [
  "sha2",
  "structopt",
  "zinc-bytecode",
+ "zinc-const",
  "zinc-utils",
 ]

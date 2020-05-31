@@ -155,10 +155,7 @@ impl Value {
             }
         }
     }
-}
 
-// Pretty json de/serialization
-impl Value {
     pub fn to_json(&self) -> JsonValue {
         match self {
             Value::Unit => JsonValue::String("unit".into()),

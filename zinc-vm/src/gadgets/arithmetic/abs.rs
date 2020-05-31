@@ -36,7 +36,7 @@ where
                 let scalar = scalar.with_type_unchecked(scalar_type.clone());
                 let zero = Scalar::new_constant_int(0, scalar_type);
                 let neg = gadgets::arithmetic::neg::neg(cs.namespace(|| "neg"), &scalar)?;
-                let lt0 = gadgets::comparison::lt(cs.namespace(|| "lt"), &scalar, &zero)?;
+                let lt0 = gadgets::comparison::lesser_than(cs.namespace(|| "lt"), &scalar, &zero)?;
 
                 gadgets::conditional_select::conditional_select(
                     cs.namespace(|| "select"),

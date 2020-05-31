@@ -12,7 +12,7 @@ pub enum Cell<E: Engine> {
 }
 
 impl<E: Engine> Cell<E> {
-    pub fn value(self) -> Result<Scalar<E>, RuntimeError> {
+    pub fn try_into_value(self) -> Result<Scalar<E>, RuntimeError> {
         match self {
             Cell::Value(value) => Ok(value),
         }

@@ -7,10 +7,10 @@ use crate::error::RuntimeError;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for And {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let right = vm.pop()?.value()?;
-        let left = vm.pop()?.value()?;
+        let right = vm.pop()?.try_into_value()?;
+        let left = vm.pop()?.try_into_value()?;
 
-        let and = vm.operations().and(left, right)?;
+        let and = vm.gadgets().and(left, right)?;
 
         vm.push(Cell::Value(and))
     }

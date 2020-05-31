@@ -7,18 +7,18 @@ use crate::error::RuntimeError;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Slice {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let offset = vm.pop()?.value()?;
+        let offset = vm.pop()?.try_into_value()?;
 
         let mut array = Vec::with_capacity(self.array_len);
         for _ in 0..self.array_len {
-            let value = vm.pop()?.value()?;
+            let value = vm.pop()?.try_into_value()?;
             array.push(value);
         }
         array.reverse();
 
         for i in 0..self.slice_len {
             let condition = vm.condition_top()?;
-            let value = vm.operations().conditional_array_get(
+            let value = vm.gadgets().conditional_array_get(
                 &condition,
                 &array[i..=array.len() - self.slice_len + i],
                 &offset,

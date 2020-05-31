@@ -32,7 +32,7 @@ impl<E: Engine> NativeFunction<E> for Pedersen {
         for i in 0..self.message_length {
             let bit = stack
                 .pop()?
-                .value()?
+                .try_into_value()?
                 .to_boolean(cs.namespace(|| format!("bit {}", i)))?;
 
             bits.push(bit);

@@ -127,8 +127,8 @@ impl Type {
             Self::integer_signed(location, bitlength)
         } else {
             match bitlength {
-                crate::BITLENGTH_BOOLEAN => Self::boolean(location),
-                crate::BITLENGTH_FIELD => Self::field(location),
+                zinc_const::BITLENGTH_BOOLEAN => Self::boolean(location),
+                zinc_const::BITLENGTH_FIELD => Self::field(location),
                 bitlength => Self::integer_unsigned(location, bitlength),
             }
         }
@@ -285,7 +285,7 @@ impl Type {
     pub fn is_byte_array(&self) -> bool {
         match self {
             Self::Array(array) => {
-                array.r#type.deref() == &Self::integer_unsigned(None, crate::BITLENGTH_BYTE)
+                array.r#type.deref() == &Self::integer_unsigned(None, zinc_const::BITLENGTH_BYTE)
             }
             _ => false,
         }

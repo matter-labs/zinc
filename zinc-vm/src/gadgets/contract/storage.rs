@@ -5,13 +5,11 @@ use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::circuit::boolean::AllocatedBit;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;
-use franklin_crypto::circuit::Assignment;
 
 use zinc_bytecode::ScalarType;
 
 use crate::error::RuntimeError;
-use crate::gadgets::comparison::eq;
-use crate::gadgets::conditional_select::conditional_select;
+use crate::gadgets;
 use crate::gadgets::contract::MerkleTreeHasher;
 use crate::gadgets::contract::MerkleTreeStorage;
 use crate::gadgets::contract::ROOT_HASH_TRUNCATED_BITS;
@@ -27,19 +25,28 @@ pub struct StorageGadget<E: Engine, S: MerkleTreeStorage<E>, H: MerkleTreeHasher
 
 fn alloc_leaf_fields<E, CS>(
     mut cs: CS,
-    leaf_value: &[Option<E::Fr>],
+    leaf_value: &[Option<Scalar<E>>],
 ) -> Result<Vec<Scalar<E>>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
     let mut leaf_fields = Vec::new();
-    for (index, field_value) in leaf_value.iter().enumerate() {
+    for (index, scalar) in leaf_value.iter().enumerate() {
+        let field_value = scalar.as_ref().unwrap();
+        let fr = field_value.grab_value().unwrap();
+        let scalar_type = field_value.get_type();
+
         let field_allocated_num = AllocatedNum::alloc(
             cs.namespace(|| format!("leaf value: {} field", index)),
-            || Ok(field_value.grab()?),
+            || Ok(fr),
         )?;
-        leaf_fields.push(Scalar::<E>::from(field_allocated_num));
+        let scalar = Scalar::<E>::new_unchecked_variable(
+            field_allocated_num.get_value(),
+            field_allocated_num.get_variable(),
+            scalar_type,
+        );
+        leaf_fields.push(scalar);
     }
 
     Ok(leaf_fields)
@@ -161,7 +168,7 @@ where
             )?;
 
             left_node.push(
-                conditional_select(
+                gadgets::conditional_select::conditional_select(
                     cs.namespace(|| {
                         format!(
                             "node hash preimage: left part conditional select: {} bit (deep equals {})",
@@ -183,7 +190,7 @@ where
             );
 
             right_node.push(
-                conditional_select(
+                gadgets::conditional_select::conditional_select(
                     cs.namespace(|| {
                         format!(
                             "node hash preimage: right part conditional select: {} bit (deep equals {})",
@@ -222,7 +229,12 @@ where
     )?))
 }
 
-impl<E: Engine, S: MerkleTreeStorage<E>, H: MerkleTreeHasher<E>> StorageGadget<E, S, H> {
+impl<E, S, H> StorageGadget<E, S, H>
+where
+    E: Engine,
+    S: MerkleTreeStorage<E>,
+    H: MerkleTreeHasher<E>,
+{
     pub fn new<CS>(mut cs: CS, storage: S) -> std::result::Result<Self, SynthesisError>
     where
         CS: ConstraintSystem<E>,
@@ -247,7 +259,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>, H: MerkleTreeHasher<E>> StorageGadget<E
     pub fn load<CS>(
         &self,
         mut cs: CS,
-        fields: usize,
+        size: usize,
         index: &Scalar<E>,
     ) -> Result<Vec<Scalar<E>>, RuntimeError>
     where
@@ -257,14 +269,14 @@ impl<E: Engine, S: MerkleTreeStorage<E>, H: MerkleTreeHasher<E>> StorageGadget<E
         let mut index_bits = index.get_bits_le(cs.namespace(|| "index into bits"))?;
         index_bits.truncate(depth);
 
-        let merkle_tree_leaf = self
-            .storage
-            .load(&index.get_value().map(|field| fr_to_bigint_unsigned(&field)))?;
+        let index = index.get_value().map(|field| fr_to_bigint_unsigned(&field));
+        let merkle_tree_leaf = self.storage.load(&index)?;
 
         let leaf_fields = alloc_leaf_fields(
             cs.namespace(|| "alloc leaf fields"),
             &merkle_tree_leaf.leaf_value,
         )?;
+        dbg!(&leaf_fields);
 
         let authentication_path = alloc_authentication_path(
             cs.namespace(|| "alloc authentication path"),
@@ -272,7 +284,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>, H: MerkleTreeHasher<E>> StorageGadget<E
             &merkle_tree_leaf.authentication_path,
         )?;
 
-        if leaf_fields.len() != fields {
+        if leaf_fields.len() != size {
             return Err(RuntimeError::AssertionError(
                 "Incorrect number of slot fields returned from storage".into(),
             ));
@@ -287,7 +299,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>, H: MerkleTreeHasher<E>> StorageGadget<E
             &authentication_path,
         )?;
 
-        let root_hash_condition = eq(
+        let root_hash_condition = gadgets::comparison::equals(
             cs.namespace(|| "root hash equals to stored"),
             &authorized_root_hash,
             &self.root_hash,
@@ -319,8 +331,9 @@ impl<E: Engine, S: MerkleTreeStorage<E>, H: MerkleTreeHasher<E>> StorageGadget<E
             &index.get_value().map(|field| fr_to_bigint_unsigned(&field)),
             &value
                 .iter()
-                .map(|field| field.get_value())
-                .collect::<Vec<Option<E::Fr>>>(),
+                .cloned()
+                .map(Option::Some)
+                .collect::<Vec<Option<Scalar<E>>>>(),
         )?;
 
         let leaf_hash = alloc_leaf_hash(
@@ -343,7 +356,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>, H: MerkleTreeHasher<E>> StorageGadget<E
             &authentication_path,
         )?;
 
-        let root_hash_condition = eq(
+        let root_hash_condition = gadgets::comparison::equals(
             cs.namespace(|| "root hash equals to stored"),
             &authorized_root_hash,
             &self.root_hash,
@@ -396,7 +409,7 @@ mod tests {
     #[ignore]
     #[test]
     fn test_storage_gadget_small() {
-        const DEPTH_OF_TEST_TREE: usize = 2;
+        const DEPTH_OF_TEST_TREE: usize = 4;
 
         let mut rng = XorShiftRng::from_seed([0x5dbe6259, 0x8d313d76, 0x3237db17, 0xe5bc0654]);
 

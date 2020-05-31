@@ -22,7 +22,7 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Dbg {
             if vm.is_debugging() {
                 let mut flat = Vec::with_capacity(size);
                 for _ in 0..size {
-                    let value = vm.pop()?.value()?.to_bigint().ok_or_else(|| {
+                    let value = vm.pop()?.try_into_value()?.to_bigint().ok_or_else(|| {
                         RuntimeError::SynthesisError(SynthesisError::AssignmentMissing)
                     })?;
                     flat.push(value);

@@ -690,7 +690,7 @@ impl Analyzer {
         };
         let intermediate =
             GeneratorExpressionOperand::Constant(GeneratorExpressionConstant::Integer(
-                GeneratorExpressionIntegerConstant::new(start, false, crate::BITLENGTH_FIELD),
+                GeneratorExpressionIntegerConstant::new(start, false, zinc_const::BITLENGTH_FIELD),
             ));
 
         self.evaluation_stack.push(StackElement::Evaluated(result));

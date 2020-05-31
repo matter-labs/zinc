@@ -7,10 +7,10 @@ use crate::error::RuntimeError;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Eq {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let right = vm.pop()?.value()?;
-        let left = vm.pop()?.value()?;
+        let right = vm.pop()?.try_into_value()?;
+        let left = vm.pop()?.try_into_value()?;
 
-        let eq = vm.operations().eq(left, right)?;
+        let eq = vm.gadgets().eq(left, right)?;
 
         vm.push(Cell::Value(eq))
     }

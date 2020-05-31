@@ -56,10 +56,10 @@ where
         A: FnOnce() -> AR,
         AR: Into<String>,
     {
-        let ar = annotation().into();
+        let annotation = annotation().into();
         let mut value = None;
         let variable = self.0.alloc(
-            || &ar,
+            || &annotation,
             || {
                 let tmp = f()?;
                 value = Some(tmp);
@@ -68,7 +68,7 @@ where
         )?;
         log::trace!(
             "r1cs: witness: name = \"{}\", value = {:?}, index = {:?}",
-            ar,
+            annotation,
             value,
             variable.get_unchecked()
         );
@@ -81,10 +81,10 @@ where
         A: FnOnce() -> AR,
         AR: Into<String>,
     {
-        let ar = annotation().into();
+        let annotation = annotation().into();
         let mut value = None;
         let variable = self.0.alloc_input(
-            || &ar,
+            || &annotation,
             || {
                 let tmp = f()?;
                 value = Some(tmp);
@@ -93,7 +93,7 @@ where
         )?;
         log::trace!(
             "r1cs: input: name = \"{}\", value = {:?}, index = {:?}",
-            ar,
+            annotation,
             value,
             variable.get_unchecked()
         );
@@ -108,7 +108,7 @@ where
         LB: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
         LC: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
     {
-        let ar = annotation().into();
+        let annotation = annotation().into();
         let lc_a = a(LinearCombination::zero());
         let lc_b = b(LinearCombination::zero());
         let lc_c = c(LinearCombination::zero());
@@ -117,10 +117,10 @@ where
             lc_to_string(&lc_a),
             lc_to_string(&lc_b),
             lc_to_string(&lc_c),
-            ar,
+            annotation,
         );
 
-        self.0.enforce(|| ar, |_| lc_a, |_| lc_b, |_| lc_c)
+        self.0.enforce(|| annotation, |_| lc_a, |_| lc_b, |_| lc_c)
     }
 
     fn push_namespace<NR, N>(&mut self, name_fn: N)

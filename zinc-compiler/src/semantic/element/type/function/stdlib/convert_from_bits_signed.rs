@@ -59,9 +59,9 @@ impl Function {
         let return_type = match actual_params.get(Self::ARGUMENT_INDEX_BITS) {
             Some((Type::Array(array), location)) => match (array.r#type.deref(), array.size) {
                 (Type::Boolean(_), size)
-                    if crate::BITLENGTH_BYTE <= size
-                        && size <= crate::BITLENGTH_INTEGER_MAX
-                        && size % crate::BITLENGTH_BYTE == 0 =>
+                    if zinc_const::BITLENGTH_BYTE <= size
+                        && size <= zinc_const::BITLENGTH_INTEGER_MAX
+                        && size % zinc_const::BITLENGTH_BYTE == 0 =>
                 {
                     Type::integer_signed(None, size)
                 }
@@ -73,8 +73,8 @@ impl Function {
                         position: Self::ARGUMENT_INDEX_BITS + 1,
                         expected: format!(
                             "[bool; N], {0} <= N <= {1}, N % {0} == 0",
-                            crate::BITLENGTH_BYTE,
-                            crate::BITLENGTH_INTEGER_MAX
+                            zinc_const::BITLENGTH_BYTE,
+                            zinc_const::BITLENGTH_INTEGER_MAX
                         ),
                         found: format!("array [{}; {}]", r#type, size),
                     })
@@ -88,8 +88,8 @@ impl Function {
                     position: Self::ARGUMENT_INDEX_BITS + 1,
                     expected: format!(
                         "[bool; N], {0} <= N <= {1}, N % {0} == 0",
-                        crate::BITLENGTH_BYTE,
-                        crate::BITLENGTH_INTEGER_MAX
+                        zinc_const::BITLENGTH_BYTE,
+                        zinc_const::BITLENGTH_INTEGER_MAX
                     ),
                     found: r#type.to_string(),
                 })

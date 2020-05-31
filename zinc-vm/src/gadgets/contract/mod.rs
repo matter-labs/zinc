@@ -55,7 +55,7 @@ impl<E: Engine> MerkleTreeHasher<E> for Sha256Hasher {
             let mut field_bits = field.to_expression::<CS>().into_bits_le_strict(
                 cs.namespace(|| format!("{} field of leaf value to bits", index)),
             )?;
-            field_bits.resize(256, Boolean::Constant(false));
+            field_bits.resize(zinc_const::BITLENGTH_FIELD_PADDED, Boolean::Constant(false));
 
             preimage.append(&mut field_bits);
         }
@@ -85,7 +85,7 @@ impl<E: Engine> MerkleTreeHasher<E> for Sha256Hasher {
 }
 
 pub struct MerkleTreeLeaf<E: Engine> {
-    pub leaf_value: Vec<Option<E::Fr>>,
+    pub leaf_value: Vec<Option<Scalar<E>>>,
     pub leaf_value_hash: Vec<Option<bool>>,
     pub authentication_path: Vec<Vec<Option<bool>>>,
 }
@@ -104,6 +104,6 @@ pub trait MerkleTreeStorage<E: Engine> {
     fn store(
         &mut self,
         index: &Option<BigInt>,
-        value: &[Option<E::Fr>],
+        value: &[Option<Scalar<E>>],
     ) -> Result<MerkleTreeLeaf<E>, RuntimeError>;
 }

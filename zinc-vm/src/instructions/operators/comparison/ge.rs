@@ -10,11 +10,11 @@ use crate::gadgets;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Ge {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let right = vm.pop()?.value()?;
-        let left = vm.pop()?.value()?;
+        let right = vm.pop()?.try_into_value()?;
+        let left = vm.pop()?.try_into_value()?;
 
         let cs = vm.constraint_system();
-        let ge = gadgets::comparison::ge(cs.namespace(|| "ge"), &left, &right)?;
+        let ge = gadgets::comparison::greater_or_equals(cs.namespace(|| "ge"), &left, &right)?;
 
         vm.push(Cell::Value(ge))
     }

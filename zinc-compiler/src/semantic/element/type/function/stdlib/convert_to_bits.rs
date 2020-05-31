@@ -57,7 +57,7 @@ impl Function {
 
         let return_type = match actual_params.get(Self::ARGUMENT_INDEX_VALUE) {
             Some((Type::Boolean(_), _location)) => {
-                Type::array(location, Type::boolean(None), crate::BITLENGTH_BOOLEAN)
+                Type::array(location, Type::boolean(None), zinc_const::BITLENGTH_BOOLEAN)
             }
             Some((Type::IntegerUnsigned { bitlength, .. }, _location)) => {
                 Type::array(location, Type::boolean(None), *bitlength)
@@ -66,7 +66,7 @@ impl Function {
                 Type::array(location, Type::boolean(None), *bitlength)
             }
             Some((Type::Field(_), _location)) => {
-                Type::array(location, Type::boolean(None), crate::BITLENGTH_FIELD)
+                Type::array(location, Type::boolean(None), zinc_const::BITLENGTH_FIELD)
             }
             Some((r#type, location)) => {
                 return Err(Error::ArgumentType {

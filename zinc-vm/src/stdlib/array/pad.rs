@@ -34,8 +34,8 @@ impl<E: Engine> NativeFunction<E> for Pad {
         _cs: CS,
         stack: &mut EvaluationStack<E>,
     ) -> Result<(), RuntimeError> {
-        let filler = stack.pop()?.value()?;
-        let new_length = stack.pop()?.value()?.get_constant_usize()?;
+        let filler = stack.pop()?.try_into_value()?;
+        let new_length = stack.pop()?.try_into_value()?.get_constant_usize()?;
 
         if new_length < self.array_length {
             return Err(MalformedBytecode::InvalidArguments(

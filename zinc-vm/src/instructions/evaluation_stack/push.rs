@@ -8,7 +8,7 @@ use crate::error::RuntimeError;
 impl<VM: VirtualMachine> VMInstruction<VM> for Push {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let value = vm
-            .operations()
+            .gadgets()
             .constant_bigint(&self.value, self.scalar_type.to_owned())?;
         vm.push(Cell::Value(value))
     }

@@ -311,7 +311,7 @@ impl Expression {
                             IntegerConstant::new(
                                 BigInt::from(offset),
                                 false,
-                                crate::BITLENGTH_FIELD,
+                                zinc_const::BITLENGTH_FIELD,
                             )
                             .write_all_to_bytecode(bytecode.clone());
                         } else {
@@ -333,7 +333,7 @@ impl Expression {
                         IntegerConstant::new(
                             BigInt::from(access.offset),
                             false,
-                            crate::BITLENGTH_FIELD,
+                            zinc_const::BITLENGTH_FIELD,
                         )
                         .write_all_to_bytecode(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(
@@ -430,8 +430,12 @@ impl Expression {
                 {
                     let position = *position;
 
-                    IntegerConstant::new(BigInt::from(position), false, crate::BITLENGTH_FIELD)
-                        .write_all_to_bytecode(bytecode.clone());
+                    IntegerConstant::new(
+                        BigInt::from(position),
+                        false,
+                        zinc_const::BITLENGTH_FIELD,
+                    )
+                    .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
                         Instruction::StorageLoad(zinc_bytecode::StorageLoad::new(*element_size)),
                         Some(place.identifier.location),
@@ -475,8 +479,12 @@ impl Expression {
                     Some(location),
                 );
 
-                IntegerConstant::new(BigInt::from(storage_index), false, crate::BITLENGTH_FIELD)
-                    .write_all_to_bytecode(bytecode.clone());
+                IntegerConstant::new(
+                    BigInt::from(storage_index),
+                    false,
+                    zinc_const::BITLENGTH_FIELD,
+                )
+                .write_all_to_bytecode(bytecode.clone());
                 bytecode.borrow_mut().push_instruction(
                     Instruction::StorageStore(zinc_bytecode::StorageStore::new(total_size)),
                     Some(location),
@@ -556,8 +564,12 @@ impl Expression {
                 {
                     let position = *position;
 
-                    IntegerConstant::new(BigInt::from(position), false, crate::BITLENGTH_FIELD)
-                        .write_all_to_bytecode(bytecode.clone());
+                    IntegerConstant::new(
+                        BigInt::from(position),
+                        false,
+                        zinc_const::BITLENGTH_FIELD,
+                    )
+                    .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
                         Instruction::StorageLoad(zinc_bytecode::StorageLoad::new(*element_size)),
                         Some(place.identifier.location),
@@ -621,8 +633,12 @@ impl Expression {
                     Some(location),
                 );
 
-                IntegerConstant::new(BigInt::from(storage_index), false, crate::BITLENGTH_FIELD)
-                    .write_all_to_bytecode(bytecode.clone());
+                IntegerConstant::new(
+                    BigInt::from(storage_index),
+                    false,
+                    zinc_const::BITLENGTH_FIELD,
+                )
+                .write_all_to_bytecode(bytecode.clone());
                 bytecode.borrow_mut().push_instruction(
                     Instruction::StorageStore(zinc_bytecode::StorageStore::new(total_size)),
                     Some(location),

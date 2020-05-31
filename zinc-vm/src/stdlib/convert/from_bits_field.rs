@@ -24,7 +24,7 @@ impl<E: Engine> NativeFunction<E> for FieldFromBits {
     ) -> Result<(), RuntimeError> {
         let mut bits = Vec::with_capacity(E::Fr::NUM_BITS as usize);
         for i in 0..E::Fr::NUM_BITS {
-            let bit = stack.pop()?.value()?;
+            let bit = stack.pop()?.try_into_value()?;
             let boolean = bit.to_boolean(cs.namespace(|| format!("to_boolean {}", i)))?;
             bits.push(boolean);
         }

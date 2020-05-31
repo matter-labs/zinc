@@ -17,7 +17,7 @@ impl<E: Engine> NativeFunction<E> for Inverse {
     where
         CS: ConstraintSystem<E>,
     {
-        let scalar = stack.pop()?.value()?;
+        let scalar = stack.pop()?.try_into_value()?;
         let inverse = gadgets::arithmetic::field::inverse(cs, &scalar)?;
         stack.push(inverse.into())
     }

@@ -10,7 +10,7 @@ use crate::gadgets;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Not {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let value = vm.pop()?.value()?;
+        let value = vm.pop()?.try_into_value()?;
 
         let cs = vm.constraint_system();
         let not = gadgets::logical::not::not(cs.namespace(|| "not"), &value)?;

@@ -33,9 +33,9 @@ type TestVirtualMachine =
 
 fn new_test_constrained_vm() -> TestVirtualMachine {
     let mut cs = TestConstraintSystem::new();
-    let storage = DummyStorage::new(20);
+    let storage = DummyStorage::new(4);
     let storage_gadget = StorageGadget::new(cs.namespace(|| "storage"), storage).unwrap();
-    TestVirtualMachine::new(cs, true, storage_gadget)
+    TestVirtualMachine::new(cs, storage_gadget, true)
 }
 
 fn assert_stack_eq<VM, BI>(vm: &mut VM, expected_stack: &[BI])
@@ -47,7 +47,7 @@ where
         let value = vm
             .pop()
             .expect("expected stack value is missing")
-            .value()
+            .try_into_value()
             .expect("expected Cell::Value");
 
         assert_eq!(

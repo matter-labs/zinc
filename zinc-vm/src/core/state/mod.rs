@@ -2,9 +2,11 @@
 //! The VM state.
 //!
 
+pub mod block;
 pub mod cell;
 pub mod data_stack;
 pub mod evaluation_stack;
+pub mod function_frame;
 
 use std::fmt;
 
@@ -13,32 +15,7 @@ use crate::Engine;
 
 use self::data_stack::DataStack;
 use self::evaluation_stack::EvaluationStack;
-
-#[derive(Debug)]
-pub struct Loop {
-    pub first_instruction_index: usize,
-    pub iterations_left: usize,
-}
-
-#[derive(Debug)]
-pub struct Branch<E: Engine> {
-    pub condition: Scalar<E>,
-    pub has_else: bool,
-}
-
-#[derive(Debug)]
-pub enum Block<E: Engine> {
-    Loop(Loop),
-    Branch(Branch<E>),
-}
-
-#[derive(Debug)]
-pub struct FunctionFrame<E: Engine> {
-    pub blocks: Vec<Block<E>>,
-    pub return_address: usize,
-    pub stack_frame_begin: usize,
-    pub stack_frame_end: usize,
-}
+use self::function_frame::Frame;
 
 #[derive(Debug)]
 pub struct State<E: Engine> {
@@ -46,18 +23,7 @@ pub struct State<E: Engine> {
     pub evaluation_stack: EvaluationStack<E>,
     pub data_stack: DataStack<E>,
     pub conditions_stack: Vec<Scalar<E>>,
-    pub frames_stack: Vec<FunctionFrame<E>>,
-}
-
-impl<E: Engine> FunctionFrame<E> {
-    pub fn new(data_stack_address: usize, return_address: usize) -> Self {
-        Self {
-            blocks: vec![],
-            return_address,
-            stack_frame_begin: data_stack_address,
-            stack_frame_end: data_stack_address,
-        }
-    }
+    pub frames_stack: Vec<Frame<E>>,
 }
 
 impl<E: Engine> fmt::Display for State<E> {
@@ -66,7 +32,7 @@ impl<E: Engine> fmt::Display for State<E> {
         writeln!(
             f,
             "Data stack offset: {}\n",
-            self.frames_stack.last().unwrap().stack_frame_begin
+            self.frames_stack.last().unwrap().stack_frame_start
         )?;
         writeln!(f, "{}", self.data_stack)?;
 

@@ -25,7 +25,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType {
             location: Location::new(3, 21),
-            expected: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+            expected: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
             found: Type::boolean(None).to_string(),
         })),
     )));

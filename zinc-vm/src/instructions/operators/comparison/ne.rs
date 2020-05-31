@@ -10,11 +10,11 @@ use crate::gadgets;
 
 impl<VM: VirtualMachine> VMInstruction<VM> for Ne {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let right = vm.pop()?.value()?;
-        let left = vm.pop()?.value()?;
+        let right = vm.pop()?.try_into_value()?;
+        let left = vm.pop()?.try_into_value()?;
 
         let cs = vm.constraint_system();
-        let ne = gadgets::comparison::ne(cs.namespace(|| "ne"), &left, &right)?;
+        let ne = gadgets::comparison::not_equals(cs.namespace(|| "ne"), &left, &right)?;
 
         vm.push(Cell::Value(ne))
     }
