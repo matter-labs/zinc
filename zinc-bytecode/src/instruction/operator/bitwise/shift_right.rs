@@ -2,21 +2,28 @@
 //! The 'bitwise shift right' instruction.
 //!
 
+use std::fmt;
+
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
 use crate::instruction::Instruction;
-use crate::InstructionInfo;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct BitwiseShiftRight;
 
-impl InstructionInfo for BitwiseShiftRight {
-    fn to_assembly(&self) -> String {
-        "bit_shift_right".into()
+impl BitwiseShiftRight {
+    pub fn is_debug(&self) -> bool {
+        false
     }
 
-    fn wrap(self) -> Instruction {
+    pub fn wrap(self) -> Instruction {
         Instruction::BitwiseShiftRight(self)
+    }
+}
+
+impl fmt::Display for BitwiseShiftRight {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "bitwise_shift_right")
     }
 }

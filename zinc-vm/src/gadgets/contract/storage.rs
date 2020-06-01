@@ -276,7 +276,6 @@ where
             cs.namespace(|| "alloc leaf fields"),
             &merkle_tree_leaf.leaf_value,
         )?;
-        dbg!(&leaf_fields);
 
         let authentication_path = alloc_authentication_path(
             cs.namespace(|| "alloc authentication path"),

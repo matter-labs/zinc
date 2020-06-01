@@ -1,5 +1,5 @@
 //!
-//! The comparison operator instruction.
+//! The comparison operator instructions.
 //!
 
 pub mod eq;

@@ -2,21 +2,28 @@
 //! The 'bitwise AND' instruction.
 //!
 
+use std::fmt;
+
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
 use crate::instruction::Instruction;
-use crate::InstructionInfo;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct BitwiseAnd;
 
-impl InstructionInfo for BitwiseAnd {
-    fn to_assembly(&self) -> String {
-        "bit_and".into()
+impl BitwiseAnd {
+    pub fn is_debug(&self) -> bool {
+        false
     }
 
-    fn wrap(self) -> Instruction {
+    pub fn wrap(self) -> Instruction {
         Instruction::BitwiseAnd(self)
+    }
+}
+
+impl fmt::Display for BitwiseAnd {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "bitwise_and")
     }
 }

@@ -7,7 +7,7 @@ description = "The Zinc integration test runner"
 
 [[bin]]
 name = "zinc-tester"
-path = "src/main.rs"
+path = "src/zinc-tester/main.rs"
 
 [dependencies]
 structopt = "0.3"

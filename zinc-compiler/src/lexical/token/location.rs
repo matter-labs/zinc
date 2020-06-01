@@ -63,7 +63,7 @@ impl Location {
 }
 
 impl fmt::Display for Location {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.line, self.column) {
             (0, 0) => write!(f, "<unavailable>"),
             (line, column) => match self.file_index {

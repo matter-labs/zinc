@@ -2,21 +2,28 @@
 //! The 'conditional if end' instruction.
 //!
 
+use std::fmt;
+
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
 use crate::instruction::Instruction;
-use crate::InstructionInfo;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct EndIf;
 
-impl InstructionInfo for EndIf {
-    fn to_assembly(&self) -> String {
-        "endif".into()
+impl EndIf {
+    pub fn is_debug(&self) -> bool {
+        false
     }
 
-    fn wrap(self) -> Instruction {
+    pub fn wrap(self) -> Instruction {
         Instruction::EndIf(self)
+    }
+}
+
+impl fmt::Display for EndIf {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "endif")
     }
 }

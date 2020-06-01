@@ -16,7 +16,7 @@ pub enum ProjectType {
 }
 
 impl fmt::Display for ProjectType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Circuit => write!(f, "circuit"),
             Self::Contract => write!(f, "contract"),

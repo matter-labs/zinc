@@ -460,7 +460,7 @@ impl PartialEq<Type> for Type {
 }
 
 impl fmt::Display for Type {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Unit(_) => write!(f, "()"),
             Self::Boolean(_) => write!(f, "bool"),

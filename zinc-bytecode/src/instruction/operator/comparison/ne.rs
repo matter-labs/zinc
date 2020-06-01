@@ -2,21 +2,28 @@
 //! The 'not equals comparison' instruction.
 //!
 
+use std::fmt;
+
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
 use crate::instruction::Instruction;
-use crate::InstructionInfo;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Ne;
 
-impl InstructionInfo for Ne {
-    fn to_assembly(&self) -> String {
-        "ne".into()
+impl Ne {
+    pub fn is_debug(&self) -> bool {
+        false
     }
 
-    fn wrap(self) -> Instruction {
+    pub fn wrap(self) -> Instruction {
         Instruction::Ne(self)
+    }
+}
+
+impl fmt::Display for Ne {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "ne")
     }
 }

@@ -20,7 +20,7 @@ impl From<SourceError> for Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Source(inner) => write!(f, "{}", inner),
             Self::WitnessTemplateOutput(inner) => write!(f, "witness template output: {}", inner),
@@ -38,7 +38,7 @@ pub enum OutputError {
 }
 
 impl fmt::Display for OutputError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Creating(inner) => write!(f, "creating: {}", inner),
             Self::Writing(inner) => write!(f, "writing: {}", inner),

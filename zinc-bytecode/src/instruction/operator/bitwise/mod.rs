@@ -1,5 +1,5 @@
 //!
-//! The bitwise operator instruction.
+//! The bitwise operator instructions.
 //!
 
 pub mod and;

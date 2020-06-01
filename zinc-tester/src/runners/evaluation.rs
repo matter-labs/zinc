@@ -10,34 +10,52 @@ use colored::Colorize;
 
 use pairing::bn256::Bn256;
 
-use crate::data::TestData;
-use crate::file::TestFile;
-use crate::program::ProgramData;
-use crate::runners::TestRunner;
+use crate::metadata::Metadata;
+use crate::file::File;
+use crate::program::Program;
+use crate::runners::Runnable;
 use crate::Summary;
 
 pub struct Runner {
     pub verbosity: usize,
+    pub filter: Option<String>,
 }
 
-impl TestRunner for Runner {
+impl Runner {
+    pub fn new(verbosity: usize, filter: Option<String>) -> Self {
+        Self { verbosity, filter }
+    }
+}
+
+impl Runnable for Runner {
     fn run(
         &self,
-        test_file_path: &PathBuf,
-        test_file: &TestFile,
-        test_data: &TestData,
+        path: &PathBuf,
+        file: &File,
+        metadata: &Metadata,
         summary: Arc<Mutex<Summary>>,
     ) {
-        let test_file_path = match test_file_path.strip_prefix(crate::TESTS_DIRECTORY) {
+        let path = match path.strip_prefix(crate::TESTS_DIRECTORY) {
             Ok(path) => path,
-            Err(_error) => test_file_path,
+            Err(_error) => path,
         };
 
-        for test_case in test_data.cases.iter() {
-            let case_name = format!("{}::{}", test_file_path.to_string_lossy(), test_case.case);
+        for case in metadata.cases.iter() {
+            let case_name = format!("{}::{}", path.to_string_lossy(), case.case);
+            if let Some(filter) = self.filter.as_ref() {
+                if !case_name.contains(filter) {
+                    continue;
+                }
+            }
 
-            let program_data = match ProgramData::new(&test_case.input, test_file.code.as_str()) {
-                Ok(program_data) => program_data,
+            if metadata.ignore || case.ignore {
+                summary.lock().expect(crate::panic::MUTEX_SYNC).ignored += 1;
+                println!("[INTEGRATION] {} {}", "IGNORE".yellow(), case_name);
+                continue;
+            }
+
+            let program = match Program::new(file.code.as_str(), &case.input, case.entry.as_str()) {
+                Ok(program) => program,
                 Err(error) => {
                     summary.lock().expect(crate::panic::MUTEX_SYNC).invalid += 1;
                     println!(
@@ -50,17 +68,11 @@ impl TestRunner for Runner {
                 }
             };
 
-            if test_data.ignore || test_case.ignore {
-                summary.lock().expect(crate::panic::MUTEX_SYNC).ignored += 1;
-                println!("[INTEGRATION] {} {}", "IGNORE".yellow(), case_name);
-                continue;
-            }
-
-            match zinc_vm::run::<Bn256>(&program_data.program, &program_data.input) {
+            match zinc_vm::run::<Bn256>(&program.bytecode, &program.witness) {
                 Ok(output) => {
                     let output = output.to_json();
-                    if test_case.expect == output {
-                        if !test_case.should_panic {
+                    if case.expect == output {
+                        if !case.should_panic {
                             summary.lock().expect(crate::panic::MUTEX_SYNC).passed += 1;
                             if self.verbosity > 0 {
                                 println!("[INTEGRATION] {} {}", "PASSED".green(), case_name);
@@ -79,13 +91,13 @@ impl TestRunner for Runner {
                             "[INTEGRATION] {} {} (expected {}, but got {})",
                             "FAILED".bright_red(),
                             case_name,
-                            test_case.expect,
+                            case.expect,
                             output
                         );
                     }
                 }
                 Err(error) => {
-                    if test_case.should_panic {
+                    if case.should_panic {
                         summary.lock().expect(crate::panic::MUTEX_SYNC).passed += 1;
                         if self.verbosity > 0 {
                             println!(

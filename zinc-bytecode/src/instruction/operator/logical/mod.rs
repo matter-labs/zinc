@@ -1,5 +1,5 @@
 //!
-//! The logical operator instruction.
+//! The logical operator instructions.
 //!
 
 pub mod and;

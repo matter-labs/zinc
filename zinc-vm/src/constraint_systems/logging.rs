@@ -29,18 +29,6 @@ where
     pub fn new(cs: CS) -> Self {
         Self(cs, PhantomData)
     }
-
-    pub fn inner(&self) -> &CS {
-        &self.0
-    }
-
-    pub fn inner_mut(&mut self) -> &mut CS {
-        &mut self.0
-    }
-
-    pub fn into_inner(self) -> CS {
-        self.0
-    }
 }
 
 impl<E, CS> ConstraintSystem<E> for LoggingConstraintSystem<E, CS>

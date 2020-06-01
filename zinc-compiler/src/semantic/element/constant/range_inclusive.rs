@@ -54,7 +54,7 @@ impl RangeInclusive {
 }
 
 impl fmt::Display for RangeInclusive {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "'{} ..= {}' of type '{}'",

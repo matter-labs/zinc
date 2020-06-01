@@ -21,7 +21,7 @@ impl Comment {
 }
 
 impl fmt::Display for Comment {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Line { inner } => write!(f, "{}", inner),
             Self::Block { inner } => write!(f, "{}", inner),

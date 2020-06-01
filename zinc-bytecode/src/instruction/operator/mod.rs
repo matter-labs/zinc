@@ -1,5 +1,5 @@
 //!
-//! The operator instruction.
+//! The operator instructions.
 //!
 
 pub mod arithmetic;

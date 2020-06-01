@@ -27,7 +27,7 @@ pub enum Lexeme {
 }
 
 impl fmt::Display for Lexeme {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Keyword(inner) => write!(f, "{}", inner),
             Self::Identifier(inner) => write!(f, "{}", inner),

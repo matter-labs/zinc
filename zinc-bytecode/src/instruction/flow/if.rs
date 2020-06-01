@@ -2,21 +2,28 @@
 //! The 'conditional if' instruction.
 //!
 
+use std::fmt;
+
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
 use crate::instruction::Instruction;
-use crate::InstructionInfo;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct If;
 
-impl InstructionInfo for If {
-    fn to_assembly(&self) -> String {
-        "if".into()
+impl If {
+    pub fn is_debug(&self) -> bool {
+        false
     }
 
-    fn wrap(self) -> Instruction {
+    pub fn wrap(self) -> Instruction {
         Instruction::If(self)
+    }
+}
+
+impl fmt::Display for If {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "if")
     }
 }

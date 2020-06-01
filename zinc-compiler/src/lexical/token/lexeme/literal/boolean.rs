@@ -45,7 +45,7 @@ impl Into<bool> for Boolean {
 }
 
 impl fmt::Display for Boolean {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::False => write!(f, "false"),
             Self::True => write!(f, "true"),

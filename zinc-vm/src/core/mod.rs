@@ -12,10 +12,7 @@ use num_bigint::ToBigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::dispatch_instruction;
 use zinc_bytecode::DataType;
-use zinc_bytecode::Instruction;
-use zinc_bytecode::InstructionInfo;
 use zinc_bytecode::Program;
 use zinc_bytecode::ScalarType;
 
@@ -41,7 +38,7 @@ use self::state::evaluation_stack::EvaluationStack;
 use self::state::function_frame::Frame;
 use self::state::State;
 
-pub trait VMInstruction<VM: VirtualMachine>: InstructionInfo {
+pub trait VMInstruction<VM: VirtualMachine> {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError>;
 }
 
@@ -179,14 +176,19 @@ where
             let namespace = format!("step={}, addr={}", step, self.state.instruction_counter);
             self.counter.cs.push_namespace(|| namespace);
             let instruction = &program.bytecode[self.state.instruction_counter];
-            log::info!(
+
+            let log_message = format!(
                 "{}:{} > {}",
-                step,
-                self.state.instruction_counter,
-                dispatch_instruction!(instruction => instruction.to_assembly())
+                step, self.state.instruction_counter, instruction,
             );
+            if instruction.is_debug() {
+                log::debug!("{}", log_message);
+            } else {
+                log::info!("{}", log_message);
+            }
+
             self.state.instruction_counter += 1;
-            let result = dispatch_instruction!(instruction => instruction.execute(self));
+            let result = instruction.execute(self);
             if let Err(err) = result.and(check_cs(&self.counter.cs)) {
                 log::error!("{}\nat {}", err, self.location.to_string().blue());
                 return Err(err);

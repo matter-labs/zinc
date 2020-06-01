@@ -56,7 +56,7 @@ impl Into<String> for Integer {
 }
 
 impl fmt::Display for Integer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Binary { inner } => write!(f, "{}", inner),
             Self::Octal { inner } => write!(f, "{}", inner),

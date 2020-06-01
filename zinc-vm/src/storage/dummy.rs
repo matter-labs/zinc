@@ -28,8 +28,7 @@ impl<E: Engine> DummyStorage<E> {
             leaf_values: vec![vec![]; 1 << depth],
         };
 
-        result.leaf_values[0] = (8..4104)
-            .into_iter()
+        result.leaf_values[0] = (8..72)
             .map(|value| {
                 Scalar::<E>::new_constant_int(value as usize, ScalarType::Integer(IntegerType::U8))
             })

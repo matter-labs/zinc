@@ -2,11 +2,12 @@
 //! The 'loop begin' instruction.
 //!
 
+use std::fmt;
+
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
 use crate::instruction::Instruction;
-use crate::InstructionInfo;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LoopBegin {
@@ -17,14 +18,18 @@ impl LoopBegin {
     pub fn new(iterations: usize) -> Self {
         Self { iterations }
     }
-}
 
-impl InstructionInfo for LoopBegin {
-    fn to_assembly(&self) -> String {
-        format!("loop_begin {}", self.iterations)
+    pub fn is_debug(&self) -> bool {
+        false
     }
 
-    fn wrap(self) -> Instruction {
+    pub fn wrap(self) -> Instruction {
         Instruction::LoopBegin(self)
+    }
+}
+
+impl fmt::Display for LoopBegin {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "loop_begin {}", self.iterations)
     }
 }

@@ -41,7 +41,7 @@ pub enum Element {
 }
 
 impl fmt::Display for Element {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::IndexExpression { .. } => write!(f, "[<runtime>]"),
             Self::IndexConstant { constant, .. } => write!(f, "[{}]", constant.value),

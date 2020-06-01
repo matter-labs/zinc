@@ -36,7 +36,7 @@ impl From<IntegerType> for Type {
 }
 
 impl fmt::Display for Type {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Boolean => write!(f, "bool"),
             Self::Integer(inner) => write!(f, "{}", inner),

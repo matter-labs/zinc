@@ -62,7 +62,7 @@ pub enum Symbol {
 }
 
 impl fmt::Display for Symbol {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ParenthesisLeft => write!(f, "("),
             Self::ParenthesisRight => write!(f, ")"),

@@ -2,11 +2,12 @@
 //! The 'assert' instruction.
 //!
 
+use std::fmt;
+
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
 use crate::instruction::Instruction;
-use crate::InstructionInfo;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Assert {
@@ -17,17 +18,21 @@ impl Assert {
     pub fn new(message: Option<String>) -> Self {
         Self { message }
     }
-}
 
-impl InstructionInfo for Assert {
-    fn to_assembly(&self) -> String {
-        match &self.message {
-            None => "assert".to_owned(),
-            Some(text) => format!("assert \"{}\"", text),
-        }
+    pub fn is_debug(&self) -> bool {
+        false
     }
 
-    fn wrap(self) -> Instruction {
+    pub fn wrap(self) -> Instruction {
         Instruction::Assert(self)
+    }
+}
+
+impl fmt::Display for Assert {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.message {
+            None => write!(f, "assert"),
+            Some(text) => write!(f, "assert \"{}\"", text),
+        }
     }
 }

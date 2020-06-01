@@ -187,7 +187,7 @@ impl Function {
 }
 
 impl fmt::Display for Function {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::CryptoSha256(inner) => write!(f, "{}", inner),
             Self::CryptoPedersen(inner) => write!(f, "{}", inner),

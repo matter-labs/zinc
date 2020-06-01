@@ -1,5 +1,5 @@
 //!
-//! The flow control instruction.
+//! The flow control instructions.
 //!
 
 pub mod call;
@@ -9,4 +9,4 @@ pub mod exit;
 pub mod r#if;
 pub mod loop_begin;
 pub mod loop_end;
-pub mod ret;
+pub mod r#return;

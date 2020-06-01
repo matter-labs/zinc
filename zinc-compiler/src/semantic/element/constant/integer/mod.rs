@@ -885,7 +885,7 @@ impl PartialEq<Self> for Integer {
 }
 
 impl fmt::Display for Integer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "'{}' of type '{}'", self.value, self.r#type())
     }
 }

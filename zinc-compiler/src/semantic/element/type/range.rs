@@ -20,7 +20,7 @@ impl Range {
 }
 
 impl fmt::Display for Range {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{0}..{0}", self.r#type)
     }
 }

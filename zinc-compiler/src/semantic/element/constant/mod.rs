@@ -677,7 +677,7 @@ impl Constant {
 }
 
 impl fmt::Display for Constant {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Unit(inner) => write!(f, "unit {}", inner),
             Self::Boolean(inner) => write!(f, "boolean {}", inner),

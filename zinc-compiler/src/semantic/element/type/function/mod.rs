@@ -116,7 +116,7 @@ impl Function {
 }
 
 impl fmt::Display for Function {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::BuiltIn(inner) => write!(f, "built-in {}", inner),
             Self::StandardLibrary(inner) => write!(f, "std::{}", inner),

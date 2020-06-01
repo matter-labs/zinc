@@ -418,7 +418,7 @@ impl Integer {
 }
 
 impl fmt::Display for Integer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "<runtime> of type '{}'", self.r#type())
     }
 }

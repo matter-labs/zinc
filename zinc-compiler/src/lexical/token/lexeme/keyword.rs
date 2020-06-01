@@ -196,7 +196,7 @@ impl TryFrom<&str> for Keyword {
 }
 
 impl fmt::Display for Keyword {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Let => write!(f, "let"),
             Self::Mut => write!(f, "mut"),

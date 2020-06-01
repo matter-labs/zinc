@@ -118,7 +118,7 @@ impl Function {
 }
 
 impl fmt::Display for Function {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "convert::{}(bits: [bool; N]) -> i{{N}}", self.identifier)
     }
 }
