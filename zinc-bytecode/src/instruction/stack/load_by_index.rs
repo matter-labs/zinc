@@ -29,8 +29,10 @@ impl LoadByIndex {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for LoadByIndex {
+    fn into(self) -> Instruction {
         Instruction::LoadByIndex(self)
     }
 }

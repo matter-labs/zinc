@@ -4,36 +4,39 @@ use num_traits::ToPrimitive;
 use ff::PrimeField;
 use ff::PrimeFieldRepr;
 
-use zinc_bytecode::IntegerType;
-use zinc_bytecode::ScalarType;
+use zinc_bytecode::DataType;
 
 use crate::error::RuntimeError;
 use crate::gadgets::contract::MerkleTreeLeaf;
 use crate::gadgets::contract::MerkleTreeStorage;
 use crate::gadgets::scalar::Scalar;
 use crate::storage::sha256;
-use crate::Engine;
+use crate::IEngine;
 
-pub struct DummyStorage<E: Engine> {
+pub struct DummyStorage<E: IEngine> {
     depth: usize,
     tree: Vec<Vec<u8>>,
     leaf_values: Vec<Vec<Scalar<E>>>,
 }
 
-impl<E: Engine> DummyStorage<E> {
-    pub fn new(depth: usize) -> Self {
+impl<E: IEngine> DummyStorage<E> {
+    pub fn new(fields: Vec<DataType>) -> Self {
+        let depth = (fields.len() as f64).log2().ceil() as usize;
+
         let mut result = Self {
             depth,
             tree: vec![vec![]; 1 << (depth + 1)],
             leaf_values: vec![vec![]; 1 << depth],
         };
 
-        result.leaf_values[0] = (8..72)
-            .map(|value| {
-                Scalar::<E>::new_constant_int(value as usize, ScalarType::Integer(IntegerType::U8))
-            })
-            .collect();
-
+        for (index, field) in fields.into_iter().enumerate() {
+            let values = field
+                .to_scalar_types()
+                .into_iter()
+                .map(|r#type| Scalar::<E>::new_constant_int(0, r#type))
+                .collect();
+            result.leaf_values[index] = values;
+        }
         result.rebuild_tree();
 
         result
@@ -52,7 +55,7 @@ impl<E: Engine> DummyStorage<E> {
     }
 }
 
-impl<E: Engine> MerkleTreeStorage<E> for DummyStorage<E> {
+impl<E: IEngine> MerkleTreeStorage<E> for DummyStorage<E> {
     fn depth(&self) -> usize {
         self.depth
     }

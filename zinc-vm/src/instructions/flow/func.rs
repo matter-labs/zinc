@@ -1,17 +1,17 @@
 use zinc_bytecode::Call;
 use zinc_bytecode::Return;
 
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for Call {
+impl<VM: IVirtualMachine> IExecutable<VM> for Call {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         vm.call(self.address, self.inputs_count)
     }
 }
 
-impl<VM: VirtualMachine> VMInstruction<VM> for Return {
+impl<VM: IVirtualMachine> IExecutable<VM> for Return {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         vm.ret(self.outputs_count)
     }

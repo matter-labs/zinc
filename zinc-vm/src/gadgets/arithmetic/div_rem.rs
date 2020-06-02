@@ -10,7 +10,7 @@ use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::fr_bigint;
 use crate::gadgets::scalar::Scalar;
-use crate::Engine;
+use crate::IEngine;
 
 pub fn div_rem_conditional<E, CS>(
     mut cs: CS,
@@ -19,7 +19,7 @@ pub fn div_rem_conditional<E, CS>(
     right: &Scalar<E>,
 ) -> Result<(Scalar<E>, Scalar<E>), RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     let denom = gadgets::conditional_select::conditional_select(
@@ -39,7 +39,7 @@ pub fn div_rem_enforce<E, CS>(
     right: &Scalar<E>,
 ) -> Result<(Scalar<E>, Scalar<E>), RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     let nominator = left;

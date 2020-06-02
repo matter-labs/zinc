@@ -12,7 +12,7 @@ use std::rc::Rc;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
 
-use crate::generator::statement::loop_for::Statement as GeneratorForLoopStatement;
+use crate::generator::statement::r#for::Statement as GeneratorForLoopStatement;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;

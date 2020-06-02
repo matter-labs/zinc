@@ -1,4 +1,7 @@
-pub mod scalar_type;
+pub mod constant;
+pub mod expectation;
+pub mod variable;
+pub mod variant;
 
 use std::fmt;
 
@@ -22,47 +25,21 @@ use zinc_bytecode::ScalarType;
 
 use crate::error::RuntimeError;
 use crate::gadgets::fr_bigint;
-use crate::Engine;
+use crate::IEngine;
 
-use self::scalar_type::ScalarTypeExpectation;
+use self::constant::Constant as ScalarConstant;
+use self::expectation::ITypeExpectation as ScalarTypeExpectation;
+use self::variable::Variable as ScalarVariable;
+use self::variant::Variant as ScalarVariant;
 
 /// Scalar is a primitive value that can be stored on the stack and operated by VM's instructions.
 #[derive(Debug, Clone)]
-pub struct Scalar<E: Engine> {
+pub struct Scalar<E: IEngine> {
     variant: ScalarVariant<E>,
     scalar_type: ScalarType,
 }
 
-#[derive(Debug, Clone)]
-pub enum ScalarVariant<E: Engine> {
-    Constant(ScalarConstant<E>),
-    Variable(ScalarVariable<E>),
-}
-
-impl<E: Engine> From<ScalarConstant<E>> for ScalarVariant<E> {
-    fn from(constant: ScalarConstant<E>) -> Self {
-        Self::Constant(constant)
-    }
-}
-
-impl<E: Engine> From<ScalarVariable<E>> for ScalarVariant<E> {
-    fn from(variable: ScalarVariable<E>) -> Self {
-        Self::Variable(variable)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ScalarConstant<E: Engine> {
-    pub value: E::Fr,
-}
-
-#[derive(Debug, Clone)]
-pub struct ScalarVariable<E: Engine> {
-    value: Option<E::Fr>,
-    variable: Variable,
-}
-
-impl<E: Engine> Scalar<E> {
+impl<E: IEngine> Scalar<E> {
     pub fn new_constant_int(value: usize, scalar_type: ScalarType) -> Self {
         let value_string = value.to_string();
         let fr = E::Fr::from_str(&value_string).expect("failed to convert u64 into Fr");
@@ -260,7 +237,7 @@ impl<E: Engine> Scalar<E> {
 //    }
 //}
 
-impl<E: Engine> fmt::Display for Scalar<E> {
+impl<E: IEngine> fmt::Display for Scalar<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value_str = self
             .get_value()
@@ -272,14 +249,14 @@ impl<E: Engine> fmt::Display for Scalar<E> {
     }
 }
 
-impl<E: Engine> ToBigInt for Scalar<E> {
+impl<E: IEngine> ToBigInt for Scalar<E> {
     fn to_bigint(&self) -> Option<BigInt> {
         self.get_value()
             .map(|fr| fr_bigint::fr_to_bigint(&fr, self.is_signed()))
     }
 }
 
-impl<E: Engine> From<&AllocatedNum<E>> for Scalar<E> {
+impl<E: IEngine> From<&AllocatedNum<E>> for Scalar<E> {
     fn from(num: &AllocatedNum<E>) -> Self {
         Self {
             variant: ScalarVariable {
@@ -292,7 +269,7 @@ impl<E: Engine> From<&AllocatedNum<E>> for Scalar<E> {
     }
 }
 
-impl<E: Engine> From<AllocatedNum<E>> for Scalar<E> {
+impl<E: IEngine> From<AllocatedNum<E>> for Scalar<E> {
     fn from(num: AllocatedNum<E>) -> Self {
         Self {
             variant: ScalarVariable {

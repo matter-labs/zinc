@@ -3,14 +3,14 @@ use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::Div;
 use zinc_bytecode::ScalarType;
 
-use crate::core::state::cell::Cell;
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::execution_state::cell::Cell;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
-use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
+use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::Scalar;
-impl<VM: VirtualMachine> VMInstruction<VM> for Div {
+use crate::instructions::IExecutable;
+impl<VM: IVirtualMachine> IExecutable<VM> for Div {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
@@ -62,14 +62,14 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Div {
 
 #[cfg(test)]
 mod test {
+    use crate::tests::TestRunner;
     use crate::tests::TestingError;
-    use crate::tests::VMTestRunner;
 
     use zinc_bytecode::IntegerType;
 
     #[test]
     fn test_div() -> Result<(), TestingError> {
-        VMTestRunner::new()
+        TestRunner::new()
             .add(zinc_bytecode::Push::new((9).into(), IntegerType::I8.into()))
             .add(zinc_bytecode::Push::new((4).into(), IntegerType::I8.into()))
             .add(zinc_bytecode::Div)

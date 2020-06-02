@@ -2,11 +2,11 @@ use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::BitwiseShiftLeft;
 
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets::bitwise;
-impl<VM: VirtualMachine> VMInstruction<VM> for BitwiseShiftLeft {
+use crate::instructions::IExecutable;
+impl<VM: IVirtualMachine> IExecutable<VM> for BitwiseShiftLeft {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let shift = vm.pop()?.try_into_value()?;
         let num = vm.pop()?.try_into_value()?;

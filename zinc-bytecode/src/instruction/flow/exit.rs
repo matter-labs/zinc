@@ -22,8 +22,10 @@ impl Exit {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for Exit {
+    fn into(self) -> Instruction {
         Instruction::Exit(self)
     }
 }

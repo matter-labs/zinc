@@ -24,8 +24,10 @@ impl Store {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for Store {
+    fn into(self) -> Instruction {
         Instruction::Store(self)
     }
 }

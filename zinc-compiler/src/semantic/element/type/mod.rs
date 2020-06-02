@@ -298,7 +298,7 @@ impl Type {
         }
     }
 
-    pub fn from_syntax_type(r#type: SyntaxType, scope: Rc<RefCell<Scope>>) -> Result<Self, Error> {
+    pub fn try_from_syntax(r#type: SyntaxType, scope: Rc<RefCell<Scope>>) -> Result<Self, Error> {
         let location = r#type.location;
 
         Ok(match r#type.variant {
@@ -312,7 +312,7 @@ impl Type {
             }
             SyntaxTypeVariant::Field => Self::field(Some(location)),
             SyntaxTypeVariant::Array { inner, size } => {
-                let r#type = Self::from_syntax_type(*inner, scope.clone())?;
+                let r#type = Self::try_from_syntax(*inner, scope.clone())?;
 
                 let size_location = size.location;
                 let size = match ExpressionAnalyzer::new(scope, TranslationRule::Constant)
@@ -336,7 +336,7 @@ impl Type {
             SyntaxTypeVariant::Tuple { inners } => {
                 let mut types = Vec::with_capacity(inners.len());
                 for inner in inners.into_iter() {
-                    types.push(Self::from_syntax_type(inner, scope.clone())?);
+                    types.push(Self::try_from_syntax(inner, scope.clone())?);
                 }
                 Self::tuple(Some(location), types)
             }

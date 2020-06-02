@@ -1,11 +1,11 @@
 use zinc_bytecode::Push;
 
-use crate::core::state::cell::Cell;
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::execution_state::cell::Cell;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for Push {
+impl<VM: IVirtualMachine> IExecutable<VM> for Push {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let value = vm
             .gadgets()
@@ -16,14 +16,14 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Push {
 
 #[cfg(test)]
 mod tests {
+    use crate::tests::TestRunner;
     use crate::tests::TestingError;
-    use crate::tests::VMTestRunner;
 
     use zinc_bytecode::IntegerType;
 
     #[test]
     fn test_push() -> Result<(), TestingError> {
-        VMTestRunner::new()
+        TestRunner::new()
             .add(zinc_bytecode::Push::new_field(0.into()))
             .add(zinc_bytecode::Push::new_field(42.into()))
             .add(zinc_bytecode::Push::new_field(0xABCD.into()))

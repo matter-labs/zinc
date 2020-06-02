@@ -8,9 +8,9 @@ use zinc_bytecode::ScalarType;
 
 use crate::error::RuntimeError;
 use crate::gadgets::fr_bigint;
-use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
+use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::Scalar;
-use crate::Engine;
+use crate::IEngine;
 
 pub fn conditional_type_check<E, CS>(
     cs: CS,
@@ -19,7 +19,7 @@ pub fn conditional_type_check<E, CS>(
     scalar_type: ScalarType,
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     condition.get_type().assert_type(ScalarType::Boolean)?;
@@ -47,7 +47,7 @@ fn conditional_int_type_check<E, CS>(
     int_type: IntegerType,
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     // Throw runtime error if value is known.

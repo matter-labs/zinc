@@ -2,23 +2,23 @@ use zinc_bytecode::Else;
 use zinc_bytecode::EndIf;
 use zinc_bytecode::If;
 
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for If {
+impl<VM: IVirtualMachine> IExecutable<VM> for If {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         vm.branch_then()
     }
 }
 
-impl<VM: VirtualMachine> VMInstruction<VM> for Else {
+impl<VM: IVirtualMachine> IExecutable<VM> for Else {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         vm.branch_else()
     }
 }
 
-impl<VM: VirtualMachine> VMInstruction<VM> for EndIf {
+impl<VM: IVirtualMachine> IExecutable<VM> for EndIf {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         vm.branch_end()
     }
@@ -31,8 +31,8 @@ mod tests {
     use zinc_bytecode::IntegerType;
     use zinc_bytecode::ScalarType;
 
+    use crate::tests::TestRunner;
     use crate::tests::TestingError;
-    use crate::tests::VMTestRunner;
 
     #[ignore]
     #[test]
@@ -48,7 +48,7 @@ mod tests {
         let data = [(5, 7), (7, 5), (6, 6)];
 
         for (a, b) in data.iter() {
-            VMTestRunner::new()
+            TestRunner::new()
                 .add(zinc_bytecode::Push::new(
                     (*a).into(),
                     IntegerType::I8.into(),
@@ -90,7 +90,7 @@ mod tests {
         let data = [(1, 1), (0, -1)];
 
         for (c, r) in data.iter() {
-            VMTestRunner::new()
+            TestRunner::new()
                 .add(zinc_bytecode::Push::new(0.into(), IntegerType::I8.into()))
                 .add(zinc_bytecode::Store::new(0, 1))
                 .add(zinc_bytecode::Push::new((*c).into(), ScalarType::Boolean))

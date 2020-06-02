@@ -4,19 +4,19 @@ use sha2::Digest;
 use sha2::Sha256;
 
 use crate::gadgets::scalar::Scalar;
-use crate::Engine;
+use crate::IEngine;
 
-pub fn sha256<E: Engine>(preimage: &[u8]) -> Vec<u8> {
+pub fn sha256<E: IEngine>(preimage: &[u8]) -> Vec<u8> {
     let mut hash = Sha256::new();
     hash.input(preimage);
     hash.result().to_vec()
 }
 
-pub fn sha256_of_concat<E: Engine>(left: &[u8], right: &[u8]) -> Vec<u8> {
+pub fn sha256_of_concat<E: IEngine>(left: &[u8], right: &[u8]) -> Vec<u8> {
     sha256::<E>(&[left, right].concat())
 }
 
-pub fn leaf_value_hash<E: Engine>(leaf_value: Vec<Scalar<E>>) -> Vec<u8> {
+pub fn leaf_value_hash<E: IEngine>(leaf_value: Vec<Scalar<E>>) -> Vec<u8> {
     let mut result = vec![];
 
     for field in leaf_value.into_iter() {

@@ -1,11 +1,11 @@
 use zinc_bytecode::Slice;
 
-use crate::core::state::cell::Cell;
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::execution_state::cell::Cell;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for Slice {
+impl<VM: IVirtualMachine> IExecutable<VM> for Slice {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let offset = vm.pop()?.try_into_value()?;
 
@@ -32,12 +32,12 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Slice {
 
 #[cfg(test)]
 mod tests {
+    use crate::tests::TestRunner;
     use crate::tests::TestingError;
-    use crate::tests::VMTestRunner;
 
     #[test]
     fn test_slice() -> Result<(), TestingError> {
-        VMTestRunner::new()
+        TestRunner::new()
             .add(zinc_bytecode::Push::new_field(1.into()))
             .add(zinc_bytecode::Push::new_field(2.into()))
             .add(zinc_bytecode::Push::new_field(3.into()))

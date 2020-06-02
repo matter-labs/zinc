@@ -22,6 +22,12 @@ impl Le {
     }
 }
 
+impl Into<Instruction> for Le {
+    fn into(self) -> Instruction {
+        Instruction::Le(self)
+    }
+}
+
 impl fmt::Display for Le {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "le")

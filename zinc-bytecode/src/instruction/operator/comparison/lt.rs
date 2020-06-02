@@ -22,6 +22,12 @@ impl Lt {
     }
 }
 
+impl Into<Instruction> for Lt {
+    fn into(self) -> Instruction {
+        Instruction::Lt(self)
+    }
+}
+
 impl fmt::Display for Lt {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "lt")

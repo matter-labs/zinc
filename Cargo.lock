@@ -1093,7 +1093,6 @@ version = "0.1.5"
 dependencies = [
  "colored",
  "failure",
- "pairing_ce",
  "rayon",
  "serde",
  "serde_derive",

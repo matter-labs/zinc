@@ -6,11 +6,11 @@ use franklin_crypto::bellman::SynthesisError;
 use zinc_bytecode::Dbg;
 use zinc_bytecode::TemplateValue;
 
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for Dbg {
+impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let mut values = Vec::with_capacity(self.arg_types.len());
 
@@ -51,11 +51,11 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Dbg {
 
 #[cfg(test)]
 mod tests {
-    use crate::tests::VMTestRunner;
+    use crate::tests::TestRunner;
 
     #[test]
     fn test() {
-        VMTestRunner::new()
+        TestRunner::new()
             .add(zinc_bytecode::Push::new_field(42.into()))
             .add(zinc_bytecode::Dbg::new("Value: {}".into(), vec![]))
             .test::<u32>(&[])

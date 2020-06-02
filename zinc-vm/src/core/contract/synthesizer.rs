@@ -1,0 +1,55 @@
+//!
+//! The Zinc virtual machine contract synthesizer.
+//!
+
+use std::marker::PhantomData;
+
+use num_bigint::BigInt;
+
+use franklin_crypto::bellman;
+use franklin_crypto::bellman::ConstraintSystem;
+use franklin_crypto::bellman::SynthesisError;
+
+use zinc_bytecode::Program as BytecodeProgram;
+
+use crate::constraint_systems::duplicate_removing::DuplicateRemovingCS;
+use crate::core::contract::Contract;
+use crate::error::RuntimeError;
+use crate::gadgets::contract::storage::StorageGadget;
+use crate::gadgets::contract::MerkleTreeStorage;
+use crate::gadgets::contract::Sha256Hasher;
+use crate::IEngine;
+
+pub struct Synthesizer<'a, E: IEngine, S: MerkleTreeStorage<E>> {
+    pub inputs: Option<Vec<BigInt>>,
+    pub output: &'a mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
+    pub bytecode: BytecodeProgram,
+    pub storage: S,
+
+    pub _pd: PhantomData<E>,
+}
+
+impl<E, S> bellman::Circuit<E> for Synthesizer<'_, E, S>
+where
+    E: IEngine,
+    S: MerkleTreeStorage<E>,
+{
+    fn synthesize<CS: ConstraintSystem<E>>(
+        self,
+        cs: &mut CS,
+    ) -> std::result::Result<(), SynthesisError> {
+        // let cs = LoggingConstraintSystem::new(cs.namespace(|| "logging"));
+        let mut cs = DuplicateRemovingCS::new(cs.namespace(|| "duplicates removing"));
+
+        let storage = StorageGadget::<_, _, Sha256Hasher>::new(
+            cs.namespace(|| "storage init"),
+            self.storage,
+        )?;
+
+        let mut contract = Contract::new(cs.namespace(|| "vm"), storage, false);
+        *self.output =
+            Some(contract.run(&self.bytecode, self.inputs.as_deref(), |_| {}, |_| Ok(())));
+
+        Ok(())
+    }
+}

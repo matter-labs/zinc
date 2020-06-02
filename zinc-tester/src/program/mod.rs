@@ -37,16 +37,14 @@ impl Program {
         let entry = Bytecode::unwrap_rc(bytecode)
             .into_entries()
             .remove(entry)
-            .ok_or(Error::EntryNotFound(entry.to_owned()))?;
+            .ok_or_else(|| Error::EntryNotFound(entry.to_owned()))?;
 
         let bytecode =
             BytecodeProgram::from_bytes(entry.bytecode.as_slice()).map_err(Error::Program)?;
 
-        let witness = TemplateValue::from_typed_json(witness, &bytecode.input).map_err(Error::TemplateValue)?;
+        let witness = TemplateValue::from_typed_json(witness, &bytecode.input())
+            .map_err(Error::TemplateValue)?;
 
-        Ok(Self {
-            witness,
-            bytecode,
-        })
+        Ok(Self { witness, bytecode })
     }
 }

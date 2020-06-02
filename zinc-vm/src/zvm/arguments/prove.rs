@@ -29,7 +29,7 @@ pub struct ProveCommand {
 }
 
 impl ProveCommand {
-    pub fn execute(&self) -> Result<(), Error> {
+    pub fn execute(self) -> Result<(), Error> {
         // Read program
         let bytes =
             fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
@@ -45,9 +45,9 @@ impl ProveCommand {
         let witness_json = fs::read_to_string(&self.witness_path)
             .error_with_path(|| self.witness_path.to_string_lossy())?;
         let witness_value = serde_json::from_str(&witness_json)?;
-        let witness_struct = TemplateValue::from_typed_json(&witness_value, &program.input)?;
+        let witness_struct = TemplateValue::from_typed_json(&witness_value, &program.input())?;
 
-        let (pubdata, proof) = zinc_vm::prove::<Bn256>(&program, &params, &witness_struct)?;
+        let (pubdata, proof) = zinc_vm::prove::<Bn256>(program, params, witness_struct)?;
 
         // Write pubdata
         let pubdata_json = serde_json::to_string_pretty(&pubdata.to_json())? + "\n";

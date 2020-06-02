@@ -2,12 +2,12 @@ use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Assert;
 
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for Assert {
+impl<VM: IVirtualMachine> IExecutable<VM> for Assert {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let value = vm.pop()?.try_into_value()?;
         let c = vm.condition_top()?;
@@ -25,14 +25,14 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Assert {
 #[cfg(test)]
 mod tests {
     use crate::error::RuntimeError;
+    use crate::tests::TestRunner;
     use crate::tests::TestingError;
-    use crate::tests::VMTestRunner;
 
     use zinc_bytecode::ScalarType;
 
     #[test]
     fn test_assert_ok() -> Result<(), TestingError> {
-        VMTestRunner::new()
+        TestRunner::new()
             .add(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
             .add(zinc_bytecode::Assert::new(None))
             .test::<i32>(&[])
@@ -40,7 +40,7 @@ mod tests {
 
     #[test]
     fn test_assert_fail() {
-        let res = VMTestRunner::new()
+        let res = TestRunner::new()
             .add(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
             .add(zinc_bytecode::Assert::new(None))
             .test::<i32>(&[]);
@@ -53,7 +53,7 @@ mod tests {
 
     #[test]
     fn test_assert_in_condition() -> Result<(), TestingError> {
-        VMTestRunner::new()
+        TestRunner::new()
             .add(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
             .add(zinc_bytecode::If)
             .add(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))

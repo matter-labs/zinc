@@ -16,8 +16,10 @@ impl BitwiseShiftRight {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for BitwiseShiftRight {
+    fn into(self) -> Instruction {
         Instruction::BitwiseShiftRight(self)
     }
 }

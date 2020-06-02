@@ -5,18 +5,18 @@ use franklin_crypto::circuit::num::AllocatedNum;
 use crate::auto_const;
 use crate::error::RuntimeError;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
+use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::Scalar;
-use crate::Engine;
+use crate::IEngine;
 
 pub fn bit_not<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
     where
-        E: Engine,
+        E: IEngine,
         CS: ConstraintSystem<E>,
     {
         let scalar_type = scalar.get_type();

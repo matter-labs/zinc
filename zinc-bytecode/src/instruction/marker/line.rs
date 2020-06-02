@@ -22,8 +22,10 @@ impl LineMarker {
     pub fn is_debug(&self) -> bool {
         true
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for LineMarker {
+    fn into(self) -> Instruction {
         Instruction::LineMarker(self)
     }
 }

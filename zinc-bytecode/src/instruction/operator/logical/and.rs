@@ -16,8 +16,10 @@ impl And {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for And {
+    fn into(self) -> Instruction {
         Instruction::And(self)
     }
 }

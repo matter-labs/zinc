@@ -2,13 +2,13 @@ use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Lt;
 
-use crate::core::state::cell::Cell;
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::execution_state::cell::Cell;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for Lt {
+impl<VM: IVirtualMachine> IExecutable<VM> for Lt {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
@@ -29,12 +29,12 @@ mod test {
     use zinc_bytecode::ScalarType;
 
     use crate::gadgets::fr_bigint::fr_to_bigint;
+    use crate::tests::TestRunner;
     use crate::tests::TestingError;
-    use crate::tests::VMTestRunner;
 
     #[test]
     fn simple() -> Result<(), TestingError> {
-        VMTestRunner::new()
+        TestRunner::new()
             .add(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
             .add(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
             .add(zinc_bytecode::Lt)
@@ -53,7 +53,7 @@ mod test {
         max_fr.sub_assign(&Fr::one());
         let max = fr_to_bigint(&max_fr, false);
 
-        VMTestRunner::new()
+        TestRunner::new()
             .add(zinc_bytecode::Push::new(max.clone(), ScalarType::Field))
             .add(zinc_bytecode::Push::new(0.into(), ScalarType::Field))
             .add(zinc_bytecode::Lt)

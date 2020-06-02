@@ -26,8 +26,10 @@ impl Slice {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for Slice {
+    fn into(self) -> Instruction {
         Instruction::Slice(self)
     }
 }

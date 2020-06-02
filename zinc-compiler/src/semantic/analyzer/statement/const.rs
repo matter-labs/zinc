@@ -29,7 +29,7 @@ impl Analyzer {
             ExpressionAnalyzer::new(scope.clone(), TranslationRule::Constant)
                 .analyze(statement.expression)?;
 
-        let const_type = Type::from_syntax_type(statement.r#type, scope)?;
+        let const_type = Type::try_from_syntax(statement.r#type, scope)?;
         let (constant, _intermediate) = match element {
             Element::Constant(constant) => constant
                 .cast(const_type)

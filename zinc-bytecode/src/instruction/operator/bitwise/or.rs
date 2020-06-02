@@ -16,8 +16,10 @@ impl BitwiseOr {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for BitwiseOr {
+    fn into(self) -> Instruction {
         Instruction::BitwiseOr(self)
     }
 }

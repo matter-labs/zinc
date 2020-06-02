@@ -16,8 +16,10 @@ impl Eq {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for Eq {
+    fn into(self) -> Instruction {
         Instruction::Eq(self)
     }
 }

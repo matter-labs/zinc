@@ -22,8 +22,10 @@ impl LoopBegin {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for LoopBegin {
+    fn into(self) -> Instruction {
         Instruction::LoopBegin(self)
     }
 }

@@ -9,9 +9,9 @@ use franklin_crypto::bellman::LinearCombination;
 use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::bellman::Variable;
 
-use crate::Engine;
+use crate::IEngine;
 
-pub struct DebugConstraintSystem<E: Engine> {
+pub struct DebugConstraintSystem<E: IEngine> {
     inputs: Vec<E::Fr>,
     witness: Vec<E::Fr>,
 
@@ -19,7 +19,7 @@ pub struct DebugConstraintSystem<E: Engine> {
     constraints_num: usize,
 }
 
-impl<E: Engine> Default for DebugConstraintSystem<E> {
+impl<E: IEngine> Default for DebugConstraintSystem<E> {
     fn default() -> Self {
         let mut cs = Self {
             inputs: Vec::new(),
@@ -33,7 +33,7 @@ impl<E: Engine> Default for DebugConstraintSystem<E> {
     }
 }
 
-impl<E: Engine> DebugConstraintSystem<E> {
+impl<E: IEngine> DebugConstraintSystem<E> {
     pub fn is_satisfied(&self) -> bool {
         self.satisfied
     }
@@ -43,7 +43,7 @@ impl<E: Engine> DebugConstraintSystem<E> {
     }
 }
 
-impl<E: Engine> ConstraintSystem<E> for DebugConstraintSystem<E> {
+impl<E: IEngine> ConstraintSystem<E> for DebugConstraintSystem<E> {
     type Root = Self;
 
     fn alloc<F, A, AR>(&mut self, _annotation: A, f: F) -> Result<Variable, SynthesisError>
@@ -108,7 +108,7 @@ impl<E: Engine> ConstraintSystem<E> for DebugConstraintSystem<E> {
     }
 }
 
-fn eval_lc<E: Engine>(terms: &[(Variable, E::Fr)], inputs: &[E::Fr], witness: &[E::Fr]) -> E::Fr {
+fn eval_lc<E: IEngine>(terms: &[(Variable, E::Fr)], inputs: &[E::Fr], witness: &[E::Fr]) -> E::Fr {
     let mut acc = E::Fr::zero();
 
     for &(var, ref coeff) in terms {

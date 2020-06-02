@@ -14,9 +14,9 @@ use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::fr_bigint;
-use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
+use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::Scalar;
-use crate::Engine;
+use crate::IEngine;
 
 pub fn greater_than<E, CS>(
     cs: CS,
@@ -24,7 +24,7 @@ pub fn greater_than<E, CS>(
     right: &Scalar<E>,
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     lesser_than(cs, right, left)
@@ -36,7 +36,7 @@ pub fn greater_or_equals<E, CS>(
     right: &Scalar<E>,
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     lesser_or_equals(cs, right, left)
@@ -48,7 +48,7 @@ pub fn lesser_or_equals<E, CS>(
     right: &Scalar<E>,
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     let is_gt = greater_than(cs.namespace(|| "gt"), left, right)?;
@@ -61,7 +61,7 @@ pub fn lesser_than<E, CS>(
     right: &Scalar<E>,
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     pub fn less_than_inner<E, CS>(
@@ -70,7 +70,7 @@ where
         right: &Scalar<E>,
     ) -> Result<Scalar<E>, RuntimeError>
     where
-        E: Engine,
+        E: IEngine,
         CS: ConstraintSystem<E>,
     {
         let scalar_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
@@ -102,7 +102,7 @@ fn less_than_field<E, CS>(
     right: &Scalar<E>,
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     let expr_a = left.to_expression::<CS>();
@@ -154,7 +154,7 @@ fn less_than_integer<E, CS>(
     right: &Scalar<E>,
 ) -> Result<Boolean, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     assert!(length < E::Fr::CAPACITY as usize);
@@ -168,7 +168,7 @@ where
     Ok(bits.last().unwrap().clone())
 }
 
-fn boolean_or<E: Engine, CS: ConstraintSystem<E>>(
+fn boolean_or<E: IEngine, CS: ConstraintSystem<E>>(
     mut cs: CS,
     left: &Boolean,
     right: &Boolean,
@@ -178,7 +178,7 @@ fn boolean_or<E: Engine, CS: ConstraintSystem<E>>(
 
 pub fn equals<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     fn add_inner<E, CS>(
@@ -187,7 +187,7 @@ where
         right: &Scalar<E>,
     ) -> Result<Scalar<E>, RuntimeError>
     where
-        E: Engine,
+        E: IEngine,
         CS: ConstraintSystem<E>,
     {
         let le = left.to_expression::<CS>();
@@ -207,7 +207,7 @@ pub fn not_equals<E, CS>(
     right: &Scalar<E>,
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     let t = equals(cs.namespace(|| "eq"), left, right)?;

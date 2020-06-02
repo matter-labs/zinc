@@ -17,8 +17,10 @@ impl Copy {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for Copy {
+    fn into(self) -> Instruction {
         Instruction::Copy(self)
     }
 }

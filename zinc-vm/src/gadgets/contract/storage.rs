@@ -15,9 +15,9 @@ use crate::gadgets::contract::MerkleTreeStorage;
 use crate::gadgets::contract::ROOT_HASH_TRUNCATED_BITS;
 use crate::gadgets::fr_bigint::fr_to_bigint_unsigned;
 use crate::gadgets::scalar::Scalar;
-use crate::Engine;
+use crate::IEngine;
 
-pub struct StorageGadget<E: Engine, S: MerkleTreeStorage<E>, H: MerkleTreeHasher<E>> {
+pub struct StorageGadget<E: IEngine, S: MerkleTreeStorage<E>, H: MerkleTreeHasher<E>> {
     storage: S,
     root_hash: Scalar<E>,
     _pd: PhantomData<H>,
@@ -28,7 +28,7 @@ fn alloc_leaf_fields<E, CS>(
     leaf_value: &[Option<Scalar<E>>],
 ) -> Result<Vec<Scalar<E>>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     let mut leaf_fields = Vec::new();
@@ -57,7 +57,7 @@ fn alloc_leaf_hash<E, CS>(
     leaf_hash_value: &[Option<bool>],
 ) -> Result<Vec<Boolean>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     let mut leaf_hash = Vec::new();
@@ -77,7 +77,7 @@ fn alloc_authentication_path<E, CS>(
     authentication_path_value: &[Vec<Option<bool>>],
 ) -> Result<Vec<Vec<Scalar<E>>>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     assert_eq!(authentication_path_value.len(), depth);
@@ -114,7 +114,7 @@ where
     Ok(authentication_path)
 }
 
-enum AllocatedLeaf<E: Engine> {
+enum AllocatedLeaf<E: IEngine> {
     LeafFields(Vec<Scalar<E>>),
     LeafHash(Vec<Boolean>),
 }
@@ -132,7 +132,7 @@ fn enforce_merkle_tree_path<E, CS, H>(
     authentication_path: &[Vec<Scalar<E>>],
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
     H: MerkleTreeHasher<E>,
 {
@@ -231,7 +231,7 @@ where
 
 impl<E, S, H> StorageGadget<E, S, H>
 where
-    E: Engine,
+    E: IEngine,
     S: MerkleTreeStorage<E>,
     H: MerkleTreeHasher<E>,
 {
@@ -399,6 +399,7 @@ mod tests {
     use pairing::bn256::Bn256;
     use pairing::bn256::Fr;
 
+    use zinc_bytecode::DataType;
     use zinc_bytecode::ScalarType;
 
     use crate::gadgets::contract::Sha256Hasher;
@@ -408,13 +409,17 @@ mod tests {
     #[ignore]
     #[test]
     fn test_storage_gadget_small() {
-        const DEPTH_OF_TEST_TREE: usize = 4;
+        const STORAGE_ELEMENT_COUNT: usize = 16;
 
         let mut rng = XorShiftRng::from_seed([0x5dbe6259, 0x8d313d76, 0x3237db17, 0xe5bc0654]);
 
         let mut cs = TestConstraintSystem::<Bn256>::new();
 
-        let storage_test_dummy = DummyStorage::<Bn256>::new(DEPTH_OF_TEST_TREE);
+        let storage_test_dummy =
+            DummyStorage::<Bn256>::new(vec![
+                DataType::Scalar(ScalarType::Field);
+                STORAGE_ELEMENT_COUNT
+            ]);
 
         let mut storage_gadget = StorageGadget::<_, _, Sha256Hasher>::new(
             cs.namespace(|| "gadget creation"),
@@ -422,11 +427,9 @@ mod tests {
         )
         .unwrap();
 
-        let hasher = Sha256Hasher;
-
         for iter in 0..=1 {
             let mut cs = cs.namespace(|| format!("iter :: {}", iter));
-            for i in 0..(1 << DEPTH_OF_TEST_TREE) {
+            for i in 0..STORAGE_ELEMENT_COUNT {
                 let mut cur_vec = vec![];
                 let fields = rng.gen::<usize>() % 2 + 1;
                 for j in 0..fields {

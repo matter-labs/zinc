@@ -3,7 +3,7 @@ use bellman::ConstraintSystem;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::scalar::Scalar;
-use crate::Engine;
+use crate::IEngine;
 
 use zinc_utils::math;
 
@@ -16,7 +16,7 @@ pub fn recursive_select<E, CS>(
     array: &[Scalar<E>],
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     assert!(!array.is_empty(), "internal error in recursive_select 1");

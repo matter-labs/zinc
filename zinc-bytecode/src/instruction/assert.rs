@@ -22,8 +22,10 @@ impl Assert {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for Assert {
+    fn into(self) -> Instruction {
         Instruction::Assert(self)
     }
 }

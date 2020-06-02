@@ -16,8 +16,10 @@ impl Div {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for Div {
+    fn into(self) -> Instruction {
         Instruction::Div(self)
     }
 }

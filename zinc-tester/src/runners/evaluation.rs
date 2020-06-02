@@ -8,10 +8,10 @@ use std::sync::Mutex;
 
 use colored::Colorize;
 
-use pairing::bn256::Bn256;
+use zinc_vm::Bn256;
 
-use crate::metadata::Metadata;
 use crate::file::File;
+use crate::metadata::Metadata;
 use crate::program::Program;
 use crate::runners::Runnable;
 use crate::Summary;
@@ -28,13 +28,7 @@ impl Runner {
 }
 
 impl Runnable for Runner {
-    fn run(
-        &self,
-        path: &PathBuf,
-        file: &File,
-        metadata: &Metadata,
-        summary: Arc<Mutex<Summary>>,
-    ) {
+    fn run(&self, path: &PathBuf, file: &File, metadata: &Metadata, summary: Arc<Mutex<Summary>>) {
         let path = match path.strip_prefix(crate::TESTS_DIRECTORY) {
             Ok(path) => path,
             Err(_error) => path,
@@ -68,7 +62,7 @@ impl Runnable for Runner {
                 }
             };
 
-            match zinc_vm::run::<Bn256>(&program.bytecode, &program.witness) {
+            match zinc_vm::run::<Bn256>(program.bytecode, program.witness) {
                 Ok(output) => {
                     let output = output.to_json();
                     if case.expect == output {

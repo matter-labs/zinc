@@ -40,7 +40,14 @@ impl State {
                 },
                 TypeElement::Structure(ref inner) => inner.scope.borrow().get_intermediate(),
                 TypeElement::Enumeration(ref inner) => inner.scope.borrow().get_intermediate(),
-                TypeElement::Contract(ref inner) => inner.scope.borrow().get_intermediate(),
+                TypeElement::Contract(ref inner) => {
+                    let mut intermediate = match intermediate.to_owned().take() {
+                        Some(intermediate) => vec![intermediate],
+                        None => vec![],
+                    };
+                    intermediate.extend(inner.scope.borrow().get_intermediate());
+                    intermediate
+                }
                 _ => vec![],
             },
             Self::Declared { .. } => vec![],

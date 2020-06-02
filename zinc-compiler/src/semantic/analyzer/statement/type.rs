@@ -17,7 +17,7 @@ impl Analyzer {
     /// Defines a compile-time only type alias.
     ///
     pub fn define(scope: Rc<RefCell<Scope>>, statement: TypeStatement) -> Result<Type, Error> {
-        let r#type = Type::from_syntax_type(statement.r#type, scope)?;
+        let r#type = Type::try_from_syntax(statement.r#type, scope)?;
 
         Ok(r#type)
     }

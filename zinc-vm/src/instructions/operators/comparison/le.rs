@@ -2,13 +2,13 @@ use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Le;
 
-use crate::core::state::cell::Cell;
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::execution_state::cell::Cell;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for Le {
+impl<VM: IVirtualMachine> IExecutable<VM> for Le {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
@@ -22,8 +22,8 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Le {
 
 #[cfg(test)]
 mod test {
+    use crate::tests::TestRunner;
     use crate::tests::TestingError;
-    use crate::tests::VMTestRunner;
 
     use zinc_bytecode::IntegerType;
 
@@ -31,7 +31,7 @@ mod test {
     fn test_le() -> Result<(), TestingError> {
         let _ = env_logger::builder().is_test(true).try_init();
 
-        VMTestRunner::new()
+        TestRunner::new()
             .add(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
             .add(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
             .add(zinc_bytecode::Le)

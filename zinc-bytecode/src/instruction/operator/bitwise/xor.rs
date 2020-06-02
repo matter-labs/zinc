@@ -16,8 +16,10 @@ impl BitwiseXor {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for BitwiseXor {
+    fn into(self) -> Instruction {
         Instruction::BitwiseXor(self)
     }
 }

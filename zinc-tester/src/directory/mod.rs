@@ -4,19 +4,19 @@
 
 pub mod error;
 
+use std::convert::TryFrom;
 use std::fs;
 use std::path::PathBuf;
-use std::convert::TryFrom;
 use std::str::FromStr;
 
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 use serde_derive::Deserialize;
 
-use crate::runners::Runnable;
-use crate::summary::Summary;
 use crate::file::File;
 use crate::metadata::Metadata;
+use crate::runners::Runnable;
+use crate::summary::Summary;
 
 use self::error::Error;
 
@@ -65,8 +65,7 @@ impl Directory {
     pub fn run<R: Runnable>(self, runner: R) -> Summary {
         let summary = Summary::default().wrap();
 
-        self
-            .file_paths
+        self.file_paths
             .into_par_iter()
             .map(|path| {
                 let file = File::try_from(&path)

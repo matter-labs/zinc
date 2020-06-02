@@ -2,7 +2,7 @@
 //! The Zinc VM bytecode.
 //!
 
-pub mod compiled_entry;
+pub mod entry;
 pub mod metadata;
 
 use std::cell::RefCell;
@@ -10,14 +10,14 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use zinc_bytecode::Instruction;
-use zinc_bytecode::Program;
+use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
 
 use crate::generator::r#type::Type;
 use crate::lexical::token::location::Location;
 use crate::source::file::index::INDEX as FILE_INDEX;
 
-use self::compiled_entry::CompiledEntry;
+use self::entry::Entry;
 use self::metadata::Metadata;
 
 ///
@@ -27,6 +27,8 @@ use self::metadata::Metadata;
 pub struct Bytecode {
     /// The Zinc VM instructions written by the bytecode generator
     instructions: Vec<Instruction>,
+    /// The contract storage structure
+    contract_storage: Option<Vec<(String, Type)>>,
     /// Metadata of each application entry
     entry_metadata: HashMap<usize, Metadata>,
     /// Data stack addresses of variables declared at runtime
@@ -63,6 +65,7 @@ impl Bytecode {
         Self {
             instructions,
 
+            contract_storage: None,
             entry_metadata: HashMap::with_capacity(Self::ENTRY_METADATA_INITIAL_CAPACITY),
             variable_addresses: HashMap::with_capacity(Self::VARIABLE_ADDRESSES_INITIAL_CAPACITY),
             function_addresses: HashMap::with_capacity(Self::FUNCTION_ADDRESSES_INITIAL_CAPACITY),
@@ -93,6 +96,10 @@ impl Bytecode {
     ///
     pub fn get_variable_address(&self, name: &str) -> Option<usize> {
         self.variable_addresses.get(name).copied()
+    }
+
+    pub fn set_contract_storage(&mut self, fields: Vec<(String, Type)>) {
+        self.contract_storage = Some(fields);
     }
 
     ///
@@ -183,7 +190,7 @@ impl Bytecode {
     /// of the function stored as `address`es with their actual addresses in the bytecode,
     /// since the addresses are only known after the functions are written thereto.
     ///
-    pub fn into_entries(self) -> HashMap<String, CompiledEntry> {
+    pub fn into_entries(self) -> HashMap<String, Entry> {
         let mut data = HashMap::with_capacity(self.entry_metadata.len());
 
         for (entry_id, metadata) in self.entry_metadata.into_iter() {
@@ -218,11 +225,26 @@ impl Bytecode {
                 }
             }
 
-            let bytecode = Program::new(
-                metadata.input_fields_as_struct().into(),
-                metadata.output_type.clone().into(),
-                instructions,
-            )
+            let bytecode = match self.contract_storage.as_ref() {
+                Some(storage) => {
+                    let storage = storage
+                        .iter()
+                        .map(|(name, r#type)| (name.to_owned(), r#type.to_owned().into()))
+                        .collect();
+
+                    BytecodeProgram::new_contract(
+                        metadata.input_fields_as_struct().into(),
+                        metadata.output_type.clone().into(),
+                        instructions,
+                        storage,
+                    )
+                }
+                None => BytecodeProgram::new_circuit(
+                    metadata.input_fields_as_struct().into(),
+                    metadata.output_type.clone().into(),
+                    instructions,
+                ),
+            }
             .into_bytes();
 
             let input_template_value =
@@ -249,7 +271,7 @@ impl Bytecode {
 
             data.insert(
                 metadata.entry_name,
-                CompiledEntry::new(bytecode, witness_template, public_data_template),
+                Entry::new(bytecode, witness_template, public_data_template),
             );
         }
 

@@ -16,8 +16,10 @@ impl NoOperation {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for NoOperation {
+    fn into(self) -> Instruction {
         Instruction::NoOperation(self)
     }
 }

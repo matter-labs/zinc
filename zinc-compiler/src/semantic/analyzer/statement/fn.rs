@@ -5,8 +5,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::statement::function::Statement as GeneratorFunctionStatement;
-use crate::generator::statement::Statement as GeneratorStatement;
+use crate::generator::statement::r#fn::Statement as GeneratorFunctionStatement;
 use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
@@ -45,7 +44,7 @@ impl Analyzer {
         scope: Rc<RefCell<Scope>>,
         statement: FnStatement,
         context: Context,
-    ) -> Result<(Type, Option<GeneratorStatement>), Error> {
+    ) -> Result<(Type, Option<GeneratorFunctionStatement>), Error> {
         if let Context::Contract = context {
             if statement.is_public && statement.is_constant {
                 return Err(Error::EntryPointConstant {
@@ -57,9 +56,8 @@ impl Analyzer {
         if statement.is_constant {
             Self::constant(scope, statement, context).map(|r#type| (r#type, None))
         } else {
-            Self::runtime(scope, statement, context).map(|(r#type, intermediate)| {
-                (r#type, Some(GeneratorStatement::Function(intermediate)))
-            })
+            Self::runtime(scope, statement, context)
+                .map(|(r#type, intermediate)| (r#type, Some(intermediate)))
         }
     }
 
@@ -98,12 +96,12 @@ impl Analyzer {
 
             arguments.push((
                 identifier,
-                Type::from_syntax_type(argument_binding.r#type.to_owned(), scope_stack.top())?,
+                Type::try_from_syntax(argument_binding.r#type.to_owned(), scope_stack.top())?,
             ));
         }
 
         let expected_type = match statement.return_type {
-            Some(ref r#type) => Type::from_syntax_type(r#type.to_owned(), scope_stack.top())?,
+            Some(ref r#type) => Type::try_from_syntax(r#type.to_owned(), scope_stack.top())?,
             None => Type::unit(None),
         };
 
@@ -114,8 +112,7 @@ impl Analyzer {
                     identifier,
                     is_mutable,
                 } => {
-                    let r#type =
-                        Type::from_syntax_type(argument_binding.r#type, scope_stack.top())?;
+                    let r#type = Type::try_from_syntax(argument_binding.r#type, scope_stack.top())?;
 
                     Scope::define_variable(
                         scope_stack.top(),
@@ -131,8 +128,7 @@ impl Analyzer {
                     is_mutable,
                 } => {
                     let identifier = Identifier::new(location, Keyword::SelfLowercase.to_string());
-                    let r#type =
-                        Type::from_syntax_type(argument_binding.r#type, scope_stack.top())?;
+                    let r#type = Type::try_from_syntax(argument_binding.r#type, scope_stack.top())?;
 
                     let memory_type = match context {
                         Context::Contract => MemoryType::ContractInstance,
@@ -248,12 +244,12 @@ impl Analyzer {
 
             arguments.push((
                 identifier,
-                Type::from_syntax_type(argument_binding.r#type.to_owned(), scope_stack.top())?,
+                Type::try_from_syntax(argument_binding.r#type.to_owned(), scope_stack.top())?,
             ));
         }
 
         let expected_type = match statement.return_type {
-            Some(ref r#type) => Type::from_syntax_type(r#type.to_owned(), scope_stack.top())?,
+            Some(ref r#type) => Type::try_from_syntax(r#type.to_owned(), scope_stack.top())?,
             None => Type::unit(None),
         };
 
@@ -264,8 +260,7 @@ impl Analyzer {
                     identifier,
                     is_mutable,
                 } => {
-                    let r#type =
-                        Type::from_syntax_type(argument_binding.r#type, scope_stack.top())?;
+                    let r#type = Type::try_from_syntax(argument_binding.r#type, scope_stack.top())?;
 
                     Scope::define_variable(
                         scope_stack.top(),
@@ -281,8 +276,7 @@ impl Analyzer {
                     is_mutable,
                 } => {
                     let identifier = Identifier::new(location, Keyword::SelfLowercase.to_string());
-                    let r#type =
-                        Type::from_syntax_type(argument_binding.r#type, scope_stack.top())?;
+                    let r#type = Type::try_from_syntax(argument_binding.r#type, scope_stack.top())?;
 
                     let memory_type = match context {
                         Context::Contract => MemoryType::ContractInstance,

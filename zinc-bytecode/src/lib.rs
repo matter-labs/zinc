@@ -61,4 +61,6 @@ pub use self::instruction::stack::load_by_index::LoadByIndex;
 pub use self::instruction::stack::store::Store;
 pub use self::instruction::stack::store_by_index::StoreByIndex;
 pub use self::instruction::Instruction;
+pub use self::program::circuit::Circuit;
+pub use self::program::contract::Contract;
 pub use self::program::Program;

@@ -8,11 +8,11 @@ use franklin_crypto::circuit::sha256::sha256;
 
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
-use crate::Engine;
+use crate::IEngine;
 
 pub const ROOT_HASH_TRUNCATED_BITS: usize = 248;
 
-pub trait MerkleTreeHasher<E: Engine>: Default {
+pub trait MerkleTreeHasher<E: IEngine>: Default {
     fn hash_width(&self) -> usize;
 
     fn leaf_value_hash<CS>(
@@ -36,7 +36,7 @@ pub trait MerkleTreeHasher<E: Engine>: Default {
 #[derive(Default)]
 pub struct Sha256Hasher;
 
-impl<E: Engine> MerkleTreeHasher<E> for Sha256Hasher {
+impl<E: IEngine> MerkleTreeHasher<E> for Sha256Hasher {
     fn hash_width(&self) -> usize {
         256
     }
@@ -84,13 +84,13 @@ impl<E: Engine> MerkleTreeHasher<E> for Sha256Hasher {
     }
 }
 
-pub struct MerkleTreeLeaf<E: Engine> {
+pub struct MerkleTreeLeaf<E: IEngine> {
     pub leaf_value: Vec<Option<Scalar<E>>>,
     pub leaf_value_hash: Vec<Option<bool>>,
     pub authentication_path: Vec<Vec<Option<bool>>>,
 }
 
-pub trait MerkleTreeStorage<E: Engine> {
+pub trait MerkleTreeStorage<E: IEngine> {
     /// Returns depth of merkle tree
     fn depth(&self) -> usize;
 

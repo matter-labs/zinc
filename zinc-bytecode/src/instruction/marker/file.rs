@@ -22,8 +22,10 @@ impl FileMarker {
     pub fn is_debug(&self) -> bool {
         true
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for FileMarker {
+    fn into(self) -> Instruction {
         Instruction::FileMarker(self)
     }
 }

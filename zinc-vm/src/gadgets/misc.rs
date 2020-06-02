@@ -14,15 +14,15 @@ use zinc_bytecode::ScalarType;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::fr_bigint;
-use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
+use crate::gadgets::scalar::expectation::ITypeExpectation;
+use crate::gadgets::scalar::variant::Variant as ScalarVariant;
 use crate::gadgets::scalar::Scalar;
-use crate::gadgets::scalar::ScalarVariant;
-use crate::gadgets::Gadget;
-use crate::Engine;
+use crate::gadgets::IGadget;
+use crate::IEngine;
 
 pub struct Gadgets<E, CS>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     cs: CS,
@@ -32,7 +32,7 @@ where
 
 impl<E, CS> Gadgets<E, CS>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     pub fn new(cs: CS) -> Self {
@@ -57,7 +57,7 @@ where
 
 impl<E, CS> Gadgets<E, CS>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     fn witness_fr(
@@ -398,7 +398,7 @@ where
         Ok(new_array)
     }
 
-    pub fn execute<G: Gadget<E>>(
+    pub fn execute<G: IGadget<E>>(
         &mut self,
         gadget: G,
         input: &[Scalar<E>],

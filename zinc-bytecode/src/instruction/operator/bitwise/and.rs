@@ -22,6 +22,12 @@ impl BitwiseAnd {
     }
 }
 
+impl Into<Instruction> for BitwiseAnd {
+    fn into(self) -> Instruction {
+        Instruction::BitwiseAnd(self)
+    }
+}
+
 impl fmt::Display for BitwiseAnd {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "bitwise_and")

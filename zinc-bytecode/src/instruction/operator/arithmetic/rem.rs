@@ -16,8 +16,10 @@ impl Rem {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for Rem {
+    fn into(self) -> Instruction {
         Instruction::Rem(self)
     }
 }

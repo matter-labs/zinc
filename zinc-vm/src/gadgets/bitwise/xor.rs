@@ -8,9 +8,9 @@ use zinc_bytecode::ScalarType;
 use crate::auto_const;
 use crate::error::RuntimeError;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
+use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::Scalar;
-use crate::Engine;
+use crate::IEngine;
 
 pub fn bit_xor<E, CS>(
     cs: CS,
@@ -18,7 +18,7 @@ pub fn bit_xor<E, CS>(
     right: &Scalar<E>,
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     fn inner<E, CS>(
@@ -27,7 +27,7 @@ where
         right: &Scalar<E>,
     ) -> Result<Scalar<E>, RuntimeError>
     where
-        E: Engine,
+        E: IEngine,
         CS: ConstraintSystem<E>,
     {
         let scalar_type = ScalarType::expect_same(left.get_type(), right.get_type())?;

@@ -1,5 +1,5 @@
 //!
-//! The code location.
+//! The virtual machine code location.
 //!
 
 use std::fmt;

@@ -18,6 +18,6 @@ impl Analyzer {
     /// Converts the syntax type to a semantic type.
     ///
     pub fn analyze(scope: Rc<RefCell<Scope>>, r#type: SyntaxType) -> Result<Element, Error> {
-        Type::from_syntax_type(r#type, scope).map(Element::Type)
+        Type::try_from_syntax(r#type, scope).map(Element::Type)
     }
 }

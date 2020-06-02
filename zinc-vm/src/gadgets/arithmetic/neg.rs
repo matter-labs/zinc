@@ -5,16 +5,16 @@ use crate::auto_const;
 use crate::error::RuntimeError;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::scalar::Scalar;
-use crate::Engine;
+use crate::IEngine;
 
 pub fn neg<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
     where
-        E: Engine,
+        E: IEngine,
         CS: ConstraintSystem<E>,
     {
         let expr = Expression::u64::<CS>(0) - scalar.to_expression::<CS>();

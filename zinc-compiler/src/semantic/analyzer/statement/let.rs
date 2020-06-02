@@ -5,7 +5,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::statement::declaration::Statement as GeneratorDeclarationStatement;
+use crate::generator::statement::r#let::Statement as GeneratorDeclarationStatement;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::r#type::Type;
@@ -29,7 +29,7 @@ impl Analyzer {
             .analyze(statement.expression)?;
 
         let r#type = if let Some(r#type) = statement.r#type {
-            let r#type = Type::from_syntax_type(r#type, scope.clone())?;
+            let r#type = Type::try_from_syntax(r#type, scope.clone())?;
             element
                 .cast(Element::Type(r#type.clone()))
                 .map_err(Error::Element)?;

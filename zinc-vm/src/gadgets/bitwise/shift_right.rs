@@ -12,9 +12,9 @@ use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::fr_bigint;
 use crate::gadgets::fr_bigint::bigint_to_fr;
-use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
+use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::Scalar;
-use crate::Engine;
+use crate::IEngine;
 
 pub fn shift_right<E, CS>(
     cs: CS,
@@ -22,7 +22,7 @@ pub fn shift_right<E, CS>(
     shift: &Scalar<E>,
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     num.get_type().assert_signed(false)?;
@@ -61,7 +61,7 @@ fn variable_shift<E, CS>(
     shift: &Scalar<E>,
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     let scalar_type = num.get_type();
@@ -105,7 +105,7 @@ where
 
 fn variable_num<E, CS>(mut cs: CS, num: &Scalar<E>, shift: usize) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     let scalar_type = num.get_type();

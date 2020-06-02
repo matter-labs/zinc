@@ -24,8 +24,10 @@ impl StorageStore {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for StorageStore {
+    fn into(self) -> Instruction {
         Instruction::StorageStore(self)
     }
 }

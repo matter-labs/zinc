@@ -29,8 +29,10 @@ impl Push {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for Push {
+    fn into(self) -> Instruction {
         Instruction::Push(self)
     }
 }

@@ -44,7 +44,7 @@ impl Analyzer {
             let intermediate = match statement {
                 FunctionLocalStatement::Let(statement) => {
                     LetStatementAnalyzer::define(scope_stack.top(), statement)?
-                        .map(GeneratorStatement::Declaration)
+                        .map(GeneratorStatement::Let)
                 }
                 FunctionLocalStatement::Const(statement) => {
                     let identifier = statement.identifier.clone();
@@ -52,7 +52,7 @@ impl Analyzer {
                     Scope::define_constant(scope_stack.top(), identifier, constant)?;
                     None
                 }
-                FunctionLocalStatement::For(statement) => Some(GeneratorStatement::Loop(
+                FunctionLocalStatement::For(statement) => Some(GeneratorStatement::For(
                     ForStatementAnalyzer::define(scope_stack.top(), statement)?,
                 )),
                 FunctionLocalStatement::Expression(expression) => {

@@ -22,7 +22,7 @@ impl Analyzer {
         statement: FieldStatement,
         index: usize,
     ) -> Result<(), Error> {
-        let r#type = Type::from_syntax_type(statement.r#type, scope.clone())?;
+        let r#type = Type::try_from_syntax(statement.r#type, scope.clone())?;
 
         Scope::define_variable(
             scope,

@@ -16,8 +16,10 @@ impl Mul {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for Mul {
+    fn into(self) -> Instruction {
         Instruction::Mul(self)
     }
 }

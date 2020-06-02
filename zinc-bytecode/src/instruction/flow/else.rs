@@ -16,8 +16,10 @@ impl Else {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for Else {
+    fn into(self) -> Instruction {
         Instruction::Else(self)
     }
 }

@@ -14,11 +14,11 @@ pub mod types;
 use bellman::ConstraintSystem;
 
 use crate::error::RuntimeError;
-use crate::Engine;
+use crate::IEngine;
 
 use self::scalar::Scalar;
 
-pub trait Gadget<E: Engine> {
+pub trait IGadget<E: IEngine> {
     type Input;
     type Output;
 

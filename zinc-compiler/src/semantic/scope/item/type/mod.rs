@@ -151,12 +151,18 @@ impl Type {
                     TypeStatementVariant::Enum(inner) => {
                         (EnumStatementAnalyzer::define(scope, inner)?, None)
                     }
-                    TypeStatementVariant::Fn(inner, context) => {
-                        FnStatementAnalyzer::define(scope, inner, context)?
-                    }
-                    TypeStatementVariant::Contract(inner) => {
-                        (ContractStatementAnalyzer::define(scope, inner)?, None)
-                    }
+                    TypeStatementVariant::Fn(inner, context) => FnStatementAnalyzer::define(
+                        scope, inner, context,
+                    )
+                    .map(|(r#type, intermediate)| {
+                        (r#type, intermediate.map(GeneratorStatement::Fn))
+                    })?,
+                    TypeStatementVariant::Contract(inner) => ContractStatementAnalyzer::define(
+                        scope, inner,
+                    )
+                    .map(|(r#type, intermediate)| {
+                        (r#type, Some(GeneratorStatement::Contract(intermediate)))
+                    })?,
                 };
 
                 self.state.replace(Some(State::Defined {

@@ -1,13 +1,13 @@
-use crate::core::state::cell::Cell;
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::execution_state::cell::Cell;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
+use crate::instructions::IExecutable;
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Cast;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for Cast {
+impl<VM: IVirtualMachine> IExecutable<VM> for Cast {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let old_value = vm.pop()?.try_into_value()?;
 

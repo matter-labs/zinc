@@ -1,0 +1,45 @@
+//!
+//! The Zinc virtual machine circuit synthesizer.
+//!
+
+use std::marker::PhantomData;
+
+use num_bigint::BigInt;
+
+use franklin_crypto::bellman;
+use franklin_crypto::bellman::ConstraintSystem;
+use franklin_crypto::bellman::SynthesisError;
+
+use zinc_bytecode::Program as BytecodeProgram;
+
+use crate::constraint_systems::duplicate_removing::DuplicateRemovingCS;
+use crate::core::circuit::Circuit;
+use crate::error::RuntimeError;
+use crate::IEngine;
+
+pub struct Synthesizer<'a, E: IEngine> {
+    pub inputs: Option<Vec<BigInt>>,
+    pub output: &'a mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
+    pub bytecode: BytecodeProgram,
+
+    pub _pd: PhantomData<E>,
+}
+
+impl<E> bellman::Circuit<E> for Synthesizer<'_, E>
+where
+    E: IEngine,
+{
+    fn synthesize<CS: ConstraintSystem<E>>(
+        self,
+        cs: &mut CS,
+    ) -> std::result::Result<(), SynthesisError> {
+        // let cs = LoggingConstraintSystem::new(cs.namespace(|| "logging"));
+        let mut cs = DuplicateRemovingCS::new(cs.namespace(|| "duplicates removing"));
+
+        let mut circuit = Circuit::new(cs.namespace(|| "vm"), false);
+        *self.output =
+            Some(circuit.run(&self.bytecode, self.inputs.as_deref(), |_| {}, |_| Ok(())));
+
+        Ok(())
+    }
+}

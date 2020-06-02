@@ -16,8 +16,10 @@ impl EndIf {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for EndIf {
+    fn into(self) -> Instruction {
         Instruction::EndIf(self)
     }
 }

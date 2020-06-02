@@ -1,22 +1,22 @@
 pub mod prelude {
     pub use crate::constraint_systems::constant::ConstantCS;
+    pub use crate::gadgets::scalar::variant::Variant as ScalarVariant;
     pub use crate::gadgets::scalar::Scalar;
-    pub use crate::gadgets::scalar::ScalarVariant;
 
     use crate::error::RuntimeError;
-    use crate::Engine;
+    use crate::IEngine;
 
     pub trait ToConstant: Sized {
         fn to_constant(&self) -> Result<Self, RuntimeError>;
     }
 
-    impl<E: Engine> ToConstant for Scalar<E> {
+    impl<E: IEngine> ToConstant for Scalar<E> {
         fn to_constant(&self) -> Result<Self, RuntimeError> {
             self.as_constant_unchecked()
         }
     }
 
-    impl<E: Engine> ToConstant for (Scalar<E>, Scalar<E>) {
+    impl<E: IEngine> ToConstant for (Scalar<E>, Scalar<E>) {
         fn to_constant(&self) -> Result<Self, RuntimeError> {
             Ok((
                 self.0.as_constant_unchecked()?,

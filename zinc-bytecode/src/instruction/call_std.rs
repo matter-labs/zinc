@@ -46,8 +46,10 @@ impl CallStd {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for CallStd {
+    fn into(self) -> Instruction {
         Instruction::CallStd(self)
     }
 }

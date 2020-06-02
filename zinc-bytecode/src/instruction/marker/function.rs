@@ -22,8 +22,10 @@ impl FunctionMarker {
     pub fn is_debug(&self) -> bool {
         true
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for FunctionMarker {
+    fn into(self) -> Instruction {
         Instruction::FunctionMarker(self)
     }
 }

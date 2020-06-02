@@ -22,8 +22,10 @@ impl ColumnMarker {
     pub fn is_debug(&self) -> bool {
         true
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for ColumnMarker {
+    fn into(self) -> Instruction {
         Instruction::ColumnMarker(self)
     }
 }

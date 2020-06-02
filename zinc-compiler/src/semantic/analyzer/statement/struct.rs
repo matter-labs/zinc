@@ -37,7 +37,7 @@ impl Analyzer {
 
             fields.push((
                 field.identifier.name,
-                Type::from_syntax_type(field.r#type, scope.clone())?,
+                Type::try_from_syntax(field.r#type, scope.clone())?,
             ));
         }
 

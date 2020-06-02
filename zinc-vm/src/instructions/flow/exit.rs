@@ -1,10 +1,10 @@
 use zinc_bytecode::Exit;
 
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for Exit {
+impl<VM: IVirtualMachine> IExecutable<VM> for Exit {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         vm.exit(self.outputs_count)?;
         Ok(())
@@ -13,12 +13,12 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Exit {
 
 #[cfg(test)]
 mod tests {
+    use crate::tests::TestRunner;
     use crate::tests::TestingError;
-    use crate::tests::VMTestRunner;
 
     #[test]
     fn test_exit() -> Result<(), TestingError> {
-        VMTestRunner::new()
+        TestRunner::new()
             .add(zinc_bytecode::Push::new_field(1.into()))
             .add(zinc_bytecode::Exit::new(0))
             .add(zinc_bytecode::Push::new_field(2.into()))

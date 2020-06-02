@@ -16,8 +16,10 @@ impl Gt {
     pub fn is_debug(&self) -> bool {
         false
     }
+}
 
-    pub fn wrap(self) -> Instruction {
+impl Into<Instruction> for Gt {
+    fn into(self) -> Instruction {
         Instruction::Gt(self)
     }
 }

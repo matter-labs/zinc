@@ -7,11 +7,11 @@ use franklin_crypto::bellman::LinearCombination;
 use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::bellman::Variable;
 
-use crate::Engine;
+use crate::IEngine;
 
 pub struct ConstantCS;
 
-impl<E: Engine> ConstraintSystem<E> for ConstantCS {
+impl<E: IEngine> ConstraintSystem<E> for ConstantCS {
     type Root = Self;
 
     fn alloc<F, A, AR>(&mut self, _annotation: A, f: F) -> Result<Variable, SynthesisError>

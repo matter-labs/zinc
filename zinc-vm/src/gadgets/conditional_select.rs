@@ -5,10 +5,10 @@ use franklin_crypto::circuit::num::AllocatedNum;
 use zinc_bytecode::ScalarType;
 
 use crate::error::RuntimeError;
-use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
+use crate::gadgets::scalar::expectation::ITypeExpectation;
+use crate::gadgets::scalar::variant::Variant as ScalarVariant;
 use crate::gadgets::scalar::Scalar;
-use crate::gadgets::scalar::ScalarVariant;
-use crate::Engine;
+use crate::IEngine;
 
 pub fn conditional_select<E, CS>(
     mut cs: CS,
@@ -17,7 +17,7 @@ pub fn conditional_select<E, CS>(
     if_false: &Scalar<E>,
 ) -> Result<Scalar<E>, RuntimeError>
 where
-    E: Engine,
+    E: IEngine,
     CS: ConstraintSystem<E>,
 {
     condition.get_type().assert_type(ScalarType::Boolean)?;

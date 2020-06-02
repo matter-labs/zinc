@@ -1,21 +1,21 @@
 //!
-//! The VM core counter namespace.
+//! The virtual machine counter namespace.
 //!
 
 use std::marker::PhantomData;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use crate::Engine;
+use crate::IEngine;
 
-pub struct NamespaceCounter<E: Engine, CS: ConstraintSystem<E>> {
+pub struct NamespaceCounter<E: IEngine, CS: ConstraintSystem<E>> {
     pub cs: CS,
     pub counter: usize,
 
     _pd: PhantomData<E>,
 }
 
-impl<E: Engine, CS: ConstraintSystem<E>> NamespaceCounter<E, CS> {
+impl<E: IEngine, CS: ConstraintSystem<E>> NamespaceCounter<E, CS> {
     pub fn new(cs: CS) -> Self {
         Self {
             cs,

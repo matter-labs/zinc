@@ -7,6 +7,7 @@ mod tests;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::generator::statement::contract::Statement as GeneratorContractStatement;
 use crate::semantic::analyzer::statement::field::Analyzer as FieldStatementAnalyzer;
 use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
 use crate::semantic::element::r#type::Type;
@@ -53,12 +54,25 @@ impl Analyzer {
     ///
     /// Defines the instant items and forcibly defines the hoisted ones.
     ///
-    pub fn define(scope: Rc<RefCell<Scope>>, statement: ContractStatement) -> Result<Type, Error> {
-        let mut contract_field_index = 0;
+    pub fn define(
+        scope: Rc<RefCell<Scope>>,
+        statement: ContractStatement,
+    ) -> Result<(Type, GeneratorContractStatement), Error> {
+        let location = statement.location;
+
+        let mut storage_fields = Vec::new();
         for instant_statement in statement.statements.into_iter() {
             if let ContractLocalStatement::Field(statement) = instant_statement {
-                FieldStatementAnalyzer::define(scope.clone(), statement, contract_field_index)?;
-                contract_field_index += 1;
+                FieldStatementAnalyzer::define(
+                    scope.clone(),
+                    statement.clone(),
+                    storage_fields.len(),
+                )?;
+
+                storage_fields.push((
+                    statement.identifier.name.clone(),
+                    Type::try_from_syntax(statement.r#type, scope.clone())?,
+                ));
             }
         }
 
@@ -70,6 +84,8 @@ impl Analyzer {
 
         scope.borrow().define()?;
 
-        Ok(r#type)
+        let intermediate = GeneratorContractStatement::new(location, storage_fields);
+
+        Ok((r#type, intermediate))
     }
 }

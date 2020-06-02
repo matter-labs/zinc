@@ -3,13 +3,13 @@ use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::Rem;
 use zinc_bytecode::ScalarType;
 
-use crate::core::state::cell::Cell;
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::execution_state::cell::Cell;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
-use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
-impl<VM: VirtualMachine> VMInstruction<VM> for Rem {
+use crate::gadgets::scalar::expectation::ITypeExpectation;
+use crate::instructions::IExecutable;
+impl<VM: IVirtualMachine> IExecutable<VM> for Rem {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
@@ -37,8 +37,8 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Rem {
 
 #[cfg(test)]
 mod test {
+    use crate::tests::TestRunner;
     use crate::tests::TestingError;
-    use crate::tests::VMTestRunner;
 
     use zinc_bytecode::IntegerType;
 
@@ -46,7 +46,7 @@ mod test {
     fn test_rem() -> Result<(), TestingError> {
         let _ = env_logger::builder().is_test(true).try_init();
 
-        VMTestRunner::new()
+        TestRunner::new()
             .add(zinc_bytecode::Push::new(9.into(), IntegerType::I8.into()))
             .add(zinc_bytecode::Push::new(4.into(), IntegerType::I8.into()))
             .add(zinc_bytecode::Rem)

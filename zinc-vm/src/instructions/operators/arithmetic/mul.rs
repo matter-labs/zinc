@@ -4,15 +4,15 @@ use zinc_bytecode::Mul;
 use zinc_bytecode::ScalarType;
 
 use crate::auto_const;
-use crate::core::state::cell::Cell;
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::execution_state::cell::Cell;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::scalar::scalar_type::ScalarTypeExpectation;
+use crate::gadgets::scalar::expectation::ITypeExpectation;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for Mul {
+impl<VM: IVirtualMachine> IExecutable<VM> for Mul {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
@@ -42,12 +42,12 @@ impl<VM: VirtualMachine> VMInstruction<VM> for Mul {
 
 #[cfg(test)]
 mod test {
+    use crate::tests::TestRunner;
     use crate::tests::TestingError;
-    use crate::tests::VMTestRunner;
 
     #[test]
     fn test_mul() -> Result<(), TestingError> {
-        VMTestRunner::new()
+        TestRunner::new()
             .add(zinc_bytecode::Push::new_field(3.into()))
             .add(zinc_bytecode::Push::new_field(4.into()))
             .add(zinc_bytecode::Mul)

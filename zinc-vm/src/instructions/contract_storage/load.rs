@@ -1,10 +1,10 @@
 use zinc_bytecode::StorageLoad;
 
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for StorageLoad {
+impl<VM: IVirtualMachine> IExecutable<VM> for StorageLoad {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let address = vm.pop()?.try_into_value()?;
 

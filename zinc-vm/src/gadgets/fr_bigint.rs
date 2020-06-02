@@ -9,7 +9,7 @@ use ff::Field;
 use ff::PrimeField;
 use ff::PrimeFieldRepr;
 
-use crate::Engine;
+use crate::IEngine;
 
 pub fn fr_to_bigint<Fr: PrimeField>(fr: &Fr, signed: bool) -> BigInt {
     if signed {
@@ -47,7 +47,7 @@ pub fn fr_to_bigint_unsigned<Fr: PrimeField>(fr: &Fr) -> BigInt {
     BigInt::from_bytes_be(Sign::Plus, &buffer)
 }
 
-pub fn bigint_to_fr<E: Engine>(bigint: &BigInt) -> Option<E::Fr> {
+pub fn bigint_to_fr<E: IEngine>(bigint: &BigInt) -> Option<E::Fr> {
     if bigint.is_positive() {
         E::Fr::from_str(&bigint.to_str_radix(10))
     } else {

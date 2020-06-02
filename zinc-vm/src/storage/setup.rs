@@ -4,7 +4,7 @@ use crate::error::RuntimeError;
 use crate::gadgets::contract::MerkleTreeLeaf;
 use crate::gadgets::contract::MerkleTreeStorage;
 use crate::gadgets::scalar::Scalar;
-use crate::Engine;
+use crate::IEngine;
 
 pub struct SetupStorage {
     depth: usize,
@@ -16,7 +16,7 @@ impl SetupStorage {
     }
 }
 
-impl<E: Engine> MerkleTreeStorage<E> for SetupStorage {
+impl<E: IEngine> MerkleTreeStorage<E> for SetupStorage {
     fn depth(&self) -> usize {
         self.depth
     }

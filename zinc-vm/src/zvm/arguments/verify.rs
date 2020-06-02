@@ -63,10 +63,10 @@ impl VerifyCommand {
         let output_text = fs::read_to_string(&self.public_data_path)
             .error_with_path(|| self.public_data_path.to_string_lossy())?;
         let output_value = serde_json::from_str(output_text.as_str())?;
-        let output_struct = TemplateValue::from_typed_json(&output_value, &program.output)?;
+        let output_struct = TemplateValue::from_typed_json(&output_value, &program.output())?;
 
         // Verify
-        let verified = zinc_vm::verify(&key, &proof, &output_struct)?;
+        let verified = zinc_vm::verify(key, proof, output_struct)?;
 
         if verified {
             println!("{}", "✔  Verified".bold().green());

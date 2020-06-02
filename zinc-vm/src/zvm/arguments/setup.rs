@@ -32,7 +32,7 @@ impl SetupCommand {
             fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
         let program = Program::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
-        let params = zinc_vm::setup::<Bn256>(&program)?;
+        let params = zinc_vm::setup::<Bn256>(program)?;
 
         let pkey_file = fs::File::create(&self.proving_key_path)
             .error_with_path(|| self.proving_key_path.to_string_lossy())?;

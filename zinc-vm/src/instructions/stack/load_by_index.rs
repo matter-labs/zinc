@@ -1,11 +1,11 @@
 use zinc_bytecode::LoadByIndex;
 
-use crate::core::state::cell::Cell;
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::execution_state::cell::Cell;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for LoadByIndex {
+impl<VM: IVirtualMachine> IExecutable<VM> for LoadByIndex {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let index = vm.pop()?.try_into_value()?;
 

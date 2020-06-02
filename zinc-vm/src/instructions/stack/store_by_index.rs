@@ -2,14 +2,14 @@ use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::StoreByIndex;
 
-use crate::core::state::cell::Cell;
-use crate::core::VMInstruction;
-use crate::core::VirtualMachine;
+use crate::core::execution_state::cell::Cell;
+use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::scalar::Scalar;
+use crate::instructions::IExecutable;
 
-impl<VM: VirtualMachine> VMInstruction<VM> for StoreByIndex {
+impl<VM: IVirtualMachine> IExecutable<VM> for StoreByIndex {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let mut array = Vec::with_capacity(self.array_len);
         for i in 0..self.array_len {

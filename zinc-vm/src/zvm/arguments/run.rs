@@ -33,9 +33,9 @@ impl RunCommand {
         let input_text = fs::read_to_string(&self.input_path)
             .error_with_path(|| self.input_path.to_string_lossy())?;
         let json = serde_json::from_str(&input_text)?;
-        let input = TemplateValue::from_typed_json(&json, &program.input)?;
+        let input = TemplateValue::from_typed_json(&json, &program.input())?;
 
-        let output = zinc_vm::run::<Bn256>(&program, &input)?;
+        let output = zinc_vm::run::<Bn256>(program, input)?;
 
         let output_json = serde_json::to_string_pretty(&output.to_json())? + "\n";
         fs::write(&self.output_path, &output_json)
