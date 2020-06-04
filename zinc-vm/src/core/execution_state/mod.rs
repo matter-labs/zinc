@@ -26,6 +26,18 @@ pub struct ExecutionState<E: IEngine> {
     pub frames_stack: Vec<Frame<E>>,
 }
 
+impl<E: IEngine> ExecutionState<E> {
+    pub fn new() -> Self {
+        Self {
+            instruction_counter: 0,
+            evaluation_stack: EvaluationStack::new(),
+            data_stack: DataStack::new(),
+            conditions_stack: vec![],
+            frames_stack: vec![],
+        }
+    }
+}
+
 impl<E: IEngine> fmt::Display for ExecutionState<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", self.evaluation_stack)?;

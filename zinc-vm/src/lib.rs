@@ -10,17 +10,12 @@ pub(crate) mod error;
 pub mod facade;
 pub mod gadgets;
 pub(crate) mod instructions;
-pub mod storage;
 
 pub use pairing::bn256::Bn256;
 
 pub use self::error::RuntimeError;
 pub use self::error::VerificationError;
-pub use self::facade::debug;
-pub use self::facade::prove;
-pub use self::facade::run;
-pub use self::facade::setup;
-pub use self::facade::verify;
+pub use self::facade::IFacade;
 
 use std::fmt;
 

@@ -34,9 +34,8 @@ mod tests {
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
-    #[ignore]
     #[test]
-    fn test_stack() -> Result<(), TestingError> {
+    fn test_evaluation_stack() -> Result<(), TestingError> {
         // let a = _;
         // let b = _;
         //
@@ -75,9 +74,8 @@ mod tests {
         Ok(())
     }
 
-    #[ignore]
     #[test]
-    fn test_storage() -> Result<(), TestingError> {
+    fn test_data_stack() -> Result<(), TestingError> {
         let _ = env_logger::builder().is_test(true).try_init();
         // let mut a = 0;
         // let c = _;

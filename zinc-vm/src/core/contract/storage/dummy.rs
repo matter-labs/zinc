@@ -6,20 +6,20 @@ use ff::PrimeFieldRepr;
 
 use zinc_bytecode::DataType;
 
+use crate::core::contract::storage::sha256;
 use crate::error::RuntimeError;
-use crate::gadgets::contract::MerkleTreeLeaf;
-use crate::gadgets::contract::MerkleTreeStorage;
+use crate::gadgets::contract::merkle_tree::leaf::Leaf as MerkleTreeLeaf;
+use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
-use crate::storage::sha256;
 use crate::IEngine;
 
-pub struct DummyStorage<E: IEngine> {
+pub struct Storage<E: IEngine> {
     depth: usize,
     tree: Vec<Vec<u8>>,
     leaf_values: Vec<Vec<Scalar<E>>>,
 }
 
-impl<E: IEngine> DummyStorage<E> {
+impl<E: IEngine> Storage<E> {
     pub fn new(fields: Vec<DataType>) -> Self {
         let depth = (fields.len() as f64).log2().ceil() as usize;
 
@@ -55,7 +55,7 @@ impl<E: IEngine> DummyStorage<E> {
     }
 }
 
-impl<E: IEngine> MerkleTreeStorage<E> for DummyStorage<E> {
+impl<E: IEngine> IMerkleTree<E> for Storage<E> {
     fn depth(&self) -> usize {
         self.depth
     }
@@ -63,7 +63,8 @@ impl<E: IEngine> MerkleTreeStorage<E> for DummyStorage<E> {
     fn root_hash(&self) -> Option<E::Fr> {
         let mut hash_as_buf = self.tree[1].clone();
 
-        hash_as_buf.truncate(zinc_const::BITLENGTH_INTEGER_MAX / zinc_const::BITLENGTH_BYTE);
+        hash_as_buf
+            .truncate(zinc_const::BITLENGTH_SHA256_HASH_TRUNCATED / zinc_const::BITLENGTH_BYTE);
         hash_as_buf.resize(
             zinc_const::BITLENGTH_SHA256_HASH / zinc_const::BITLENGTH_BYTE,
             0,

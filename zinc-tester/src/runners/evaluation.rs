@@ -9,6 +9,7 @@ use std::sync::Mutex;
 use colored::Colorize;
 
 use zinc_vm::Bn256;
+use zinc_vm::IFacade;
 
 use crate::file::File;
 use crate::metadata::Metadata;
@@ -62,7 +63,7 @@ impl Runnable for Runner {
                 }
             };
 
-            match zinc_vm::run::<Bn256>(program.bytecode, program.witness) {
+            match program.bytecode.run::<Bn256>(program.witness) {
                 Ok(output) => {
                     let output = output.to_json();
                     if case.expect == output {

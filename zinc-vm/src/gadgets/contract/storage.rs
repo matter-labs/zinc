@@ -10,14 +10,13 @@ use zinc_bytecode::ScalarType;
 
 use crate::error::RuntimeError;
 use crate::gadgets;
-use crate::gadgets::contract::MerkleTreeHasher;
-use crate::gadgets::contract::MerkleTreeStorage;
-use crate::gadgets::contract::ROOT_HASH_TRUNCATED_BITS;
+use crate::gadgets::contract::merkle_tree::hasher::IHasher as IMerkleTreeHasher;
+use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::fr_bigint::fr_to_bigint_unsigned;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
-pub struct StorageGadget<E: IEngine, S: MerkleTreeStorage<E>, H: MerkleTreeHasher<E>> {
+pub struct StorageGadget<E: IEngine, S: IMerkleTree<E>, H: IMerkleTreeHasher<E>> {
     storage: S,
     root_hash: Scalar<E>,
     _pd: PhantomData<H>,
@@ -32,21 +31,25 @@ where
     CS: ConstraintSystem<E>,
 {
     let mut leaf_fields = Vec::new();
-    for (index, scalar) in leaf_value.iter().enumerate() {
-        let field_value = scalar.as_ref().unwrap();
-        let fr = field_value.grab_value().unwrap();
-        let scalar_type = field_value.get_type();
+    for (index, scalar) in leaf_value
+        .iter()
+        .filter_map(|scalar| scalar.as_ref())
+        .enumerate()
+    {
+        if let Ok(fr) = scalar.grab_value() {
+            let scalar_type = scalar.get_type();
 
-        let field_allocated_num = AllocatedNum::alloc(
-            cs.namespace(|| format!("leaf value: {} field", index)),
-            || Ok(fr),
-        )?;
-        let scalar = Scalar::<E>::new_unchecked_variable(
-            field_allocated_num.get_value(),
-            field_allocated_num.get_variable(),
-            scalar_type,
-        );
-        leaf_fields.push(scalar);
+            let field_allocated_num = AllocatedNum::alloc(
+                cs.namespace(|| format!("leaf value: {} field", index)),
+                || Ok(fr),
+            )?;
+            let scalar = Scalar::<E>::new_unchecked_variable(
+                field_allocated_num.get_value(),
+                field_allocated_num.get_variable(),
+                scalar_type,
+            );
+            leaf_fields.push(scalar);
+        }
     }
 
     Ok(leaf_fields)
@@ -134,7 +137,7 @@ fn enforce_merkle_tree_path<E, CS, H>(
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
-    H: MerkleTreeHasher<E>,
+    H: IMerkleTreeHasher<E>,
 {
     assert_eq!(index_bits.len(), depth);
     assert_eq!(authentication_path.len(), depth);
@@ -221,7 +224,7 @@ where
 
     let mut root_hash_bits = current_hash;
 
-    root_hash_bits.truncate(ROOT_HASH_TRUNCATED_BITS);
+    root_hash_bits.truncate(zinc_const::BITLENGTH_SHA256_HASH_TRUNCATED);
 
     Ok(Scalar::<E>::from(AllocatedNum::<E>::pack_bits_to_element(
         cs.namespace(|| "pack root hash bits into AllocatedNum"),
@@ -232,8 +235,8 @@ where
 impl<E, S, H> StorageGadget<E, S, H>
 where
     E: IEngine,
-    S: MerkleTreeStorage<E>,
-    H: MerkleTreeHasher<E>,
+    S: IMerkleTree<E>,
+    H: IMerkleTreeHasher<E>,
 {
     pub fn new<CS>(mut cs: CS, storage: S) -> std::result::Result<Self, SynthesisError>
     where
@@ -402,9 +405,9 @@ mod tests {
     use zinc_bytecode::DataType;
     use zinc_bytecode::ScalarType;
 
-    use crate::gadgets::contract::Sha256Hasher;
+    use crate::core::contract::storage::dummy::Storage as DummyStorage;
+    use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
     use crate::gadgets::scalar::Scalar;
-    use crate::storage::dummy::DummyStorage;
 
     #[ignore]
     #[test]
@@ -427,55 +430,42 @@ mod tests {
         )
         .unwrap();
 
-        for iter in 0..=1 {
-            let mut cs = cs.namespace(|| format!("iter :: {}", iter));
-            for i in 0..STORAGE_ELEMENT_COUNT {
-                let mut cur_vec = vec![];
-                let fields = rng.gen::<usize>() % 2 + 1;
-                for j in 0..fields {
-                    cur_vec.push(Scalar::<Bn256>::from(
-                        AllocatedNum::alloc(
-                            cs.namespace(|| {
-                                format!("variable :: index({}); field index({})", i, j)
-                            }),
-                            || Ok(rng.gen()),
-                        )
-                        .unwrap(),
-                    ));
-                }
+        for i in 0..STORAGE_ELEMENT_COUNT {
+            let scalar = Scalar::<Bn256>::from(
+                AllocatedNum::alloc(
+                    cs.namespace(|| format!("variable :: index({}); field index({})", i, 1)),
+                    || Ok(rng.gen()),
+                )
+                .unwrap(),
+            );
+            let fr = scalar.get_value().unwrap();
 
-                storage_gadget
-                    .store(
-                        cs.namespace(|| format!("store :: index({})", i)),
-                        &Scalar::<Bn256>::new_constant_fr(
-                            Fr::from_str(&i.to_string()).unwrap(),
-                            ScalarType::Field,
-                        ),
-                        &cur_vec,
-                    )
-                    .unwrap();
+            storage_gadget
+                .store(
+                    cs.namespace(|| format!("store :: index({})", i)),
+                    &Scalar::<Bn256>::new_constant_fr(
+                        Fr::from_str(&i.to_string()).unwrap(),
+                        ScalarType::Field,
+                    ),
+                    &[scalar],
+                )
+                .unwrap();
 
-                let loaded_result = storage_gadget
-                    .load(
-                        cs.namespace(|| format!("load :: index({})", i)),
-                        cur_vec.len(),
-                        &Scalar::<Bn256>::new_constant_fr(
-                            Fr::from_str(&i.to_string()).unwrap(),
-                            ScalarType::Field,
-                        ),
-                    )
-                    .unwrap();
-                assert_eq!(
-                    loaded_result
-                        .iter()
-                        .map(|scalar| scalar.get_value().unwrap())
-                        .collect::<Vec<Fr>>(),
-                    cur_vec
-                        .iter()
-                        .map(|scalar| scalar.get_value().unwrap())
-                        .collect::<Vec<Fr>>()
-                );
-            }
+            let loaded_fr = storage_gadget
+                .load(
+                    cs.namespace(|| format!("load :: index({})", i)),
+                    1,
+                    &Scalar::<Bn256>::new_constant_fr(
+                        Fr::from_str(&i.to_string()).unwrap(),
+                        ScalarType::Field,
+                    ),
+                )
+                .unwrap()
+                .remove(0)
+                .get_value()
+                .unwrap();
+
+            assert_eq!(loaded_fr, fr);
         }
 
         assert!(cs.is_satisfied());

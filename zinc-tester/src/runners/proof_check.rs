@@ -8,7 +8,10 @@ use std::sync::Mutex;
 
 use colored::Colorize;
 
+use zinc_bytecode::Program as BytecodeProgram;
+
 use zinc_vm::Bn256;
+use zinc_vm::IFacade;
 
 use crate::file::File;
 use crate::metadata::Metadata;
@@ -62,7 +65,7 @@ impl Runnable for Runner {
                 }
             };
 
-            let params = match zinc_vm::setup::<Bn256>(program.bytecode.clone()) {
+            let params = match program.bytecode.clone().setup::<Bn256>() {
                 Ok(params) => params,
                 Err(error) => {
                     summary.lock().expect(crate::panic::MUTEX_SYNC).invalid += 1;
@@ -76,46 +79,48 @@ impl Runnable for Runner {
                 }
             };
 
-            let (output, proof) =
-                match zinc_vm::prove::<Bn256>(program.bytecode, params.clone(), program.witness) {
-                    Ok((output, proof)) => {
-                        let output_json = output.to_json();
-                        if case.expect != output_json {
-                            summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;
+            let (output, proof) = match program
+                .bytecode
+                .prove::<Bn256>(params.clone(), program.witness)
+            {
+                Ok((output, proof)) => {
+                    let output_json = output.to_json();
+                    if case.expect != output_json {
+                        summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;
+                        println!(
+                            "[INTEGRATION] {} {} (expected {}, but got {})",
+                            "FAILED".bright_red(),
+                            case_name,
+                            case.expect,
+                            output_json
+                        );
+                    }
+                    (output, proof)
+                }
+                Err(error) => {
+                    if case.should_panic {
+                        summary.lock().expect(crate::panic::MUTEX_SYNC).passed += 1;
+                        if self.verbosity > 0 {
                             println!(
-                                "[INTEGRATION] {} {} (expected {}, but got {})",
-                                "FAILED".bright_red(),
-                                case_name,
-                                case.expect,
-                                output_json
+                                "[INTEGRATION] {} {} (panicked)",
+                                "PASSED".green(),
+                                case_name
                             );
                         }
-                        (output, proof)
+                    } else {
+                        summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;
+                        println!(
+                            "[INTEGRATION] {} {} (prove: {})",
+                            "FAILED".bright_red(),
+                            case_name,
+                            error
+                        );
                     }
-                    Err(error) => {
-                        if case.should_panic {
-                            summary.lock().expect(crate::panic::MUTEX_SYNC).passed += 1;
-                            if self.verbosity > 0 {
-                                println!(
-                                    "[INTEGRATION] {} {} (panicked)",
-                                    "PASSED".green(),
-                                    case_name
-                                );
-                            }
-                        } else {
-                            summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;
-                            println!(
-                                "[INTEGRATION] {} {} (prove: {})",
-                                "FAILED".bright_red(),
-                                case_name,
-                                error
-                            );
-                        }
-                        continue;
-                    }
-                };
+                    continue;
+                }
+            };
 
-            match zinc_vm::verify(params.vk, proof, output) {
+            match BytecodeProgram::verify(params.vk, proof, output) {
                 Ok(success) => {
                     if !success {
                         summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;

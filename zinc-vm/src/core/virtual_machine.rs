@@ -46,7 +46,7 @@ pub trait IVirtualMachine {
     fn loop_end(&mut self) -> Result<(), RuntimeError>;
 
     fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError>;
-    fn ret(&mut self, outputs_count: usize) -> Result<(), RuntimeError>;
+    fn r#return(&mut self, outputs_count: usize) -> Result<(), RuntimeError>;
 
     fn branch_then(&mut self) -> Result<(), RuntimeError>;
     fn branch_else(&mut self) -> Result<(), RuntimeError>;

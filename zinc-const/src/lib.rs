@@ -15,3 +15,4 @@ pub const BITLENGTH_FIELD: usize = 254;
 pub const BITLENGTH_FIELD_PADDED: usize = 256;
 
 pub const BITLENGTH_SHA256_HASH: usize = 256;
+pub const BITLENGTH_SHA256_HASH_TRUNCATED: usize = 248;

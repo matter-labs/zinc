@@ -6,8 +6,10 @@ use structopt::StructOpt;
 use franklin_crypto::bellman::groth16::Parameters;
 use pairing::bn256::Bn256;
 
-use zinc_bytecode::Program;
+use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
+
+use zinc_vm::IFacade;
 
 use crate::error::Error;
 use crate::error::IoToError;
@@ -33,7 +35,8 @@ impl ProveCommand {
         // Read program
         let bytes =
             fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
-        let program = Program::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
+        let program =
+            BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         // Read verifying key
         let file = fs::File::open(&self.proving_key_path)
@@ -47,7 +50,7 @@ impl ProveCommand {
         let witness_value = serde_json::from_str(&witness_json)?;
         let witness_struct = TemplateValue::from_typed_json(&witness_value, &program.input())?;
 
-        let (pubdata, proof) = zinc_vm::prove::<Bn256>(program, params, witness_struct)?;
+        let (pubdata, proof) = program.prove::<Bn256>(params, witness_struct)?;
 
         // Write pubdata
         let pubdata_json = serde_json::to_string_pretty(&pubdata.to_json())? + "\n";

@@ -9,8 +9,10 @@ use franklin_crypto::bellman::groth16::Proof;
 use franklin_crypto::bellman::groth16::VerifyingKey;
 use pairing::bn256::Bn256;
 
-use zinc_bytecode::Program;
+use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
+
+use zinc_vm::IFacade;
 
 use crate::error::Error;
 use crate::error::IoToError;
@@ -46,7 +48,8 @@ impl VerifyCommand {
         // Read program
         let bytes =
             fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
-        let program = Program::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
+        let program =
+            BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         // Read verification key
         let key_file =
@@ -66,7 +69,7 @@ impl VerifyCommand {
         let output_struct = TemplateValue::from_typed_json(&output_value, &program.output())?;
 
         // Verify
-        let verified = zinc_vm::verify(key, proof, output_struct)?;
+        let verified = BytecodeProgram::verify::<Bn256>(key, proof, output_struct)?;
 
         if verified {
             println!("{}", "✔  Verified".bold().green());

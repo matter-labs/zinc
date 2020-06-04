@@ -1,5 +1,5 @@
 //!
-//! The Zinc virtual machine circuit synthesizer.
+//! The virtual machine circuit synthesizer.
 //!
 
 use std::marker::PhantomData;
@@ -33,10 +33,7 @@ where
         self,
         cs: &mut CS,
     ) -> std::result::Result<(), SynthesisError> {
-        // let cs = LoggingConstraintSystem::new(cs.namespace(|| "logging"));
-        let mut cs = DuplicateRemovingCS::new(cs.namespace(|| "duplicates removing"));
-
-        let mut circuit = Circuit::new(cs.namespace(|| "vm"), false);
+        let mut circuit = Circuit::new(DuplicateRemovingCS::new(cs), false);
         *self.output =
             Some(circuit.run(&self.bytecode, self.inputs.as_deref(), |_| {}, |_| Ok(())));
 

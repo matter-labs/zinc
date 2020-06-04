@@ -2,6 +2,8 @@
 //! The virtual machine contract.
 //!
 
+pub mod facade;
+pub mod storage;
 pub mod synthesizer;
 
 use colored::Colorize;
@@ -11,7 +13,7 @@ use num_bigint::ToBigInt;
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::DataType;
-use zinc_bytecode::Program;
+use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::ScalarType;
 
 use crate::core::counter::NamespaceCounter;
@@ -19,8 +21,6 @@ use crate::core::execution_state::block::branch::Branch;
 use crate::core::execution_state::block::r#loop::Loop;
 use crate::core::execution_state::block::Block;
 use crate::core::execution_state::cell::Cell;
-use crate::core::execution_state::data_stack::DataStack;
-use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::core::execution_state::function_frame::Frame;
 use crate::core::execution_state::ExecutionState;
 use crate::core::location::Location;
@@ -28,9 +28,9 @@ use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
 use crate::gadgets;
+use crate::gadgets::contract::merkle_tree::hasher::IHasher as IMerkleTreeHasher;
+use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::contract::storage::StorageGadget;
-use crate::gadgets::contract::MerkleTreeHasher;
-use crate::gadgets::contract::MerkleTreeStorage;
 use crate::gadgets::misc::Gadgets;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_std::INativeFunction;
@@ -41,8 +41,8 @@ pub struct Contract<E, CS, S, H>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
-    S: MerkleTreeStorage<E>,
-    H: MerkleTreeHasher<E>,
+    S: IMerkleTree<E>,
+    H: IMerkleTreeHasher<E>,
 {
     counter: NamespaceCounter<E, CS>,
     state: ExecutionState<E>,
@@ -57,19 +57,13 @@ impl<E, CS, S, H> Contract<E, CS, S, H>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
-    S: MerkleTreeStorage<E>,
-    H: MerkleTreeHasher<E>,
+    S: IMerkleTree<E>,
+    H: IMerkleTreeHasher<E>,
 {
     pub fn new(cs: CS, storage: StorageGadget<E, S, H>, debugging: bool) -> Self {
         Self {
             counter: NamespaceCounter::new(cs),
-            state: ExecutionState {
-                instruction_counter: 0,
-                evaluation_stack: EvaluationStack::new(),
-                data_stack: DataStack::new(),
-                conditions_stack: vec![],
-                frames_stack: vec![],
-            },
+            state: ExecutionState::new(),
             outputs: vec![],
             storage,
 
@@ -80,7 +74,7 @@ where
 
     pub fn run<CB, F>(
         &mut self,
-        bytecode: &Program,
+        bytecode: &BytecodeProgram,
         inputs: Option<&[BigInt]>,
         mut instruction_callback: CB,
         mut check_cs: F,
@@ -210,8 +204,8 @@ impl<E, CS, S, H> IVirtualMachine for Contract<E, CS, S, H>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
-    S: MerkleTreeStorage<E>,
-    H: MerkleTreeHasher<E>,
+    S: IMerkleTree<E>,
+    H: IMerkleTreeHasher<E>,
 {
     type E = E;
     type CS = CS;
@@ -301,7 +295,7 @@ where
         Ok(())
     }
 
-    fn ret(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
+    fn r#return(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
         let mut outputs = Vec::new();
         for _ in 0..outputs_count {
             let output = self.pop()?;

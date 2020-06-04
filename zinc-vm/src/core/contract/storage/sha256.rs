@@ -21,18 +21,22 @@ pub fn leaf_value_hash<E: IEngine>(leaf_value: Vec<Scalar<E>>) -> Vec<u8> {
 
     for field in leaf_value.into_iter() {
         let mut field_vec = vec![];
-        field
-            .get_value()
-            .unwrap()
-            .into_repr()
-            .write_le(&mut field_vec)
-            .unwrap();
-        field_vec.resize(256 / 8, 0);
+        if let Some(fr) = field.get_value() {
+            let _ = fr.into_repr().write_le(&mut field_vec);
+        }
+
+        let field_vec_module_eight = field_vec.len() % zinc_const::BITLENGTH_BYTE;
+        if field_vec_module_eight != 0 {
+            field_vec.resize(
+                field_vec.len() + zinc_const::BITLENGTH_BYTE - field_vec_module_eight,
+                0,
+            );
+        }
 
         let mut field_vec_be = vec![];
         for i in field_vec.into_iter() {
             let mut current_byte: u8 = 0;
-            for j in 0..8 {
+            for j in 0..zinc_const::BITLENGTH_BYTE {
                 current_byte <<= 1;
                 current_byte += (i >> j) & 1u8;
             }

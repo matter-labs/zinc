@@ -5,7 +5,9 @@ use structopt::StructOpt;
 
 use pairing::bn256::Bn256;
 
-use zinc_bytecode::Program;
+use zinc_bytecode::Program as BytecodeProgram;
+
+use zinc_vm::IFacade;
 
 use crate::error::Error;
 use crate::error::IoToError;
@@ -30,9 +32,10 @@ impl SetupCommand {
     pub fn execute(&self) -> Result<(), Error> {
         let bytes =
             fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
-        let program = Program::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
+        let program =
+            BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
-        let params = zinc_vm::setup::<Bn256>(program)?;
+        let params = program.setup::<Bn256>()?;
 
         let pkey_file = fs::File::create(&self.proving_key_path)
             .error_with_path(|| self.proving_key_path.to_string_lossy())?;

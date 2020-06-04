@@ -1,7 +1,8 @@
 //!
-//! The virtual machine circuit.
+//! The virtual machine circuit facade.
 //!
 
+pub mod facade;
 pub mod synthesizer;
 
 use colored::Colorize;
@@ -11,7 +12,7 @@ use num_bigint::ToBigInt;
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::DataType;
-use zinc_bytecode::Program;
+use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::ScalarType;
 
 use crate::core::counter::NamespaceCounter;
@@ -19,8 +20,6 @@ use crate::core::execution_state::block::branch::Branch;
 use crate::core::execution_state::block::r#loop::Loop;
 use crate::core::execution_state::block::Block;
 use crate::core::execution_state::cell::Cell;
-use crate::core::execution_state::data_stack::DataStack;
-use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::core::execution_state::function_frame::Frame;
 use crate::core::execution_state::ExecutionState;
 use crate::core::location::Location;
@@ -55,13 +54,7 @@ where
     pub fn new(cs: CS, debugging: bool) -> Self {
         Self {
             counter: NamespaceCounter::new(cs),
-            state: ExecutionState {
-                instruction_counter: 0,
-                evaluation_stack: EvaluationStack::new(),
-                data_stack: DataStack::new(),
-                conditions_stack: vec![],
-                frames_stack: vec![],
-            },
+            state: ExecutionState::new(),
             outputs: vec![],
 
             debugging,
@@ -71,7 +64,7 @@ where
 
     pub fn run<CB, F>(
         &mut self,
-        bytecode: &Program,
+        bytecode: &BytecodeProgram,
         inputs: Option<&[BigInt]>,
         mut instruction_callback: CB,
         mut check_cs: F,
@@ -273,7 +266,7 @@ where
         Ok(())
     }
 
-    fn ret(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
+    fn r#return(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
         let mut outputs = Vec::new();
         for _ in 0..outputs_count {
             let output = self.pop()?;

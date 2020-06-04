@@ -1,22 +1,22 @@
 use num_bigint::BigInt;
 
 use crate::error::RuntimeError;
-use crate::gadgets::contract::MerkleTreeLeaf;
-use crate::gadgets::contract::MerkleTreeStorage;
+use crate::gadgets::contract::merkle_tree::leaf::Leaf as MerkleTreeLeaf;
+use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
-pub struct SetupStorage {
+pub struct Storage {
     depth: usize,
 }
 
-impl SetupStorage {
+impl Storage {
     pub fn new(depth: usize) -> Self {
         Self { depth }
     }
 }
 
-impl<E: IEngine> MerkleTreeStorage<E> for SetupStorage {
+impl<E: IEngine> IMerkleTree<E> for Storage {
     fn depth(&self) -> usize {
         self.depth
     }
