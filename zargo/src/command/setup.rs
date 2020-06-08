@@ -20,7 +20,7 @@ pub struct Command {
     )]
     verbosity: usize,
 
-    #[structopt(long = "build", help = "Path to the binary data file")]
+    #[structopt(long = "binary", help = "Path to the binary data file")]
     binary_path: PathBuf,
 
     #[structopt(long = "proving-key", help = "Path to the proving key file")]

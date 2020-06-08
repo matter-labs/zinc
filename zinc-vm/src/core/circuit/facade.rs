@@ -54,7 +54,7 @@ impl IFacade for BytecodeCircuit {
 
         let cs = circuit.constraint_system();
 
-        log::trace!("{}", cs.pretty_print());
+        log::debug!("{}", cs.pretty_print());
 
         if !cs.is_satisfied() {
             log::error!("Unsatisfied: {}", cs.which_is_unsatisfied().unwrap());

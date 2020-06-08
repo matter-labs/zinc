@@ -17,24 +17,24 @@ use crate::error::IoToError;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "prove", about = "Executes circuit and prints program's output")]
 pub struct ProveCommand {
-    #[structopt(short = "c", long = "circuit", help = "Compiled circuit program file")]
-    pub circuit_path: PathBuf,
+    #[structopt(long = "binary", help = "The bytecode file")]
+    pub binary_path: PathBuf,
 
-    #[structopt(short = "k", long = "proving-key", help = "Proving key file")]
+    #[structopt(long = "proving-key", help = "The proving key file")]
     pub proving_key_path: PathBuf,
 
-    #[structopt(short = "w", long = "witness", help = "File with witness values")]
+    #[structopt(long = "witness", help = "The witness JSON file")]
     pub witness_path: PathBuf,
 
-    #[structopt(short = "p", long = "public-data", help = "File with witness values")]
-    pub pubdata_path: PathBuf,
+    #[structopt(long = "public-data", help = "The public data JSON file")]
+    pub public_data_path: PathBuf,
 }
 
 impl ProveCommand {
     pub fn execute(self) -> Result<(), Error> {
         // Read program
         let bytes =
-            fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
+            fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
         let program =
             BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
@@ -54,8 +54,8 @@ impl ProveCommand {
 
         // Write pubdata
         let pubdata_json = serde_json::to_string_pretty(&pubdata.to_json())? + "\n";
-        fs::write(&self.pubdata_path, &pubdata_json)
-            .error_with_path(|| self.pubdata_path.to_string_lossy())?;
+        fs::write(&self.public_data_path, &pubdata_json)
+            .error_with_path(|| self.public_data_path.to_string_lossy())?;
 
         // Write proof to stdout
         let mut proof_bytes = Vec::new();

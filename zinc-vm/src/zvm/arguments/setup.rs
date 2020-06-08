@@ -18,20 +18,20 @@ use crate::error::IoToError;
     about = "Generates a pair of proving and verifying keys"
 )]
 pub struct SetupCommand {
-    #[structopt(short = "c", long = "circuit", help = "Circuit's bytecode file")]
-    pub circuit_path: PathBuf,
+    #[structopt(long = "binary", help = "The bytecode file")]
+    pub binary_path: PathBuf,
 
-    #[structopt(short = "p", long = "proving-key", help = "Params file to write")]
+    #[structopt(long = "proving-key", help = "The proving key path")]
     pub proving_key_path: PathBuf,
 
-    #[structopt(short = "v", long = "verifying-key", help = "Params file to write")]
+    #[structopt(long = "verifying-key", help = "The veryfying key path")]
     pub verifying_key_path: PathBuf,
 }
 
 impl SetupCommand {
     pub fn execute(&self) -> Result<(), Error> {
         let bytes =
-            fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
+            fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
         let program =
             BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 

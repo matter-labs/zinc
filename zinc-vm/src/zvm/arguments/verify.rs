@@ -20,21 +20,13 @@ use crate::error::IoToError;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "verify", about = "Verifies the proof using verifying key")]
 pub struct VerifyCommand {
-    #[structopt(short = "c", long = "circuit", help = "Compiled circuit program file")]
-    pub circuit_path: PathBuf,
+    #[structopt(long = "binary", help = "The bytecode file")]
+    pub binary_path: PathBuf,
 
-    #[structopt(
-        short = "k",
-        long = "verifying-key",
-        help = "Path to verifying key file"
-    )]
-    pub key_path: PathBuf,
+    #[structopt(long = "verifying-key", help = "The verifying key path")]
+    pub veryfying_key_path: PathBuf,
 
-    #[structopt(
-        short = "d",
-        long = "public-data",
-        help = "Path to public data JSON file"
-    )]
+    #[structopt(long = "public-data", help = "Path to public data JSON file")]
     pub public_data_path: PathBuf,
 }
 
@@ -47,20 +39,20 @@ impl VerifyCommand {
 
         // Read program
         let bytes =
-            fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
+            fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
         let program =
             BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         // Read verification key
-        let key_file =
-            fs::File::open(&self.key_path).error_with_path(|| self.key_path.to_string_lossy())?;
+        let key_file = fs::File::open(&self.veryfying_key_path)
+            .error_with_path(|| self.veryfying_key_path.to_string_lossy())?;
         let key_bytes = read_hex(
             key_file,
-            &self.key_path.to_string_lossy(),
+            &self.veryfying_key_path.to_string_lossy(),
             "verification key",
         )?;
         let key = VerifyingKey::<Bn256>::read(key_bytes.as_slice())
-            .error_with_path(|| self.key_path.to_string_lossy())?;
+            .error_with_path(|| self.veryfying_key_path.to_string_lossy())?;
 
         // Read public input
         let output_text = fs::read_to_string(&self.public_data_path)

@@ -49,28 +49,31 @@ export PROJECT_ENTRY="${4}"
 export PROJECT_DIRECTORY="./zinc-examples/${PROJECT_NAME}/"
 export PROJECT_BUILD_DIRECTORY="${PROJECT_DIRECTORY}/build/"
 export PROJECT_DATA_DIRECTORY="${PROJECT_DIRECTORY}/data/"
+export PROJECT_SOURCE_DIRECTORY="${PROJECT_DIRECTORY}/src/"
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
 
-cargo fmt --all
-cargo clippy
+#cargo fmt --all
+#cargo clippy
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG}
-cargo test
-cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
+#cargo test
+#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
 
 "${ZARGO_PATH}" clean ${LOG_LEVEL} \
     --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
 
-"${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
-    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
-    --build "${PROJECT_BUILD_DIRECTORY}/${PROJECT_ENTRY}.znb" \
-    --witness "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_witness.json" \
-    --public-data "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_public_data.json" \
-    --proving-key "${PROJECT_DATA_DIRECTORY}/proving-key" \
-    --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying-key.txt"
-
-#"${ZARGO_PATH}" run ${LOG_LEVEL} \
+#"${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
 #    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
-#    --build "${PROJECT_BUILD_DIRECTORY}/${PROJECT_ENTRY}.znb" \
+#    --binary "${PROJECT_BUILD_DIRECTORY}/${PROJECT_ENTRY}.znb" \
 #    --witness "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_witness.json" \
-#    --public-data "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_public_data.json"
+#    --public-data "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_public_data.json" \
+#    --proving-key "${PROJECT_DATA_DIRECTORY}/proving-key" \
+#    --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying-key.txt"
+
+"${ZARGO_PATH}" build ${LOG_LEVEL} \
+    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
+
+"./target/${TARGET_DIRECTORY}/zvm" ${LOG_LEVEL} debug \
+    --binary "${PROJECT_BUILD_DIRECTORY}/${PROJECT_ENTRY}.znb" \
+    --witness "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_witness.json" \
+    --public-data "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_public_data.json"

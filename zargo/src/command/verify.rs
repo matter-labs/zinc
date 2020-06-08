@@ -20,7 +20,7 @@ pub struct Command {
     )]
     verbosity: usize,
 
-    #[structopt(long = "build", help = "Path to the build binary file")]
+    #[structopt(long = "binary", help = "Path to the bytecode file")]
     binary_path: PathBuf,
 
     #[structopt(long = "public-data", help = "Path to the public data JSON file")]
