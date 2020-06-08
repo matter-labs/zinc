@@ -28,7 +28,7 @@ mod test {
     use zinc_bytecode::IntegerType;
     use zinc_bytecode::ScalarType;
 
-    use crate::gadgets::fr_bigint::fr_to_bigint;
+    use crate::gadgets;
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
@@ -51,7 +51,7 @@ mod test {
     fn edge_cases() -> Result<(), TestingError> {
         let mut max_fr = Fr::zero();
         max_fr.sub_assign(&Fr::one());
-        let max = fr_to_bigint(&max_fr, false);
+        let max = gadgets::scalar::fr_bigint::fr_to_bigint(&max_fr, false);
 
         TestRunner::new()
             .add(zinc_bytecode::Push::new(max.clone(), ScalarType::Field))

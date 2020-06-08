@@ -9,6 +9,7 @@ use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::instructions::IExecutable;
+
 impl<VM: IVirtualMachine> IExecutable<VM> for Rem {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;

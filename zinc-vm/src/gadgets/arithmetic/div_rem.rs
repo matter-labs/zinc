@@ -8,7 +8,7 @@ use crate::auto_const;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::fr_bigint;
+use crate::gadgets::scalar::fr_bigint;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -22,7 +22,7 @@ where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    let denom = gadgets::conditional_select::conditional_select(
+    let denom = gadgets::select::conditional(
         cs.namespace(|| "select denominator"),
         condition,
         right,

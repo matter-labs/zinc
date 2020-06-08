@@ -3,6 +3,7 @@ use zinc_bytecode::And;
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
+use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for And {
@@ -10,7 +11,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for And {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
-        let and = vm.gadgets().and(left, right)?;
+        let and = gadgets::logical::and::and(vm.constraint_system(), &left, &right)?;
 
         vm.push(Cell::Value(and))
     }

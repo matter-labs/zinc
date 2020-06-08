@@ -11,7 +11,7 @@ use franklin_crypto::bellman::Variable;
 
 use crate::IEngine;
 
-pub struct DebugConstraintSystem<E: IEngine> {
+pub struct DebugCS<E: IEngine> {
     inputs: Vec<E::Fr>,
     witness: Vec<E::Fr>,
 
@@ -19,7 +19,25 @@ pub struct DebugConstraintSystem<E: IEngine> {
     constraints_num: usize,
 }
 
-impl<E: IEngine> Default for DebugConstraintSystem<E> {
+impl<E: IEngine> DebugCS<E> {
+    fn eval_lc(terms: &[(Variable, E::Fr)], inputs: &[E::Fr], witness: &[E::Fr]) -> E::Fr {
+        let mut acc = E::Fr::zero();
+
+        for &(var, ref coeff) in terms {
+            let mut tmp = match var.get_unchecked() {
+                Index::Input(index) => inputs[index],
+                Index::Aux(index) => witness[index],
+            };
+
+            tmp.mul_assign(&coeff);
+            acc.add_assign(&tmp);
+        }
+
+        acc
+    }
+}
+
+impl<E: IEngine> Default for DebugCS<E> {
     fn default() -> Self {
         let mut cs = Self {
             inputs: Vec::new(),
@@ -33,7 +51,7 @@ impl<E: IEngine> Default for DebugConstraintSystem<E> {
     }
 }
 
-impl<E: IEngine> DebugConstraintSystem<E> {
+impl<E: IEngine> DebugCS<E> {
     pub fn is_satisfied(&self) -> bool {
         self.satisfied
     }
@@ -43,7 +61,7 @@ impl<E: IEngine> DebugConstraintSystem<E> {
     }
 }
 
-impl<E: IEngine> ConstraintSystem<E> for DebugConstraintSystem<E> {
+impl<E: IEngine> ConstraintSystem<E> for DebugCS<E> {
     type Root = Self;
 
     fn alloc<F, A, AR>(&mut self, _annotation: A, f: F) -> Result<Variable, SynthesisError>
@@ -77,9 +95,9 @@ impl<E: IEngine> ConstraintSystem<E> for DebugConstraintSystem<E> {
         LC: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
     {
         let zero = LinearCombination::zero();
-        let value_a = eval_lc::<E>(a(zero.clone()).as_ref(), &self.inputs, &self.witness);
-        let value_b = eval_lc::<E>(b(zero.clone()).as_ref(), &self.inputs, &self.witness);
-        let value_c = eval_lc::<E>(c(zero).as_ref(), &self.inputs, &self.witness);
+        let value_a = Self::eval_lc(a(zero.clone()).as_ref(), &self.inputs, &self.witness);
+        let value_b = Self::eval_lc(b(zero.clone()).as_ref(), &self.inputs, &self.witness);
+        let value_c = Self::eval_lc(c(zero).as_ref(), &self.inputs, &self.witness);
 
         let value_ab = {
             let mut tmp: E::Fr = value_a;
@@ -106,20 +124,4 @@ impl<E: IEngine> ConstraintSystem<E> for DebugConstraintSystem<E> {
     fn get_root(&mut self) -> &mut Self::Root {
         self
     }
-}
-
-fn eval_lc<E: IEngine>(terms: &[(Variable, E::Fr)], inputs: &[E::Fr], witness: &[E::Fr]) -> E::Fr {
-    let mut acc = E::Fr::zero();
-
-    for &(var, ref coeff) in terms {
-        let mut tmp = match var.get_unchecked() {
-            Index::Input(index) => inputs[index],
-            Index::Aux(index) => witness[index],
-        };
-
-        tmp.mul_assign(&coeff);
-        acc.add_assign(&tmp);
-    }
-
-    acc
 }

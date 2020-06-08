@@ -1,8 +1,11 @@
+use franklin_crypto::bellman::ConstraintSystem;
+
 use zinc_bytecode::LoadByIndex;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
+use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for LoadByIndex {
@@ -18,9 +21,12 @@ impl<VM: IVirtualMachine> IExecutable<VM> for LoadByIndex {
         let condition = vm.condition_top()?;
         let mut values = Vec::with_capacity(self.value_len);
         for i in 0..self.value_len {
-            let value = vm
-                .gadgets()
-                .conditional_array_get(&condition, &array[i..], &index)?;
+            let value = gadgets::array::conditional_get(
+                vm.constraint_system().namespace(|| "array_get"),
+                &condition,
+                &array[i..],
+                &index,
+            )?;
             values.push(value);
         }
 

@@ -9,6 +9,10 @@ use ff::Field;
 use ff::PrimeField;
 use ff::PrimeFieldRepr;
 
+use zinc_bytecode::ScalarType;
+
+use crate::error::RuntimeError;
+use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
 pub fn fr_to_bigint<Fr: PrimeField>(fr: &Fr, signed: bool) -> BigInt {
@@ -19,7 +23,30 @@ pub fn fr_to_bigint<Fr: PrimeField>(fr: &Fr, signed: bool) -> BigInt {
     }
 }
 
-pub fn fr_to_bigint_signed<Fr: PrimeField>(fr: &Fr) -> BigInt {
+pub fn bigint_to_fr<E: IEngine>(bigint: &BigInt) -> Option<E::Fr> {
+    if bigint.is_positive() {
+        E::Fr::from_str(&bigint.to_str_radix(10))
+    } else {
+        let abs = E::Fr::from_str(&bigint.neg().to_str_radix(10))?;
+        let mut fr = E::Fr::zero();
+        fr.sub_assign(&abs);
+        Some(fr)
+    }
+}
+
+pub fn bigint_to_fr_scalar<E: IEngine>(
+    bigint: &BigInt,
+    scalar_type: ScalarType,
+) -> Result<Scalar<E>, RuntimeError> {
+    let value = bigint_to_fr::<E>(bigint).ok_or_else(|| RuntimeError::ValueOverflow {
+        value: bigint.clone(),
+        scalar_type: scalar_type.clone(),
+    })?;
+
+    Ok(Scalar::new_constant_fr(value, scalar_type))
+}
+
+fn fr_to_bigint_signed<Fr: PrimeField>(fr: &Fr) -> BigInt {
     let mut buffer = Vec::<u8>::new();
     Fr::char()
         .write_be(&mut buffer)
@@ -39,7 +66,7 @@ pub fn fr_to_bigint_signed<Fr: PrimeField>(fr: &Fr) -> BigInt {
     }
 }
 
-pub fn fr_to_bigint_unsigned<Fr: PrimeField>(fr: &Fr) -> BigInt {
+fn fr_to_bigint_unsigned<Fr: PrimeField>(fr: &Fr) -> BigInt {
     let mut buffer = Vec::<u8>::new();
     fr.into_repr()
         .write_be(&mut buffer)
@@ -47,27 +74,16 @@ pub fn fr_to_bigint_unsigned<Fr: PrimeField>(fr: &Fr) -> BigInt {
     BigInt::from_bytes_be(Sign::Plus, &buffer)
 }
 
-pub fn bigint_to_fr<E: IEngine>(bigint: &BigInt) -> Option<E::Fr> {
-    if bigint.is_positive() {
-        E::Fr::from_str(&bigint.to_str_radix(10))
-    } else {
-        let abs = E::Fr::from_str(&bigint.neg().to_str_radix(10))?;
-        let mut fr = E::Fr::zero();
-        fr.sub_assign(&abs);
-        Some(fr)
-    }
-}
-
 #[cfg(test)]
 mod test {
     use num_bigint::BigInt;
     use num_traits::ToPrimitive;
 
-    use bellman::pairing::bn256::Bn256;
-    use bellman::pairing::bn256::Fr;
     use ff::PrimeField;
+    use franklin_crypto::bellman::pairing::bn256::Bn256;
+    use franklin_crypto::bellman::pairing::bn256::Fr;
 
-    use crate::gadgets::fr_bigint;
+    use crate::gadgets::scalar::fr_bigint;
 
     #[test]
     fn test_fr_to_bigint() {

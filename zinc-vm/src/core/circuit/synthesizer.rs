@@ -12,7 +12,8 @@ use franklin_crypto::bellman::SynthesisError;
 
 use zinc_bytecode::Program as BytecodeProgram;
 
-use crate::constraint_systems::duplicate_removing::DuplicateRemovingCS;
+use crate::constraint_systems::dedup::DedupCS;
+use crate::constraint_systems::logging::LoggingCS;
 use crate::core::circuit::Circuit;
 use crate::error::RuntimeError;
 use crate::IEngine;
@@ -29,11 +30,8 @@ impl<E> bellman::Circuit<E> for Synthesizer<'_, E>
 where
     E: IEngine,
 {
-    fn synthesize<CS: ConstraintSystem<E>>(
-        self,
-        cs: &mut CS,
-    ) -> std::result::Result<(), SynthesisError> {
-        let mut circuit = Circuit::new(DuplicateRemovingCS::new(cs), false);
+    fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
+        let mut circuit = Circuit::new(DedupCS::new(LoggingCS::new(cs)), false);
         *self.output =
             Some(circuit.run(&self.bytecode, self.inputs.as_deref(), |_| {}, |_| Ok(())));
 

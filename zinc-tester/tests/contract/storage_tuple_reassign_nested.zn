@@ -1,0 +1,21 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "entry": "main",
+//#     "input": {
+//#         "arg": "42"
+//#     },
+//#     "expect": "168"
+//# } ] }
+
+contract Test {
+    data: ((u8, u8, u8, u8), (u8, u8, u8, u8), (u8, u8, u8, u8), (u8, u8, u8, u8));
+
+    const TEST: u8 = 42;
+
+    pub fn main(mut self, arg: u8) -> u8 {
+        self.data.3.3 += 42;
+        self.data.3.3 += 42;
+
+        arg + Self::TEST + self.data.3.3
+    }
+}

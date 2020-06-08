@@ -50,7 +50,7 @@ where
             .map(|(i, (l_bit, r_bit))| {
                 Boolean::and(cs.namespace(|| format!("bit {}", i)), &l_bit, &r_bit)
             })
-            .collect::<std::result::Result<Vec<Boolean>, SynthesisError>>()?;
+            .collect::<Result<Vec<Boolean>, SynthesisError>>()?;
 
         let result = AllocatedNum::pack_bits_to_element(cs.namespace(|| "result"), &result_bits)?;
 

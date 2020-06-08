@@ -13,12 +13,12 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Assert {
         let c = vm.condition_top()?;
         let cs = vm.constraint_system();
         let not_c = gadgets::logical::not::not(cs.namespace(|| "not"), &c)?;
-        let cond_value = vm.gadgets().or(value, not_c)?;
+        let cond_value = gadgets::logical::or::or(cs.namespace(|| "or"), &value, &not_c)?;
         let message = match &self.message {
             Some(m) => Some(m.as_str()),
             None => None,
         };
-        vm.gadgets().assert(cond_value, message)
+        gadgets::assert::assert(cs, cond_value, message)
     }
 }
 

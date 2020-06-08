@@ -3,7 +3,7 @@ pub mod convert;
 pub mod crypto;
 pub mod ff;
 
-use bellman::ConstraintSystem;
+use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::BuiltinIdentifier;
 use zinc_bytecode::CallStd;
@@ -26,8 +26,8 @@ use self::crypto::schnorr::VerifySchnorrSignature;
 use self::crypto::sha256::Sha256;
 use self::ff::inverse::Inverse;
 
-pub trait INativeFunction<E: IEngine> {
-    fn execute<CS: ConstraintSystem<E>>(
+pub trait INativeCallable<E: IEngine> {
+    fn call<CS: ConstraintSystem<E>>(
         &self,
         cs: CS,
         stack: &mut EvaluationStack<E>,

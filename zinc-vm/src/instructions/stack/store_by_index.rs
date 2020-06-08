@@ -34,7 +34,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for StoreByIndex {
                 &index,
                 &offset,
             )?;
-            array = vm.gadgets().array_set(array.as_slice(), address, value)?;
+            array = gadgets::array::set(array.as_slice(), address, value)?;
         }
 
         for (i, value) in array.into_iter().enumerate() {

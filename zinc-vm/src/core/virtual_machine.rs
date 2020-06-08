@@ -7,9 +7,8 @@ use franklin_crypto::bellman::ConstraintSystem;
 use crate::core::execution_state::cell::Cell;
 use crate::core::location::Location;
 use crate::error::RuntimeError;
-use crate::gadgets::misc::Gadgets;
 use crate::gadgets::scalar::Scalar;
-use crate::instructions::call_std::INativeFunction;
+use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
 ///
@@ -54,22 +53,12 @@ pub trait IVirtualMachine {
 
     fn exit(&mut self, values_count: usize) -> Result<(), RuntimeError>;
 
-    fn call_native<F: INativeFunction<Self::E>>(&mut self, function: F)
+    fn call_native<F: INativeCallable<Self::E>>(&mut self, function: F)
         -> Result<(), RuntimeError>;
 
     fn condition_top(&mut self) -> Result<Scalar<Self::E>, RuntimeError>;
 
     fn constraint_system(&mut self) -> &mut Self::CS;
-
-    fn gadgets(
-        &mut self,
-    ) -> Gadgets<
-        Self::E,
-        bellman::Namespace<
-            Self::E,
-            <<Self as IVirtualMachine>::CS as ConstraintSystem<Self::E>>::Root,
-        >,
-    >;
 
     fn is_debugging(&self) -> bool;
 

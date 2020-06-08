@@ -2,7 +2,6 @@ use num_bigint::BigInt;
 
 use ff::PrimeField;
 use franklin_crypto::bellman::ConstraintSystem;
-use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
@@ -13,8 +12,8 @@ use crate::auto_const;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::fr_bigint;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
+use crate::gadgets::scalar::fr_bigint;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -64,7 +63,7 @@ where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    pub fn less_than_inner<E, CS>(
+    fn inner<E, CS>(
         mut cs: CS,
         left: &Scalar<E>,
         right: &Scalar<E>,
@@ -93,7 +92,7 @@ where
         }
     }
 
-    auto_const!(less_than_inner, cs, left, right)
+    auto_const!(inner, cs, left, right)
 }
 
 fn less_than_field<E, CS>(
@@ -143,7 +142,12 @@ where
     let lower_lt_and_upper_eq =
         Boolean::and(cs.namespace(|| ""), &lower_a_lt_b, &upper_a_eq_b.into())?;
 
-    let res = boolean_or(cs.namespace(|| "lt"), &upper_a_lt_b, &lower_lt_and_upper_eq)?;
+    let res = Boolean::and(
+        cs.namespace(|| "and"),
+        &upper_a_lt_b.not(),
+        &lower_lt_and_upper_eq.not(),
+    )?
+    .not();
     Scalar::from_boolean(cs.namespace(|| "from_boolean"), res)
 }
 
@@ -168,20 +172,12 @@ where
     Ok(bits.last().unwrap().clone())
 }
 
-fn boolean_or<E: IEngine, CS: ConstraintSystem<E>>(
-    mut cs: CS,
-    left: &Boolean,
-    right: &Boolean,
-) -> std::result::Result<Boolean, SynthesisError> {
-    Ok(Boolean::and(cs.namespace(|| "and"), &left.not(), &right.not())?.not())
-}
-
 pub fn equals<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    fn add_inner<E, CS>(
+    fn inner<E, CS>(
         mut cs: CS,
         left: &Scalar<E>,
         right: &Scalar<E>,
@@ -198,7 +194,7 @@ where
         Scalar::from_boolean(cs.namespace(|| "scalar"), Boolean::from(eq))
     }
 
-    auto_const!(add_inner, cs, left, right)
+    auto_const!(inner, cs, left, right)
 }
 
 pub fn not_equals<E, CS>(

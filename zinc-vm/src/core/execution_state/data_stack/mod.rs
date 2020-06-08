@@ -14,7 +14,6 @@ use crate::core::execution_state::cell::Cell;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
 use crate::gadgets;
-use crate::gadgets::misc::Gadgets;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -92,8 +91,8 @@ impl<E: IEngine> DataStack<E> {
     /// Merge top-level branch or branches into parent branch.
     pub fn merge<CS: ConstraintSystem<E>>(
         &mut self,
+        cs: CS,
         condition: Scalar<E>,
-        ops: &mut Gadgets<E, CS>,
     ) -> Result<(), RuntimeError> {
         let mut branch = self
             .branches
@@ -102,8 +101,8 @@ impl<E: IEngine> DataStack<E> {
         self.revert(branch.active_delta());
 
         match branch {
-            DataStackBranch::IfThen(delta) => self.merge_single(condition, &delta, ops)?,
-            DataStackBranch::IfThenElse(t, f) => self.merge_pair(condition, &t, &f, ops)?,
+            DataStackBranch::IfThen(delta) => self.merge_single(cs, condition, &delta)?,
+            DataStackBranch::IfThenElse(t, f) => self.merge_pair(cs, condition, &t, &f)?,
         }
 
         Ok(())
@@ -118,19 +117,16 @@ impl<E: IEngine> DataStack<E> {
     /// Conditionally apply delta
     fn merge_single<CS: ConstraintSystem<E>>(
         &mut self,
+        mut cs: CS,
         condition: Scalar<E>,
         delta: &DataStackDelta<E>,
-        ops: &mut Gadgets<E, CS>,
     ) -> Result<(), RuntimeError> {
         for (&addr, diff) in delta.iter() {
             match (&self.memory[addr], &diff.new) {
                 (None, _) => {}
                 (Some(Cell::Value(old)), Cell::Value(new)) => {
-                    let cs = ops
-                        .constraint_system()
-                        .namespace(|| format!("merge address {}", addr));
-                    let value =
-                        gadgets::conditional_select::conditional_select(cs, &condition, new, old)?;
+                    let cs = cs.namespace(|| format!("merge address {}", addr));
+                    let value = gadgets::select::conditional(cs, &condition, new, old)?;
                     self.set(addr, Cell::Value(value))?;
                 }
             }
@@ -142,10 +138,10 @@ impl<E: IEngine> DataStack<E> {
     /// Conditionally apply one of two deltas.
     fn merge_pair<CS>(
         &mut self,
+        mut cs: CS,
         condition: Scalar<E>,
         delta_then: &DataStackDelta<E>,
         delta_else: &DataStackDelta<E>,
-        ops: &mut Gadgets<E, CS>,
     ) -> Result<(), RuntimeError>
     where
         CS: ConstraintSystem<E>,
@@ -160,11 +156,8 @@ impl<E: IEngine> DataStack<E> {
             match (&alt, &diff.new) {
                 (None, _) => {}
                 (Some(Cell::Value(old)), Cell::Value(new)) => {
-                    let cs = ops
-                        .constraint_system()
-                        .namespace(|| format!("merge address {}", addr));
-                    let value =
-                        gadgets::conditional_select::conditional_select(cs, &condition, new, old)?;
+                    let cs = cs.namespace(|| format!("merge address {}", addr));
+                    let value = gadgets::select::conditional(cs, &condition, new, old)?;
                     self.set(*addr, Cell::Value(value))?;
                 }
             }

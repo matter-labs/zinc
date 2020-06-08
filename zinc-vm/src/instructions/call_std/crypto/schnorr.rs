@@ -2,8 +2,8 @@
 //! The `std::crypto::schnorr::Signature::verify` function.
 //!
 
-use bellman::ConstraintSystem;
 use ff::PrimeField;
+use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::baby_eddsa::EddsaSignature;
 use franklin_crypto::circuit::ecc::EdwardsPoint;
 use franklin_crypto::jubjub::FixedGenerators;
@@ -13,7 +13,7 @@ use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
-use crate::instructions::call_std::INativeFunction;
+use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
 pub struct VerifySchnorrSignature {
@@ -35,8 +35,8 @@ impl VerifySchnorrSignature {
     }
 }
 
-impl<E: IEngine> INativeFunction<E> for VerifySchnorrSignature {
-    fn execute<CS>(&self, mut cs: CS, stack: &mut EvaluationStack<E>) -> Result<(), RuntimeError>
+impl<E: IEngine> INativeCallable<E> for VerifySchnorrSignature {
+    fn call<CS>(&self, mut cs: CS, stack: &mut EvaluationStack<E>) -> Result<(), RuntimeError>
     where
         CS: ConstraintSystem<E>,
     {
@@ -138,11 +138,11 @@ where
 mod tests {
     use rand::Rng;
 
-    use bellman::ConstraintSystem;
     use ff::Field;
     use ff::PrimeField;
     use ff::PrimeFieldRepr;
     use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
+    use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::test::TestConstraintSystem;
     use franklin_crypto::eddsa;
     use franklin_crypto::jubjub;
@@ -156,7 +156,7 @@ mod tests {
     use crate::error::RuntimeError;
     use crate::gadgets::scalar::Scalar;
     use crate::instructions::call_std::crypto::schnorr::VerifySchnorrSignature;
-    use crate::instructions::call_std::INativeFunction;
+    use crate::instructions::call_std::INativeCallable;
 
     #[test]
     fn test_verify() -> Result<(), RuntimeError> {
@@ -222,7 +222,7 @@ mod tests {
         let mut cs = TestConstraintSystem::new();
         VerifySchnorrSignature::new(5 + 8 * message.len())
             .unwrap()
-            .execute(cs.namespace(|| "signature check"), &mut stack)?;
+            .call(cs.namespace(|| "signature check"), &mut stack)?;
 
         let is_valid = stack.pop()?.try_into_value()?;
 

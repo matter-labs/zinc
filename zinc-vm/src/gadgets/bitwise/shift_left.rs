@@ -10,8 +10,6 @@ use zinc_bytecode::ScalarType;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::fr_bigint;
-use crate::gadgets::fr_bigint::bigint_to_fr;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
@@ -35,8 +33,10 @@ where
             ScalarVariant::Constant(_) => {
                 let scalar_type = num.get_type();
 
-                let num_value =
-                    fr_bigint::fr_to_bigint(&num.get_constant()?, scalar_type.is_signed());
+                let num_value = gadgets::scalar::fr_bigint::fr_to_bigint(
+                    &num.get_constant()?,
+                    scalar_type.is_signed(),
+                );
                 let shift_value = shift.get_constant_usize()?;
 
                 let mask = vec![0xFF; scalar_type.bit_length::<E>() / 8];
@@ -44,8 +44,8 @@ where
                 let mut result_value = &num_value << shift_value;
                 result_value &= &BigInt::from_bytes_le(Sign::Plus, mask.as_slice());
 
-                let result_fr =
-                    bigint_to_fr::<E>(&result_value).ok_or(RuntimeError::ValueOverflow {
+                let result_fr = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&result_value)
+                    .ok_or(RuntimeError::ValueOverflow {
                         value: result_value,
                         scalar_type: scalar_type.clone(),
                     })?;
@@ -97,7 +97,7 @@ where
         .map(|(i, b)| Scalar::from_boolean(cs.namespace(|| format!("bit {}", i)), b))
         .collect::<Result<Vec<_>, RuntimeError>>()?;
 
-    let result = gadgets::arrays::recursive_select(cs, &shift_bits_be, &variants)?;
+    let result = gadgets::select::recursive(cs, &shift_bits_be, &variants)?;
 
     Ok(result.with_type_unchecked(scalar_type))
 }

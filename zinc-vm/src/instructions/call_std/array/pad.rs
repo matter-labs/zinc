@@ -2,12 +2,12 @@
 //! The `std::array::pad` function.
 //!
 
-use bellman::ConstraintSystem;
+use franklin_crypto::bellman::ConstraintSystem;
 
 use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
-use crate::instructions::call_std::INativeFunction;
+use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
 pub struct Pad {
@@ -28,8 +28,8 @@ impl Pad {
     }
 }
 
-impl<E: IEngine> INativeFunction<E> for Pad {
-    fn execute<CS: ConstraintSystem<E>>(
+impl<E: IEngine> INativeCallable<E> for Pad {
+    fn call<CS: ConstraintSystem<E>>(
         &self,
         _cs: CS,
         stack: &mut EvaluationStack<E>,

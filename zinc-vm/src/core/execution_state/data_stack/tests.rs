@@ -14,7 +14,7 @@ use zinc_bytecode::ScalarType;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::execution_state::data_stack::DataStack;
-use crate::gadgets::misc::Gadgets;
+use crate::gadgets;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -25,10 +25,9 @@ fn assert_cell_eq<E: IEngine>(cell: Cell<E>, value: BigInt) {
 
 #[test]
 fn test_get_set() {
-    let mut ds = DataStack::new();
-    let mut cs = TestConstraintSystem::<Bn256>::new();
-    let op = Gadgets::new(&mut cs);
-    let value = op.constant_bigint(&42.into(), ScalarType::Field).unwrap();
+    let mut ds = DataStack::<Bn256>::new();
+    let value =
+        gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&42.into(), ScalarType::Field).unwrap();
     ds.set(4, Cell::Value(value)).unwrap();
 
     assert_cell_eq(ds.get(4).unwrap(), 42.into());
@@ -37,41 +36,43 @@ fn test_get_set() {
 #[test]
 fn test_fork_merge_true() {
     let mut ds = DataStack::new();
-    let mut cs = TestConstraintSystem::<Bn256>::new();
-    let mut ops = Gadgets::new(&mut cs);
-    let value = ops.constant_bigint(&42.into(), ScalarType::Field).unwrap();
+    let cs = TestConstraintSystem::<Bn256>::new();
+    let value =
+        gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&42.into(), ScalarType::Field).unwrap();
     ds.set(4, Cell::Value(value)).unwrap();
 
     ds.fork();
 
     assert_cell_eq(ds.get(4).unwrap(), 42.into());
 
-    let value2 = ops.constant_bigint(&13.into(), ScalarType::Field).unwrap();
+    let value2 =
+        gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&13.into(), ScalarType::Field).unwrap();
     ds.set(4, Cell::Value(value2)).unwrap();
     assert_cell_eq(ds.get(4).unwrap(), 13.into());
 
     let condition = Scalar::new_constant_bool(true);
-    ds.merge(condition, &mut ops).unwrap();
+    ds.merge(cs, condition).unwrap();
     assert_cell_eq(ds.get(4).unwrap(), 13.into());
 }
 
 #[test]
 fn test_fork_merge_false() {
     let mut ds = DataStack::new();
-    let mut cs = TestConstraintSystem::<Bn256>::new();
-    let mut ops = Gadgets::new(&mut cs);
-    let value = ops.constant_bigint(&42.into(), ScalarType::Field).unwrap();
+    let cs = TestConstraintSystem::<Bn256>::new();
+    let value =
+        gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&42.into(), ScalarType::Field).unwrap();
     ds.set(4, Cell::Value(value)).unwrap();
 
     ds.fork();
 
     assert_cell_eq(ds.get(4).unwrap(), 42.into());
 
-    let value2 = ops.constant_bigint(&13.into(), ScalarType::Field).unwrap();
+    let value2 =
+        gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&13.into(), ScalarType::Field).unwrap();
     ds.set(4, Cell::Value(value2)).unwrap();
     assert_cell_eq(ds.get(4).unwrap(), 13.into());
 
     let condition = Scalar::new_constant_bool(false);
-    ds.merge(condition, &mut ops).unwrap();
+    ds.merge(cs, condition).unwrap();
     assert_cell_eq(ds.get(4).unwrap(), 42.into());
 }

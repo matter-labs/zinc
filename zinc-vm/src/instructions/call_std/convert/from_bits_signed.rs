@@ -4,8 +4,8 @@
 
 use num_bigint::BigInt;
 
-use bellman::ConstraintSystem;
 use ff::PrimeField;
+use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
 
@@ -14,9 +14,9 @@ use zinc_bytecode::IntegerType;
 use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
-use crate::gadgets::fr_bigint;
+use crate::gadgets::scalar::fr_bigint;
 use crate::gadgets::scalar::Scalar;
-use crate::instructions::call_std::INativeFunction;
+use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
 pub struct SignedFromBits {
@@ -31,8 +31,8 @@ impl SignedFromBits {
     }
 }
 
-impl<E: IEngine> INativeFunction<E> for SignedFromBits {
-    fn execute<CS: ConstraintSystem<E>>(
+impl<E: IEngine> INativeCallable<E> for SignedFromBits {
+    fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
         stack: &mut EvaluationStack<E>,

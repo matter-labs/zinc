@@ -1,24 +1,24 @@
 //!
-//! The duplicate removing constraint system.
+//! The deduplicating constraint system.
 //!
 
 use std::collections::BTreeMap;
 use std::marker::PhantomData;
 
-use bellman::ConstraintSystem;
 use ff::Field;
+use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::Index;
 use franklin_crypto::bellman::LinearCombination;
 use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::bellman::Variable;
 use pairing::Engine;
 
-pub struct DuplicateRemovingCS<E, CS>(CS, PhantomData<E>)
+pub struct DedupCS<E, CS>(CS, PhantomData<E>)
 where
     E: Engine,
     CS: ConstraintSystem<E>;
 
-impl<E, CS> DuplicateRemovingCS<E, CS>
+impl<E, CS> DedupCS<E, CS>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -26,9 +26,50 @@ where
     pub fn new(cs: CS) -> Self {
         Self(cs, PhantomData)
     }
+
+    fn dedup(lc: LinearCombination<E>) -> LinearCombination<E> {
+        let mut inputs_map = BTreeMap::<usize, E::Fr>::new();
+        let mut aux_map = BTreeMap::<usize, E::Fr>::new();
+
+        let zero = E::Fr::zero();
+        for (var, c) in lc.as_ref() {
+            match var.get_unchecked() {
+                Index::Input(i) => {
+                    let mut tmp = *inputs_map.get(&i).unwrap_or(&zero);
+                    tmp.add_assign(c);
+                    inputs_map.insert(i, tmp);
+                }
+                Index::Aux(i) => {
+                    let mut tmp = *aux_map.get(&i).unwrap_or(&zero);
+                    tmp.add_assign(c);
+                    aux_map.insert(i, tmp);
+                }
+            }
+        }
+
+        let mut lc = LinearCombination::zero();
+
+        for (i, c) in inputs_map.into_iter() {
+            if c.is_zero() {
+                continue;
+            }
+            let var = Variable::new_unchecked(Index::Input(i));
+            lc = lc + (c, var);
+        }
+
+        for (i, c) in aux_map.into_iter() {
+            if c.is_zero() {
+                continue;
+            }
+            let var = Variable::new_unchecked(Index::Aux(i));
+            lc = lc + (c, var);
+        }
+
+        lc
+    }
 }
 
-impl<E, CS> ConstraintSystem<E> for DuplicateRemovingCS<E, CS>
+impl<E, CS> ConstraintSystem<E> for DedupCS<E, CS>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -63,9 +104,9 @@ where
     {
         self.0.enforce(
             annotation,
-            |zero| remove_duplicates(a(zero)),
-            |zero| remove_duplicates(b(zero)),
-            |zero| remove_duplicates(c(zero)),
+            |zero| Self::dedup(a(zero)),
+            |zero| Self::dedup(b(zero)),
+            |zero| Self::dedup(c(zero)),
         )
     }
 
@@ -84,45 +125,4 @@ where
     fn get_root(&mut self) -> &mut Self::Root {
         self
     }
-}
-
-fn remove_duplicates<E: Engine>(lc: LinearCombination<E>) -> LinearCombination<E> {
-    let mut inputs_map = BTreeMap::<usize, E::Fr>::new();
-    let mut aux_map = BTreeMap::<usize, E::Fr>::new();
-
-    let zero = E::Fr::zero();
-    for (var, c) in lc.as_ref() {
-        match var.get_unchecked() {
-            Index::Input(i) => {
-                let mut tmp = *inputs_map.get(&i).unwrap_or(&zero);
-                tmp.add_assign(c);
-                inputs_map.insert(i, tmp);
-            }
-            Index::Aux(i) => {
-                let mut tmp = *aux_map.get(&i).unwrap_or(&zero);
-                tmp.add_assign(c);
-                aux_map.insert(i, tmp);
-            }
-        }
-    }
-
-    let mut lc = LinearCombination::zero();
-
-    for (i, c) in inputs_map.into_iter() {
-        if c.is_zero() {
-            continue;
-        }
-        let var = Variable::new_unchecked(Index::Input(i));
-        lc = lc + (c, var);
-    }
-
-    for (i, c) in aux_map.into_iter() {
-        if c.is_zero() {
-            continue;
-        }
-        let var = Variable::new_unchecked(Index::Aux(i));
-        lc = lc + (c, var);
-    }
-
-    lc
 }

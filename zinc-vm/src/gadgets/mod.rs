@@ -1,17 +1,18 @@
 pub mod arithmetic;
-pub mod arrays;
+pub mod array;
+pub mod assert;
 pub mod auto_const;
 pub mod bitwise;
 pub mod comparison;
-pub mod conditional_select;
 pub mod contract;
-pub mod fr_bigint;
 pub mod logical;
-pub mod misc;
+pub mod output;
 pub mod scalar;
+pub mod select;
 pub mod types;
+pub mod witness;
 
-use bellman::ConstraintSystem;
+use franklin_crypto::bellman::ConstraintSystem;
 
 use crate::error::RuntimeError;
 use crate::IEngine;

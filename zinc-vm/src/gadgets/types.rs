@@ -7,8 +7,8 @@ use zinc_bytecode::IntegerType;
 use zinc_bytecode::ScalarType;
 
 use crate::error::RuntimeError;
-use crate::gadgets::fr_bigint;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
+use crate::gadgets::scalar::fr_bigint;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 

@@ -10,6 +10,7 @@ use crate::gadgets;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
+
 impl<VM: IVirtualMachine> IExecutable<VM> for Div {
     fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
@@ -23,7 +24,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Div {
         let div = match scalar_type {
             ScalarType::Field => {
                 let one = Scalar::new_constant_int(1, right.get_type());
-                let denom = gadgets::conditional_select::conditional_select(
+                let denom = gadgets::select::conditional(
                     cs.namespace(|| "select denom"),
                     &condition,
                     &right,

@@ -2,14 +2,14 @@
 //! The `std::crypto::pedersen` function.
 //!
 
-use bellman::ConstraintSystem;
+use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::pedersen_hash;
 use franklin_crypto::circuit::pedersen_hash::Personalization;
 
 use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
-use crate::instructions::call_std::INativeFunction;
+use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
 pub struct Pedersen {
@@ -22,8 +22,8 @@ impl Pedersen {
     }
 }
 
-impl<E: IEngine> INativeFunction<E> for Pedersen {
-    fn execute<CS: ConstraintSystem<E>>(
+impl<E: IEngine> INativeCallable<E> for Pedersen {
+    fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
         stack: &mut EvaluationStack<E>,

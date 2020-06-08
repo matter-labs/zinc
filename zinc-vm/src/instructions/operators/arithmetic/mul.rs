@@ -3,12 +3,10 @@ use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::Mul;
 use zinc_bytecode::ScalarType;
 
-use crate::auto_const;
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
-use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::instructions::IExecutable;
 
@@ -22,12 +20,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Mul {
         let condition = vm.condition_top()?;
         let cs = vm.constraint_system();
 
-        let unchecked_mul = auto_const!(
-            gadgets::arithmetic::mul::mul,
-            cs.namespace(|| "mul"),
-            &left,
-            &right
-        )?;
+        let unchecked_mul = gadgets::arithmetic::mul::mul(cs.namespace(|| "mul"), &left, &right)?;
 
         let mul = gadgets::types::conditional_type_check(
             cs.namespace(|| "type check"),

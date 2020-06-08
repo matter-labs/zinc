@@ -76,7 +76,7 @@ impl<E: IEngine> EvaluationStack<E> {
         {
             match (main_value, else_value) {
                 (Cell::Value(main_value), Cell::Value(else_value)) => {
-                    let merged = gadgets::conditional_select::conditional_select(
+                    let merged = gadgets::select::conditional(
                         cs.namespace(|| format!("merge {}", index)),
                         condition,
                         &main_value,

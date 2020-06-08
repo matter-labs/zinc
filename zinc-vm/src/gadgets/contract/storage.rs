@@ -12,7 +12,6 @@ use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::contract::merkle_tree::hasher::IHasher as IMerkleTreeHasher;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
-use crate::gadgets::fr_bigint::fr_to_bigint_unsigned;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -171,7 +170,7 @@ where
             )?;
 
             left_node.push(
-                gadgets::conditional_select::conditional_select(
+                gadgets::select::conditional(
                     cs.namespace(|| {
                         format!(
                             "node hash preimage: left part conditional select: {} bit (deep equals {})",
@@ -193,7 +192,7 @@ where
             );
 
             right_node.push(
-                gadgets::conditional_select::conditional_select(
+                gadgets::select::conditional(
                     cs.namespace(|| {
                         format!(
                             "node hash preimage: right part conditional select: {} bit (deep equals {})",
@@ -238,7 +237,7 @@ where
     S: IMerkleTree<E>,
     H: IMerkleTreeHasher<E>,
 {
-    pub fn new<CS>(mut cs: CS, storage: S) -> std::result::Result<Self, SynthesisError>
+    pub fn new<CS>(mut cs: CS, storage: S) -> Result<Self, SynthesisError>
     where
         CS: ConstraintSystem<E>,
     {
@@ -272,7 +271,9 @@ where
         let mut index_bits = index.get_bits_le(cs.namespace(|| "index into bits"))?;
         index_bits.truncate(depth);
 
-        let index = index.get_value().map(|field| fr_to_bigint_unsigned(&field));
+        let index = index
+            .get_value()
+            .map(|field| gadgets::scalar::fr_bigint::fr_to_bigint(&field, false));
         let merkle_tree_leaf = self.storage.load(&index)?;
 
         let leaf_fields = alloc_leaf_fields(
@@ -330,7 +331,9 @@ where
         index_bits.truncate(depth);
 
         let merkle_tree_leaf = self.storage.store(
-            &index.get_value().map(|field| fr_to_bigint_unsigned(&field)),
+            &index
+                .get_value()
+                .map(|field| gadgets::scalar::fr_bigint::fr_to_bigint(&field, false)),
             &value
                 .iter()
                 .cloned()

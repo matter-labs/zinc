@@ -2,8 +2,8 @@
 //! The `std::convert::from_bits_field` function.
 //!
 
-use bellman::ConstraintSystem;
 use ff::PrimeField;
+use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 
 use zinc_bytecode::ScalarType;
@@ -11,13 +11,13 @@ use zinc_bytecode::ScalarType;
 use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
-use crate::instructions::call_std::INativeFunction;
+use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
 pub struct FieldFromBits;
 
-impl<E: IEngine> INativeFunction<E> for FieldFromBits {
-    fn execute<CS: ConstraintSystem<E>>(
+impl<E: IEngine> INativeCallable<E> for FieldFromBits {
+    fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
         stack: &mut EvaluationStack<E>,

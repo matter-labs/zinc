@@ -9,7 +9,7 @@ use failure::Fail;
 use num_bigint::BigInt;
 use num_bigint::ToBigInt;
 
-use bellman::pairing::bn256::Bn256;
+use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_bytecode::Call;

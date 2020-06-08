@@ -1,8 +1,11 @@
+use franklin_crypto::bellman::ConstraintSystem;
+
 use zinc_bytecode::Eq;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
+use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Eq {
@@ -10,7 +13,8 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Eq {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
-        let eq = vm.gadgets().eq(left, right)?;
+        let cs = vm.constraint_system();
+        let eq = gadgets::comparison::equals(cs.namespace(|| "eq"), &left, &right)?;
 
         vm.push(Cell::Value(eq))
     }

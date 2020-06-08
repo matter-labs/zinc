@@ -1,5 +1,6 @@
 pub mod constant;
 pub mod expectation;
+pub mod fr_bigint;
 pub mod variable;
 pub mod variant;
 
@@ -9,12 +10,12 @@ use num_bigint::BigInt;
 use num_bigint::ToBigInt;
 use num_traits::ToPrimitive;
 
-use bellman::ConstraintSystem;
-use bellman::Variable;
 use ff::Field;
 use ff::PrimeField;
+use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::LinearCombination;
 use franklin_crypto::bellman::SynthesisError;
+use franklin_crypto::bellman::Variable;
 use franklin_crypto::circuit::boolean::AllocatedBit;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::expression::Expression;
@@ -24,7 +25,6 @@ use franklin_crypto::circuit::Assignment;
 use zinc_bytecode::ScalarType;
 
 use crate::error::RuntimeError;
-use crate::gadgets::fr_bigint;
 use crate::IEngine;
 
 use self::constant::Constant as ScalarConstant;
@@ -122,7 +122,7 @@ impl<E: IEngine> Scalar<E> {
         &self.variant
     }
 
-    pub fn grab_value(&self) -> std::result::Result<E::Fr, SynthesisError> {
+    pub fn grab_value(&self) -> Result<E::Fr, SynthesisError> {
         self.get_value().grab()
     }
 

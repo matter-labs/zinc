@@ -1,0 +1,28 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "entry": "main",
+//#     "input": {
+//#         "arg": "42"
+//#     },
+//#     "expect": "126"
+//# } ] }
+
+struct Data {
+    inner: Inner,
+}
+
+struct Inner {
+    value: u8,
+}
+
+contract Test {
+    data: Data;
+
+    const TEST: u8 = 42;
+
+    pub fn main(mut self, arg: u8) -> u8 {
+        self.data.inner.value = 42;
+
+        arg + Self::TEST + self.data.inner.value
+    }
+}

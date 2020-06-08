@@ -2,7 +2,7 @@
 //! The Zinc virtual machine facade.
 //!
 
-use bellman::groth16;
+use franklin_crypto::bellman::groth16;
 use franklin_crypto::bellman::groth16::Parameters;
 use franklin_crypto::bellman::groth16::Proof;
 use franklin_crypto::bellman::groth16::VerifyingKey;
@@ -37,10 +37,10 @@ pub trait IFacade {
             .to_flat_values()
             .into_iter()
             .map(|value| {
-                gadgets::fr_bigint::bigint_to_fr::<E>(&value)
+                gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&value)
                     .ok_or_else(|| VerificationError::ValueOverflow(value))
             })
-            .collect::<std::result::Result<Vec<E::Fr>, VerificationError>>()?;
+            .collect::<Result<Vec<E::Fr>, VerificationError>>()?;
 
         let pvk = groth16::prepare_verifying_key(&key);
         let success = groth16::verify_proof(&pvk, &proof, public_input_flat.as_slice())

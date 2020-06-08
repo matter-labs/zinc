@@ -2,8 +2,8 @@
 //! The `std::convert::from_bits_unsigned` function.
 //!
 
-use bellman::ConstraintSystem;
 use ff::PrimeField;
+use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 
 use zinc_bytecode::IntegerType;
@@ -12,7 +12,7 @@ use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
-use crate::instructions::call_std::INativeFunction;
+use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
 pub struct UnsignedFromBits {
@@ -27,8 +27,8 @@ impl UnsignedFromBits {
     }
 }
 
-impl<E: IEngine> INativeFunction<E> for UnsignedFromBits {
-    fn execute<CS: ConstraintSystem<E>>(
+impl<E: IEngine> INativeCallable<E> for UnsignedFromBits {
+    fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
         stack: &mut EvaluationStack<E>,

@@ -33,7 +33,7 @@ pub mod prelude {
 /// use pairing::bn256::Bn256;
 /// use pairing::bn256::Fr;
 /// use franklin_crypto::circuit::test::TestConstraintSystem;
-/// use bellman::ConstraintSystem;
+/// use franklin_crypto::bellman::ConstraintSystem;
 ///
 /// use zinc_bytecode::ScalarType;
 ///

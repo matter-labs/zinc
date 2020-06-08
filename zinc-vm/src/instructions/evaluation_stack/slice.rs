@@ -1,8 +1,11 @@
+use franklin_crypto::bellman::ConstraintSystem;
+
 use zinc_bytecode::Slice;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
+use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Slice {
@@ -18,7 +21,9 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Slice {
 
         for i in 0..self.slice_len {
             let condition = vm.condition_top()?;
-            let value = vm.gadgets().conditional_array_get(
+            let namespace = format!("conditional_get_{}", i);
+            let value = gadgets::array::conditional_get(
+                vm.constraint_system().namespace(|| namespace),
                 &condition,
                 &array[i..=array.len() - self.slice_len + i],
                 &offset,

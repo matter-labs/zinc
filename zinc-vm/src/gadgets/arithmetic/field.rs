@@ -44,8 +44,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use bellman::ConstraintSystem;
     use ff::Field;
+    use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::test::TestConstraintSystem;
     use pairing::bn256::Bn256;
     use pairing::bn256::Fr;

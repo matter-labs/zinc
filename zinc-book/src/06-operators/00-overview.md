@@ -11,7 +11,7 @@ Operators of the Zinc language can be divided into several groups:
 - [Range](./07-range.md)
 - [Assignment](./08-assignment.md)
 
-#№ Precedence
+# Precedence
 
 The top one is executed first.
 

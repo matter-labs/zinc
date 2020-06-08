@@ -75,7 +75,7 @@ impl Runnable for Runner {
                         path.to_string_lossy(),
                         error
                     );
-                    return;
+                    continue;
                 }
             };
 

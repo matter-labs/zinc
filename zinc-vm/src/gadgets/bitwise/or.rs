@@ -50,7 +50,7 @@ where
                     &Boolean::not(&r_bit),
                 )?))
             })
-            .collect::<std::result::Result<Vec<Boolean>, SynthesisError>>()?;
+            .collect::<Result<Vec<Boolean>, SynthesisError>>()?;
 
         let result = AllocatedNum::pack_bits_to_element(cs.namespace(|| "result"), &result_bits)?;
 

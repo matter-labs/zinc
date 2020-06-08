@@ -27,9 +27,8 @@ use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
 use crate::gadgets;
-use crate::gadgets::misc::Gadgets;
 use crate::gadgets::scalar::Scalar;
-use crate::instructions::call_std::INativeFunction;
+use crate::instructions::call_std::INativeCallable;
 use crate::instructions::IExecutable;
 use crate::IEngine;
 
@@ -79,9 +78,7 @@ where
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
         );
-        let one = self
-            .gadgets()
-            .constant_bigint(&1.into(), ScalarType::Boolean)?;
+        let one = gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&1.into(), ScalarType::Boolean)?;
         self.condition_push(one)?;
 
         self.init_root_frame(&bytecode.input(), inputs)?;
@@ -134,7 +131,7 @@ where
         };
 
         for (value, dtype) in value_type_pairs {
-            let variable = self.gadgets().allocate_witness(value, dtype)?;
+            let variable = gadgets::witness::allocate(self.counter.next(), value, dtype)?;
             self.push(Cell::Value(variable))?;
         }
 
@@ -146,7 +143,7 @@ where
 
         let mut outputs_bigint = Vec::with_capacity(outputs_fr.len());
         for o in outputs_fr.into_iter() {
-            let e = self.gadgets().output(o.clone())?;
+            let e = gadgets::output::output(self.counter.next(), o.clone())?;
             outputs_bigint.push(e.to_bigint());
         }
 
@@ -338,7 +335,7 @@ where
         let prev = self.condition_top()?;
         let cs = self.constraint_system();
         let not_cond = gadgets::logical::not::not(cs.namespace(|| "not"), &condition)?;
-        let next = self.gadgets().and(prev, not_cond)?;
+        let next = gadgets::logical::and::and(cs.namespace(|| "and"), &prev, &not_cond)?;
         self.condition_push(next)?;
 
         self.state.data_stack.switch_branch()?;
@@ -371,7 +368,7 @@ where
 
         self.state
             .data_stack
-            .merge(branch.condition, &mut Gadgets::new(self.counter.next()))?;
+            .merge(self.counter.next(), branch.condition)?;
 
         Ok(())
     }
@@ -387,11 +384,11 @@ where
         Ok(())
     }
 
-    fn call_native<F: INativeFunction<E>>(&mut self, function: F) -> Result<(), RuntimeError> {
+    fn call_native<F: INativeCallable<E>>(&mut self, function: F) -> Result<(), RuntimeError> {
         let stack = &mut self.state.evaluation_stack;
         let cs = &mut self.counter.cs;
 
-        function.execute(cs.namespace(|| "native function"), stack)
+        function.call(cs.namespace(|| "native function"), stack)
     }
 
     fn condition_top(&mut self) -> Result<Scalar<E>, RuntimeError> {
@@ -404,10 +401,6 @@ where
 
     fn constraint_system(&mut self) -> &mut CS {
         &mut self.counter.cs
-    }
-
-    fn gadgets(&mut self) -> Gadgets<E, bellman::Namespace<E, CS::Root>> {
-        Gadgets::new(self.counter.next())
     }
 
     fn is_debugging(&self) -> bool {

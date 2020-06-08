@@ -43,7 +43,7 @@ pub fn leaf_value_hash<E: IEngine>(leaf_value: Vec<Scalar<E>>) -> Vec<u8> {
             field_vec_be.push(current_byte);
         }
 
-        result.append(&mut field_vec_be);
+        result.extend(field_vec_be);
     }
 
     sha256::<E>(&result)

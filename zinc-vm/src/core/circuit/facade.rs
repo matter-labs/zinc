@@ -6,17 +6,17 @@ use std::marker::PhantomData;
 
 use num_bigint::BigInt;
 
-use bellman::groth16;
-use bellman::pairing::bn256::Bn256;
+use franklin_crypto::bellman::groth16;
 use franklin_crypto::bellman::groth16::Parameters;
 use franklin_crypto::bellman::groth16::Proof;
+use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_bytecode::Circuit as BytecodeCircuit;
 use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
 
-use crate::constraint_systems::debug::DebugConstraintSystem;
+use crate::constraint_systems::debug::DebugCS;
 use crate::core::circuit::synthesizer::Synthesizer as CircuitSynthesizer;
 use crate::core::circuit::Circuit;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -85,7 +85,7 @@ impl IFacade for BytecodeCircuit {
     }
 
     fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
-        let cs = DebugConstraintSystem::<Bn256>::default();
+        let cs = DebugCS::<Bn256>::default();
 
         let inputs_flat = input.to_flat_values();
         let output = self.output.to_owned();

@@ -7,7 +7,7 @@ VERSION="0.1.5"
 ZINC_BINARIES_PATH=/tmp/zinc-${VERSION}-linux/bin
 
 # Configure path to hack on Zinc examples
-ZINC_EXAMPLES_PATH=~/code/src/zpreview
+ZINC_EXAMPLES_PATH=~/code/src
 
 # Download and unpack Zinc binaries to configured path
 mkdir -p ${ZINC_BINARIES_PATH} && \

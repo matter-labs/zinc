@@ -2,14 +2,14 @@
 //! The `std::crypto::sha256` function.
 //!
 
-use bellman::ConstraintSystem;
+use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::sha256;
 
 use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
-use crate::instructions::call_std::INativeFunction;
+use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
 pub struct Sha256 {
@@ -30,8 +30,8 @@ impl Sha256 {
     }
 }
 
-impl<E: IEngine> INativeFunction<E> for Sha256 {
-    fn execute<CS: ConstraintSystem<E>>(
+impl<E: IEngine> INativeCallable<E> for Sha256 {
+    fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
         stack: &mut EvaluationStack<E>,

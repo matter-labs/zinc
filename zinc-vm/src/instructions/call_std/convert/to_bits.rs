@@ -4,7 +4,7 @@
 
 use num_bigint::BigInt;
 
-use bellman::ConstraintSystem;
+use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;
 
 use zinc_bytecode::IntegerType;
@@ -14,13 +14,13 @@ use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::scalar::Scalar;
-use crate::instructions::call_std::INativeFunction;
+use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
 pub struct ToBits;
 
-impl<E: IEngine> INativeFunction<E> for ToBits {
-    fn execute<CS: ConstraintSystem<E>>(
+impl<E: IEngine> INativeCallable<E> for ToBits {
+    fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
         stack: &mut EvaluationStack<E>,

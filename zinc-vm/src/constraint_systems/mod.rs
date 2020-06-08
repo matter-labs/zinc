@@ -4,5 +4,5 @@
 
 pub mod constant;
 pub mod debug;
-pub mod duplicate_removing;
+pub mod dedup;
 pub mod logging;

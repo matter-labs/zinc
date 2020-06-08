@@ -12,7 +12,8 @@ use franklin_crypto::bellman::SynthesisError;
 
 use zinc_bytecode::Program as BytecodeProgram;
 
-use crate::constraint_systems::duplicate_removing::DuplicateRemovingCS;
+use crate::constraint_systems::dedup::DedupCS;
+use crate::constraint_systems::logging::LoggingCS;
 use crate::core::contract::Contract;
 use crate::error::RuntimeError;
 use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
@@ -34,16 +35,13 @@ where
     E: IEngine,
     S: IMerkleTree<E>,
 {
-    fn synthesize<CS: ConstraintSystem<E>>(
-        self,
-        cs: &mut CS,
-    ) -> std::result::Result<(), SynthesisError> {
+    fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
         let storage = StorageGadget::<_, _, Sha256Hasher>::new(
             cs.namespace(|| "storage init"),
             self.storage,
         )?;
 
-        let mut contract = Contract::new(DuplicateRemovingCS::new(cs), storage, false);
+        let mut contract = Contract::new(DedupCS::new(LoggingCS::new(cs)), storage, false);
         *self.output =
             Some(contract.run(&self.bytecode, self.inputs.as_deref(), |_| {}, |_| Ok(())));
 

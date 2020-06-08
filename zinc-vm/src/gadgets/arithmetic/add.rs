@@ -14,7 +14,7 @@ where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    fn add_inner<E, CS>(
+    fn inner<E, CS>(
         mut cs: CS,
         left: &Scalar<E>,
         right: &Scalar<E>,
@@ -36,7 +36,7 @@ where
         )?;
 
         cs.enforce(
-            || "constraint",
+            || "add",
             |lc| lc + &left.lc::<CS>() + &right.lc::<CS>(),
             |lc| lc + CS::one(),
             |lc| lc + variable,
@@ -49,5 +49,5 @@ where
         ))
     }
 
-    auto_const!(add_inner, cs, left, right)
+    auto_const!(inner, cs, left, right)
 }

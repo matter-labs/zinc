@@ -38,7 +38,7 @@ where
                 let neg = gadgets::arithmetic::neg::neg(cs.namespace(|| "neg"), &scalar)?;
                 let lt0 = gadgets::comparison::lesser_than(cs.namespace(|| "lt"), &scalar, &zero)?;
 
-                gadgets::conditional_select::conditional_select(
+                gadgets::select::conditional(
                     cs.namespace(|| "select"),
                     &lt0,
                     &neg.as_field(),
