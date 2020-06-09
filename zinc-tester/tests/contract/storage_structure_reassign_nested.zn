@@ -4,7 +4,7 @@
 //#     "input": {
 //#         "arg": "42"
 //#     },
-//#     "expect": "168"
+//#     "expect": "126"
 //# } ] }
 
 struct Data {
@@ -21,8 +21,7 @@ contract Test {
     const TEST: u8 = 42;
 
     pub fn main(mut self, arg: u8) -> u8 {
-        self.data.inner.value += 42;
-        self.data.inner.value += 42;
+        self.data.inner.value += arg;
 
         arg + Self::TEST + self.data.inner.value
     }

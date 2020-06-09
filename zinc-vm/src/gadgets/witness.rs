@@ -8,7 +8,6 @@ use zinc_bytecode::ScalarType;
 
 use crate::error::RuntimeError;
 use crate::gadgets;
-use crate::gadgets::scalar::fr_bigint;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -23,7 +22,7 @@ where
 {
     let fr = if let Some(bigint) = value {
         Some(
-            fr_bigint::bigint_to_fr::<E>(bigint).ok_or(RuntimeError::ValueOverflow {
+            gadgets::scalar::bigint_to_fr::<E>(bigint).ok_or(RuntimeError::ValueOverflow {
                 value: bigint.clone(),
                 scalar_type: scalar_type.clone(),
             })?,

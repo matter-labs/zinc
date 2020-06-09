@@ -37,7 +37,7 @@ where
 
         cs.enforce(
             || "add",
-            |lc| lc + &left.lc::<CS>() + &right.lc::<CS>(),
+            |lc| lc + &left.to_linear_combination::<CS>() + &right.to_linear_combination::<CS>(),
             |lc| lc + CS::one(),
             |lc| lc + variable,
         );

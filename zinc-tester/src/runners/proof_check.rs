@@ -68,7 +68,7 @@ impl Runnable for Runner {
             let params = match program.bytecode.clone().setup::<Bn256>() {
                 Ok(params) => params,
                 Err(error) => {
-                    summary.lock().expect(crate::panic::MUTEX_SYNC).invalid += 1;
+                    summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;
                     println!(
                         "[INTEGRATION] {} {} (setup: {})",
                         "FAILED".red(),
@@ -122,7 +122,12 @@ impl Runnable for Runner {
 
             match BytecodeProgram::verify(params.vk, proof, output) {
                 Ok(success) => {
-                    if !success {
+                    if success {
+                        summary.lock().expect(crate::panic::MUTEX_SYNC).passed += 1;
+                        if self.verbosity > 0 {
+                            println!("[INTEGRATION] {} {}", "PASSED".green(), case_name);
+                        }
+                    } else {
                         summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;
                         println!(
                             "[INTEGRATION] {} {} (verification failed)",

@@ -14,7 +14,6 @@ use zinc_bytecode::ScalarType;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::execution_state::data_stack::DataStack;
-use crate::gadgets;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -26,8 +25,7 @@ fn assert_cell_eq<E: IEngine>(cell: Cell<E>, value: BigInt) {
 #[test]
 fn test_get_set() {
     let mut ds = DataStack::<Bn256>::new();
-    let value =
-        gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&42.into(), ScalarType::Field).unwrap();
+    let value = Scalar::new_constant_bigint(&42.into(), ScalarType::Field).unwrap();
     ds.set(4, Cell::Value(value)).unwrap();
 
     assert_cell_eq(ds.get(4).unwrap(), 42.into());
@@ -37,16 +35,14 @@ fn test_get_set() {
 fn test_fork_merge_true() {
     let mut ds = DataStack::new();
     let cs = TestConstraintSystem::<Bn256>::new();
-    let value =
-        gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&42.into(), ScalarType::Field).unwrap();
+    let value = Scalar::new_constant_bigint(&42.into(), ScalarType::Field).unwrap();
     ds.set(4, Cell::Value(value)).unwrap();
 
     ds.fork();
 
     assert_cell_eq(ds.get(4).unwrap(), 42.into());
 
-    let value2 =
-        gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&13.into(), ScalarType::Field).unwrap();
+    let value2 = Scalar::new_constant_bigint(&13.into(), ScalarType::Field).unwrap();
     ds.set(4, Cell::Value(value2)).unwrap();
     assert_cell_eq(ds.get(4).unwrap(), 13.into());
 
@@ -59,16 +55,14 @@ fn test_fork_merge_true() {
 fn test_fork_merge_false() {
     let mut ds = DataStack::new();
     let cs = TestConstraintSystem::<Bn256>::new();
-    let value =
-        gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&42.into(), ScalarType::Field).unwrap();
+    let value = Scalar::new_constant_bigint(&42.into(), ScalarType::Field).unwrap();
     ds.set(4, Cell::Value(value)).unwrap();
 
     ds.fork();
 
     assert_cell_eq(ds.get(4).unwrap(), 42.into());
 
-    let value2 =
-        gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&13.into(), ScalarType::Field).unwrap();
+    let value2 = Scalar::new_constant_bigint(&13.into(), ScalarType::Field).unwrap();
     ds.set(4, Cell::Value(value2)).unwrap();
     assert_cell_eq(ds.get(4).unwrap(), 13.into());
 

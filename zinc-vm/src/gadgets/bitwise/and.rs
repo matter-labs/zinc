@@ -33,7 +33,7 @@ where
         let scalar_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
         scalar_type.assert_signed(false)?;
 
-        let len = scalar_type.bit_length::<E>();
+        let len = scalar_type.bitlength::<E>();
 
         let left_bits = left
             .to_expression::<CS>()

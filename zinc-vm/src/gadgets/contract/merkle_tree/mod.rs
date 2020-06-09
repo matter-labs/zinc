@@ -17,12 +17,8 @@ pub trait IMerkleTree<E: IEngine> {
     fn root_hash(&self) -> Option<E::Fr>;
 
     /// Loads leaf value with authentication path
-    fn load(&self, index: &Option<BigInt>) -> Result<Leaf<E>, RuntimeError>;
+    fn load(&self, index: BigInt) -> Result<Leaf<E>, RuntimeError>;
 
     /// Stores value to storage, returns previous leaf value with authentication path
-    fn store(
-        &mut self,
-        index: &Option<BigInt>,
-        value: &[Option<Scalar<E>>],
-    ) -> Result<Leaf<E>, RuntimeError>;
+    fn store(&mut self, index: BigInt, values: Vec<Scalar<E>>) -> Result<Leaf<E>, RuntimeError>;
 }

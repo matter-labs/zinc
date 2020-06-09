@@ -7,8 +7,8 @@ use zinc_bytecode::IntegerType;
 use zinc_bytecode::ScalarType;
 
 use crate::error::RuntimeError;
+use crate::gadgets;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
-use crate::gadgets::scalar::fr_bigint;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -28,14 +28,14 @@ where
         ScalarType::Boolean => {
             // Check as u1 integer, then changet type to Boolean
             let checked = conditional_type_check(cs, condition, scalar, IntegerType::U1.into())?;
-            Ok(checked.with_type_unchecked(scalar_type))
+            Ok(checked.to_type_unchecked(scalar_type))
         }
         ScalarType::Integer(int_type) => {
             conditional_int_type_check(cs, condition, scalar, int_type)
         }
         ScalarType::Field => {
             // Always safe to cast into field
-            Ok(scalar.as_field())
+            Ok(scalar.to_field())
         }
     }
 }
@@ -52,7 +52,7 @@ where
 {
     // Throw runtime error if value is known.
     if let (Some(value_fr), Some(condition_fr)) = (scalar.get_value(), condition.get_value()) {
-        let value = fr_bigint::fr_to_bigint(&value_fr, int_type.is_signed);
+        let value = gadgets::scalar::fr_to_bigint::<E>(&value_fr, int_type.is_signed);
         if !condition_fr.is_zero() && (value < int_type.min() || value > int_type.max()) {
             return Err(RuntimeError::ValueOverflow {
                 value,
@@ -63,7 +63,7 @@ where
 
     // If scalar is constant and have passed the check, no need to create constraints.
     if scalar.is_constant() {
-        return Ok(scalar.with_type_unchecked(int_type.into()));
+        return Ok(scalar.to_type_unchecked(int_type.into()));
     }
 
     let scalar_expr = scalar.to_expression::<CS>();
@@ -71,7 +71,8 @@ where
         Expression::u64::<CS>(0)
     } else {
         let offset = BigInt::from(1) << (int_type.bitlength - 1);
-        let offset_fr = fr_bigint::bigint_to_fr::<E>(&offset).expect("invalid integer type length");
+        let offset_fr =
+            gadgets::scalar::bigint_to_fr::<E>(&offset).expect("invalid integer type length");
         Expression::constant::<CS>(offset_fr)
     };
     let zero = Expression::u64::<CS>(0);
@@ -89,5 +90,5 @@ where
     let _bits =
         value_to_check.into_bits_le_fixed(cs.namespace(|| "into_bits"), int_type.bitlength)?;
 
-    Ok(scalar.with_type_unchecked(int_type.into()))
+    Ok(scalar.to_type_unchecked(int_type.into()))
 }

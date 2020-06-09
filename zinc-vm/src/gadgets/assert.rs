@@ -32,7 +32,7 @@ where
 
     cs.enforce(
         || "assertion",
-        |lc| lc + &element.lc::<CS>(),
+        |lc| lc + &element.to_linear_combination::<CS>(),
         |lc| lc + inverse_variable,
         |lc| lc + CS::one(),
     );

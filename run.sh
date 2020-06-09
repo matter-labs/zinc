@@ -62,18 +62,10 @@ cargo build ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG}
 "${ZARGO_PATH}" clean ${LOG_LEVEL} \
     --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
 
-#"${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
-#    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
-#    --binary "${PROJECT_BUILD_DIRECTORY}/${PROJECT_ENTRY}.znb" \
-#    --witness "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_witness.json" \
-#    --public-data "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_public_data.json" \
-#    --proving-key "${PROJECT_DATA_DIRECTORY}/proving-key" \
-#    --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying-key.txt"
-
-"${ZARGO_PATH}" build ${LOG_LEVEL} \
-    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
-
-"./target/${TARGET_DIRECTORY}/zvm" ${LOG_LEVEL} debug \
+"${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
+    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
     --binary "${PROJECT_BUILD_DIRECTORY}/${PROJECT_ENTRY}.znb" \
     --witness "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_witness.json" \
-    --public-data "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_public_data.json"
+    --public-data "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_public_data.json" \
+    --proving-key "${PROJECT_DATA_DIRECTORY}/proving-key" \
+    --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying-key.txt"

@@ -8,7 +8,6 @@ use crate::auto_const;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::scalar::fr_bigint;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -49,14 +48,14 @@ where
     let mut remainder_value: Option<E::Fr> = None;
 
     if let (Some(nom), Some(denom)) = (nominator.get_value(), denominator.get_value()) {
-        let nom_bi = fr_bigint::fr_to_bigint(&nom, nominator.is_signed());
-        let denom_bi = fr_bigint::fr_to_bigint(&denom, denominator.is_signed());
+        let nom_bi = gadgets::scalar::fr_to_bigint::<E>(&nom, nominator.is_signed());
+        let denom_bi = gadgets::scalar::fr_to_bigint::<E>(&denom, denominator.is_signed());
 
         let (q, r) =
             math::euclidean::div_rem(&nom_bi, &denom_bi).ok_or(RuntimeError::DivisionByZero)?;
 
-        quotient_value = fr_bigint::bigint_to_fr::<E>(&q);
-        remainder_value = fr_bigint::bigint_to_fr::<E>(&r);
+        quotient_value = gadgets::scalar::bigint_to_fr::<E>(&q);
+        remainder_value = gadgets::scalar::bigint_to_fr::<E>(&r);
     }
 
     let (quotient, remainder) = {
@@ -67,8 +66,8 @@ where
         cs.enforce(
             || "equality",
             |lc| lc + quotient_var,
-            |lc| lc + &denominator.lc::<CS>(),
-            |lc| lc + &nominator.lc::<CS>() - remainder_var,
+            |lc| lc + &denominator.to_linear_combination::<CS>(),
+            |lc| lc + &nominator.to_linear_combination::<CS>() - remainder_var,
         );
 
         let quotient =
@@ -82,15 +81,15 @@ where
     let abs_denominator = gadgets::arithmetic::abs::abs(cs.namespace(|| "abs"), denominator)?;
     let lt = gadgets::comparison::lesser_than(
         cs.namespace(|| "lt"),
-        &remainder.as_field(),
-        &abs_denominator.as_field(),
+        &remainder.to_field(),
+        &abs_denominator.to_field(),
     )?;
     let zero = Scalar::new_constant_int(0, remainder.get_type());
     let ge = gadgets::comparison::greater_or_equals(cs.namespace(|| "ge"), &remainder, &zero)?;
     cs.enforce(
         || "0 <= rem < |denominator|",
-        |lc| lc + CS::one() - &lt.lc::<CS>(),
-        |lc| lc + CS::one() - &ge.lc::<CS>(),
+        |lc| lc + CS::one() - &lt.to_linear_combination::<CS>(),
+        |lc| lc + CS::one() - &ge.to_linear_combination::<CS>(),
         |lc| lc,
     );
 

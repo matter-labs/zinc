@@ -31,7 +31,7 @@ where
 
         cs.enforce(
             || "inverse constraint",
-            |zero| zero + &scalar.lc::<CS>(),
+            |zero| zero + &scalar.to_linear_combination::<CS>(),
             |zero| zero + inverse.get_variable(),
             |zero| zero + CS::one(),
         );

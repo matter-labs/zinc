@@ -17,7 +17,7 @@ where
         || "enforce output equality",
         |lc| lc + variable,
         |lc| lc + CS::one(),
-        |lc| lc + &element.lc::<CS>(),
+        |lc| lc + &element.to_linear_combination::<CS>(),
     );
 
     Ok(Scalar::new_unchecked_variable(

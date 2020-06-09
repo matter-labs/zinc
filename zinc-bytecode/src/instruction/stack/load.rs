@@ -34,6 +34,6 @@ impl Into<Instruction> for Load {
 
 impl fmt::Display for Load {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "load_array {} {}", self.address, self.len,)
+        write!(f, "load {} {}", self.address, self.len,)
     }
 }

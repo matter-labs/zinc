@@ -12,15 +12,15 @@ pub mod prelude {
 
     impl<E: IEngine> ToConstant for Scalar<E> {
         fn to_constant(&self) -> Result<Self, RuntimeError> {
-            self.as_constant_unchecked()
+            self.to_constant_unchecked()
         }
     }
 
     impl<E: IEngine> ToConstant for (Scalar<E>, Scalar<E>) {
         fn to_constant(&self) -> Result<Self, RuntimeError> {
             Ok((
-                self.0.as_constant_unchecked()?,
-                self.1.as_constant_unchecked()?,
+                self.0.to_constant_unchecked()?,
+                self.1.to_constant_unchecked()?,
             ))
         }
     }

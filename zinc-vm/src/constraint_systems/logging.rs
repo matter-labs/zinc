@@ -14,7 +14,7 @@ use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::bellman::Variable;
 use pairing::Engine;
 
-use crate::gadgets::scalar::fr_bigint;
+use crate::gadgets;
 
 pub struct LoggingCS<E, CS>(CS, PhantomData<E>)
 where
@@ -133,7 +133,7 @@ fn lc_to_string<E: Engine>(lc: &LinearCombination<E>) -> String {
 
     let mut is_first = true;
     for (var, c) in lc.as_ref() {
-        let c_value = fr_bigint::fr_to_bigint(c, true);
+        let c_value = gadgets::scalar::fr_to_bigint::<E>(c, true);
 
         let mut c_str = if c_value == BigInt::from(1) {
             " + ".into()

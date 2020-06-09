@@ -33,22 +33,23 @@ where
             ScalarVariant::Constant(_) => {
                 let scalar_type = num.get_type();
 
-                let num_value = gadgets::scalar::fr_bigint::fr_to_bigint(
+                let num_value = gadgets::scalar::fr_to_bigint::<E>(
                     &num.get_constant()?,
                     scalar_type.is_signed(),
                 );
                 let shift_value = shift.get_constant_usize()?;
 
-                let mask = vec![0xFF; scalar_type.bit_length::<E>() / 8];
+                let mask = vec![0xFF; scalar_type.bitlength::<E>() / 8];
 
                 let mut result_value = &num_value << shift_value;
                 result_value &= &BigInt::from_bytes_le(Sign::Plus, mask.as_slice());
 
-                let result_fr = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&result_value)
-                    .ok_or(RuntimeError::ValueOverflow {
+                let result_fr = gadgets::scalar::bigint_to_fr::<E>(&result_value).ok_or(
+                    RuntimeError::ValueOverflow {
                         value: result_value,
                         scalar_type: scalar_type.clone(),
-                    })?;
+                    },
+                )?;
                 Ok(Scalar::new_constant_fr(result_fr, scalar_type))
             }
         },
@@ -65,7 +66,7 @@ where
     CS: ConstraintSystem<E>,
 {
     let scalar_type = num.get_type();
-    let len = scalar_type.bit_length::<E>();
+    let len = scalar_type.bitlength::<E>();
 
     let mut bits = num
         .to_expression::<CS>()
@@ -89,7 +90,7 @@ where
         .to_expression::<CS>()
         .into_bits_le_fixed(
             cs.namespace(|| "shift bits"),
-            shift.get_type().bit_length::<E>(),
+            shift.get_type().bitlength::<E>(),
         )?
         .into_iter()
         .rev()
@@ -99,7 +100,7 @@ where
 
     let result = gadgets::select::recursive(cs, &shift_bits_be, &variants)?;
 
-    Ok(result.with_type_unchecked(scalar_type))
+    Ok(result.to_type_unchecked(scalar_type))
 }
 
 fn variable_num<E, CS>(mut cs: CS, num: &Scalar<E>, shift: usize) -> Result<Scalar<E>, RuntimeError>
@@ -108,7 +109,7 @@ where
     CS: ConstraintSystem<E>,
 {
     let scalar_type = num.get_type();
-    let len = scalar_type.bit_length::<E>();
+    let len = scalar_type.bitlength::<E>();
 
     let bits = num
         .to_expression::<CS>()

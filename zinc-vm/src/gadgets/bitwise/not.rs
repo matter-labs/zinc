@@ -22,7 +22,7 @@ where
         let scalar_type = scalar.get_type();
         scalar_type.assert_signed(false)?;
 
-        let len = scalar_type.bit_length::<E>();
+        let len = scalar_type.bitlength::<E>();
 
         let bits = scalar
             .to_expression::<CS>()

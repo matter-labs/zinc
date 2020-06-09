@@ -85,17 +85,11 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
         E::Fr::from_repr(hash_repr).ok()
     }
 
-    fn load(&self, index: &Option<BigInt>) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
-        let index = index.as_ref().unwrap();
-
-        let index = index.to_usize().unwrap();
+    fn load(&self, index: BigInt) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
+        let index = index.to_usize().ok_or(RuntimeError::ExpectedUsize(index))?;
 
         let mut result = MerkleTreeLeaf::<E> {
-            leaf_value: self.leaf_values[index]
-                .iter()
-                .cloned()
-                .map(Option::Some)
-                .collect(),
+            leaf_values: self.leaf_values[index].to_owned(),
             leaf_value_hash: {
                 let mut hash = vec![];
                 for i in sha256::leaf_value_hash::<E>(self.leaf_values[index].clone()) {
@@ -129,24 +123,13 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
 
     fn store(
         &mut self,
-        index: &Option<BigInt>,
-        value: &[Option<Scalar<E>>],
+        index: BigInt,
+        values: Vec<Scalar<E>>,
     ) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
-        let index = index.as_ref().unwrap();
-        let value = &value
-            .iter()
-            .cloned()
-            .map(|field| field.unwrap())
-            .collect::<Vec<Scalar<E>>>();
-
-        let index = index.to_usize().unwrap();
+        let index = index.to_usize().ok_or(RuntimeError::ExpectedUsize(index))?;
 
         let mut result = MerkleTreeLeaf::<E> {
-            leaf_value: self.leaf_values[index]
-                .iter()
-                .cloned()
-                .map(Option::Some)
-                .collect(),
+            leaf_values: self.leaf_values[index].to_owned(),
             leaf_value_hash: {
                 let mut hash = vec![];
                 for i in sha256::leaf_value_hash::<E>(self.leaf_values[index].clone()) {
@@ -175,7 +158,7 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
 
         result.authentication_path.reverse();
 
-        self.leaf_values[index] = value.to_vec();
+        self.leaf_values[index] = values;
         self.rebuild_tree();
 
         Ok(result)

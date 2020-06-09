@@ -33,7 +33,7 @@ where
                     bitlength: int_type.bitlength + 1,
                 });
 
-                let scalar = scalar.with_type_unchecked(scalar_type.clone());
+                let scalar = scalar.to_type_unchecked(scalar_type.clone());
                 let zero = Scalar::new_constant_int(0, scalar_type);
                 let neg = gadgets::arithmetic::neg::neg(cs.namespace(|| "neg"), &scalar)?;
                 let lt0 = gadgets::comparison::lesser_than(cs.namespace(|| "lt"), &scalar, &zero)?;
@@ -41,8 +41,8 @@ where
                 gadgets::select::conditional(
                     cs.namespace(|| "select"),
                     &lt0,
-                    &neg.as_field(),
-                    &scalar.as_field(),
+                    &neg.to_field(),
+                    &scalar.to_field(),
                 )
             }
         }

@@ -37,8 +37,8 @@ where
 
         cs.enforce(
             || "mul",
-            |lc| lc + &left.lc::<CS>(),
-            |lc| lc + &right.lc::<CS>(),
+            |lc| lc + &left.to_linear_combination::<CS>(),
+            |lc| lc + &right.to_linear_combination::<CS>(),
             |lc| lc + variable,
         );
 

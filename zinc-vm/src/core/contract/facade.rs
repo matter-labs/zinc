@@ -97,10 +97,10 @@ impl IFacade for BytecodeContract {
         Ok(value)
     }
 
-    fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
+    fn run<E: IEngine>(self, witness: TemplateValue) -> Result<TemplateValue, RuntimeError> {
         let mut cs = DebugCS::<Bn256>::default();
 
-        let inputs_flat = input.to_flat_values();
+        let witness_flat = witness.to_flat_values();
         let output = self.output.to_owned();
 
         let storage_fields = self
@@ -116,7 +116,7 @@ impl IFacade for BytecodeContract {
         let mut num_constraints = 0;
         let result = contract.run(
             &BytecodeProgram::Contract(self),
-            Some(&inputs_flat),
+            Some(&witness_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
                 num_constraints += num;

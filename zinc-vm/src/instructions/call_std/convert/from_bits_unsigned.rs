@@ -16,13 +16,13 @@ use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
 pub struct UnsignedFromBits {
-    bit_length: usize,
+    bitlength: usize,
 }
 
 impl UnsignedFromBits {
     pub fn new(inputs_count: usize) -> Self {
         Self {
-            bit_length: inputs_count,
+            bitlength: inputs_count,
         }
     }
 }
@@ -33,16 +33,16 @@ impl<E: IEngine> INativeCallable<E> for UnsignedFromBits {
         mut cs: CS,
         stack: &mut EvaluationStack<E>,
     ) -> Result<(), RuntimeError> {
-        if self.bit_length > E::Fr::CAPACITY as usize {
+        if self.bitlength > E::Fr::CAPACITY as usize {
             return Err(MalformedBytecode::InvalidArguments(format!(
                 "unsigned_from_bits: integer type with length {} is not supported",
-                self.bit_length
+                self.bitlength
             ))
             .into());
         }
 
-        let mut bits = Vec::with_capacity(self.bit_length);
-        for i in 0..self.bit_length {
+        let mut bits = Vec::with_capacity(self.bitlength);
+        for i in 0..self.bitlength {
             let bit = stack.pop()?.try_into_value()?;
             let boolean = bit.to_boolean(cs.namespace(|| format!("to_boolean {}", i)))?;
             bits.push(boolean);
@@ -53,7 +53,7 @@ impl<E: IEngine> INativeCallable<E> for UnsignedFromBits {
 
         let int_type = IntegerType {
             is_signed: false,
-            bitlength: self.bit_length,
+            bitlength: self.bitlength,
         };
 
         let scalar =

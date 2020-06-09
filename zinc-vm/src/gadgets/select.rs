@@ -88,9 +88,12 @@ where
             // (l - r) * (c) = (s - r)
             cs.enforce(
                 || "constraint",
-                |lc| lc + &if_true.lc::<CS>() - &if_false.lc::<CS>(),
-                |lc| lc + &condition.lc::<CS>(),
-                |lc| lc + num.get_variable() - &if_false.lc::<CS>(),
+                |lc| {
+                    lc + &if_true.to_linear_combination::<CS>()
+                        - &if_false.to_linear_combination::<CS>()
+                },
+                |lc| lc + &condition.to_linear_combination::<CS>(),
+                |lc| lc + num.get_variable() - &if_false.to_linear_combination::<CS>(),
             );
 
             Ok(Scalar::new_unchecked_variable(

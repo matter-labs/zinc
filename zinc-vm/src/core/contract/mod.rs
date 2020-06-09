@@ -88,7 +88,7 @@ where
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
         );
-        let one = gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&1.into(), ScalarType::Boolean)?;
+        let one = Scalar::new_constant_bigint(&1.into(), ScalarType::Boolean)?;
         self.condition_push(one)?;
 
         self.init_root_frame(&bytecode.input(), inputs)?;
@@ -127,8 +127,6 @@ where
     }
 
     fn init_storage(&mut self) -> Result<(), RuntimeError> {
-        // TODO: add root_hash to public input
-
         // Temporary fix to avoid "unconstrained" error
         let root_hash = self.storage.root_hash()?;
         let cs = self.constraint_system();
@@ -136,7 +134,7 @@ where
         gadgets::arithmetic::add::add(
             cs.namespace(|| "root_hash constraint"),
             &root_hash,
-            &Scalar::new_constant_int(1, ScalarType::Field),
+            &Scalar::new_constant_int(0, ScalarType::Field),
         )?;
 
         Ok(())
@@ -232,7 +230,7 @@ where
 
     fn storage_load(
         &mut self,
-        address: &Scalar<Self::E>,
+        address: Scalar<Self::E>,
         size: usize,
     ) -> Result<Vec<Scalar<Self::E>>, RuntimeError> {
         self.storage.load(self.counter.next(), size, address)
@@ -240,10 +238,10 @@ where
 
     fn storage_store(
         &mut self,
-        address: &Scalar<Self::E>,
-        value: &[Scalar<Self::E>],
+        address: Scalar<Self::E>,
+        values: Vec<Scalar<Self::E>>,
     ) -> Result<(), RuntimeError> {
-        self.storage.store(self.counter.next(), address, value)
+        self.storage.store(self.counter.next(), address, values)
     }
 
     fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {

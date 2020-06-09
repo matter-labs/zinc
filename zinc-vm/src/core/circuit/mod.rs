@@ -78,7 +78,7 @@ where
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
         );
-        let one = gadgets::scalar::fr_bigint::bigint_to_fr_scalar(&1.into(), ScalarType::Boolean)?;
+        let one = Scalar::new_constant_bigint(&1.into(), ScalarType::Boolean)?;
         self.condition_push(one)?;
 
         self.init_root_frame(&bytecode.input(), inputs)?;
@@ -203,7 +203,7 @@ where
 
     fn storage_load(
         &mut self,
-        _address: &Scalar<Self::E>,
+        _address: Scalar<Self::E>,
         _size: usize,
     ) -> Result<Vec<Scalar<Self::E>>, RuntimeError> {
         unimplemented!()
@@ -211,8 +211,8 @@ where
 
     fn storage_store(
         &mut self,
-        _address: &Scalar<Self::E>,
-        _value: &[Scalar<Self::E>],
+        _address: Scalar<Self::E>,
+        _value: Vec<Scalar<Self::E>>,
     ) -> Result<(), RuntimeError> {
         unimplemented!()
     }

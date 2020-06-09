@@ -8,13 +8,13 @@
 //# } ] }
 
 contract Test {
-    data: [[u8; 8]; 8];
+    data: [[u8; 4]; 4];
 
     const TEST: u8 = 42;
 
     pub fn main(mut self, arg: u8) -> u8 {
-        self.data[7][7] = 42;
+        self.data[3][3] = arg;
 
-        arg + Self::TEST + self.data[7][7]
+        arg + Self::TEST + self.data[3][3]
     }
 }

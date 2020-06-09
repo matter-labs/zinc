@@ -40,8 +40,8 @@ where
 
         cs.enforce(
             || "equality",
-            |lc| lc + CS::one() - &left.lc::<CS>(),
-            |lc| lc + CS::one() - &right.lc::<CS>(),
+            |lc| lc + CS::one() - &left.to_linear_combination::<CS>(),
+            |lc| lc + CS::one() - &right.to_linear_combination::<CS>(),
             |lc| lc + CS::one() - num.get_variable(),
         );
 

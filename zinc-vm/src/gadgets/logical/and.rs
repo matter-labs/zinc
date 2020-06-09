@@ -36,8 +36,8 @@ where
 
         cs.enforce(
             || "equality",
-            |lc| lc + &left.lc::<CS>(),
-            |lc| lc + &right.lc::<CS>(),
+            |lc| lc + &left.to_linear_combination::<CS>(),
+            |lc| lc + &right.to_linear_combination::<CS>(),
             |lc| lc + num.get_variable(),
         );
 

@@ -13,7 +13,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for StorageStore {
             values.push(vm.pop()?.try_into_value()?);
         }
 
-        vm.storage_store(&address, &values)?;
+        vm.storage_store(address, values)?;
 
         Ok(())
     }

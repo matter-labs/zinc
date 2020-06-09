@@ -13,7 +13,6 @@ use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
-use crate::gadgets::scalar::fr_bigint;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -163,7 +162,7 @@ where
 {
     assert!(length < E::Fr::CAPACITY as usize);
     let base_bigint = (BigInt::from(1) << length) - BigInt::from(1);
-    let base = fr_bigint::bigint_to_fr::<E>(&base_bigint).unwrap();
+    let base = gadgets::scalar::bigint_to_fr::<E>(&base_bigint).unwrap();
 
     let expr =
         Expression::constant::<CS>(base) - left.to_expression::<CS>() + right.to_expression::<CS>();

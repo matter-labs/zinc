@@ -45,9 +45,12 @@ where
         // (a + a) * (b) = (a + b - c)
         cs.enforce(
             || "equality",
-            |lc| lc + &left.lc::<CS>() + &left.lc::<CS>(),
-            |lc| lc + &right.lc::<CS>(),
-            |lc| lc + &left.lc::<CS>() + &right.lc::<CS>() - num.get_variable(),
+            |lc| lc + &left.to_linear_combination::<CS>() + &left.to_linear_combination::<CS>(),
+            |lc| lc + &right.to_linear_combination::<CS>(),
+            |lc| {
+                lc + &left.to_linear_combination::<CS>() + &right.to_linear_combination::<CS>()
+                    - num.get_variable()
+            },
         );
 
         Ok(Scalar::new_unchecked_variable(

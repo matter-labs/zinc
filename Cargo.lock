@@ -1118,7 +1118,6 @@ dependencies = [
 name = "zinc-vm"
 version = "0.1.5"
 dependencies = [
- "bellman_ce",
  "colored",
  "env_logger",
  "failure",

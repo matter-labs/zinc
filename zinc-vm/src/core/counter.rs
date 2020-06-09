@@ -5,6 +5,7 @@
 use std::marker::PhantomData;
 
 use franklin_crypto::bellman::ConstraintSystem;
+use franklin_crypto::bellman::Namespace;
 
 use crate::IEngine;
 
@@ -24,7 +25,7 @@ impl<E: IEngine, CS: ConstraintSystem<E>> NamespaceCounter<E, CS> {
         }
     }
 
-    pub fn next(&mut self) -> bellman::Namespace<E, CS::Root> {
+    pub fn next(&mut self) -> Namespace<E, CS::Root> {
         let namespace = self.counter.to_string();
         self.counter += 1;
         self.cs.namespace(|| namespace)
