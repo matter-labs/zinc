@@ -1,6 +1,8 @@
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
+use ff::Field;
+
 use zinc_bytecode::DataType;
 
 use crate::error::RuntimeError;
@@ -20,11 +22,16 @@ impl<E: IEngine> Storage<E> {
 
         let mut result = Self {
             depth,
-            leaf_values: vec![vec![]; 1 << depth],
+            leaf_values: vec![vec![]; fields.len()],
         };
 
         for (index, field) in fields.into_iter().enumerate() {
-            result.leaf_values[index] = vec![None; field.to_scalar_types().len()];
+            let values = field
+                .to_scalar_types()
+                .into_iter()
+                .map(|r#type| Some(Scalar::<E>::new_constant_int(0, r#type)))
+                .collect();
+            result.leaf_values[index] = values;
         }
 
         result
@@ -37,19 +44,16 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
     }
 
     fn root_hash(&self) -> Option<E::Fr> {
-        None
+        Some(E::Fr::zero())
     }
 
     fn load(&self, index: BigInt) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
         let index = index.to_usize().ok_or(RuntimeError::ExpectedUsize(index))?;
 
-        let result = MerkleTreeLeaf::<E> {
-            leaf_values: self.leaf_values[index].to_owned(),
-            leaf_value_hash: vec![],
-            authentication_path: vec![],
-        };
-
-        Ok(result)
+        Ok(MerkleTreeLeaf::new(
+            self.leaf_values[index].as_slice(),
+            Some(self.depth),
+        ))
     }
 
     fn store(
@@ -61,12 +65,9 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
 
         self.leaf_values[index] = value;
 
-        let result = MerkleTreeLeaf::<E> {
-            leaf_values: self.leaf_values[index].to_owned(),
-            leaf_value_hash: vec![],
-            authentication_path: vec![],
-        };
-
-        Ok(result)
+        Ok(MerkleTreeLeaf::new(
+            self.leaf_values[index].as_slice(),
+            Some(self.depth),
+        ))
     }
 }

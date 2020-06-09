@@ -2,7 +2,9 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::AllocatedBit;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;
+use franklin_crypto::circuit::Assignment;
 
+use crate::core::contract::storage::sha256;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::contract::merkle_tree::hasher::IHasher as IMerkleTreeHasher;
@@ -16,12 +18,22 @@ pub struct Leaf<E: IEngine> {
     pub authentication_path: Vec<Vec<Option<bool>>>,
 }
 
-impl<E: IEngine> Default for Leaf<E> {
-    fn default() -> Self {
+impl<E: IEngine> Leaf<E> {
+    pub fn new(values: &[Option<Scalar<E>>], authentication_path_length: Option<usize>) -> Self {
         Self {
-            leaf_values: vec![],
-            leaf_value_hash: vec![],
-            authentication_path: vec![vec![]],
+            leaf_values: values.to_owned(),
+            leaf_value_hash: {
+                let mut hash = vec![];
+                for i in sha256::leaf_value_hash::<E>(values.to_owned()) {
+                    for j in (0..zinc_const::BITLENGTH_BYTE).rev() {
+                        hash.push(Some(((i >> j) & 1u8) == 1u8))
+                    }
+                }
+                hash
+            },
+            authentication_path: authentication_path_length
+                .map(|depth| vec![vec![None; zinc_const::BITLENGTH_SHA256_HASH]; depth])
+                .unwrap_or_default(),
         }
     }
 }
@@ -153,24 +165,21 @@ impl<E: IEngine> AllocatedLeaf<E> {
         E: IEngine,
         CS: ConstraintSystem<E>,
     {
-        let mut leaf_fields = Vec::with_capacity(leaf_value.len());
+        let mut leaf_fields = Vec::new();
+        for (index, scalar) in leaf_value.iter().enumerate() {
+            let r#type = scalar.as_ref().map(|value| value.get_type());
+            let fr = scalar.as_ref().and_then(|value| value.get_value());
 
-        for (index, scalar) in leaf_value.into_iter().filter_map(|value| value).enumerate() {
-            match scalar.grab_value() {
-                Ok(fr) => {
-                    let field_allocated_num = AllocatedNum::alloc(
-                        cs.namespace(|| format!("leaf value: {} field", index)),
-                        || Ok(fr),
-                    )?;
-                    let scalar = Scalar::<E>::new_unchecked_variable(
-                        Some(fr),
-                        field_allocated_num.get_variable(),
-                        scalar.get_type(),
-                    );
-                    leaf_fields.push(scalar);
-                }
-                Err(_error) => leaf_fields.push(scalar),
+            let field_allocated_num = AllocatedNum::alloc(
+                cs.namespace(|| format!("leaf value: {} field", index)),
+                || Ok(fr.grab()?),
+            )?;
+
+            let mut scalar = Scalar::<E>::from(field_allocated_num);
+            if let Some(r#type) = r#type {
+                scalar = scalar.to_type_unchecked(r#type);
             }
+            leaf_fields.push(scalar);
         }
 
         Ok(leaf_fields)

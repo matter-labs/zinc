@@ -88,19 +88,7 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
     fn load(&self, index: BigInt) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
         let index = index.to_usize().ok_or(RuntimeError::ExpectedUsize(index))?;
 
-        let mut result = MerkleTreeLeaf::<E> {
-            leaf_values: self.leaf_values[index].to_owned(),
-            leaf_value_hash: {
-                let mut hash = vec![];
-                for i in sha256::leaf_value_hash::<E>(self.leaf_values[index].clone()) {
-                    for j in (0..zinc_const::BITLENGTH_BYTE).rev() {
-                        hash.push(Some(((i >> j) & 1u8) == 1u8))
-                    }
-                }
-                hash
-            },
-            authentication_path: vec![],
-        };
+        let mut result = MerkleTreeLeaf::new(self.leaf_values[index].as_slice(), None);
 
         let mut current_node = 1;
         for i in (0..self.depth).rev() {
@@ -128,19 +116,7 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
     ) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
         let index = index.to_usize().ok_or(RuntimeError::ExpectedUsize(index))?;
 
-        let mut result = MerkleTreeLeaf::<E> {
-            leaf_values: self.leaf_values[index].to_owned(),
-            leaf_value_hash: {
-                let mut hash = vec![];
-                for i in sha256::leaf_value_hash::<E>(self.leaf_values[index].clone()) {
-                    for j in (0..zinc_const::BITLENGTH_BYTE).rev() {
-                        hash.push(Some(((i >> j) & 1u8) == 1u8))
-                    }
-                }
-                hash
-            },
-            authentication_path: vec![],
-        };
+        let mut result = MerkleTreeLeaf::new(self.leaf_values[index].as_slice(), None);
 
         let mut current_node = 1;
         for i in (0..self.depth).rev() {
