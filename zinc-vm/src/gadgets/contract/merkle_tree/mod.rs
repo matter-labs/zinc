@@ -20,5 +20,9 @@ pub trait IMerkleTree<E: IEngine> {
     fn load(&self, index: BigInt) -> Result<Leaf<E>, RuntimeError>;
 
     /// Stores value to storage, returns previous leaf value with authentication path
-    fn store(&mut self, index: BigInt, values: Vec<Scalar<E>>) -> Result<Leaf<E>, RuntimeError>;
+    fn store(
+        &mut self,
+        index: BigInt,
+        values: Vec<Option<Scalar<E>>>,
+    ) -> Result<Leaf<E>, RuntimeError>;
 }

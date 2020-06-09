@@ -30,6 +30,7 @@ pub enum Error {
 }
 
 impl VirtualMachine {
+    #[allow(dead_code)]
     pub fn debug(
         verbosity: usize,
         binary_path: &PathBuf,

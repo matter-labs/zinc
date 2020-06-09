@@ -113,7 +113,7 @@ where
         &mut self,
         mut cs: CS,
         index: Scalar<E>,
-        values: Vec<Scalar<E>>,
+        values: Vec<Option<Scalar<E>>>,
     ) -> Result<(), RuntimeError>
     where
         CS: ConstraintSystem<E>,
@@ -162,13 +162,15 @@ where
             &Boolean::Constant(true),
         )?;
 
-        self.root_hash = AllocatedLeaf::LeafFields(values).enforce_merkle_tree_path(
-            cs.namespace(|| "enforce merkle tree path (storing value)"),
-            depth,
-            &H::default(),
-            &index_bits,
-            &authentication_path,
-        )?;
+        self.root_hash =
+            AllocatedLeaf::LeafFields(values.into_iter().filter_map(|value| value).collect())
+                .enforce_merkle_tree_path(
+                    cs.namespace(|| "enforce merkle tree path (storing value)"),
+                    depth,
+                    &H::default(),
+                    &index_bits,
+                    &authentication_path,
+                )?;
 
         Ok(())
     }
@@ -237,7 +239,7 @@ mod tests {
                         Fr::from_str(&i.to_string()).unwrap(),
                         ScalarType::Field,
                     ),
-                    vec![scalar],
+                    vec![Some(scalar)],
                 )
                 .unwrap();
 

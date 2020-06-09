@@ -11,9 +11,19 @@ use crate::IEngine;
 
 #[derive(Debug)]
 pub struct Leaf<E: IEngine> {
-    pub leaf_values: Vec<Scalar<E>>,
+    pub leaf_values: Vec<Option<Scalar<E>>>,
     pub leaf_value_hash: Vec<Option<bool>>,
     pub authentication_path: Vec<Vec<Option<bool>>>,
+}
+
+impl<E: IEngine> Default for Leaf<E> {
+    fn default() -> Self {
+        Self {
+            leaf_values: vec![],
+            leaf_value_hash: vec![],
+            authentication_path: vec![vec![]],
+        }
+    }
 }
 
 pub enum AllocatedLeaf<E: IEngine> {
@@ -137,7 +147,7 @@ impl<E: IEngine> AllocatedLeaf<E> {
 
     pub fn alloc_leaf_fields<CS>(
         mut cs: CS,
-        leaf_value: Vec<Scalar<E>>,
+        leaf_value: Vec<Option<Scalar<E>>>,
     ) -> Result<Vec<Scalar<E>>, RuntimeError>
     where
         E: IEngine,
@@ -145,7 +155,7 @@ impl<E: IEngine> AllocatedLeaf<E> {
     {
         let mut leaf_fields = Vec::with_capacity(leaf_value.len());
 
-        for (index, scalar) in leaf_value.into_iter().enumerate() {
+        for (index, scalar) in leaf_value.into_iter().filter_map(|value| value).enumerate() {
             match scalar.grab_value() {
                 Ok(fr) => {
                     let field_allocated_num = AllocatedNum::alloc(

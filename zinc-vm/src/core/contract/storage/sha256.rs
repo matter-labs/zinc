@@ -16,10 +16,10 @@ pub fn sha256_of_concat<E: IEngine>(left: &[u8], right: &[u8]) -> Vec<u8> {
     sha256::<E>(&[left, right].concat())
 }
 
-pub fn leaf_value_hash<E: IEngine>(leaf_value: Vec<Scalar<E>>) -> Vec<u8> {
+pub fn leaf_value_hash<E: IEngine>(leaf_value: Vec<Option<Scalar<E>>>) -> Vec<u8> {
     let mut result = vec![];
 
-    for field in leaf_value.into_iter() {
+    for field in leaf_value.into_iter().filter_map(|value| value) {
         let mut field_vec = vec![];
         if let Some(fr) = field.get_value() {
             let _ = fr.into_repr().write_le(&mut field_vec);

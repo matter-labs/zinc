@@ -38,7 +38,7 @@ pub trait IVirtualMachine {
     fn storage_store(
         &mut self,
         address: Scalar<Self::E>,
-        values: Vec<Scalar<Self::E>>,
+        values: Vec<Option<Scalar<Self::E>>>,
     ) -> Result<(), RuntimeError>;
 
     fn loop_begin(&mut self, iter_count: usize) -> Result<(), RuntimeError>;

@@ -53,11 +53,11 @@ export PROJECT_SOURCE_DIRECTORY="${PROJECT_DIRECTORY}/src/"
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
 
-#cargo fmt --all
-#cargo clippy
+cargo fmt --all
+cargo clippy
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG}
-#cargo test
-#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
+cargo test
+cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
 
 "${ZARGO_PATH}" clean ${LOG_LEVEL} \
     --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"

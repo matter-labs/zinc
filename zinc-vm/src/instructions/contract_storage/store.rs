@@ -10,7 +10,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for StorageStore {
 
         let mut values = Vec::with_capacity(self.size);
         for _ in 0..self.size {
-            values.push(vm.pop()?.try_into_value()?);
+            values.push(Some(vm.pop()?.try_into_value()?));
         }
 
         vm.storage_store(address, values)?;

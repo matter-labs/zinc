@@ -97,7 +97,7 @@ impl Command {
         )
         .map_err(Error::Compiler)?;
 
-        VirtualMachine::debug(
+        VirtualMachine::run(
             self.verbosity,
             &self.binary_path,
             &self.witness_path,

@@ -16,7 +16,7 @@ use crate::IEngine;
 pub struct Storage<E: IEngine> {
     depth: usize,
     tree: Vec<Vec<u8>>,
-    leaf_values: Vec<Vec<Scalar<E>>>,
+    leaf_values: Vec<Vec<Option<Scalar<E>>>>,
 }
 
 impl<E: IEngine> Storage<E> {
@@ -33,7 +33,7 @@ impl<E: IEngine> Storage<E> {
             let values = field
                 .to_scalar_types()
                 .into_iter()
-                .map(|r#type| Scalar::<E>::new_constant_int(0, r#type))
+                .map(|r#type| Some(Scalar::<E>::new_constant_int(0, r#type)))
                 .collect();
             result.leaf_values[index] = values;
         }
@@ -124,7 +124,7 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
     fn store(
         &mut self,
         index: BigInt,
-        values: Vec<Scalar<E>>,
+        values: Vec<Option<Scalar<E>>>,
     ) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
         let index = index.to_usize().ok_or(RuntimeError::ExpectedUsize(index))?;
 

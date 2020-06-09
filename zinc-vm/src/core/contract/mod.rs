@@ -239,7 +239,7 @@ where
     fn storage_store(
         &mut self,
         address: Scalar<Self::E>,
-        values: Vec<Scalar<Self::E>>,
+        values: Vec<Option<Scalar<Self::E>>>,
     ) -> Result<(), RuntimeError> {
         self.storage.store(self.counter.next(), address, values)
     }

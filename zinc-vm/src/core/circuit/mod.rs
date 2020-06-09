@@ -212,7 +212,7 @@ where
     fn storage_store(
         &mut self,
         _address: Scalar<Self::E>,
-        _value: Vec<Scalar<Self::E>>,
+        _value: Vec<Option<Scalar<Self::E>>>,
     ) -> Result<(), RuntimeError> {
         unimplemented!()
     }

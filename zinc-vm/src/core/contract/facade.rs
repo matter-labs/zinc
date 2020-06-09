@@ -19,6 +19,7 @@ use zinc_bytecode::TemplateValue;
 
 use crate::constraint_systems::debug::DebugCS;
 use crate::core::contract::storage::dummy::Storage as DummyStorage;
+use crate::core::contract::storage::setup::Storage as SetupStorage;
 use crate::core::contract::synthesizer::Synthesizer as ContractSynthesizer;
 use crate::core::contract::Contract;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -160,7 +161,7 @@ impl IFacade for BytecodeContract {
             .iter()
             .map(|(_name, r#type)| r#type.to_owned())
             .collect();
-        let storage = DummyStorage::new(storage_fields);
+        let storage = SetupStorage::new(storage_fields);
 
         let synthesizable = ContractSynthesizer {
             inputs: None,
