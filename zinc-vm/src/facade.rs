@@ -37,7 +37,7 @@ pub trait IFacade {
             .to_flat_values()
             .into_iter()
             .map(|value| {
-                gadgets::scalar::bigint_to_fr::<E>(&value)
+                gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&value)
                     .ok_or_else(|| VerificationError::ValueOverflow(value))
             })
             .collect::<Result<Vec<E::Fr>, VerificationError>>()?;

@@ -1,28 +1,35 @@
+pub mod allocated_leaf;
 pub mod hasher;
-pub mod leaf;
 
 use num_bigint::BigInt;
 
+use crate::core::contract::storage::leaf::Leaf as StorageLeaf;
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
-use self::leaf::Leaf;
-
 pub trait IMerkleTree<E: IEngine> {
-    /// Returns depth of merkle tree
-    fn depth(&self) -> usize;
+    ///
+    /// Loads a leaf value with authentication path at `index`.
+    ///
+    fn load(&self, index: BigInt) -> Result<StorageLeaf<E>, RuntimeError>;
 
-    /// Returns root hash
-    fn root_hash(&self) -> Option<E::Fr>;
-
-    /// Loads leaf value with authentication path
-    fn load(&self, index: BigInt) -> Result<Leaf<E>, RuntimeError>;
-
-    /// Stores value to storage, returns previous leaf value with authentication path
+    ///
+    /// Stores `values` to storage, returns the previous leaf value with authentication path.
+    ///
     fn store(
         &mut self,
         index: BigInt,
-        values: Vec<Option<Scalar<E>>>,
-    ) -> Result<Leaf<E>, RuntimeError>;
+        values: Vec<Scalar<E>>,
+    ) -> Result<StorageLeaf<E>, RuntimeError>;
+
+    ///
+    /// Returns the Merkle tree root hash.
+    ///
+    fn root_hash(&self) -> E::Fr;
+
+    ///
+    /// Returns the depth of the Merkle tree.
+    ///
+    fn depth(&self) -> usize;
 }

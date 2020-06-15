@@ -4,39 +4,11 @@ use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::Assignment;
 
-use crate::core::contract::storage::sha256;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::contract::merkle_tree::hasher::IHasher as IMerkleTreeHasher;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
-
-#[derive(Debug)]
-pub struct Leaf<E: IEngine> {
-    pub leaf_values: Vec<Option<Scalar<E>>>,
-    pub leaf_value_hash: Vec<Option<bool>>,
-    pub authentication_path: Vec<Vec<Option<bool>>>,
-}
-
-impl<E: IEngine> Leaf<E> {
-    pub fn new(values: &[Option<Scalar<E>>], authentication_path_length: Option<usize>) -> Self {
-        Self {
-            leaf_values: values.to_owned(),
-            leaf_value_hash: {
-                let mut hash = vec![];
-                for i in sha256::leaf_value_hash::<E>(values.to_owned()) {
-                    for j in (0..zinc_const::BITLENGTH_BYTE).rev() {
-                        hash.push(Some(((i >> j) & 1u8) == 1u8))
-                    }
-                }
-                hash
-            },
-            authentication_path: authentication_path_length
-                .map(|depth| vec![vec![None; zinc_const::BITLENGTH_SHA256_HASH]; depth])
-                .unwrap_or_default(),
-        }
-    }
-}
 
 pub enum AllocatedLeaf<E: IEngine> {
     LeafFields(Vec<Scalar<E>>),
@@ -159,7 +131,7 @@ impl<E: IEngine> AllocatedLeaf<E> {
 
     pub fn alloc_leaf_fields<CS>(
         mut cs: CS,
-        leaf_value: Vec<Option<Scalar<E>>>,
+        leaf_value: Vec<Scalar<E>>,
     ) -> Result<Vec<Scalar<E>>, RuntimeError>
     where
         E: IEngine,
@@ -167,8 +139,8 @@ impl<E: IEngine> AllocatedLeaf<E> {
     {
         let mut leaf_fields = Vec::new();
         for (index, scalar) in leaf_value.iter().enumerate() {
-            let r#type = scalar.as_ref().map(|value| value.get_type());
-            let fr = scalar.as_ref().and_then(|value| value.get_value());
+            let r#type = scalar.get_type();
+            let fr = scalar.get_value();
 
             let field_allocated_num = AllocatedNum::alloc(
                 cs.namespace(|| format!("leaf value: {} field", index)),
@@ -176,9 +148,7 @@ impl<E: IEngine> AllocatedLeaf<E> {
             )?;
 
             let mut scalar = Scalar::<E>::from(field_allocated_num);
-            if let Some(r#type) = r#type {
-                scalar = scalar.to_type_unchecked(r#type);
-            }
+            scalar = scalar.to_type_unchecked(r#type);
             leaf_fields.push(scalar);
         }
 
@@ -187,27 +157,26 @@ impl<E: IEngine> AllocatedLeaf<E> {
 
     pub fn alloc_leaf_hash<CS>(
         mut cs: CS,
-        leaf_hash_value: &[Option<bool>],
+        leaf_hash_value: &[bool],
     ) -> Result<Vec<Boolean>, RuntimeError>
     where
         E: IEngine,
         CS: ConstraintSystem<E>,
     {
-        let mut leaf_hash = Vec::new();
+        let mut leaf_hash = Vec::with_capacity(leaf_hash_value.len());
         for (bit_id, bit_value) in leaf_hash_value.iter().enumerate() {
             leaf_hash.push(Boolean::from(AllocatedBit::alloc(
                 cs.namespace(|| format!("{} bit of leaf hash", bit_id)),
-                *bit_value,
+                Some(*bit_value),
             )?));
         }
-
         Ok(leaf_hash)
     }
 
     pub fn alloc_authentication_path<CS>(
         mut cs: CS,
         depth: usize,
-        authentication_path: Vec<Vec<Option<bool>>>,
+        authentication_path: Vec<Vec<bool>>,
     ) -> Result<Vec<Vec<Scalar<E>>>, RuntimeError>
     where
         CS: ConstraintSystem<E>,
@@ -226,7 +195,7 @@ impl<E: IEngine> AllocatedLeaf<E> {
                             depth - index
                         )
                     }),
-                    bit,
+                    Some(bit),
                 )?);
                 let bit_scalar = Scalar::<E>::from_boolean(
                     cs.namespace(|| {

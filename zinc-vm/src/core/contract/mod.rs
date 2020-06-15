@@ -134,7 +134,7 @@ where
         gadgets::arithmetic::add::add(
             cs.namespace(|| "root_hash constraint"),
             &root_hash,
-            &Scalar::new_constant_int(0, ScalarType::Field),
+            &Scalar::new_constant_usize(0, ScalarType::Field),
         )?;
 
         Ok(())
@@ -239,7 +239,7 @@ where
     fn storage_store(
         &mut self,
         address: Scalar<Self::E>,
-        values: Vec<Option<Scalar<Self::E>>>,
+        values: Vec<Scalar<Self::E>>,
     ) -> Result<(), RuntimeError> {
         self.storage.store(self.counter.next(), address, values)
     }
@@ -260,7 +260,11 @@ where
     }
 
     fn loop_end(&mut self) -> Result<(), RuntimeError> {
-        let frame = self.state.frames_stack.last_mut().unwrap();
+        let frame = self
+            .state
+            .frames_stack
+            .last_mut()
+            .expect(crate::panic::VALUE_ALWAYS_EXISTS);
 
         match frame.blocks.pop() {
             Some(Block::Loop(mut loop_block)) => {

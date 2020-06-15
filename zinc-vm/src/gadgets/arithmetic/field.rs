@@ -59,8 +59,8 @@ mod tests {
     fn test_inverse() {
         let mut cs = TestConstraintSystem::<Bn256>::new();
 
-        let zero = Scalar::new_constant_int(0, ScalarType::Field);
-        let one = Scalar::new_constant_int(1, ScalarType::Field);
+        let zero = Scalar::new_constant_usize(0, ScalarType::Field);
+        let one = Scalar::new_constant_usize(1, ScalarType::Field);
 
         assert!(
             gadgets::arithmetic::field::inverse(cs.namespace(|| "zero"), &zero).is_err(),
@@ -68,9 +68,9 @@ mod tests {
         );
         assert_eq!(
             gadgets::arithmetic::field::inverse(cs.namespace(|| "one"), &one)
-                .unwrap()
+                .expect(crate::panic::TEST_DATA_VALID)
                 .get_value()
-                .unwrap(),
+                .expect(crate::panic::TEST_DATA_VALID),
             Fr::one(),
             "one"
         );

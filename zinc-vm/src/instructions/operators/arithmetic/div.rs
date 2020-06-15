@@ -23,7 +23,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Div {
 
         let div = match scalar_type {
             ScalarType::Field => {
-                let one = Scalar::new_constant_int(1, right.get_type());
+                let one = Scalar::new_constant_usize(1, right.get_type());
                 let denom = gadgets::select::conditional(
                     cs.namespace(|| "select denom"),
                     &condition,
@@ -42,7 +42,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Div {
                     &right,
                 )?;
 
-                gadgets::types::conditional_type_check(
+                Scalar::conditional_type_check(
                     cs.namespace(|| "type check"),
                     &condition,
                     &unchecked_div,

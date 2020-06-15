@@ -8,6 +8,7 @@ use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
+use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Mul {
@@ -22,7 +23,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Mul {
 
         let unchecked_mul = gadgets::arithmetic::mul::mul(cs.namespace(|| "mul"), &left, &right)?;
 
-        let mul = gadgets::types::conditional_type_check(
+        let mul = Scalar::conditional_type_check(
             cs.namespace(|| "type check"),
             &condition,
             &unchecked_mul,

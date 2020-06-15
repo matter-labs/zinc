@@ -21,12 +21,12 @@ where
     CS: ConstraintSystem<E>,
 {
     let fr = if let Some(bigint) = value {
-        Some(
-            gadgets::scalar::bigint_to_fr::<E>(bigint).ok_or(RuntimeError::ValueOverflow {
+        Some(gadgets::scalar::fr_bigint::bigint_to_fr::<E>(bigint).ok_or(
+            RuntimeError::ValueOverflow {
                 value: bigint.clone(),
                 scalar_type: scalar_type.clone(),
-            })?,
-        )
+            },
+        )?)
     } else {
         None
     };
@@ -43,7 +43,7 @@ where
         }
         scalar_type => {
             let condition = Scalar::new_constant_fr(E::Fr::one(), ScalarType::Boolean);
-            gadgets::types::conditional_type_check(
+            Scalar::conditional_type_check(
                 cs.namespace(|| "type check"),
                 &condition,
                 &scalar,

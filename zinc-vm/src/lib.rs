@@ -10,6 +10,7 @@ pub(crate) mod error;
 pub mod facade;
 pub mod gadgets;
 pub(crate) mod instructions;
+pub mod panic;
 
 pub use pairing::bn256::Bn256;
 

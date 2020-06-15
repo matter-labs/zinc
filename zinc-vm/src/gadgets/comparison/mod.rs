@@ -162,13 +162,17 @@ where
 {
     assert!(length < E::Fr::CAPACITY as usize);
     let base_bigint = (BigInt::from(1) << length) - BigInt::from(1);
-    let base = gadgets::scalar::bigint_to_fr::<E>(&base_bigint).unwrap();
+    let base = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&base_bigint)
+        .expect(crate::panic::VALUE_ALWAYS_EXISTS);
 
     let expr =
         Expression::constant::<CS>(base) - left.to_expression::<CS>() + right.to_expression::<CS>();
     let bits = expr.into_bits_le_fixed(cs.namespace(|| "into_bits_le_fixed"), length + 1)?;
 
-    Ok(bits.last().unwrap().clone())
+    Ok(bits
+        .last()
+        .expect(crate::panic::VALUE_ALWAYS_EXISTS)
+        .clone())
 }
 
 pub fn equals<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>

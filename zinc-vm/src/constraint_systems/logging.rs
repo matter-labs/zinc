@@ -133,7 +133,7 @@ fn lc_to_string<E: Engine>(lc: &LinearCombination<E>) -> String {
 
     let mut is_first = true;
     for (var, c) in lc.as_ref() {
-        let c_value = gadgets::scalar::fr_to_bigint::<E>(c, true);
+        let c_value = gadgets::scalar::fr_bigint::fr_to_bigint::<E>(c, true);
 
         let mut c_str = if c_value == BigInt::from(1) {
             " + ".into()

@@ -33,7 +33,7 @@ where
             ScalarVariant::Constant(_) => {
                 let scalar_type = num.get_type();
 
-                let num_value = gadgets::scalar::fr_to_bigint::<E>(
+                let num_value = gadgets::scalar::fr_bigint::fr_to_bigint::<E>(
                     &num.get_constant()?,
                     scalar_type.is_signed(),
                 );
@@ -44,12 +44,11 @@ where
                 let mut result_value = &num_value >> shift_value;
                 result_value &= &BigInt::from_bytes_le(Sign::Plus, mask.as_slice());
 
-                let result_fr = gadgets::scalar::bigint_to_fr::<E>(&result_value).ok_or(
-                    RuntimeError::ValueOverflow {
+                let result_fr = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&result_value)
+                    .ok_or(RuntimeError::ValueOverflow {
                         value: result_value,
                         scalar_type: scalar_type.clone(),
-                    },
-                )?;
+                    })?;
                 Ok(Scalar::new_constant_fr(result_fr, scalar_type))
             }
         },
@@ -85,7 +84,7 @@ where
         )?;
         variants.push(variant.into());
     }
-    variants.push(Scalar::new_constant_int(0, ScalarType::Field)); // offset `len` will clear all bits.
+    variants.push(Scalar::new_constant_usize(0, ScalarType::Field)); // offset `len` will clear all bits.
 
     let shift_bits_be = shift
         .to_expression::<CS>()

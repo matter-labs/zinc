@@ -7,6 +7,7 @@ use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
+use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Neg {
@@ -22,7 +23,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Neg {
                 let condition = vm.condition_top()?;
                 let cs = vm.constraint_system();
                 int_type.is_signed = true;
-                let neg = gadgets::types::conditional_type_check(
+                let neg = Scalar::conditional_type_check(
                     cs.namespace(|| "neg"),
                     &condition,
                     &unchecked_neg,

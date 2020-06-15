@@ -60,6 +60,6 @@ impl Program {
     }
 
     pub fn into_bytes(self) -> Vec<u8> {
-        bincode::serialize(&self).expect("Failed to serialize program")
+        bincode::serialize(&self).expect(crate::panic::BINARY_SERIALIZATION)
     }
 }

@@ -5,31 +5,32 @@ use ff::Field;
 
 use zinc_bytecode::DataType;
 
+use crate::core::contract::storage::leaf::Leaf as StorageLeaf;
 use crate::error::RuntimeError;
-use crate::gadgets::contract::merkle_tree::leaf::Leaf as MerkleTreeLeaf;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
 pub struct Storage<E: IEngine> {
+    leaf_values: Vec<Vec<Scalar<E>>>,
     depth: usize,
-    leaf_values: Vec<Vec<Option<Scalar<E>>>>,
 }
 
 impl<E: IEngine> Storage<E> {
-    pub fn new(fields: Vec<DataType>) -> Self {
-        let depth = (fields.len() as f64).log2().ceil() as usize;
+    pub fn new(values: Vec<DataType>) -> Self {
+        let depth = (values.len() as f64).log2().ceil() as usize;
+        let leaf_values_count = 1 << depth;
 
         let mut result = Self {
+            leaf_values: vec![vec![]; leaf_values_count],
             depth,
-            leaf_values: vec![vec![]; fields.len()],
         };
 
-        for (index, field) in fields.into_iter().enumerate() {
-            let values = field
+        for (index, r#type) in values.into_iter().enumerate() {
+            let values = r#type
                 .to_scalar_types()
                 .into_iter()
-                .map(|r#type| Some(Scalar::<E>::new_constant_int(0, r#type)))
+                .map(|r#type| Scalar::<E>::new_constant_usize(0, r#type))
                 .collect();
             result.leaf_values[index] = values;
         }
@@ -39,35 +40,37 @@ impl<E: IEngine> Storage<E> {
 }
 
 impl<E: IEngine> IMerkleTree<E> for Storage<E> {
-    fn depth(&self) -> usize {
-        self.depth
-    }
-
-    fn root_hash(&self) -> Option<E::Fr> {
-        Some(E::Fr::zero())
-    }
-
-    fn load(&self, index: BigInt) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
+    fn load(&self, index: BigInt) -> Result<StorageLeaf<E>, RuntimeError> {
         let index = index.to_usize().ok_or(RuntimeError::ExpectedUsize(index))?;
 
-        Ok(MerkleTreeLeaf::new(
+        Ok(StorageLeaf::new(
             self.leaf_values[index].as_slice(),
-            Some(self.depth),
+            None,
+            self.depth,
         ))
     }
 
     fn store(
         &mut self,
         index: BigInt,
-        value: Vec<Option<Scalar<E>>>,
-    ) -> Result<MerkleTreeLeaf<E>, RuntimeError> {
+        value: Vec<Scalar<E>>,
+    ) -> Result<StorageLeaf<E>, RuntimeError> {
         let index = index.to_usize().ok_or(RuntimeError::ExpectedUsize(index))?;
 
         self.leaf_values[index] = value;
 
-        Ok(MerkleTreeLeaf::new(
+        Ok(StorageLeaf::new(
             self.leaf_values[index].as_slice(),
-            Some(self.depth),
+            None,
+            self.depth,
         ))
+    }
+
+    fn root_hash(&self) -> E::Fr {
+        E::Fr::zero()
+    }
+
+    fn depth(&self) -> usize {
+        self.depth
     }
 }

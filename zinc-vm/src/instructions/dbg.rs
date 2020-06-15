@@ -28,8 +28,8 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                     flat.push(value);
                 }
                 flat.reverse();
-                let value =
-                    TemplateValue::from_flat_values(arg_type, &flat).expect("value size is known");
+                let value = TemplateValue::from_flat_values(arg_type, &flat)
+                    .expect(crate::panic::VALUE_ALWAYS_EXISTS);
                 values.push(value);
             };
         }
@@ -38,7 +38,8 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
             if condition.is_positive() && vm.is_debugging() {
                 let mut buffer = self.format.clone();
                 for value in values.into_iter().rev() {
-                    let json = serde_json::to_string(&value.to_json()).expect("valid json");
+                    let json = serde_json::to_string(&value.to_json())
+                        .expect(crate::panic::JSON_TEMPLATE_SERIALIZATION);
                     buffer = buffer.replacen("{}", &json, 1);
                 }
                 eprintln!("{}", buffer);
@@ -59,6 +60,6 @@ mod tests {
             .add(zinc_bytecode::Push::new_field(42.into()))
             .add(zinc_bytecode::Dbg::new("Value: {}".into(), vec![]))
             .test::<u32>(&[])
-            .unwrap();
+            .expect(crate::panic::TEST_DATA_VALID);
     }
 }

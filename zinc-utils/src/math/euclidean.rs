@@ -39,23 +39,27 @@ pub fn div_rem(nominator: &BigInt, denominator: &BigInt) -> Option<(BigInt, BigI
 mod test {
     use num_bigint::BigInt;
 
-    use super::div_rem;
+    use crate::math::euclidean;
 
     #[test]
     fn test_div_rem() {
-        let (d, r) = div_rem(&BigInt::from(9), &BigInt::from(4)).unwrap();
+        let (d, r) = euclidean::div_rem(&BigInt::from(9), &BigInt::from(4))
+            .expect(crate::panic::TEST_DATA_VALID);
         assert_eq!(d, BigInt::from(2));
         assert_eq!(r, BigInt::from(1));
 
-        let (d, r) = div_rem(&BigInt::from(-9), &BigInt::from(-4)).unwrap();
+        let (d, r) = euclidean::div_rem(&BigInt::from(-9), &BigInt::from(-4))
+            .expect(crate::panic::TEST_DATA_VALID);
         assert_eq!(d, BigInt::from(3));
         assert_eq!(r, BigInt::from(3));
 
-        let (d, r) = div_rem(&BigInt::from(-9), &BigInt::from(4)).unwrap();
+        let (d, r) = euclidean::div_rem(&BigInt::from(-9), &BigInt::from(4))
+            .expect(crate::panic::TEST_DATA_VALID);
         assert_eq!(d, BigInt::from(-3));
         assert_eq!(r, BigInt::from(3));
 
-        let (d, r) = div_rem(&BigInt::from(9), &BigInt::from(-4)).unwrap();
+        let (d, r) = euclidean::div_rem(&BigInt::from(9), &BigInt::from(-4))
+            .expect(crate::panic::TEST_DATA_VALID);
         assert_eq!(d, BigInt::from(-2));
         assert_eq!(r, BigInt::from(1));
     }

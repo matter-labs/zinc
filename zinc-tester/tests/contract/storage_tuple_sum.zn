@@ -1,0 +1,24 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "entry": "main",
+//#     "input": {},
+//#     "expect": "50"
+//# } ] }
+
+contract Test {
+    data: (u8, u8, u8, u8);
+
+    pub fn main(mut self) -> u8 {
+        self.data.0 = 20;
+        self.data.1 = 15;
+        self.data.2 = 10;
+        self.data.3 = 5;
+
+        let mut sum = 0;
+        sum += self.data.0;
+        sum += self.data.1;
+        sum += self.data.2;
+        sum += self.data.3;
+        sum
+    }
+}

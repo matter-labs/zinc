@@ -44,7 +44,10 @@ impl<E: IEngine> fmt::Display for ExecutionState<E> {
         writeln!(
             f,
             "Data stack offset: {}\n",
-            self.frames_stack.last().unwrap().stack_frame_start
+            self.frames_stack
+                .last()
+                .expect(crate::panic::VALUE_ALWAYS_EXISTS)
+                .stack_frame_start
         )?;
         writeln!(f, "{}", self.data_stack)?;
 

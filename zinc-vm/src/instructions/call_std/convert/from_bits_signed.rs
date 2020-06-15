@@ -61,7 +61,7 @@ impl<E: IEngine> INativeCallable<E> for SignedFromBits {
         let num_expr = Expression::from(&num);
         let base_value = BigInt::from(1) << self.bitlength;
         let base_expr = Expression::<E>::constant::<CS>(
-            gadgets::scalar::bigint_to_fr::<E>(&base_value).expect("length is too big"),
+            gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&base_value).expect("length is too big"),
         );
 
         let num = (num_expr - base_expr).into_number(cs.namespace(|| "result"))?;

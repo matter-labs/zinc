@@ -36,9 +36,9 @@ where
     for (i, expected) in expected_stack.iter().enumerate() {
         let value = vm
             .pop()
-            .expect("expected stack value is missing")
+            .expect(crate::panic::TEST_DATA_VALID)
             .try_into_value()
-            .expect("expected Cell::Value");
+            .expect(crate::panic::TEST_DATA_VALID);
 
         assert_eq!(
             value.to_bigint(),

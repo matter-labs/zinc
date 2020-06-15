@@ -1,0 +1,31 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "entry": "main",
+//#     "input": {},
+//#     "expect": "50"
+//# } ] }
+
+struct Data {
+    a: u8,
+    b: u8,
+    c: u8,
+    d: u8,
+}
+
+contract Test {
+    data: Data;
+
+    pub fn main(mut self) -> u8 {
+        self.data.a = 20;
+        self.data.b = 15;
+        self.data.c = 10;
+        self.data.d = 5;
+
+        let mut sum = 0;
+        sum += self.data.a;
+        sum += self.data.b;
+        sum += self.data.c;
+        sum += self.data.d;
+        sum
+    }
+}

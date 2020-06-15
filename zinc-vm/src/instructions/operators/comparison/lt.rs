@@ -52,7 +52,7 @@ mod test {
     fn edge_cases() -> Result<(), TestingError> {
         let mut max_fr = Fr::zero();
         max_fr.sub_assign(&Fr::one());
-        let max = gadgets::scalar::fr_to_bigint::<Bn256>(&max_fr, false);
+        let max = gadgets::scalar::fr_bigint::fr_to_bigint::<Bn256>(&max_fr, false);
 
         TestRunner::new()
             .add(zinc_bytecode::Push::new(max.clone(), ScalarType::Field))

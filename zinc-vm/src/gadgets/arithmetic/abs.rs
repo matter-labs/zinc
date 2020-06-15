@@ -34,7 +34,7 @@ where
                 });
 
                 let scalar = scalar.to_type_unchecked(scalar_type.clone());
-                let zero = Scalar::new_constant_int(0, scalar_type);
+                let zero = Scalar::new_constant_usize(0, scalar_type);
                 let neg = gadgets::arithmetic::neg::neg(cs.namespace(|| "neg"), &scalar)?;
                 let lt0 = gadgets::comparison::lesser_than(cs.namespace(|| "lt"), &scalar, &zero)?;
 

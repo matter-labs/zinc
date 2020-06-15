@@ -204,7 +204,7 @@ mod tests {
         sigs_repr
             .read_le(&sigs_bytes[..])
             .expect("interpret S as field element representation");
-        let sigs_converted = Fr::from_repr(sigs_repr).unwrap();
+        let sigs_converted = Fr::from_repr(sigs_repr).expect(crate::panic::TEST_DATA_VALID);
 
         let (r_x, r_y) = signature.r.into_xy();
         let s = sigs_converted;
@@ -221,7 +221,7 @@ mod tests {
 
         let mut cs = TestConstraintSystem::new();
         VerifySchnorrSignature::new(5 + 8 * message.len())
-            .unwrap()
+            .expect(crate::panic::TEST_DATA_VALID)
             .call(cs.namespace(|| "signature check"), &mut stack)?;
 
         let is_valid = stack.pop()?.try_into_value()?;

@@ -212,7 +212,7 @@ where
     fn storage_store(
         &mut self,
         _address: Scalar<Self::E>,
-        _value: Vec<Option<Scalar<Self::E>>>,
+        _value: Vec<Scalar<Self::E>>,
     ) -> Result<(), RuntimeError> {
         unimplemented!()
     }
@@ -233,7 +233,11 @@ where
     }
 
     fn loop_end(&mut self) -> Result<(), RuntimeError> {
-        let frame = self.state.frames_stack.last_mut().unwrap();
+        let frame = self
+            .state
+            .frames_stack
+            .last_mut()
+            .expect(crate::panic::VALUE_ALWAYS_EXISTS);
 
         match frame.blocks.pop() {
             Some(Block::Loop(mut loop_block)) => {

@@ -25,7 +25,7 @@ where
         cs.namespace(|| "select denominator"),
         condition,
         right,
-        &Scalar::new_constant_int(1, right.get_type()),
+        &Scalar::new_constant_usize(1, right.get_type()),
     )?;
 
     auto_const!(div_rem_enforce, cs, left, &denom)
@@ -48,14 +48,15 @@ where
     let mut remainder_value: Option<E::Fr> = None;
 
     if let (Some(nom), Some(denom)) = (nominator.get_value(), denominator.get_value()) {
-        let nom_bi = gadgets::scalar::fr_to_bigint::<E>(&nom, nominator.is_signed());
-        let denom_bi = gadgets::scalar::fr_to_bigint::<E>(&denom, denominator.is_signed());
+        let nom_bi = gadgets::scalar::fr_bigint::fr_to_bigint::<E>(&nom, nominator.is_signed());
+        let denom_bi =
+            gadgets::scalar::fr_bigint::fr_to_bigint::<E>(&denom, denominator.is_signed());
 
         let (q, r) =
             math::euclidean::div_rem(&nom_bi, &denom_bi).ok_or(RuntimeError::DivisionByZero)?;
 
-        quotient_value = gadgets::scalar::bigint_to_fr::<E>(&q);
-        remainder_value = gadgets::scalar::bigint_to_fr::<E>(&r);
+        quotient_value = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&q);
+        remainder_value = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&r);
     }
 
     let (quotient, remainder) = {
@@ -84,7 +85,7 @@ where
         &remainder.to_field(),
         &abs_denominator.to_field(),
     )?;
-    let zero = Scalar::new_constant_int(0, remainder.get_type());
+    let zero = Scalar::new_constant_usize(0, remainder.get_type());
     let ge = gadgets::comparison::greater_or_equals(cs.namespace(|| "ge"), &remainder, &zero)?;
     cs.enforce(
         || "0 <= rem < |denominator|",

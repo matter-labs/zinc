@@ -8,6 +8,7 @@ use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
+use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Add {
@@ -22,7 +23,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Add {
 
         let unchecked_sum = gadgets::arithmetic::add::add(cs.namespace(|| "sum"), &left, &right)?;
 
-        let sum = gadgets::types::conditional_type_check(
+        let sum = Scalar::conditional_type_check(
             cs.namespace(|| "type check"),
             &condition,
             &unchecked_sum,

@@ -8,6 +8,7 @@ use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
+use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Sub {
@@ -22,7 +23,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Sub {
 
         let unchecked_diff = gadgets::arithmetic::sub::sub(cs.namespace(|| "diff"), &left, &right)?;
 
-        let diff = gadgets::types::conditional_type_check(
+        let diff = Scalar::conditional_type_check(
             cs.namespace(|| "type check"),
             &condition,
             &unchecked_diff,

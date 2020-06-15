@@ -9,7 +9,6 @@ pub mod logical;
 pub mod output;
 pub mod scalar;
 pub mod select;
-pub mod types;
 pub mod witness;
 
 use franklin_crypto::bellman::ConstraintSystem;

@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use std::process;
 
 use colored::Colorize;
+use rayon::ThreadPoolBuilder;
 
 use zinc_tester::Directory;
 use zinc_tester::EvaluationRunner;
@@ -19,10 +20,17 @@ const EXIT_CODE_SUCCESS: i32 = 0;
 const EXIT_CODE_FAILURE: i32 = 1;
 
 static TEST_DIRECTORY_INVALID: &str = "The test files directory must be valid";
+static RAYON_POOL_INITIALIZATION: &str = "The thread pool is initialized only once";
 
 fn main() {
     let args = Arguments::new();
 
+    if args.proof_check {
+        ThreadPoolBuilder::new()
+            .num_threads(1)
+            .build_global()
+            .expect(RAYON_POOL_INITIALIZATION);
+    }
     println!(
         "[INTEGRATION] Started with {} worker threads",
         rayon::current_num_threads()

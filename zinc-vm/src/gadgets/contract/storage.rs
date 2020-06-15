@@ -8,8 +8,8 @@ use zinc_bytecode::ScalarType;
 
 use crate::error::RuntimeError;
 use crate::gadgets;
+use crate::gadgets::contract::merkle_tree::allocated_leaf::AllocatedLeaf;
 use crate::gadgets::contract::merkle_tree::hasher::IHasher as IMerkleTreeHasher;
-use crate::gadgets::contract::merkle_tree::leaf::AllocatedLeaf;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
@@ -31,9 +31,7 @@ where
     where
         CS: ConstraintSystem<E>,
     {
-        let root_hash_value = storage
-            .root_hash()
-            .ok_or(SynthesisError::AssignmentMissing)?;
+        let root_hash_value = storage.root_hash();
         let root_hash_variable = cs.alloc(|| "root hash variable", || Ok(root_hash_value))?;
         let root_hash = Scalar::<E>::new_unchecked_variable(
             Some(root_hash_value),
@@ -63,8 +61,8 @@ where
 
         let index = index
             .get_value()
-            .map(|field| gadgets::scalar::fr_to_bigint::<E>(&field, false))
-            .unwrap();
+            .map(|field| gadgets::scalar::fr_bigint::fr_to_bigint::<E>(&field, false))
+            .expect(crate::panic::TEST_DATA_VALID);
         let merkle_tree_leaf = self.storage.load(index)?;
 
         let leaf_fields = AllocatedLeaf::alloc_leaf_fields(
@@ -113,7 +111,7 @@ where
         &mut self,
         mut cs: CS,
         index: Scalar<E>,
-        values: Vec<Option<Scalar<E>>>,
+        values: Vec<Scalar<E>>,
     ) -> Result<(), RuntimeError>
     where
         CS: ConstraintSystem<E>,
@@ -125,8 +123,8 @@ where
         let merkle_tree_leaf = self.storage.store(
             index
                 .get_value()
-                .map(|field| gadgets::scalar::fr_to_bigint::<E>(&field, false))
-                .unwrap(),
+                .map(|field| gadgets::scalar::fr_bigint::fr_to_bigint::<E>(&field, false))
+                .expect(crate::panic::TEST_DATA_VALID),
             values.clone(),
         )?;
 
@@ -162,15 +160,13 @@ where
             &Boolean::Constant(true),
         )?;
 
-        self.root_hash =
-            AllocatedLeaf::LeafFields(values.into_iter().filter_map(|value| value).collect())
-                .enforce_merkle_tree_path(
-                    cs.namespace(|| "enforce merkle tree path (storing value)"),
-                    depth,
-                    &H::default(),
-                    &index_bits,
-                    &authentication_path,
-                )?;
+        self.root_hash = AllocatedLeaf::LeafFields(values).enforce_merkle_tree_path(
+            cs.namespace(|| "enforce merkle tree path (storing value)"),
+            depth,
+            &H::default(),
+            &index_bits,
+            &authentication_path,
+        )?;
 
         Ok(())
     }
@@ -186,12 +182,10 @@ mod tests {
     use rand::SeedableRng;
     use rand::XorShiftRng;
 
-    use ff::PrimeField;
     use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::num::AllocatedNum;
     use franklin_crypto::circuit::test::TestConstraintSystem;
     use pairing::bn256::Bn256;
-    use pairing::bn256::Fr;
 
     use zinc_bytecode::DataType;
     use zinc_bytecode::ScalarType;
@@ -201,6 +195,7 @@ mod tests {
     use crate::gadgets::contract::storage::StorageGadget;
     use crate::gadgets::scalar::Scalar;
 
+    #[ignore]
     #[test]
     fn test_storage_gadget_small() {
         const STORAGE_ELEMENT_COUNT: usize = 4;
@@ -219,7 +214,7 @@ mod tests {
             cs.namespace(|| "gadget creation"),
             storage_test_dummy,
         )
-        .unwrap();
+        .expect(crate::panic::TEST_DATA_VALID);
 
         for i in 0..STORAGE_ELEMENT_COUNT {
             let scalar = Scalar::<Bn256>::from(
@@ -227,34 +222,28 @@ mod tests {
                     cs.namespace(|| format!("variable :: index({}); field index({})", i, 1)),
                     || Ok(rng.gen()),
                 )
-                .unwrap(),
+                .expect(crate::panic::TEST_DATA_VALID),
             );
-            let fr = scalar.get_value().unwrap();
+            let fr = scalar.get_value().expect(crate::panic::TEST_DATA_VALID);
 
             storage_gadget
                 .store(
                     cs.namespace(|| format!("store :: index({})", i)),
-                    Scalar::<Bn256>::new_constant_fr(
-                        Fr::from_str(&i.to_string()).unwrap(),
-                        ScalarType::Field,
-                    ),
-                    vec![Some(scalar)],
+                    Scalar::<Bn256>::new_constant_usize(i, ScalarType::Field),
+                    vec![scalar],
                 )
-                .unwrap();
+                .expect(crate::panic::TEST_DATA_VALID);
 
             let loaded_fr = storage_gadget
                 .load(
                     cs.namespace(|| format!("load :: index({})", i)),
                     1,
-                    Scalar::<Bn256>::new_constant_fr(
-                        Fr::from_str(&i.to_string()).unwrap(),
-                        ScalarType::Field,
-                    ),
+                    Scalar::<Bn256>::new_constant_usize(i, ScalarType::Field),
                 )
-                .unwrap()
+                .expect(crate::panic::TEST_DATA_VALID)
                 .remove(0)
                 .get_value()
-                .unwrap();
+                .expect(crate::panic::TEST_DATA_VALID);
 
             assert_eq!(loaded_fr, fr);
         }

@@ -1,19 +1,15 @@
 pub mod expectation;
+pub mod fr_bigint;
 pub mod variant;
 
 use std::fmt;
-use std::ops::Div;
-use std::ops::Neg;
 
 use num_bigint::BigInt;
-use num_bigint::Sign;
 use num_bigint::ToBigInt;
-use num_traits::Signed;
 use num_traits::ToPrimitive;
 
 use ff::Field;
 use ff::PrimeField;
-use ff::PrimeFieldRepr;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::LinearCombination;
 use franklin_crypto::bellman::SynthesisError;
@@ -23,8 +19,8 @@ use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::Assignment;
-use pairing::Engine;
 
+use zinc_bytecode::IntegerType;
 use zinc_bytecode::ScalarType;
 
 use crate::error::RuntimeError;
@@ -43,7 +39,7 @@ pub struct Scalar<E: IEngine> {
 }
 
 impl<E: IEngine> Scalar<E> {
-    pub fn new_constant_int(value: usize, scalar_type: ScalarType) -> Self {
+    pub fn new_constant_usize(value: usize, scalar_type: ScalarType) -> Self {
         let value_string = value.to_string();
         let fr = E::Fr::from_str(&value_string).expect("failed to convert u64 into Fr");
         Self::new_constant_fr(fr, scalar_type)
@@ -65,7 +61,7 @@ impl<E: IEngine> Scalar<E> {
         value: &BigInt,
         scalar_type: ScalarType,
     ) -> Result<Self, RuntimeError> {
-        let fr = bigint_to_fr::<E>(value).ok_or(RuntimeError::ValueOverflow {
+        let fr = fr_bigint::bigint_to_fr::<E>(value).ok_or(RuntimeError::ValueOverflow {
             value: value.clone(),
             scalar_type: scalar_type.clone(),
         })?;
@@ -165,7 +161,7 @@ impl<E: IEngine> Scalar<E> {
 
     pub fn get_constant_usize(&self) -> Result<usize, RuntimeError> {
         let fr = self.get_constant()?;
-        let bigint = fr_to_bigint::<E>(&fr, false);
+        let bigint = fr_bigint::fr_to_bigint::<E>(&fr, false);
         bigint
             .to_usize()
             .ok_or_else(|| RuntimeError::ExpectedUsize(bigint))
@@ -218,64 +214,99 @@ impl<E: IEngine> Scalar<E> {
                 Ok(scalar.to_type_unchecked(ScalarType::Boolean))
             }
             Boolean::Constant(_) => Ok(Self::new_constant_fr(
-                boolean.get_value_field::<E>().unwrap(),
+                boolean
+                    .get_value_field::<E>()
+                    .ok_or(RuntimeError::ExpectedConstant)?,
                 ScalarType::Boolean,
             )),
         }
     }
-}
 
-pub fn fr_to_bigint<E: Engine>(fr: &E::Fr, signed: bool) -> BigInt {
-    if signed {
-        fr_to_bigint_signed::<E>(fr)
-    } else {
-        fr_to_bigint_unsigned::<E>(fr)
+    pub fn conditional_type_check<CS>(
+        cs: CS,
+        condition: &Self,
+        scalar: &Self,
+        scalar_type: ScalarType,
+    ) -> Result<Self, RuntimeError>
+    where
+        CS: ConstraintSystem<E>,
+    {
+        condition.get_type().assert_type(ScalarType::Boolean)?;
+
+        match scalar_type {
+            ScalarType::Boolean => {
+                // Check as u1 integer, then changet type to Boolean
+                let checked =
+                    Self::conditional_type_check(cs, condition, scalar, IntegerType::U1.into())?;
+                Ok(checked.to_type_unchecked(scalar_type))
+            }
+            ScalarType::Integer(int_type) => {
+                Self::conditional_int_type_check(cs, condition, scalar, int_type)
+            }
+            ScalarType::Field => {
+                // Always safe to cast into field
+                Ok(scalar.to_field())
+            }
+        }
     }
-}
 
-pub fn bigint_to_fr<E: Engine>(bigint: &BigInt) -> Option<E::Fr> {
-    if bigint.is_positive() {
-        E::Fr::from_str(&bigint.to_str_radix(10))
-    } else {
-        let abs = E::Fr::from_str(&bigint.neg().to_str_radix(10))?;
-        let mut fr = E::Fr::zero();
-        fr.sub_assign(&abs);
-        Some(fr)
+    fn conditional_int_type_check<CS>(
+        mut cs: CS,
+        condition: &Self,
+        scalar: &Self,
+        int_type: IntegerType,
+    ) -> Result<Self, RuntimeError>
+    where
+        CS: ConstraintSystem<E>,
+    {
+        // Throw runtime error if value is known.
+        if let (Some(value_fr), Some(condition_fr)) = (scalar.get_value(), condition.get_value()) {
+            let value = fr_bigint::fr_to_bigint::<E>(&value_fr, int_type.is_signed);
+            if !condition_fr.is_zero() && (value < int_type.min() || value > int_type.max()) {
+                return Err(RuntimeError::ValueOverflow {
+                    value,
+                    scalar_type: int_type.into(),
+                });
+            }
+        }
+
+        // If scalar is constant and have passed the check, no need to create constraints.
+        if scalar.is_constant() {
+            return Ok(scalar.to_type_unchecked(int_type.into()));
+        }
+
+        let scalar_expr = scalar.to_expression::<CS>();
+        let offset_expr = if !int_type.is_signed {
+            Expression::u64::<CS>(0)
+        } else {
+            let offset = BigInt::from(1) << (int_type.bitlength - 1);
+            let offset_fr =
+                fr_bigint::bigint_to_fr::<E>(&offset).expect("invalid integer type length");
+            Expression::constant::<CS>(offset_fr)
+        };
+        let zero = Expression::u64::<CS>(0);
+
+        // If checking inside the false branch, use zero instead to avoid throwing an error.
+        let condition_bool = condition.to_boolean(cs.namespace(|| "to_boolean"))?;
+        let value_to_check = Expression::conditionally_select(
+            cs.namespace(|| "select value to check"),
+            scalar_expr + offset_expr,
+            zero,
+            &condition_bool,
+        )?;
+
+        // If value is overflowing, `into_bits_le_fixed` will be unsatisfiable.
+        let _bits =
+            value_to_check.into_bits_le_fixed(cs.namespace(|| "into_bits"), int_type.bitlength)?;
+
+        Ok(scalar.to_type_unchecked(int_type.into()))
     }
-}
-
-fn fr_to_bigint_signed<E: Engine>(fr: &E::Fr) -> BigInt {
-    let mut buffer = Vec::<u8>::new();
-    E::Fr::char()
-        .write_be(&mut buffer)
-        .expect("failed to write into Vec<u8>");
-    let modulus = BigInt::from_bytes_be(Sign::Plus, &buffer);
-    buffer.clear();
-
-    fr.into_repr()
-        .write_be(&mut buffer)
-        .expect("failed to write into Vec<u8>");
-    let value = BigInt::from_bytes_be(Sign::Plus, &buffer);
-
-    if value < (modulus.clone().div(2)) {
-        value
-    } else {
-        value - modulus
-    }
-}
-
-fn fr_to_bigint_unsigned<E: Engine>(fr: &E::Fr) -> BigInt {
-    let mut buffer = Vec::<u8>::new();
-    fr.into_repr()
-        .write_be(&mut buffer)
-        .expect("failed to write into Vec<u8>");
-    BigInt::from_bytes_be(Sign::Plus, &buffer)
 }
 
 impl<E: IEngine> ToBigInt for Scalar<E> {
     fn to_bigint(&self) -> Option<BigInt> {
         self.get_value()
-            .map(|fr| fr_to_bigint::<E>(&fr, self.is_signed()))
+            .map(|fr| fr_bigint::fr_to_bigint::<E>(&fr, self.is_signed()))
     }
 }
 
@@ -309,56 +340,10 @@ impl<E: IEngine> fmt::Display for Scalar<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value_str = self
             .get_value()
-            .map(|f| fr_to_bigint::<E>(&f, self.is_signed()).to_string())
+            .map(|f| fr_bigint::fr_to_bigint::<E>(&f, self.is_signed()).to_string())
             .unwrap_or_else(|| "none".into());
 
         let det = if self.is_constant() { "det" } else { "witness" };
         write!(f, "{} as {} ({})", value_str, self.scalar_type, det)
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use num_bigint::BigInt;
-    use num_traits::ToPrimitive;
-
-    use ff::PrimeField;
-    use franklin_crypto::bellman::pairing::bn256::Bn256;
-    use franklin_crypto::bellman::pairing::bn256::Fr;
-
-    use crate::gadgets;
-
-    #[test]
-    fn test_fr_to_bigint() {
-        let values = [0, 1, 2, 42, 1_234_567_890];
-
-        for value in values.iter() {
-            let fr = Fr::from_str(value.to_string().as_str()).unwrap();
-            let bigint = gadgets::scalar::fr_to_bigint::<Bn256>(&fr, true);
-            assert_eq!(bigint.to_i32(), Some(*value));
-        }
-    }
-
-    #[test]
-    fn test_bigint_to_fr() {
-        let values = [0, 1, 2, 42, 1_234_567_890];
-
-        for value in values.iter() {
-            let bigint = BigInt::from(*value);
-            let fr = gadgets::scalar::bigint_to_fr::<Bn256>(&bigint);
-            assert_eq!(fr, Fr::from_str(value.to_string().as_str()));
-        }
-    }
-
-    #[test]
-    fn test_negatives() {
-        let values = [-1 as isize, -42, -123_456_789_098_761];
-
-        for value in values.iter() {
-            let expected = BigInt::from(*value);
-            let fr = gadgets::scalar::bigint_to_fr::<Bn256>(&expected).expect("bigint_to_fr");
-            let actual = gadgets::scalar::fr_to_bigint::<Bn256>(&fr, true);
-            assert_eq!(actual, expected);
-        }
     }
 }

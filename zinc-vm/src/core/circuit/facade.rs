@@ -57,7 +57,11 @@ impl IFacade for BytecodeCircuit {
         log::debug!("{}", cs.pretty_print());
 
         if !cs.is_satisfied() {
-            log::error!("Unsatisfied: {}", cs.which_is_unsatisfied().unwrap());
+            log::error!(
+                "Unsatisfied: {}",
+                cs.which_is_unsatisfied()
+                    .expect(crate::panic::VALUE_ALWAYS_EXISTS)
+            );
             return Err(RuntimeError::UnsatisfiedConstraint);
         }
 
@@ -71,7 +75,7 @@ impl IFacade for BytecodeCircuit {
 
         let output_flat = result
             .into_iter()
-            .map(|v| v.expect("`run` always computes witness"))
+            .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
             .collect::<Vec<_>>();
 
         let value = TemplateValue::from_flat_values(&output, &output_flat).ok_or_else(|| {
@@ -117,7 +121,7 @@ impl IFacade for BytecodeCircuit {
 
         let output_flat = result
             .into_iter()
-            .map(|v| v.expect("`run` always computes witness"))
+            .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
             .collect::<Vec<_>>();
 
         let value = TemplateValue::from_flat_values(&output, &output_flat).ok_or_else(|| {
@@ -144,7 +148,7 @@ impl IFacade for BytecodeCircuit {
 
         let params = groth16::generate_random_parameters::<E, _, _>(synthesizable, rng)?;
 
-        match result.expect("vm should return either output or error") {
+        match result.expect(crate::panic::VALUE_ALWAYS_EXISTS) {
             Ok(_) => Ok(params),
             Err(error) => Err(error),
         }
@@ -180,7 +184,7 @@ impl IFacade for BytecodeCircuit {
                 Ok(values) => {
                     let output_flat: Vec<BigInt> = values
                         .into_iter()
-                        .map(|v| v.expect("`prove` always computes witness"))
+                        .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
                         .collect();
 
                     let value = TemplateValue::from_flat_values(&output, &output_flat).ok_or_else(
