@@ -1,3 +1,7 @@
+//!
+//! The output allocating gadget.
+//!
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use crate::error::RuntimeError;

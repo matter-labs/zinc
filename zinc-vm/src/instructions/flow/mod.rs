@@ -1,4 +1,8 @@
-pub mod branching;
+//!
+//! The flow control instructions.
+//!
+
+pub mod conditional;
 pub mod exit;
-pub mod func;
+pub mod function;
 pub mod r#loop;

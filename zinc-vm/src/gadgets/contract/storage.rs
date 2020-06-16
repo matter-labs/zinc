@@ -182,10 +182,10 @@ mod tests {
     use rand::SeedableRng;
     use rand::XorShiftRng;
 
+    use franklin_crypto::bellman::pairing::bn256::Bn256;
     use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::num::AllocatedNum;
     use franklin_crypto::circuit::test::TestConstraintSystem;
-    use pairing::bn256::Bn256;
 
     use zinc_bytecode::DataType;
     use zinc_bytecode::ScalarType;
@@ -195,7 +195,6 @@ mod tests {
     use crate::gadgets::contract::storage::StorageGadget;
     use crate::gadgets::scalar::Scalar;
 
-    #[ignore]
     #[test]
     fn test_storage_gadget_small() {
         const STORAGE_ELEMENT_COUNT: usize = 4;

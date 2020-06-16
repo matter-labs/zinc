@@ -1,3 +1,7 @@
+//!
+//! The `GreaterOrEquals` instruction.
+//!
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Ge;
@@ -9,7 +13,7 @@ use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Ge {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
@@ -28,15 +32,15 @@ mod test {
     #[test]
     fn test_ge() -> Result<(), TestingError> {
         TestRunner::new()
-            .add(zinc_bytecode::Push::new_field(2.into()))
-            .add(zinc_bytecode::Push::new_field(1.into()))
-            .add(zinc_bytecode::Ge)
-            .add(zinc_bytecode::Push::new_field(2.into()))
-            .add(zinc_bytecode::Push::new_field(2.into()))
-            .add(zinc_bytecode::Ge)
-            .add(zinc_bytecode::Push::new_field(1.into()))
-            .add(zinc_bytecode::Push::new_field(2.into()))
-            .add(zinc_bytecode::Ge)
+            .push(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_bytecode::Push::new_field(1.into()))
+            .push(zinc_bytecode::Ge)
+            .push(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_bytecode::Ge)
+            .push(zinc_bytecode::Push::new_field(1.into()))
+            .push(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_bytecode::Ge)
             .test(&[0, 1, 1])
     }
 }

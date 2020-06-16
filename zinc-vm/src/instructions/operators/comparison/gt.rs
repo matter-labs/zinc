@@ -1,3 +1,7 @@
+//!
+//! The `Greater` instruction.
+//!
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Gt;
@@ -9,7 +13,7 @@ use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Gt {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
@@ -30,15 +34,15 @@ mod test {
     #[test]
     fn test_gt() -> Result<(), TestingError> {
         TestRunner::new()
-            .add(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Gt)
-            .add(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Gt)
-            .add(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Gt)
+            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Gt)
+            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Gt)
+            .push(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Gt)
             .test(&[0, 0, 1])
     }
 }

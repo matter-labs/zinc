@@ -1,3 +1,7 @@
+//!
+//! The `Sub` instruction.
+//!
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::ScalarType;
@@ -12,7 +16,7 @@ use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Sub {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
@@ -42,9 +46,9 @@ mod test {
     #[test]
     fn test_sub() -> Result<(), TestingError> {
         TestRunner::new()
-            .add(zinc_bytecode::Push::new_field(2.into()))
-            .add(zinc_bytecode::Push::new_field(1.into()))
-            .add(zinc_bytecode::Sub)
+            .push(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_bytecode::Push::new_field(1.into()))
+            .push(zinc_bytecode::Sub)
             .test(&[1])
     }
 }

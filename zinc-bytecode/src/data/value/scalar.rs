@@ -12,7 +12,7 @@ use crate::data::r#type::scalar::integer::Type as IntegerType;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Value {
-    Bool(bool),
+    Boolean(bool),
     Integer(BigInt, IntegerType),
     Field(BigInt),
 }
@@ -20,7 +20,7 @@ pub enum Value {
 impl Value {
     pub fn to_bigint(&self) -> BigInt {
         match self {
-            Self::Bool(value) => {
+            Self::Boolean(value) => {
                 if *value {
                     BigInt::one()
                 } else {

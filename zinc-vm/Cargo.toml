@@ -3,7 +3,7 @@ name = "zinc-vm"
 version = "0.1.5"
 authors = [
     "Alexander Movchan <am@matterlabs.dev>",
-    "hedgar2017 <hedgar2017@gmail.com>",
+    "Alex Z <a.zarudnyy@matterlabs.dev>",
 ]
 edition = "2018"
 description = "The Zinc virtual machine"
@@ -29,9 +29,7 @@ sha2 = "0.8"
 num-bigint = "0.2"
 num-traits = "0.2"
 
-pairing = { package = "pairing_ce", version = "0.17.0" }
-franklin_crypto = { package = "franklin-crypto", git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc" }
-ff = { package = "ff_ce", version = "0.6.0", features = ["derive"] }
+franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc" }
 
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }

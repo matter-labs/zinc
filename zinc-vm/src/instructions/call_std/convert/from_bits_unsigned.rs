@@ -1,8 +1,8 @@
 //!
-//! The `std::convert::from_bits_unsigned` function.
+//! The `std::convert::from_bits_unsigned` function call.
 //!
 
-use ff::PrimeField;
+use franklin_crypto::bellman::pairing::ff::PrimeField;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 

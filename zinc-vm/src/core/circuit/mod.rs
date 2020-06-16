@@ -11,8 +11,8 @@ use num_bigint::ToBigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
+use zinc_bytecode::Circuit as BytecodeCircuit;
 use zinc_bytecode::DataType;
-use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::ScalarType;
 
 use crate::core::counter::NamespaceCounter;
@@ -63,7 +63,7 @@ where
 
     pub fn run<CB, F>(
         &mut self,
-        bytecode: &BytecodeProgram,
+        bytecode: BytecodeCircuit,
         inputs: Option<&[BigInt]>,
         mut instruction_callback: CB,
         mut check_cs: F,
@@ -78,16 +78,16 @@ where
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
         );
-        let one = Scalar::new_constant_bigint(&1.into(), ScalarType::Boolean)?;
+        let one = Scalar::new_constant_usize(1, ScalarType::Boolean);
         self.condition_push(one)?;
 
-        self.init_root_frame(&bytecode.input(), inputs)?;
+        self.init_root_frame(bytecode.input, inputs)?;
 
         let mut step = 0;
-        while self.state.instruction_counter < bytecode.instructions().len() {
+        while self.state.instruction_counter < bytecode.instructions.len() {
             let namespace = format!("step={}, addr={}", step, self.state.instruction_counter);
             self.counter.cs.push_namespace(|| namespace);
-            let instruction = &bytecode.instructions()[self.state.instruction_counter];
+            let instruction = bytecode.instructions[self.state.instruction_counter].to_owned();
 
             let log_message = format!(
                 "{}:{} > {}",
@@ -100,10 +100,9 @@ where
             }
 
             self.state.instruction_counter += 1;
-            let result = instruction.execute(self);
-            if let Err(err) = result.and(check_cs(&self.counter.cs)) {
-                log::error!("{}\nat {}", err, self.location.to_string().blue());
-                return Err(err);
+            if let Err(error) = instruction.execute(self).and(check_cs(&self.counter.cs)) {
+                log::error!("{}\nat {}", error, self.location.to_string().blue());
+                return Err(error);
             }
 
             log::trace!("{}", self.state);
@@ -117,12 +116,12 @@ where
 
     fn init_root_frame(
         &mut self,
-        input_type: &DataType,
+        input_type: DataType,
         inputs: Option<&[BigInt]>,
     ) -> Result<(), RuntimeError> {
         self.state.frames_stack.push(Frame::new(0, std::usize::MAX));
 
-        let types = input_type.to_scalar_types();
+        let types = input_type.into_flat_scalar_types();
 
         // Convert Option<&[BigInt]> to iterator of Option<&BigInt> and zip with types.
         let value_type_pairs: Vec<_> = match inputs {

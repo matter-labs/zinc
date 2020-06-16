@@ -37,7 +37,7 @@ where
 {
     assert!(!array.is_empty(), "reading from empty array");
 
-    let length = Scalar::new_constant_bigint(&array.len().into(), index.get_type())?;
+    let length = Scalar::new_constant_usize(array.len(), index.get_type());
     let lt = gadgets::comparison::lesser_than(cs.namespace(|| "lt"), index, &length)?;
     gadgets::assert::assert(cs.namespace(|| "assert"), lt, Some("index out of bounds"))?;
 

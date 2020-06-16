@@ -112,11 +112,15 @@ impl Directory {
     ///
     /// Initialized a test module directory.
     ///
-    pub fn test(input: &str, dependencies: HashMap<String, Source>) -> Result<Self, CompilerError> {
+    pub fn test(
+        code: &str,
+        path: PathBuf,
+        dependencies: HashMap<String, Source>,
+    ) -> Result<Self, CompilerError> {
         Ok(Self {
-            path: PathBuf::from("test.zn"),
+            path: path.clone(),
             name: "test".to_owned(),
-            entry: File::test(input)?,
+            entry: File::test(code, path)?,
             modules: dependencies,
         })
     }

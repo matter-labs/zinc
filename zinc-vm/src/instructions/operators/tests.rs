@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM overflow tests.
+//! The operator instructions overflow tests.
 //!
 
 #![cfg(test)]
@@ -16,9 +16,9 @@ use crate::tests::TestingError;
 #[test]
 fn unsigned_positive_overflow_fail() {
     let res = TestRunner::new()
-        .add(Push::new(255.into(), IntegerType::U8.into()))
-        .add(Push::new(1.into(), IntegerType::U8.into()))
-        .add(Add)
+        .push(Push::new(255.into(), IntegerType::U8.into()))
+        .push(Push::new(1.into(), IntegerType::U8.into()))
+        .push(Add)
         .test(&[256]);
 
     match res.err().expect(crate::panic::TEST_DATA_VALID) {
@@ -30,9 +30,9 @@ fn unsigned_positive_overflow_fail() {
 #[test]
 fn unsigned_negative_overflow_fail() {
     let res = TestRunner::new()
-        .add(Push::new(254.into(), IntegerType::U8.into()))
-        .add(Push::new(255.into(), IntegerType::U8.into()))
-        .add(Sub)
+        .push(Push::new(254.into(), IntegerType::U8.into()))
+        .push(Push::new(255.into(), IntegerType::U8.into()))
+        .push(Sub)
         .test(&[-1]);
 
     match res.err().expect(crate::panic::TEST_DATA_VALID) {
@@ -44,9 +44,9 @@ fn unsigned_negative_overflow_fail() {
 #[test]
 fn signed_positive_overflow_fail() {
     let res = TestRunner::new()
-        .add(Push::new(127.into(), IntegerType::I8.into()))
-        .add(Push::new(1.into(), IntegerType::I8.into()))
-        .add(Add)
+        .push(Push::new(127.into(), IntegerType::I8.into()))
+        .push(Push::new(1.into(), IntegerType::I8.into()))
+        .push(Add)
         .test(&[128]);
 
     match res.err().expect(crate::panic::TEST_DATA_VALID) {
@@ -58,9 +58,9 @@ fn signed_positive_overflow_fail() {
 #[test]
 fn signed_negative_overflow_fail() {
     let res = TestRunner::new()
-        .add(Push::new((-128).into(), IntegerType::I8.into()))
-        .add(Push::new(1.into(), IntegerType::I8.into()))
-        .add(Sub)
+        .push(Push::new((-128).into(), IntegerType::I8.into()))
+        .push(Push::new(1.into(), IntegerType::I8.into()))
+        .push(Sub)
         .test(&[-129]);
 
     match res.err().expect(crate::panic::TEST_DATA_VALID) {
@@ -72,35 +72,35 @@ fn signed_negative_overflow_fail() {
 #[test]
 fn unsigned_positive_overflow_ok() -> Result<(), TestingError> {
     TestRunner::new()
-        .add(Push::new(254.into(), IntegerType::U8.into()))
-        .add(Push::new(1.into(), IntegerType::U8.into()))
-        .add(Add)
+        .push(Push::new(254.into(), IntegerType::U8.into()))
+        .push(Push::new(1.into(), IntegerType::U8.into()))
+        .push(Add)
         .test(&[255])
 }
 
 #[test]
 fn unsigned_negative_overflow_ok() -> Result<(), TestingError> {
     TestRunner::new()
-        .add(Push::new(255.into(), IntegerType::U8.into()))
-        .add(Push::new(255.into(), IntegerType::U8.into()))
-        .add(Sub)
+        .push(Push::new(255.into(), IntegerType::U8.into()))
+        .push(Push::new(255.into(), IntegerType::U8.into()))
+        .push(Sub)
         .test(&[0])
 }
 
 #[test]
 fn signed_positive_overflow_ok() -> Result<(), TestingError> {
     TestRunner::new()
-        .add(Push::new(126.into(), IntegerType::I8.into()))
-        .add(Push::new(1.into(), IntegerType::I8.into()))
-        .add(Add)
+        .push(Push::new(126.into(), IntegerType::I8.into()))
+        .push(Push::new(1.into(), IntegerType::I8.into()))
+        .push(Add)
         .test(&[127])
 }
 
 #[test]
 fn signed_negative_overflow_ok() -> Result<(), TestingError> {
     TestRunner::new()
-        .add(Push::new((-127).into(), IntegerType::I8.into()))
-        .add(Push::new(1.into(), IntegerType::I8.into()))
-        .add(Sub)
+        .push(Push::new((-127).into(), IntegerType::I8.into()))
+        .push(Push::new(1.into(), IntegerType::I8.into()))
+        .push(Sub)
         .test(&[-128])
 }

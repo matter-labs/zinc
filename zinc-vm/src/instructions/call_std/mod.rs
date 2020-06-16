@@ -1,3 +1,7 @@
+//!
+//! The standard library call instructions.
+//!
+
 pub mod array;
 pub mod convert;
 pub mod crypto;
@@ -35,7 +39,7 @@ pub trait INativeCallable<E: IEngine> {
 }
 
 impl<VM: IVirtualMachine> IExecutable<VM> for CallStd {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         match self.identifier {
             BuiltinIdentifier::CryptoSha256 => vm.call_native(Sha256::new(self.inputs_count)?),
             BuiltinIdentifier::CryptoPedersen => vm.call_native(Pedersen::new(self.inputs_count)?),

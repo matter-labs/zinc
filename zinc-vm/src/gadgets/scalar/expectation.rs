@@ -1,4 +1,4 @@
-use ff::PrimeField;
+use franklin_crypto::bellman::pairing::ff::PrimeField;
 
 use zinc_bytecode::ScalarType;
 

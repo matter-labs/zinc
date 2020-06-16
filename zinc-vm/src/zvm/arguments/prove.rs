@@ -1,10 +1,14 @@
+//!
+//! The Zinc virtual machine binary `prove` command.
+//!
+
 use std::fs;
 use std::path::PathBuf;
 
 use structopt::StructOpt;
 
 use franklin_crypto::bellman::groth16::Parameters;
-use pairing::bn256::Bn256;
+use franklin_crypto::bellman::pairing::bn256::Bn256;
 
 use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;

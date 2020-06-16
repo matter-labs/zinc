@@ -1,5 +1,5 @@
 //!
-//! The `std::crypto` module tools.
+//! The `std::crypto` module calls.
 //!
 
 pub mod pedersen;

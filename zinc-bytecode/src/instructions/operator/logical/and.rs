@@ -1,0 +1,31 @@
+//!
+//! The 'logical AND' instruction.
+//!
+
+use std::fmt;
+
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+
+use crate::instructions::Instruction;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct And;
+
+impl And {
+    pub fn is_debug(&self) -> bool {
+        false
+    }
+}
+
+impl Into<Instruction> for And {
+    fn into(self) -> Instruction {
+        Instruction::And(self)
+    }
+}
+
+impl fmt::Display for And {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "and")
+    }
+}

@@ -1,3 +1,7 @@
+//!
+//! The constant optimizing macro.
+//!
+
 pub mod prelude {
     pub use crate::constraint_systems::constant::ConstantCS;
     pub use crate::gadgets::scalar::variant::Variant as ScalarVariant;
@@ -29,9 +33,9 @@ pub mod prelude {
 ///
 /// # Example
 /// ```
-/// use ff::PrimeField;
-/// use pairing::bn256::Bn256;
-/// use pairing::bn256::Fr;
+/// use franklin_crypto::bellman::pairing::ff::PrimeField;
+/// use franklin_crypto::bellman::pairing::bn256::Bn256;
+/// use franklin_crypto::bellman::pairing::bn256::Fr;
 /// use franklin_crypto::circuit::test::TestConstraintSystem;
 /// use franklin_crypto::bellman::ConstraintSystem;
 ///

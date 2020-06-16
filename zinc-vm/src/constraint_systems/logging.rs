@@ -7,12 +7,12 @@ use std::marker::PhantomData;
 use num_bigint::BigInt;
 use num_traits::Signed;
 
+use franklin_crypto::bellman::pairing::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::Index;
 use franklin_crypto::bellman::LinearCombination;
 use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::bellman::Variable;
-use pairing::Engine;
 
 use crate::gadgets;
 

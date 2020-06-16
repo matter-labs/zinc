@@ -1,3 +1,7 @@
+//!
+//! The comparison operator instructions.
+//!
+
 pub mod eq;
 pub mod ge;
 pub mod gt;

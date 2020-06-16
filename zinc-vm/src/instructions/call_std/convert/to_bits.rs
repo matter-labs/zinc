@@ -1,5 +1,5 @@
 //!
-//! The `std::convert::to_bits` function.
+//! The `std::convert::to_bits` function call.
 //!
 
 use num_bigint::BigInt;
@@ -70,16 +70,16 @@ where
             bitlength,
             is_signed: true,
         }) => bitlength,
-        t => {
+        r#type => {
             return Err(RuntimeError::TypeError {
                 expected: "signed type".to_string(),
-                actual: t.to_string(),
+                actual: r#type.to_string(),
             })
         }
     };
 
     let base_value = BigInt::from(1) << bitlength;
-    let base = Scalar::new_constant_bigint(&base_value, ScalarType::Field)?;
+    let base = Scalar::new_constant_bigint(base_value, ScalarType::Field)?;
 
     let complement = gadgets::arithmetic::add::add(cs.namespace(|| "complement"), &scalar, &base)?;
 

@@ -1,3 +1,7 @@
+//!
+//! The `LesserOrEquals` instruction.
+//!
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Le;
@@ -9,7 +13,7 @@ use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Le {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
@@ -32,27 +36,27 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
 
         TestRunner::new()
-            .add(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Le)
-            .add(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Le)
-            .add(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Le)
-            .add(zinc_bytecode::Push::new(
+            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Le)
+            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Le)
+            .push(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Le)
+            .push(zinc_bytecode::Push::new(
                 (-2).into(),
                 IntegerType::I8.into(),
             ))
-            .add(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Le)
-            .add(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Push::new(
+            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Le)
+            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Push::new(
                 (-2).into(),
                 IntegerType::I8.into(),
             ))
-            .add(zinc_bytecode::Le)
+            .push(zinc_bytecode::Le)
             .test(&[0, 1, 1, 1, 0])
     }
 }

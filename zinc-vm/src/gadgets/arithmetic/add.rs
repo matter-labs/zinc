@@ -1,4 +1,4 @@
-use ff::Field;
+use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::ScalarType;

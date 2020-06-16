@@ -1,3 +1,7 @@
+//!
+//! The `Exit` instruction.
+//!
+
 use zinc_bytecode::Exit;
 
 use crate::core::virtual_machine::IVirtualMachine;
@@ -5,8 +9,9 @@ use crate::error::RuntimeError;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Exit {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         vm.exit(self.outputs_count)?;
+
         Ok(())
     }
 }
@@ -19,9 +24,9 @@ mod tests {
     #[test]
     fn test_exit() -> Result<(), TestingError> {
         TestRunner::new()
-            .add(zinc_bytecode::Push::new_field(1.into()))
-            .add(zinc_bytecode::Exit::new(0))
-            .add(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_bytecode::Push::new_field(1.into()))
+            .push(zinc_bytecode::Exit::new(0))
+            .push(zinc_bytecode::Push::new_field(2.into()))
             .test(&[1])
     }
 }

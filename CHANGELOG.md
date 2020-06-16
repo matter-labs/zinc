@@ -9,7 +9,6 @@
 - allowed the bitwise operations on non-constant and witness values
 - extended constant expressions to include arrays, tuples, structures, blocks, conditionals, and matches
 - implemented primitive constant functions
-- implemented simple smart contracts
 - forbidden the bitwise operations on signed integers
 - allowed to declare constants, types, functions, and modules in arbitrary order
 - implemented nested modules with the access to the root and parent modules
@@ -23,6 +22,10 @@
 #### Zargo
 
 - generalized for managing smart contract projects
+
+#### Overall
+
+- implemented simple smart contracts
 
 ## Version 0.1.5 (2020-04-07)
 

@@ -1,3 +1,7 @@
+//!
+//! The `Rem` instruction.
+//!
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Rem;
@@ -12,7 +16,7 @@ use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Rem {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
@@ -49,30 +53,30 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
 
         TestRunner::new()
-            .add(zinc_bytecode::Push::new(9.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Push::new(4.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Rem)
-            .add(zinc_bytecode::Push::new(9.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Push::new(
+            .push(zinc_bytecode::Push::new(9.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Push::new(4.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Rem)
+            .push(zinc_bytecode::Push::new(9.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Push::new(
                 (-4).into(),
                 IntegerType::I8.into(),
             ))
-            .add(zinc_bytecode::Rem)
-            .add(zinc_bytecode::Push::new(
+            .push(zinc_bytecode::Rem)
+            .push(zinc_bytecode::Push::new(
                 (-9).into(),
                 IntegerType::I8.into(),
             ))
-            .add(zinc_bytecode::Push::new(4.into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Rem)
-            .add(zinc_bytecode::Push::new(
+            .push(zinc_bytecode::Push::new(4.into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Rem)
+            .push(zinc_bytecode::Push::new(
                 (-9).into(),
                 IntegerType::I8.into(),
             ))
-            .add(zinc_bytecode::Push::new(
+            .push(zinc_bytecode::Push::new(
                 (-4).into(),
                 IntegerType::I8.into(),
             ))
-            .add(zinc_bytecode::Rem)
+            .push(zinc_bytecode::Rem)
             .test(&[3, 3, 1, 1])
     }
 }

@@ -8,8 +8,8 @@ use num_bigint::BigInt;
 use num_bigint::ToBigInt;
 use num_traits::ToPrimitive;
 
-use ff::Field;
-use ff::PrimeField;
+use franklin_crypto::bellman::pairing::ff::Field;
+use franklin_crypto::bellman::pairing::ff::PrimeField;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::LinearCombination;
 use franklin_crypto::bellman::SynthesisError;
@@ -58,11 +58,11 @@ impl<E: IEngine> Scalar<E> {
     }
 
     pub fn new_constant_bigint(
-        value: &BigInt,
+        value: BigInt,
         scalar_type: ScalarType,
     ) -> Result<Self, RuntimeError> {
-        let fr = fr_bigint::bigint_to_fr::<E>(value).ok_or(RuntimeError::ValueOverflow {
-            value: value.clone(),
+        let fr = fr_bigint::bigint_to_fr::<E>(&value).ok_or(RuntimeError::ValueOverflow {
+            value,
             scalar_type: scalar_type.clone(),
         })?;
         Ok(Self::new_constant_fr(fr, scalar_type))

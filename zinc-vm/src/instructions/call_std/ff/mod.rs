@@ -1,5 +1,5 @@
 //!
-//! The `std::ff` module tools.
+//! The `std::ff` module calls.
 //!
 
 pub mod inverse;

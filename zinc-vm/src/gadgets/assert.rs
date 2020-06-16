@@ -1,4 +1,8 @@
-use ff::Field;
+//!
+//! The assert gadget.
+//!
+
+use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::Assignment;
 

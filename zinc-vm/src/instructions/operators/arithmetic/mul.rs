@@ -1,3 +1,7 @@
+//!
+//! The `Mul` instruction.
+//!
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Mul;
@@ -12,7 +16,7 @@ use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Mul {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
@@ -42,9 +46,9 @@ mod test {
     #[test]
     fn test_mul() -> Result<(), TestingError> {
         TestRunner::new()
-            .add(zinc_bytecode::Push::new_field(3.into()))
-            .add(zinc_bytecode::Push::new_field(4.into()))
-            .add(zinc_bytecode::Mul)
+            .push(zinc_bytecode::Push::new_field(3.into()))
+            .push(zinc_bytecode::Push::new_field(4.into()))
+            .push(zinc_bytecode::Mul)
             .test(&[12])
     }
 }

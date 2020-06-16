@@ -19,6 +19,7 @@ use crate::program::Program;
 use crate::runners::Runnable;
 use crate::Summary;
 
+#[derive(Clone)]
 pub struct Runner {
     pub verbosity: usize,
     pub filter: Option<String>,
@@ -31,13 +32,13 @@ impl Runner {
 }
 
 impl Runnable for Runner {
-    fn run(&self, path: &PathBuf, file: &File, metadata: &Metadata, summary: Arc<Mutex<Summary>>) {
+    fn run(self, path: PathBuf, file: File, metadata: Metadata, summary: Arc<Mutex<Summary>>) {
         let path = match path.strip_prefix(crate::TESTS_DIRECTORY) {
             Ok(path) => path,
-            Err(_error) => path,
+            Err(_error) => &path,
         };
 
-        for case in metadata.cases.iter() {
+        for case in metadata.cases.into_iter() {
             let case_name = format!("{}::{}", path.to_string_lossy(), case.case);
             if let Some(filter) = self.filter.as_ref() {
                 if !case_name.contains(filter) {
@@ -51,19 +52,20 @@ impl Runnable for Runner {
                 continue;
             }
 
-            let program = match Program::new(file.code.as_str(), &case.input, case.entry.as_str()) {
-                Ok(program) => program,
-                Err(error) => {
-                    summary.lock().expect(crate::panic::MUTEX_SYNC).invalid += 1;
-                    println!(
-                        "[INTEGRATION] {} {} ({})",
-                        "INVALID".red(),
-                        case_name,
-                        error
-                    );
-                    continue;
-                }
-            };
+            let program =
+                match Program::new(file.code.as_str(), path.to_owned(), case.entry, case.input) {
+                    Ok(program) => program,
+                    Err(error) => {
+                        summary.lock().expect(crate::panic::MUTEX_SYNC).invalid += 1;
+                        println!(
+                            "[INTEGRATION] {} {} ({})",
+                            "INVALID".red(),
+                            case_name,
+                            error
+                        );
+                        continue;
+                    }
+                };
 
             let params = match program.bytecode.clone().setup::<Bn256>() {
                 Ok(params) => params,

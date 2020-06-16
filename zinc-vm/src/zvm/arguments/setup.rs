@@ -1,9 +1,13 @@
+//!
+//! The Zinc virtual machine binary `setup` command.
+//!
+
 use std::fs;
 use std::path::PathBuf;
 
 use structopt::StructOpt;
 
-use pairing::bn256::Bn256;
+use franklin_crypto::bellman::pairing::bn256::Bn256;
 
 use zinc_bytecode::Program as BytecodeProgram;
 

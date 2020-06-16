@@ -1,13 +1,17 @@
+//!
+//! The instructions.
+//!
+
 pub mod assert;
 pub mod call_std;
 pub mod contract_storage;
+pub mod data_stack;
 pub mod dbg;
 pub mod evaluation_stack;
 pub mod flow;
 pub mod markers;
 pub mod noop;
 pub mod operators;
-pub mod stack;
 
 use zinc_bytecode::Instruction;
 
@@ -15,11 +19,11 @@ use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 
 pub trait IExecutable<VM: IVirtualMachine> {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError>;
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError>;
 }
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Instruction {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         match self {
             Self::NoOperation(inner) => inner.execute(vm),
 

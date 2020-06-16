@@ -1,6 +1,6 @@
 use num_bigint::BigInt;
 
-use ff::PrimeField;
+use franklin_crypto::bellman::pairing::ff::PrimeField;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::expression::Expression;

@@ -1,5 +1,5 @@
 //!
-//! The `std::array` module tools.
+//! The `std::array` module calls.
 //!
 
 pub mod pad;

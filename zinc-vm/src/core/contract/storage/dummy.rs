@@ -1,8 +1,8 @@
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
-use ff::PrimeField;
-use ff::PrimeFieldRepr;
+use franklin_crypto::bellman::pairing::ff::PrimeField;
+use franklin_crypto::bellman::pairing::ff::PrimeFieldRepr;
 
 use zinc_bytecode::DataType;
 
@@ -33,7 +33,7 @@ impl<E: IEngine> Storage<E> {
 
         for (index, r#type) in values.into_iter().enumerate() {
             let values = r#type
-                .to_scalar_types()
+                .into_flat_scalar_types()
                 .into_iter()
                 .map(|r#type| Scalar::<E>::new_constant_usize(0, r#type))
                 .collect();

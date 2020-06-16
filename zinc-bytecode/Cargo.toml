@@ -3,7 +3,7 @@ name = "zinc-bytecode"
 version = "0.1.5"
 authors = [
     "Alexander Movchan <am@matterlabs.dev>",
-    "hedgar2017 <hedgar2017@gmail.com>",
+    "Alex Z <a.zarudnyy@matterlabs.dev>",
 ]
 edition = "2018"
 description = "The Zinc virtual machine bytecode"

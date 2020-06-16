@@ -1,4 +1,4 @@
-use ff::Field;
+use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::circuit::num::AllocatedNum;
@@ -44,11 +44,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use ff::Field;
+    use franklin_crypto::bellman::pairing::bn256::Bn256;
+    use franklin_crypto::bellman::pairing::bn256::Fr;
+    use franklin_crypto::bellman::pairing::ff::Field;
     use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::test::TestConstraintSystem;
-    use pairing::bn256::Bn256;
-    use pairing::bn256::Fr;
 
     use zinc_bytecode::ScalarType;
 

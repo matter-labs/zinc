@@ -12,7 +12,7 @@ pub mod gadgets;
 pub(crate) mod instructions;
 pub mod panic;
 
-pub use pairing::bn256::Bn256;
+pub use franklin_crypto::bellman::pairing::bn256::Bn256;
 
 pub use self::error::RuntimeError;
 pub use self::error::VerificationError;

@@ -1,5 +1,5 @@
 //!
-//! The `std::crypto::pedersen` function.
+//! The `std::crypto::pedersen` function call.
 //!
 
 use franklin_crypto::bellman::ConstraintSystem;

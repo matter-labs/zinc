@@ -111,16 +111,14 @@ impl Bytecode {
         self.function_addresses.insert(type_id, address);
         self.data_stack_pointer = 0;
 
-        if let Some(file_index) = location.file_index {
-            let file_path = FILE_INDEX
-                .get_path(file_index)
-                .to_string_lossy()
-                .to_string();
-            self.instructions
-                .push(Instruction::FileMarker(zinc_bytecode::FileMarker::new(
-                    file_path,
-                )));
-        }
+        let file_path = FILE_INDEX
+            .get_path(location.file_index)
+            .to_string_lossy()
+            .to_string();
+        self.instructions
+            .push(Instruction::FileMarker(zinc_bytecode::FileMarker::new(
+                file_path,
+            )));
         self.instructions.push(Instruction::FunctionMarker(
             zinc_bytecode::FunctionMarker::new(identifier),
         ));
@@ -247,8 +245,7 @@ impl Bytecode {
             }
             .into_bytes();
 
-            let input_template_value =
-                TemplateValue::default_from_type(&metadata.input_fields_as_struct().into());
+            let input_template_value = TemplateValue::new(metadata.input_fields_as_struct().into());
             let witness_template =
                 match serde_json::to_string_pretty(&input_template_value.to_json()) {
                     Ok(json) => (json + "\n").into_bytes(),
@@ -258,8 +255,7 @@ impl Bytecode {
                     ),
                 };
 
-            let output_value_template =
-                TemplateValue::default_from_type(&metadata.output_type.into());
+            let output_value_template = TemplateValue::new(metadata.output_type.into());
             let public_data_template =
                 match serde_json::to_string_pretty(&output_value_template.to_json()) {
                     Ok(json) => (json + "\n").into_bytes(),

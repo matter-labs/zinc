@@ -5,6 +5,7 @@
 #![cfg(test)]
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use crate::error::Error;
 use crate::lexical::token::lexeme::keyword::Keyword;
@@ -676,9 +677,12 @@ fn main() -> u8 { call() }
 
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
-        vec![("other".to_owned(), Source::test(other, HashMap::new()))]
-            .into_iter()
-            .collect::<HashMap<String, Source>>(),
+        vec![(
+            "other".to_owned(),
+            Source::test(other, PathBuf::from("other.zn"), HashMap::new()),
+        )]
+        .into_iter()
+        .collect::<HashMap<String, Source>>(),
     );
 
     assert_eq!(result, expected);
@@ -722,13 +726,22 @@ fn main() -> u8 { call() }
             "first".to_owned(),
             Source::test(
                 first,
+                PathBuf::from("first.zn"),
                 vec![(
                     "second".to_owned(),
                     Source::test(
                         second,
-                        vec![("third".to_owned(), Source::test(third, HashMap::new()))]
-                            .into_iter()
-                            .collect::<HashMap<String, Source>>(),
+                        PathBuf::from("first/second.zn"),
+                        vec![(
+                            "third".to_owned(),
+                            Source::test(
+                                third,
+                                PathBuf::from("first/second/third.zn"),
+                                HashMap::new(),
+                            ),
+                        )]
+                        .into_iter()
+                        .collect::<HashMap<String, Source>>(),
                     ),
                 )]
                 .into_iter()
@@ -774,9 +787,12 @@ fn main() -> u8 { Call { value: 42 }.call() }
 
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
-        vec![("other".to_owned(), Source::test(other, HashMap::new()))]
-            .into_iter()
-            .collect::<HashMap<String, Source>>(),
+        vec![(
+            "other".to_owned(),
+            Source::test(other, PathBuf::from("other.zn"), HashMap::new()),
+        )]
+        .into_iter()
+        .collect::<HashMap<String, Source>>(),
     );
 
     assert_eq!(result, expected);
@@ -838,13 +854,22 @@ fn main() -> u8 { Call { value: 42 }.call() }
             "first".to_owned(),
             Source::test(
                 first,
+                PathBuf::from("first.zn"),
                 vec![(
                     "second".to_owned(),
                     Source::test(
                         second,
-                        vec![("third".to_owned(), Source::test(third, HashMap::new()))]
-                            .into_iter()
-                            .collect::<HashMap<String, Source>>(),
+                        PathBuf::from("first/second.zn"),
+                        vec![(
+                            "third".to_owned(),
+                            Source::test(
+                                third,
+                                PathBuf::from("first/second/third.zn"),
+                                HashMap::new(),
+                            ),
+                        )]
+                        .into_iter()
+                        .collect::<HashMap<String, Source>>(),
                     ),
                 )]
                 .into_iter()

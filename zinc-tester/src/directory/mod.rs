@@ -73,7 +73,7 @@ impl Directory {
                 let data = Metadata::from_str(file.code.as_str())
                     .unwrap_or_else(|_| panic!("Test file {:?} case data is invalid", path));
 
-                runner.run(&path, &file, &data, summary.clone());
+                runner.clone().run(path, file, data, summary.clone());
             })
             .collect::<Vec<()>>();
 

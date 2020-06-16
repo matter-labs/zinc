@@ -2,7 +2,7 @@
 //! The debug constraint system.
 //!
 
-use ff::Field;
+use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::Index;
 use franklin_crypto::bellman::LinearCombination;

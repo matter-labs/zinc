@@ -6,7 +6,7 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
 use crate::data::r#type::Type as DataType;
-use crate::instruction::Instruction;
+use crate::instructions::Instruction;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Contract {

@@ -1,5 +1,5 @@
 //!
-//! The `std::ff::inverse` function.
+//! The `std::ff::inverse` function call.
 //!
 
 use franklin_crypto::bellman::ConstraintSystem;

@@ -7,6 +7,7 @@
 
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::rc::Rc;
 
 use crate::error::Error;
@@ -17,40 +18,45 @@ use crate::semantic::analyzer::module::Analyzer as ModuleAnalyzer;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
+use crate::source::file::index::INDEX as FILE_INDEX;
 use crate::source::Source;
 use crate::syntax::parser::Parser;
 use crate::syntax::tree::module::Module as SyntaxModule;
 
-pub(crate) fn compile_entry(input: &str) -> Result<(), Error> {
-    compile_entry_with_dependencies(input, HashMap::new())
+pub(crate) fn compile_entry(code: &str) -> Result<(), Error> {
+    compile_entry_with_dependencies(code, HashMap::new())
 }
 
 pub(crate) fn compile_entry_with_dependencies(
-    input: &str,
+    code: &str,
     dependencies: HashMap<String, Source>,
 ) -> Result<(), Error> {
-    EntryAnalyzer::define(Source::test(input, dependencies)).map_err(Error::Semantic)?;
+    let path = PathBuf::from("test.zn");
+    EntryAnalyzer::define(Source::test(code, path, dependencies)).map_err(Error::Semantic)?;
 
     Ok(())
 }
 
 pub(crate) fn compile_module(
-    input: &str,
+    code: &str,
     scope: Rc<RefCell<Scope>>,
     scope_crate: Rc<RefCell<Scope>>,
     scope_super: Rc<RefCell<Scope>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
-    compile_module_with_dependencies(input, scope, HashMap::new(), scope_crate, scope_super)
+    compile_module_with_dependencies(code, scope, HashMap::new(), scope_crate, scope_super)
 }
 
 pub(crate) fn compile_module_with_dependencies(
-    input: &str,
+    code: &str,
     scope: Rc<RefCell<Scope>>,
     dependencies: HashMap<String, Source>,
     scope_crate: Rc<RefCell<Scope>>,
     scope_super: Rc<RefCell<Scope>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
-    let module = Parser::default().parse(input, None)?;
+    let path = PathBuf::from("test.zn");
+    let file_id = FILE_INDEX.test(&path, code.to_owned());
+
+    let module = Parser::default().parse(code, Some(file_id))?;
     let (module, implementation_scopes) = ModuleAnalyzer::declare(
         scope.clone(),
         module,
@@ -75,7 +81,7 @@ pub(crate) fn compile_module_with_dependencies(
 
 #[test]
 fn error_entry_point_missing() {
-    let input = r#"
+    let code = r#"
 fn another() -> u8 {
     42
 }
@@ -83,14 +89,14 @@ fn another() -> u8 {
 
     let expected = Err(Error::Semantic(SemanticError::EntryPointMissing));
 
-    let result = crate::semantic::tests::compile_entry(input);
+    let result = crate::semantic::tests::compile_entry(code);
 
     assert_eq!(result, expected);
 }
 
 #[test]
 fn error_entry_point_ambiguous() {
-    let input = r#"
+    let code = r#"
 fn main() -> u8 {
     42
 }
@@ -105,14 +111,14 @@ contract Uniswap {
         contract: Location::new(6, 1),
     }));
 
-    let result = crate::semantic::tests::compile_entry(input);
+    let result = crate::semantic::tests::compile_entry(code);
 
     assert_eq!(result, expected);
 }
 
 #[test]
 fn error_entry_point_constant_function_main() {
-    let input = r#"
+    let code = r#"
 const fn main() -> u8 {
     42
 }
@@ -122,14 +128,14 @@ const fn main() -> u8 {
         location: Location::new(2, 1),
     }));
 
-    let result = crate::semantic::tests::compile_entry(input);
+    let result = crate::semantic::tests::compile_entry(code);
 
     assert_eq!(result, expected);
 }
 
 #[test]
 fn error_entry_point_constant_contract_function() {
-    let input = r#"
+    let code = r#"
 contract Uniswap {
     pub const fn deposit(amount: u248) -> bool { true }
 }
@@ -139,14 +145,14 @@ contract Uniswap {
         location: Location::new(3, 5),
     }));
 
-    let result = crate::semantic::tests::compile_entry(input);
+    let result = crate::semantic::tests::compile_entry(code);
 
     assert_eq!(result, expected);
 }
 
 #[test]
 fn error_function_main_beyond_entry() {
-    let input = r#"
+    let code = r#"
 fn main() -> u8 {
     42
 }
@@ -157,7 +163,7 @@ fn main() -> u8 {
     });
 
     let result = crate::semantic::tests::compile_module(
-        input,
+        code,
         Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
         Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
         Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
@@ -169,7 +175,7 @@ fn main() -> u8 {
 
 #[test]
 fn error_contract_beyond_entry() {
-    let input = r#"
+    let code = r#"
 contract Uniswap {
     pub fn deposit(amount: u248) -> bool { true }
 }
@@ -180,7 +186,7 @@ contract Uniswap {
     });
 
     let result = crate::semantic::tests::compile_module(
-        input,
+        code,
         Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
         Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
         Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
@@ -192,7 +198,7 @@ contract Uniswap {
 
 #[test]
 fn error_module_file_not_found() {
-    let input = r#"
+    let code = r#"
 mod unknown;
 
 fn main() {}
@@ -203,7 +209,7 @@ fn main() {}
         name: "unknown".to_owned(),
     }));
 
-    let result = crate::semantic::tests::compile_entry(input);
+    let result = crate::semantic::tests::compile_entry(code);
 
     assert_eq!(result, expected);
 }

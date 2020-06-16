@@ -13,9 +13,9 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_bytecode::Call;
+use zinc_bytecode::Circuit as BytecodeCircuit;
 use zinc_bytecode::DataType;
 use zinc_bytecode::Instruction;
-use zinc_bytecode::Program as BytecodeProgram;
 
 use crate::core::circuit::Circuit;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -72,7 +72,7 @@ impl TestRunner {
         }
     }
 
-    pub fn add<I: Into<Instruction>>(mut self, instruction: I) -> Self {
+    pub fn push<I: Into<Instruction>>(mut self, instruction: I) -> Self {
         self.instructions.push(instruction.into());
         self
     }
@@ -90,10 +90,9 @@ impl TestRunner {
     ) -> Result<(), TestingError> {
         let mut vm = new_test_constrained_vm();
 
-        let program =
-            BytecodeProgram::new_circuit(DataType::Unit, DataType::Unit, self.instructions);
+        let circuit = BytecodeCircuit::new(DataType::Unit, DataType::Unit, self.instructions);
 
-        vm.run(&program, Some(&[]), |_| {}, |_| Ok(()))
+        vm.run(circuit, Some(&[]), |_| {}, |_| Ok(()))
             .map_err(TestingError::RuntimeError)?;
 
         let cs = vm.constraint_system();

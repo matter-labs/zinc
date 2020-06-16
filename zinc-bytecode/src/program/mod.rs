@@ -9,7 +9,7 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
 use crate::data::r#type::Type as DataType;
-use crate::instruction::Instruction;
+use crate::instructions::Instruction;
 
 use self::circuit::Circuit;
 use self::contract::Contract;
@@ -34,17 +34,17 @@ impl Program {
         Self::Contract(Contract::new(input, output, instructions, storage))
     }
 
-    pub fn input(&self) -> &DataType {
+    pub fn input(&self) -> DataType {
         match self {
-            Self::Circuit(ref inner) => &inner.input,
-            Self::Contract(ref inner) => &inner.input,
+            Self::Circuit(ref inner) => inner.input.to_owned(),
+            Self::Contract(ref inner) => inner.input.to_owned(),
         }
     }
 
-    pub fn output(&self) -> &DataType {
+    pub fn output(&self) -> DataType {
         match self {
-            Self::Circuit(ref inner) => &inner.output,
-            Self::Contract(ref inner) => &inner.output,
+            Self::Circuit(ref inner) => inner.output.to_owned(),
+            Self::Contract(ref inner) => inner.output.to_owned(),
         }
     }
 

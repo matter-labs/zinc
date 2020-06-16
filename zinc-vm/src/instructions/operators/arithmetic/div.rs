@@ -1,3 +1,7 @@
+//!
+//! The `Div` instruction.
+//!
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Div;
@@ -12,7 +16,7 @@ use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Div {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
@@ -71,30 +75,30 @@ mod test {
     #[test]
     fn test_div() -> Result<(), TestingError> {
         TestRunner::new()
-            .add(zinc_bytecode::Push::new((9).into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Push::new((4).into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Div)
-            .add(zinc_bytecode::Push::new((9).into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Push::new(
+            .push(zinc_bytecode::Push::new((9).into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Push::new((4).into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Div)
+            .push(zinc_bytecode::Push::new((9).into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Push::new(
                 (-4).into(),
                 IntegerType::I8.into(),
             ))
-            .add(zinc_bytecode::Div)
-            .add(zinc_bytecode::Push::new(
+            .push(zinc_bytecode::Div)
+            .push(zinc_bytecode::Push::new(
                 (-9).into(),
                 IntegerType::I8.into(),
             ))
-            .add(zinc_bytecode::Push::new((4).into(), IntegerType::I8.into()))
-            .add(zinc_bytecode::Div)
-            .add(zinc_bytecode::Push::new(
+            .push(zinc_bytecode::Push::new((4).into(), IntegerType::I8.into()))
+            .push(zinc_bytecode::Div)
+            .push(zinc_bytecode::Push::new(
                 (-9).into(),
                 IntegerType::I8.into(),
             ))
-            .add(zinc_bytecode::Push::new(
+            .push(zinc_bytecode::Push::new(
                 (-4).into(),
                 IntegerType::I8.into(),
             ))
-            .add(zinc_bytecode::Div)
+            .push(zinc_bytecode::Div)
             .test(&[3, -3, -2, 2])
     }
 }

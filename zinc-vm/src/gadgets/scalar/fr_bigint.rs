@@ -5,10 +5,10 @@ use num_bigint::BigInt;
 use num_bigint::Sign;
 use num_traits::Signed;
 
-use ff::Field;
-use ff::PrimeField;
-use ff::PrimeFieldRepr;
-use pairing::Engine;
+use franklin_crypto::bellman::pairing::ff::Field;
+use franklin_crypto::bellman::pairing::ff::PrimeField;
+use franklin_crypto::bellman::pairing::ff::PrimeFieldRepr;
+use franklin_crypto::bellman::pairing::Engine;
 
 pub fn fr_to_bigint<E: Engine>(fr: &E::Fr, signed: bool) -> BigInt {
     if signed {

@@ -1,5 +1,5 @@
 //!
-//! The `std::crypto::sha256` function.
+//! The `std::crypto::sha256` function call.
 //!
 
 use franklin_crypto::bellman::ConstraintSystem;

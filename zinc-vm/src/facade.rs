@@ -1,5 +1,5 @@
 //!
-//! The Zinc virtual machine facade.
+//! The Zinc virtual machine facade interface.
 //!
 
 use franklin_crypto::bellman::groth16;
@@ -34,7 +34,7 @@ pub trait IFacade {
         public_input: TemplateValue,
     ) -> Result<bool, VerificationError> {
         let public_input_flat = public_input
-            .to_flat_values()
+            .into_flat_values()
             .into_iter()
             .map(|value| {
                 gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&value)

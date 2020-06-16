@@ -1,5 +1,5 @@
-use ff::PrimeField;
-use ff::PrimeFieldRepr;
+use franklin_crypto::bellman::pairing::ff::PrimeField;
+use franklin_crypto::bellman::pairing::ff::PrimeFieldRepr;
 use sha2::Digest;
 use sha2::Sha256;
 

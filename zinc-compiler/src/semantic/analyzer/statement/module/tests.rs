@@ -5,6 +5,7 @@
 #![cfg(test)]
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use crate::source::Source;
 
@@ -35,9 +36,18 @@ fn main() -> u8 {
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
-            ("one".to_owned(), Source::test(one, HashMap::new())),
-            ("two".to_owned(), Source::test(two, HashMap::new())),
-            ("three".to_owned(), Source::test(three, HashMap::new())),
+            (
+                "one".to_owned(),
+                Source::test(one, PathBuf::from("one.zn"), HashMap::new())
+            ),
+            (
+                "two".to_owned(),
+                Source::test(two, PathBuf::from("two.zn"), HashMap::new())
+            ),
+            (
+                "three".to_owned(),
+                Source::test(three, PathBuf::from("three.zn"), HashMap::new())
+            ),
         ]
         .into_iter()
         .collect::<HashMap<String, Source>>()
@@ -77,13 +87,22 @@ fn main() -> u8 {
             "level_1".to_owned(),
             Source::test(
                 level_1,
+                PathBuf::from("level_1.zn"),
                 vec![(
                     "level_2".to_owned(),
                     Source::test(
                         level_2,
-                        vec![("level_3".to_owned(), Source::test(level_3, HashMap::new()))]
-                            .into_iter()
-                            .collect::<HashMap<String, Source>>()
+                        PathBuf::from("level_1/level_2.zn"),
+                        vec![(
+                            "level_3".to_owned(),
+                            Source::test(
+                                level_3,
+                                PathBuf::from("level_1/level_2/level_3.zn"),
+                                HashMap::new()
+                            )
+                        )]
+                        .into_iter()
+                        .collect::<HashMap<String, Source>>()
                     )
                 )]
                 .into_iter()
@@ -164,14 +183,23 @@ fn main() -> u8 {
                 "level_1_first".to_owned(),
                 Source::test(
                     level_1_first,
+                    PathBuf::from("level_1_first.zn"),
                     vec![
                         (
                             "level_2_first".to_owned(),
-                            Source::test(first_level_2_first, HashMap::new())
+                            Source::test(
+                                first_level_2_first,
+                                PathBuf::from("level_1_first/level_2_first.zn"),
+                                HashMap::new()
+                            )
                         ),
                         (
                             "level_2_second".to_owned(),
-                            Source::test(first_level_2_second, HashMap::new())
+                            Source::test(
+                                first_level_2_second,
+                                PathBuf::from("level_1_first/level_2_second.zn"),
+                                HashMap::new()
+                            )
                         ),
                     ]
                     .into_iter()
@@ -182,14 +210,23 @@ fn main() -> u8 {
                 "level_1_second".to_owned(),
                 Source::test(
                     level_1_second,
+                    PathBuf::from("level_1_second.zn"),
                     vec![
                         (
                             "level_2_first".to_owned(),
-                            Source::test(second_level_2_first, HashMap::new())
+                            Source::test(
+                                second_level_2_first,
+                                PathBuf::from("level_1_second/level_2_first.zn"),
+                                HashMap::new()
+                            )
                         ),
                         (
                             "level_2_second".to_owned(),
-                            Source::test(second_level_2_second, HashMap::new())
+                            Source::test(
+                                second_level_2_second,
+                                PathBuf::from("level_1_second/level_2_second.zn"),
+                                HashMap::new()
+                            )
                         ),
                     ]
                     .into_iter()
@@ -200,14 +237,23 @@ fn main() -> u8 {
                 "level_1_third".to_owned(),
                 Source::test(
                     level_1_third,
+                    PathBuf::from("level_1_third.zn"),
                     vec![
                         (
                             "level_2_first".to_owned(),
-                            Source::test(third_level_2_first, HashMap::new())
+                            Source::test(
+                                third_level_2_first,
+                                PathBuf::from("level_1_third/level_2_first.zn"),
+                                HashMap::new()
+                            )
                         ),
                         (
                             "level_2_second".to_owned(),
-                            Source::test(third_level_2_second, HashMap::new())
+                            Source::test(
+                                third_level_2_second,
+                                PathBuf::from("level_1_third/level_2_second.zn"),
+                                HashMap::new()
+                            )
                         ),
                     ]
                     .into_iter()
@@ -270,9 +316,18 @@ fn main() -> Together {
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
-            ("one".to_owned(), Source::test(one, HashMap::new())),
-            ("two".to_owned(), Source::test(two, HashMap::new())),
-            ("three".to_owned(), Source::test(three, HashMap::new())),
+            (
+                "one".to_owned(),
+                Source::test(one, PathBuf::from("one.zn"), HashMap::new())
+            ),
+            (
+                "two".to_owned(),
+                Source::test(two, PathBuf::from("two.zn"), HashMap::new())
+            ),
+            (
+                "three".to_owned(),
+                Source::test(three, PathBuf::from("three.zn"), HashMap::new())
+            ),
         ]
         .into_iter()
         .collect::<HashMap<String, Source>>()
@@ -333,9 +388,18 @@ fn main() -> Together {
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
-            ("one".to_owned(), Source::test(one, HashMap::new())),
-            ("two".to_owned(), Source::test(two, HashMap::new())),
-            ("three".to_owned(), Source::test(three, HashMap::new())),
+            (
+                "one".to_owned(),
+                Source::test(one, PathBuf::from("one.zn"), HashMap::new())
+            ),
+            (
+                "two".to_owned(),
+                Source::test(two, PathBuf::from("two.zn"), HashMap::new())
+            ),
+            (
+                "three".to_owned(),
+                Source::test(three, PathBuf::from("three.zn"), HashMap::new())
+            ),
         ]
         .into_iter()
         .collect::<HashMap<String, Source>>()
@@ -393,13 +457,18 @@ fn main() -> Together {
             "one".to_owned(),
             Source::test(
                 one,
+                PathBuf::from("one.zn"),
                 vec![(
                     "two".to_owned(),
                     Source::test(
                         two,
-                        vec![("three".to_owned(), Source::test(three, HashMap::new())),]
-                            .into_iter()
-                            .collect::<HashMap<String, Source>>()
+                        PathBuf::from("one/two.zn"),
+                        vec![(
+                            "three".to_owned(),
+                            Source::test(three, PathBuf::from("one/two/three.zn"), HashMap::new())
+                        ),]
+                        .into_iter()
+                        .collect::<HashMap<String, Source>>()
                     )
                 ),]
                 .into_iter()
@@ -470,13 +539,18 @@ fn main() -> Together {
             "one".to_owned(),
             Source::test(
                 one,
+                PathBuf::from("one.zn"),
                 vec![(
                     "two".to_owned(),
                     Source::test(
                         two,
-                        vec![("three".to_owned(), Source::test(three, HashMap::new())),]
-                            .into_iter()
-                            .collect::<HashMap<String, Source>>()
+                        PathBuf::from("one/two.zn"),
+                        vec![(
+                            "three".to_owned(),
+                            Source::test(three, PathBuf::from("one/two/three.zn"), HashMap::new())
+                        )]
+                        .into_iter()
+                        .collect::<HashMap<String, Source>>()
                     )
                 ),]
                 .into_iter()
@@ -519,9 +593,12 @@ fn main() -> Other {
 
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
-        vec![("other".to_owned(), Source::test(other, HashMap::new())),]
-            .into_iter()
-            .collect::<HashMap<String, Source>>()
+        vec![(
+            "other".to_owned(),
+            Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+        ),]
+        .into_iter()
+        .collect::<HashMap<String, Source>>()
     )
     .is_ok());
 }
@@ -556,9 +633,12 @@ fn main() -> Other {
 
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
-        vec![("other".to_owned(), Source::test(other, HashMap::new())),]
-            .into_iter()
-            .collect::<HashMap<String, Source>>()
+        vec![(
+            "other".to_owned(),
+            Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+        ),]
+        .into_iter()
+        .collect::<HashMap<String, Source>>()
     )
     .is_ok());
 }
@@ -597,9 +677,12 @@ contract Test {
 
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
-        vec![("other".to_owned(), Source::test(other, HashMap::new())),]
-            .into_iter()
-            .collect::<HashMap<String, Source>>()
+        vec![(
+            "other".to_owned(),
+            Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+        ),]
+        .into_iter()
+        .collect::<HashMap<String, Source>>()
     )
     .is_ok());
 }
@@ -638,9 +721,12 @@ contract Test {
 
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
-        vec![("other".to_owned(), Source::test(other, HashMap::new())),]
-            .into_iter()
-            .collect::<HashMap<String, Source>>()
+        vec![(
+            "other".to_owned(),
+            Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+        ),]
+        .into_iter()
+        .collect::<HashMap<String, Source>>()
     )
     .is_ok());
 }
@@ -680,10 +766,13 @@ fn main() -> Other {
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
-            ("other".to_owned(), Source::test(other, HashMap::new())),
+            (
+                "other".to_owned(),
+                Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+            ),
             (
                 "accessed".to_owned(),
-                Source::test(accessed, HashMap::new())
+                Source::test(accessed, PathBuf::from("accessed.zn"), HashMap::new())
             ),
         ]
         .into_iter()
@@ -727,10 +816,13 @@ fn main() -> Other {
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
-            ("other".to_owned(), Source::test(other, HashMap::new())),
+            (
+                "other".to_owned(),
+                Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+            ),
             (
                 "accessed".to_owned(),
-                Source::test(accessed, HashMap::new())
+                Source::test(accessed, PathBuf::from("accessed.zn"), HashMap::new())
             ),
         ]
         .into_iter()
@@ -794,13 +886,19 @@ fn main() -> Other {
                 "other_level_1".to_owned(),
                 Source::test(
                     other_level_1,
+                    PathBuf::from("other_level_1.zn"),
                     vec![(
                         "other_level_2".to_owned(),
                         Source::test(
                             other_level_2,
+                            PathBuf::from("other_level_1/other_level_2.zn"),
                             vec![(
                                 "other_level_3".to_owned(),
-                                Source::test(other_level_3, HashMap::new())
+                                Source::test(
+                                    other_level_3,
+                                    PathBuf::from("other_level_1/other_level_2/other_level_3.zn"),
+                                    HashMap::new()
+                                )
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
@@ -814,13 +912,21 @@ fn main() -> Other {
                 "accessed_level_1".to_owned(),
                 Source::test(
                     accessed_level_1,
+                    PathBuf::from("accessed_level_1.zn"),
                     vec![(
                         "accessed_level_2".to_owned(),
                         Source::test(
                             accessed_level_2,
+                            PathBuf::from("accessed_level_1/accessed_level_2.zn"),
                             vec![(
                                 "accessed_level_3".to_owned(),
-                                Source::test(accessed_level_3, HashMap::new())
+                                Source::test(
+                                    accessed_level_3,
+                                    PathBuf::from(
+                                        "accessed_level_1/accessed_level_2/accessed_level_3.zn"
+                                    ),
+                                    HashMap::new()
+                                )
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
@@ -892,13 +998,19 @@ fn main() -> Other {
                 "other_level_1".to_owned(),
                 Source::test(
                     other_level_1,
+                    PathBuf::from("other_level_1.zn"),
                     vec![(
                         "other_level_2".to_owned(),
                         Source::test(
                             other_level_2,
+                            PathBuf::from("other_level_1/other_level_2.zn"),
                             vec![(
                                 "other_level_3".to_owned(),
-                                Source::test(other_level_3, HashMap::new())
+                                Source::test(
+                                    other_level_3,
+                                    PathBuf::from("other_level_1/other_level_2/other_level_3.zn"),
+                                    HashMap::new()
+                                )
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
@@ -912,13 +1024,21 @@ fn main() -> Other {
                 "accessed_level_1".to_owned(),
                 Source::test(
                     accessed_level_1,
+                    PathBuf::from("accessed_level_1.zn"),
                     vec![(
                         "accessed_level_2".to_owned(),
                         Source::test(
                             accessed_level_2,
+                            PathBuf::from("accessed_level_1/accessed_level_2.zn"),
                             vec![(
                                 "accessed_level_3".to_owned(),
-                                Source::test(accessed_level_3, HashMap::new())
+                                Source::test(
+                                    accessed_level_3,
+                                    PathBuf::from(
+                                        "accessed_level_1/accessed_level_2/accessed_level_3.zn"
+                                    ),
+                                    HashMap::new()
+                                )
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
@@ -982,10 +1102,13 @@ fn main() -> Other {
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
-            ("other".to_owned(), Source::test(other, HashMap::new(),)),
+            (
+                "other".to_owned(),
+                Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+            ),
             (
                 "accessed".to_owned(),
-                Source::test(accessed, HashMap::new(),)
+                Source::test(accessed, PathBuf::from("accessed.zn"), HashMap::new())
             ),
         ]
         .into_iter()
@@ -1041,10 +1164,13 @@ fn main() -> Other {
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
-            ("other".to_owned(), Source::test(other, HashMap::new(),)),
+            (
+                "other".to_owned(),
+                Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+            ),
             (
                 "accessed".to_owned(),
-                Source::test(accessed, HashMap::new(),)
+                Source::test(accessed, PathBuf::from("accessed.zn"), HashMap::new())
             ),
         ]
         .into_iter()
@@ -1120,13 +1246,19 @@ fn main() -> Other {
                 "other_level_1".to_owned(),
                 Source::test(
                     other_level_1,
+                    PathBuf::from("other_level_1.zn"),
                     vec![(
                         "other_level_2".to_owned(),
                         Source::test(
                             other_level_2,
+                            PathBuf::from("other_level_1/other_level_2.zn"),
                             vec![(
                                 "other_level_3".to_owned(),
-                                Source::test(other_level_3, HashMap::new())
+                                Source::test(
+                                    other_level_3,
+                                    PathBuf::from("other_level_1/other_level_2/other_level_3.zn"),
+                                    HashMap::new()
+                                )
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
@@ -1140,13 +1272,21 @@ fn main() -> Other {
                 "accessed_level_1".to_owned(),
                 Source::test(
                     accessed_level_1,
+                    PathBuf::from("accessed_level_1.zn"),
                     vec![(
                         "accessed_level_2".to_owned(),
                         Source::test(
                             accessed_level_2,
+                            PathBuf::from("accessed_level_1/accessed_level_2.zn"),
                             vec![(
                                 "accessed_level_3".to_owned(),
-                                Source::test(accessed_level_3, HashMap::new())
+                                Source::test(
+                                    accessed_level_3,
+                                    PathBuf::from(
+                                        "accessed_level_1/accessed_level_2/accessed_level_3.zn"
+                                    ),
+                                    HashMap::new()
+                                )
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
@@ -1230,18 +1370,24 @@ fn main() -> Other {
                 "other_level_1".to_owned(),
                 Source::test(
                     other_level_1,
+                    PathBuf::from("other_level_1.zn"),
                     vec![(
                         "other_level_2".to_owned(),
                         Source::test(
                             other_level_2,
+                            PathBuf::from("other_level_1/other_level_2.zn"),
                             vec![(
                                 "other_level_3".to_owned(),
-                                Source::test(other_level_3, HashMap::new())
+                                Source::test(
+                                    other_level_3,
+                                    PathBuf::from("other_level_1/other_level_2/other_level_3.zn"),
+                                    HashMap::new()
+                                )
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
                         )
-                    )]
+                    ),]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )
@@ -1250,13 +1396,21 @@ fn main() -> Other {
                 "accessed_level_1".to_owned(),
                 Source::test(
                     accessed_level_1,
+                    PathBuf::from("accessed_level_1.zn"),
                     vec![(
                         "accessed_level_2".to_owned(),
                         Source::test(
                             accessed_level_2,
+                            PathBuf::from("accessed_level_1/accessed_level_2.zn"),
                             vec![(
                                 "accessed_level_3".to_owned(),
-                                Source::test(accessed_level_3, HashMap::new())
+                                Source::test(
+                                    accessed_level_3,
+                                    PathBuf::from(
+                                        "accessed_level_1/accessed_level_2/accessed_level_3.zn"
+                                    ),
+                                    HashMap::new()
+                                )
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()

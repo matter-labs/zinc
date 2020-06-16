@@ -1,3 +1,7 @@
+//!
+//! The operator instructions.
+//!
+
 mod tests;
 
 pub mod arithmetic;

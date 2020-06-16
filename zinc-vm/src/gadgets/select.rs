@@ -1,4 +1,8 @@
-use ff::Field;
+//!
+//! The conditional select gadget.
+//!
+
+use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 
@@ -11,9 +15,11 @@ use crate::gadgets::scalar::variant::Variant as ScalarVariant;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
+///
 /// Select single value from array based on index bits.
 ///
 /// **Note**: index bits are in **big-endian**.
+///
 pub fn recursive<E, CS>(
     mut cs: CS,
     index_bits_be: &[Scalar<E>],

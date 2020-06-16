@@ -1,3 +1,7 @@
+//!
+//! The `Debug` instruction.
+//!
+
 use num_bigint::ToBigInt;
 use num_traits::Signed;
 
@@ -11,12 +15,12 @@ use crate::error::RuntimeError;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let mut values = Vec::with_capacity(self.arg_types.len());
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+        let mut values = Vec::with_capacity(self.argument_types.len());
 
-        for arg_type in self.arg_types.iter().rev() {
-            let size = TemplateValue::default_from_type(arg_type)
-                .to_flat_values()
+        for argument_type in self.argument_types.into_iter().rev() {
+            let size = TemplateValue::new(argument_type.clone())
+                .into_flat_values()
                 .len();
 
             if vm.is_debugging() {
@@ -28,7 +32,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                     flat.push(value);
                 }
                 flat.reverse();
-                let value = TemplateValue::from_flat_values(arg_type, &flat)
+                let value = TemplateValue::new_with_flat_values(argument_type, &flat)
                     .expect(crate::panic::VALUE_ALWAYS_EXISTS);
                 values.push(value);
             };
@@ -36,7 +40,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
 
         if let Some(condition) = vm.condition_top()?.to_bigint() {
             if condition.is_positive() && vm.is_debugging() {
-                let mut buffer = self.format.clone();
+                let mut buffer = self.format;
                 for value in values.into_iter().rev() {
                     let json = serde_json::to_string(&value.to_json())
                         .expect(crate::panic::JSON_TEMPLATE_SERIALIZATION);
@@ -57,8 +61,8 @@ mod tests {
     #[test]
     fn test() {
         TestRunner::new()
-            .add(zinc_bytecode::Push::new_field(42.into()))
-            .add(zinc_bytecode::Dbg::new("Value: {}".into(), vec![]))
+            .push(zinc_bytecode::Push::new_field(42.into()))
+            .push(zinc_bytecode::Dbg::new("Value: {}".into(), vec![]))
             .test::<u32>(&[])
             .expect(crate::panic::TEST_DATA_VALID);
     }

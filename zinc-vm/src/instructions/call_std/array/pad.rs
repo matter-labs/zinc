@@ -1,5 +1,5 @@
 //!
-//! The `std::array::pad` function.
+//! The `std::array::pad` function call.
 //!
 
 use franklin_crypto::bellman::ConstraintSystem;

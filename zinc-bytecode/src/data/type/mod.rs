@@ -18,10 +18,32 @@ pub enum Type {
 
     Array(Box<Type>, usize),
     Tuple(Vec<Type>),
-    Struct(Vec<(String, Type)>),
+    Structure(Vec<(String, Type)>),
 }
 
 impl Type {
+    pub fn into_flat_scalar_types(self) -> Vec<ScalarType> {
+        match self {
+            Type::Unit => vec![],
+            Type::Scalar(scalar_type) => vec![scalar_type],
+            Type::Enum => vec![ScalarType::Field],
+            Type::Array(r#type, size) => vec![Self::into_flat_scalar_types(*r#type); size]
+                .into_iter()
+                .flatten()
+                .collect(),
+            Type::Tuple(types) => types
+                .into_iter()
+                .map(Self::into_flat_scalar_types)
+                .flatten()
+                .collect(),
+            Type::Structure(types) => types
+                .into_iter()
+                .map(|(_name, r#type)| Self::into_flat_scalar_types(r#type))
+                .flatten()
+                .collect(),
+        }
+    }
+
     pub fn size(&self) -> usize {
         match self {
             Self::Unit => 0,
@@ -30,40 +52,7 @@ impl Type {
 
             Self::Array(r#type, size) => r#type.size() * *size,
             Self::Tuple(fields) => fields.iter().map(|r#type| r#type.size()).sum(),
-            Self::Struct(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
+            Self::Structure(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
         }
-    }
-
-    pub fn to_scalar_types(&self) -> Vec<ScalarType> {
-        fn internal(types: &mut Vec<ScalarType>, dtype: &Type) {
-            match dtype {
-                Type::Unit => {}
-                Type::Scalar(scalar_type) => {
-                    types.push(scalar_type.to_owned());
-                }
-                Type::Enum => {
-                    types.push(ScalarType::Field);
-                }
-                Type::Struct(fields) => {
-                    for (_, r#type) in fields {
-                        internal(types, r#type);
-                    }
-                }
-                Type::Tuple(fields) => {
-                    for r#type in fields {
-                        internal(types, r#type);
-                    }
-                }
-                Type::Array(r#type, size) => {
-                    for _ in 0..*size {
-                        internal(types, r#type.as_ref());
-                    }
-                }
-            }
-        }
-
-        let mut types = Vec::new();
-        internal(&mut types, self);
-        types
     }
 }

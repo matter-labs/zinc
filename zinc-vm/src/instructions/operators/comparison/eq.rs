@@ -1,3 +1,7 @@
+//!
+//! The `Equals` instruction.
+//!
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Eq;
@@ -9,7 +13,7 @@ use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Eq {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
@@ -28,15 +32,15 @@ mod test {
     #[test]
     fn test_eq() -> Result<(), TestingError> {
         TestRunner::new()
-            .add(zinc_bytecode::Push::new_field(1.into()))
-            .add(zinc_bytecode::Push::new_field(2.into()))
-            .add(zinc_bytecode::Eq)
-            .add(zinc_bytecode::Push::new_field(2.into()))
-            .add(zinc_bytecode::Push::new_field(2.into()))
-            .add(zinc_bytecode::Eq)
-            .add(zinc_bytecode::Push::new_field(2.into()))
-            .add(zinc_bytecode::Push::new_field(1.into()))
-            .add(zinc_bytecode::Eq)
+            .push(zinc_bytecode::Push::new_field(1.into()))
+            .push(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_bytecode::Eq)
+            .push(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_bytecode::Eq)
+            .push(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_bytecode::Push::new_field(1.into()))
+            .push(zinc_bytecode::Eq)
             .test(&[0, 1, 0])
     }
 }

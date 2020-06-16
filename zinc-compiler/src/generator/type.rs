@@ -146,7 +146,7 @@ impl Into<DataType> for Type {
             Self::Tuple { types } => {
                 DataType::Tuple(types.into_iter().map(|r#type| r#type.into()).collect())
             }
-            Self::Structure { fields } => DataType::Struct(
+            Self::Structure { fields } => DataType::Structure(
                 fields
                     .into_iter()
                     .map(|(name, r#type)| (name, r#type.into()))

@@ -1,3 +1,7 @@
+//!
+//! The `Slice` instruction.
+//!
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Slice;
@@ -9,7 +13,7 @@ use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Slice {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let offset = vm.pop()?.try_into_value()?;
 
         let mut array = Vec::with_capacity(self.array_len);
@@ -43,14 +47,14 @@ mod tests {
     #[test]
     fn test_slice() -> Result<(), TestingError> {
         TestRunner::new()
-            .add(zinc_bytecode::Push::new_field(1.into()))
-            .add(zinc_bytecode::Push::new_field(2.into()))
-            .add(zinc_bytecode::Push::new_field(3.into()))
-            .add(zinc_bytecode::Push::new_field(4.into()))
-            .add(zinc_bytecode::Push::new_field(5.into()))
-            .add(zinc_bytecode::Push::new_field(6.into()))
-            .add(zinc_bytecode::Push::new_field(2.into()))
-            .add(zinc_bytecode::Slice::new(5, 2))
+            .push(zinc_bytecode::Push::new_field(1.into()))
+            .push(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_bytecode::Push::new_field(3.into()))
+            .push(zinc_bytecode::Push::new_field(4.into()))
+            .push(zinc_bytecode::Push::new_field(5.into()))
+            .push(zinc_bytecode::Push::new_field(6.into()))
+            .push(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_bytecode::Slice::new(5, 2))
             .test(&[5, 4, 1])
     }
 }

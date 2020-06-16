@@ -10,6 +10,7 @@ use lazy_static::lazy_static;
 ///
 /// The global file index where a `Location` instance can get the file contents by its index.
 ///
+#[derive(Debug)]
 pub struct Index {
     pub inner: RwLock<Vec<Data>>,
 }
@@ -17,6 +18,7 @@ pub struct Index {
 ///
 /// The indexed file contents, which are its path and source code text.
 ///
+#[derive(Debug)]
 pub struct Data {
     pub path: PathBuf,
     pub code: String,
@@ -56,5 +58,16 @@ impl Index {
             .expect(crate::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .path
             .to_owned()
+    }
+
+    pub fn test(&self, path: &PathBuf, code: String) -> usize {
+        let mut index = self.inner.write().expect(crate::panic::MUTEX_SYNC);
+
+        *index = vec![Data {
+            path: path.to_owned(),
+            code,
+        }];
+
+        0
     }
 }

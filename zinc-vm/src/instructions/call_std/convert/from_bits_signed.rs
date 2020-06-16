@@ -1,10 +1,10 @@
 //!
-//! The `std::convert::from_bits_signed` function.
+//! The `std::convert::from_bits_signed` function call.
 //!
 
 use num_bigint::BigInt;
 
-use ff::PrimeField;
+use franklin_crypto::bellman::pairing::ff::PrimeField;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;

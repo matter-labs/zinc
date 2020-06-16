@@ -1,0 +1,31 @@
+//!
+//! The 'bitwise NOT' instruction.
+//!
+
+use std::fmt;
+
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+
+use crate::instructions::Instruction;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct BitwiseNot;
+
+impl BitwiseNot {
+    pub fn is_debug(&self) -> bool {
+        false
+    }
+}
+
+impl Into<Instruction> for BitwiseNot {
+    fn into(self) -> Instruction {
+        Instruction::BitwiseNot(self)
+    }
+}
+
+impl fmt::Display for BitwiseNot {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "bitwise_not")
+    }
+}

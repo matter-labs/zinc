@@ -1,3 +1,7 @@
+//!
+//! The `Neg` instruction.
+//!
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Neg;
@@ -11,7 +15,7 @@ use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Neg {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let value = vm.pop()?.try_into_value()?;
 
         let cs = vm.constraint_system();
@@ -50,8 +54,8 @@ mod test {
     #[test]
     fn test_neg() -> Result<(), TestingError> {
         TestRunner::new()
-            .add(Push::new(128.into(), IntegerType::U8.into()))
-            .add(Neg)
-            .test(&[-128])
+            .push(Push::new(127.into(), IntegerType::U8.into()))
+            .push(Neg)
+            .test(&[-127])
     }
 }

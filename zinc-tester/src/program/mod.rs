@@ -5,6 +5,7 @@
 pub mod error;
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use serde_json::Value as JsonValue;
 
@@ -24,8 +25,13 @@ pub struct Program {
 }
 
 impl Program {
-    pub fn new(code: &str, witness: &JsonValue, entry: &str) -> Result<Self, Error> {
-        let scope = EntryAnalyzer::define(Source::test(code, HashMap::new()))
+    pub fn new(
+        code: &str,
+        path: PathBuf,
+        entry: String,
+        witness: JsonValue,
+    ) -> Result<Self, Error> {
+        let scope = EntryAnalyzer::define(Source::test(code, path, HashMap::new()))
             .map_err(CompilerError::Semantic)
             .map_err(|error| error.format())
             .map_err(Error::Compiler)?;
@@ -36,13 +42,13 @@ impl Program {
 
         let entry = Bytecode::unwrap_rc(bytecode)
             .into_entries()
-            .remove(entry)
-            .ok_or_else(|| Error::EntryNotFound(entry.to_owned()))?;
+            .remove(entry.as_str())
+            .ok_or_else(|| Error::EntryNotFound(entry))?;
 
         let bytecode =
             BytecodeProgram::from_bytes(entry.bytecode.as_slice()).map_err(Error::Program)?;
 
-        let witness = TemplateValue::from_typed_json(witness, &bytecode.input())
+        let witness = TemplateValue::from_typed_json(&witness, &bytecode.input())
             .map_err(Error::TemplateValue)?;
 
         Ok(Self { witness, bytecode })

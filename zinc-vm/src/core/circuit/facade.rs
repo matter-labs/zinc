@@ -13,7 +13,6 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_bytecode::Circuit as BytecodeCircuit;
-use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
 
 use crate::constraint_systems::debug::DebugCS;
@@ -29,14 +28,14 @@ impl IFacade for BytecodeCircuit {
     fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
         let cs = TestConstraintSystem::<Bn256>::new();
 
-        let inputs_flat = input.to_flat_values();
-        let output = self.output.to_owned();
+        let inputs_flat = input.into_flat_values();
+        let output_type = self.output.to_owned();
 
         let mut circuit = Circuit::new(cs, true);
 
         let mut num_constraints = 0;
         let result = circuit.run(
-            &BytecodeProgram::Circuit(self),
+            self,
             Some(&inputs_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
@@ -78,12 +77,13 @@ impl IFacade for BytecodeCircuit {
             .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
             .collect::<Vec<_>>();
 
-        let value = TemplateValue::from_flat_values(&output, &output_flat).ok_or_else(|| {
-            TypeSizeError::Output {
-                expected: 0,
-                actual: 0,
-            }
-        })?;
+        let value =
+            TemplateValue::new_with_flat_values(output_type, &output_flat).ok_or_else(|| {
+                TypeSizeError::Output {
+                    expected: 0,
+                    actual: 0,
+                }
+            })?;
 
         Ok(value)
     }
@@ -91,14 +91,14 @@ impl IFacade for BytecodeCircuit {
     fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
         let cs = DebugCS::<Bn256>::default();
 
-        let inputs_flat = input.to_flat_values();
-        let output = self.output.to_owned();
+        let inputs_flat = input.into_flat_values();
+        let output_type = self.output.to_owned();
 
         let mut circuit = Circuit::new(cs, true);
 
         let mut num_constraints = 0;
         let result = circuit.run(
-            &BytecodeProgram::Circuit(self),
+            self,
             Some(&inputs_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
@@ -124,12 +124,13 @@ impl IFacade for BytecodeCircuit {
             .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
             .collect::<Vec<_>>();
 
-        let value = TemplateValue::from_flat_values(&output, &output_flat).ok_or_else(|| {
-            TypeSizeError::Output {
-                expected: 0,
-                actual: 0,
-            }
-        })?;
+        let value =
+            TemplateValue::new_with_flat_values(output_type, &output_flat).ok_or_else(|| {
+                TypeSizeError::Output {
+                    expected: 0,
+                    actual: 0,
+                }
+            })?;
 
         Ok(value)
     }
@@ -141,7 +142,7 @@ impl IFacade for BytecodeCircuit {
         let synthesizable = CircuitSynthesizer {
             inputs: None,
             output: &mut result,
-            bytecode: BytecodeProgram::Circuit(self),
+            bytecode: self,
 
             _pd: PhantomData,
         };
@@ -162,13 +163,13 @@ impl IFacade for BytecodeCircuit {
         let mut result = None;
         let rng = &mut rand::thread_rng();
 
-        let witness_flat = witness.to_flat_values();
-        let output = self.output.to_owned();
+        let witness_flat = witness.into_flat_values();
+        let output_type = self.output.to_owned();
 
         let synthesizable = CircuitSynthesizer {
             inputs: Some(witness_flat),
             output: &mut result,
-            bytecode: BytecodeProgram::Circuit(self),
+            bytecode: self,
 
             _pd: PhantomData,
         };
@@ -180,19 +181,18 @@ impl IFacade for BytecodeCircuit {
             None => Err(RuntimeError::InternalError(
                 "circuit hasn't generate outputs".into(),
             )),
-            Some(res) => match res {
+            Some(result) => match result {
                 Ok(values) => {
                     let output_flat: Vec<BigInt> = values
                         .into_iter()
                         .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
                         .collect();
 
-                    let value = TemplateValue::from_flat_values(&output, &output_flat).ok_or_else(
-                        || TypeSizeError::Output {
+                    let value = TemplateValue::new_with_flat_values(output_type, &output_flat)
+                        .ok_or_else(|| TypeSizeError::Output {
                             expected: 0,
                             actual: 0,
-                        },
-                    )?;
+                        })?;
 
                     Ok((value, proof))
                 }

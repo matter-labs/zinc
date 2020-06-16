@@ -14,7 +14,6 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_bytecode::Contract as BytecodeContract;
-use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
 
 use crate::constraint_systems::debug::DebugCS;
@@ -34,8 +33,8 @@ impl IFacade for BytecodeContract {
     fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
         let mut cs = TestConstraintSystem::<Bn256>::new();
 
-        let inputs_flat = input.to_flat_values();
-        let output = self.output.to_owned();
+        let inputs_flat = input.into_flat_values();
+        let output_type = self.output.to_owned();
 
         let storage_fields = self
             .storage
@@ -50,7 +49,7 @@ impl IFacade for BytecodeContract {
 
         let mut num_constraints = 0;
         let result = contract.run(
-            &BytecodeProgram::Contract(self),
+            self,
             Some(&inputs_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
@@ -92,12 +91,13 @@ impl IFacade for BytecodeContract {
             .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
             .collect::<Vec<_>>();
 
-        let value = TemplateValue::from_flat_values(&output, &output_flat).ok_or_else(|| {
-            TypeSizeError::Output {
-                expected: 0,
-                actual: 0,
-            }
-        })?;
+        let value =
+            TemplateValue::new_with_flat_values(output_type, &output_flat).ok_or_else(|| {
+                TypeSizeError::Output {
+                    expected: 0,
+                    actual: 0,
+                }
+            })?;
 
         Ok(value)
     }
@@ -105,8 +105,8 @@ impl IFacade for BytecodeContract {
     fn run<E: IEngine>(self, witness: TemplateValue) -> Result<TemplateValue, RuntimeError> {
         let mut cs = DebugCS::<Bn256>::default();
 
-        let witness_flat = witness.to_flat_values();
-        let output = self.output.to_owned();
+        let witness_flat = witness.into_flat_values();
+        let output_type = self.output.to_owned();
 
         let storage_fields = self
             .storage
@@ -120,7 +120,7 @@ impl IFacade for BytecodeContract {
 
         let mut num_constraints = 0;
         let result = contract.run(
-            &BytecodeProgram::Contract(self),
+            self,
             Some(&witness_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
@@ -146,12 +146,13 @@ impl IFacade for BytecodeContract {
             .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
             .collect::<Vec<_>>();
 
-        let value = TemplateValue::from_flat_values(&output, &output_flat).ok_or_else(|| {
-            TypeSizeError::Output {
-                expected: 0,
-                actual: 0,
-            }
-        })?;
+        let value =
+            TemplateValue::new_with_flat_values(output_type, &output_flat).ok_or_else(|| {
+                TypeSizeError::Output {
+                    expected: 0,
+                    actual: 0,
+                }
+            })?;
 
         Ok(value)
     }
@@ -170,7 +171,7 @@ impl IFacade for BytecodeContract {
         let synthesizable = ContractSynthesizer {
             inputs: None,
             output: &mut result,
-            bytecode: BytecodeProgram::Contract(self),
+            bytecode: self,
             storage,
 
             _pd: PhantomData,
@@ -192,8 +193,8 @@ impl IFacade for BytecodeContract {
         let mut result = None;
         let rng = &mut rand::thread_rng();
 
-        let witness_flat = witness.to_flat_values();
-        let output = self.output.to_owned();
+        let witness_flat = witness.into_flat_values();
+        let output_type = self.output.to_owned();
 
         let storage_fields = self
             .storage
@@ -205,7 +206,7 @@ impl IFacade for BytecodeContract {
         let synthesizable = ContractSynthesizer {
             inputs: Some(witness_flat),
             output: &mut result,
-            bytecode: BytecodeProgram::Contract(self),
+            bytecode: self,
             storage,
 
             _pd: PhantomData,
@@ -218,19 +219,18 @@ impl IFacade for BytecodeContract {
             None => Err(RuntimeError::InternalError(
                 "circuit hasn't generate outputs".into(),
             )),
-            Some(res) => match res {
+            Some(result) => match result {
                 Ok(values) => {
                     let output_flat: Vec<BigInt> = values
                         .into_iter()
                         .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
                         .collect();
 
-                    let value = TemplateValue::from_flat_values(&output, &output_flat).ok_or_else(
-                        || TypeSizeError::Output {
+                    let value = TemplateValue::new_with_flat_values(output_type, &output_flat)
+                        .ok_or_else(|| TypeSizeError::Output {
                             expected: 0,
                             actual: 0,
-                        },
-                    )?;
+                        })?;
 
                     Ok((value, proof))
                 }

@@ -10,7 +10,7 @@ use franklin_crypto::bellman;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::SynthesisError;
 
-use zinc_bytecode::Program as BytecodeProgram;
+use zinc_bytecode::Contract as BytecodeContract;
 
 use crate::constraint_systems::dedup::DedupCS;
 use crate::constraint_systems::logging::LoggingCS;
@@ -24,7 +24,7 @@ use crate::IEngine;
 pub struct Synthesizer<'a, E: IEngine, S: IMerkleTree<E>> {
     pub inputs: Option<Vec<BigInt>>,
     pub output: &'a mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
-    pub bytecode: BytecodeProgram,
+    pub bytecode: BytecodeContract,
     pub storage: S,
 
     pub _pd: PhantomData<E>,
@@ -43,7 +43,7 @@ where
 
         let mut contract = Contract::new(DedupCS::new(LoggingCS::new(cs)), storage, false);
         *self.output =
-            Some(contract.run(&self.bytecode, self.inputs.as_deref(), |_| {}, |_| Ok(())));
+            Some(contract.run(self.bytecode, self.inputs.as_deref(), |_| {}, |_| Ok(())));
 
         Ok(())
     }

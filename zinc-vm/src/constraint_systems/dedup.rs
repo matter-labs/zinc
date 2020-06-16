@@ -5,13 +5,13 @@
 use std::collections::BTreeMap;
 use std::marker::PhantomData;
 
-use ff::Field;
+use franklin_crypto::bellman::pairing::ff::Field;
+use franklin_crypto::bellman::pairing::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::Index;
 use franklin_crypto::bellman::LinearCombination;
 use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::bellman::Variable;
-use pairing::Engine;
 
 pub struct DedupCS<E, CS>(CS, PhantomData<E>)
 where

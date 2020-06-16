@@ -5,6 +5,7 @@
 #![cfg(test)]
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use crate::error::Error;
 use crate::lexical::token::location::Location;
@@ -270,7 +271,7 @@ fn main() -> u8 {
         entry,
         vec![(
             "module_1".to_owned(),
-            Source::test(module_1, HashMap::new()),
+            Source::test(module_1, PathBuf::from("module_1.zn"), HashMap::new()),
         )]
         .into_iter()
         .collect::<HashMap<String, Source>>(),

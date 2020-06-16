@@ -1,3 +1,7 @@
+//!
+//! The `Cast` instruction.
+//!
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_bytecode::Cast;
@@ -9,7 +13,7 @@ use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Cast {
-    fn execute(&self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let old_value = vm.pop()?.try_into_value()?;
 
         let condition = vm.condition_top()?;
@@ -18,7 +22,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Cast {
             cs.namespace(|| "type check"),
             &condition,
             &old_value,
-            self.r#type.to_owned(),
+            self.r#type,
         )?;
 
         vm.push(Cell::Value(new_value))

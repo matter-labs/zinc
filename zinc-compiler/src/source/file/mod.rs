@@ -121,13 +121,15 @@ impl File {
     }
 
     ///
-    /// Initialized a test module file.
+    /// Initializes a test module file.
     ///
-    pub fn test(input: &str) -> Result<Self, CompilerError> {
+    pub fn test(code: &str, path: PathBuf) -> Result<Self, CompilerError> {
+        let file_id = INDEX.test(&path, code.to_owned());
+
         Ok(Self {
-            path: PathBuf::from("test.zn"),
+            path,
             name: "test".to_owned(),
-            tree: Parser::default().parse(input, None)?,
+            tree: Parser::default().parse(code, Some(file_id))?,
         })
     }
 }

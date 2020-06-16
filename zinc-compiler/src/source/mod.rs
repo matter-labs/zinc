@@ -86,11 +86,11 @@ impl Source {
     ///
     /// Initialized a test module.
     ///
-    pub fn test(input: &str, dependencies: HashMap<String, Source>) -> Self {
+    pub fn test(code: &str, path: PathBuf, dependencies: HashMap<String, Source>) -> Self {
         if dependencies.is_empty() {
-            File::test(input).map(Self::File)
+            File::test(code, path).map(Self::File)
         } else {
-            Directory::test(input, dependencies).map(Self::Directory)
+            Directory::test(code, path, dependencies).map(Self::Directory)
         }
         .expect(crate::panic::TEST_DATA_VALID)
     }

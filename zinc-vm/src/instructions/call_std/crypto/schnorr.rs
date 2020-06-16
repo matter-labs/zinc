@@ -1,8 +1,8 @@
 //!
-//! The `std::crypto::schnorr::Signature::verify` function.
+//! The `std::crypto::schnorr::Signature::verify` function call.
 //!
 
-use ff::PrimeField;
+use franklin_crypto::bellman::pairing::ff::PrimeField;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::baby_eddsa::EddsaSignature;
 use franklin_crypto::circuit::ecc::EdwardsPoint;
@@ -138,17 +138,17 @@ where
 mod tests {
     use rand::Rng;
 
-    use ff::Field;
-    use ff::PrimeField;
-    use ff::PrimeFieldRepr;
     use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
+    use franklin_crypto::bellman::pairing::bn256::Bn256;
+    use franklin_crypto::bellman::pairing::bn256::Fr;
+    use franklin_crypto::bellman::pairing::ff::Field;
+    use franklin_crypto::bellman::pairing::ff::PrimeField;
+    use franklin_crypto::bellman::pairing::ff::PrimeFieldRepr;
     use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::test::TestConstraintSystem;
     use franklin_crypto::eddsa;
     use franklin_crypto::jubjub;
     use franklin_crypto::jubjub::JubjubEngine;
-    use pairing::bn256::Bn256;
-    use pairing::bn256::Fr;
 
     use zinc_bytecode::ScalarType;
 
