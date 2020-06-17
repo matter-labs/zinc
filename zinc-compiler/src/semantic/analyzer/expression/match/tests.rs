@@ -267,11 +267,17 @@ fn main() -> u8 {
         }),
     )));
 
+    let mut index_iter = 1..;
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
             "module_1".to_owned(),
-            Source::test(module_1, PathBuf::from("module_1.zn"), HashMap::new()),
+            Source::test(
+                module_1,
+                PathBuf::from("module_1.zn"),
+                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
+                HashMap::new(),
+            ),
         )]
         .into_iter()
         .collect::<HashMap<String, Source>>(),

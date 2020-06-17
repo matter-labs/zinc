@@ -1,6 +1,6 @@
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;
-use franklin_crypto::circuit::sha256::sha256;
+use franklin_crypto::circuit::sha256;
 
 use crate::error::RuntimeError;
 use crate::gadgets::contract::merkle_tree::hasher::IHasher as IMerkleTreeHasher;
@@ -34,7 +34,10 @@ impl<E: IEngine> IMerkleTreeHasher<E> for Hasher {
             preimage.append(&mut field_bits);
         }
 
-        Ok(sha256(cs.namespace(|| "sha256"), &preimage)?)
+        Ok(sha256::sha256(
+            cs.namespace(|| "leaf_value_sha256"),
+            &preimage,
+        )?)
     }
 
     fn node_hash<CS>(
@@ -54,8 +57,8 @@ impl<E: IEngine> IMerkleTreeHasher<E> for Hasher {
             ));
         }
 
-        Ok(sha256(
-            cs.namespace(|| "sha256"),
+        Ok(sha256::sha256(
+            cs.namespace(|| "node_sha256"),
             &[left_node, right_node].concat(),
         )?)
     }

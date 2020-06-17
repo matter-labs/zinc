@@ -20,13 +20,25 @@ pub struct Command {
     )]
     verbosity: usize,
 
-    #[structopt(long = "binary", help = "Path to the binary data file")]
+    #[structopt(
+        long = "binary",
+        help = "Path to the binary data file",
+        default_value = "./build/main.znb"
+    )]
     binary_path: PathBuf,
 
-    #[structopt(long = "proving-key", help = "Path to the proving key file")]
+    #[structopt(
+        long = "proving-key",
+        help = "Path to the proving key file",
+        default_value = "./data/proving_key"
+    )]
     proving_key_path: PathBuf,
 
-    #[structopt(long = "verifying-key", help = "Path to the verifying key file")]
+    #[structopt(
+        long = "verifying-key",
+        help = "Path to the verifying key file",
+        default_value = "./data/verifying_key.txt"
+    )]
     verifying_key_path: PathBuf,
 }
 

@@ -247,7 +247,7 @@ impl Bytecode {
 
             let input_template_value = TemplateValue::new(metadata.input_fields_as_struct().into());
             let witness_template =
-                match serde_json::to_string_pretty(&input_template_value.to_json()) {
+                match serde_json::to_string_pretty(&input_template_value.into_json()) {
                     Ok(json) => (json + "\n").into_bytes(),
                     Err(error) => panic!(
                         crate::panic::JSON_TEMPLATE_SERIALIZATION.to_owned()
@@ -257,7 +257,7 @@ impl Bytecode {
 
             let output_value_template = TemplateValue::new(metadata.output_type.into());
             let public_data_template =
-                match serde_json::to_string_pretty(&output_value_template.to_json()) {
+                match serde_json::to_string_pretty(&output_value_template.into_json()) {
                     Ok(json) => (json + "\n").into_bytes(),
                     Err(error) => panic!(
                         crate::panic::JSON_TEMPLATE_SERIALIZATION.to_owned()

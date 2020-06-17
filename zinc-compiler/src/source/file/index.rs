@@ -2,6 +2,7 @@
 //! The source code file index.
 //!
 
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::RwLock;
 
@@ -12,7 +13,7 @@ use lazy_static::lazy_static;
 ///
 #[derive(Debug)]
 pub struct Index {
-    pub inner: RwLock<Vec<Data>>,
+    pub inner: RwLock<HashMap<usize, Data>>,
 }
 
 ///
@@ -33,7 +34,7 @@ impl Index {
 
     pub fn new() -> Self {
         Self {
-            inner: RwLock::new(Vec::with_capacity(Self::INITIAL_CAPACITY)),
+            inner: RwLock::new(HashMap::with_capacity(Self::INITIAL_CAPACITY)),
         }
     }
 
@@ -43,10 +44,13 @@ impl Index {
 
         log::debug!("File ID {:06} for {:?}", sequence_id, path);
 
-        index.push(Data {
-            path: path.to_owned(),
-            code,
-        });
+        index.insert(
+            sequence_id,
+            Data {
+                path: path.to_owned(),
+                code,
+            },
+        );
         sequence_id
     }
 
@@ -54,20 +58,9 @@ impl Index {
         self.inner
             .read()
             .expect(crate::panic::MUTEX_SYNC)
-            .get(index)
+            .get(&index)
             .expect(crate::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .path
             .to_owned()
-    }
-
-    pub fn test(&self, path: &PathBuf, code: String) -> usize {
-        let mut index = self.inner.write().expect(crate::panic::MUTEX_SYNC);
-
-        *index = vec![Data {
-            path: path.to_owned(),
-            code,
-        }];
-
-        0
     }
 }

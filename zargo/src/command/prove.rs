@@ -20,16 +20,32 @@ pub struct Command {
     )]
     verbosity: usize,
 
-    #[structopt(long = "binary", help = "Path to the bytecode file")]
+    #[structopt(
+        long = "binary",
+        help = "Path to the bytecode file",
+        default_value = "./build/main.znb"
+    )]
     binary_path: PathBuf,
 
-    #[structopt(long = "witness", help = "Path to the witness JSON file")]
+    #[structopt(
+        long = "witness",
+        help = "Path to the witness JSON file",
+        default_value = "./data/main_witness.json"
+    )]
     witness_path: PathBuf,
 
-    #[structopt(long = "public-data", help = "Path to the public data JSON file")]
+    #[structopt(
+        long = "public-data",
+        help = "Path to the public data JSON file",
+        default_value = "./data/main_public_data.json"
+    )]
     public_data_path: PathBuf,
 
-    #[structopt(long = "proving-key", help = "Path to the proving key file")]
+    #[structopt(
+        long = "proving-key",
+        help = "Path to the proving key file",
+        default_value = "./data/proving_key"
+    )]
     proving_key: PathBuf,
 }
 

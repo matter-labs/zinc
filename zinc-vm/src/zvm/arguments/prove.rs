@@ -52,12 +52,12 @@ impl ProveCommand {
         let witness_json = fs::read_to_string(&self.witness_path)
             .error_with_path(|| self.witness_path.to_string_lossy())?;
         let witness_value = serde_json::from_str(&witness_json)?;
-        let witness_struct = TemplateValue::from_typed_json(&witness_value, &program.input())?;
+        let witness_struct = TemplateValue::from_typed_json(witness_value, program.input())?;
 
         let (pubdata, proof) = program.prove::<Bn256>(params, witness_struct)?;
 
         // Write pubdata
-        let pubdata_json = serde_json::to_string_pretty(&pubdata.to_json())? + "\n";
+        let pubdata_json = serde_json::to_string_pretty(&pubdata.into_json())? + "\n";
         fs::write(&self.public_data_path, &pubdata_json)
             .error_with_path(|| self.public_data_path.to_string_lossy())?;
 

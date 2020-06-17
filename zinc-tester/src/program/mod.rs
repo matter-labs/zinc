@@ -31,7 +31,7 @@ impl Program {
         entry: String,
         witness: JsonValue,
     ) -> Result<Self, Error> {
-        let scope = EntryAnalyzer::define(Source::test(code, path, HashMap::new()))
+        let scope = EntryAnalyzer::define(Source::test(code, path, 0, HashMap::new()))
             .map_err(CompilerError::Semantic)
             .map_err(|error| error.format())
             .map_err(Error::Compiler)?;
@@ -48,7 +48,7 @@ impl Program {
         let bytecode =
             BytecodeProgram::from_bytes(entry.bytecode.as_slice()).map_err(Error::Program)?;
 
-        let witness = TemplateValue::from_typed_json(&witness, &bytecode.input())
+        let witness = TemplateValue::from_typed_json(witness, bytecode.input())
             .map_err(Error::TemplateValue)?;
 
         Ok(Self { witness, bytecode })

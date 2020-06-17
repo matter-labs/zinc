@@ -31,7 +31,12 @@ impl Program {
         instructions: Vec<Instruction>,
         storage: Vec<(String, DataType)>,
     ) -> Self {
-        Self::Contract(Contract::new(input, output, instructions, storage))
+        Self::Contract(Contract::new(
+            input,
+            output.into_contract_metadata(),
+            instructions,
+            storage,
+        ))
     }
 
     pub fn input(&self) -> DataType {

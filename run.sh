@@ -67,5 +67,5 @@ cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_L
     --binary "${PROJECT_BUILD_DIRECTORY}/${PROJECT_ENTRY}.znb" \
     --witness "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_witness.json" \
     --public-data "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_public_data.json" \
-    --proving-key "${PROJECT_DATA_DIRECTORY}/proving-key" \
-    --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying-key.txt"
+    --proving-key "${PROJECT_DATA_DIRECTORY}/proving_key" \
+    --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying_key.txt"

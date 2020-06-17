@@ -14,7 +14,7 @@ pub enum Type {
     Unit,
     Scalar(ScalarType),
     // Enum is always a field
-    Enum,
+    Enumeration,
 
     Array(Box<Type>, usize),
     Tuple(Vec<Type>),
@@ -24,19 +24,20 @@ pub enum Type {
 impl Type {
     pub fn into_flat_scalar_types(self) -> Vec<ScalarType> {
         match self {
-            Type::Unit => vec![],
-            Type::Scalar(scalar_type) => vec![scalar_type],
-            Type::Enum => vec![ScalarType::Field],
-            Type::Array(r#type, size) => vec![Self::into_flat_scalar_types(*r#type); size]
+            Self::Unit => vec![],
+            Self::Scalar(scalar_type) => vec![scalar_type],
+            Self::Enumeration => vec![ScalarType::Field],
+
+            Self::Array(r#type, size) => vec![Self::into_flat_scalar_types(*r#type); size]
                 .into_iter()
                 .flatten()
                 .collect(),
-            Type::Tuple(types) => types
+            Self::Tuple(types) => types
                 .into_iter()
                 .map(Self::into_flat_scalar_types)
                 .flatten()
                 .collect(),
-            Type::Structure(types) => types
+            Self::Structure(types) => types
                 .into_iter()
                 .map(|(_name, r#type)| Self::into_flat_scalar_types(r#type))
                 .flatten()
@@ -44,14 +45,21 @@ impl Type {
         }
     }
 
+    pub fn into_contract_metadata(self) -> Self {
+        Self::Structure(vec![
+            ("$result".to_owned(), self),
+            ("$root_hash".to_owned(), Self::Scalar(ScalarType::Field)),
+        ])
+    }
+
     pub fn size(&self) -> usize {
         match self {
             Self::Unit => 0,
             Self::Scalar(_) => 1,
-            Self::Enum => 1,
+            Self::Enumeration => 1,
 
             Self::Array(r#type, size) => r#type.size() * *size,
-            Self::Tuple(fields) => fields.iter().map(|r#type| r#type.size()).sum(),
+            Self::Tuple(fields) => fields.iter().map(Self::size).sum(),
             Self::Structure(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
         }
     }

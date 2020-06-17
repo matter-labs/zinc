@@ -87,7 +87,7 @@ pub enum ErrorType {
 }
 
 impl ErrorType {
-    pub fn type_error(expected: &str, actual: &JsonValue) -> Self {
+    pub fn type_error(expected: &str, actual: JsonValue) -> Self {
         let actual_string: String = match actual {
             JsonValue::Null => "null".into(),
             JsonValue::Bool(value) => format!("boolean ({})", value),

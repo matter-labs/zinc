@@ -21,6 +21,7 @@ use crate::syntax::parser::Parser;
 use crate::syntax::tree::module::Module as SyntaxModule;
 
 use self::error::Error;
+use self::index::Data;
 use self::index::INDEX;
 
 ///
@@ -123,13 +124,19 @@ impl File {
     ///
     /// Initializes a test module file.
     ///
-    pub fn test(code: &str, path: PathBuf) -> Result<Self, CompilerError> {
-        let file_id = INDEX.test(&path, code.to_owned());
+    pub fn test(code: &str, path: PathBuf, file_index: usize) -> Result<Self, CompilerError> {
+        INDEX.inner.write().expect(crate::panic::MUTEX_SYNC).insert(
+            file_index,
+            Data {
+                path: path.clone(),
+                code: code.to_owned(),
+            },
+        );
 
         Ok(Self {
             path,
             name: "test".to_owned(),
-            tree: Parser::default().parse(code, Some(file_id))?,
+            tree: Parser::default().parse(code, Some(file_index))?,
         })
     }
 }

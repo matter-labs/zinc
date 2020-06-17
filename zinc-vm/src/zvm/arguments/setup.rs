@@ -28,7 +28,7 @@ pub struct SetupCommand {
     #[structopt(long = "proving-key", help = "The proving key path")]
     pub proving_key_path: PathBuf,
 
-    #[structopt(long = "verifying-key", help = "The veryfying key path")]
+    #[structopt(long = "verifying-key", help = "The verifying key path")]
     pub verifying_key_path: PathBuf,
 }
 

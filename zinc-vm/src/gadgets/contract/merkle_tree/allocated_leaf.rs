@@ -137,8 +137,8 @@ impl<E: IEngine> AllocatedLeaf<E> {
         E: IEngine,
         CS: ConstraintSystem<E>,
     {
-        let mut leaf_fields = Vec::new();
-        for (index, scalar) in leaf_value.iter().enumerate() {
+        let mut leaf_fields = Vec::with_capacity(leaf_value.len());
+        for (index, scalar) in leaf_value.into_iter().enumerate() {
             let r#type = scalar.get_type();
             let fr = scalar.get_value();
 
@@ -151,7 +151,6 @@ impl<E: IEngine> AllocatedLeaf<E> {
             scalar = scalar.to_type_unchecked(r#type);
             leaf_fields.push(scalar);
         }
-
         Ok(leaf_fields)
     }
 

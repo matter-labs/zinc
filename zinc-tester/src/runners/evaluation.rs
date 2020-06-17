@@ -67,7 +67,7 @@ impl Runnable for Runner {
 
             match program.bytecode.run::<Bn256>(program.witness) {
                 Ok(output) => {
-                    let output = output.to_json();
+                    let output = output.into_json();
                     if case.expect == output {
                         if !case.should_panic {
                             summary.lock().expect(crate::panic::MUTEX_SYNC).passed += 1;

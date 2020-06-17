@@ -1896,7 +1896,7 @@ impl Error {
     fn format_line(message: &str, location: Location, help: Option<&str>) -> String {
         let index = FILE_INDEX.inner.read().expect(crate::panic::MUTEX_SYNC);
         let context = index
-            .get(location.file_index)
+            .get(&location.file_index)
             .expect(crate::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .code
             .lines()
@@ -1944,7 +1944,7 @@ impl Error {
     ) -> String {
         let index = FILE_INDEX.inner.read().expect(crate::panic::MUTEX_SYNC);
         let context = index
-            .get(location.file_index)
+            .get(&location.file_index)
             .expect(crate::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .code
             .lines()
@@ -1959,7 +1959,7 @@ impl Error {
         ));
         if let Some(reference) = reference {
             let context = index
-                .get(reference.file_index)
+                .get(&reference.file_index)
                 .expect(crate::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
                 .code
                 .lines()
@@ -2020,7 +2020,7 @@ impl Error {
     ) -> String {
         let index = FILE_INDEX.inner.read().expect(crate::panic::MUTEX_SYNC);
         let context = index
-            .get(start.file_index)
+            .get(&start.file_index)
             .expect(crate::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .code
             .lines()

@@ -2,7 +2,10 @@
 //#     "case": "default",
 //#     "entry": "main",
 //#     "input": {},
-//#     "expect": "15000"
+//#     "expect": {
+//#         "$result": "15000",
+//#         "$root_hash": "0xa547197df009a38e161508bfeba8a8b256f269600e79b1eedeeb454d49c58f"
+//#     }
 //# } ] }
 
 struct Data {

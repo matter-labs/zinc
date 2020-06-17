@@ -4,7 +4,7 @@
 //#         "f": "0",
 //#         "byte": "0"
 //#     },
-//#     "expect": "unit"
+//#     "expect": null
 //# } ] }
 
 fn main(f: field, byte: u8) {}

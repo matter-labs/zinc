@@ -86,7 +86,7 @@ impl Runnable for Runner {
                 .prove::<Bn256>(params.clone(), program.witness)
             {
                 Ok((output, proof)) => {
-                    let output_json = output.to_json();
+                    let output_json = output.clone().into_json();
                     if case.expect != output_json {
                         summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;
                         println!(

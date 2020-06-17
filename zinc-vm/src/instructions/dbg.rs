@@ -32,7 +32,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                     flat.push(value);
                 }
                 flat.reverse();
-                let value = TemplateValue::new_with_flat_values(argument_type, &flat)
+                let value = TemplateValue::new_from_flat_values(argument_type, &flat)
                     .expect(crate::panic::VALUE_ALWAYS_EXISTS);
                 values.push(value);
             };
@@ -42,7 +42,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
             if condition.is_positive() && vm.is_debugging() {
                 let mut buffer = self.format;
                 for value in values.into_iter().rev() {
-                    let json = serde_json::to_string(&value.to_json())
+                    let json = serde_json::to_string(&value.into_json())
                         .expect(crate::panic::JSON_TEMPLATE_SERIALIZATION);
                     buffer = buffer.replacen("{}", &json, 1);
                 }

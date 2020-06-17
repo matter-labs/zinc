@@ -671,15 +671,21 @@ fn main() -> u8 { call() }
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(2, 1),
+            location: Location::new_with_file_id(2, 1, 1),
         },
     )));
 
+    let mut index_iter = 1..;
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
             "other".to_owned(),
-            Source::test(other, PathBuf::from("other.zn"), HashMap::new()),
+            Source::test(
+                other,
+                PathBuf::from("other.zn"),
+                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
+                HashMap::new(),
+            ),
         )]
         .into_iter()
         .collect::<HashMap<String, Source>>(),
@@ -716,10 +722,11 @@ fn main() -> u8 { call() }
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(2, 1),
+            location: Location::new_with_file_id(2, 1, 3),
         },
     )));
 
+    let mut index_iter = 1..;
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
@@ -727,16 +734,19 @@ fn main() -> u8 { call() }
             Source::test(
                 first,
                 PathBuf::from("first.zn"),
+                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
                 vec![(
                     "second".to_owned(),
                     Source::test(
                         second,
                         PathBuf::from("first/second.zn"),
+                        index_iter.next().expect(crate::panic::TEST_DATA_VALID),
                         vec![(
                             "third".to_owned(),
                             Source::test(
                                 third,
                                 PathBuf::from("first/second/third.zn"),
+                                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
                                 HashMap::new(),
                             ),
                         )]
@@ -781,15 +791,21 @@ fn main() -> u8 { Call { value: 42 }.call() }
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(5, 5),
+            location: Location::new_with_file_id(5, 5, 1),
         },
     )));
 
+    let mut index_iter = 1..;
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
             "other".to_owned(),
-            Source::test(other, PathBuf::from("other.zn"), HashMap::new()),
+            Source::test(
+                other,
+                PathBuf::from("other.zn"),
+                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
+                HashMap::new(),
+            ),
         )]
         .into_iter()
         .collect::<HashMap<String, Source>>(),
@@ -844,10 +860,11 @@ fn main() -> u8 { Call { value: 42 }.call() }
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(7, 5),
+            location: Location::new_with_file_id(7, 5, 0),
         },
     )));
 
+    let mut index_iter = 1..;
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
@@ -855,16 +872,19 @@ fn main() -> u8 { Call { value: 42 }.call() }
             Source::test(
                 first,
                 PathBuf::from("first.zn"),
+                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
                 vec![(
                     "second".to_owned(),
                     Source::test(
                         second,
                         PathBuf::from("first/second.zn"),
+                        index_iter.next().expect(crate::panic::TEST_DATA_VALID),
                         vec![(
                             "third".to_owned(),
                             Source::test(
                                 third,
                                 PathBuf::from("first/second/third.zn"),
+                                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
                                 HashMap::new(),
                             ),
                         )]

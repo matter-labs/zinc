@@ -4,7 +4,10 @@
 //#     "input": {
 //#         "witness": "12"
 //#     },
-//#     "expect": "42"
+//#     "expect": {
+//#         "$result": "42",
+//#         "$root_hash": "0x8d6b4d17ddf7da232990ab7931346272da603ce724d83f1e537490ccf308fd"
+//#     }
 //# } ] }
 
 contract Test {

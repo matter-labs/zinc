@@ -19,3 +19,5 @@ bincode = "1.2"
 
 num-traits = "0.2"
 num-bigint = { version = "0.2", features = ["serde"] }
+
+zinc-const = { path = "../zinc-const" }

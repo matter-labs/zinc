@@ -32,31 +32,37 @@ pub(crate) fn compile_entry_with_dependencies(
     dependencies: HashMap<String, Source>,
 ) -> Result<(), Error> {
     let path = PathBuf::from("test.zn");
-    EntryAnalyzer::define(Source::test(code, path, dependencies)).map_err(Error::Semantic)?;
+    EntryAnalyzer::define(Source::test(code, path, 0, dependencies)).map_err(Error::Semantic)?;
 
     Ok(())
 }
 
 pub(crate) fn compile_module(
     code: &str,
+    file_index: usize,
     scope: Rc<RefCell<Scope>>,
     scope_crate: Rc<RefCell<Scope>>,
     scope_super: Rc<RefCell<Scope>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
-    compile_module_with_dependencies(code, scope, HashMap::new(), scope_crate, scope_super)
+    compile_module_with_dependencies(
+        code,
+        file_index,
+        scope,
+        HashMap::new(),
+        scope_crate,
+        scope_super,
+    )
 }
 
 pub(crate) fn compile_module_with_dependencies(
     code: &str,
+    file_index: usize,
     scope: Rc<RefCell<Scope>>,
     dependencies: HashMap<String, Source>,
     scope_crate: Rc<RefCell<Scope>>,
     scope_super: Rc<RefCell<Scope>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
-    let path = PathBuf::from("test.zn");
-    let file_id = FILE_INDEX.test(&path, code.to_owned());
-
-    let module = Parser::default().parse(code, Some(file_id))?;
+    let module = Parser::default().parse(code, Some(file_index))?;
     let (module, implementation_scopes) = ModuleAnalyzer::declare(
         scope.clone(),
         module,
@@ -164,6 +170,7 @@ fn main() -> u8 {
 
     let result = crate::semantic::tests::compile_module(
         code,
+        0,
         Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
         Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
         Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
@@ -187,6 +194,7 @@ contract Uniswap {
 
     let result = crate::semantic::tests::compile_module(
         code,
+        0,
         Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
         Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
         Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),

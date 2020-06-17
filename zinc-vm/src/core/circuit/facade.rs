@@ -78,7 +78,7 @@ impl IFacade for BytecodeCircuit {
             .collect::<Vec<_>>();
 
         let value =
-            TemplateValue::new_with_flat_values(output_type, &output_flat).ok_or_else(|| {
+            TemplateValue::new_from_flat_values(output_type, &output_flat).ok_or_else(|| {
                 TypeSizeError::Output {
                     expected: 0,
                     actual: 0,
@@ -125,7 +125,7 @@ impl IFacade for BytecodeCircuit {
             .collect::<Vec<_>>();
 
         let value =
-            TemplateValue::new_with_flat_values(output_type, &output_flat).ok_or_else(|| {
+            TemplateValue::new_from_flat_values(output_type, &output_flat).ok_or_else(|| {
                 TypeSizeError::Output {
                     expected: 0,
                     actual: 0,
@@ -188,7 +188,7 @@ impl IFacade for BytecodeCircuit {
                         .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
                         .collect();
 
-                    let value = TemplateValue::new_with_flat_values(output_type, &output_flat)
+                    let value = TemplateValue::new_from_flat_values(output_type, &output_flat)
                         .ok_or_else(|| TypeSizeError::Output {
                             expected: 0,
                             actual: 0,

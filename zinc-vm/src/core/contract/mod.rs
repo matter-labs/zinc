@@ -166,10 +166,13 @@ where
         let outputs_fr: Vec<_> = self.outputs.iter().map(|f| (*f).clone()).collect();
 
         let mut outputs_bigint = Vec::with_capacity(outputs_fr.len());
-        for o in outputs_fr.into_iter() {
-            let e = gadgets::output::output(self.counter.next(), o.clone())?;
-            outputs_bigint.push(e.to_bigint());
+        for output in outputs_fr.into_iter() {
+            let output = gadgets::output::output(self.counter.next(), output)?;
+            outputs_bigint.push(output.to_bigint());
         }
+        let root_hash = self.storage.root_hash()?;
+        let root_hash = gadgets::output::output(self.counter.next(), root_hash)?;
+        outputs_bigint.push(root_hash.to_bigint());
 
         Ok(outputs_bigint)
     }

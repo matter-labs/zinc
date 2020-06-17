@@ -41,24 +41,24 @@ impl Value {
                 ScalarType::Integer(inner) => Self::Scalar(ScalarValue::Integer(0.into(), inner)),
                 ScalarType::Field => Self::Scalar(ScalarValue::Field(0.into())),
             },
-            DataType::Enum => Self::Scalar(ScalarValue::Field(0.into())),
+            DataType::Enumeration => Self::Scalar(ScalarValue::Field(0.into())),
 
-            DataType::Array(data_type, size) => Self::Array(vec![Self::new(*data_type); size]),
+            DataType::Array(r#type, size) => Self::Array(vec![Self::new(*r#type); size]),
+            DataType::Tuple(fields) => Self::Array(fields.into_iter().map(Self::new).collect()),
             DataType::Structure(fields) => Self::Structure(
                 fields
                     .into_iter()
-                    .map(|(name, data_type)| (name, Self::new(data_type)))
+                    .map(|(name, r#type)| (name, Self::new(r#type)))
                     .collect(),
             ),
-            DataType::Tuple(fields) => Self::Array(fields.into_iter().map(Self::new).collect()),
         }
     }
 
     ///
     /// Creates value from flat array and data type.
     ///
-    pub fn new_with_flat_values(data_type: DataType, flat_values: &[BigInt]) -> Option<Self> {
-        let mut value = Self::new(data_type);
+    pub fn new_from_flat_values(r#type: DataType, flat_values: &[BigInt]) -> Option<Self> {
+        let mut value = Self::new(r#type);
         let consumed = value.fill_from_flat_values(flat_values)?;
         if consumed == flat_values.len() {
             Some(value)
@@ -84,44 +84,56 @@ impl Value {
         }
     }
 
-    pub fn to_json(&self) -> JsonValue {
+    pub fn into_json(self) -> JsonValue {
         match self {
-            Self::Unit => JsonValue::String("unit".into()),
+            Self::Unit => JsonValue::Null,
             Self::Scalar(scalar) => match scalar {
                 ScalarValue::Field(value) => {
-                    if value <= &BigInt::from(std::u64::MAX) {
-                        JsonValue::String(value.to_str_radix(10))
+                    if value <= BigInt::from(std::u64::MAX) {
+                        JsonValue::String(value.to_str_radix(zinc_const::BASE_DECIMAL as u32))
                     } else {
-                        JsonValue::String(String::from("0x") + value.to_str_radix(16).as_str())
+                        JsonValue::String(
+                            String::from("0x")
+                                + value
+                                    .to_str_radix(zinc_const::BASE_HEXADECIMAL as u32)
+                                    .as_str(),
+                        )
                     }
                 }
-                ScalarValue::Integer(value, int_type) => {
-                    if value <= &BigInt::from(std::u64::MAX) || int_type.is_signed {
-                        JsonValue::String(value.to_str_radix(10))
+                ScalarValue::Integer(value, r#type) => {
+                    if value <= BigInt::from(std::u64::MAX) || r#type.is_signed {
+                        JsonValue::String(value.to_str_radix(zinc_const::BASE_DECIMAL as u32))
                     } else {
-                        JsonValue::String(String::from("0x") + value.to_str_radix(16).as_str())
+                        JsonValue::String(
+                            String::from("0x")
+                                + value
+                                    .to_str_radix(zinc_const::BASE_HEXADECIMAL as u32)
+                                    .as_str(),
+                        )
                     }
                 }
-                ScalarValue::Boolean(value) => JsonValue::Bool(*value),
+                ScalarValue::Boolean(value) => JsonValue::Bool(value),
             },
-            Self::Array(values) => JsonValue::Array(values.iter().map(Self::to_json).collect()),
+            Self::Array(values) => {
+                JsonValue::Array(values.into_iter().map(Self::into_json).collect())
+            }
             Self::Structure(fields) => {
-                let mut object = JsonMap::<String, JsonValue>::new();
-                for (name, value) in fields.iter() {
-                    object.insert(name.to_owned(), value.to_json());
+                let mut object = JsonMap::<String, JsonValue>::with_capacity(fields.len());
+                for (name, value) in fields.into_iter() {
+                    object.insert(name, Self::into_json(value));
                 }
                 JsonValue::Object(object)
             }
         }
     }
 
-    pub fn from_typed_json(value: &JsonValue, data_type: &DataType) -> Result<Self, Error> {
-        match data_type {
+    pub fn from_typed_json(value: JsonValue, r#type: DataType) -> Result<Self, Error> {
+        match r#type {
             DataType::Unit => Self::unit_from_json(value),
             DataType::Scalar(inner) => Self::scalar_from_json(value, inner),
-            DataType::Enum => Self::field_from_json(value),
+            DataType::Enumeration => Self::field_from_json(value),
 
-            DataType::Array(inner, size) => Self::array_from_json(value, inner, *size),
+            DataType::Array(inner, size) => Self::array_from_json(value, *inner, size),
             DataType::Tuple(inner) => Self::tuple_from_json(value, inner),
             DataType::Structure(fields) => Self::structure_from_json(value, fields),
         }
@@ -163,20 +175,19 @@ impl Value {
         }
     }
 
-    fn unit_from_json(value: &JsonValue) -> Result<Self, Error> {
-        if let Some(s) = value.as_str() {
-            if s == "unit" {
-                return Ok(Self::Unit);
-            }
+    fn unit_from_json(value: JsonValue) -> Result<Self, Error> {
+        if value.is_null() {
+            return Ok(Self::Unit);
         }
+
         Err(ErrorType::TypeError {
-            expected: "\"unit\"".into(),
+            expected: "null".into(),
             actual: value.to_string(),
         }
         .into())
     }
 
-    fn boolean_from_json(value: &JsonValue) -> Result<Self, Error> {
+    fn boolean_from_json(value: JsonValue) -> Result<Self, Error> {
         let value_bool = value.as_bool().ok_or_else(|| ErrorType::TypeError {
             expected: "boolean (true or false)".into(),
             actual: value.to_string(),
@@ -185,13 +196,13 @@ impl Value {
         Ok(Self::Scalar(ScalarValue::Boolean(value_bool)))
     }
 
-    fn integer_from_json(value: &JsonValue, _type: &IntegerType) -> Result<Self, Error> {
+    fn integer_from_json(value: JsonValue, _type: IntegerType) -> Result<Self, Error> {
         // TODO: overflow check
 
         Self::field_from_json(value)
     }
 
-    fn field_from_json(value: &JsonValue) -> Result<Self, Error> {
+    fn field_from_json(value: JsonValue) -> Result<Self, Error> {
         let value_string = value.as_str().ok_or_else(|| ErrorType::TypeError {
             expected: "field (number string)".into(),
             actual: value.to_string(),
@@ -211,7 +222,7 @@ impl Value {
         Ok(Self::Scalar(ScalarValue::Field(bigint)))
     }
 
-    fn scalar_from_json(value: &JsonValue, scalar_type: &ScalarType) -> Result<Self, Error> {
+    fn scalar_from_json(value: JsonValue, scalar_type: ScalarType) -> Result<Self, Error> {
         match scalar_type {
             ScalarType::Boolean => Self::boolean_from_json(value),
             ScalarType::Integer(inner) => Self::integer_from_json(value, inner),
@@ -219,9 +230,10 @@ impl Value {
         }
     }
 
-    fn array_from_json(value: &JsonValue, dtype: &DataType, size: usize) -> Result<Self, Error> {
+    fn array_from_json(value: JsonValue, r#type: DataType, size: usize) -> Result<Self, Error> {
         let array = value
             .as_array()
+            .cloned()
             .ok_or_else(|| ErrorType::type_error("array", value))?;
 
         if array.len() != size {
@@ -233,8 +245,8 @@ impl Value {
         }
 
         let mut values = Vec::with_capacity(size);
-        for (index, value) in array.iter().enumerate() {
-            let typed_value = Self::from_typed_json(value, dtype).in_array(index)?;
+        for (index, value) in array.into_iter().enumerate() {
+            let typed_value = Self::from_typed_json(value, r#type.clone()).in_array(index)?;
 
             values.push(typed_value);
         }
@@ -242,9 +254,10 @@ impl Value {
         Ok(Self::Array(values))
     }
 
-    fn tuple_from_json(value: &JsonValue, types: &[DataType]) -> Result<Self, Error> {
+    fn tuple_from_json(value: JsonValue, types: Vec<DataType>) -> Result<Self, Error> {
         let array = value
             .as_array()
+            .cloned()
             .ok_or_else(|| ErrorType::type_error("tuple (json array)", value))?;
 
         if array.len() != types.len() {
@@ -256,8 +269,8 @@ impl Value {
         }
 
         let mut values = Vec::with_capacity(types.len());
-        for (index, (value, dtype)) in array.iter().zip(types).enumerate() {
-            let typed_value = Self::from_typed_json(value, dtype).in_array(index)?;
+        for (index, (value, r#type)) in array.into_iter().zip(types).enumerate() {
+            let typed_value = Self::from_typed_json(value, r#type).in_array(index)?;
             values.push(typed_value);
         }
 
@@ -265,25 +278,26 @@ impl Value {
     }
 
     fn structure_from_json(
-        value: &JsonValue,
-        field_types: &[(String, DataType)],
+        value: JsonValue,
+        field_types: Vec<(String, DataType)>,
     ) -> Result<Self, Error> {
-        let object = value
+        let mut object = value
             .as_object()
+            .cloned()
             .ok_or_else(|| ErrorType::type_error("structure", value))?;
 
-        let mut used_fields = HashSet::<&str>::new();
+        let mut used_fields = HashSet::with_capacity(field_types.len());
         let mut field_values = Vec::with_capacity(field_types.len());
-        for (name, dtype) in field_types {
-            used_fields.insert(name.as_str());
+        for (name, r#type) in field_types.into_iter() {
+            used_fields.insert(name.clone());
 
             let json_value = object
-                .get(name)
+                .remove(name.as_str())
                 .ok_or_else(|| ErrorType::MissingField(name.clone()))?;
 
-            let typed_value = Self::from_typed_json(json_value, dtype).in_struct(name.as_str())?;
+            let value = Self::from_typed_json(json_value, r#type).in_struct(name.as_str())?;
 
-            field_values.push((name.clone(), typed_value));
+            field_values.push((name, value));
         }
 
         for field in object.keys() {
