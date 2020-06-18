@@ -337,7 +337,7 @@ mod tests {
     }
 
     #[test]
-    fn ok_fn_unit_test() {
+    fn ok_fn_single_attribute() {
         let input = r#"
 #[test]
 fn test() {}
@@ -367,7 +367,7 @@ fn test() {}
     }
 
     #[test]
-    fn ok_fn_unit_test_should_panic_ignored() {
+    fn ok_fn_multiple_attributes() {
         let input = r#"
 #[test]
 #[should_panic]

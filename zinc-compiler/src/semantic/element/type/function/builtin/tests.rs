@@ -9,8 +9,8 @@ use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::builtin::assert::Function as BuiltInAssertFunction;
 use crate::semantic::element::r#type::function::builtin::debug::Function as BuiltInDebugFunction;
-use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionTypeError;
-use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
+use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
+use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Error as ElementError;
 use crate::semantic::error::Error as SemanticError;
@@ -24,8 +24,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::BuiltIn(
-            BuiltInFunctionTypeError::SpecifierMissing {
+        TypeError::Function(FunctionError::BuiltIn(
+            BuiltInFunctionError::SpecifierMissing {
                 location: Location::new(3, 5),
                 function: "assert",
             },
@@ -48,12 +48,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::BuiltIn(
-            BuiltInFunctionTypeError::Unknown {
-                location: Location::new(5, 5),
-                function: "unknown".to_owned(),
-            },
-        )),
+        TypeError::Function(FunctionError::BuiltIn(BuiltInFunctionError::Unknown {
+            location: Location::new(5, 5),
+            function: "unknown".to_owned(),
+        })),
     ))));
 
     let result = crate::semantic::tests::compile_entry(input);
@@ -70,8 +68,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::BuiltIn(
-            BuiltInFunctionTypeError::DebugArgumentCount {
+        TypeError::Function(FunctionError::BuiltIn(
+            BuiltInFunctionError::DebugArgumentCount {
                 location: Location::new(3, 5),
                 expected: 3,
                 found: 2,
@@ -93,8 +91,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::BuiltIn(
-            BuiltInFunctionTypeError::DebugArgumentCount {
+        TypeError::Function(FunctionError::BuiltIn(
+            BuiltInFunctionError::DebugArgumentCount {
                 location: Location::new(3, 5),
                 expected: 2,
                 found: 3,
@@ -116,7 +114,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 10),
             function: "dbg".to_owned(),
             name: "format".to_owned(),
@@ -140,7 +138,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "assert".to_owned(),
             expected: BuiltInAssertFunction::ARGUMENT_COUNT_MANDATORY,
@@ -162,7 +160,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "assert".to_owned(),
             expected: BuiltInAssertFunction::ARGUMENT_COUNT_OPTIONAL,
@@ -184,7 +182,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 13),
             function: "assert".to_owned(),
             name: "condition".to_owned(),
@@ -208,7 +206,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 19),
             function: "assert".to_owned(),
             name: "message".to_owned(),

@@ -32,7 +32,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        State::KeywordIf
+        Self::KeywordIf
     }
 }
 

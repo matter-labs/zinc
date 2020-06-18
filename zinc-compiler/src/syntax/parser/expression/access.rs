@@ -37,7 +37,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        State::PathOperand
+        Self::PathOperand
     }
 }
 

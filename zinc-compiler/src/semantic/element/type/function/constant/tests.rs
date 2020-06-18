@@ -8,7 +8,7 @@ use crate::error::Error;
 use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
+use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::element::Error as ElementError;
@@ -30,7 +30,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(7, 17),
             function: "another".to_owned(),
             expected: 1,
@@ -56,7 +56,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(7, 17),
             function: "another".to_owned(),
             expected: 1,
@@ -82,7 +82,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(7, 25),
             function: "another".to_owned(),
             name: "x".to_owned(),
@@ -169,7 +169,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ReturnType {
+        TypeError::Function(FunctionError::ReturnType {
             location: Location::new(3, 5),
             function: "another".to_owned(),
             expected: Type::boolean(None).to_string(),
@@ -194,7 +194,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::NonCallable {
+        TypeError::Function(FunctionError::NonCallable {
             location: Location::new(5, 17),
             name: Element::Type(Type::tuple(
                 Some(Location::new(5, 17)),
@@ -228,7 +228,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::FunctionMethodSelfNotFirst {
+        TypeError::Function(FunctionError::FunctionMethodSelfNotFirst {
             location: Location::new(7, 14),
             function: "method".to_owned(),
             position: 2,

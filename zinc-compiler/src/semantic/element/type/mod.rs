@@ -215,6 +215,15 @@ impl Type {
         ))
     }
 
+    pub fn test_function(location: Location, identifier: String) -> (Self, usize) {
+        let type_id = TYPE_INDEX.next(format!("function {}", identifier));
+
+        (
+            Self::Function(Function::new_test(location, identifier, type_id)),
+            type_id,
+        )
+    }
+
     pub fn contract(
         location: Option<Location>,
         identifier: String,

@@ -7,6 +7,7 @@ pub mod constant;
 pub mod error;
 pub mod runtime;
 pub mod stdlib;
+pub mod test;
 
 use std::fmt;
 
@@ -20,6 +21,7 @@ use self::builtin::Function as BuiltInFunction;
 use self::constant::Function as ConstantFunction;
 use self::runtime::Function as RuntimeFunction;
 use self::stdlib::Function as StandardLibraryFunction;
+use self::test::Function as TestFunction;
 
 ///
 /// Describes a function, which is a special type.
@@ -38,6 +40,9 @@ pub enum Function {
     /// Constant functions declared anywhere within a project. There are executed at compile-time
     /// only and do not produce the intermediate representation.
     Constant(ConstantFunction),
+    /// Unit test functions. They produce the intermediate representation and are run as separate
+    /// entry points in the special test mode.
+    Test(TestFunction),
 }
 
 impl Function {
@@ -87,12 +92,17 @@ impl Function {
         ))
     }
 
+    pub fn new_test(location: Location, identifier: String, type_id: usize) -> Self {
+        Self::Test(TestFunction::new(location, identifier, type_id))
+    }
+
     pub fn identifier(&self) -> String {
         match self {
             Self::BuiltIn(inner) => inner.identifier().to_owned(),
             Self::StandardLibrary(inner) => inner.identifier().to_owned(),
             Self::Runtime(inner) => inner.identifier.to_owned(),
             Self::Constant(inner) => inner.identifier.to_owned(),
+            Self::Test(inner) => inner.identifier.to_owned(),
         }
     }
 
@@ -102,6 +112,7 @@ impl Function {
             Self::StandardLibrary(inner) => inner.set_location(value),
             Self::Runtime(inner) => inner.location = value,
             Self::Constant(inner) => inner.location = value,
+            Self::Test(inner) => inner.location = value,
         }
     }
 
@@ -111,6 +122,7 @@ impl Function {
             Self::StandardLibrary(inner) => inner.location(),
             Self::Runtime(inner) => Some(inner.location),
             Self::Constant(inner) => Some(inner.location),
+            Self::Test(inner) => Some(inner.location),
         }
     }
 }
@@ -118,10 +130,11 @@ impl Function {
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::BuiltIn(inner) => write!(f, "built-in {}", inner),
+            Self::BuiltIn(inner) => write!(f, "{}", inner),
             Self::StandardLibrary(inner) => write!(f, "std::{}", inner),
             Self::Runtime(inner) => write!(f, "{}", inner),
             Self::Constant(inner) => write!(f, "{}", inner),
+            Self::Test(inner) => write!(f, "{}", inner),
         }
     }
 }

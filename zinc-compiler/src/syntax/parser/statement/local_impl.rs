@@ -12,8 +12,10 @@ use crate::lexical::token::lexeme::symbol::Symbol;
 use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::attribute::Parser as AttributeParser;
 use crate::syntax::parser::statement::r#const::Parser as ConstStatementParser;
 use crate::syntax::parser::statement::r#fn::Parser as FnStatementParser;
+use crate::syntax::tree::attribute::Attribute;
 use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
 
 pub static HINT_ONLY_SOME_STATEMENTS: &str =
@@ -21,6 +23,7 @@ pub static HINT_ONLY_SOME_STATEMENTS: &str =
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    AttributeOrNext,
     KeywordPubOrNext,
     KeywordConstOrNext,
     Statement,
@@ -28,7 +31,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        Self::KeywordPubOrNext
+        Self::AttributeOrNext
     }
 }
 
@@ -37,6 +40,7 @@ pub struct Parser {
     state: State,
     keyword_public: Option<Token>,
     keyword_constant: Option<Token>,
+    attributes: Vec<Attribute>,
     next: Option<Token>,
 }
 
@@ -51,8 +55,28 @@ impl Parser {
     ) -> Result<(ImplementationLocalStatement, Option<Token>), Error> {
         loop {
             match self.state {
-                State::KeywordPubOrNext => {
+                State::AttributeOrNext => {
                     match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
+                        token
+                        @
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::Number),
+                            ..
+                        } => {
+                            let (attribute, next) =
+                                AttributeParser::default().parse(stream.clone(), Some(token))?;
+                            self.attributes.push(attribute);
+                            self.next = next;
+                            self.state = State::AttributeOrNext;
+                        }
+                        token => {
+                            self.next = Some(token);
+                            self.state = State::KeywordPubOrNext;
+                        }
+                    }
+                }
+                State::KeywordPubOrNext => {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         token
                         @
                         Token {
@@ -117,6 +141,8 @@ impl Parser {
                                 builder.set_is_public();
                             }
 
+                            builder.set_attributes(self.attributes);
+
                             Ok((ImplementationLocalStatement::Fn(builder.finish()), next))
                         }
                         Token {
@@ -143,6 +169,7 @@ mod tests {
     use super::Parser;
     use crate::lexical::stream::TokenStream;
     use crate::lexical::token::location::Location;
+    use crate::syntax::tree::attribute::Attribute;
     use crate::syntax::tree::expression::block::Expression as BlockExpression;
     use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
@@ -233,6 +260,80 @@ mod tests {
                 Some(Type::new(Location::new(1, 29), TypeVariant::field())),
                 BlockExpression::new(Location::new(1, 35), vec![], None),
                 vec![],
+            )),
+            None,
+        ));
+
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_fn_single_attribute() {
+        let input = r#"
+#[test]
+fn test() {}
+"#;
+
+        let expected = Ok((
+            ImplementationLocalStatement::Fn(FnStatement::new(
+                Location::new(3, 1),
+                false,
+                false,
+                Identifier::new(Location::new(3, 4), "test".to_owned()),
+                vec![],
+                None,
+                BlockExpression::new(Location::new(3, 11), vec![], None),
+                vec![Attribute::new(
+                    Location::new(2, 1),
+                    false,
+                    Identifier::new(Location::new(2, 3), "test".to_owned()),
+                )],
+            )),
+            None,
+        ));
+
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_fn_multiple_attributes() {
+        let input = r#"
+#[test]
+#[should_panic]
+#[ignore]
+fn test() {}
+"#;
+
+        let expected = Ok((
+            ImplementationLocalStatement::Fn(FnStatement::new(
+                Location::new(5, 1),
+                false,
+                false,
+                Identifier::new(Location::new(5, 4), "test".to_owned()),
+                vec![],
+                None,
+                BlockExpression::new(Location::new(5, 11), vec![], None),
+                vec![
+                    Attribute::new(
+                        Location::new(2, 1),
+                        false,
+                        Identifier::new(Location::new(2, 3), "test".to_owned()),
+                    ),
+                    Attribute::new(
+                        Location::new(3, 1),
+                        false,
+                        Identifier::new(Location::new(3, 3), "should_panic".to_owned()),
+                    ),
+                    Attribute::new(
+                        Location::new(4, 1),
+                        false,
+                        Identifier::new(Location::new(4, 3), "ignore".to_owned()),
+                    ),
+                ],
             )),
             None,
         ));

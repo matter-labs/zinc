@@ -33,7 +33,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        State::KeywordType
+        Self::KeywordType
     }
 }
 

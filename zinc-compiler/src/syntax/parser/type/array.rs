@@ -27,7 +27,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        State::BracketSquareLeft
+        Self::BracketSquareLeft
     }
 }
 

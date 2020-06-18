@@ -14,9 +14,10 @@ use crate::generator::expression::operator::Operator as GeneratorExpressionOpera
 use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionTypeError;
+use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
 use crate::semantic::element::r#type::function::builtin::Function as BuiltInFunctionType;
-use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
+use crate::semantic::element::r#type::function::error::Error as FunctionError;
+use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
@@ -53,7 +54,7 @@ impl Analyzer {
                         Type::Function(function) => function,
                         r#type => {
                             return Err(Error::Element(ElementError::Type(TypeError::Function(
-                                FunctionTypeError::NonCallable {
+                                FunctionError::NonCallable {
                                     location: function_location.unwrap_or(location),
                                     name: r#type.to_string(),
                                 },
@@ -63,7 +64,7 @@ impl Analyzer {
                 }
                 ref item => {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
-                        FunctionTypeError::NonCallable {
+                        FunctionError::NonCallable {
                             location: function_location.unwrap_or(location),
                             name: item.to_string(),
                         },
@@ -72,7 +73,7 @@ impl Analyzer {
             },
             operand => {
                 return Err(Error::Element(ElementError::Type(TypeError::Function(
-                    FunctionTypeError::NonCallable {
+                    FunctionError::NonCallable {
                         location: function_location.unwrap_or(location),
                         name: operand.to_string(),
                     },
@@ -101,12 +102,10 @@ impl Analyzer {
                     CallType::BuiltIn => {}
                     _ => {
                         return Err(Error::Element(ElementError::Type(TypeError::Function(
-                            FunctionTypeError::BuiltIn(
-                                BuiltInFunctionTypeError::SpecifierMissing {
-                                    location: function_location.unwrap_or(location),
-                                    function: function.identifier(),
-                                },
-                            ),
+                            FunctionError::BuiltIn(BuiltInFunctionError::SpecifierMissing {
+                                location: function_location.unwrap_or(location),
+                                function: function.identifier(),
+                            }),
                         ))))
                     }
                 }
@@ -166,7 +165,7 @@ impl Analyzer {
             FunctionType::StandardLibrary(function) => {
                 if let CallType::BuiltIn = call_type {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
-                        FunctionTypeError::BuiltIn(BuiltInFunctionTypeError::Unknown {
+                        FunctionError::BuiltIn(BuiltInFunctionError::Unknown {
                             location: function_location.unwrap_or(location),
                             function: function.identifier().to_owned(),
                         }),
@@ -204,7 +203,7 @@ impl Analyzer {
             FunctionType::Runtime(function) => {
                 if let CallType::BuiltIn = call_type {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
-                        FunctionTypeError::BuiltIn(BuiltInFunctionTypeError::Unknown {
+                        FunctionError::BuiltIn(BuiltInFunctionError::Unknown {
                             location: function_location.unwrap_or(location),
                             function: function.identifier,
                         }),
@@ -237,7 +236,7 @@ impl Analyzer {
             FunctionType::Constant(function) => {
                 if let CallType::BuiltIn = call_type {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
-                        FunctionTypeError::BuiltIn(BuiltInFunctionTypeError::Unknown {
+                        FunctionError::BuiltIn(BuiltInFunctionError::Unknown {
                             location: function_location.unwrap_or(location),
                             function: function.identifier,
                         }),
@@ -260,6 +259,14 @@ impl Analyzer {
                     Element::Constant(constant),
                     GeneratorExpressionElement::Operand(intermediate),
                 )
+            }
+            FunctionType::Test(function) => {
+                return Err(Error::Element(ElementError::Type(TypeError::Function(
+                    FunctionError::Test(TestFunctionError::CallForbidden {
+                        location: function_location.unwrap_or(location),
+                        function: function.identifier,
+                    }),
+                ))));
             }
         };
 

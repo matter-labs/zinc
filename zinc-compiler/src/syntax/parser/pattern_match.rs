@@ -29,7 +29,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        State::Start
+        Self::Start
     }
 }
 

@@ -3,15 +3,18 @@
 //!
 
 use std::cell::RefCell;
+use std::convert::TryFrom;
 use std::rc::Rc;
 
 use crate::generator::statement::r#fn::Statement as GeneratorFunctionStatement;
 use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::semantic::analyzer::attribute::Attribute;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
+use crate::semantic::element::r#type::function::error::Error as FunctionError;
+use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::variable::memory_type::MemoryType;
@@ -42,7 +45,7 @@ impl Analyzer {
     ///
     pub fn define(
         scope: Rc<RefCell<Scope>>,
-        statement: FnStatement,
+        mut statement: FnStatement,
         context: Context,
     ) -> Result<(Type, Option<GeneratorFunctionStatement>), Error> {
         if let Context::Contract = context {
@@ -53,21 +56,33 @@ impl Analyzer {
             }
         }
 
+        let mut attributes = Vec::with_capacity(statement.attributes.len());
+        for attribute in statement.attributes.drain(..).into_iter() {
+            let attribute = Attribute::try_from(attribute).map_err(Error::Attribute)?;
+            attributes.push(attribute);
+        }
+
+        if attributes.contains(&Attribute::Test) {
+            return Self::test(scope, statement, context, attributes)
+                .map(|(r#type, intermediate)| (r#type, Some(intermediate)));
+        }
+
         if statement.is_constant {
-            Self::constant(scope, statement, context).map(|r#type| (r#type, None))
+            Self::constant(scope, statement, context, attributes).map(|r#type| (r#type, None))
         } else {
-            Self::runtime(scope, statement, context)
+            Self::runtime(scope, statement, context, attributes)
                 .map(|(r#type, intermediate)| (r#type, Some(intermediate)))
         }
     }
 
     ///
-    /// Analyzes a runtime statement and returns its IR for the next compiler phase.
+    /// Analyzes a runtime function statement and returns its IR for the next compiler phase.
     ///
     fn runtime(
         scope: Rc<RefCell<Scope>>,
         statement: FnStatement,
         context: Context,
+        attributes: Vec<Attribute>,
     ) -> Result<(Type, GeneratorFunctionStatement), Error> {
         let location = statement.location;
 
@@ -81,7 +96,7 @@ impl Analyzer {
                 BindingPatternVariant::SelfAlias { .. } => {
                     if index != 0 {
                         return Err(Error::Element(ElementError::Type(TypeError::Function(
-                            FunctionTypeError::FunctionMethodSelfNotFirst {
+                            FunctionError::FunctionMethodSelfNotFirst {
                                 location: statement.identifier.location,
                                 function: statement.identifier.name.clone(),
                                 position: index + 1,
@@ -169,7 +184,7 @@ impl Analyzer {
         let result_type = Type::from_element(&result, scope_stack.top())?;
         if expected_type != result_type {
             return Err(Error::Element(ElementError::Type(TypeError::Function(
-                FunctionTypeError::ReturnType {
+                FunctionError::ReturnType {
                     location: return_expression_location,
                     function: statement.identifier.name.clone(),
                     expected: expected_type.to_string(),
@@ -206,6 +221,7 @@ impl Analyzer {
             type_id,
             is_contract_entry,
             is_main,
+            attributes,
         );
 
         Ok((r#type, intermediate))
@@ -218,6 +234,7 @@ impl Analyzer {
         scope: Rc<RefCell<Scope>>,
         statement: FnStatement,
         context: Context,
+        _attributes: Vec<Attribute>,
     ) -> Result<Type, Error> {
         let mut scope_stack = ScopeStack::new(scope);
 
@@ -229,7 +246,7 @@ impl Analyzer {
                 BindingPatternVariant::SelfAlias { .. } => {
                     if index != 0 {
                         return Err(Error::Element(ElementError::Type(TypeError::Function(
-                            FunctionTypeError::FunctionMethodSelfNotFirst {
+                            FunctionError::FunctionMethodSelfNotFirst {
                                 location: statement.identifier.location,
                                 function: statement.identifier.name.clone(),
                                 position: index + 1,
@@ -320,7 +337,7 @@ impl Analyzer {
         let result_type = Type::from_element(&result, scope_stack.top())?;
         if expected_type != result_type {
             return Err(Error::Element(ElementError::Type(TypeError::Function(
-                FunctionTypeError::ReturnType {
+                FunctionError::ReturnType {
                     location: return_expression_location,
                     function: statement.identifier.name.clone(),
                     expected: expected_type.to_string(),
@@ -340,5 +357,89 @@ impl Analyzer {
             expected_type,
             statement.body,
         ))
+    }
+
+    ///
+    /// Analyzes a test function statement and returns its IR for the next compiler phase.
+    ///
+    fn test(
+        scope: Rc<RefCell<Scope>>,
+        statement: FnStatement,
+        context: Context,
+        attributes: Vec<Attribute>,
+    ) -> Result<(Type, GeneratorFunctionStatement), Error> {
+        let location = statement.location;
+
+        let mut scope_stack = ScopeStack::new(scope);
+
+        match context {
+            Context::Module => {}
+            _context => {
+                return Err(Error::Element(ElementError::Type(TypeError::Function(
+                    FunctionError::Test(TestFunctionError::BeyondModuleScope {
+                        location,
+                        function: statement.identifier.name,
+                    }),
+                ))))
+            }
+        }
+
+        if statement.is_public {
+            return Err(Error::Element(ElementError::Type(TypeError::Function(
+                FunctionError::Test(TestFunctionError::PublicForbidden {
+                    location,
+                    function: statement.identifier.name,
+                }),
+            ))));
+        }
+
+        if statement.is_constant {
+            return Err(Error::Element(ElementError::Type(TypeError::Function(
+                FunctionError::Test(TestFunctionError::ConstantForbidden {
+                    location,
+                    function: statement.identifier.name,
+                }),
+            ))));
+        }
+
+        if !statement.argument_bindings.is_empty() {
+            return Err(Error::Element(ElementError::Type(TypeError::Function(
+                FunctionError::Test(TestFunctionError::CannotHaveArguments {
+                    location,
+                    function: statement.identifier.name,
+                }),
+            ))));
+        }
+
+        if statement.return_type.is_some() {
+            return Err(Error::Element(ElementError::Type(TypeError::Function(
+                FunctionError::Test(TestFunctionError::CannotReturnValue {
+                    location,
+                    function: statement.identifier.name,
+                }),
+            ))));
+        }
+
+        scope_stack.push(Some(statement.identifier.name.clone()));
+        let (_result, intermediate) =
+            BlockAnalyzer::analyze(scope_stack.top(), statement.body, TranslationRule::Value)?;
+        scope_stack.pop();
+
+        let (r#type, type_id) =
+            Type::test_function(statement.location, statement.identifier.name.clone());
+
+        let intermediate = GeneratorFunctionStatement::new(
+            location,
+            statement.identifier.name,
+            vec![],
+            intermediate,
+            Type::Unit(None),
+            type_id,
+            false,
+            false,
+            attributes,
+        );
+
+        Ok((r#type, intermediate))
     }
 }

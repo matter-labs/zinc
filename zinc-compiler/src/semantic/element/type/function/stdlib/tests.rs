@@ -12,7 +12,7 @@ use crate::error::Error;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
+use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::stdlib::array_pad::Function as ArrayPadFunction;
 use crate::semantic::element::r#type::function::stdlib::array_reverse::Function as ArrayReverseFunction;
 use crate::semantic::element::r#type::function::stdlib::array_truncate::Function as ArrayTruncateFunction;
@@ -23,7 +23,7 @@ use crate::semantic::element::r#type::function::stdlib::convert_to_bits::Functio
 use crate::semantic::element::r#type::function::stdlib::crypto_pedersen::Function as CryptoPedersenFunction;
 use crate::semantic::element::r#type::function::stdlib::crypto_schnorr_signature_verify::Function as CryptoSchnorrSignatureVerifyFunction;
 use crate::semantic::element::r#type::function::stdlib::crypto_sha256::Function as CryptoSha256Function;
-use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionTypeError;
+use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
 use crate::semantic::element::r#type::function::stdlib::ff_invert::Function as FfInvertFunction;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Error as ElementError;
@@ -38,7 +38,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "sha256".to_owned(),
             expected: CryptoSha256Function::ARGUMENT_COUNT,
@@ -60,7 +60,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "sha256".to_owned(),
             expected: CryptoSha256Function::ARGUMENT_COUNT,
@@ -82,7 +82,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 25),
             function: "sha256".to_owned(),
             name: "preimage".to_owned(),
@@ -106,7 +106,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 25),
             function: "sha256".to_owned(),
             name: "preimage".to_owned(),
@@ -130,7 +130,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 25),
             function: "sha256".to_owned(),
             name: "preimage".to_owned(),
@@ -154,7 +154,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "pedersen".to_owned(),
             expected: CryptoPedersenFunction::ARGUMENT_COUNT,
@@ -176,7 +176,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "pedersen".to_owned(),
             expected: CryptoPedersenFunction::ARGUMENT_COUNT,
@@ -198,7 +198,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 27),
             function: "pedersen".to_owned(),
             name: "preimage".to_owned(),
@@ -225,7 +225,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 27),
             function: "pedersen".to_owned(),
             name: "preimage".to_owned(),
@@ -252,7 +252,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 27),
             function: "pedersen".to_owned(),
             name: "preimage".to_owned(),
@@ -294,7 +294,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(13, 5),
             function: "verify".to_owned(),
             expected: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT,
@@ -326,7 +326,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(13, 5),
             function: "verify".to_owned(),
             expected: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT,
@@ -350,7 +350,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Type(TypeError::Function(FunctionTypeError::ArgumentType {
+        ElementError::Type(TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(5, 23),
             function: "verify".to_owned(),
             name: "signature".to_owned(),
@@ -384,7 +384,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(13, 34),
             function: "verify".to_owned(),
             name: "message".to_owned(),
@@ -422,7 +422,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(13, 34),
             function: "verify".to_owned(),
             name: "message".to_owned(),
@@ -460,7 +460,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(13, 34),
             function: "verify".to_owned(),
             name: "message".to_owned(),
@@ -503,7 +503,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(13, 34),
             function: "verify".to_owned(),
             name: "message".to_owned(),
@@ -531,7 +531,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "from_bits_unsigned".to_owned(),
             expected: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT,
@@ -553,7 +553,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "from_bits_unsigned".to_owned(),
             expected: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT,
@@ -575,7 +575,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 38),
             function: "from_bits_unsigned".to_owned(),
             name: "bits".to_owned(),
@@ -604,7 +604,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 38),
             function: "from_bits_unsigned".to_owned(),
             name: "bits".to_owned(),
@@ -633,7 +633,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 38),
             function: "from_bits_unsigned".to_owned(),
             name: "bits".to_owned(),
@@ -667,7 +667,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 38),
             function: "from_bits_unsigned".to_owned(),
             name: "bits".to_owned(),
@@ -696,7 +696,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "from_bits_signed".to_owned(),
             expected: ConvertFromBitsSignedFunction::ARGUMENT_COUNT,
@@ -718,7 +718,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "from_bits_signed".to_owned(),
             expected: ConvertFromBitsSignedFunction::ARGUMENT_COUNT,
@@ -740,7 +740,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 36),
             function: "from_bits_signed".to_owned(),
             name: "bits".to_owned(),
@@ -769,7 +769,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 36),
             function: "from_bits_signed".to_owned(),
             name: "bits".to_owned(),
@@ -798,7 +798,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 36),
             function: "from_bits_signed".to_owned(),
             name: "bits".to_owned(),
@@ -832,7 +832,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 36),
             function: "from_bits_signed".to_owned(),
             name: "bits".to_owned(),
@@ -861,7 +861,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "from_bits_field".to_owned(),
             expected: ConvertFromBitsFieldFunction::ARGUMENT_COUNT,
@@ -883,7 +883,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "from_bits_field".to_owned(),
             expected: ConvertFromBitsFieldFunction::ARGUMENT_COUNT,
@@ -905,7 +905,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 35),
             function: "from_bits_field".to_owned(),
             name: "bits".to_owned(),
@@ -929,7 +929,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 35),
             function: "from_bits_field".to_owned(),
             name: "bits".to_owned(),
@@ -953,7 +953,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 35),
             function: "from_bits_field".to_owned(),
             name: "bits".to_owned(),
@@ -982,7 +982,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "to_bits".to_owned(),
             expected: ConvertToBitsFunction::ARGUMENT_COUNT,
@@ -1004,7 +1004,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "to_bits".to_owned(),
             expected: ConvertToBitsFunction::ARGUMENT_COUNT,
@@ -1026,7 +1026,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 27),
             function: "to_bits".to_owned(),
             name: "value".to_owned(),
@@ -1051,7 +1051,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "reverse".to_owned(),
             expected: ArrayReverseFunction::ARGUMENT_COUNT,
@@ -1073,7 +1073,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "reverse".to_owned(),
             expected: ArrayReverseFunction::ARGUMENT_COUNT,
@@ -1095,7 +1095,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 25),
             function: "reverse".to_owned(),
             name: "array".to_owned(),
@@ -1119,7 +1119,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "truncate".to_owned(),
             expected: ArrayTruncateFunction::ARGUMENT_COUNT,
@@ -1141,7 +1141,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "truncate".to_owned(),
             expected: ArrayTruncateFunction::ARGUMENT_COUNT,
@@ -1163,7 +1163,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 26),
             function: "truncate".to_owned(),
             name: "array".to_owned(),
@@ -1187,7 +1187,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 37),
             function: "truncate".to_owned(),
             name: "new_length".to_owned(),
@@ -1212,7 +1212,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentConstantness {
+        TypeError::Function(FunctionError::ArgumentConstantness {
             location: Location::new(4, 37),
             function: "truncate".to_owned(),
             name: "new_length".to_owned(),
@@ -1235,8 +1235,8 @@ fn main() -> [u8; 4] {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::StandardLibrary(
-            StandardLibraryFunctionTypeError::ArrayTruncatingToBiggerSize {
+        TypeError::Function(FunctionError::StandardLibrary(
+            StandardLibraryFunctionError::ArrayTruncatingToBiggerSize {
                 location: Location::new(3, 5),
                 from: 2,
                 to: 4,
@@ -1258,7 +1258,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "pad".to_owned(),
             expected: ArrayPadFunction::ARGUMENT_COUNT,
@@ -1280,7 +1280,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "pad".to_owned(),
             expected: ArrayPadFunction::ARGUMENT_COUNT,
@@ -1302,7 +1302,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 21),
             function: "pad".to_owned(),
             name: "array".to_owned(),
@@ -1326,7 +1326,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 32),
             function: "pad".to_owned(),
             name: "new_length".to_owned(),
@@ -1351,7 +1351,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentConstantness {
+        TypeError::Function(FunctionError::ArgumentConstantness {
             location: Location::new(4, 32),
             function: "pad".to_owned(),
             name: "new_length".to_owned(),
@@ -1374,7 +1374,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 36),
             function: "pad".to_owned(),
             name: "fill_value".to_owned(),
@@ -1398,8 +1398,8 @@ fn main() -> [u8; 4] {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::StandardLibrary(
-            StandardLibraryFunctionTypeError::ArrayPaddingToLesserSize {
+        TypeError::Function(FunctionError::StandardLibrary(
+            StandardLibraryFunctionError::ArrayPaddingToLesserSize {
                 location: Location::new(3, 5),
                 from: 4,
                 to: 2,
@@ -1421,8 +1421,8 @@ fn main() -> [u8; 4] {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::StandardLibrary(
-            StandardLibraryFunctionTypeError::ArrayNewLengthInvalid {
+        TypeError::Function(FunctionError::StandardLibrary(
+            StandardLibraryFunctionError::ArrayNewLengthInvalid {
                 location: Location::new(3, 31),
                 value: IntegerConstant::new(
                     Location::new(3, 31),
@@ -1449,7 +1449,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "invert".to_owned(),
             expected: FfInvertFunction::ARGUMENT_COUNT,
@@ -1471,7 +1471,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentCount {
+        TypeError::Function(FunctionError::ArgumentCount {
             location: Location::new(3, 5),
             function: "invert".to_owned(),
             expected: FfInvertFunction::ARGUMENT_COUNT,
@@ -1493,7 +1493,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionTypeError::ArgumentType {
+        TypeError::Function(FunctionError::ArgumentType {
             location: Location::new(3, 21),
             function: "invert".to_owned(),
             name: "value".to_owned(),

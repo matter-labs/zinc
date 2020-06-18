@@ -3,8 +3,9 @@
 //!
 
 use crate::lexical::token::location::Location;
-use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionTypeError;
-use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionTypeError;
+use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
+use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
+use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
@@ -53,6 +54,7 @@ pub enum Error {
         reference: Location,
     },
 
-    BuiltIn(BuiltInFunctionTypeError),
-    StandardLibrary(StandardLibraryFunctionTypeError),
+    BuiltIn(BuiltInFunctionError),
+    StandardLibrary(StandardLibraryFunctionError),
+    Test(TestFunctionError),
 }

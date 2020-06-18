@@ -11,6 +11,7 @@ use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::block::Expression;
 use crate::generator::r#type::Type;
 use crate::lexical::token::location::Location;
+use crate::semantic::analyzer::attribute::Attribute;
 use crate::semantic::element::r#type::Type as SemanticType;
 
 ///
@@ -26,6 +27,7 @@ pub struct Statement {
     pub type_id: usize,
     pub is_contract_entry: bool,
     pub is_main: bool,
+    pub attributes: Vec<Attribute>,
 }
 
 impl Statement {
@@ -38,6 +40,7 @@ impl Statement {
         type_id: usize,
         is_contract_entry: bool,
         is_main: bool,
+        attributes: Vec<Attribute>,
     ) -> Self {
         let input_arguments = input_arguments
             .into_iter()
@@ -58,6 +61,7 @@ impl Statement {
             type_id,
             is_contract_entry,
             is_main,
+            attributes,
         }
     }
 

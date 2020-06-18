@@ -7,6 +7,7 @@ use colored::Colorize;
 use crate::lexical::error::Error as LexicalError;
 use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::location::Location;
+use crate::semantic::analyzer::attribute::error::Error as AttributeError;
 use crate::semantic::analyzer::expression::conditional::error::Error as ConditionalExpressionError;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::r#match::error::Error as MatchExpressionError;
@@ -24,9 +25,10 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::r#type::contract::error::Error as ContractTypeError;
 use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionTypeError;
-use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
-use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionTypeError;
+use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
+use crate::semantic::element::r#type::function::error::Error as FunctionError;
+use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
+use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 use crate::semantic::element::r#type::structure::error::Error as StructureTypeError;
 use crate::semantic::element::value::array::error::Error as ArrayValueError;
 use crate::semantic::element::value::error::Error as ValueError;
@@ -1578,7 +1580,7 @@ impl Error {
                     Some("consider removing circular references between the items"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::ArgumentCount { location, function, expected, found })))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::ArgumentCount { location, function, expected, found })))) => {
                 Self::format_line( format!(
                         "function `{}` expected {} arguments, found {}",
                         function, expected, found
@@ -1588,7 +1590,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::ArgumentType { location, function, name, position, expected, found })))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::ArgumentType { location, function, name, position, expected, found })))) => {
                 Self::format_line( format!(
                         "function `{}` expected type `{}` as the argument `{}` (#{}), found `{}`",
                         function, expected, name, position, found
@@ -1598,7 +1600,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::ArgumentConstantness { location, function, name, position, found })))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::ArgumentConstantness { location, function, name, position, found })))) => {
                 Self::format_line( format!(
                         "function `{}` expected a constant as the argument `{}` (#{}), found a non-constant of type `{}`",
                         function, name, position, found
@@ -1608,7 +1610,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::ArgumentNotEvaluable { location, function, position, found })))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::ArgumentNotEvaluable { location, function, position, found })))) => {
                 Self::format_line( format!(
                         "function `{}` expected a value as the argument #{}, found `{}`",
                         function, position, found
@@ -1618,7 +1620,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::ReturnType { location, function, expected, found, reference })))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::ReturnType { location, function, expected, found, reference })))) => {
                 Self::format_line_with_reference(format!(
                         "function `{}` must return a value of type `{}`, found `{}`",
                         function, expected, found
@@ -1629,7 +1631,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::NonCallable { location, name })))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::NonCallable { location, name })))) => {
                 Self::format_line( format!(
                         "attempt to call a non-callable item `{}`",
                         name
@@ -1639,7 +1641,7 @@ impl Error {
                     Some("only functions may be called"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::FunctionMethodSelfNotFirst { location, function, position, reference })))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::FunctionMethodSelfNotFirst { location, function, position, reference })))) => {
                 Self::format_line_with_reference(format!(
                         "method `{}` expected the `{}` binding to be at the first position, but found at the position #`{}`",
                         function,
@@ -1652,7 +1654,7 @@ impl Error {
                     Some(format!("consider moving the `{}` binding to the first place", Keyword::SelfLowercase.to_string()).as_str()),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::BuiltIn(BuiltInFunctionTypeError::Unknown { location, function }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::BuiltIn(BuiltInFunctionError::Unknown { location, function }))))) => {
                 Self::format_line( format!(
                         "attempt to call a non-builtin function `{}` with `!` specifier",
                         function
@@ -1662,7 +1664,7 @@ impl Error {
                     Some("only built-in functions require the `!` symbol after the function name"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::BuiltIn(BuiltInFunctionTypeError::SpecifierMissing { location, function }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::BuiltIn(BuiltInFunctionError::SpecifierMissing { location, function }))))) => {
                 Self::format_line( format!(
                         "attempt to call a builtin function `{}` without `!` specifier",
                         function
@@ -1672,7 +1674,7 @@ impl Error {
                     Some("built-in functions require the `!` symbol after the function name"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::BuiltIn(BuiltInFunctionTypeError::DebugArgumentCount { location, expected, found }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::BuiltIn(BuiltInFunctionError::DebugArgumentCount { location, expected, found }))))) => {
                 Self::format_line( format!(
                         "the `dbg!` function expected {} arguments, but got {}",
                         expected, found,
@@ -1682,7 +1684,7 @@ impl Error {
                     Some("the number of `dbg!` arguments after the format string must be equal to the number of placeholders, e.g. `dbg!(\"{}, {}\", a, b)`"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::StandardLibrary(StandardLibraryFunctionTypeError::ArrayTruncatingToBiggerSize { location, from, to }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayTruncatingToBiggerSize { location, from, to }))))) => {
                 Self::format_line( format!(
                         "attempt to truncate an array from size `{}` to bigger size `{}`",
                         from, to,
@@ -1692,7 +1694,7 @@ impl Error {
                     Some("consider truncating the array to a smaller size"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::StandardLibrary(StandardLibraryFunctionTypeError::ArrayPaddingToLesserSize { location, from, to }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayPaddingToLesserSize { location, from, to }))))) => {
                 Self::format_line( format!(
                         "attempt to pad an array from size `{}` to lesser size `{}`",
                         from, to,
@@ -1702,7 +1704,7 @@ impl Error {
                     Some("consider padding the array to a bigger size"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionTypeError::StandardLibrary(StandardLibraryFunctionTypeError::ArrayNewLengthInvalid { location, value }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayNewLengthInvalid { location, value }))))) => {
                 Self::format_line( format!(
                         "new array length `{}` cannot act as an index",
                         value,
@@ -1710,6 +1712,66 @@ impl Error {
                         .as_str(),
                     location,
                     Some("array indexes cannot be greater than maximum of `u64`"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Test(TestFunctionError::CallForbidden { location, function }))))) => {
+                Self::format_line( format!(
+                    "unit test function `{}` cannot be called",
+                    function,
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Test(TestFunctionError::BeyondModuleScope { location, function }))))) => {
+                Self::format_line( format!(
+                    "unit test function `{}` must be declared at the module root scope",
+                    function,
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Test(TestFunctionError::PublicForbidden { location, function }))))) => {
+                Self::format_line( format!(
+                    "unit test function `{}` cannot be declared as public",
+                    function,
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Test(TestFunctionError::ConstantForbidden { location, function }))))) => {
+                Self::format_line( format!(
+                    "unit test function `{}` cannot be declared as constant",
+                    function,
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Test(TestFunctionError::CannotHaveArguments { location, function }))))) => {
+                Self::format_line( format!(
+                    "unit test function `{}` cannot accept arguments",
+                    function,
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Test(TestFunctionError::CannotReturnValue { location, function }))))) => {
+                Self::format_line( format!(
+                    "unit test function `{}` cannot return a value",
+                    function,
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
                 )
             }
             Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Structure(StructureTypeError::DuplicateField { location, type_identifier, field_name })))) => {
@@ -1802,6 +1864,7 @@ impl Error {
                     None,
                 )
             }
+
             Self::Semantic(SemanticError::Statement(StatementError::For(ForStatementError::WhileExpectedBooleanCondition { location, found }))) => {
                 Self::format_line( format!("expected `bool`, found `{}`", found).as_str(),
                     location,
@@ -1834,6 +1897,18 @@ impl Error {
                     Some("only structures and enumerations can have an implementation"),
                 )
             }
+
+            Self::Semantic(SemanticError::Attribute(AttributeError::Unknown { location, found })) => {
+                Self::format_line( format!(
+                    "unknown attribute `{}`",
+                    found
+                )
+                                       .as_str(),
+                                   location,
+                                   Some("see the reference to get the list of allowed attributes"),
+                )
+            }
+
             Self::Semantic(SemanticError::EntryPointMissing) => {
                 Self::format_message(
                     "the project entry point is missing",
