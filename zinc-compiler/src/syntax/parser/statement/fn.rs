@@ -209,6 +209,7 @@ mod tests {
                 )],
                 None,
                 BlockExpression::new(Location::new(1, 16), vec![], None),
+                vec![],
             ),
             None,
         ));
@@ -240,6 +241,7 @@ mod tests {
                 )],
                 Some(Type::new(Location::new(1, 19), TypeVariant::field())),
                 BlockExpression::new(Location::new(1, 25), vec![], None),
+                vec![],
             ),
             None,
         ));

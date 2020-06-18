@@ -2,6 +2,7 @@
 //! The syntax parser.
 //!
 
+pub mod attribute;
 pub mod expression;
 pub mod field;
 pub mod field_list;

@@ -117,6 +117,9 @@ tuple_expression =
 
 structure_expression = '{', field_list, '}';
 
+(* Attributes *)
+attribute = '#', [ '!' ], '[', identifier, ']' ;
+
 (* Parts *)
 alias = 'crate' | 'super' | 'self' | 'Self'
 

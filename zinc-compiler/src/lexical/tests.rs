@@ -162,9 +162,12 @@ fn error_expected_one_of_hexadecimal() {
 
 #[test]
 fn error_invalid_character() {
-    let input = "#";
+    let input = "@";
 
-    let expected: Result<Token, Error> = Err(Error::invalid_character(Location::new(1, 1), '#'));
+    let expected: Result<Token, Error> = Err(Error::invalid_character(
+        Location::new(1, 1),
+        input.chars().collect::<Vec<char>>()[0],
+    ));
 
     let result = TokenStream::new(input).next();
 

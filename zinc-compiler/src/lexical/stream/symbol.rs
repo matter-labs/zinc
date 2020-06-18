@@ -53,6 +53,8 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
 
                 Some('~') => return Ok((size + 1, Symbol::Tilde)),
 
+                Some('#') => return Ok((size + 1, Symbol::Number)),
+
                 Some('+') => {
                     size += 1;
                     state = State::Plus;
@@ -249,9 +251,9 @@ mod tests {
 
     #[test]
     fn error_invalid_character() {
-        let input = "#";
+        let input = "@";
         let expected = Err(Error::InvalidCharacter {
-            found: '#',
+            found: input.chars().collect::<Vec<char>>()[0],
             offset: 0,
         });
         let result = parse(input);

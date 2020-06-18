@@ -1,13 +1,3 @@
-contract Test {
-    data: [u16; 1];
-
-    pub fn main(mut self, witness: u16) -> u16 {
-        self.data[0] = witness;
-
-        let mut product: u16 = 1;
-        for i in 0..1 {
-            product *= self.data[i];
-        }
-        product
-    }
+pub fn main(witness: u8) -> u8 {
+    witness
 }

@@ -5,6 +5,7 @@
 pub mod builder;
 
 use crate::lexical::token::location::Location;
+use crate::syntax::tree::attribute::Attribute;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
@@ -19,6 +20,7 @@ pub struct Statement {
     pub argument_bindings: Vec<BindingPattern>,
     pub return_type: Option<Type>,
     pub body: BlockExpression,
+    pub attributes: Vec<Attribute>,
 }
 
 impl Statement {
@@ -30,6 +32,7 @@ impl Statement {
         argument_bindings: Vec<BindingPattern>,
         return_type: Option<Type>,
         body: BlockExpression,
+        attributes: Vec<Attribute>,
     ) -> Self {
         Self {
             location,
@@ -39,6 +42,7 @@ impl Statement {
             argument_bindings,
             return_type,
             body,
+            attributes,
         }
     }
 }

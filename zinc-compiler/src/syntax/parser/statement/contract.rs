@@ -395,6 +395,7 @@ mod tests {
                     )],
                     Some(Type::new(Location::new(3, 27), TypeVariant::field())),
                     BlockExpression::new(Location::new(3, 33), vec![], None),
+                    vec![],
                 ))],
             ),
             None,
@@ -437,6 +438,7 @@ mod tests {
                         )],
                         Some(Type::new(Location::new(3, 28), TypeVariant::field())),
                         BlockExpression::new(Location::new(3, 34), vec![], None),
+                        vec![],
                     )),
                     ContractLocalStatement::Fn(FnStatement::new(
                         Location::new(5, 9),
@@ -453,6 +455,7 @@ mod tests {
                         )],
                         Some(Type::new(Location::new(5, 28), TypeVariant::field())),
                         BlockExpression::new(Location::new(5, 34), vec![], None),
+                        vec![],
                     )),
                     ContractLocalStatement::Fn(FnStatement::new(
                         Location::new(7, 9),
@@ -469,6 +472,7 @@ mod tests {
                         )],
                         Some(Type::new(Location::new(7, 28), TypeVariant::field())),
                         BlockExpression::new(Location::new(7, 34), vec![], None),
+                        vec![],
                     )),
                 ],
             ),
@@ -532,6 +536,7 @@ mod tests {
                         )],
                         Some(Type::new(Location::new(7, 28), TypeVariant::field())),
                         BlockExpression::new(Location::new(7, 34), vec![], None),
+                        vec![],
                     )),
                 ],
             ),
@@ -643,6 +648,7 @@ mod tests {
                         )],
                         Some(Type::new(Location::new(11, 28), TypeVariant::field())),
                         BlockExpression::new(Location::new(11, 34), vec![], None),
+                        vec![],
                     )),
                     ContractLocalStatement::Fn(FnStatement::new(
                         Location::new(13, 9),
@@ -659,6 +665,7 @@ mod tests {
                         )],
                         Some(Type::new(Location::new(13, 28), TypeVariant::field())),
                         BlockExpression::new(Location::new(13, 34), vec![], None),
+                        vec![],
                     )),
                     ContractLocalStatement::Fn(FnStatement::new(
                         Location::new(15, 9),
@@ -675,6 +682,7 @@ mod tests {
                         )],
                         Some(Type::new(Location::new(15, 28), TypeVariant::field())),
                         BlockExpression::new(Location::new(15, 34), vec![], None),
+                        vec![],
                     )),
                 ],
             ),

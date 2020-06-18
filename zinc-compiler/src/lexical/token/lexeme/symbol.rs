@@ -31,6 +31,7 @@ pub enum Symbol {
     ExclamationMark,
     Lesser,
     Greater,
+    Number,
 
     // two chars
     PlusEquals,
@@ -88,6 +89,7 @@ impl fmt::Display for Symbol {
             Self::ExclamationMark => write!(f, "!"),
             Self::Lesser => write!(f, "<"),
             Self::Greater => write!(f, ">"),
+            Self::Number => write!(f, "#"),
 
             Self::PlusEquals => write!(f, "+="),
             Self::MinusEquals => write!(f, "-="),

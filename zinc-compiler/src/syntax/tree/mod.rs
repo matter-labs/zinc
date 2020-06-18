@@ -2,6 +2,7 @@
 //! The syntax tree.
 //!
 
+pub mod attribute;
 pub mod expression;
 pub mod field;
 pub mod identifier;

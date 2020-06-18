@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     fn test_storage_gadget_small() {
-        const STORAGE_ELEMENT_COUNT: usize = 4;
+        const STORAGE_ELEMENT_COUNT: usize = 2;
 
         let mut rng = XorShiftRng::from_seed([0x5dbe6259, 0x8d313d76, 0x3237db17, 0xe5bc0654]);
 

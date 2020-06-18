@@ -3,6 +3,7 @@
 //!
 
 use crate::lexical::token::location::Location;
+use crate::syntax::tree::attribute::Attribute;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
@@ -18,6 +19,7 @@ pub struct Builder {
     argument_bindings: Vec<BindingPattern>,
     return_type: Option<Type>,
     body: Option<BlockExpression>,
+    attributes: Vec<Attribute>,
 }
 
 impl Builder {
@@ -49,6 +51,10 @@ impl Builder {
         self.body = Some(value);
     }
 
+    pub fn set_attributes(&mut self, value: Vec<Attribute>) {
+        self.attributes = value;
+    }
+
     pub fn finish(mut self) -> FnStatement {
         FnStatement::new(
             self.location.take().unwrap_or_else(|| {
@@ -64,6 +70,7 @@ impl Builder {
             self.body
                 .take()
                 .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "body")),
+            self.attributes,
         )
     }
 }
