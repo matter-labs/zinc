@@ -10,6 +10,7 @@ use structopt::StructOpt;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
 use zinc_bytecode::Program as BytecodeProgram;
+use zinc_const::UnitTestExitCode;
 
 use zinc_vm::IFacade;
 
@@ -24,14 +25,14 @@ pub struct TestCommand {
 }
 
 impl TestCommand {
-    pub fn execute(&self) -> Result<(), Error> {
+    pub fn execute(&self) -> Result<UnitTestExitCode, Error> {
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
         let program =
             BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
-        program.test::<Bn256>()?;
+        let status = program.test::<Bn256>()?;
 
-        Ok(())
+        Ok(status)
     }
 }

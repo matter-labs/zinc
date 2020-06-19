@@ -3,11 +3,23 @@ pub fn main(witness: u8) -> u8 {
 }
 
 #[test]
-fn test_ok() {
-    assert!(main(42) == 42);
+fn test_1() {
+    assert!(true);
 }
 
 #[test]
-fn test_errpr() {
-    assert!(main(42) == 43);
+#[should_panic]
+fn test_2() {
+    assert!(false, "panic message");
+}
+
+#[test]
+fn test_3() {
+    assert!(false);
+}
+
+#[test]
+#[ignore]
+fn test_4() {
+    assert!(true);
 }

@@ -42,8 +42,13 @@ impl Program {
         ))
     }
 
-    pub fn new_unit_test(instructions: Vec<Instruction>) -> Self {
-        Self::UnitTest(UnitTest::new(instructions))
+    pub fn new_unit_test(
+        name: String,
+        instructions: Vec<Instruction>,
+        should_panic: bool,
+        is_ignored: bool,
+    ) -> Self {
+        Self::UnitTest(UnitTest::new(name, instructions, should_panic, is_ignored))
     }
 
     pub fn input(&self) -> DataType {

@@ -9,17 +9,23 @@ use std::io;
 use zinc_compiler::SourceError;
 
 pub enum Error {
-    Source(OsString, SourceError),
+    Source(SourceError),
     DirectoryCreating(OsString, io::Error),
     WitnessTemplateOutput(OsString, OutputError),
     PublicDataTemplateOutput(OsString, OutputError),
     BytecodeOutput(OsString, OutputError),
 }
 
+impl From<SourceError> for Error {
+    fn from(error: SourceError) -> Self {
+        Self::Source(error)
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Source(path, inner) => write!(f, "`{:?}` {}", path, inner),
+            Self::Source(inner) => write!(f, "{}", inner),
             Self::DirectoryCreating(path, inner) => {
                 write!(f, "directory `{:?}` creating: {}", path, inner)
             }

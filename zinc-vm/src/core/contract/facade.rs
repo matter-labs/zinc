@@ -15,6 +15,7 @@ use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_bytecode::Contract as BytecodeContract;
 use zinc_bytecode::TemplateValue;
+use zinc_const::UnitTestExitCode;
 
 use crate::constraint_systems::debug::DebugCS;
 use crate::core::contract::storage::dummy::Storage as DummyStorage;
@@ -157,7 +158,7 @@ impl IFacade for BytecodeContract {
         Ok(value)
     }
 
-    fn test<E: IEngine>(self) -> Result<(), RuntimeError> {
+    fn test<E: IEngine>(self) -> Result<UnitTestExitCode, RuntimeError> {
         Err(RuntimeError::CommandForbidden)
     }
 

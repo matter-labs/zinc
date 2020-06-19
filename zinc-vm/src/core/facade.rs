@@ -9,6 +9,7 @@ use franklin_crypto::bellman::groth16::VerifyingKey;
 
 use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
+use zinc_const::UnitTestExitCode;
 
 use crate::error::RuntimeError;
 use crate::error::VerificationError;
@@ -20,7 +21,7 @@ pub trait IFacade {
 
     fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError>;
 
-    fn test<E: IEngine>(self) -> Result<(), RuntimeError>;
+    fn test<E: IEngine>(self) -> Result<UnitTestExitCode, RuntimeError>;
 
     fn setup<E: IEngine>(self) -> Result<Parameters<E>, RuntimeError>;
 
@@ -73,7 +74,7 @@ impl IFacade for BytecodeProgram {
         }
     }
 
-    fn test<E: IEngine>(self) -> Result<(), RuntimeError> {
+    fn test<E: IEngine>(self) -> Result<UnitTestExitCode, RuntimeError> {
         match self {
             BytecodeProgram::Circuit(inner) => inner.test::<E>(),
             BytecodeProgram::Contract(inner) => inner.test::<E>(),

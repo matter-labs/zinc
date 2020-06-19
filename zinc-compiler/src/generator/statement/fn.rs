@@ -85,6 +85,8 @@ impl Statement {
                 self.location,
                 self.type_id,
                 self.identifier,
+                self.attributes.contains(&Attribute::ShouldPanic),
+                self.attributes.contains(&Attribute::Ignore),
             );
         } else {
             bytecode

@@ -85,7 +85,7 @@ impl VirtualMachine {
         Ok(())
     }
 
-    pub fn test(verbosity: usize, binary_path: &PathBuf) -> Result<(), Error> {
+    pub fn test(verbosity: usize, binary_path: &PathBuf) -> Result<ExitStatus, Error> {
         let mut process = process::Command::new(BINARY_NAME_DEFAULT)
             .args(vec!["-v"; verbosity])
             .arg("test")
@@ -96,11 +96,7 @@ impl VirtualMachine {
 
         let status = process.wait().map_err(Error::Waiting)?;
 
-        if !status.success() {
-            return Err(Error::Failure(status));
-        }
-
-        Ok(())
+        Ok(status)
     }
 
     pub fn setup(

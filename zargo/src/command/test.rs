@@ -9,6 +9,8 @@ use colored::Colorize;
 use failure::Fail;
 use structopt::StructOpt;
 
+use zinc_const::UnitTestExitCode;
+
 use crate::directory::build::test::Directory as TestBuildDirectory;
 use crate::directory::build::test::Error as TestBuildDirectoryError;
 use crate::directory::build::Directory as BuildDirectory;
@@ -16,6 +18,7 @@ use crate::directory::data::Directory as DataDirectory;
 use crate::directory::source::Directory as SourceDirectory;
 use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
+use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
 use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
@@ -53,6 +56,10 @@ pub enum Error {
     Compiler(CompilerError),
     #[fail(display = "test build directory {}", _0)]
     TestBuildDirectory(TestBuildDirectoryError),
+    #[fail(display = "virtual machine {}", _0)]
+    VirtualMachine(VirtualMachineError),
+    #[fail(display = "unknown exit code")]
+    UnknownExitCode(Option<i32>),
 }
 
 impl Command {
@@ -68,6 +75,8 @@ impl Command {
         let build_directory_path = BuildDirectory::path(&manifest_path);
         let data_directory_path = DataDirectory::path(&manifest_path);
 
+        TestBuildDirectory::remove(&manifest_path).map_err(Error::TestBuildDirectory)?;
+
         Compiler::build_test(
             self.verbosity,
             &data_directory_path,
@@ -76,15 +85,36 @@ impl Command {
         )
         .map_err(Error::Compiler)?;
 
+        let mut passed = 0;
+        let mut failed = 0;
+        let mut ignored = 0;
+
         for binary_path in TestBuildDirectory::files(&manifest_path)
             .map_err(Error::TestBuildDirectory)?
             .into_iter()
         {
-            match VirtualMachine::test(self.verbosity, &binary_path) {
-                Ok(()) => println!("test {:?} ... {}", binary_path, "ok".green()),
-                Err(_) => println!("test {:?} ... {}", binary_path, "error".bright_red()),
+            let status = VirtualMachine::test(self.verbosity, &binary_path)
+                .map_err(Error::VirtualMachine)?;
+            let code = UnitTestExitCode::try_from(status).map_err(Error::UnknownExitCode)?;
+
+            match code {
+                UnitTestExitCode::Passed => passed += 1,
+                UnitTestExitCode::Ignored => ignored += 1,
+                UnitTestExitCode::Failed => failed += 1,
             }
         }
+
+        println!(
+            "test result: {}. {} passed; {} failed; {} ignored",
+            if failed == 0 {
+                "ok".green()
+            } else {
+                "failed".bright_red()
+            },
+            passed,
+            failed,
+            ignored
+        );
 
         Ok(())
     }
