@@ -48,4 +48,30 @@ impl Compiler {
 
         Ok(())
     }
+
+    pub fn build_test(
+        verbosity: usize,
+        data_path: &PathBuf,
+        build_path: &PathBuf,
+        source_path: &PathBuf,
+    ) -> Result<(), Error> {
+        let mut child = process::Command::new(BINARY_NAME_DEFAULT)
+            .args(vec!["-v"; verbosity])
+            .arg("--data")
+            .arg(data_path)
+            .arg("--build")
+            .arg(build_path)
+            .arg("--test-only")
+            .arg(source_path)
+            .spawn()
+            .map_err(Error::Spawning)?;
+
+        let status = child.wait().map_err(Error::Waiting)?;
+
+        if !status.success() {
+            return Err(Error::Failure(status));
+        }
+
+        Ok(())
+    }
 }

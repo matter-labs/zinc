@@ -48,6 +48,7 @@ export PROJECT_ENTRY="${4}"
 
 export PROJECT_DIRECTORY="./zinc-examples/${PROJECT_NAME}/"
 export PROJECT_BUILD_DIRECTORY="${PROJECT_DIRECTORY}/build/"
+export PROJECT_BUILD_TEST_DIRECTORY="${PROJECT_BUILD_DIRECTORY}/test/"
 export PROJECT_DATA_DIRECTORY="${PROJECT_DIRECTORY}/data/"
 export PROJECT_SOURCE_DIRECTORY="${PROJECT_DIRECTORY}/src/"
 
@@ -69,3 +70,7 @@ cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_L
     --public-data "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_public_data.json" \
     --proving-key "${PROJECT_DATA_DIRECTORY}/proving_key" \
     --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying_key.txt"
+
+"${ZARGO_PATH}" test ${LOG_LEVEL} \
+    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
+    --binary "${PROJECT_BUILD_TEST_DIRECTORY}"

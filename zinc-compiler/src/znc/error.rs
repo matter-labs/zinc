@@ -2,32 +2,38 @@
 //! The Zinc compiler binary error.
 //!
 
+use std::ffi::OsString;
 use std::fmt;
+use std::io;
 
 use zinc_compiler::SourceError;
 
 pub enum Error {
-    Source(SourceError),
-    WitnessTemplateOutput(OutputError),
-    PublicDataTemplateOutput(OutputError),
-    BytecodeOutput(OutputError),
-}
-
-impl From<SourceError> for Error {
-    fn from(inner: SourceError) -> Self {
-        Self::Source(inner)
-    }
+    Source(OsString, SourceError),
+    DirectoryCreating(OsString, io::Error),
+    WitnessTemplateOutput(OsString, OutputError),
+    PublicDataTemplateOutput(OsString, OutputError),
+    BytecodeOutput(OsString, OutputError),
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Source(inner) => write!(f, "{}", inner),
-            Self::WitnessTemplateOutput(inner) => write!(f, "witness template output: {}", inner),
-            Self::PublicDataTemplateOutput(inner) => {
-                write!(f, "public data template output: {}", inner)
+            Self::Source(path, inner) => write!(f, "`{:?}` {}", path, inner),
+            Self::DirectoryCreating(path, inner) => {
+                write!(f, "directory `{:?}` creating: {}", path, inner)
             }
-            Self::BytecodeOutput(inner) => write!(f, "bytecode output: {}", inner),
+            Self::WitnessTemplateOutput(path, inner) => {
+                write!(f, "witness template file `{:?}` output: {}", path, inner)
+            }
+            Self::PublicDataTemplateOutput(path, inner) => write!(
+                f,
+                "public data template file `{:?}` output: {}",
+                path, inner
+            ),
+            Self::BytecodeOutput(path, inner) => {
+                write!(f, "bytecode file `{:?}` output: {}", path, inner)
+            }
         }
     }
 }

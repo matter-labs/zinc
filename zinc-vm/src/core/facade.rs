@@ -16,9 +16,11 @@ use crate::gadgets;
 use crate::IEngine;
 
 pub trait IFacade {
+    fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError>;
+
     fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError>;
 
-    fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError>;
+    fn test<E: IEngine>(self) -> Result<(), RuntimeError>;
 
     fn setup<E: IEngine>(self) -> Result<Parameters<E>, RuntimeError>;
 
@@ -29,7 +31,7 @@ pub trait IFacade {
     ) -> Result<(TemplateValue, Proof<E>), RuntimeError>;
 
     fn verify<E: IEngine>(
-        key: VerifyingKey<E>,
+        verifying_key: VerifyingKey<E>,
         proof: Proof<E>,
         public_input: TemplateValue,
     ) -> Result<bool, VerificationError> {
@@ -42,26 +44,40 @@ pub trait IFacade {
             })
             .collect::<Result<Vec<E::Fr>, VerificationError>>()?;
 
-        let pvk = groth16::prepare_verifying_key(&key);
-        let success = groth16::verify_proof(&pvk, &proof, public_input_flat.as_slice())
-            .map_err(VerificationError::SynthesisError)?;
+        let prepared_verifying_key = groth16::prepare_verifying_key(&verifying_key);
+        let success = groth16::verify_proof(
+            &prepared_verifying_key,
+            &proof,
+            public_input_flat.as_slice(),
+        )
+        .map_err(VerificationError::SynthesisError)?;
 
         Ok(success)
     }
 }
 
 impl IFacade for BytecodeProgram {
-    fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
-        match self {
-            BytecodeProgram::Circuit(inner) => inner.debug::<E>(input),
-            BytecodeProgram::Contract(inner) => inner.debug::<E>(input),
-        }
-    }
-
     fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
         match self {
             BytecodeProgram::Circuit(inner) => inner.run::<E>(input),
             BytecodeProgram::Contract(inner) => inner.run::<E>(input),
+            BytecodeProgram::UnitTest(inner) => inner.run::<E>(input),
+        }
+    }
+
+    fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
+        match self {
+            BytecodeProgram::Circuit(inner) => inner.debug::<E>(input),
+            BytecodeProgram::Contract(inner) => inner.debug::<E>(input),
+            BytecodeProgram::UnitTest(inner) => inner.debug::<E>(input),
+        }
+    }
+
+    fn test<E: IEngine>(self) -> Result<(), RuntimeError> {
+        match self {
+            BytecodeProgram::Circuit(inner) => inner.test::<E>(),
+            BytecodeProgram::Contract(inner) => inner.test::<E>(),
+            BytecodeProgram::UnitTest(inner) => inner.test::<E>(),
         }
     }
 
@@ -69,6 +85,7 @@ impl IFacade for BytecodeProgram {
         match self {
             BytecodeProgram::Circuit(inner) => inner.setup(),
             BytecodeProgram::Contract(inner) => inner.setup(),
+            BytecodeProgram::UnitTest(inner) => inner.setup(),
         }
     }
 
@@ -80,6 +97,7 @@ impl IFacade for BytecodeProgram {
         match self {
             BytecodeProgram::Circuit(inner) => inner.prove(params, witness),
             BytecodeProgram::Contract(inner) => inner.prove(params, witness),
+            BytecodeProgram::UnitTest(inner) => inner.prove(params, witness),
         }
     }
 }

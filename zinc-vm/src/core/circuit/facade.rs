@@ -18,13 +18,60 @@ use zinc_bytecode::TemplateValue;
 use crate::constraint_systems::debug::DebugCS;
 use crate::core::circuit::synthesizer::Synthesizer as CircuitSynthesizer;
 use crate::core::circuit::Circuit;
+use crate::core::facade::IFacade;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::error::TypeSizeError;
-use crate::facade::IFacade;
 use crate::IEngine;
 
 impl IFacade for BytecodeCircuit {
+    fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
+        let cs = DebugCS::<Bn256>::default();
+
+        let inputs_flat = input.into_flat_values();
+        let output_type = self.output.to_owned();
+
+        let mut circuit = Circuit::new(cs, true);
+
+        let mut num_constraints = 0;
+        let result = circuit.run(
+            self,
+            Some(&inputs_flat),
+            |cs| {
+                let num = cs.num_constraints() - num_constraints;
+                num_constraints += num;
+                log::debug!("Constraints: {}", num);
+            },
+            |cs| {
+                if !cs.is_satisfied() {
+                    return Err(RuntimeError::UnsatisfiedConstraint);
+                }
+
+                Ok(())
+            },
+        )?;
+
+        let cs = circuit.constraint_system();
+        if !cs.is_satisfied() {
+            return Err(RuntimeError::UnsatisfiedConstraint);
+        }
+
+        let output_flat = result
+            .into_iter()
+            .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
+            .collect::<Vec<_>>();
+
+        let value =
+            TemplateValue::new_from_flat_values(output_type, &output_flat).ok_or_else(|| {
+                TypeSizeError::Output {
+                    expected: 0,
+                    actual: 0,
+                }
+            })?;
+
+        Ok(value)
+    }
+
     fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
         let cs = TestConstraintSystem::<Bn256>::new();
 
@@ -88,51 +135,8 @@ impl IFacade for BytecodeCircuit {
         Ok(value)
     }
 
-    fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
-        let cs = DebugCS::<Bn256>::default();
-
-        let inputs_flat = input.into_flat_values();
-        let output_type = self.output.to_owned();
-
-        let mut circuit = Circuit::new(cs, true);
-
-        let mut num_constraints = 0;
-        let result = circuit.run(
-            self,
-            Some(&inputs_flat),
-            |cs| {
-                let num = cs.num_constraints() - num_constraints;
-                num_constraints += num;
-                log::debug!("Constraints: {}", num);
-            },
-            |cs| {
-                if !cs.is_satisfied() {
-                    return Err(RuntimeError::UnsatisfiedConstraint);
-                }
-
-                Ok(())
-            },
-        )?;
-
-        let cs = circuit.constraint_system();
-        if !cs.is_satisfied() {
-            return Err(RuntimeError::UnsatisfiedConstraint);
-        }
-
-        let output_flat = result
-            .into_iter()
-            .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
-            .collect::<Vec<_>>();
-
-        let value =
-            TemplateValue::new_from_flat_values(output_type, &output_flat).ok_or_else(|| {
-                TypeSizeError::Output {
-                    expected: 0,
-                    actual: 0,
-                }
-            })?;
-
-        Ok(value)
+    fn test<E: IEngine>(self) -> Result<(), RuntimeError> {
+        Err(RuntimeError::CommandForbidden)
     }
 
     fn setup<E: IEngine>(self) -> Result<Parameters<E>, RuntimeError> {

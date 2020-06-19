@@ -45,8 +45,8 @@ impl Program {
             .remove(entry.as_str())
             .ok_or_else(|| Error::EntryNotFound(entry))?;
 
-        let bytecode =
-            BytecodeProgram::from_bytes(entry.bytecode.as_slice()).map_err(Error::Program)?;
+        let bytecode = BytecodeProgram::from_bytes(entry.into_bytecode().as_slice())
+            .map_err(Error::Program)?;
 
         let witness = TemplateValue::from_typed_json(witness, bytecode.input())
             .map_err(Error::TemplateValue)?;

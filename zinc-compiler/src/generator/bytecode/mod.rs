@@ -27,16 +27,21 @@ use self::metadata::Metadata;
 pub struct Bytecode {
     /// The Zinc VM instructions written by the bytecode generator
     instructions: Vec<Instruction>,
+
     /// The contract storage structure
     contract_storage: Option<Vec<(String, Type)>>,
     /// Metadata of each application entry
     entry_metadata: HashMap<usize, Metadata>,
+    /// Unit test function IDs
+    test_entries: HashMap<usize, String>,
+
     /// Data stack addresses of variables declared at runtime
     variable_addresses: HashMap<String, usize>,
     /// Bytecode addresses of the functions written to the bytecode
     function_addresses: HashMap<usize, usize>,
     /// The pointer which is reset at the beginning of each function
     data_stack_pointer: usize,
+
     /// The location pointer used to pass debug information to the VM
     current_location: Location,
 }
@@ -67,6 +72,8 @@ impl Bytecode {
 
             contract_storage: None,
             entry_metadata: HashMap::with_capacity(Self::ENTRY_METADATA_INITIAL_CAPACITY),
+            test_entries: HashMap::with_capacity(Self::ENTRY_METADATA_INITIAL_CAPACITY),
+
             variable_addresses: HashMap::with_capacity(Self::VARIABLE_ADDRESSES_INITIAL_CAPACITY),
             function_addresses: HashMap::with_capacity(Self::FUNCTION_ADDRESSES_INITIAL_CAPACITY),
             data_stack_pointer: 0,
@@ -125,13 +132,13 @@ impl Bytecode {
     }
 
     ///
-    /// Starts an entry functions, saving its metadata and calls the `start_function` method.
+    /// Starts an entry function, saves its metadata and calls the `start_function` method.
     ///
     pub fn start_entry_function(
         &mut self,
         location: Location,
-        identifier: String,
         type_id: usize,
+        identifier: String,
         input_arguments: Vec<(String, Type)>,
         output_type: Option<Type>,
     ) {
@@ -141,6 +148,20 @@ impl Bytecode {
             output_type.unwrap_or_else(|| Type::structure(vec![])),
         );
         self.entry_metadata.insert(type_id, metadata);
+
+        self.start_function(location, type_id, identifier);
+    }
+
+    ///
+    /// Starts a unit test function, saves its metadata and calls the `start_function` method.
+    ///
+    pub fn start_unit_test_function(
+        &mut self,
+        location: Location,
+        type_id: usize,
+        identifier: String,
+    ) {
+        self.test_entries.insert(type_id, identifier.clone());
 
         self.start_function(location, type_id, identifier);
     }
@@ -269,6 +290,42 @@ impl Bytecode {
                 metadata.entry_name,
                 Entry::new(bytecode, witness_template, public_data_template),
             );
+        }
+
+        for (entry_id, name) in self.test_entries.into_iter() {
+            let mut instructions = self.instructions.clone();
+            instructions[0] = Instruction::Call(zinc_bytecode::Call::new(entry_id, 0));
+            instructions[1] = Instruction::Exit(zinc_bytecode::Exit::new(0));
+
+            for instruction in instructions.iter_mut() {
+                if let Instruction::Call(zinc_bytecode::Call {
+                    address: ref mut type_id,
+                    ..
+                }) = instruction
+                {
+                    *type_id = self
+                        .function_addresses
+                        .get(&type_id)
+                        .copied()
+                        .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+                }
+            }
+
+            for (index, instruction) in instructions.iter().enumerate() {
+                match instruction {
+                    instruction @ Instruction::FileMarker(_)
+                    | instruction @ Instruction::FunctionMarker(_)
+                    | instruction @ Instruction::LineMarker(_)
+                    | instruction @ Instruction::ColumnMarker(_) => {
+                        log::trace!("{:03} {:?}", index, instruction)
+                    }
+                    instruction => log::debug!("{:03} {:?}", index, instruction),
+                }
+            }
+
+            let bytecode = BytecodeProgram::new_unit_test(instructions).into_bytes();
+
+            data.insert(name, Entry::new_test(bytecode));
         }
 
         data

@@ -110,6 +110,9 @@ pub enum RuntimeError {
 
     #[fail(display = "using witness as array index is not yet supported")]
     WitnessArrayIndex,
+
+    #[fail(display = "the command is forbidden for the application type")]
+    CommandForbidden,
 }
 
 impl From<SynthesisError> for RuntimeError {

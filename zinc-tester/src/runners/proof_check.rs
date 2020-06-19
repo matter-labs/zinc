@@ -73,7 +73,7 @@ impl Runnable for Runner {
                     summary.lock().expect(crate::panic::MUTEX_SYNC).failed += 1;
                     println!(
                         "[INTEGRATION] {} {} (setup: {})",
-                        "FAILED".red(),
+                        "FAILED".bright_red(),
                         path.to_string_lossy(),
                         error
                     );

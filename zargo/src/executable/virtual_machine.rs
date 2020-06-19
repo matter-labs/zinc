@@ -30,6 +30,33 @@ pub enum Error {
 }
 
 impl VirtualMachine {
+    pub fn run(
+        verbosity: usize,
+        binary_path: &PathBuf,
+        witness_path: &PathBuf,
+        public_data_path: &PathBuf,
+    ) -> Result<(), Error> {
+        let mut process = process::Command::new(BINARY_NAME_DEFAULT)
+            .args(vec!["-v"; verbosity])
+            .arg("run")
+            .arg("--binary")
+            .arg(binary_path)
+            .arg("--witness")
+            .arg(&witness_path)
+            .arg("--public-data")
+            .arg(&public_data_path)
+            .spawn()
+            .map_err(Error::Spawning)?;
+
+        let status = process.wait().map_err(Error::Waiting)?;
+
+        if !status.success() {
+            return Err(Error::Failure(status));
+        }
+
+        Ok(())
+    }
+
     #[allow(dead_code)]
     pub fn debug(
         verbosity: usize,
@@ -58,21 +85,12 @@ impl VirtualMachine {
         Ok(())
     }
 
-    pub fn run(
-        verbosity: usize,
-        binary_path: &PathBuf,
-        witness_path: &PathBuf,
-        public_data_path: &PathBuf,
-    ) -> Result<(), Error> {
+    pub fn test(verbosity: usize, binary_path: &PathBuf) -> Result<(), Error> {
         let mut process = process::Command::new(BINARY_NAME_DEFAULT)
             .args(vec!["-v"; verbosity])
-            .arg("run")
+            .arg("test")
             .arg("--binary")
             .arg(binary_path)
-            .arg("--witness")
-            .arg(&witness_path)
-            .arg("--public-data")
-            .arg(&public_data_path)
             .spawn()
             .map_err(Error::Spawning)?;
 

@@ -64,4 +64,5 @@ pub use self::instructions::operator::logical::xor::Xor;
 pub use self::instructions::Instruction;
 pub use self::program::circuit::Circuit;
 pub use self::program::contract::Contract;
+pub use self::program::unit_test::UnitTest;
 pub use self::program::Program;

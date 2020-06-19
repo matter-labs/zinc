@@ -6,12 +6,14 @@ mod debug;
 mod prove;
 mod run;
 mod setup;
+mod test;
 mod verify;
 
 use self::debug::DebugCommand;
 use self::prove::ProveCommand;
 use self::run::RunCommand;
 use self::setup::SetupCommand;
+use self::test::TestCommand;
 use self::verify::VerifyCommand;
 
 use structopt::StructOpt;
@@ -34,6 +36,7 @@ pub struct Arguments {
 pub enum Command {
     Run(RunCommand),
     Debug(DebugCommand),
+    Test(TestCommand),
     Setup(SetupCommand),
     Prove(ProveCommand),
     Verify(VerifyCommand),

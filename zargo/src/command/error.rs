@@ -12,6 +12,7 @@ use crate::command::proof_check::Error as ProofCheckCommandError;
 use crate::command::prove::Error as ProveCommandError;
 use crate::command::run::Error as RunCommandError;
 use crate::command::setup::Error as SetupCommandError;
+use crate::command::test::Error as TestCommandError;
 use crate::command::verify::Error as VerifyCommandError;
 
 #[derive(Debug, Fail)]
@@ -26,6 +27,8 @@ pub enum Error {
     Clean(CleanCommandError),
     #[fail(display = "{}", _0)]
     Run(RunCommandError),
+    #[fail(display = "{}", _0)]
+    Test(TestCommandError),
     #[fail(display = "{}", _0)]
     Setup(SetupCommandError),
     #[fail(display = "{}", _0)]
@@ -63,6 +66,12 @@ impl From<CleanCommandError> for Error {
 impl From<RunCommandError> for Error {
     fn from(inner: RunCommandError) -> Self {
         Self::Run(inner)
+    }
+}
+
+impl From<TestCommandError> for Error {
+    fn from(inner: TestCommandError) -> Self {
+        Self::Test(inner)
     }
 }
 

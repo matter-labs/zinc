@@ -7,16 +7,15 @@ mod tests;
 pub(crate) mod constraint_systems;
 pub(crate) mod core;
 pub(crate) mod error;
-pub mod facade;
 pub mod gadgets;
 pub(crate) mod instructions;
 pub mod panic;
 
 pub use franklin_crypto::bellman::pairing::bn256::Bn256;
 
+pub use self::core::facade::IFacade;
 pub use self::error::RuntimeError;
 pub use self::error::VerificationError;
-pub use self::facade::IFacade;
 
 use std::fmt;
 

@@ -21,15 +21,70 @@ use crate::core::contract::storage::dummy::Storage as DummyStorage;
 use crate::core::contract::storage::setup::Storage as SetupStorage;
 use crate::core::contract::synthesizer::Synthesizer as ContractSynthesizer;
 use crate::core::contract::Contract;
+use crate::core::facade::IFacade;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::error::TypeSizeError;
-use crate::facade::IFacade;
 use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
 use crate::gadgets::contract::storage::StorageGadget;
 use crate::IEngine;
 
 impl IFacade for BytecodeContract {
+    fn run<E: IEngine>(self, witness: TemplateValue) -> Result<TemplateValue, RuntimeError> {
+        let mut cs = DebugCS::<Bn256>::default();
+
+        let witness_flat = witness.into_flat_values();
+        let output_type = self.output.to_owned();
+
+        let storage_fields = self
+            .storage
+            .iter()
+            .map(|(_name, r#type)| r#type.to_owned())
+            .collect();
+        let storage = DummyStorage::new(storage_fields);
+        let storage_gadget =
+            StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
+        let mut contract = Contract::new(cs, storage_gadget, true);
+
+        let mut num_constraints = 0;
+        let result = contract.run(
+            self,
+            Some(&witness_flat),
+            |cs| {
+                let num = cs.num_constraints() - num_constraints;
+                num_constraints += num;
+                log::debug!("Constraints: {}", num);
+            },
+            |cs| {
+                if !cs.is_satisfied() {
+                    return Err(RuntimeError::UnsatisfiedConstraint);
+                }
+
+                Ok(())
+            },
+        )?;
+
+        let cs = contract.constraint_system();
+        if !cs.is_satisfied() {
+            return Err(RuntimeError::UnsatisfiedConstraint);
+        }
+
+        let output_flat = result
+            .into_iter()
+            .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
+            .collect::<Vec<_>>();
+
+        let value =
+            TemplateValue::new_from_flat_values(output_type, &output_flat).ok_or_else(|| {
+                TypeSizeError::Output {
+                    expected: 0,
+                    actual: 0,
+                }
+            })?;
+
+        Ok(value)
+    }
+
     fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
         let mut cs = TestConstraintSystem::<Bn256>::new();
 
@@ -102,59 +157,8 @@ impl IFacade for BytecodeContract {
         Ok(value)
     }
 
-    fn run<E: IEngine>(self, witness: TemplateValue) -> Result<TemplateValue, RuntimeError> {
-        let mut cs = DebugCS::<Bn256>::default();
-
-        let witness_flat = witness.into_flat_values();
-        let output_type = self.output.to_owned();
-
-        let storage_fields = self
-            .storage
-            .iter()
-            .map(|(_name, r#type)| r#type.to_owned())
-            .collect();
-        let storage = DummyStorage::new(storage_fields);
-        let storage_gadget =
-            StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
-        let mut contract = Contract::new(cs, storage_gadget, true);
-
-        let mut num_constraints = 0;
-        let result = contract.run(
-            self,
-            Some(&witness_flat),
-            |cs| {
-                let num = cs.num_constraints() - num_constraints;
-                num_constraints += num;
-                log::debug!("Constraints: {}", num);
-            },
-            |cs| {
-                if !cs.is_satisfied() {
-                    return Err(RuntimeError::UnsatisfiedConstraint);
-                }
-
-                Ok(())
-            },
-        )?;
-
-        let cs = contract.constraint_system();
-        if !cs.is_satisfied() {
-            return Err(RuntimeError::UnsatisfiedConstraint);
-        }
-
-        let output_flat = result
-            .into_iter()
-            .map(|v| v.expect(crate::panic::VALUE_ALWAYS_EXISTS))
-            .collect::<Vec<_>>();
-
-        let value =
-            TemplateValue::new_from_flat_values(output_type, &output_flat).ok_or_else(|| {
-                TypeSizeError::Output {
-                    expected: 0,
-                    actual: 0,
-                }
-            })?;
-
-        Ok(value)
+    fn test<E: IEngine>(self) -> Result<(), RuntimeError> {
+        Err(RuntimeError::CommandForbidden)
     }
 
     fn setup<E: IEngine>(self) -> Result<Parameters<E>, RuntimeError> {

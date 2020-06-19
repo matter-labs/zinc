@@ -1,3 +1,13 @@
 pub fn main(witness: u8) -> u8 {
     witness
 }
+
+#[test]
+fn test_ok() {
+    assert!(main(42) == 42);
+}
+
+#[test]
+fn test_errpr() {
+    assert!(main(42) == 43);
+}

@@ -1060,6 +1060,7 @@ name = "zargo"
 version = "0.1.5"
 dependencies = [
  "Inflector",
+ "colored",
  "env_logger",
  "failure",
  "log",

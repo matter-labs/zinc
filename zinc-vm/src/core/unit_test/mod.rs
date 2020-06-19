@@ -1,19 +1,15 @@
 //!
-//! The virtual machine circuit.
+//! The virtual machine unit test.
 //!
 
 pub mod facade;
-pub mod synthesizer;
 
 use colored::Colorize;
-use num_bigint::BigInt;
-use num_bigint::ToBigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Circuit as BytecodeCircuit;
-use zinc_bytecode::DataType;
 use zinc_bytecode::ScalarType;
+use zinc_bytecode::UnitTest as BytecodeUnitTest;
 
 use crate::core::counter::NamespaceCounter;
 use crate::core::execution_state::block::branch::Branch;
@@ -32,42 +28,39 @@ use crate::instructions::call_std::INativeCallable;
 use crate::instructions::IExecutable;
 use crate::IEngine;
 
-pub struct Circuit<E, CS>
+pub struct UnitTest<E, CS>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
     counter: NamespaceCounter<E, CS>,
     state: ExecutionState<E>,
-    outputs: Vec<Scalar<E>>,
 
     pub(crate) debugging: bool,
     pub(crate) location: Location,
 }
 
-impl<E, CS> Circuit<E, CS>
+impl<E, CS> UnitTest<E, CS>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    pub fn new(cs: CS, debugging: bool) -> Self {
+    pub fn new(cs: CS) -> Self {
         Self {
             counter: NamespaceCounter::new(cs),
             state: ExecutionState::new(),
-            outputs: vec![],
 
-            debugging,
+            debugging: true,
             location: Location::new(),
         }
     }
 
     pub fn run<CB, F>(
         &mut self,
-        bytecode: BytecodeCircuit,
-        inputs: Option<&[BigInt]>,
+        bytecode: BytecodeUnitTest,
         mut instruction_callback: CB,
         mut check_cs: F,
-    ) -> Result<Vec<Option<BigInt>>, RuntimeError>
+    ) -> Result<(), RuntimeError>
     where
         CB: FnMut(&CS) -> (),
         F: FnMut(&CS) -> Result<(), RuntimeError>,
@@ -81,7 +74,7 @@ where
         let one = Scalar::new_constant_usize(1, ScalarType::Boolean);
         self.condition_push(one)?;
 
-        self.init_root_frame(bytecode.input, inputs)?;
+        self.init_root_frame();
 
         let mut step = 0;
         while self.state.instruction_counter < bytecode.instructions.len() {
@@ -111,42 +104,11 @@ where
             step += 1;
         }
 
-        self.get_outputs()
-    }
-
-    fn init_root_frame(
-        &mut self,
-        input_type: DataType,
-        inputs: Option<&[BigInt]>,
-    ) -> Result<(), RuntimeError> {
-        self.state.frames_stack.push(Frame::new(0, std::usize::MAX));
-
-        let types = input_type.into_flat_scalar_types();
-
-        // Convert Option<&[BigInt]> to iterator of Option<&BigInt> and zip with types.
-        let value_type_pairs: Vec<_> = match inputs {
-            Some(values) => values.iter().map(Option::Some).zip(types).collect(),
-            None => std::iter::repeat(None).zip(types).collect(),
-        };
-
-        for (value, dtype) in value_type_pairs {
-            let variable = gadgets::witness::allocate(self.counter.next(), value, dtype)?;
-            self.push(Cell::Value(variable))?;
-        }
-
         Ok(())
     }
 
-    fn get_outputs(&mut self) -> Result<Vec<Option<BigInt>>, RuntimeError> {
-        let outputs_fr: Vec<_> = self.outputs.iter().map(|f| (*f).clone()).collect();
-
-        let mut outputs_bigint = Vec::with_capacity(outputs_fr.len());
-        for output in outputs_fr.into_iter() {
-            let output = gadgets::output::output(self.counter.next(), output)?;
-            outputs_bigint.push(output.to_bigint());
-        }
-
-        Ok(outputs_bigint)
+    fn init_root_frame(&mut self) {
+        self.state.frames_stack.push(Frame::new(0, std::usize::MAX));
     }
 
     pub fn condition_push(&mut self, element: Scalar<E>) -> Result<(), RuntimeError> {
@@ -169,7 +131,7 @@ where
     }
 }
 
-impl<E, CS> IVirtualMachine for Circuit<E, CS>
+impl<E, CS> IVirtualMachine for UnitTest<E, CS>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -376,14 +338,9 @@ where
         Ok(())
     }
 
-    fn exit(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
-        for _ in 0..outputs_count {
-            let value = self.pop()?.try_into_value()?;
-            self.outputs.push(value);
-        }
-        self.outputs.reverse();
-
+    fn exit(&mut self, _outputs_count: usize) -> Result<(), RuntimeError> {
         self.state.instruction_counter = std::usize::MAX;
+
         Ok(())
     }
 

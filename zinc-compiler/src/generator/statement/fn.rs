@@ -75,10 +75,16 @@ impl Statement {
         if self.is_main || self.is_contract_entry {
             bytecode.borrow_mut().start_entry_function(
                 self.location,
-                self.identifier,
                 self.type_id,
+                self.identifier,
                 self.input_arguments.clone(),
                 self.output_type,
+            );
+        } else if self.attributes.contains(&Attribute::Test) {
+            bytecode.borrow_mut().start_unit_test_function(
+                self.location,
+                self.type_id,
+                self.identifier,
             );
         } else {
             bytecode

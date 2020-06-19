@@ -22,6 +22,10 @@ pub enum Type {
 }
 
 impl Type {
+    pub fn new_empty_structure() -> Self {
+        Self::Structure(vec![])
+    }
+
     pub fn into_flat_scalar_types(self) -> Vec<ScalarType> {
         match self {
             Self::Unit => vec![],

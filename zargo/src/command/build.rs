@@ -8,6 +8,8 @@ use std::path::PathBuf;
 use failure::Fail;
 use structopt::StructOpt;
 
+use crate::directory::build::test::Directory as TestBuildDirectory;
+use crate::directory::build::test::Error as TestBuildDirectoryError;
 use crate::directory::build::Directory as BuildDirectory;
 use crate::directory::build::Error as BuildDirectoryError;
 use crate::directory::data::Directory as DataDirectory;
@@ -42,6 +44,8 @@ pub enum Error {
     ManifestFile(ManifestError),
     #[fail(display = "build directory {}", _0)]
     BuildDirectory(BuildDirectoryError),
+    #[fail(display = "test build directory {}", _0)]
+    TestBuildDirectory(TestBuildDirectoryError),
     #[fail(display = "data directory {}", _0)]
     DataDirectory(DataDirectoryError),
     #[fail(display = "compiler {}", _0)]
@@ -62,6 +66,7 @@ impl Command {
         let data_directory_path = DataDirectory::path(&manifest_path);
 
         BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
+        TestBuildDirectory::create(&manifest_path).map_err(Error::TestBuildDirectory)?;
         DataDirectory::create(&manifest_path).map_err(Error::DataDirectory)?;
 
         Compiler::build(

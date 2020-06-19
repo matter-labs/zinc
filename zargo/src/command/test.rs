@@ -1,23 +1,21 @@
 //!
-//! The `run` command.
+//! The `test` command.
 //!
 
 use std::convert::TryFrom;
 use std::path::PathBuf;
 
+use colored::Colorize;
 use failure::Fail;
 use structopt::StructOpt;
 
 use crate::directory::build::test::Directory as TestBuildDirectory;
 use crate::directory::build::test::Error as TestBuildDirectoryError;
 use crate::directory::build::Directory as BuildDirectory;
-use crate::directory::build::Error as BuildDirectoryError;
 use crate::directory::data::Directory as DataDirectory;
-use crate::directory::data::Error as DataDirectoryError;
 use crate::directory::source::Directory as SourceDirectory;
 use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
-use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
 use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
@@ -41,40 +39,20 @@ pub struct Command {
 
     #[structopt(
         long = "binary",
-        help = "Path to the bytecode file",
-        default_value = "./build/main.znb"
+        help = "Path to the bytecode test files directory",
+        default_value = "./build/test"
     )]
-    binary_path: PathBuf,
-
-    #[structopt(
-        long = "witness",
-        help = "Path to the witness JSON file",
-        default_value = "./data/main_witness.json"
-    )]
-    witness_path: PathBuf,
-
-    #[structopt(
-        long = "public-data",
-        help = "Path to the public data JSON file",
-        default_value = "./data/main_public_data.json"
-    )]
-    public_data_path: PathBuf,
+    test_binaries_path: PathBuf,
 }
 
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(display = "manifest file {}", _0)]
     ManifestFile(ManifestError),
-    #[fail(display = "build directory {}", _0)]
-    BuildDirectory(BuildDirectoryError),
-    #[fail(display = "test build directory {}", _0)]
-    TestBuildDirectory(TestBuildDirectoryError),
-    #[fail(display = "data directory {}", _0)]
-    DataDirectory(DataDirectoryError),
     #[fail(display = "compiler {}", _0)]
     Compiler(CompilerError),
-    #[fail(display = "virtual machine {}", _0)]
-    VirtualMachine(VirtualMachineError),
+    #[fail(display = "test build directory {}", _0)]
+    TestBuildDirectory(TestBuildDirectoryError),
 }
 
 impl Command {
@@ -90,11 +68,7 @@ impl Command {
         let build_directory_path = BuildDirectory::path(&manifest_path);
         let data_directory_path = DataDirectory::path(&manifest_path);
 
-        BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
-        TestBuildDirectory::create(&manifest_path).map_err(Error::TestBuildDirectory)?;
-        DataDirectory::create(&manifest_path).map_err(Error::DataDirectory)?;
-
-        Compiler::build(
+        Compiler::build_test(
             self.verbosity,
             &data_directory_path,
             &build_directory_path,
@@ -102,13 +76,15 @@ impl Command {
         )
         .map_err(Error::Compiler)?;
 
-        VirtualMachine::run(
-            self.verbosity,
-            &self.binary_path,
-            &self.witness_path,
-            &self.public_data_path,
-        )
-        .map_err(Error::VirtualMachine)?;
+        for binary_path in TestBuildDirectory::files(&manifest_path)
+            .map_err(Error::TestBuildDirectory)?
+            .into_iter()
+        {
+            match VirtualMachine::test(self.verbosity, &binary_path) {
+                Ok(()) => println!("test {:?} ... {}", binary_path, "ok".green()),
+                Err(_) => println!("test {:?} ... {}", binary_path, "error".bright_red()),
+            }
+        }
 
         Ok(())
     }
