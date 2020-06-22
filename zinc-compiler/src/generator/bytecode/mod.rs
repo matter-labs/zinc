@@ -13,6 +13,7 @@ use std::rc::Rc;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
+use zinc_bytecode::UnitTest as BytecodeUnitTest;
 
 use crate::generator::r#type::Type;
 use crate::lexical::token::location::Location;
@@ -275,7 +276,7 @@ impl Bytecode {
 
             let input_template_value = TemplateValue::new(metadata.input_fields_as_struct().into());
             let witness_template =
-                match serde_json::to_string_pretty(&input_template_value.into_json()) {
+                match serde_json::to_string_pretty(&input_template_value.try_into_json()) {
                     Ok(json) => (json + "\n").into_bytes(),
                     Err(error) => panic!(
                         crate::panic::JSON_TEMPLATE_SERIALIZATION.to_owned()
@@ -285,7 +286,7 @@ impl Bytecode {
 
             let output_value_template = TemplateValue::new(metadata.output_type.into());
             let public_data_template =
-                match serde_json::to_string_pretty(&output_value_template.into_json()) {
+                match serde_json::to_string_pretty(&output_value_template.try_into_json()) {
                     Ok(json) => (json + "\n").into_bytes(),
                     Err(error) => panic!(
                         crate::panic::JSON_TEMPLATE_SERIALIZATION.to_owned()
@@ -330,12 +331,28 @@ impl Bytecode {
                 }
             }
 
-            let bytecode = BytecodeProgram::new_unit_test(
-                test.name.clone(),
-                instructions,
-                test.should_panic,
-                test.is_ignored,
-            )
+            let bytecode = match self.contract_storage.as_ref() {
+                Some(storage) => {
+                    let storage = storage
+                        .iter()
+                        .map(|(name, r#type)| (name.to_owned(), r#type.to_owned().into()))
+                        .collect();
+
+                    BytecodeProgram::new_contract_unit_test(
+                        instructions,
+                        storage,
+                        BytecodeUnitTest::new(
+                            test.name.clone(),
+                            test.should_panic,
+                            test.is_ignored,
+                        ),
+                    )
+                }
+                None => BytecodeProgram::new_circuit_unit_test(
+                    instructions,
+                    BytecodeUnitTest::new(test.name.clone(), test.should_panic, test.is_ignored),
+                ),
+            }
             .into_bytes();
 
             data.insert(test.name, Entry::new_test(bytecode));

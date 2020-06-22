@@ -19,6 +19,7 @@ use crate::generator::expression::operator::Operator as GeneratorExpressionOpera
 use crate::lexical::token::location::Location;
 use crate::semantic::casting::Caster;
 use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
+use crate::semantic::element::access::dot::Dot as DotAccessVariant;
 use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::place::Place;
@@ -711,10 +712,17 @@ impl Value {
     pub fn structure_field(
         self,
         identifier: Identifier,
-    ) -> Result<(Self, StackFieldAccess), Error> {
+    ) -> Result<(Self, DotAccessVariant), Error> {
         match self {
-            Value::Structure(structure) => structure.slice(identifier).map_err(Error::Structure),
-            value => Err(Error::OperatorDotFirstOperandExpectedStructure {
+            Value::Structure(structure) => structure
+                .slice(identifier)
+                .map(|(value, access)| (value, DotAccessVariant::StackField(access)))
+                .map_err(Error::Structure),
+            Value::Contract(contract) => contract
+                .slice(identifier)
+                .map(|(value, access)| (value, DotAccessVariant::ContractField(access)))
+                .map_err(Error::Contract),
+            value => Err(Error::OperatorDotFirstOperandExpectedInstance {
                 location: value
                     .location()
                     .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
@@ -767,7 +775,7 @@ impl Value {
                 integer.set_enumeration(inner.to_owned());
                 Self::Integer(integer)
             }
-            Type::Contract(inner) => Self::Contract(Contract::new(
+            Type::Contract(inner) => Self::Contract(Contract::new_with_type(
                 location.or_else(|| inner.location),
                 inner.to_owned(),
             )),

@@ -30,6 +30,7 @@ pub enum Value {
     Scalar(ScalarValue),
     Array(Vec<Value>),
     Structure(Vec<(String, Value)>),
+    Contract(Vec<(String, Value)>),
 }
 
 impl Value {
@@ -46,6 +47,12 @@ impl Value {
             DataType::Array(r#type, size) => Self::Array(vec![Self::new(*r#type); size]),
             DataType::Tuple(fields) => Self::Array(fields.into_iter().map(Self::new).collect()),
             DataType::Structure(fields) => Self::Structure(
+                fields
+                    .into_iter()
+                    .map(|(name, r#type)| (name, Self::new(r#type)))
+                    .collect(),
+            ),
+            DataType::Contract(fields) => Self::Contract(
                 fields
                     .into_iter()
                     .map(|(name, r#type)| (name, Self::new(r#type)))
@@ -81,13 +88,18 @@ impl Value {
                 .map(|(_name, value)| Self::into_flat_values(value))
                 .flatten()
                 .collect(),
+            Self::Contract(fields) => fields
+                .into_iter()
+                .map(|(_name, value)| Self::into_flat_values(value))
+                .flatten()
+                .collect(),
         }
     }
 
-    pub fn into_json(self) -> JsonValue {
+    pub fn try_into_json(self) -> Option<JsonValue> {
         match self {
-            Self::Unit => JsonValue::Null,
-            Self::Scalar(scalar) => match scalar {
+            Self::Unit => Some(JsonValue::Null),
+            Self::Scalar(scalar) => Some(match scalar {
                 ScalarValue::Field(value) => {
                     if value <= BigInt::from(std::u64::MAX) {
                         JsonValue::String(value.to_str_radix(zinc_const::BASE_DECIMAL as u32))
@@ -113,16 +125,27 @@ impl Value {
                     }
                 }
                 ScalarValue::Boolean(value) => JsonValue::Bool(value),
-            },
-            Self::Array(values) => {
-                JsonValue::Array(values.into_iter().map(Self::into_json).collect())
-            }
+            }),
+            Self::Array(values) => Some(JsonValue::Array(
+                values.into_iter().filter_map(Self::try_into_json).collect(),
+            )),
             Self::Structure(fields) => {
                 let mut object = JsonMap::<String, JsonValue>::with_capacity(fields.len());
                 for (name, value) in fields.into_iter() {
-                    object.insert(name, Self::into_json(value));
+                    if let Some(value) = Self::try_into_json(value) {
+                        object.insert(name, value);
+                    }
                 }
-                JsonValue::Object(object)
+                Some(JsonValue::Object(object))
+            }
+            Self::Contract(fields) => {
+                let mut object = JsonMap::<String, JsonValue>::with_capacity(fields.len());
+                for (name, value) in fields.into_iter() {
+                    if let Some(value) = Self::try_into_json(value) {
+                        object.insert(name, value);
+                    }
+                }
+                Some(JsonValue::Object(object))
             }
         }
     }
@@ -136,6 +159,7 @@ impl Value {
             DataType::Array(inner, size) => Self::array_from_json(value, *inner, size),
             DataType::Tuple(inner) => Self::tuple_from_json(value, inner),
             DataType::Structure(fields) => Self::structure_from_json(value, fields),
+            DataType::Contract(fields) => Self::contract_from_json(value, fields),
         }
     }
 
@@ -165,6 +189,14 @@ impl Value {
                 Some(offset)
             }
             Self::Structure(fields) => {
+                let mut offset = 0;
+                for (_name, value) in fields.iter_mut() {
+                    let slice = &flat_values[offset..];
+                    offset += value.fill_from_flat_values(slice)?;
+                }
+                Some(offset)
+            }
+            Self::Contract(fields) => {
                 let mut offset = 0;
                 for (_name, value) in fields.iter_mut() {
                     let slice = &flat_values[offset..];
@@ -291,6 +323,10 @@ impl Value {
         for (name, r#type) in field_types.into_iter() {
             used_fields.insert(name.clone());
 
+            if name.as_str() == "self" {
+                continue;
+            }
+
             let json_value = object
                 .remove(name.as_str())
                 .ok_or_else(|| ErrorType::MissingField(name.clone()))?;
@@ -307,5 +343,41 @@ impl Value {
         }
 
         Ok(Self::Structure(field_values))
+    }
+
+    fn contract_from_json(
+        value: JsonValue,
+        field_types: Vec<(String, DataType)>,
+    ) -> Result<Self, Error> {
+        let mut object = value
+            .as_object()
+            .cloned()
+            .ok_or_else(|| ErrorType::type_error("contract", value))?;
+
+        let mut used_fields = HashSet::with_capacity(field_types.len());
+        let mut field_values = Vec::with_capacity(field_types.len());
+        for (name, r#type) in field_types.into_iter() {
+            used_fields.insert(name.clone());
+
+            if name.as_str() == "self" {
+                continue;
+            }
+
+            let json_value = object
+                .remove(name.as_str())
+                .ok_or_else(|| ErrorType::MissingField(name.clone()))?;
+
+            let value = Self::from_typed_json(json_value, r#type).in_struct(name.as_str())?;
+
+            field_values.push((name, value));
+        }
+
+        for field in object.keys() {
+            if !used_fields.contains(field.as_str()) {
+                return Err(ErrorType::UnexpectedField(field.clone()).into());
+            }
+        }
+
+        Ok(Self::Contract(field_values))
     }
 }

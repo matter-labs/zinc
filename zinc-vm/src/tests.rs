@@ -90,7 +90,7 @@ impl TestRunner {
     ) -> Result<(), TestingError> {
         let mut vm = new_test_constrained_vm();
 
-        let circuit = BytecodeCircuit::new(DataType::Unit, DataType::Unit, self.instructions);
+        let circuit = BytecodeCircuit::new(DataType::Unit, DataType::Unit, self.instructions, None);
 
         vm.run(circuit, Some(&[]), |_| {}, |_| Ok(()))
             .map_err(TestingError::RuntimeError)?;

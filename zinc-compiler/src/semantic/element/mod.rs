@@ -1579,9 +1579,7 @@ impl Element {
                         _ => {
                             return value
                                 .structure_field(identifier)
-                                .map(|(value, access)| {
-                                    (Element::Value(value), DotAccessVariant::StackField(access))
-                                })
+                                .map(|(value, access)| (Element::Value(value), access))
                                 .map_err(Error::Value)
                                 .map_err(SemanticError::Element)
                         }
@@ -1601,17 +1599,13 @@ impl Element {
                             }
                             _ => value
                                 .structure_field(identifier)
-                                .map(|(value, access)| {
-                                    (Element::Value(value), DotAccessVariant::StackField(access))
-                                })
+                                .map(|(value, access)| (Element::Value(value), access))
                                 .map_err(Error::Value)
                                 .map_err(SemanticError::Element),
                         },
                         _ => value
                             .structure_field(identifier)
-                            .map(|(value, access)| {
-                                (Element::Value(value), DotAccessVariant::StackField(access))
-                            })
+                            .map(|(value, access)| (Element::Value(value), access))
                             .map_err(Error::Value)
                             .map_err(SemanticError::Element),
                     }
@@ -1759,7 +1753,32 @@ impl Element {
 
                     Ok(Self::Constant(Constant::Structure(structure)))
                 }
-                element => Err(Error::OperatorStructureSecondOperandExpectedEvaluable {
+                element => Err(Error::OperatorStructureSecondOperandExpectedLiteral {
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    found: element.to_string(),
+                }),
+            },
+            Element::Type(Type::Contract(r#type)) => match other {
+                Element::Value(Value::Structure(structure)) => {
+                    let mut contract = structure.into_contract();
+                    contract
+                        .validate(r#type)
+                        .map_err(ValueError::Contract)
+                        .map_err(Error::Value)?;
+
+                    Ok(Self::Value(Value::Contract(contract)))
+                }
+                Element::Value(Value::Contract(mut contract)) => {
+                    contract
+                        .validate(r#type)
+                        .map_err(ValueError::Contract)
+                        .map_err(Error::Value)?;
+
+                    Ok(Self::Value(Value::Contract(contract)))
+                }
+                element => Err(Error::OperatorStructureSecondOperandExpectedLiteral {
                     location: element
                         .location()
                         .expect(crate::panic::LOCATION_ALWAYS_EXISTS),

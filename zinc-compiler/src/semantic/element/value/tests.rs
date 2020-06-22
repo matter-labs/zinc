@@ -1119,7 +1119,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::OperatorDotFirstOperandExpectedStructure {
+        ElementError::Value(ValueError::OperatorDotFirstOperandExpectedInstance {
             location: Location::new(3, 17),
             found: Value::try_from_type(
                 &Type::array(Some(Location::new(3, 17)), Type::boolean(None), 3),

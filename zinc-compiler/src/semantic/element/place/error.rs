@@ -29,7 +29,7 @@ pub enum Error {
         location: Location,
         found: String,
     },
-    OperatorDotFirstOperandExpectedStructure {
+    OperatorDotFirstOperandExpectedInstance {
         location: Location,
         found: String,
     },

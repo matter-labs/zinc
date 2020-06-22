@@ -5,9 +5,12 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use num_bigint::BigInt;
+
 use zinc_bytecode::Instruction;
 
 use crate::generator::bytecode::Bytecode;
+use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::Expression;
 use crate::generator::r#type::Type;
 use crate::lexical::token::location::Location;
@@ -45,15 +48,29 @@ impl Statement {
 
         self.expression.write_all_to_bytecode(bytecode.clone());
 
-        if let Some(scalar_type) = self.r#type.into() {
-            bytecode.borrow_mut().push_instruction(
-                Instruction::Cast(zinc_bytecode::Cast::new(scalar_type)),
-                Some(self.location),
-            );
+        match self.r#type {
+            Type::Contract { fields } => {
+                for (index, (_name, r#type)) in fields.into_iter().enumerate().rev() {
+                    IntegerConstant::new(BigInt::from(index), false, zinc_const::BITLENGTH_FIELD)
+                        .write_all_to_bytecode(bytecode.clone());
+                    bytecode.borrow_mut().push_instruction(
+                        Instruction::StorageStore(zinc_bytecode::StorageStore::new(r#type.size())),
+                        Some(self.location),
+                    );
+                }
+            }
+            r#type => {
+                if let Some(scalar_type) = r#type.into() {
+                    bytecode.borrow_mut().push_instruction(
+                        Instruction::Cast(zinc_bytecode::Cast::new(scalar_type)),
+                        Some(self.location),
+                    );
+                }
+                bytecode.borrow_mut().push_instruction(
+                    Instruction::Store(zinc_bytecode::Store::new(address, size)),
+                    Some(self.location),
+                );
+            }
         }
-        bytecode.borrow_mut().push_instruction(
-            Instruction::Store(zinc_bytecode::Store::new(address, size)),
-            Some(self.location),
-        );
     }
 }

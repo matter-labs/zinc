@@ -100,7 +100,8 @@ impl Structure {
             let element_size = value.r#type().size();
 
             if name.name == identifier.name {
-                let access = StackFieldAccess::new(index, offset, element_size, total_size);
+                let access =
+                    StackFieldAccess::new(name.name, index, offset, element_size, total_size);
 
                 return Ok((value, access));
             }

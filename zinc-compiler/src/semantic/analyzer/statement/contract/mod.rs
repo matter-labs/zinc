@@ -79,6 +79,7 @@ impl Analyzer {
         let r#type = Type::contract(
             Some(statement.location),
             statement.identifier.name,
+            storage_fields.clone(),
             Some(scope.clone()),
         );
 

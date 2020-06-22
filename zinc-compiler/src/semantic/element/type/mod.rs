@@ -227,11 +227,12 @@ impl Type {
     pub fn contract(
         location: Option<Location>,
         identifier: String,
+        fields: Vec<(String, Self)>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
         let type_id = TYPE_INDEX.next(format!("contract {}", identifier));
 
-        Self::Contract(Contract::new(location, identifier, type_id, scope))
+        Self::Contract(Contract::new(location, identifier, type_id, fields, scope))
     }
 
     pub fn size(&self) -> usize {
@@ -252,7 +253,11 @@ impl Type {
                 .map(|(_name, r#type)| r#type.size())
                 .sum(),
             Self::Enumeration(_inner) => 1,
-            Self::Contract(_inner) => 0,
+            Self::Contract(inner) => inner
+                .fields
+                .iter()
+                .map(|(_name, r#type)| r#type.size())
+                .sum(),
             Self::Function(_inner) => 0,
         }
     }

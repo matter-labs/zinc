@@ -640,7 +640,7 @@ impl Constant {
     ) -> Result<(Self, StackFieldAccess), Error> {
         match self {
             Constant::Structure(structure) => structure.slice(identifier).map_err(Error::Structure),
-            constant => Err(Error::OperatorDotFirstOperandExpectedStructure {
+            constant => Err(Error::OperatorDotFirstOperandExpectedInstance {
                 location: constant.location(),
                 found: constant.to_string(),
             }),

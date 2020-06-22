@@ -38,12 +38,17 @@ impl Analyzer {
             Type::from_element(&element, scope.clone())?
         };
 
+        let memory_type = match r#type {
+            Type::Contract(_) => MemoryType::ContractInstance,
+            _ => MemoryType::Stack,
+        };
+
         Scope::define_variable(
             scope,
             statement.identifier.clone(),
             statement.is_mutable,
             r#type.clone(),
-            MemoryType::Stack,
+            memory_type,
         )?;
 
         Ok(GeneratorDeclarationStatement::new(

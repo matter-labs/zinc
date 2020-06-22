@@ -239,6 +239,7 @@ impl Place {
 
                 let element_size = tuple.types[tuple_index].size();
                 let access = DotAccessVariant::StackField(StackFieldAccess::new(
+                    index.to_string(),
                     index,
                     offset,
                     element_size,
@@ -270,6 +271,7 @@ impl Place {
 
                     if field_name == &identifier.name {
                         let access = DotAccessVariant::StackField(StackFieldAccess::new(
+                            field_name.to_owned(),
                             index,
                             offset,
                             element_size,
@@ -300,8 +302,11 @@ impl Place {
                         };
                         let element_size = variable.r#type.size();
                         let access = DotAccessVariant::ContractField(ContractFieldAccess::new(
+                            identifier.name,
                             position,
+                            offset,
                             element_size,
+                            total_size,
                         ));
 
                         self.r#type = variable.r#type.to_owned();
@@ -317,7 +322,7 @@ impl Place {
                     field_name: identifier.name,
                 })
             }
-            ref r#type => Err(Error::OperatorDotFirstOperandExpectedStructure {
+            ref r#type => Err(Error::OperatorDotFirstOperandExpectedInstance {
                 location: self.identifier.location,
                 found: r#type.to_string(),
             }),

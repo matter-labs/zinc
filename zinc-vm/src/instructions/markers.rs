@@ -1,5 +1,5 @@
 //!
-//! The `*Marker` instructions. TODO
+//! The `*Marker` instructions.
 //!
 
 use zinc_bytecode::ColumnMarker;

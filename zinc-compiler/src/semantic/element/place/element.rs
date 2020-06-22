@@ -47,8 +47,8 @@ impl fmt::Display for Element {
             Self::IndexConstant { constant, .. } => write!(f, "[{}]", constant.value),
             Self::IndexRange { start, end, .. } => write!(f, "[{} .. {}]", start, end),
             Self::IndexRangeInclusive { start, end, .. } => write!(f, "[{} ..= {}]", start, end),
-            Self::StackField { access } => write!(f, ".{}", access.position),
-            Self::ContractField { access } => write!(f, ".{}", access.position),
+            Self::StackField { access } => write!(f, ".{}", access.name),
+            Self::ContractField { access } => write!(f, ".{}", access.name),
         }
     }
 }

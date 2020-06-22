@@ -1269,7 +1269,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Constant(ConstantError::OperatorDotFirstOperandExpectedStructure {
+        ElementError::Constant(ConstantError::OperatorDotFirstOperandExpectedInstance {
             location: Location::new(3, 25),
             found: Constant::Array(ArrayConstant::new_with_values(
                 Location::new(3, 25),

@@ -20,12 +20,20 @@ use self::unit_test::UnitTest;
 pub enum Program {
     Circuit(Circuit),
     Contract(Contract),
-    UnitTest(UnitTest),
 }
 
 impl Program {
     pub fn new_circuit(input: DataType, output: DataType, instructions: Vec<Instruction>) -> Self {
-        Self::Circuit(Circuit::new(input, output, instructions))
+        Self::Circuit(Circuit::new(input, output, instructions, None))
+    }
+
+    pub fn new_circuit_unit_test(instructions: Vec<Instruction>, unit_test: UnitTest) -> Self {
+        Self::Circuit(Circuit::new(
+            DataType::new_empty_structure(),
+            DataType::Unit,
+            instructions,
+            Some(unit_test),
+        ))
     }
 
     pub fn new_contract(
@@ -39,23 +47,28 @@ impl Program {
             output.into_contract_metadata(),
             instructions,
             storage,
+            None,
         ))
     }
 
-    pub fn new_unit_test(
-        name: String,
+    pub fn new_contract_unit_test(
         instructions: Vec<Instruction>,
-        should_panic: bool,
-        is_ignored: bool,
+        storage: Vec<(String, DataType)>,
+        unit_test: UnitTest,
     ) -> Self {
-        Self::UnitTest(UnitTest::new(name, instructions, should_panic, is_ignored))
+        Self::Contract(Contract::new(
+            DataType::new_empty_structure(),
+            DataType::Unit,
+            instructions,
+            storage,
+            Some(unit_test),
+        ))
     }
 
     pub fn input(&self) -> DataType {
         match self {
             Self::Circuit(ref inner) => inner.input.to_owned(),
             Self::Contract(ref inner) => inner.input.to_owned(),
-            Self::UnitTest(_) => DataType::new_empty_structure(),
         }
     }
 
@@ -63,7 +76,6 @@ impl Program {
         match self {
             Self::Circuit(ref inner) => inner.output.to_owned(),
             Self::Contract(ref inner) => inner.output.to_owned(),
-            Self::UnitTest(_) => DataType::Unit,
         }
     }
 
@@ -71,7 +83,6 @@ impl Program {
         match self {
             Self::Circuit(ref inner) => inner.instructions.as_slice(),
             Self::Contract(ref inner) => inner.instructions.as_slice(),
-            Self::UnitTest(ref inner) => inner.instructions.as_slice(),
         }
     }
 

@@ -852,15 +852,11 @@ impl Analyzer {
             },
             DotAccess::Method { instance } => {
                 let instance = if let Element::Place(instance) = instance {
-                    let (instance, intermedidate) = Self::evaluate(
+                    let (instance, _intermedidate) = Self::evaluate(
                         self.scope_stack.top(),
                         StackElement::Evaluated(Element::Place(instance)),
                         TranslationRule::Value,
                     )?;
-
-                    if let Some(instance) = intermedidate {
-                        self.intermediate.push_operand(instance);
-                    }
 
                     instance
                 } else {

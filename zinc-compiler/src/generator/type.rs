@@ -21,6 +21,7 @@ pub enum Type {
     Array { r#type: Box<Self>, size: usize },
     Tuple { types: Vec<Self> },
     Structure { fields: Vec<(String, Self)> },
+    Contract { fields: Vec<(String, Self)> },
 }
 
 impl Type {
@@ -67,6 +68,10 @@ impl Type {
         Self::Structure { fields }
     }
 
+    pub fn contract(fields: Vec<(String, Self)>) -> Self {
+        Self::Contract { fields }
+    }
+
     pub fn size(&self) -> usize {
         match self {
             Self::Unit => 0,
@@ -77,6 +82,7 @@ impl Type {
             Self::Array { r#type, size } => r#type.size() * size,
             Self::Tuple { types } => types.iter().map(|r#type| r#type.size()).sum(),
             Self::Structure { fields } => fields.iter().map(|(_name, r#type)| r#type.size()).sum(),
+            Self::Contract { fields } => fields.iter().map(|(_name, r#type)| r#type.size()).sum(),
         }
     }
 
@@ -116,6 +122,19 @@ impl Type {
                 }
             }
             SemanticType::Enumeration(inner) => Some(Self::integer_unsigned(inner.bitlength)),
+            SemanticType::Contract(inner) => {
+                match inner
+                    .fields
+                    .iter()
+                    .filter_map(|(name, r#type)| {
+                        Self::try_from_semantic(r#type).map(|r#type| (name.to_owned(), r#type))
+                    })
+                    .collect::<Vec<(String, Type)>>()
+                {
+                    fields if !fields.is_empty() => Some(Self::contract(fields)),
+                    _ => None,
+                }
+            }
             _ => None,
         }
     }
@@ -147,6 +166,12 @@ impl Into<DataType> for Type {
                 DataType::Tuple(types.into_iter().map(|r#type| r#type.into()).collect())
             }
             Self::Structure { fields } => DataType::Structure(
+                fields
+                    .into_iter()
+                    .map(|(name, r#type)| (name, r#type.into()))
+                    .collect(),
+            ),
+            Self::Contract { fields } => DataType::Contract(
                 fields
                     .into_iter()
                     .map(|(name, r#type)| (name, r#type.into()))

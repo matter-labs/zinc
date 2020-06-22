@@ -5,6 +5,7 @@
 use std::fs;
 use std::path::PathBuf;
 
+use serde_json::Map as JsonMap;
 use structopt::StructOpt;
 
 use franklin_crypto::bellman::groth16::Parameters;
@@ -57,7 +58,11 @@ impl ProveCommand {
         let (pubdata, proof) = program.prove::<Bn256>(params, witness_struct)?;
 
         // Write pubdata
-        let pubdata_json = serde_json::to_string_pretty(&pubdata.into_json())? + "\n";
+        let pubdata_json = serde_json::to_string_pretty(
+            &pubdata
+                .try_into_json()
+                .unwrap_or_else(|| JsonMap::new().into()),
+        )? + "\n";
         fs::write(&self.public_data_path, &pubdata_json)
             .error_with_path(|| self.public_data_path.to_string_lossy())?;
 

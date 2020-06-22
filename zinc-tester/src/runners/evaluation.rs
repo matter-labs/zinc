@@ -7,6 +7,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use colored::Colorize;
+use serde_json::Map as JsonMap;
 
 use zinc_vm::Bn256;
 use zinc_vm::IFacade;
@@ -67,7 +68,9 @@ impl Runnable for Runner {
 
             match program.bytecode.run::<Bn256>(program.witness) {
                 Ok(output) => {
-                    let output = output.into_json();
+                    let output = output
+                        .try_into_json()
+                        .unwrap_or_else(|| JsonMap::new().into());
                     if case.expect == output {
                         if !case.should_panic {
                             summary.lock().expect(crate::panic::MUTEX_SYNC).passed += 1;

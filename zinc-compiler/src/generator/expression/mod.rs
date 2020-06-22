@@ -425,6 +425,7 @@ impl Expression {
                         ContractFieldAccess {
                             position,
                             element_size,
+                            ..
                         },
                 }) = place.elements.first()
                 {
@@ -559,6 +560,7 @@ impl Expression {
                         ContractFieldAccess {
                             position,
                             element_size,
+                            ..
                         },
                 }) = place.elements.first()
                 {

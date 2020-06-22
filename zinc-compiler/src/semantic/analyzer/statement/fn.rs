@@ -129,12 +129,17 @@ impl Analyzer {
                 } => {
                     let r#type = Type::try_from_syntax(argument_binding.r#type, scope_stack.top())?;
 
+                    let memory_type = match r#type {
+                        Type::Contract(_) => MemoryType::ContractInstance,
+                        _ => MemoryType::Stack,
+                    };
+
                     Scope::define_variable(
                         scope_stack.top(),
                         identifier,
                         is_mutable,
                         r#type,
-                        MemoryType::Stack,
+                        memory_type,
                     )?;
                 }
                 BindingPatternVariant::Wildcard => continue,
@@ -197,13 +202,14 @@ impl Analyzer {
             ))));
         }
 
-        let is_main = statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER;
-
         let is_contract_entry = if let Context::Contract = context {
             statement.is_public
         } else {
             false
         };
+
+        let is_main = !is_contract_entry
+            && statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER;
 
         let (r#type, type_id) = Type::runtime_function(
             statement.location,
@@ -279,12 +285,17 @@ impl Analyzer {
                 } => {
                     let r#type = Type::try_from_syntax(argument_binding.r#type, scope_stack.top())?;
 
+                    let memory_type = match r#type {
+                        Type::Contract(_) => MemoryType::ContractInstance,
+                        _ => MemoryType::Stack,
+                    };
+
                     Scope::define_variable(
                         scope_stack.top(),
                         identifier,
                         is_mutable,
                         r#type,
-                        MemoryType::Stack,
+                        memory_type,
                     )?;
                 }
                 BindingPatternVariant::Wildcard => continue,

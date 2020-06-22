@@ -91,6 +91,7 @@ impl Operand {
                             ContractFieldAccess {
                                 position,
                                 element_size,
+                                ..
                             },
                     }) = inner.elements.first()
                     {

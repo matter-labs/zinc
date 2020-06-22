@@ -342,7 +342,7 @@ pub enum Error {
         location: Location,
         found: String,
     },
-    OperatorStructureSecondOperandExpectedEvaluable {
+    OperatorStructureSecondOperandExpectedLiteral {
         location: Location,
         found: String,
     },

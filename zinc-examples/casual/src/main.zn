@@ -1,10 +1,18 @@
-pub fn main(witness: u8) -> u8 {
-    witness
+contract Test {
+    a: u8;
+    b: u8;
+
+    fn main() -> Self { Self { a: 5, b: 10 } }
 }
 
 #[test]
 fn test_1() {
-    assert!(true);
+    let mut _contract = Test::main();
+    _contract.a += 5;
+    _contract.b += 10;
+
+    assert!(_contract.a == 10);
+    assert!(_contract.b == 20);
 }
 
 #[test]
@@ -15,11 +23,10 @@ fn test_2() {
 
 #[test]
 fn test_3() {
-    assert!(false);
+    assert!(true);
 }
 
 #[test]
-#[ignore]
 fn test_4() {
     assert!(true);
 }

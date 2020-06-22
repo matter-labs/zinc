@@ -111,8 +111,8 @@ pub enum RuntimeError {
     #[fail(display = "using witness as array index is not yet supported")]
     WitnessArrayIndex,
 
-    #[fail(display = "the command is forbidden for the application type")]
-    CommandForbidden,
+    #[fail(display = "the unit test data is missing")]
+    UnitTestDataMissing,
 }
 
 impl From<SynthesisError> for RuntimeError {

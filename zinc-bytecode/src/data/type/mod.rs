@@ -19,6 +19,7 @@ pub enum Type {
     Array(Box<Type>, usize),
     Tuple(Vec<Type>),
     Structure(Vec<(String, Type)>),
+    Contract(Vec<(String, Type)>),
 }
 
 impl Type {
@@ -46,6 +47,7 @@ impl Type {
                 .map(|(_name, r#type)| Self::into_flat_scalar_types(r#type))
                 .flatten()
                 .collect(),
+            Self::Contract(_) => vec![],
         }
     }
 
@@ -65,6 +67,7 @@ impl Type {
             Self::Array(r#type, size) => r#type.size() * *size,
             Self::Tuple(fields) => fields.iter().map(Self::size).sum(),
             Self::Structure(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
+            Self::Contract(_) => 0,
         }
     }
 }

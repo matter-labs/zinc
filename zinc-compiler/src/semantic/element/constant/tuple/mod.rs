@@ -92,7 +92,8 @@ impl Tuple {
 
         let element_size = self.values[tuple_index].r#type().size();
 
-        let access = StackFieldAccess::new(index, offset, element_size, total_size);
+        let access =
+            StackFieldAccess::new(index.to_string(), index, offset, element_size, total_size);
 
         Ok((self.values.remove(index), access))
     }

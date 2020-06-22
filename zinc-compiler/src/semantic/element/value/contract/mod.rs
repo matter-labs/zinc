@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer structure value element.
+//! The semantic analyzer contract value element.
 //!
 
 mod tests;
@@ -9,26 +9,26 @@ pub mod error;
 use std::fmt;
 
 use crate::lexical::token::location::Location;
-use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
-use crate::semantic::element::r#type::structure::Structure as StructureType;
+use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
+use crate::semantic::element::r#type::contract::Contract as ContractType;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::contract::Contract as ContractValue;
+use crate::semantic::element::value::structure::Structure as StructureValue;
 use crate::semantic::element::value::Value;
 use crate::syntax::tree::identifier::Identifier;
 
 use self::error::Error;
 
 ///
-/// Structures are collections of named elements of different types.
+/// Contracts are collections of named elements of different types.
 ///
 #[derive(Debug, Clone, PartialEq)]
-pub struct Structure {
+pub struct Contract {
     pub location: Option<Location>,
     pub fields: Vec<(String, Option<Location>, Type)>,
-    pub r#type: Option<StructureType>,
+    pub r#type: Option<ContractType>,
 }
 
-impl Structure {
+impl Contract {
     pub fn new(location: Option<Location>) -> Self {
         Self {
             location,
@@ -37,7 +37,7 @@ impl Structure {
         }
     }
 
-    pub fn new_with_type(location: Option<Location>, r#type: StructureType) -> Self {
+    pub fn new_with_type(location: Option<Location>, r#type: ContractType) -> Self {
         Self {
             location,
             fields: r#type
@@ -50,14 +50,18 @@ impl Structure {
         }
     }
 
-    pub fn into_contract(self) -> ContractValue {
-        ContractValue::from_structure(self)
+    pub fn from_structure(structure: StructureValue) -> Self {
+        Self {
+            location: structure.location,
+            fields: structure.fields,
+            r#type: None,
+        }
     }
 
     pub fn r#type(&self) -> Type {
         self.r#type
             .clone()
-            .map(Type::Structure)
+            .map(Type::Contract)
             .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
     }
 
@@ -69,7 +73,7 @@ impl Structure {
         self.fields.push((name, location, r#type));
     }
 
-    pub fn validate(&mut self, expected: StructureType) -> Result<(), Error> {
+    pub fn validate(&mut self, expected: ContractType) -> Result<(), Error> {
         for (index, (name, location, r#type)) in self.fields.iter().enumerate() {
             match expected.fields.get(index) {
                 Some((expected_name, expected_type)) => {
@@ -109,14 +113,19 @@ impl Structure {
         Ok(())
     }
 
-    pub fn slice(self, expected: Identifier) -> Result<(Value, StackFieldAccess), Error> {
+    pub fn slice(self, expected: Identifier) -> Result<(Value, ContractFieldAccess), Error> {
         let mut offset = 0;
         let total_size = self.r#type().size();
 
         for (index, (name, _location, r#type)) in self.fields.iter().enumerate() {
             if name == expected.name.as_str() {
-                let access =
-                    StackFieldAccess::new(expected.name, index, offset, r#type.size(), total_size);
+                let access = ContractFieldAccess::new(
+                    expected.name,
+                    index,
+                    offset,
+                    r#type.size(),
+                    total_size,
+                );
 
                 let result = Value::try_from_type(r#type, self.location)
                     .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
@@ -137,7 +146,7 @@ impl Structure {
     }
 }
 
-impl fmt::Display for Structure {
+impl fmt::Display for Contract {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,

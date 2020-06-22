@@ -62,7 +62,6 @@ impl IFacade for BytecodeProgram {
         match self {
             BytecodeProgram::Circuit(inner) => inner.run::<E>(input),
             BytecodeProgram::Contract(inner) => inner.run::<E>(input),
-            BytecodeProgram::UnitTest(inner) => inner.run::<E>(input),
         }
     }
 
@@ -70,7 +69,6 @@ impl IFacade for BytecodeProgram {
         match self {
             BytecodeProgram::Circuit(inner) => inner.debug::<E>(input),
             BytecodeProgram::Contract(inner) => inner.debug::<E>(input),
-            BytecodeProgram::UnitTest(inner) => inner.debug::<E>(input),
         }
     }
 
@@ -78,7 +76,6 @@ impl IFacade for BytecodeProgram {
         match self {
             BytecodeProgram::Circuit(inner) => inner.test::<E>(),
             BytecodeProgram::Contract(inner) => inner.test::<E>(),
-            BytecodeProgram::UnitTest(inner) => inner.test::<E>(),
         }
     }
 
@@ -86,7 +83,6 @@ impl IFacade for BytecodeProgram {
         match self {
             BytecodeProgram::Circuit(inner) => inner.setup(),
             BytecodeProgram::Contract(inner) => inner.setup(),
-            BytecodeProgram::UnitTest(inner) => inner.setup(),
         }
     }
 
@@ -98,7 +94,6 @@ impl IFacade for BytecodeProgram {
         match self {
             BytecodeProgram::Circuit(inner) => inner.prove(params, witness),
             BytecodeProgram::Contract(inner) => inner.prove(params, witness),
-            BytecodeProgram::UnitTest(inner) => inner.prove(params, witness),
         }
     }
 }

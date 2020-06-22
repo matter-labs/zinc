@@ -28,6 +28,7 @@ pub struct Contract {
     pub location: Option<Location>,
     pub identifier: String,
     pub type_id: usize,
+    pub fields: Vec<(String, Type)>,
     pub scope: Rc<RefCell<Scope>>,
 }
 
@@ -36,6 +37,7 @@ impl Contract {
         location: Option<Location>,
         identifier: String,
         type_id: usize,
+        fields: Vec<(String, Type)>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
         let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());
@@ -44,6 +46,7 @@ impl Contract {
             location,
             identifier,
             type_id,
+            fields,
             scope: scope.clone(),
         };
 

@@ -84,6 +84,9 @@ pub enum ErrorType {
         expected, actual
     )]
     UnexpectedSize { expected: usize, actual: usize },
+
+    #[fail(display = "contract parsing forbidden")]
+    ContractPassingForbidden,
 }
 
 impl ErrorType {

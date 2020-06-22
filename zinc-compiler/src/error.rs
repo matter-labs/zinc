@@ -31,6 +31,7 @@ use crate::semantic::element::r#type::function::stdlib::error::Error as Standard
 use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 use crate::semantic::element::r#type::structure::error::Error as StructureTypeError;
 use crate::semantic::element::value::array::error::Error as ArrayValueError;
+use crate::semantic::element::value::contract::error::Error as ContractValueError;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::element::value::integer::error::Error as IntegerValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
@@ -1048,13 +1049,13 @@ impl Error {
             }
             Self::Semantic(SemanticError::Element(ElementError::OperatorDotFirstOperandExpectedPlaceOrEvaluable{ location, found })) |
             Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::OperatorDotFirstOperandExpectedTuple{ location, found }))) |
-            Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::OperatorDotFirstOperandExpectedStructure{ location, found }))) |
+            Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::OperatorDotFirstOperandExpectedInstance { location, found }))) |
             Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::OperatorDotFirstOperandExpectedTuple{ location, found }))) |
-            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::OperatorDotFirstOperandExpectedStructure{ location, found }))) |
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::OperatorDotFirstOperandExpectedInstance { location, found }))) |
             Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::OperatorDotFirstOperandExpectedTuple{ location, found }))) |
-            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::OperatorDotFirstOperandExpectedStructure{ location, found }))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::OperatorDotFirstOperandExpectedInstance { location, found }))) => {
                 Self::format_line( format!(
-                        "the field access operator `.` expected a tuple or structure as the first operand, found `{}`",
+                        "the field access operator `.` expected a tuple or object instance as the first operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -1064,7 +1065,7 @@ impl Error {
             }
             Self::Semantic(SemanticError::Element(ElementError::OperatorDotSecondOperandExpectedIdentifier { location, found })) => {
                 Self::format_line( format!(
-                        "the field access operator `.` expected a tuple or structure field identifier as the second operand, found `{}`",
+                        "the field access operator `.` expected a tuple or object instance field identifier as the second operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -1102,7 +1103,7 @@ impl Error {
                                    None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::OperatorStructureSecondOperandExpectedEvaluable { location, found })) => {
+            Self::Semantic(SemanticError::Element(ElementError::OperatorStructureSecondOperandExpectedLiteral { location, found })) => {
                 Self::format_line( format!(
                     "the structure type expected a structure literal, found `{}`",
                     found,
@@ -1193,6 +1194,7 @@ impl Error {
                     None,
                 )
             }
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Contract(ContractValueError::FieldDoesNotExist { location, type_identifier, field_name })))) |
             Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::ContractFieldDoesNotExist { location, type_identifier, field_name }))) => {
                 Self::format_line( format!(
                         "field or method `{}` does not exist in `{}`",
@@ -1217,6 +1219,7 @@ impl Error {
                 )
             }
             Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Structure(StructureValueError::FieldExpected { location, type_identifier, position, expected, found })))) |
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Contract(ContractValueError::FieldExpected { location, type_identifier, position, expected, found })))) |
             Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Structure(StructureConstantError::FieldExpected { location, type_identifier, position, expected, found })))) => {
                 Self::format_line( format!(
                         "`{}` expected field `{}` at position {}, found `{}`",
@@ -1228,6 +1231,7 @@ impl Error {
                 )
             }
             Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Structure(StructureValueError::FieldInvalidType { location, type_identifier, field_name, expected, found })))) |
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Contract(ContractValueError::FieldInvalidType { location, type_identifier, field_name, expected, found })))) |
             Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Structure(StructureConstantError::FieldInvalidType { location, type_identifier, field_name, expected, found })))) => {
                 Self::format_line( format!(
                         "field `{}` of `{}` expected type `{}`, found `{}`",
@@ -1239,6 +1243,7 @@ impl Error {
                 )
             }
             Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Structure(StructureValueError::FieldOutOfRange { location, type_identifier, expected, found })))) |
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Contract(ContractValueError::FieldOutOfRange { location, type_identifier, expected, found })))) |
             Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Structure(StructureConstantError::FieldOutOfRange { location, type_identifier, expected, found })))) => {
                 Self::format_line( format!(
                         "`{}` expected {} fields, found {}",

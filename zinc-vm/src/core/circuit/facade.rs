@@ -4,6 +4,7 @@
 
 use std::marker::PhantomData;
 
+use colored::Colorize;
 use num_bigint::BigInt;
 
 use franklin_crypto::bellman::groth16;
@@ -136,8 +137,46 @@ impl IFacade for BytecodeCircuit {
         Ok(value)
     }
 
-    fn test<E: IEngine>(self) -> Result<UnitTestExitCode, RuntimeError> {
-        Err(RuntimeError::CommandForbidden)
+    fn test<E: IEngine>(mut self) -> Result<UnitTestExitCode, RuntimeError> {
+        let unit_test = self
+            .unit_test
+            .take()
+            .ok_or(RuntimeError::UnitTestDataMissing)?;
+
+        if unit_test.is_ignored {
+            println!("test {} ... {}", unit_test.name, "ignore".yellow());
+            return Ok(UnitTestExitCode::Ignored);
+        }
+
+        let cs = TestConstraintSystem::<Bn256>::new();
+        let mut circuit = Circuit::new(cs, true);
+
+        let result = circuit.run(self, Some(&[]), |_| {}, |_| Ok(()));
+        let code = match result {
+            Ok(_) if unit_test.should_panic => {
+                println!(
+                    "test {} ... {} (should have failed)",
+                    unit_test.name,
+                    "error".bright_red()
+                );
+                UnitTestExitCode::Failed
+            }
+            Err(_) if unit_test.should_panic => {
+                println!("test {} ... {} (failed)", unit_test.name, "ok".green());
+                UnitTestExitCode::Passed
+            }
+
+            Ok(_) => {
+                println!("test {} ... {}", unit_test.name, "ok".green());
+                UnitTestExitCode::Passed
+            }
+            Err(_) => {
+                println!("test {} ... {}", unit_test.name, "error".bright_red());
+                UnitTestExitCode::Failed
+            }
+        };
+
+        Ok(code)
     }
 
     fn setup<E: IEngine>(self) -> Result<Parameters<E>, RuntimeError> {

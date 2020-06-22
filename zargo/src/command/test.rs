@@ -76,6 +76,7 @@ impl Command {
         let data_directory_path = DataDirectory::path(&manifest_path);
 
         TestBuildDirectory::remove(&manifest_path).map_err(Error::TestBuildDirectory)?;
+        TestBuildDirectory::create(&manifest_path).map_err(Error::TestBuildDirectory)?;
 
         Compiler::build_test(
             self.verbosity,

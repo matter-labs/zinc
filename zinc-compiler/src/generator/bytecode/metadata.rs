@@ -23,7 +23,10 @@ impl Metadata {
     pub fn input_size(&self) -> usize {
         self.input_fields
             .iter()
-            .map(|(_name, r#type)| r#type.size())
+            .map(|(_name, r#type)| match r#type {
+                Type::Contract { .. } => 0,
+                r#type => r#type.size(),
+            })
             .sum()
     }
 
@@ -35,7 +38,10 @@ impl Metadata {
         Type::structure(
             self.input_fields
                 .iter()
-                .map(|(name, r#type)| (name.to_owned(), r#type.to_owned()))
+                .filter_map(|(name, r#type)| match r#type {
+                    Type::Contract { .. } => None,
+                    r#type => Some((name.to_owned(), r#type.to_owned())),
+                })
                 .collect(),
         )
     }
