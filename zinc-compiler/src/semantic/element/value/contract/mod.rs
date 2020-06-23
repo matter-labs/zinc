@@ -26,6 +26,7 @@ pub struct Contract {
     pub location: Option<Location>,
     pub fields: Vec<(String, Option<Location>, Type)>,
     pub r#type: Option<ContractType>,
+    pub is_validated: bool,
 }
 
 impl Contract {
@@ -34,6 +35,7 @@ impl Contract {
             location,
             fields: vec![],
             r#type: None,
+            is_validated: false,
         }
     }
 
@@ -47,6 +49,7 @@ impl Contract {
                 .map(|(name, r#type)| (name, None, r#type))
                 .collect(),
             r#type: Some(r#type),
+            is_validated: false,
         }
     }
 
@@ -55,6 +58,7 @@ impl Contract {
             location: structure.location,
             fields: structure.fields,
             r#type: None,
+            is_validated: structure.is_validated,
         }
     }
 
@@ -109,6 +113,7 @@ impl Contract {
         }
 
         self.r#type = Some(expected);
+        self.is_validated = true;
 
         Ok(())
     }

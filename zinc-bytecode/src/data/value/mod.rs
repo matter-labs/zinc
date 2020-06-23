@@ -323,10 +323,6 @@ impl Value {
         for (name, r#type) in field_types.into_iter() {
             used_fields.insert(name.clone());
 
-            if name.as_str() == "self" {
-                continue;
-            }
-
             let json_value = object
                 .remove(name.as_str())
                 .ok_or_else(|| ErrorType::MissingField(name.clone()))?;
@@ -358,10 +354,6 @@ impl Value {
         let mut field_values = Vec::with_capacity(field_types.len());
         for (name, r#type) in field_types.into_iter() {
             used_fields.insert(name.clone());
-
-            if name.as_str() == "self" {
-                continue;
-            }
 
             let json_value = object
                 .remove(name.as_str())

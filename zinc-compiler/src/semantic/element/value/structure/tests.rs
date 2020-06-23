@@ -13,6 +13,39 @@ use crate::semantic::element::value::structure::error::Error as StructureValueEr
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
+fn ok_not_initialized() {
+    let input = r#"
+struct Data {}
+
+fn main() -> Data { Data }
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn error_not_initialized() {
+    let input = r#"
+struct Data {
+    a: u8,
+}
+
+fn main() -> Data { Data }
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Value(ValueError::Structure(StructureValueError::NotInitialized {
+            location: Location::new(6, 21),
+            type_identifier: "Data".to_owned(),
+        })),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_field_does_not_exist() {
     let input = r#"
 struct Data {

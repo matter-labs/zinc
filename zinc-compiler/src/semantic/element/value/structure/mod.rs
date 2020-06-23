@@ -26,6 +26,7 @@ pub struct Structure {
     pub location: Option<Location>,
     pub fields: Vec<(String, Option<Location>, Type)>,
     pub r#type: Option<StructureType>,
+    pub is_validated: bool,
 }
 
 impl Structure {
@@ -34,6 +35,7 @@ impl Structure {
             location,
             fields: vec![],
             r#type: None,
+            is_validated: false,
         }
     }
 
@@ -47,6 +49,7 @@ impl Structure {
                 .map(|(name, r#type)| (name, None, r#type))
                 .collect(),
             r#type: Some(r#type),
+            is_validated: false,
         }
     }
 
@@ -105,6 +108,7 @@ impl Structure {
         }
 
         self.r#type = Some(expected);
+        self.is_validated = true;
 
         Ok(())
     }

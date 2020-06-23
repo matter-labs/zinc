@@ -47,7 +47,9 @@ use self::structure::Structure;
 use self::tuple::Tuple;
 
 ///
-/// Describes a type.
+/// The semantic type is converted from a syntax type during syntax analysis.
+///
+/// `Structure`, `Enumeration`, `Function`, `Contract` are resolved from the scope hierarchy.
 ///
 #[derive(Debug, Clone)]
 pub enum Type {
@@ -275,6 +277,7 @@ impl Type {
 
     pub fn is_scalar_unsigned(&self) -> bool {
         match self {
+            Self::Boolean(_) => true,
             Self::IntegerUnsigned { .. } => true,
             Self::Field(_) => true,
             Self::Enumeration { .. } => true,

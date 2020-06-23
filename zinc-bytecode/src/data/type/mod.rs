@@ -9,11 +9,15 @@ use serde_derive::Serialize;
 
 use self::scalar::Type as ScalarType;
 
+///
+/// The bytecode metadata type.
+///
+/// Is converted from the bytecode generator type during writing the metadata.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Type {
     Unit,
     Scalar(ScalarType),
-    // Enum is always a field
     Enumeration,
 
     Array(Box<Type>, usize),
@@ -27,6 +31,9 @@ impl Type {
         Self::Structure(vec![])
     }
 
+    ///
+    /// Skips the contract values since they are not supposed to be passed as the metadata.
+    ///
     pub fn into_flat_scalar_types(self) -> Vec<ScalarType> {
         match self {
             Self::Unit => vec![],
@@ -58,6 +65,9 @@ impl Type {
         ])
     }
 
+    ///
+    /// Skips the contract values since they are not supposed to be passed as the metadata.
+    ///
     pub fn size(&self) -> usize {
         match self {
             Self::Unit => 0,

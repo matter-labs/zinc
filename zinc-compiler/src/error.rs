@@ -1170,6 +1170,17 @@ impl Error {
                     Some("left slice range bound must be lesser or equal to the right one"),
                 )
             }
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Structure(StructureValueError::NotInitialized { location, type_identifier })))) |
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Contract(ContractValueError::NotInitialized { location, type_identifier })))) => {
+                Self::format_line( format!(
+                    "`{}` must be initialized with a structure literal",
+                    type_identifier,
+                )
+                                       .as_str(),
+                                   location,
+                                   Some(format!("consider initializing the value, e.g. `{} {{ a: 42, b: 25, ... }}`", type_identifier).as_str()),
+                )
+            }
             Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Tuple(TupleValueError::FieldDoesNotExist { location, type_identifier, field_index })))) |
             Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Tuple(TupleConstantError::FieldDoesNotExist { location, type_identifier, field_index })))) |
             Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::TupleFieldDoesNotExist { location, type_identifier, field_index }))) => {

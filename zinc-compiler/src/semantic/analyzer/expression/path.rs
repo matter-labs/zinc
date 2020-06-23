@@ -13,6 +13,10 @@ use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::place::Place;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::contract::error::Error as ContractValueError;
+use crate::semantic::element::value::error::Error as ValueError;
+use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
@@ -98,6 +102,26 @@ impl Translator {
                 ScopeItem::Type(ref r#type) => {
                     let mut r#type = r#type.define()?;
                     r#type.set_location(location);
+
+                    match r#type {
+                        Type::Structure(structure) if !structure.fields.is_empty() => {
+                            return Err(Error::Element(ElementError::Value(ValueError::Structure(
+                                StructureValueError::NotInitialized {
+                                    location,
+                                    type_identifier: structure.identifier,
+                                },
+                            ))))
+                        }
+                        Type::Contract(contract) if !contract.fields.is_empty() => {
+                            return Err(Error::Element(ElementError::Value(ValueError::Contract(
+                                ContractValueError::NotInitialized {
+                                    location,
+                                    type_identifier: contract.identifier,
+                                },
+                            ))))
+                        }
+                        _ => {}
+                    }
 
                     Ok((Element::Type(r#type), None))
                 }

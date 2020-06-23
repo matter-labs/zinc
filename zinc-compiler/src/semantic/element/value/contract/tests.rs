@@ -13,6 +13,40 @@ use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
+fn ok_not_initialized() {
+    let input = r#"
+contract Test {
+    pub fn main() -> Self { Self }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn error_not_initialized() {
+    let input = r#"
+contract Test {
+    a: u8;
+    b: u8;
+
+    pub fn main() -> Self { Self }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Value(ValueError::Contract(ContractValueError::NotInitialized {
+            location: Location::new(6, 29),
+            type_identifier: "Test".to_owned(),
+        })),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_field_does_not_exist() {
     let input = r#"
 contract Test {

@@ -6,6 +6,10 @@ use crate::lexical::token::location::Location;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
+    NotInitialized {
+        location: Location,
+        type_identifier: String,
+    },
     FieldDoesNotExist {
         location: Location,
         type_identifier: String,

@@ -2,7 +2,7 @@ contract Test {
     a: u8;
     b: u8;
 
-    fn main() -> Self { Self { a: 5, b: 10 } }
+    pub fn main() -> Self { Self { a: 5, b: 10 } }
 }
 
 #[test]

@@ -11,6 +11,8 @@ use crate::semantic::element::r#type::Type as SemanticType;
 ///
 /// The generator type, which contains only runtime values used by VM.
 ///
+/// Is converted from a semantic type during the bytecode generation.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Unit,

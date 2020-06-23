@@ -202,14 +202,14 @@ impl Analyzer {
             ))));
         }
 
-        let is_contract_entry = if let Context::Contract = context {
-            statement.is_public
+        let (is_main, is_contract_entry) = if let Context::Contract = context {
+            (false, statement.is_public)
         } else {
-            false
+            (
+                statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER,
+                false,
+            )
         };
-
-        let is_main = !is_contract_entry
-            && statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER;
 
         let (r#type, type_id) = Type::runtime_function(
             statement.location,
