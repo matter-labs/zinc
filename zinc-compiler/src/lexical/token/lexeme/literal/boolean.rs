@@ -7,17 +7,28 @@ use std::fmt;
 
 use crate::lexical::token::lexeme::keyword::Keyword;
 
+///
+/// The lexical boolean literal.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Boolean {
+    /// Created from the `false` keyword.
     False,
+    /// Created from the `true` keyword.
     True,
 }
 
 impl Boolean {
+    ///
+    /// Creates a `false` value.
+    ///
     pub fn r#false() -> Self {
         Self::False
     }
 
+    ///
+    /// Creates a `true` value.
+    ///
     pub fn r#true() -> Self {
         Self::True
     }

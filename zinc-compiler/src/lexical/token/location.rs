@@ -6,10 +6,16 @@ use std::fmt;
 
 use crate::source::file::index::INDEX as FILE_INDEX;
 
+///
+/// The token location in the source code file.
+///
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Location {
+    /// The file unique identifier, stored in the file index.
     pub file_index: usize,
+    /// The line number, starting from 1.
     pub line: usize,
+    /// The column number, starting from 1.
     pub column: usize,
 }
 

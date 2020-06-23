@@ -7,69 +7,121 @@ use std::fmt;
 use std::ops::RangeInclusive;
 use std::str;
 
+///
+/// The keyword defined in the language.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
-    // declarations
+    /// The `let` declaration keyword.
     Let,
+    /// The `mut` declaration keyword.
     Mut,
+    /// The `const` declaration keyword.
     Const,
+    /// The `type` declaration keyword.
     Type,
+    /// The `struct` declaration keyword.
     Struct,
+    /// The `enum` declaration keyword.
     Enum,
+    /// The `fn` declaration keyword.
     Fn,
+    /// The `mod` declaration keyword.
     Mod,
+    /// The `use` declaration keyword.
     Use,
+    /// The `impl` declaration keyword.
     Impl,
+    /// The `contract` declaration keyword.
     Contract,
+    /// The `pub` declaration keyword.
     Pub,
 
-    // controls
+    /// The `for` control keyword.
     For,
+    /// The `in` control keyword.
     In,
+    /// The `while` control keyword.
     While,
+    /// The `if` control keyword.
     If,
+    /// The `else` control keyword.
     Else,
+    /// The `match` control keyword.
     Match,
 
-    // types
+    /// The `bool` type keyword.
     Bool,
-    IntegerUnsigned { bitlength: usize },
-    IntegerSigned { bitlength: usize },
+    /// The `u{N}` type keyword.
+    IntegerUnsigned {
+        /// The unsigned type bitlength.
+        bitlength: usize,
+    },
+    /// The `i{N}` type keyword.
+    IntegerSigned {
+        /// The signed type bitlength.
+        bitlength: usize,
+    },
+    /// The `field` type keyword.
     Field,
 
-    // literals
+    /// The `true` literal keyword.
     True,
+    /// The `false` literal keyword.
     False,
 
-    // operators
+    /// The `as` operator keyword.
     As,
 
-    // aliases
+    /// The `crate` alias keyword.
     Crate,
+    /// The `super` alias keyword.
     Super,
+    /// The `self` alias keyword.
     SelfLowercase,
+    /// The `Self` alias keyword.
     SelfUppercase,
 
-    // reserved
+    /// The `static` reserved keyword.
     Static,
+    /// The `ref` reserved keyword.
     Ref,
+    /// The `extern` reserved keyword.
     Extern,
+    /// The `return` reserved keyword.
     Return,
+    /// The `loop` reserved keyword.
     Loop,
+    /// The `break` reserved keyword.
     Break,
+    /// The `continue` reserved keyword.
     Continue,
+    /// The `trait` reserved keyword.
     Trait,
 }
 
 impl Keyword {
+    /// The range including the minimal and maximal integer bitlengths.
+    pub const INTEGER_BITLENGTH_RANGE: RangeInclusive<usize> =
+        zinc_const::BITLENGTH_BYTE..=zinc_const::BITLENGTH_INTEGER_MAX;
+
+    ///
+    /// Creates a `u{N}` keyword.
+    ///
     pub fn new_integer_unsigned(bitlength: usize) -> Self {
         Self::IntegerUnsigned { bitlength }
     }
 
+    ///
+    /// Creates an `i{N}` keyword.
+    ///
     pub fn new_integer_signed(bitlength: usize) -> Self {
         Self::IntegerSigned { bitlength }
     }
 
+    ///
+    /// Checks if the keyword is an alias.
+    ///
     pub fn is_alias(name: &str) -> bool {
         name == Self::Crate.to_string().as_str()
             || name == Self::Super.to_string().as_str()
@@ -78,12 +130,23 @@ impl Keyword {
     }
 }
 
+///
+/// The keyword parsing error.
+///
+/// If the parser returns such an error, it means that the word is not a keyword,
+/// but an ordinar identifier or something else.
+///
 #[derive(Debug)]
 pub enum Error {
+    /// There is no number after the `u` or `i` character.
     IntegerBitlengthEmpty,
+    /// There is an invalid after the `u` or `i` character.
     IntegerBitlengthNotNumeric(String),
+    /// The bitlength is not multiple of `8`, which is forbidden.
     IntegerBitlengthNotMultipleOfEight(usize, usize),
+    /// The bitlength is beyond the allowed range.
     IntegerBitlengthOutOfRange(usize, RangeInclusive<usize>),
+    /// The keyword is unknown, which means that the word is a valid identifier or something else.
     Unknown(String),
 }
 
@@ -142,9 +205,6 @@ impl TryFrom<&str> for Keyword {
             _ => {}
         }
 
-        const INTEGER_BITLENGTH_RANGE: RangeInclusive<usize> =
-            zinc_const::BITLENGTH_BYTE..=zinc_const::BITLENGTH_INTEGER_MAX;
-
         if let Some("u") = input.get(..1) {
             let bitlength = &input[1..];
             if bitlength.is_empty() {
@@ -153,10 +213,10 @@ impl TryFrom<&str> for Keyword {
             let bitlength = bitlength
                 .parse::<usize>()
                 .map_err(|_| Error::IntegerBitlengthNotNumeric(bitlength.to_owned()))?;
-            if !INTEGER_BITLENGTH_RANGE.contains(&bitlength) {
+            if !Self::INTEGER_BITLENGTH_RANGE.contains(&bitlength) {
                 return Err(Error::IntegerBitlengthOutOfRange(
                     bitlength,
-                    INTEGER_BITLENGTH_RANGE,
+                    Self::INTEGER_BITLENGTH_RANGE,
                 ));
             }
             if bitlength % zinc_const::BITLENGTH_BYTE != 0 {
@@ -176,10 +236,10 @@ impl TryFrom<&str> for Keyword {
             let bitlength = bitlength
                 .parse::<usize>()
                 .map_err(|_| Error::IntegerBitlengthNotNumeric(bitlength.to_owned()))?;
-            if !INTEGER_BITLENGTH_RANGE.contains(&bitlength) {
+            if !Self::INTEGER_BITLENGTH_RANGE.contains(&bitlength) {
                 return Err(Error::IntegerBitlengthOutOfRange(
                     bitlength,
-                    INTEGER_BITLENGTH_RANGE,
+                    Self::INTEGER_BITLENGTH_RANGE,
                 ));
             }
             if bitlength % zinc_const::BITLENGTH_BYTE != 0 {

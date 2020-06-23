@@ -26,14 +26,23 @@ use self::integer::Error as IntegerParserError;
 use self::string::Error as StringParserError;
 use self::symbol::Error as SymbolParserError;
 
+///
+/// A token stream is initialized for each input file.
+///
 pub struct TokenStream<'a> {
+    /// The input source code string reference
     input: &'a str,
+    /// The number of characters processed so far
     offset: usize,
+    /// The current position in the file
     location: Location,
+    /// The queue buffer where the characters acquired with the look-ahead method are stored.
+    /// If the queue is not empty, the next character will be taken therefrom.
     look_ahead: VecDeque<Token>,
 }
 
 impl<'a> TokenStream<'a> {
+    /// The initial of the look-ahead buffer queue.
     const LOOK_AHEAD_INITIAL_CAPACITY: usize = 16;
 
     ///

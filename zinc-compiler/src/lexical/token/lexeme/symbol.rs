@@ -4,61 +4,110 @@
 
 use std::fmt;
 
+///
+/// The minimal logical character group, which is usually a delimiter, operator, or special symbol.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Symbol {
-    // one char
+    /// The ( character
     ParenthesisLeft,
+    /// The ) character
     ParenthesisRight,
+    /// The [ character
     BracketSquareLeft,
+    /// The ] character
     BracketSquareRight,
+    /// The { character
     BracketCurlyLeft,
+    /// The } character
     BracketCurlyRight,
+    /// The _ character
     Underscore,
+    /// The . character
     Dot,
+    /// The : character
     Colon,
+    /// The ; character
     Semicolon,
+    /// The , character
     Comma,
+    /// The = character
     Equals,
+    /// The + character
     Plus,
+    /// The - character
     Minus,
+    /// The * character
     Asterisk,
+    /// The / character
     Slash,
+    /// The % character
     Percent,
+    /// The | character
     VerticalBar,
+    /// The & character
     Ampersand,
+    /// The ^ character
     Circumflex,
+    /// The ` character
     Tilde,
+    /// The ! character
     ExclamationMark,
+    /// The < character
     Lesser,
+    /// The > character
     Greater,
+    /// The # character
     Number,
 
-    // two chars
+    /// The += character group
     PlusEquals,
+    /// The -= character group
     MinusEquals,
+    /// The *= character group
     AsteriskEquals,
+    /// The /= character group
     SlashEquals,
+    /// The %= character group
     PercentEquals,
+    /// The |= character group
     VerticalBarEquals,
+    /// The &= character group
     AmpersandEquals,
+    /// The ^= character group
     CircumflexEquals,
+    /// The :: character group
     DoubleColon,
+    /// The == character group
     DoubleEquals,
+    /// The != character group
     ExclamationMarkEquals,
+    /// The <= character group
     LesserEquals,
+    /// The >= character group
     GreaterEquals,
+    /// The && character group
     DoubleAmpersand,
+    /// The || character group
     DoubleVerticalBar,
+    /// The ^^ character group
     DoubleCircumflex,
+    /// The << character group
     DoubleLesser,
+    /// The >> character group
     DoubleGreater,
+    /// The .. character group
     DoubleDot,
+    /// The => character group
     EqualsGreater,
+    /// The -> character group
     MinusGreater,
 
-    // three chars
+    /// The ..= character group
     DoubleDotEquals,
+    /// The <<= character group
     DoubleLesserEquals,
+    /// The >>= character group
     DoubleGreaterEquals,
 }
 

@@ -6,25 +6,75 @@ use std::str;
 
 use crate::lexical::token::lexeme::literal::integer::Integer;
 
+///
+/// The parser state.
+///
 pub enum State {
+    /// The initial state.
     Start,
+    /// The `0` has been parsed so far.
     ZeroOrNotDecimal,
+    /// The `0b` has been parsed so far.
     Binary,
+    /// The `0o` has been parsed so far.
     Octal,
+    /// The non-zero decimal character has been parsed so far.
     Decimal,
+    /// The `0x` has been parsed so far.
     Hexadecimal,
 }
 
+///
+/// The parser error.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Error {
+    /// The lexeme is not an integer, which means that another parser must be run.
     NotAnInteger,
-    EmptyBinaryBody { offset: usize },
-    EmptyOctalBody { offset: usize },
-    EmptyHexadecimalBody { offset: usize },
-    ExpectedOneOfBinary { found: char, offset: usize },
-    ExpectedOneOfOctal { found: char, offset: usize },
-    ExpectedOneOfDecimal { found: char, offset: usize },
-    ExpectedOneOfHexadecimal { found: char, offset: usize },
+    /// The lexeme is `0b`, which is not a valid binary literal.
+    EmptyBinaryBody {
+        /// The position where the literal ends.
+        offset: usize,
+    },
+    /// The lexeme is `0o`, which is not a valid octal literal.
+    EmptyOctalBody {
+        /// The position where the literal ends.
+        offset: usize,
+    },
+    /// The lexeme is `0x`, which is not a valid hexadecimal literal.
+    EmptyHexadecimalBody {
+        /// The position where the literal ends.
+        offset: usize,
+    },
+    /// A non-binary character is found in a binary literal.
+    ExpectedOneOfBinary {
+        /// The invalid character.
+        found: char,
+        /// The position of the invalid character.
+        offset: usize,
+    },
+    /// A non-octal character is found in an octal literal.
+    ExpectedOneOfOctal {
+        /// The invalid character.
+        found: char,
+        /// The position of the invalid character.
+        offset: usize,
+    },
+    /// A non-decimal character is found in a decimal literal.
+    ExpectedOneOfDecimal {
+        /// The invalid character.
+        found: char,
+        /// The position of the invalid character.
+        offset: usize,
+    },
+    /// A non-hexadecimal character is found in a hexadecimal literal.
+    ExpectedOneOfHexadecimal {
+        /// The invalid character.
+        found: char,
+        /// The position of the invalid character.
+        offset: usize,
+    },
+    /// Unable to finish a literal.
     UnexpectedEnd,
 }
 

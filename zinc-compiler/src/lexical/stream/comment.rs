@@ -4,18 +4,36 @@
 
 use crate::lexical::token::lexeme::comment::Comment;
 
+///
+/// The parser state.
+///
 pub enum State {
+    /// The initial state.
     Start,
+    /// The `/` has been parsed so far.
     Slash,
+    /// The `//` has been parsed so far.
     SingleLine,
+    /// The `/*` has been parsed so far.
     MultiLine,
+    /// The `/* ... *` has been parsed so far.
     MultiLineStar,
 }
 
+///
+/// The parser error.
+///
 #[derive(Debug, PartialEq)]
 pub enum Error {
+    /// The lexeme is not a comment, which means that another parser must be run.
     NotAComment,
-    UnterminatedBlock { lines: usize, column: usize },
+    /// The comment has not been terminated, which ends up with an entire file treated as an unterminated comment.
+    UnterminatedBlock {
+        /// The number of lines in the unterminated comment.
+        lines: usize,
+        /// The column where the unterminated comment ends.
+        column: usize,
+    },
 }
 
 ///

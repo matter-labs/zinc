@@ -4,17 +4,34 @@
 
 use std::fmt;
 
+///
+/// The source code comment, which is dropped during the lexical analysis.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Comment {
-    Line { inner: String },
-    Block { inner: String },
+    /// The line comment like `// text`
+    Line {
+        /// The inner comment contents.
+        inner: String,
+    },
+    /// The block comment like `/* text */`
+    Block {
+        /// The inner comment contents.
+        inner: String,
+    },
 }
 
 impl Comment {
+    ///
+    /// Creates a single-line comment.
+    ///
     pub fn new_line(inner: String) -> Self {
         Self::Line { inner }
     }
 
+    ///
+    /// Creates a block comment.
+    ///
     pub fn new_block(inner: String) -> Self {
         Self::Block { inner }
     }

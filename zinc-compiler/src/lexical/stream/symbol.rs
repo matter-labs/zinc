@@ -6,33 +6,69 @@ use std::str;
 
 use crate::lexical::token::lexeme::symbol::Symbol;
 
+///
+/// The parser state.
+///
 pub enum State {
+    /// The initial state.
     Start,
+    /// The `=` has been parsed so far.
     Equals,
+    /// The `~` has been parsed so far.
     Exclamation,
+    /// The `<` has been parsed so far.
     Lesser,
+    /// The `>` has been parsed so far.
     Greater,
+    /// The `+` has been parsed so far.
     Plus,
+    /// The `-` has been parsed so far.
     Minus,
+    /// The `*` has been parsed so far.
     Asterisk,
+    /// The `/` has been parsed so far.
     Slash,
+    /// The `%` has been parsed so far.
     Percent,
+    /// The `.` has been parsed so far.
     Dot,
+    /// The `:` has been parsed so far.
     Colon,
+    /// The `&` has been parsed so far.
     Ampersand,
+    /// The `|` has been parsed so far.
     VerticalBar,
+    /// The `^` has been parsed so far.
     Circumflex,
+    /// The `..` has been parsed so far.
     DoubleDot,
+    /// The `<<` has been parsed so far.
     DoubleLesser,
+    /// The `>>` has been parsed so far.
     DoubleGreater,
 }
 
+///
+/// The parser error.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Error {
-    InvalidCharacter { found: char, offset: usize },
+    /// An unexpected character resulting into an invalid symbol.
+    InvalidCharacter {
+        /// The invalid character.
+        found: char,
+        /// The position of the invalid character.
+        offset: usize,
+    },
+    /// Unable to finish a symbol.
     UnexpectedEnd,
 }
 
+///
+/// Parses a symbol.
+///
+/// Returns the symbol and its size.
+///
 pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
     let mut state = State::Start;
     let mut size = 0;

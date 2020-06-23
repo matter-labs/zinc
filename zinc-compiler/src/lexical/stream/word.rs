@@ -12,8 +12,13 @@ use crate::lexical::token::lexeme::literal::Literal;
 use crate::lexical::token::lexeme::symbol::Symbol;
 use crate::lexical::token::lexeme::Lexeme;
 
+///
+/// The parser state.
+///
 pub enum State {
+    /// The initial state.
     Start,
+    /// The first character has been parsed so far.
     Continue,
 }
 

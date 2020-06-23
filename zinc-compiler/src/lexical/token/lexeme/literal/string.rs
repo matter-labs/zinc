@@ -4,12 +4,19 @@
 
 use std::fmt;
 
+///
+/// The lexical string literal.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct String {
+    /// The inner string contents.
     pub inner: ::std::string::String,
 }
 
 impl String {
+    ///
+    /// Creates a string literal value.
+    ///
     pub fn new(inner: ::std::string::String) -> Self {
         Self { inner }
     }

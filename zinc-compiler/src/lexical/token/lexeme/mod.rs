@@ -16,13 +16,22 @@ use self::keyword::Keyword;
 use self::literal::Literal;
 use self::symbol::Symbol;
 
+///
+/// The smallest logical piece of the source code.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Lexeme {
+    /// A keyword, like `if` or `const`.
     Keyword(Keyword),
+    /// An identifier, like `value` or `data`.
     Identifier(Identifier),
+    /// A literal, like `true`, `42`, or `"message"`.
     Literal(Literal),
+    /// A symbol, like `(` or `+=`.
     Symbol(Symbol),
+    /// A comment, like `// text` or `/* text */`.
     Comment(Comment),
+    /// An end of file, which is returned by the token stream when it reaches the end of a file.
     Eof,
 }
 

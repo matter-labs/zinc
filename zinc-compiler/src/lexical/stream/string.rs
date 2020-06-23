@@ -4,16 +4,32 @@
 
 use std::str;
 
+///
+/// The parser state.
+///
 pub enum State {
+    /// The initial state.
     DoubleQuoteOpen,
+    /// The `"` has been parsed so far.
     Character,
+    /// The `\` has been found so the string will not be terminated if the next character is a `"`.
     EscapedCharacter,
 }
 
+///
+/// The parser error.
+///
 #[derive(Debug, PartialEq)]
 pub enum Error {
+    /// The lexeme is not a string, which means that another parser must be run.
     NotAString,
-    UnterminatedDoubleQuote { lines: usize, column: usize },
+    /// The string has not been terminated, which ends up with an entire file treated as an unterminated string.
+    UnterminatedDoubleQuote {
+        /// The number of lines in the unterminated string.
+        lines: usize,
+        /// The column where the unterminated string ends.
+        column: usize,
+    },
 }
 
 ///

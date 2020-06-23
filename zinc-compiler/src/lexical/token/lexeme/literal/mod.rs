@@ -12,10 +12,16 @@ use self::boolean::Boolean;
 use self::integer::Integer;
 use self::string::String;
 
+///
+/// The lexical literal.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Literal {
+    /// A boolean literal, like `true`, or `false`.
     Boolean(Boolean),
+    /// An integer literal, like `42`, or `0xff`.
     Integer(Integer),
+    /// A string literal, like `"message"`.
     String(String),
 }
 
