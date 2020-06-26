@@ -18,22 +18,35 @@ use crate::data::r#type::scalar::integer::Type as IntegerType;
 use crate::data::r#type::scalar::Type as ScalarType;
 use crate::data::r#type::Type as DataType;
 
+use self::error::context::IContext as IErrorContext;
+use self::error::r#type::Type as ErrorType;
 use self::error::Error;
-use self::error::ErrorContext;
-use self::error::ErrorType;
 use self::scalar::Value as ScalarValue;
 
+///
+/// The Zinc VM template value.
+///
+/// The representation of the witness and public data stored in JSON files.
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Value {
+    /// Represented with `()` string.
     Unit,
+    /// See the inner element description.
     Scalar(ScalarValue),
+    /// Represented with JSON array.
     Array(Vec<Value>),
+    /// Represented with JSON object.
     Structure(Vec<(String, Value)>),
+    /// Represented with JSON object.
     Contract(Vec<(String, Value)>),
 }
 
 impl Value {
+    ///
+    /// Creates a value of `r#type`.
+    ///
     pub fn new(r#type: DataType) -> Self {
         match r#type {
             DataType::Unit => Self::Unit,
@@ -62,7 +75,7 @@ impl Value {
     }
 
     ///
-    /// Creates value from flat array and data type.
+    /// Creates a value from a flat array `flat_values` and data `r#type`.
     ///
     pub fn new_from_flat_values(r#type: DataType, flat_values: &[BigInt]) -> Option<Self> {
         let mut value = Self::new(r#type);
@@ -74,6 +87,11 @@ impl Value {
         }
     }
 
+    ///
+    /// Flattens the value into an array of `BigInt`s.
+    ///
+    /// Is used to write the input to the VM data stack.
+    ///
     pub fn into_flat_values(self) -> Vec<BigInt> {
         match self {
             Self::Unit => vec![],
@@ -96,30 +114,35 @@ impl Value {
         }
     }
 
+    ///
+    /// Converts the value to a JSON value.
+    ///
+    /// Is used to write the value to a witness or public data JSON file.
+    ///
     pub fn try_into_json(self) -> Option<JsonValue> {
         match self {
             Self::Unit => Some(JsonValue::Null),
             Self::Scalar(scalar) => Some(match scalar {
                 ScalarValue::Field(value) => {
                     if value <= BigInt::from(std::u64::MAX) {
-                        JsonValue::String(value.to_str_radix(zinc_const::BASE_DECIMAL as u32))
+                        JsonValue::String(value.to_str_radix(zinc_const::base::DECIMAL as u32))
                     } else {
                         JsonValue::String(
                             String::from("0x")
                                 + value
-                                    .to_str_radix(zinc_const::BASE_HEXADECIMAL as u32)
+                                    .to_str_radix(zinc_const::base::HEXADECIMAL as u32)
                                     .as_str(),
                         )
                     }
                 }
                 ScalarValue::Integer(value, r#type) => {
                     if value <= BigInt::from(std::u64::MAX) || r#type.is_signed {
-                        JsonValue::String(value.to_str_radix(zinc_const::BASE_DECIMAL as u32))
+                        JsonValue::String(value.to_str_radix(zinc_const::base::DECIMAL as u32))
                     } else {
                         JsonValue::String(
                             String::from("0x")
                                 + value
-                                    .to_str_radix(zinc_const::BASE_HEXADECIMAL as u32)
+                                    .to_str_radix(zinc_const::base::HEXADECIMAL as u32)
                                     .as_str(),
                         )
                     }
@@ -150,6 +173,9 @@ impl Value {
         }
     }
 
+    ///
+    /// Creates a value of `r#type` from the JSON `value`.
+    ///
     pub fn from_typed_json(value: JsonValue, r#type: DataType) -> Result<Self, Error> {
         match r#type {
             DataType::Unit => Self::unit_from_json(value),
@@ -207,43 +233,77 @@ impl Value {
         }
     }
 
+    ///
+    /// Creates a unit value from the JSON `value`.
+    ///
     fn unit_from_json(value: JsonValue) -> Result<Self, Error> {
         if value.is_null() {
             return Ok(Self::Unit);
         }
 
         Err(ErrorType::TypeError {
-            expected: "null".into(),
-            actual: value.to_string(),
+            expected: "()".into(),
+            found: value.to_string(),
         }
         .into())
     }
 
+    ///
+    /// Creates a boolean value from the JSON `value`.
+    ///
     fn boolean_from_json(value: JsonValue) -> Result<Self, Error> {
         let value_bool = value.as_bool().ok_or_else(|| ErrorType::TypeError {
             expected: "boolean (true or false)".into(),
-            actual: value.to_string(),
+            found: value.to_string(),
         })?;
 
         Ok(Self::Scalar(ScalarValue::Boolean(value_bool)))
     }
 
-    fn integer_from_json(value: JsonValue, _type: IntegerType) -> Result<Self, Error> {
+    ///
+    /// Creates an integer value from the JSON `value`.
+    ///
+    fn integer_from_json(value: JsonValue, r#type: IntegerType) -> Result<Self, Error> {
+        let value_string = value.as_str().ok_or_else(|| ErrorType::TypeError {
+            expected: "integer (number string)".into(),
+            found: value.to_string(),
+        })?;
+
+        let bigint_result = if value_string.starts_with("0b") {
+            BigInt::from_str_radix(&value_string[2..], zinc_const::base::BINARY as u32)
+        } else if value_string.starts_with("0o") {
+            BigInt::from_str_radix(&value_string[2..], zinc_const::base::OCTAL as u32)
+        } else if value_string.starts_with("0x") {
+            BigInt::from_str_radix(&value_string[2..], zinc_const::base::HEXADECIMAL as u32)
+        } else {
+            BigInt::from_str_radix(value_string, zinc_const::base::DECIMAL as u32)
+        };
+
+        let bigint =
+            bigint_result.map_err(|_| ErrorType::InvalidNumberFormat(value_string.into()))?;
+
         // TODO: overflow check
 
-        Self::field_from_json(value)
+        Ok(Self::Scalar(ScalarValue::Integer(bigint, r#type)))
     }
 
+    ///
+    /// Creates a field value from the JSON `value`.
+    ///
     fn field_from_json(value: JsonValue) -> Result<Self, Error> {
         let value_string = value.as_str().ok_or_else(|| ErrorType::TypeError {
             expected: "field (number string)".into(),
-            actual: value.to_string(),
+            found: value.to_string(),
         })?;
 
-        let bigint_result = if value_string.starts_with("0x") {
-            BigInt::from_str_radix(&value_string[2..], 16)
+        let bigint_result = if value_string.starts_with("0b") {
+            BigInt::from_str_radix(&value_string[2..], zinc_const::base::BINARY as u32)
+        } else if value_string.starts_with("0o") {
+            BigInt::from_str_radix(&value_string[2..], zinc_const::base::OCTAL as u32)
+        } else if value_string.starts_with("0x") {
+            BigInt::from_str_radix(&value_string[2..], zinc_const::base::HEXADECIMAL as u32)
         } else {
-            BigInt::from_str_radix(value_string, 10)
+            BigInt::from_str_radix(value_string, zinc_const::base::DECIMAL as u32)
         };
 
         let bigint =
@@ -254,6 +314,9 @@ impl Value {
         Ok(Self::Scalar(ScalarValue::Field(bigint)))
     }
 
+    ///
+    /// Creates a scalar value from the JSON `value`.
+    ///
     fn scalar_from_json(value: JsonValue, scalar_type: ScalarType) -> Result<Self, Error> {
         match scalar_type {
             ScalarType::Boolean => Self::boolean_from_json(value),
@@ -262,23 +325,26 @@ impl Value {
         }
     }
 
+    ///
+    /// Creates an array value from the JSON `value`.
+    ///
     fn array_from_json(value: JsonValue, r#type: DataType, size: usize) -> Result<Self, Error> {
         let array = value
             .as_array()
             .cloned()
-            .ok_or_else(|| ErrorType::type_error("array", value))?;
+            .ok_or_else(|| ErrorType::type_error("array".into(), value))?;
 
         if array.len() != size {
             return Err(ErrorType::UnexpectedSize {
                 expected: size,
-                actual: array.len(),
+                found: array.len(),
             }
             .into());
         }
 
         let mut values = Vec::with_capacity(size);
         for (index, value) in array.into_iter().enumerate() {
-            let typed_value = Self::from_typed_json(value, r#type.clone()).in_array(index)?;
+            let typed_value = Self::from_typed_json(value, r#type.clone()).push_array(index)?;
 
             values.push(typed_value);
         }
@@ -286,29 +352,35 @@ impl Value {
         Ok(Self::Array(values))
     }
 
+    ///
+    /// Creates a tuple value from the JSON `value`.
+    ///
     fn tuple_from_json(value: JsonValue, types: Vec<DataType>) -> Result<Self, Error> {
         let array = value
             .as_array()
             .cloned()
-            .ok_or_else(|| ErrorType::type_error("tuple (json array)", value))?;
+            .ok_or_else(|| ErrorType::type_error("tuple (json array)".into(), value))?;
 
         if array.len() != types.len() {
             return Err(ErrorType::UnexpectedSize {
                 expected: types.len(),
-                actual: array.len(),
+                found: array.len(),
             }
             .into());
         }
 
         let mut values = Vec::with_capacity(types.len());
         for (index, (value, r#type)) in array.into_iter().zip(types).enumerate() {
-            let typed_value = Self::from_typed_json(value, r#type).in_array(index)?;
+            let typed_value = Self::from_typed_json(value, r#type).push_array(index)?;
             values.push(typed_value);
         }
 
         Ok(Self::Array(values))
     }
 
+    ///
+    /// Creates a structure value from the JSON `value`.
+    ///
     fn structure_from_json(
         value: JsonValue,
         field_types: Vec<(String, DataType)>,
@@ -316,7 +388,7 @@ impl Value {
         let mut object = value
             .as_object()
             .cloned()
-            .ok_or_else(|| ErrorType::type_error("structure", value))?;
+            .ok_or_else(|| ErrorType::type_error("structure".into(), value))?;
 
         let mut used_fields = HashSet::with_capacity(field_types.len());
         let mut field_values = Vec::with_capacity(field_types.len());
@@ -327,7 +399,7 @@ impl Value {
                 .remove(name.as_str())
                 .ok_or_else(|| ErrorType::MissingField(name.clone()))?;
 
-            let value = Self::from_typed_json(json_value, r#type).in_struct(name.as_str())?;
+            let value = Self::from_typed_json(json_value, r#type).push_structure(name.as_str())?;
 
             field_values.push((name, value));
         }
@@ -341,6 +413,9 @@ impl Value {
         Ok(Self::Structure(field_values))
     }
 
+    ///
+    /// Creates a contract value from the JSON `value`.
+    ///
     fn contract_from_json(
         value: JsonValue,
         field_types: Vec<(String, DataType)>,
@@ -348,7 +423,7 @@ impl Value {
         let mut object = value
             .as_object()
             .cloned()
-            .ok_or_else(|| ErrorType::type_error("contract", value))?;
+            .ok_or_else(|| ErrorType::type_error("contract".into(), value))?;
 
         let mut used_fields = HashSet::with_capacity(field_types.len());
         let mut field_values = Vec::with_capacity(field_types.len());
@@ -359,7 +434,7 @@ impl Value {
                 .remove(name.as_str())
                 .ok_or_else(|| ErrorType::MissingField(name.clone()))?;
 
-            let value = Self::from_typed_json(json_value, r#type).in_struct(name.as_str())?;
+            let value = Self::from_typed_json(json_value, r#type).push_structure(name.as_str())?;
 
             field_values.push((name, value));
         }

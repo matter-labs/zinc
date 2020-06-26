@@ -1,5 +1,5 @@
 //!
-//! The 'function marker' instruction.
+//! The `function marker` instruction.
 //!
 
 use std::fmt;
@@ -9,16 +9,26 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `function marker` debug instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FunctionMarker {
+    /// The source code function name.
     pub function: String,
 }
 
 impl FunctionMarker {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(function: String) -> Self {
         Self { function }
     }
 
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         true
     }

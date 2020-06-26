@@ -596,7 +596,7 @@ impl Value {
         let (is_signed, bitlength) = match to {
             Type::IntegerUnsigned { bitlength, .. } => (false, bitlength),
             Type::IntegerSigned { bitlength, .. } => (true, bitlength),
-            Type::Field(_) => (false, zinc_const::BITLENGTH_FIELD),
+            Type::Field(_) => (false, zinc_const::bitlength::FIELD),
             _ => return Ok((self, None)),
         };
 
@@ -754,7 +754,7 @@ impl Value {
             Type::Field(_) => Self::Integer(Integer::new(
                 location.or_else(|| r#type.location()),
                 false,
-                zinc_const::BITLENGTH_FIELD,
+                zinc_const::bitlength::FIELD,
             )),
             Type::Array(inner) => Self::Array(Array::new_with_values(
                 location.or_else(|| inner.location.to_owned()),

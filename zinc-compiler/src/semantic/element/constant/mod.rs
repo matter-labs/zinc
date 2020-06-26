@@ -548,7 +548,7 @@ impl Constant {
         let (is_signed, bitlength) = match to {
             Type::IntegerUnsigned { bitlength, .. } => (false, bitlength),
             Type::IntegerSigned { bitlength, .. } => (true, bitlength),
-            Type::Field(_) => (false, zinc_const::BITLENGTH_FIELD),
+            Type::Field(_) => (false, zinc_const::bitlength::FIELD),
             _ => return Ok((self, None)),
         };
 

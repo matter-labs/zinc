@@ -15,7 +15,7 @@ use zinc_const::UnitTestExitCode;
 use zinc_vm::IFacade;
 
 use crate::error::Error;
-use crate::error::IoToError;
+use crate::error::IErrorPath;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "test", about = "Executes a unit test")]

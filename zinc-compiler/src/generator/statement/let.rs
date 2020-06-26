@@ -51,7 +51,7 @@ impl Statement {
         match self.r#type {
             Type::Contract { fields } => {
                 for (index, (_name, r#type)) in fields.into_iter().enumerate().rev() {
-                    IntegerConstant::new(BigInt::from(index), false, zinc_const::BITLENGTH_FIELD)
+                    IntegerConstant::new(BigInt::from(index), false, zinc_const::bitlength::FIELD)
                         .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
                         Instruction::StorageStore(zinc_bytecode::StorageStore::new(r#type.size())),

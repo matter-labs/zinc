@@ -1,5 +1,5 @@
 //!
-//! The for-loop statement parser.
+//! The `for` statement parser.
 //!
 
 use std::cell::RefCell;
@@ -18,17 +18,28 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#for::builder::Builder as ForStatementBuilder;
 use crate::syntax::tree::statement::r#for::Statement as ForStatement;
 
+/// The missing index identifier error hint.
 pub static HINT_EXPECTED_INDEX_IDENTIFIER: &str =
     "for-loops must have the index identifier, e.g. `for i in 0..10 { ... }`";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     KeywordFor,
+    /// The `for` has been parsed so far.
     IndexIdentifier,
+    /// The `for {identifier}` has been parsed so far.
     KeywordIn,
+    /// The `for {identifier} in` has been parsed so far.
     BoundsExpression,
+    /// The `for {identifier} in {expression}` has been parsed so far.
     BlockExpressionOrKeywordWhile,
+    /// The `for {identifier} in {expression} while` has been parsed so far.
     WhileConditionExpression,
+    /// The `for {identifier} in {expression}` with optional `while {expression}` has been parsed so far.
     BlockExpression,
 }
 
@@ -38,10 +49,16 @@ impl Default for State {
     }
 }
 
+///
+/// The `for` statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: ForStatementBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

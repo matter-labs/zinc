@@ -1,5 +1,5 @@
 //!
-//! The 'contract storage store' instruction.
+//! The `contract storage store` instruction.
 //!
 
 use std::fmt;
@@ -9,18 +9,28 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `contract storage store` instruction.
+///
 /// Stores value from stack into contract's storage.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct StorageStore {
-    /// Size of value (number of fields)
+    /// The size of the stored value (number of fields).
     pub size: usize,
 }
 
 impl StorageStore {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(size: usize) -> Self {
         Self { size }
     }
 
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }

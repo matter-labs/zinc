@@ -1,5 +1,5 @@
 //!
-//! The 'greater or equal comparison' instruction.
+//! The `greater or equal comparison` instruction.
 //!
 
 use std::fmt;
@@ -9,10 +9,16 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `greater or equal comparison` instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Ge;
 
 impl Ge {
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }

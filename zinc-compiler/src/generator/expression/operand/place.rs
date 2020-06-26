@@ -30,7 +30,7 @@ pub struct Place {
 impl Place {
     pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
         if !self.elements.is_empty() {
-            IntegerConstant::new(BigInt::zero(), false, zinc_const::BITLENGTH_FIELD)
+            IntegerConstant::new(BigInt::zero(), false, zinc_const::bitlength::FIELD)
                 .write_all_to_bytecode(bytecode.clone());
         }
 
@@ -46,7 +46,7 @@ impl Place {
                     IntegerConstant::new(
                         BigInt::from(access.element_size),
                         false,
-                        zinc_const::BITLENGTH_FIELD,
+                        zinc_const::bitlength::FIELD,
                     )
                     .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
@@ -67,7 +67,7 @@ impl Place {
                     IntegerConstant::new(
                         BigInt::from(access.element_size),
                         false,
-                        zinc_const::BITLENGTH_FIELD,
+                        zinc_const::bitlength::FIELD,
                     )
                     .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
@@ -83,7 +83,7 @@ impl Place {
                     IntegerConstant::new(
                         start * BigInt::from(access.element_size),
                         false,
-                        zinc_const::BITLENGTH_FIELD,
+                        zinc_const::bitlength::FIELD,
                     )
                     .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
@@ -95,7 +95,7 @@ impl Place {
                     IntegerConstant::new(
                         start * BigInt::from(access.element_size),
                         false,
-                        zinc_const::BITLENGTH_FIELD,
+                        zinc_const::bitlength::FIELD,
                     )
                     .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
@@ -107,7 +107,7 @@ impl Place {
                     IntegerConstant::new(
                         BigInt::from(access.offset),
                         false,
-                        zinc_const::BITLENGTH_FIELD,
+                        zinc_const::bitlength::FIELD,
                     )
                     .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(

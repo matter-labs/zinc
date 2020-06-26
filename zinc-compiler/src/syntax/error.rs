@@ -5,69 +5,121 @@
 use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::location::Location;
 
+///
+/// The syntax error.
+///
 #[derive(Debug, PartialEq)]
 pub enum Error {
+    /// One of the common `expected-*` class errors.
     ExpectedOneOf {
+        /// The invalid lexeme location.
         location: Location,
+        /// The list of the expected lexemes.
         expected: String,
+        /// The invalid lexeme.
         found: Lexeme,
+        /// The optional error hint text.
         help: Option<&'static str>,
     },
+    /// One of the common `expected-*` class errors.
     ExpectedOneOfOrOperator {
+        /// The invalid lexeme location.
         location: Location,
+        /// The list of the expected lexemes.
         expected: String,
+        /// The invalid lexeme.
         found: Lexeme,
+        /// The optional error hint text.
         help: Option<&'static str>,
     },
+    /// One of the common `expected-*` class errors.
     ExpectedIdentifier {
+        /// The invalid lexeme location.
         location: Location,
+        /// The invalid lexeme.
         found: Lexeme,
+        /// The optional error hint text.
         help: Option<&'static str>,
     },
+    /// One of the common `expected-*` class errors.
     ExpectedMutOrIdentifier {
+        /// The invalid lexeme location.
         location: Location,
+        /// The invalid lexeme.
         found: Lexeme,
+        /// The optional error hint text.
         help: Option<&'static str>,
     },
+    /// One of the common `expected-*` class errors.
     ExpectedFieldIdentifier {
+        /// The invalid lexeme location.
         location: Location,
+        /// The invalid lexeme.
         found: Lexeme,
+        /// The optional error hint text.
         help: Option<&'static str>,
     },
+    /// One of the common `expected-*` class errors.
     ExpectedType {
+        /// The invalid lexeme location.
         location: Location,
+        /// The invalid lexeme.
         found: Lexeme,
+        /// The optional error hint text.
         help: Option<&'static str>,
     },
+    /// One of the common `expected-*` class errors.
     ExpectedExpressionOrOperand {
+        /// The invalid lexeme location.
         location: Location,
+        /// The invalid lexeme.
         found: Lexeme,
     },
+    /// One of the common `expected-*` class errors.
     ExpectedTypeOrValue {
+        /// The invalid lexeme location.
         location: Location,
+        /// The invalid lexeme.
         found: Lexeme,
+        /// The optional error hint text.
         help: Option<&'static str>,
     },
+    /// One of the common `expected-*` class errors.
     ExpectedValue {
+        /// The invalid lexeme location.
         location: Location,
+        /// The invalid lexeme.
         found: Lexeme,
+        /// The optional error hint text.
         help: Option<&'static str>,
     },
+    /// One of the common `expected-*` class errors.
     ExpectedIntegerLiteral {
+        /// The invalid lexeme location.
         location: Location,
+        /// The invalid lexeme.
         found: Lexeme,
     },
+    /// One of the common `expected-*` class errors.
     ExpectedBindingPattern {
+        /// The invalid lexeme location.
         location: Location,
+        /// The invalid lexeme.
         found: Lexeme,
     },
+    /// One of the common `expected-*` class errors.
     ExpectedMatchPattern {
+        /// The invalid lexeme location.
         location: Location,
+        /// The invalid lexeme.
         found: Lexeme,
     },
 }
 
 impl Error {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn expected_one_of(
         location: Location,
         expected: Vec<&'static str>,
@@ -82,6 +134,9 @@ impl Error {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn expected_one_of_or_operator(
         location: Location,
         expected: Vec<&'static str>,
@@ -96,6 +151,9 @@ impl Error {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn expected_identifier(
         location: Location,
         found: Lexeme,
@@ -108,6 +166,9 @@ impl Error {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn expected_mut_or_identifier(
         location: Location,
         found: Lexeme,
@@ -120,6 +181,9 @@ impl Error {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn expected_field_identifier(
         location: Location,
         found: Lexeme,
@@ -132,6 +196,9 @@ impl Error {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn expected_type(location: Location, found: Lexeme, help: Option<&'static str>) -> Self {
         Self::ExpectedType {
             location,
@@ -140,6 +207,9 @@ impl Error {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn expected_type_or_value(
         location: Location,
         found: Lexeme,
@@ -152,6 +222,9 @@ impl Error {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn expected_value(location: Location, found: Lexeme, help: Option<&'static str>) -> Self {
         Self::ExpectedValue {
             location,
@@ -160,22 +233,39 @@ impl Error {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn expected_expression_or_operand(location: Location, found: Lexeme) -> Self {
         Self::ExpectedExpressionOrOperand { location, found }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn expected_integer_literal(location: Location, found: Lexeme) -> Self {
         Self::ExpectedIntegerLiteral { location, found }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn expected_binding_pattern(location: Location, found: Lexeme) -> Self {
         Self::ExpectedBindingPattern { location, found }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn expected_match_pattern(location: Location, found: Lexeme) -> Self {
         Self::ExpectedMatchPattern { location, found }
     }
 
+    ///
+    /// Converts a group of lexemes into a comma-separated list.
+    ///
+    /// E.g. ["if", "for", "let"] turns into `if`, `for`, `let`.
+    ///
     pub fn format_one_of(lexemes: &[&'static str]) -> String {
         lexemes
             .iter()

@@ -10,7 +10,7 @@ use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Exit {
     fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
-        vm.exit(self.outputs_count)?;
+        vm.exit(self.output_size)?;
 
         Ok(())
     }

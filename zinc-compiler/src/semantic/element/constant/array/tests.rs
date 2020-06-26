@@ -26,7 +26,7 @@ fn main() {
         ElementError::Constant(ConstantError::Array(
             ArrayConstantError::PushingInvalidType {
                 location: Location::new(3, 32),
-                expected: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 found: Type::boolean(None).to_string(),
             },
         )),

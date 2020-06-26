@@ -1,5 +1,5 @@
 //!
-//! The field statement parser.
+//! The `field` statement parser.
 //!
 
 use std::cell::RefCell;
@@ -15,14 +15,23 @@ use crate::syntax::parser::r#type::Parser as TypeParser;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::field::builder::Builder as FieldStatementBuilder;
 
+/// The missing identifier error hint.
 pub static HINT_EXPECTED_IDENTIFIER: &str = "field must have an identifier, e.g. `data: u8;`";
+/// The missing type error hint.
 pub static HINT_EXPECTED_TYPE: &str = "field must have a type, e.g. `data: u8;`";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     Identifier,
+    /// The `{identifier}` has been parsed so far.
     Colon,
+    /// The `{identifier} :` has been parsed so far.
     Type,
+    /// The `{identifier} : {type}` has been parsed so far.
     Semicolon,
 }
 
@@ -32,10 +41,16 @@ impl Default for State {
     }
 }
 
+///
+/// The `field` statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: FieldStatementBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

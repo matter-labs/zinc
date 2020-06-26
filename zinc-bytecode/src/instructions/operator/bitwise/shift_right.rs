@@ -1,5 +1,5 @@
 //!
-//! The 'bitwise shift right' instruction.
+//! The `bitwise shift right` instruction.
 //!
 
 use std::fmt;
@@ -9,10 +9,16 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `bitwise shift right` instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct BitwiseShiftRight;
 
 impl BitwiseShiftRight {
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }

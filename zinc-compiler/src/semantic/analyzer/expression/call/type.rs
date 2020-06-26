@@ -16,7 +16,15 @@ pub enum Type {
     /// Built-in function like `dbg!` or `assert!` where the `!` specifier is required
     BuiltIn,
     /// Object method call where the first `self` argument must be temporarily stored
-    Method { instance: Element },
+    Method { instance: Box<Element> },
+}
+
+impl Type {
+    pub fn new_method(instance: Element) -> Self {
+        Self::Method {
+            instance: Box::new(instance),
+        }
+    }
 }
 
 impl Default for Type {

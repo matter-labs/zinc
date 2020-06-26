@@ -1,5 +1,5 @@
 //!
-//! The 'lesser comparison' instruction.
+//! The `lesser comparison` instruction.
 //!
 
 use std::fmt;
@@ -9,16 +9,18 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `lesser comparison` instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Lt;
 
 impl Lt {
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
-    }
-
-    pub fn wrap(self) -> Instruction {
-        Instruction::Lt(self)
     }
 }
 

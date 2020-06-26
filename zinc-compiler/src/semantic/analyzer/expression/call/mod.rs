@@ -87,7 +87,7 @@ impl Analyzer {
         };
 
         match call_type.take() {
-            CallType::Method { instance } => argument_list.arguments.insert(0, instance),
+            CallType::Method { instance } => argument_list.arguments.insert(0, *instance),
             another => call_type = another,
         }
 

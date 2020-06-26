@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use zinc_bytecode::BuiltinIdentifier;
+use zinc_bytecode::FunctionIdentifier;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::function::error::Error;
@@ -14,7 +14,7 @@ use crate::semantic::element::Element;
 #[derive(Debug, Clone)]
 pub struct Function {
     pub location: Option<Location>,
-    pub builtin_identifier: BuiltinIdentifier,
+    pub builtin_identifier: FunctionIdentifier,
     pub identifier: &'static str,
     pub return_type: Box<Type>,
 }
@@ -23,7 +23,7 @@ impl Function {
     pub const ARGUMENT_INDEX_VALUE: usize = 0;
     pub const ARGUMENT_COUNT: usize = 1;
 
-    pub fn new(builtin_identifier: BuiltinIdentifier) -> Self {
+    pub fn new(builtin_identifier: FunctionIdentifier) -> Self {
         Self {
             location: None,
             builtin_identifier,

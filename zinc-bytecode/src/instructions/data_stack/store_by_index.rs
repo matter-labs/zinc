@@ -1,5 +1,5 @@
 //!
-//! The 'store to stack by index' instruction.
+//! The `store to stack by index` instruction.
 //!
 
 use std::fmt;
@@ -9,23 +9,37 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
-/// Takes `index` and several values from evaluation stack, stores values in data stack at `address + index`.
+///
+/// The `store to stack by index` instruction.
+///
+/// Takes `index` and several values from evaluation stack,
+/// stores the values in the data stack at `address + index`.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct StoreByIndex {
+    /// The start address where the data must be stored to.
     pub address: usize,
-    pub array_len: usize,
-    pub value_len: usize,
+    /// The size of the data chunk which must be stored.
+    pub value_size: usize,
+    /// The total size of the data chunk where the linear scan must be applied.
+    pub total_size: usize,
 }
 
 impl StoreByIndex {
-    pub fn new(address: usize, array_len: usize, value_len: usize) -> Self {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(address: usize, value_size: usize, total_size: usize) -> Self {
         Self {
             address,
-            array_len,
-            value_len,
+            value_size,
+            total_size,
         }
     }
 
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }
@@ -42,7 +56,7 @@ impl fmt::Display for StoreByIndex {
         write!(
             f,
             "store_by_index {} {} {}",
-            self.address, self.array_len, self.value_len
+            self.address, self.value_size, self.total_size
         )
     }
 }

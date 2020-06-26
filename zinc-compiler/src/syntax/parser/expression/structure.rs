@@ -16,16 +16,26 @@ use crate::syntax::tree::expression::structure::builder::Builder as StructureExp
 use crate::syntax::tree::expression::structure::Expression as StructureExpression;
 use crate::syntax::tree::identifier::Identifier;
 
+/// The missing identifier error hint.
 pub static HINT_EXPECTED_IDENTIFIER: &str =
     "structure field must have an identifier, e.g. `{ a: 42 }`";
+/// The missing value error hint.
 pub static HINT_EXPECTED_VALUE: &str = "structure field must be initialized, e.g. `{ a: 42 }`";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     BracketCurlyLeft,
+    /// The `{` has been parsed so far.
     IdentifierOrBracketCurlyRight,
+    /// The `{ {identifier}` has been parsed so far.
     Colon,
+    /// The `{ {identifier} :` has been parsed so far.
     Expression,
+    /// The `{ {identifier} : {expression}` has been parsed so far.
     CommaOrBracketCurlyRight,
 }
 
@@ -35,10 +45,16 @@ impl Default for State {
     }
 }
 
+///
+/// The structure expression parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: StructureExpressionBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

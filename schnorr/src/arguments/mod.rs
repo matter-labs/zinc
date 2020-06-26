@@ -1,3 +1,7 @@
+//!
+//! The Zinc Schnorr signature tool arguments.
+//!
+
 pub mod gen_key;
 pub mod pub_key;
 pub mod sign;
@@ -5,13 +9,13 @@ pub mod sign;
 use failure::Fail;
 use structopt::StructOpt;
 
-use franklin_crypto::bellman::pairing::ff::PrimeField;
-use franklin_crypto::bellman::pairing::ff::PrimeFieldRepr;
-
 use self::gen_key::GenKeyCommand;
 use self::pub_key::PubKeyCommand;
 use self::sign::SignCommand;
 
+///
+/// The Zinc Schnorr signature tool arguments.
+///
 #[derive(StructOpt)]
 #[structopt(
     name = "schnorr",
@@ -22,22 +26,17 @@ pub struct Arguments {
     pub command: Command,
 }
 
+impl Arguments {
+    pub fn new() -> Self {
+        Self::from_args()
+    }
+}
+
 #[derive(StructOpt)]
 pub enum Command {
     GenKey(GenKeyCommand),
     PubKey(PubKeyCommand),
     Sign(SignCommand),
-}
-
-pub fn fr_into_hex<Fr: PrimeField>(fr: Fr) -> String {
-    let mut buffer = Vec::<u8>::new();
-
-    fr.into_repr()
-        .write_be(&mut buffer)
-        .expect("failed to write into Vec<u8>");
-
-    let num = num_bigint::BigInt::from_bytes_be(num_bigint::Sign::Plus, &buffer);
-    format!("0x{}", num.to_str_radix(16))
 }
 
 #[derive(Debug, Fail)]

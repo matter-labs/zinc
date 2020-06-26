@@ -10,14 +10,25 @@ use serde_derive::Serialize;
 
 use crate::data::r#type::scalar::integer::Type as IntegerType;
 
+///
+/// The Zinc VM template scalar value.
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Value {
+    /// Represented with JSON boolean.
     Boolean(bool),
+    /// Represented with numeric string. We cannot use the JSON native numeric type, because
+    /// it cannot store large values like `2^253`.
     Integer(BigInt, IntegerType),
+    /// Represented with numeric string. We cannot use the JSON native numeric type, because
+    /// it cannot store large values like `2^253`.
     Field(BigInt),
 }
 
 impl Value {
+    ///
+    /// Converts the value to a `BigInt`.
+    ///
     pub fn to_bigint(&self) -> BigInt {
         match self {
             Self::Boolean(value) => {

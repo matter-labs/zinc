@@ -16,7 +16,7 @@ use zinc_bytecode::TemplateValue;
 use zinc_vm::IFacade;
 
 use crate::error::Error;
-use crate::error::IoToError;
+use crate::error::IErrorPath;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "run", about = "Executes circuit and prints program's output")]

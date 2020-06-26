@@ -13,7 +13,7 @@ pub use self::data::r#type::Type as DataType;
 pub use self::data::value::error::Error as TemplateValueError;
 pub use self::data::value::Value as TemplateValue;
 pub use self::instructions::assert::Assert;
-pub use self::instructions::call_std::BuiltinIdentifier;
+pub use self::instructions::call_std::function_identifier::FunctionIdentifier;
 pub use self::instructions::call_std::CallStd;
 pub use self::instructions::contract::load::StorageLoad;
 pub use self::instructions::contract::store::StorageStore;

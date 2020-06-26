@@ -1,5 +1,5 @@
 //!
-//! The contract statement parser.
+//! The `contract` statement parser.
 //!
 
 use std::cell::RefCell;
@@ -17,14 +17,22 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::contract::builder::Builder as ContractStatementBuilder;
 use crate::syntax::tree::statement::contract::Statement as ContractStatement;
 
+/// The missing identifier error hint.
 pub static HINT_EXPECTED_IDENTIFIER: &str =
     "contract must have an identifier, e.g. `contract Uniswap { ... }`";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     KeywordContract,
+    /// The `contract` has been parsed so far.
     Identifier,
+    /// The `contract {identifier}` has been parsed so far.
     BracketCurlyLeftOrEnd,
+    /// The `contract {identifier} {` has been parsed so far.
     StatementOrBracketCurlyRight,
 }
 
@@ -34,10 +42,16 @@ impl Default for State {
     }
 }
 
+///
+/// The `contract` statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: ContractStatementBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

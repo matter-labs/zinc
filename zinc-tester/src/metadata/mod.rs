@@ -2,31 +2,24 @@
 //! The Zinc tester metadata.
 //!
 
+pub mod case;
 pub mod error;
 
 use std::str::FromStr;
 
 use serde_derive::Deserialize;
-use serde_json::Value as JsonValue;
 
+use self::case::Case;
 use self::error::Error;
 
-#[derive(Debug, Deserialize, PartialEq)]
-pub struct Case {
-    pub case: String,
-    #[serde(default = "crate::default_entry")]
-    pub entry: String,
-    pub input: JsonValue,
-    pub expect: JsonValue,
-    #[serde(default)]
-    pub should_panic: bool,
-    #[serde(default)]
-    pub ignore: bool,
-}
-
+///
+/// The test file metadata.
+///
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Metadata {
+    /// The test cases.
     pub cases: Vec<Case>,
+    /// If the entire test file must be ignored.
     #[serde(default)]
     pub ignore: bool,
 }

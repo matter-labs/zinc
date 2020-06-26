@@ -2,75 +2,106 @@
 //! The expression operator.
 //!
 
+///
+/// An expression tree operator.
+///
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Operator {
-    // assignment
+    /// The `=` operator.
     Assignment,
+    /// The `|=` operator.
     AssignmentBitwiseOr,
+    /// The `^=` operator.
     AssignmentBitwiseXor,
+    /// The `&=` operator.
     AssignmentBitwiseAnd,
+    /// The `<<=` operator.
     AssignmentBitwiseShiftLeft,
+    /// The `>>=` operator.
     AssignmentBitwiseShiftRight,
+    /// The `+=` operator.
     AssignmentAddition,
+    /// The `-=` operator.
     AssignmentSubtraction,
+    /// The `*=` operator.
     AssignmentMultiplication,
+    /// The `/=` operator.
     AssignmentDivision,
+    /// The `%=` operator.
     AssignmentRemainder,
 
-    // range
+    /// The `..` operator.
     Range,
+    /// The `..=` operator.
     RangeInclusive,
 
-    // binary logical
+    /// The `||` operator.
     Or,
+    /// The `^^` operator.
     Xor,
+    /// The `&&` operator.
     And,
 
-    // comparison
+    /// The `==` operator.
     Equals,
+    /// The `!=` operator.
     NotEquals,
+    /// The `>=` operator.
     GreaterEquals,
+    /// The `<=` operator.
     LesserEquals,
+    /// The `>` operator.
     Greater,
+    /// The `<` operator.
     Lesser,
 
-    // binary bitwise
+    /// The `|` operator.
     BitwiseOr,
+    /// The `^` operator.
     BitwiseXor,
+    /// The `&` operator.
     BitwiseAnd,
+    /// The `<<` operator.
     BitwiseShiftLeft,
+    /// The `>>` operator.
     BitwiseShiftRight,
 
-    // binary arithmetic
+    /// The `+` operator.
     Addition,
+    /// The binary `-` operator.
     Subtraction,
+    /// The `*` operator.
     Multiplication,
+    /// The `/` operator.
     Division,
+    /// The `%` operator.
     Remainder,
 
-    // type casting
+    /// The `as` operator.
     Casting,
 
-    // unary logical
+    /// The `!` operator.
     Not,
 
-    // unary bitwise
+    /// The `~` operator.
     BitwiseNot,
 
-    // unary arithmetic
+    /// The unary `-` operator.
     Negation,
 
-    // runtime access
+    /// The `[]` operator.
     Index,
+    /// The `.` operator.
     Dot,
 
-    // call
+    /// The built-in function call `!` quasi-operator.
     CallBuiltIn,
+    /// The function call `( ... )` quasi-operator.
     Call,
 
-    // compile-time access
+    /// The `::` operator.
     Path,
 
-    // structure literal
+    /// The structure literal `{ ... }` quasi-operator.
     Structure,
 }

@@ -16,9 +16,6 @@ use zinc_tester::ProofCheckRunner;
 
 use self::arguments::Arguments;
 
-const EXIT_CODE_SUCCESS: i32 = 0;
-const EXIT_CODE_FAILURE: i32 = 1;
-
 static TEST_DIRECTORY_INVALID: &str = "The test files directory must be valid";
 static RAYON_POOL_INITIALIZATION: &str = "The thread pool is initialized only once";
 
@@ -37,11 +34,11 @@ fn main() {
     );
 
     let result = if args.proof_check {
-        Directory::new(&PathBuf::from(zinc_tester::TESTS_DIRECTORY))
+        Directory::new(&PathBuf::from(zinc_tester::TEST_DEFAULT_DIRECTORY))
             .expect(TEST_DIRECTORY_INVALID)
             .run(ProofCheckRunner::new(args.verbosity, args.filter))
     } else {
-        Directory::new(&PathBuf::from(zinc_tester::TESTS_DIRECTORY))
+        Directory::new(&PathBuf::from(zinc_tester::TEST_DEFAULT_DIRECTORY))
             .expect(TEST_DIRECTORY_INVALID)
             .run(EvaluationRunner::new(args.verbosity, args.filter))
     };
@@ -54,7 +51,7 @@ fn main() {
                 "PASSED".green(),
                 summary
             );
-            EXIT_CODE_SUCCESS
+            zinc_const::exit_code::SUCCESS
         }
         summary => {
             println!(
@@ -63,7 +60,7 @@ fn main() {
                 "FAILED".bright_red(),
                 summary
             );
-            EXIT_CODE_FAILURE
+            zinc_const::exit_code::FAILURE
         }
     })
 }

@@ -65,14 +65,14 @@ impl From<TemplateValueError> for Error {
     }
 }
 
-pub trait IoToError<T> {
+pub trait IErrorPath<T> {
     fn error_with_path<P, F>(self, path: F) -> Result<T, Error>
     where
         P: Into<String>,
         F: FnOnce() -> P;
 }
 
-impl<T> IoToError<T> for Result<T, io::Error> {
+impl<T> IErrorPath<T> for Result<T, io::Error> {
     fn error_with_path<P, F>(self, path_fn: F) -> Result<T, Error>
     where
         P: Into<String>,

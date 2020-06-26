@@ -1,5 +1,5 @@
 //!
-//! The 'arithmetic division' instruction.
+//! The `arithmetic division` instruction.
 //!
 
 use std::fmt;
@@ -9,10 +9,16 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `arithmetic division` instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Div;
 
 impl Div {
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }

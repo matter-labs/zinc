@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use zinc_bytecode::BuiltinIdentifier;
+use zinc_bytecode::FunctionIdentifier;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::function::error::Error;
@@ -14,7 +14,7 @@ use crate::semantic::element::Element;
 #[derive(Debug, Clone)]
 pub struct Function {
     pub location: Option<Location>,
-    pub builtin_identifier: BuiltinIdentifier,
+    pub builtin_identifier: FunctionIdentifier,
     pub identifier: &'static str,
 }
 
@@ -22,7 +22,7 @@ impl Function {
     pub const ARGUMENT_INDEX_VALUE: usize = 0;
     pub const ARGUMENT_COUNT: usize = 1;
 
-    pub fn new(builtin_identifier: BuiltinIdentifier) -> Self {
+    pub fn new(builtin_identifier: FunctionIdentifier) -> Self {
         Self {
             location: None,
             builtin_identifier,
@@ -56,9 +56,11 @@ impl Function {
         }
 
         let return_type = match actual_params.get(Self::ARGUMENT_INDEX_VALUE) {
-            Some((Type::Boolean(_), _location)) => {
-                Type::array(location, Type::boolean(None), zinc_const::BITLENGTH_BOOLEAN)
-            }
+            Some((Type::Boolean(_), _location)) => Type::array(
+                location,
+                Type::boolean(None),
+                zinc_const::bitlength::BOOLEAN,
+            ),
             Some((Type::IntegerUnsigned { bitlength, .. }, _location)) => {
                 Type::array(location, Type::boolean(None), *bitlength)
             }
@@ -66,7 +68,7 @@ impl Function {
                 Type::array(location, Type::boolean(None), *bitlength)
             }
             Some((Type::Field(_), _location)) => {
-                Type::array(location, Type::boolean(None), zinc_const::BITLENGTH_FIELD)
+                Type::array(location, Type::boolean(None), zinc_const::bitlength::FIELD)
             }
             Some((r#type, location)) => {
                 return Err(Error::ArgumentType {

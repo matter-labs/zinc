@@ -19,11 +19,11 @@ use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
-pub struct SignedFromBits {
+pub struct FromBitsSigned {
     bitlength: usize,
 }
 
-impl SignedFromBits {
+impl FromBitsSigned {
     pub fn new(inputs_count: usize) -> Self {
         Self {
             bitlength: inputs_count,
@@ -31,7 +31,7 @@ impl SignedFromBits {
     }
 }
 
-impl<E: IEngine> INativeCallable<E> for SignedFromBits {
+impl<E: IEngine> INativeCallable<E> for FromBitsSigned {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,

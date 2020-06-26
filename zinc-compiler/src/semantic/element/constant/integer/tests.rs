@@ -25,7 +25,7 @@ fn ok_minimal_bitlength() {
             false,
             Location::default()
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 1),
+        Ok(zinc_const::bitlength::BYTE * 1),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -33,7 +33,7 @@ fn ok_minimal_bitlength() {
             false,
             Location::default()
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 1),
+        Ok(zinc_const::bitlength::BYTE * 1),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -41,7 +41,7 @@ fn ok_minimal_bitlength() {
             false,
             Location::default()
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 2),
+        Ok(zinc_const::bitlength::BYTE * 2),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -49,7 +49,7 @@ fn ok_minimal_bitlength() {
             false,
             Location::default()
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 2),
+        Ok(zinc_const::bitlength::BYTE * 2),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -57,7 +57,7 @@ fn ok_minimal_bitlength() {
             false,
             Location::default()
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 3),
+        Ok(zinc_const::bitlength::BYTE * 3),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -65,7 +65,7 @@ fn ok_minimal_bitlength() {
             false,
             Location::default(),
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 4),
+        Ok(zinc_const::bitlength::BYTE * 4),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -73,7 +73,7 @@ fn ok_minimal_bitlength() {
             false,
             Location::default(),
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 5),
+        Ok(zinc_const::bitlength::BYTE * 5),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -81,7 +81,7 @@ fn ok_minimal_bitlength() {
             false,
             Location::default(),
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 8),
+        Ok(zinc_const::bitlength::BYTE * 8),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -89,7 +89,7 @@ fn ok_minimal_bitlength() {
             false,
             Location::default(),
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 9),
+        Ok(zinc_const::bitlength::BYTE * 9),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -97,7 +97,7 @@ fn ok_minimal_bitlength() {
             true,
             Location::default()
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 1),
+        Ok(zinc_const::bitlength::BYTE * 1),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -105,7 +105,7 @@ fn ok_minimal_bitlength() {
             true,
             Location::default()
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 1),
+        Ok(zinc_const::bitlength::BYTE * 1),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -113,7 +113,7 @@ fn ok_minimal_bitlength() {
             true,
             Location::default()
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 2),
+        Ok(zinc_const::bitlength::BYTE * 2),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -121,7 +121,7 @@ fn ok_minimal_bitlength() {
             true,
             Location::default()
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 2),
+        Ok(zinc_const::bitlength::BYTE * 2),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -129,7 +129,7 @@ fn ok_minimal_bitlength() {
             true,
             Location::default()
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 3),
+        Ok(zinc_const::bitlength::BYTE * 3),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -137,7 +137,7 @@ fn ok_minimal_bitlength() {
             true,
             Location::default(),
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 4),
+        Ok(zinc_const::bitlength::BYTE * 4),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -145,7 +145,7 @@ fn ok_minimal_bitlength() {
             true,
             Location::default(),
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 5),
+        Ok(zinc_const::bitlength::BYTE * 5),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -153,7 +153,7 @@ fn ok_minimal_bitlength() {
             true,
             Location::default(),
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 8),
+        Ok(zinc_const::bitlength::BYTE * 8),
     );
     assert_eq!(
         IntegerConstant::minimal_bitlength(
@@ -161,7 +161,7 @@ fn ok_minimal_bitlength() {
             true,
             Location::default(),
         ),
-        Ok(zinc_const::BITLENGTH_BYTE * 9),
+        Ok(zinc_const::bitlength::BYTE * 9),
     );
 }
 
@@ -178,7 +178,7 @@ fn main() {
             IntegerConstantError::IntegerTooLarge {
                 location: Location::new(3, 19),
                 value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::panic::TEST_DATA_VALID),
-                bitlength: zinc_const::BITLENGTH_FIELD,
+                bitlength: zinc_const::bitlength::FIELD,
             },
         )),
     )));
@@ -201,7 +201,7 @@ fn main() {
             IntegerConstantError::IntegerTooLarge {
                 location: Location::new(3, 17),
                 value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::panic::TEST_DATA_VALID),
-                bitlength: zinc_const::BITLENGTH_FIELD,
+                bitlength: zinc_const::bitlength::FIELD,
             },
         )),
     )));
@@ -229,7 +229,7 @@ fn main() {
             IntegerConstantError::IntegerTooLarge {
                 location: Location::new(5, 9),
                 value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::panic::TEST_DATA_VALID),
-                bitlength: zinc_const::BITLENGTH_FIELD,
+                bitlength: zinc_const::bitlength::FIELD,
             },
         )),
     )));
@@ -251,8 +251,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreaterEquals {
                 location: Location::new(3, 17),
-                first: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 16).to_string(),
+                first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
         )),
     )));
@@ -279,7 +279,7 @@ fn main() {
             IntegerConstantError::TypesMismatchGreaterEquals {
                 location: Location::new(7, 17),
                 first: "enumeration Default".to_owned(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -332,8 +332,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesserEquals {
                 location: Location::new(3, 17),
-                first: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 16).to_string(),
+                first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
         )),
     )));
@@ -360,7 +360,7 @@ fn main() {
             IntegerConstantError::TypesMismatchLesserEquals {
                 location: Location::new(7, 17),
                 first: "enumeration Default".to_owned(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -413,8 +413,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreater {
                 location: Location::new(3, 17),
-                first: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 16).to_string(),
+                first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
         )),
     )));
@@ -441,7 +441,7 @@ fn main() {
             IntegerConstantError::TypesMismatchGreater {
                 location: Location::new(7, 17),
                 first: "enumeration Default".to_owned(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -494,8 +494,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesser {
                 location: Location::new(3, 17),
-                first: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 16).to_string(),
+                first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
         )),
     )));
@@ -522,7 +522,7 @@ fn main() {
             IntegerConstantError::TypesMismatchLesser {
                 location: Location::new(7, 17),
                 first: "enumeration Default".to_owned(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -575,8 +575,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseOr {
                 location: Location::new(3, 17),
-                first: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 16).to_string(),
+                first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
         )),
     )));
@@ -603,7 +603,7 @@ fn main() {
             IntegerConstantError::TypesMismatchBitwiseOr {
                 location: Location::new(7, 17),
                 first: "enumeration Default".to_owned(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -656,8 +656,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseXor {
                 location: Location::new(3, 17),
-                first: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 16).to_string(),
+                first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
         )),
     )));
@@ -684,7 +684,7 @@ fn main() {
             IntegerConstantError::TypesMismatchBitwiseXor {
                 location: Location::new(7, 17),
                 first: "enumeration Default".to_owned(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -737,8 +737,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseAnd {
                 location: Location::new(3, 17),
-                first: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 16).to_string(),
+                first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
         )),
     )));
@@ -765,7 +765,7 @@ fn main() {
             IntegerConstantError::TypesMismatchBitwiseAnd {
                 location: Location::new(7, 17),
                 first: "enumeration Default".to_owned(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -818,8 +818,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchAddition {
                 location: Location::new(3, 17),
-                first: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 16).to_string(),
+                first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
         )),
     )));
@@ -846,7 +846,7 @@ fn main() {
             IntegerConstantError::TypesMismatchAddition {
                 location: Location::new(7, 17),
                 first: "enumeration Default".to_owned(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -899,8 +899,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchSubtraction {
                 location: Location::new(3, 17),
-                first: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 16).to_string(),
+                first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
         )),
     )));
@@ -927,7 +927,7 @@ fn main() {
             IntegerConstantError::TypesMismatchSubtraction {
                 location: Location::new(7, 17),
                 first: "enumeration Default".to_owned(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -980,8 +980,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchMultiplication {
                 location: Location::new(3, 17),
-                first: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 16).to_string(),
+                first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
         )),
     )));
@@ -1008,7 +1008,7 @@ fn main() {
             IntegerConstantError::TypesMismatchMultiplication {
                 location: Location::new(7, 17),
                 first: "enumeration Default".to_owned(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1061,8 +1061,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchDivision {
                 location: Location::new(3, 17),
-                first: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 16).to_string(),
+                first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
         )),
     )));
@@ -1089,7 +1089,7 @@ fn main() {
             IntegerConstantError::TypesMismatchDivision {
                 location: Location::new(7, 17),
                 first: "enumeration Default".to_owned(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1142,8 +1142,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchRemainder {
                 location: Location::new(3, 17),
-                first: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE * 16).to_string(),
+                first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
         )),
     )));
@@ -1170,7 +1170,7 @@ fn main() {
             IntegerConstantError::TypesMismatchRemainder {
                 location: Location::new(7, 17),
                 first: "enumeration Default".to_owned(),
-                second: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1227,7 +1227,7 @@ fn main() {
                     Location::new(3, 25),
                     BigInt::from(-2),
                     true,
-                    zinc_const::BITLENGTH_BYTE,
+                    zinc_const::bitlength::BYTE,
                 )
                 .to_string(),
             },
@@ -1255,7 +1255,7 @@ fn main() {
                     Location::new(3, 24),
                     BigInt::from(-2),
                     true,
-                    zinc_const::BITLENGTH_BYTE,
+                    zinc_const::bitlength::BYTE,
                 )
                 .to_string(),
             },
@@ -1280,7 +1280,7 @@ fn main() {
             IntegerConstantError::OverflowAddition {
                 location: Location::new(3, 18),
                 value: BigInt::from(-170),
-                r#type: Type::integer(None, true, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1303,7 +1303,7 @@ fn main() {
             IntegerConstantError::OverflowAddition {
                 location: Location::new(3, 17),
                 value: BigInt::from(142),
-                r#type: Type::integer(None, true, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1326,7 +1326,7 @@ fn main() {
             IntegerConstantError::OverflowAddition {
                 location: Location::new(3, 17),
                 value: BigInt::from(297),
-                r#type: Type::integer(None, false, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, false, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1349,7 +1349,7 @@ fn main() {
             IntegerConstantError::OverflowSubtraction {
                 location: Location::new(3, 18),
                 value: BigInt::from(-142),
-                r#type: Type::integer(None, true, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1372,7 +1372,7 @@ fn main() {
             IntegerConstantError::OverflowSubtraction {
                 location: Location::new(3, 18),
                 value: BigInt::from(150),
-                r#type: Type::integer(None, true, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1395,7 +1395,7 @@ fn main() {
             IntegerConstantError::OverflowSubtraction {
                 location: Location::new(3, 17),
                 value: BigInt::from(-213),
-                r#type: Type::integer(None, false, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, false, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1418,7 +1418,7 @@ fn main() {
             IntegerConstantError::OverflowMultiplication {
                 location: Location::new(3, 18),
                 value: BigInt::from(-200),
-                r#type: Type::integer(None, true, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1441,7 +1441,7 @@ fn main() {
             IntegerConstantError::OverflowMultiplication {
                 location: Location::new(3, 17),
                 value: BigInt::from(200),
-                r#type: Type::integer(None, true, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1464,7 +1464,7 @@ fn main() {
             IntegerConstantError::OverflowMultiplication {
                 location: Location::new(3, 17),
                 value: BigInt::from(420),
-                r#type: Type::integer(None, false, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, false, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1487,7 +1487,7 @@ fn main() {
             IntegerConstantError::OverflowDivision {
                 location: Location::new(3, 18),
                 value: BigInt::from(128),
-                r#type: Type::integer(None, true, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1510,7 +1510,7 @@ fn main() {
             IntegerConstantError::OverflowCasting {
                 location: Location::new(3, 17),
                 value: BigInt::from(200),
-                r#type: Type::integer(None, true, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1533,7 +1533,7 @@ fn main() {
             IntegerConstantError::OverflowCasting {
                 location: Location::new(3, 19),
                 value: BigInt::from(-100),
-                r#type: Type::integer(None, false, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, false, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1556,7 +1556,7 @@ fn main() {
             IntegerConstantError::OverflowNegation {
                 location: Location::new(3, 19),
                 value: BigInt::from(128),
-                r#type: Type::integer(None, true, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));
@@ -1579,7 +1579,7 @@ fn main() {
             IntegerConstantError::OverflowNegation {
                 location: Location::new(3, 18),
                 value: BigInt::from(-200),
-                r#type: Type::integer(None, true, zinc_const::BITLENGTH_BYTE).to_string(),
+                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
             },
         )),
     )));

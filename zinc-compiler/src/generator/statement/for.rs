@@ -35,6 +35,7 @@ pub struct Statement {
 }
 
 impl Statement {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         location: Location,
         initial_value: BigInt,

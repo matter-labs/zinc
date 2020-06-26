@@ -1,5 +1,5 @@
 //!
-//! The instructions.
+//! The Zinc VM bytecode instruction.
 //!
 
 pub mod assert;
@@ -67,81 +67,124 @@ use self::operator::logical::not::Not;
 use self::operator::logical::or::Or;
 use self::operator::logical::xor::Xor;
 
+///
+/// The Zinc VM bytecode instruction.
+///
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Instruction {
+    /// The no-operation instruction.
     NoOperation(NoOperation),
 
-    // evaluation stack
+    /// An evaluation stack instruction.
     Push(Push),
+    /// An evaluation stack instruction.
     Slice(Slice),
+    /// An evaluation stack instruction.
     Copy(Copy),
 
-    // data stack
+    /// A data stack instruction.
     Load(Load),
+    /// A data stack instruction.
     LoadByIndex(LoadByIndex),
+    /// A data stack instruction.
     Store(Store),
+    /// A data stack instruction.
     StoreByIndex(StoreByIndex),
 
-    // contract storage
+    /// A contract storage instruction.
     StorageStore(StorageStore),
+    /// A contract storage instruction.
     StorageLoad(StorageLoad),
 
-    // arithmetic operations
+    /// An arithmetic operator instruction.
     Add(Add),
+    /// An arithmetic operator instruction.
     Sub(Sub),
+    /// An arithmetic operator instruction.
     Mul(Mul),
+    /// An arithmetic operator instruction.
     Div(Div),
+    /// An arithmetic operator instruction.
     Rem(Rem),
+    /// An arithmetic operator instruction.
     Neg(Neg),
 
-    // logical operations
+    /// A logical operator instruction.
     Not(Not),
+    /// A logical operator instruction.
     And(And),
+    /// A logical operator instruction.
     Or(Or),
+    /// A logical operator instruction.
     Xor(Xor),
 
-    // comparison operations
+    /// A comparison operator instruction.
     Lt(Lt),
+    /// A comparison operator instruction.
     Le(Le),
+    /// A comparison operator instruction.
     Eq(Eq),
+    /// A comparison operator instruction.
     Ne(Ne),
+    /// A comparison operator instruction.
     Ge(Ge),
+    /// A comparison operator instruction.
     Gt(Gt),
 
-    // bitwise operations
+    /// A bitwise operator instruction.
     BitwiseShiftLeft(BitwiseShiftLeft),
+    /// A bitwise operator instruction.
     BitwiseShiftRight(BitwiseShiftRight),
+    /// A bitwise operator instruction.
     BitwiseAnd(BitwiseAnd),
+    /// A bitwise operator instruction.
     BitwiseOr(BitwiseOr),
+    /// A bitwise operator instruction.
     BitwiseXor(BitwiseXor),
+    /// A bitwise operator instruction.
     BitwiseNot(BitwiseNot),
 
-    // casting operation
+    /// The cast operator instruction.
     Cast(Cast),
 
-    // flow control
+    /// A flow control instruction.
     If(If),
+    /// A flow control instruction.
     Else(Else),
+    /// A flow control instruction.
     EndIf(EndIf),
+    /// A flow control instruction.
     LoopBegin(LoopBegin),
+    /// A flow control instruction.
     LoopEnd(LoopEnd),
+    /// A flow control instruction.
     Call(Call),
+    /// A flow control instruction.
     Return(Return),
+    /// A flow control instruction.
     Exit(Exit),
 
-    // built-in function calls
+    /// The standard library function call instruction.
     CallStd(CallStd),
+    /// A built-in function call instruction.
     Assert(Assert),
+    /// A built-in function call instruction.
     Dbg(Dbg),
 
-    // debug location markers
+    /// A debug location marker instruction.
     FileMarker(FileMarker),
+    /// A debug location marker instruction.
     FunctionMarker(FunctionMarker),
+    /// A debug location marker instruction.
     LineMarker(LineMarker),
+    /// A debug location marker instruction.
     ColumnMarker(ColumnMarker),
 }
 
 impl Instruction {
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         match self {
             Self::NoOperation(inner) => inner.is_debug(),

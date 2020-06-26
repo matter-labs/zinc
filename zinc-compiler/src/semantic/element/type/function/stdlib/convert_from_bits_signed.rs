@@ -5,7 +5,7 @@
 use std::fmt;
 use std::ops::Deref;
 
-use zinc_bytecode::BuiltinIdentifier;
+use zinc_bytecode::FunctionIdentifier;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::function::error::Error;
@@ -15,7 +15,7 @@ use crate::semantic::element::Element;
 #[derive(Debug, Clone)]
 pub struct Function {
     pub location: Option<Location>,
-    pub builtin_identifier: BuiltinIdentifier,
+    pub builtin_identifier: FunctionIdentifier,
     pub identifier: &'static str,
 }
 
@@ -23,7 +23,7 @@ impl Function {
     pub const ARGUMENT_INDEX_BITS: usize = 0;
     pub const ARGUMENT_COUNT: usize = 1;
 
-    pub fn new(builtin_identifier: BuiltinIdentifier) -> Self {
+    pub fn new(builtin_identifier: FunctionIdentifier) -> Self {
         Self {
             location: None,
             builtin_identifier,
@@ -59,9 +59,9 @@ impl Function {
         let return_type = match actual_params.get(Self::ARGUMENT_INDEX_BITS) {
             Some((Type::Array(array), location)) => match (array.r#type.deref(), array.size) {
                 (Type::Boolean(_), size)
-                    if zinc_const::BITLENGTH_BYTE <= size
-                        && size <= zinc_const::BITLENGTH_INTEGER_MAX
-                        && size % zinc_const::BITLENGTH_BYTE == 0 =>
+                    if zinc_const::bitlength::BYTE <= size
+                        && size <= zinc_const::bitlength::INTEGER_MAX
+                        && size % zinc_const::bitlength::BYTE == 0 =>
                 {
                     Type::integer_signed(None, size)
                 }
@@ -73,8 +73,8 @@ impl Function {
                         position: Self::ARGUMENT_INDEX_BITS + 1,
                         expected: format!(
                             "[bool; N], {0} <= N <= {1}, N % {0} == 0",
-                            zinc_const::BITLENGTH_BYTE,
-                            zinc_const::BITLENGTH_INTEGER_MAX
+                            zinc_const::bitlength::BYTE,
+                            zinc_const::bitlength::INTEGER_MAX
                         ),
                         found: format!("array [{}; {}]", r#type, size),
                     })
@@ -88,8 +88,8 @@ impl Function {
                     position: Self::ARGUMENT_INDEX_BITS + 1,
                     expected: format!(
                         "[bool; N], {0} <= N <= {1}, N % {0} == 0",
-                        zinc_const::BITLENGTH_BYTE,
-                        zinc_const::BITLENGTH_INTEGER_MAX
+                        zinc_const::bitlength::BYTE,
+                        zinc_const::bitlength::INTEGER_MAX
                     ),
                     found: r#type.to_string(),
                 })

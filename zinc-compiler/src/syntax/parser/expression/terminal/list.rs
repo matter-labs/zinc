@@ -1,5 +1,5 @@
 //!
-//! The expression (function argument) list parser.
+//! The function argument list expression parser.
 //!
 
 use std::cell::RefCell;
@@ -15,9 +15,14 @@ use crate::syntax::parser::expression::Parser as ExpressionParser;
 use crate::syntax::tree::expression::list::builder::Builder as ListExpressionBuilder;
 use crate::syntax::tree::expression::list::Expression as ListExpression;
 
+///
+/// The function argument list expression parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The builder of the parsed value.
     builder: ListExpressionBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

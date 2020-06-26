@@ -16,10 +16,16 @@ use crate::syntax::tree::expression::block::builder::Builder as BlockExpressionB
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
 use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     BracketCurlyLeft,
+    /// The `{` has been parsed so far.
     StatementOrBracketCurlyRight,
+    /// The `{` with several statements and probably an expression has been parsed so far.
     BracketCurlyRight,
 }
 
@@ -29,10 +35,16 @@ impl Default for State {
     }
 }
 
+///
+/// The block expression parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: BlockExpressionBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

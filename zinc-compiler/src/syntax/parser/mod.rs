@@ -24,14 +24,18 @@ use crate::lexical::token::Token;
 use crate::syntax::parser::statement::local_mod::Parser as ModuleLocalStatementParser;
 use crate::syntax::tree::module::Module;
 
+///
+/// The module top-level parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 
 impl Parser {
     ///
-    /// The top-level parser. Parses a list of module level statements.
+    /// Parses a list of module level statements.
     ///
     pub fn parse(mut self, input: &str, file: Option<usize>) -> Result<Module, Error> {
         let stream = match file {
@@ -60,6 +64,9 @@ impl Parser {
     }
 }
 
+///
+/// Returns the `token` value if it is `Some(_)`, otherwise takes the next token from the `stream`.
+///
 pub fn take_or_next(
     mut token: Option<Token>,
     stream: Rc<RefCell<TokenStream>>,

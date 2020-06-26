@@ -8,11 +8,18 @@ use crate::syntax::tree::expression::tree::node::operator::Operator as Expressio
 use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
+///
+/// The expression tree builder.
+///
 #[derive(Debug, Default, Clone)]
 pub struct Builder {
+    /// The location of the syntax construction.
     location: Option<Location>,
+    /// The value of the node, which is either an operand or operator.
     value: Option<ExpressionTreeNode>,
+    /// The left child of the node.
     left: Option<ExpressionTree>,
+    /// The right child of the node.
     right: Option<ExpressionTree>,
 }
 
@@ -158,10 +165,13 @@ impl Builder {
     }
 
     ///
-    /// Yields a built expression tree.
+    /// Finalizes the builder and returns the built expression tree.
     ///
     /// If the current node is empty, but the left leaf is set, the leaf is moved up
     /// to the current node.
+    ///
+    /// # Panics
+    /// If some of the required items has not been set.
     ///
     pub fn finish(mut self) -> ExpressionTree {
         if self.value.is_none() && self.left.is_some() {
@@ -183,28 +193,46 @@ impl Builder {
         )
     }
 
+    ///
+    /// Sets the location.
+    ///
     fn set_location(&mut self, value: Location) {
         self.location = Some(value);
     }
 
+    ///
+    /// Sets the location if it has not been set.
+    ///
     fn set_location_if_unset(&mut self, value: Location) {
         if self.location.is_none() {
             self.set_location(value);
         }
     }
 
+    ///
+    /// Sets the current node value to the operand.
+    ///
     fn set_value_operand(&mut self, value: ExpressionOperand) {
         self.value = Some(ExpressionTreeNode::operand(value));
     }
 
+    ///
+    /// Sets the current node value to the operator.
+    ///
     fn set_value_operator(&mut self, value: ExpressionOperator) {
         self.value = Some(ExpressionTreeNode::operator(value));
     }
 
+    ///
+    /// Sets the current node left child.
+    ///
     fn set_left(&mut self, value: ExpressionTree) {
         self.left = Some(value);
     }
 
+    ///
+    /// Sets the current node left child to the operand.
+    ///
     fn set_left_operand(&mut self, value: ExpressionOperand, location: Location) {
         self.left = Some(ExpressionTree::new(
             location,
@@ -212,10 +240,16 @@ impl Builder {
         ));
     }
 
+    ///
+    /// Sets the current node right child.
+    ///
     fn set_right(&mut self, value: ExpressionTree) {
         self.right = Some(value);
     }
 
+    ///
+    /// Sets the current node right child to the operand.
+    ///
     fn set_right_operand(&mut self, value: ExpressionOperand, location: Location) {
         self.right = Some(ExpressionTree::new(
             location,

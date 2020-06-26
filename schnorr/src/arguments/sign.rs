@@ -1,3 +1,7 @@
+//!
+//! The `sign` command arguments.
+//!
+
 use std::io::Read;
 use std::path::PathBuf;
 
@@ -8,13 +12,15 @@ use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::eddsa;
 
-use crate::arguments::fr_into_hex;
 use crate::arguments::Error;
 
+///
+/// The `sign` command arguments.
+///
 #[derive(StructOpt)]
-#[structopt(name = "sign", about = "generate signature")]
+#[structopt(name = "sign", about = "generate a signature")]
 pub struct SignCommand {
-    #[structopt(short = "k", long = "key", help = "path to private key")]
+    #[structopt(short = "k", long = "key", help = "path to the private key")]
     key: PathBuf,
 
     #[structopt(
@@ -46,14 +52,14 @@ impl SignCommand {
 
         let r = {
             let (x, y) = signature.r.into_xy();
-            (fr_into_hex(x), fr_into_hex(y))
+            (schnorr::fr_into_hex(x), schnorr::fr_into_hex(y))
         };
 
-        let s = fr_into_hex(signature.s);
+        let s = schnorr::fr_into_hex(signature.s);
 
         let pk = {
             let (x, y) = pub_key.0.into_xy();
-            (fr_into_hex(x), fr_into_hex(y))
+            (schnorr::fr_into_hex(x), schnorr::fr_into_hex(y))
         };
 
         let value = json!({

@@ -207,11 +207,11 @@ impl IFacade for BytecodeCircuit {
         let mut result = None;
         let rng = &mut rand::thread_rng();
 
-        let witness_flat = witness.into_flat_values();
+        let inputs_flat = witness.into_flat_values();
         let output_type = self.output.to_owned();
 
         let synthesizable = CircuitSynthesizer {
-            inputs: Some(witness_flat),
+            inputs: Some(inputs_flat),
             output: &mut result,
             bytecode: self,
 

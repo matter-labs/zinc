@@ -13,21 +13,37 @@ use crate::syntax::tree::statement::r#struct::Statement as StructStatement;
 use crate::syntax::tree::statement::r#type::Statement as TypeStatement;
 use crate::syntax::tree::statement::r#use::Statement as UseStatement;
 
+///
+/// The module-level statement.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
+    /// The `const` statement.
     Const(ConstStatement),
+    /// The `type` statement.
     Type(TypeStatement),
+    /// The `struct` statement.
     Struct(StructStatement),
+    /// The `enum` statement.
     Enum(EnumStatement),
+    /// The `fn` statement.
     Fn(FnStatement),
+    /// The `mod` statement.
     Mod(ModStatement),
+    /// The `use` statement.
     Use(UseStatement),
+    /// The `impl` statement.
     Impl(ImplStatement),
+    /// The `contract` statement.
     Contract(ContractStatement),
+    /// The empty `;` statement.
     Empty(Location),
 }
 
 impl Statement {
+    ///
+    /// The statement location.
+    ///
     pub fn location(&self) -> Location {
         match self {
             Self::Const(inner) => inner.location,

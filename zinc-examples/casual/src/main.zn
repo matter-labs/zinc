@@ -1,32 +1,26 @@
-contract Test {
-    a: u8;
-    b: u8;
-
-    pub fn main() -> Self { Self { a: 5, b: 10 } }
+struct Data {
+    a: u8,
+    b: u8,
 }
 
-#[test]
-fn test_1() {
-    let mut _contract = Test::main();
-    _contract.a += 5;
-    _contract.b += 10;
+fn main() -> Data {
+    f1(1);
+    f3(1);
 
-    assert!(_contract.a == 10);
-    assert!(_contract.b == 20);
+    Data {
+        a: 5,
+        b: 10
+    }
 }
 
-#[test]
-#[should_panic]
-fn test_2() {
-    assert!(false, "panic message");
+fn f1(a: u8) {
+    dbg!("f1({})", a);
 }
 
-#[test]
-fn test_3() {
-    assert!(true);
+fn f2(a: u8) {
+    dbg!("f2({})", a);
 }
 
-#[test]
-fn test_4() {
-    assert!(true);
+fn f3(a: u8) {
+    dbg!("f3({})", a);
 }

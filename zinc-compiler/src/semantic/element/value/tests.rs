@@ -27,7 +27,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::OperatorOrFirstOperandExpectedBoolean {
             location: Location::new(5, 17),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));
 
@@ -49,7 +49,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::OperatorOrSecondOperandExpectedBoolean {
             location: Location::new(5, 28),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));
 
@@ -71,7 +71,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::OperatorXorFirstOperandExpectedBoolean {
             location: Location::new(5, 17),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));
 
@@ -93,7 +93,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::OperatorXorSecondOperandExpectedBoolean {
             location: Location::new(5, 28),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));
 
@@ -115,7 +115,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::OperatorAndFirstOperandExpectedBoolean {
             location: Location::new(5, 17),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));
 
@@ -137,7 +137,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::OperatorAndSecondOperandExpectedBoolean {
             location: Location::new(5, 28),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));
 
@@ -162,7 +162,7 @@ fn main() {
                 location: Location::new(5, 17),
                 found: Type::array(
                     Some(Location::new(5, 17)),
-                    Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE),
+                    Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                     3,
                 )
                 .to_string(),
@@ -188,7 +188,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::OperatorEqualsSecondOperandExpectedUnit {
             location: Location::new(5, 25),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));
 
@@ -210,7 +210,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::OperatorEqualsSecondOperandExpectedBoolean {
             location: Location::new(5, 28),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));
 
@@ -257,7 +257,7 @@ fn main() {
                 location: Location::new(5, 17),
                 found: Type::array(
                     Some(Location::new(5, 17)),
-                    Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE),
+                    Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                     3,
                 )
                 .to_string(),
@@ -283,7 +283,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::OperatorNotEqualsSecondOperandExpectedUnit {
             location: Location::new(5, 25),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));
 
@@ -305,7 +305,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::OperatorNotEqualsSecondOperandExpectedBoolean {
             location: Location::new(5, 28),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));
 
@@ -986,7 +986,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::OperatorNotExpectedBoolean {
             location: Location::new(4, 18),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));
 

@@ -25,14 +25,22 @@ use crate::syntax::parser::statement::r#use::Parser as UseStatementParser;
 use crate::syntax::tree::attribute::Attribute;
 use crate::syntax::tree::statement::local_mod::Statement as ModuleLocalStatement;
 
+/// The invalid statement error hint.
 pub static HINT_ONLY_SOME_STATEMENTS: &str =
     "only constants, types, functions, and type implementations may be declared at the module root";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     AttributeOrNext,
+    /// The attribute list has been parsed so far. Expects the optional `pub` keyword.
     KeywordPubOrNext,
+    /// The attribute list has been parsed so far. Expects the optional `const` keyword.
     KeywordConstOrNext,
+    /// The attribute list with optional `pub` and `const` keywords have been parsed so far.
     Statement,
 }
 
@@ -42,12 +50,20 @@ impl Default for State {
     }
 }
 
+///
+/// The module-local statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The `pub` keyword token, which is stored to get its location as the statement location.
     keyword_public: Option<Token>,
+    /// The `const` keyword token, which is stored to get its location as the statement location.
     keyword_constant: Option<Token>,
+    /// The statement outer attributes.
     attributes: Vec<Attribute>,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

@@ -10,9 +10,9 @@ use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Store {
     fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
-        for i in 0..self.len {
+        for i in 0..self.size {
             let value = vm.pop()?;
-            vm.store(self.address + self.len - i - 1, value)?;
+            vm.store(self.address + self.size - i - 1, value)?;
         }
 
         Ok(())

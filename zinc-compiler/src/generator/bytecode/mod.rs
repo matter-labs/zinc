@@ -4,6 +4,7 @@
 
 pub mod entry;
 pub mod metadata;
+pub mod optimizer;
 pub mod test;
 
 use std::cell::RefCell;
@@ -21,6 +22,7 @@ use crate::source::file::index::INDEX as FILE_INDEX;
 
 use self::entry::Entry;
 use self::metadata::Metadata;
+use self::optimizer::elimination::Elimination as EliminationOptimizer;
 use self::test::Test;
 
 ///
@@ -226,31 +228,11 @@ impl Bytecode {
                 Instruction::Call(zinc_bytecode::Call::new(entry_id, metadata.input_size()));
             instructions[1] = Instruction::Exit(zinc_bytecode::Exit::new(metadata.output_size()));
 
-            for instruction in instructions.iter_mut() {
-                if let Instruction::Call(zinc_bytecode::Call {
-                    address: ref mut type_id,
-                    ..
-                }) = instruction
-                {
-                    *type_id = self
-                        .function_addresses
-                        .get(&type_id)
-                        .copied()
-                        .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
-                }
-            }
+            let EliminationOptimizer {
+                output: instructions,
+            } = EliminationOptimizer::optimize(self.function_addresses.clone(), instructions);
 
-            for (index, instruction) in instructions.iter().enumerate() {
-                match instruction {
-                    instruction @ Instruction::FileMarker(_)
-                    | instruction @ Instruction::FunctionMarker(_)
-                    | instruction @ Instruction::LineMarker(_)
-                    | instruction @ Instruction::ColumnMarker(_) => {
-                        log::trace!("{:03} {:?}", index, instruction)
-                    }
-                    instruction => log::debug!("{:03} {:?}", index, instruction),
-                }
-            }
+            Self::print_instructions(instructions.as_slice());
 
             let bytecode = match self.contract_storage.as_ref() {
                 Some(storage) => {
@@ -305,31 +287,11 @@ impl Bytecode {
             instructions[0] = Instruction::Call(zinc_bytecode::Call::new(entry_id, 0));
             instructions[1] = Instruction::Exit(zinc_bytecode::Exit::new(0));
 
-            for instruction in instructions.iter_mut() {
-                if let Instruction::Call(zinc_bytecode::Call {
-                    address: ref mut type_id,
-                    ..
-                }) = instruction
-                {
-                    *type_id = self
-                        .function_addresses
-                        .get(&type_id)
-                        .copied()
-                        .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
-                }
-            }
+            let EliminationOptimizer {
+                output: instructions,
+            } = EliminationOptimizer::optimize(self.function_addresses.clone(), instructions);
 
-            for (index, instruction) in instructions.iter().enumerate() {
-                match instruction {
-                    instruction @ Instruction::FileMarker(_)
-                    | instruction @ Instruction::FunctionMarker(_)
-                    | instruction @ Instruction::LineMarker(_)
-                    | instruction @ Instruction::ColumnMarker(_) => {
-                        log::trace!("{:03} {:?}", index, instruction)
-                    }
-                    instruction => log::debug!("{:03} {:?}", index, instruction),
-                }
-            }
+            Self::print_instructions(instructions.as_slice());
 
             let bytecode = match self.contract_storage.as_ref() {
                 Some(storage) => {
@@ -359,5 +321,19 @@ impl Bytecode {
         }
 
         data
+    }
+
+    fn print_instructions(instructions: &[Instruction]) {
+        for (index, instruction) in instructions.iter().enumerate() {
+            match instruction {
+                instruction @ Instruction::FileMarker(_)
+                | instruction @ Instruction::FunctionMarker(_)
+                | instruction @ Instruction::LineMarker(_)
+                | instruction @ Instruction::ColumnMarker(_) => {
+                    log::trace!("{:03} {:?}", index, instruction)
+                }
+                instruction => log::debug!("{:03} {:?}", index, instruction),
+            }
+        }
     }
 }

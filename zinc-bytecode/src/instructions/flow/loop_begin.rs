@@ -1,5 +1,5 @@
 //!
-//! The 'loop begin' instruction.
+//! The `loop begin` instruction.
 //!
 
 use std::fmt;
@@ -9,16 +9,26 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `loop begin` instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LoopBegin {
+    /// The total number of loop iterations.
     pub iterations: usize,
 }
 
 impl LoopBegin {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(iterations: usize) -> Self {
         Self { iterations }
     }
 
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }

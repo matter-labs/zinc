@@ -151,7 +151,7 @@ mod tests {
         let expected = (
             input.len(),
             Lexeme::Keyword(Keyword::new_integer_unsigned(
-                zinc_const::BITLENGTH_INTEGER_MAX,
+                zinc_const::bitlength::INTEGER_MAX,
             )),
         );
         let result = parse(input);

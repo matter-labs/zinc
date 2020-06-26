@@ -125,7 +125,7 @@ fn main() {
                 location: Location::new(8, 9),
                 type_identifier: "Data".to_owned(),
                 field_name: "a".to_owned(),
-                expected: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 found: Type::boolean(None).to_string(),
             },
         )),

@@ -2,9 +2,6 @@
 //! A semantic analyzer tests.
 //!
 
-#![allow(dead_code)]
-#![allow(unused_imports)]
-
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -171,9 +168,9 @@ fn main() -> u8 {
     let result = crate::semantic::tests::compile_module(
         code,
         0,
-        Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
-        Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
-        Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+        Scope::new_global(zinc_const::source::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+        Scope::new_global(zinc_const::source::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+        Scope::new_global(zinc_const::source::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
     )
     .unwrap_err();
 
@@ -195,9 +192,9 @@ contract Uniswap {
     let result = crate::semantic::tests::compile_module(
         code,
         0,
-        Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
-        Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
-        Scope::new_global(crate::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+        Scope::new_global(zinc_const::source::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+        Scope::new_global(zinc_const::source::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+        Scope::new_global(zinc_const::source::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
     )
     .unwrap_err();
 

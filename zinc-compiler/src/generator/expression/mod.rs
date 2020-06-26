@@ -11,8 +11,8 @@ use std::rc::Rc;
 
 use num_bigint::BigInt;
 
-use zinc_bytecode::BuiltinIdentifier;
 use zinc_bytecode::DataType;
+use zinc_bytecode::FunctionIdentifier;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::ScalarType;
 
@@ -311,7 +311,7 @@ impl Expression {
                             IntegerConstant::new(
                                 BigInt::from(offset),
                                 false,
-                                zinc_const::BITLENGTH_FIELD,
+                                zinc_const::bitlength::FIELD,
                             )
                             .write_all_to_bytecode(bytecode.clone());
                         } else {
@@ -323,8 +323,8 @@ impl Expression {
                         }
                         bytecode.borrow_mut().push_instruction(
                             Instruction::Slice(zinc_bytecode::Slice::new(
-                                access.total_size,
                                 access.element_size,
+                                access.total_size,
                             )),
                             Some(location),
                         );
@@ -333,13 +333,13 @@ impl Expression {
                         IntegerConstant::new(
                             BigInt::from(access.offset),
                             false,
-                            zinc_const::BITLENGTH_FIELD,
+                            zinc_const::bitlength::FIELD,
                         )
                         .write_all_to_bytecode(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(
                             Instruction::Slice(zinc_bytecode::Slice::new(
-                                access.total_size,
                                 access.element_size,
+                                access.total_size,
                             )),
                             Some(location),
                         );
@@ -406,8 +406,8 @@ impl Expression {
                     if is_indexed {
                         Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(
                             address,
-                            total_size,
                             element_size,
+                            total_size,
                         ))
                     } else {
                         Instruction::Store(zinc_bytecode::Store::new(address, total_size))
@@ -434,7 +434,7 @@ impl Expression {
                     IntegerConstant::new(
                         BigInt::from(position),
                         false,
-                        zinc_const::BITLENGTH_FIELD,
+                        zinc_const::bitlength::FIELD,
                     )
                     .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
@@ -466,8 +466,8 @@ impl Expression {
                     if is_indexed {
                         Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(
                             address,
-                            total_size,
                             element_size,
+                            total_size,
                         ))
                     } else {
                         Instruction::Store(zinc_bytecode::Store::new(address, total_size))
@@ -483,7 +483,7 @@ impl Expression {
                 IntegerConstant::new(
                     BigInt::from(storage_index),
                     false,
-                    zinc_const::BITLENGTH_FIELD,
+                    zinc_const::bitlength::FIELD,
                 )
                 .write_all_to_bytecode(bytecode.clone());
                 bytecode.borrow_mut().push_instruction(
@@ -522,8 +522,8 @@ impl Expression {
                     if is_indexed {
                         Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
                             address,
-                            total_size,
                             element_size,
+                            total_size,
                         ))
                     } else {
                         Instruction::Load(zinc_bytecode::Load::new(address, total_size))
@@ -541,8 +541,8 @@ impl Expression {
                     if is_indexed {
                         Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(
                             address,
-                            total_size,
                             element_size,
+                            total_size,
                         ))
                     } else {
                         Instruction::Store(zinc_bytecode::Store::new(address, total_size))
@@ -569,7 +569,7 @@ impl Expression {
                     IntegerConstant::new(
                         BigInt::from(position),
                         false,
-                        zinc_const::BITLENGTH_FIELD,
+                        zinc_const::bitlength::FIELD,
                     )
                     .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
@@ -602,8 +602,8 @@ impl Expression {
                     if is_indexed {
                         Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
                             address,
-                            total_size,
                             element_size,
+                            total_size,
                         ))
                     } else {
                         Instruction::Load(zinc_bytecode::Load::new(address, total_size))
@@ -621,8 +621,8 @@ impl Expression {
                     if is_indexed {
                         Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(
                             address,
-                            total_size,
                             element_size,
+                            total_size,
                         ))
                     } else {
                         Instruction::Store(zinc_bytecode::Store::new(address, total_size))
@@ -638,7 +638,7 @@ impl Expression {
                 IntegerConstant::new(
                     BigInt::from(storage_index),
                     false,
-                    zinc_const::BITLENGTH_FIELD,
+                    zinc_const::bitlength::FIELD,
                 )
                 .write_all_to_bytecode(bytecode.clone());
                 bytecode.borrow_mut().push_instruction(
@@ -694,7 +694,7 @@ impl Expression {
 
     fn call_standard_library(
         bytecode: Rc<RefCell<Bytecode>>,
-        identifier: BuiltinIdentifier,
+        identifier: FunctionIdentifier,
         input_size: usize,
         output_size: usize,
         location: Location,

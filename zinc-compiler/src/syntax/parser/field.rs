@@ -16,12 +16,19 @@ use crate::syntax::tree::field::builder::Builder as FieldBuilder;
 use crate::syntax::tree::field::Field;
 use crate::syntax::tree::identifier::Identifier;
 
+/// The missing identifier error hint.
 pub static HINT_EXPECTED_IDENTIFIER: &str = "structure field must have an identifier, e.g. `a: u8`";
+/// The missing type error hint.
 pub static HINT_EXPECTED_TYPE: &str = "structure field must have a type, e.g. `a: u8`";
 
+///
+/// The field parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The builder of the parsed value.
     builder: FieldBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

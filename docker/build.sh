@@ -39,6 +39,15 @@ mkdir --verbose "zinc-release-${VERSION_ZINC}"
 #zip --verbose -r \
 #    "zinc-release-${VERSION_ZINC}/zinc-${VERSION_ZINC}-windows.zip" \
 #    "zinc-${VERSION_ZINC}-windows"
+#
+#cat <<EOT >> '.cargo/config'
+#[target.x86_64-pc-windows-gnu]
+#linker = "x86_64-w64-mingw32-gcc"
+#ar = "x86_64-w64-mingw32-ar"
+#rustflags = [
+#  "-C", "link-arg=-mwindows",
+#]
+#EOT
 
 
 
@@ -95,6 +104,12 @@ UNATTENDED='yes' OSX_VERSION_MIN='10.7' bash 'osxcross/build.sh'
 export PATH="/zinc-dev/osxcross/target/bin:${PATH}"
 export CC='o64-clang'
 export CXX='o64-clang++'
+
+cat <<EOT >> '.cargo/config'
+[target.x86_64-apple-darwin]
+linker = "x86_64-apple-darwin14-clang"
+ar = "x86_64-apple-darwin14-ar"
+EOT
 
 # Building
 cargo build --verbose --release --target "${TARGET_MACOS}"

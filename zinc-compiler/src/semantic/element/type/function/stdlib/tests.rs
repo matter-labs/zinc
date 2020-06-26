@@ -87,8 +87,8 @@ fn main() {
             function: "sha256".to_owned(),
             name: "preimage".to_owned(),
             position: CryptoSha256Function::ARGUMENT_INDEX_PREIMAGE + 1,
-            expected: format!("[bool; N], N > 0, N % {} == 0", zinc_const::BITLENGTH_BYTE),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            expected: format!("[bool; N], N > 0, N % {} == 0", zinc_const::bitlength::BYTE),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -111,7 +111,7 @@ fn main() {
             function: "sha256".to_owned(),
             name: "preimage".to_owned(),
             position: CryptoSha256Function::ARGUMENT_INDEX_PREIMAGE + 1,
-            expected: format!("[bool; N], N > 0, N % {} == 0", zinc_const::BITLENGTH_BYTE),
+            expected: format!("[bool; N], N > 0, N % {} == 0", zinc_const::bitlength::BYTE),
             found: Type::array(Some(Location::new(3, 25)), Type::boolean(None), 0).to_string(),
         }),
     ))));
@@ -135,7 +135,7 @@ fn main() {
             function: "sha256".to_owned(),
             name: "preimage".to_owned(),
             position: CryptoSha256Function::ARGUMENT_INDEX_PREIMAGE + 1,
-            expected: format!("[bool; N], N > 0, N % {} == 0", zinc_const::BITLENGTH_BYTE),
+            expected: format!("[bool; N], N > 0, N % {} == 0", zinc_const::bitlength::BYTE),
             found: Type::array(Some(Location::new(3, 25)), Type::boolean(None), 4).to_string(),
         }),
     ))));
@@ -205,9 +205,9 @@ fn main() {
             position: CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
             expected: format!(
                 "[bool; N], 0 < N <= {}",
-                crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
+                zinc_const::limit::PEDERSEN_HASH_INPUT_BITS
             ),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -232,7 +232,7 @@ fn main() {
             position: CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
             expected: format!(
                 "[bool; N], 0 < N <= {}",
-                crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
+                zinc_const::limit::PEDERSEN_HASH_INPUT_BITS
             ),
             found: Type::array(Some(Location::new(3, 27)), Type::boolean(None), 0).to_string(),
         }),
@@ -259,12 +259,12 @@ fn main() {
             position: CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
             expected: format!(
                 "[bool; N], 0 < N <= {}",
-                crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
+                zinc_const::limit::PEDERSEN_HASH_INPUT_BITS
             ),
             found: Type::array(
                 Some(Location::new(3, 27)),
                 Type::boolean(None),
-                crate::LIMIT_PEDERSEN_HASH_INPUT_BITS + 1,
+                zinc_const::limit::PEDERSEN_HASH_INPUT_BITS + 1,
             )
             .to_string(),
         }),
@@ -356,7 +356,7 @@ fn main() {
             name: "signature".to_owned(),
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_SIGNATURE + 1,
             expected: "std::crypto::schnorr::Signature { r: std::crypto::ecc::Point, s: field, pk: std::crypto::ecc::Point }".to_owned(),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         })),
     )));
 
@@ -391,10 +391,10 @@ fn main() {
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: format!(
                 "[bool; N], 0 < N <= {}, N % {} == 0",
-                zinc_const::BITLENGTH_INTEGER_MAX,
-                zinc_const::BITLENGTH_BYTE
+                zinc_const::bitlength::INTEGER_MAX,
+                zinc_const::bitlength::BYTE
             ),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -429,8 +429,8 @@ fn main() {
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: format!(
                 "[bool; N], 0 < N <= {}, N % {} == 0",
-                zinc_const::BITLENGTH_INTEGER_MAX,
-                zinc_const::BITLENGTH_BYTE
+                zinc_const::bitlength::INTEGER_MAX,
+                zinc_const::bitlength::BYTE
             ),
             found: Type::array(Some(Location::new(13, 34)), Type::boolean(None), 0).to_string(),
         }),
@@ -467,13 +467,13 @@ fn main() {
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: format!(
                 "[bool; N], 0 < N <= {}, N % {} == 0",
-                zinc_const::BITLENGTH_INTEGER_MAX,
-                zinc_const::BITLENGTH_BYTE
+                zinc_const::bitlength::INTEGER_MAX,
+                zinc_const::bitlength::BYTE
             ),
             found: Type::array(
                 Some(Location::new(13, 34)),
                 Type::boolean(None),
-                crate::LIMIT_SCHNORR_MESSAGE_BITS + zinc_const::BITLENGTH_BYTE,
+                zinc_const::limit::SCHNORR_MESSAGE_BITS + zinc_const::bitlength::BYTE,
             )
             .to_string(),
         }),
@@ -510,8 +510,8 @@ fn main() {
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: format!(
                 "[bool; N], 0 < N <= {}, N % {} == 0",
-                zinc_const::BITLENGTH_INTEGER_MAX,
-                zinc_const::BITLENGTH_BYTE
+                zinc_const::bitlength::INTEGER_MAX,
+                zinc_const::bitlength::BYTE
             ),
             found: Type::array(Some(Location::new(13, 34)), Type::boolean(None), 4).to_string(),
         }),
@@ -582,11 +582,11 @@ fn main() {
             position: ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
-                zinc_const::BITLENGTH_BYTE,
-                zinc_const::BITLENGTH_INTEGER_MAX,
-                zinc_const::BITLENGTH_BYTE
+                zinc_const::bitlength::BYTE,
+                zinc_const::bitlength::INTEGER_MAX,
+                zinc_const::bitlength::BYTE
             ),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -611,9 +611,9 @@ fn main() {
             position: ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
-                zinc_const::BITLENGTH_BYTE,
-                zinc_const::BITLENGTH_INTEGER_MAX,
-                zinc_const::BITLENGTH_BYTE
+                zinc_const::bitlength::BYTE,
+                zinc_const::bitlength::INTEGER_MAX,
+                zinc_const::bitlength::BYTE
             ),
             found: Type::array(Some(Location::new(3, 38)), Type::boolean(None), 0).to_string(),
         }),
@@ -640,14 +640,14 @@ fn main() {
             position: ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
-                zinc_const::BITLENGTH_BYTE,
-                zinc_const::BITLENGTH_INTEGER_MAX,
-                zinc_const::BITLENGTH_BYTE
+                zinc_const::bitlength::BYTE,
+                zinc_const::bitlength::INTEGER_MAX,
+                zinc_const::bitlength::BYTE
             ),
             found: Type::array(
                 Some(Location::new(3, 38)),
                 Type::boolean(None),
-                zinc_const::BITLENGTH_INTEGER_MAX + zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::INTEGER_MAX + zinc_const::bitlength::BYTE,
             )
             .to_string(),
         }),
@@ -674,9 +674,9 @@ fn main() {
             position: ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
-                zinc_const::BITLENGTH_BYTE,
-                zinc_const::BITLENGTH_INTEGER_MAX,
-                zinc_const::BITLENGTH_BYTE
+                zinc_const::bitlength::BYTE,
+                zinc_const::bitlength::INTEGER_MAX,
+                zinc_const::bitlength::BYTE
             ),
             found: Type::array(Some(Location::new(3, 38)), Type::boolean(None), 4).to_string(),
         }),
@@ -747,11 +747,11 @@ fn main() {
             position: ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
-                zinc_const::BITLENGTH_BYTE,
-                zinc_const::BITLENGTH_INTEGER_MAX,
-                zinc_const::BITLENGTH_BYTE
+                zinc_const::bitlength::BYTE,
+                zinc_const::bitlength::INTEGER_MAX,
+                zinc_const::bitlength::BYTE
             ),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -776,9 +776,9 @@ fn main() {
             position: ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
-                zinc_const::BITLENGTH_BYTE,
-                zinc_const::BITLENGTH_INTEGER_MAX,
-                zinc_const::BITLENGTH_BYTE
+                zinc_const::bitlength::BYTE,
+                zinc_const::bitlength::INTEGER_MAX,
+                zinc_const::bitlength::BYTE
             ),
             found: Type::array(Some(Location::new(3, 36)), Type::boolean(None), 0).to_string(),
         }),
@@ -805,14 +805,14 @@ fn main() {
             position: ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
-                zinc_const::BITLENGTH_BYTE,
-                zinc_const::BITLENGTH_INTEGER_MAX,
-                zinc_const::BITLENGTH_BYTE
+                zinc_const::bitlength::BYTE,
+                zinc_const::bitlength::INTEGER_MAX,
+                zinc_const::bitlength::BYTE
             ),
             found: Type::array(
                 Some(Location::new(3, 36)),
                 Type::boolean(None),
-                zinc_const::BITLENGTH_INTEGER_MAX + zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::INTEGER_MAX + zinc_const::bitlength::BYTE,
             )
             .to_string(),
         }),
@@ -839,9 +839,9 @@ fn main() {
             position: ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
-                zinc_const::BITLENGTH_BYTE,
-                zinc_const::BITLENGTH_INTEGER_MAX,
-                zinc_const::BITLENGTH_BYTE
+                zinc_const::bitlength::BYTE,
+                zinc_const::bitlength::INTEGER_MAX,
+                zinc_const::bitlength::BYTE
             ),
             found: Type::array(Some(Location::new(3, 36)), Type::boolean(None), 4).to_string(),
         }),
@@ -910,8 +910,8 @@ fn main() {
             function: "from_bits_field".to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsFieldFunction::ARGUMENT_INDEX_BITS + 1,
-            expected: format!("[bool; {}]", zinc_const::BITLENGTH_FIELD),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            expected: format!("[bool; {}]", zinc_const::bitlength::FIELD),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -934,7 +934,7 @@ fn main() {
             function: "from_bits_field".to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsFieldFunction::ARGUMENT_INDEX_BITS + 1,
-            expected: format!("[bool; {}]", zinc_const::BITLENGTH_FIELD),
+            expected: format!("[bool; {}]", zinc_const::bitlength::FIELD),
             found: Type::array(Some(Location::new(3, 35)), Type::boolean(None), 0).to_string(),
         }),
     ))));
@@ -958,11 +958,11 @@ fn main() {
             function: "from_bits_field".to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsFieldFunction::ARGUMENT_INDEX_BITS + 1,
-            expected: format!("[bool; {}]", zinc_const::BITLENGTH_FIELD),
+            expected: format!("[bool; {}]", zinc_const::bitlength::FIELD),
             found: Type::array(
                 Some(Location::new(3, 35)),
                 Type::boolean(None),
-                zinc_const::BITLENGTH_INTEGER_MAX,
+                zinc_const::bitlength::INTEGER_MAX,
             )
             .to_string(),
         }),
@@ -1101,7 +1101,7 @@ fn main() {
             name: "array".to_owned(),
             position: ArrayReverseFunction::ARGUMENT_INDEX_ARRAY + 1,
             expected: "[{scalar}; N]".to_owned(),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -1169,7 +1169,7 @@ fn main() {
             name: "array".to_owned(),
             position: ArrayTruncateFunction::ARGUMENT_INDEX_ARRAY + 1,
             expected: "[{scalar}; N]".to_owned(),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -1217,7 +1217,7 @@ fn main() {
             function: "truncate".to_owned(),
             name: "new_length".to_owned(),
             position: ArrayTruncateFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -1308,7 +1308,7 @@ fn main() {
             name: "array".to_owned(),
             position: ArrayPadFunction::ARGUMENT_INDEX_ARRAY + 1,
             expected: "[{scalar}; N]".to_owned(),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -1356,7 +1356,7 @@ fn main() {
             function: "pad".to_owned(),
             name: "new_length".to_owned(),
             position: ArrayPadFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -1380,7 +1380,7 @@ fn main() {
             name: "fill_value".to_owned(),
             position: ArrayPadFunction::ARGUMENT_INDEX_FILL_VALUE + 1,
             expected: Type::boolean(None).to_string(),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 

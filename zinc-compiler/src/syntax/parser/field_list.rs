@@ -13,9 +13,14 @@ use crate::lexical::token::Token;
 use crate::syntax::parser::field::Parser as FieldParser;
 use crate::syntax::tree::field::Field;
 
+///
+/// The field list parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parsed fields.
     fields: Vec<Field>,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

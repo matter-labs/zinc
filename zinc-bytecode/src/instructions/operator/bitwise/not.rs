@@ -1,5 +1,5 @@
 //!
-//! The 'bitwise NOT' instruction.
+//! The `bitwise NOT` instruction.
 //!
 
 use std::fmt;
@@ -9,10 +9,16 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `bitwise NOT` instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct BitwiseNot;
 
 impl BitwiseNot {
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }

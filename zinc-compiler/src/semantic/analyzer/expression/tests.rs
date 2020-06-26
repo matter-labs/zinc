@@ -114,7 +114,7 @@ fn main() {
                 Location::new(3, 9),
                 false,
                 "variable".to_owned(),
-                Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE),
+                Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                 MemoryType::Stack,
             ))
             .to_string(),
@@ -148,7 +148,7 @@ fn main() {
                 Location::new(3, 9),
                 false,
                 "variable".to_owned(),
-                Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE),
+                Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                 MemoryType::Stack,
             ))
             .to_string(),
@@ -184,7 +184,7 @@ fn main() {
                 Location::new(3, 9),
                 false,
                 "variable".to_owned(),
-                Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE),
+                Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                 MemoryType::Stack,
             ))
             .to_string(),
@@ -222,7 +222,7 @@ fn main() {
                 Location::new(3, 9),
                 false,
                 "variable".to_owned(),
-                Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE),
+                Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                 MemoryType::Stack,
             ))
             .to_string(),
@@ -260,7 +260,7 @@ fn main() {
                 Location::new(3, 9),
                 false,
                 "variable".to_owned(),
-                Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE),
+                Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                 MemoryType::Stack,
             ))
             .to_string(),
@@ -298,7 +298,7 @@ fn main() {
                 Location::new(3, 9),
                 false,
                 "variable".to_owned(),
-                Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE),
+                Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                 MemoryType::Stack,
             ))
             .to_string(),
@@ -335,7 +335,7 @@ fn main() {
                 Location::new(3, 9),
                 false,
                 "variable".to_owned(),
-                Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE),
+                Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                 MemoryType::Stack,
             ))
             .to_string(),
@@ -372,7 +372,7 @@ fn main() {
                 Location::new(3, 9),
                 false,
                 "variable".to_owned(),
-                Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE),
+                Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                 MemoryType::Stack,
             ))
             .to_string(),
@@ -409,7 +409,7 @@ fn main() {
                 Location::new(3, 9),
                 false,
                 "variable".to_owned(),
-                Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE),
+                Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                 MemoryType::Stack,
             ))
             .to_string(),

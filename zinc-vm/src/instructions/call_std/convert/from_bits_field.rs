@@ -14,9 +14,9 @@ use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
-pub struct FieldFromBits;
+pub struct FromBitsField;
 
-impl<E: IEngine> INativeCallable<E> for FieldFromBits {
+impl<E: IEngine> INativeCallable<E> for FromBitsField {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,

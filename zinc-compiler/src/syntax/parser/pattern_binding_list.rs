@@ -14,9 +14,14 @@ use crate::lexical::token::Token;
 use crate::syntax::parser::pattern_binding::Parser as BindingPatternParser;
 use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     BindingPattern,
+    /// The binding pattern has been parsed so far. A comma prepends the next binding pattern.
     CommaOrEnd,
 }
 
@@ -26,10 +31,16 @@ impl Default for State {
     }
 }
 
+///
+/// The binding pattern list parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The parsed binding patterns.
     patterns: Vec<BindingPattern>,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

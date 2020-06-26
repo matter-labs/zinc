@@ -14,7 +14,6 @@ use failure::Fail;
 pub struct Directory {}
 
 pub(self) static DIRECTORY_NAME_DEFAULT: &str = "src/";
-pub(self) static SOURCE_FILE_EXTENSION_DEFAULT: &str = "zn";
 
 #[derive(Debug, Fail)]
 pub enum Error {

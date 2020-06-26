@@ -15,10 +15,16 @@ use crate::syntax::parser::r#type::Parser as TypeParser;
 use crate::syntax::tree::r#type::builder::Builder as TypeBuilder;
 use crate::syntax::tree::r#type::Type;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     ParenthesisLeft,
+    /// The `(` has been parsed so far.
     TypeOrParenthesisRight,
+    /// The `( {type}` has been parsed so far.
     CommaOrParenthesisRight,
 }
 
@@ -28,10 +34,16 @@ impl Default for State {
     }
 }
 
+///
+/// The tuple type parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The token returned from a subparser.
     next: Option<Token>,
+    /// The builder of the parsed value.
     builder: TypeBuilder,
 }
 

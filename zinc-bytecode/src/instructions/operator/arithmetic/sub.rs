@@ -1,5 +1,5 @@
 //!
-//! The 'arithmetic subtraction' instruction.
+//! The `arithmetic subtraction` instruction.
 //!
 
 use std::fmt;
@@ -9,10 +9,16 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `arithmetic subtraction` instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Sub;
 
 impl Sub {
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }

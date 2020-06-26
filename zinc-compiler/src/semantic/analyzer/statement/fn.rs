@@ -206,7 +206,7 @@ impl Analyzer {
             (false, statement.is_public)
         } else {
             (
-                statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER,
+                statement.identifier.name.as_str() == zinc_const::source::FUNCTION_MAIN_IDENTIFIER,
                 false,
             )
         };

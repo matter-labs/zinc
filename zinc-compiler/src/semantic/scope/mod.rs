@@ -460,7 +460,7 @@ impl Scope {
     pub fn get_main_location(&self) -> Option<Location> {
         self.items
             .borrow()
-            .get(crate::FUNCTION_MAIN_IDENTIFIER)
+            .get(zinc_const::source::FUNCTION_MAIN_IDENTIFIER)
             .and_then(|main| main.borrow().location())
     }
 

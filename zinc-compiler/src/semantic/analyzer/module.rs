@@ -37,6 +37,7 @@ impl Analyzer {
     /// Returns the module without the hoisted statements and the implementation scopes which
     /// must be defined forcibly.
     ///
+    #[allow(clippy::type_complexity)]
     pub fn declare(
         scope: Rc<RefCell<Scope>>,
         mut module: SyntaxModule,
@@ -63,7 +64,8 @@ impl Analyzer {
                 }
                 ModuleLocalStatement::Fn(statement) => {
                     if !is_entry
-                        && statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER
+                        && statement.identifier.name.as_str()
+                            == zinc_const::source::FUNCTION_MAIN_IDENTIFIER
                     {
                         return Err(Error::FunctionMainBeyondEntry {
                             location: statement.location,
@@ -71,7 +73,8 @@ impl Analyzer {
                     }
 
                     if is_entry
-                        && statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER
+                        && statement.identifier.name.as_str()
+                            == zinc_const::source::FUNCTION_MAIN_IDENTIFIER
                         && statement.is_constant
                     {
                         return Err(Error::EntryPointConstant {

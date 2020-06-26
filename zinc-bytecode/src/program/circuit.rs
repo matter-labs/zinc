@@ -9,15 +9,25 @@ use crate::data::r#type::Type as DataType;
 use crate::instructions::Instruction;
 use crate::program::unit_test::UnitTest;
 
+///
+/// The circuit program.
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Circuit {
+    /// The circuit entry input arguments structure type.
     pub input: DataType,
+    /// The circuit entry output type.
     pub output: DataType,
+    /// The circuit bytecode instructions.
     pub instructions: Vec<Instruction>,
+    /// The unit test data which is present if the circuit is a unit test.
     pub unit_test: Option<UnitTest>,
 }
 
 impl Circuit {
+    ///
+    /// Creates a circuit program instance.
+    ///
     pub fn new(
         input: DataType,
         output: DataType,

@@ -83,7 +83,7 @@ fn main() {
             function: "another".to_owned(),
             name: "x".to_owned(),
             position: 1,
-            expected: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             found: Type::boolean(None).to_string(),
         }),
     ))));
@@ -109,7 +109,7 @@ fn main() -> [u8; 2] {
             function: "truncate".to_owned(),
             name: "new_length".to_owned(),
             position: 2,
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -137,7 +137,7 @@ fn main() {
             location: Location::new(9, 25),
             function: "another".to_owned(),
             position: 1,
-            found: Element::Type(Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE))
+            found: Element::Type(Type::integer_unsigned(None, zinc_const::bitlength::BYTE))
                 .to_string(),
         }),
     ))));
@@ -164,7 +164,7 @@ fn main() {
             location: Location::new(3, 5),
             function: "another".to_owned(),
             expected: Type::boolean(None).to_string(),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             reference: Location::new(2, 17),
         }),
     ))));
@@ -189,7 +189,7 @@ fn main() {
             location: Location::new(5, 17),
             name: Element::Type(Type::tuple(
                 Some(Location::new(5, 17)),
-                vec![Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE); 2],
+                vec![Type::integer_unsigned(None, zinc_const::bitlength::BYTE); 2],
             ))
             .to_string(),
         }),

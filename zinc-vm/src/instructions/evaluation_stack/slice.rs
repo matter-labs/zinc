@@ -16,20 +16,20 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Slice {
     fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let offset = vm.pop()?.try_into_value()?;
 
-        let mut array = Vec::with_capacity(self.array_len);
-        for _ in 0..self.array_len {
+        let mut array = Vec::with_capacity(self.total_size);
+        for _ in 0..self.total_size {
             let value = vm.pop()?.try_into_value()?;
             array.push(value);
         }
         array.reverse();
 
-        for i in 0..self.slice_len {
+        for i in 0..self.slice_size {
             let condition = vm.condition_top()?;
             let namespace = format!("conditional_get_{}", i);
             let value = gadgets::array::conditional_get(
                 vm.constraint_system().namespace(|| namespace),
                 &condition,
-                &array[i..=array.len() - self.slice_len + i],
+                &array[i..=array.len() - self.slice_size + i],
                 &offset,
             )?;
             vm.push(Cell::Value(value))?;
@@ -54,7 +54,7 @@ mod tests {
             .push(zinc_bytecode::Push::new_field(5.into()))
             .push(zinc_bytecode::Push::new_field(6.into()))
             .push(zinc_bytecode::Push::new_field(2.into()))
-            .push(zinc_bytecode::Slice::new(5, 2))
+            .push(zinc_bytecode::Slice::new(2, 5))
             .test(&[5, 4, 1])
     }
 }

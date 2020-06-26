@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM template scalar type.
+//! The Zinc VM scalar type.
 //!
 
 pub mod integer;
@@ -11,14 +11,23 @@ use serde_derive::Serialize;
 
 use self::integer::Type as IntegerType;
 
+///
+/// The Zinc VM scalar type.
+///
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Type {
+    /// The `bool` scalar type.
     Boolean,
+    /// The `u{n}` or `i{n}` scalar type.
     Integer(IntegerType),
+    /// The `field` scalar type.
     Field,
 }
 
 impl Type {
+    ///
+    /// Checks whether the type is a signed integer.
+    ///
     pub fn is_signed(&self) -> bool {
         match self {
             Type::Integer(IntegerType {

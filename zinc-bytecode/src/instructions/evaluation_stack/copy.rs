@@ -1,5 +1,5 @@
 //!
-//! The 'evaluation stack copy' instruction.
+//! The `evaluation stack copy` instruction.
 //!
 
 use std::fmt;
@@ -9,11 +9,18 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
-/// Copies the top element from the stack.
+///
+/// The `evaluation stack copy` instruction.
+///
+/// Copies the top element of the evaluation stack.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Copy;
 
 impl Copy {
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }

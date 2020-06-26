@@ -14,9 +14,6 @@ use crate::arguments::Command;
 
 static BINARY_NAME: &str = "zvm";
 
-const EXIT_CODE_SUCCESS: i32 = 0;
-const EXIT_CODE_FAILURE: i32 = 1;
-
 fn main() {
     let args = Arguments::from_args();
 
@@ -31,7 +28,7 @@ fn main() {
             }
             Err(error) => {
                 eprintln!("{}", error);
-                process::exit(EXIT_CODE_FAILURE);
+                process::exit(zinc_const::exit_code::FAILURE);
             }
         },
         Command::Setup(command) => command.execute(),
@@ -40,10 +37,10 @@ fn main() {
     };
 
     match result {
-        Ok(()) => process::exit(EXIT_CODE_SUCCESS),
+        Ok(()) => process::exit(zinc_const::exit_code::SUCCESS),
         Err(error) => {
             eprintln!("{}", error);
-            process::exit(EXIT_CODE_FAILURE);
+            process::exit(zinc_const::exit_code::FAILURE);
         }
     }
 }

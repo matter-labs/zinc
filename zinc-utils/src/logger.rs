@@ -57,6 +57,9 @@ pub fn init_logger(app_name: &'static str, verbosity: usize) {
         .init();
 }
 
+///
+/// The log level string printed to the terminal.
+///
 fn level_string(level: log::Level) -> ColoredString {
     match level {
         log::Level::Error => "ERROR".bold().red(),

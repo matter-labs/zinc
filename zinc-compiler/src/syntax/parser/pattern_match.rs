@@ -20,10 +20,16 @@ use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 use crate::syntax::tree::pattern_match::builder::Builder as MatchPatternBuilder;
 use crate::syntax::tree::pattern_match::Pattern as MatchPattern;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     Start,
+    /// The first path operand has been parsed so far.
     PathOperatorOrEnd,
+    /// The first path operand and a `::` path operator have been parsed so far.
     PathOperand,
 }
 
@@ -33,10 +39,16 @@ impl Default for State {
     }
 }
 
+///
+/// The match pattern parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: MatchPatternBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

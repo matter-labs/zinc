@@ -10,13 +10,21 @@ use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 use self::variant::Variant;
 
+///
+/// The array expression.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
+    /// The location of the syntax construction.
     pub location: Location,
+    /// The array literal variant.
     pub variant: Variant,
 }
 
 impl Expression {
+    ///
+    /// Creates an array expression with separate values.
+    ///
     pub fn new_list(location: Location, elements: Vec<ExpressionTree>) -> Self {
         Self {
             location,
@@ -24,6 +32,9 @@ impl Expression {
         }
     }
 
+    ///
+    /// Creates an array expression with a single repeated value.
+    ///
     pub fn new_repeated(
         location: Location,
         expression: ExpressionTree,

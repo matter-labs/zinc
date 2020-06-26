@@ -17,14 +17,24 @@ use crate::syntax::parser::pattern_match::Parser as MatchPatternParser;
 use crate::syntax::tree::expression::r#match::builder::Builder as MatchExpressionBuilder;
 use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     KeywordMatch,
+    /// The `match` has been parsed so far.
     ScrutineeExpression,
+    /// The `match {expression}` has been parsed so far.
     BracketCurlyLeft,
+    /// The `match {expression} {` has been parsed so far.
     BracketCurlyRightOrBranchPattern,
+    /// The `match {expression} { {pattern}` has been parsed so far.
     Select,
+    /// The `match {expression} { {pattern} =>` has been parsed so far.
     BranchExpression,
+    /// The `match {expression} { {pattern} => {expression}` has been parsed so far.
     CommaOrBracketCurlyRight,
 }
 
@@ -34,10 +44,16 @@ impl Default for State {
     }
 }
 
+///
+/// The match expression parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The token returned from a subparser.
     next: Option<Token>,
+    /// The builder of the parsed value.
     builder: MatchExpressionBuilder,
 }
 

@@ -20,7 +20,7 @@ impl<E: IEngine> Leaf<E> {
             leaf_value_hash: {
                 let mut hash = vec![];
                 for i in sha256::leaf_value_hash::<E>(values.to_owned()) {
-                    for j in (0..zinc_const::BITLENGTH_BYTE).rev() {
+                    for j in (0..zinc_const::bitlength::BYTE).rev() {
                         let bit = ((i >> j) & 1u8) == 1u8;
                         hash.push(bit);
                     }
@@ -28,7 +28,7 @@ impl<E: IEngine> Leaf<E> {
                 hash
             },
             authentication_path: authentication_path
-                .unwrap_or_else(|| vec![vec![false; zinc_const::BITLENGTH_SHA256_HASH]; depth]),
+                .unwrap_or_else(|| vec![vec![false; zinc_const::bitlength::SHA256_HASH]; depth]),
         }
     }
 }

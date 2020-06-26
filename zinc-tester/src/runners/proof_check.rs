@@ -17,24 +17,34 @@ use zinc_vm::IFacade;
 use crate::file::File;
 use crate::metadata::Metadata;
 use crate::program::Program;
-use crate::runners::Runnable;
+use crate::runners::IRunnable;
 use crate::Summary;
 
+///
+/// The proof-check runner.
+///
+/// Computes the result, makes the trusted setup and proof verification.
+///
 #[derive(Clone)]
 pub struct Runner {
+    /// If zero, does not print the successful tests.
     pub verbosity: usize,
+    /// If set, runs only the tests whose full names contain the string.
     pub filter: Option<String>,
 }
 
 impl Runner {
+    ///
+    /// Creates a runner instance.
+    ///
     pub fn new(verbosity: usize, filter: Option<String>) -> Self {
         Self { verbosity, filter }
     }
 }
 
-impl Runnable for Runner {
+impl IRunnable for Runner {
     fn run(self, path: PathBuf, file: File, metadata: Metadata, summary: Arc<Mutex<Summary>>) {
-        let path = match path.strip_prefix(crate::TESTS_DIRECTORY) {
+        let path = match path.strip_prefix(crate::TEST_DEFAULT_DIRECTORY) {
             Ok(path) => path,
             Err(_error) => &path,
         };

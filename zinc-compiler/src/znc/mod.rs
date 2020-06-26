@@ -23,15 +23,12 @@ static TEST_BINARIES_DIRECTORY: &str = "test/";
 static WITNESS_TEMPLATE_SUFFIX: &str = "_witness";
 static PUBLIC_DATA_TEMPLATE_SUFFIX: &str = "_public_data";
 
-const EXIT_CODE_SUCCESS: i32 = 0;
-const EXIT_CODE_FAILURE: i32 = 1;
-
 fn main() {
     process::exit(match main_inner() {
-        Ok(()) => EXIT_CODE_SUCCESS,
+        Ok(()) => zinc_const::exit_code::SUCCESS,
         Err(error) => {
             eprintln!("{}", error);
-            EXIT_CODE_FAILURE
+            zinc_const::exit_code::FAILURE
         }
     })
 }

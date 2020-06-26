@@ -16,12 +16,20 @@ use crate::syntax::parser::r#type::Parser as TypeParser;
 use crate::syntax::tree::r#type::builder::Builder as TypeBuilder;
 use crate::syntax::tree::r#type::Type;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     BracketSquareLeft,
+    /// The `[` has been parsed so far.
     Type,
+    /// The `[ {type}` has been parsed so far.
     Semicolon,
+    /// The `[ {type} ;` has been parsed so far.
     SizeExpression,
+    /// The `[ {type} ; {expression}` has been parsed so far.
     BracketSquareRight,
 }
 
@@ -31,10 +39,16 @@ impl Default for State {
     }
 }
 
+///
+/// The array type parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The token returned from a subparser.
     next: Option<Token>,
+    /// The builder of the parsed value.
     builder: TypeBuilder,
 }
 

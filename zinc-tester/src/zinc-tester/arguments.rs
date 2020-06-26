@@ -4,6 +4,9 @@
 
 use structopt::StructOpt;
 
+///
+/// The Zinc tester arguments.
+///
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "zinc-tester",
@@ -31,6 +34,9 @@ pub struct Arguments {
 }
 
 impl Arguments {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new() -> Self {
         Self::from_args()
     }

@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM template data.
+//! The Zinc VM types and template data.
 //!
 
 pub mod r#type;

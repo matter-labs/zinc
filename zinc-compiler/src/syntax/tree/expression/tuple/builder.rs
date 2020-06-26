@@ -8,26 +8,49 @@ use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::expression::tuple::Expression as TupleExpression;
 
+///
+/// The tuple expression builder.
+///
 #[derive(Default)]
 pub struct Builder {
+    /// The location of the syntax construction.
     location: Option<Location>,
+    /// The tuple expression inner element expressions.
     elements: Vec<ExpressionTree>,
+    /// If the tuple has a comma after the first element.
+    /// If the comma is present, the expression is definitely a tuple.
+    /// If the comma is absent, the expression is an ordinar parenthesized expression.
     has_comma: bool,
 }
 
 impl Builder {
+    ///
+    /// Sets the corresponding builder value.
+    ///
     pub fn set_location(&mut self, value: Location) {
         self.location = Some(value);
     }
 
+    ///
+    /// Pushes the corresponding builder value.
+    ///
     pub fn push_expression(&mut self, expression: ExpressionTree) {
         self.elements.push(expression);
     }
 
+    ///
+    /// Sets the corresponding builder value.
+    ///
     pub fn set_comma(&mut self) {
         self.has_comma = true;
     }
 
+    ///
+    /// Finalizes the builder and returns the built value.
+    ///
+    /// # Panics
+    /// If some of the required items has not been set.
+    ///
     pub fn finish(mut self) -> ExpressionTree {
         let location = self
             .location

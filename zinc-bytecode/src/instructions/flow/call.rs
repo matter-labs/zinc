@@ -1,5 +1,5 @@
 //!
-//! The 'function call' instruction.
+//! The `function call` instruction.
 //!
 
 use std::fmt;
@@ -9,20 +9,31 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `function call` instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Call {
+    /// The function start index in the bytecode.
     pub address: usize,
-    pub inputs_count: usize,
+    /// The function arguments size in field elements.
+    pub input_size: usize,
 }
 
 impl Call {
-    pub fn new(address: usize, inputs_count: usize) -> Self {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(address: usize, input_size: usize) -> Self {
         Self {
             address,
-            inputs_count,
+            input_size,
         }
     }
 
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }
@@ -36,6 +47,6 @@ impl Into<Instruction> for Call {
 
 impl fmt::Display for Call {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "call {} {}", self.address, self.inputs_count)
+        write!(f, "call {} {}", self.address, self.input_size)
     }
 }

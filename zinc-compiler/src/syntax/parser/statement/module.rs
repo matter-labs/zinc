@@ -1,5 +1,5 @@
 //!
-//! The mod statement parser.
+//! The `mod` statement parser.
 //!
 
 use std::cell::RefCell;
@@ -16,9 +16,14 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::module::builder::Builder as ModStatementBuilder;
 use crate::syntax::tree::statement::module::Statement as ModStatement;
 
+///
+/// The `mod` statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The builder of the parsed value.
     builder: ModStatementBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

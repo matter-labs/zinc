@@ -5,6 +5,9 @@
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
+///
+/// The unit test data, which is attached to a program, if it is marked as a unit test.
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnitTest {
     /// The name of the unit test function
@@ -16,6 +19,9 @@ pub struct UnitTest {
 }
 
 impl UnitTest {
+    ///
+    /// Creates a unit test data instance.
+    ///
     pub fn new(name: String, should_panic: bool, is_ignored: bool) -> Self {
         Self {
             name,

@@ -17,9 +17,14 @@ use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionO
 use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     Terminal,
+    /// The operand has been parsed and a `::` operator or structure literal is expected.
     DoubleColonOrStructureOrEnd,
 }
 
@@ -29,14 +34,28 @@ impl Default for State {
     }
 }
 
+///
+/// The path expression parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The token returned from a subparser.
     next: Option<Token>,
+    /// The builder of the parsed value.
     builder: ExpressionTreeBuilder,
 }
 
 impl Parser {
+    ///
+    /// Parses a path expression, which consists of several items.
+    /// Can be terminated with a structure literal.
+    ///
+    /// 'value'
+    /// 'path::to::Type'
+    /// 'path::to::Structure { a: 42, b: 25 }'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,

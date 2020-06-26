@@ -19,7 +19,7 @@ pub mod ff_invert;
 
 use std::fmt;
 
-use zinc_bytecode::BuiltinIdentifier;
+use zinc_bytecode::FunctionIdentifier;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::function::error::Error;
@@ -57,36 +57,38 @@ pub enum Function {
 }
 
 impl Function {
-    pub fn new(identifier: BuiltinIdentifier) -> Self {
+    pub fn new(identifier: FunctionIdentifier) -> Self {
         match identifier {
-            BuiltinIdentifier::CryptoSha256 => Self::CryptoSha256(Sha256Function::new(identifier)),
-            BuiltinIdentifier::CryptoPedersen => {
+            FunctionIdentifier::CryptoSha256 => Self::CryptoSha256(Sha256Function::new(identifier)),
+            FunctionIdentifier::CryptoPedersen => {
                 Self::CryptoPedersen(PedersenFunction::new(identifier))
             }
-            BuiltinIdentifier::CryptoSchnorrSignatureVerify => {
+            FunctionIdentifier::CryptoSchnorrSignatureVerify => {
                 Self::CryptoSchnorrSignatureVerify(SchnorrSignatureVerifyFunction::new(identifier))
             }
 
-            BuiltinIdentifier::ToBits => Self::ConvertToBits(ToBitsFunction::new(identifier)),
-            BuiltinIdentifier::UnsignedFromBits => {
+            FunctionIdentifier::ConvertToBits => {
+                Self::ConvertToBits(ToBitsFunction::new(identifier))
+            }
+            FunctionIdentifier::ConvertFromBitsUnsigned => {
                 Self::ConvertFromBitsUnsigned(FromBitsUnsignedFunction::new(identifier))
             }
-            BuiltinIdentifier::SignedFromBits => {
+            FunctionIdentifier::ConvertFromBitsSigned => {
                 Self::ConvertFromBitsSigned(FromBitsSignedFunction::new(identifier))
             }
-            BuiltinIdentifier::FieldFromBits => {
+            FunctionIdentifier::ConvertFromBitsField => {
                 Self::ConvertFromBitsField(FromBitsFieldFunction::new(identifier))
             }
 
-            BuiltinIdentifier::ArrayReverse => {
+            FunctionIdentifier::ArrayReverse => {
                 Self::ArrayReverse(ArrayReverseFunction::new(identifier))
             }
-            BuiltinIdentifier::ArrayTruncate => {
+            FunctionIdentifier::ArrayTruncate => {
                 Self::ArrayTruncate(ArrayTruncateFunction::new(identifier))
             }
-            BuiltinIdentifier::ArrayPad => Self::ArrayPad(ArrayPadFunction::new(identifier)),
+            FunctionIdentifier::ArrayPad => Self::ArrayPad(ArrayPadFunction::new(identifier)),
 
-            BuiltinIdentifier::FieldInverse => Self::FfInvert(FfInvertFunction::new(identifier)),
+            FunctionIdentifier::FieldInverse => Self::FfInvert(FfInvertFunction::new(identifier)),
         }
     }
 
@@ -128,7 +130,7 @@ impl Function {
         }
     }
 
-    pub fn builtin_identifier(&self) -> BuiltinIdentifier {
+    pub fn builtin_identifier(&self) -> FunctionIdentifier {
         match self {
             Self::CryptoSha256(inner) => inner.builtin_identifier,
             Self::CryptoPedersen(inner) => inner.builtin_identifier,

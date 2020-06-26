@@ -21,12 +21,20 @@ use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionO
 use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     KeywordIf,
+    /// The `if` has been parsed so far.
     Condition,
+    /// The `if {expression}` has been parsed so far.
     MainBlock,
+    /// The `if {expression} {block}` has been parsed so far.
     ElseKeywordOrEnd,
+    /// The `if {expression} {block} else` has been parsed so far.
     KeywordIfOrElseBlock,
 }
 
@@ -36,10 +44,16 @@ impl Default for State {
     }
 }
 
+///
+/// The conditional expression parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The token returned from a subparser.
     next: Option<Token>,
+    /// The builder of the parsed value.
     builder: ConditionalExpressionBuilder,
 }
 

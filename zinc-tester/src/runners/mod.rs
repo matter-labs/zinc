@@ -13,6 +13,14 @@ use crate::file::File;
 use crate::metadata::Metadata;
 use crate::Summary;
 
-pub trait Runnable: Clone + Sync + Send {
+///
+/// The test runner trait.
+///
+/// There are several implementations for different testing intensiveness.
+///
+pub trait IRunnable: Clone + Sync + Send {
+    ///
+    /// Runs a test and writes its result to `summary`.
+    ///
     fn run(self, path: PathBuf, file: File, metadata: Metadata, summary: Arc<Mutex<Summary>>);
 }

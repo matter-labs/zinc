@@ -23,8 +23,6 @@ pub enum Error {
     Writing(io::Error),
 }
 
-pub static ENTRY_FILE_NAME_DEFAULT: &str = "main";
-
 impl Circuit {
     pub fn new(circuit_name: &str) -> Self {
         Self {
@@ -38,7 +36,9 @@ impl Circuit {
             if !path.ends_with(super::DIRECTORY_NAME_DEFAULT) {
                 path.push(PathBuf::from(super::DIRECTORY_NAME_DEFAULT));
             }
-            path.push(PathBuf::from(ENTRY_FILE_NAME_DEFAULT));
+            path.push(PathBuf::from(
+                zinc_const::source::APPLICATION_ENTRY_FILE_NAME,
+            ));
         }
         path.exists()
     }
@@ -51,8 +51,8 @@ impl Circuit {
             }
             let file_name = format!(
                 "{}.{}",
-                ENTRY_FILE_NAME_DEFAULT,
-                super::SOURCE_FILE_EXTENSION_DEFAULT
+                zinc_const::source::APPLICATION_ENTRY_FILE_NAME,
+                zinc_const::source::FILE_EXTENSION
             );
             path.push(PathBuf::from(file_name));
         }

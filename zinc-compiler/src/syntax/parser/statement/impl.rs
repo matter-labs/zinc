@@ -1,5 +1,5 @@
 //!
-//! The impl statement parser.
+//! The `impl` statement parser.
 //!
 
 use std::cell::RefCell;
@@ -17,14 +17,22 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#impl::builder::Builder as ImplStatementBuilder;
 use crate::syntax::tree::statement::r#impl::Statement as ImplStatement;
 
+/// The missing identifier error hint.
 pub static HINT_EXPECTED_IDENTIFIER: &str =
     "type implementation must have an identifier, e.g. `impl Data { ... }`";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     KeywordImpl,
+    /// The `impl` has been parsed so far.
     Identifier,
+    /// The `impl {identifier}` has been parsed so far.
     BracketCurlyLeft,
+    /// The `impl {identifier} {` has been parsed so far.
     StatementOrBracketCurlyRight,
 }
 
@@ -34,10 +42,16 @@ impl Default for State {
     }
 }
 
+///
+/// The `impl` statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: ImplStatementBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

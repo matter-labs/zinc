@@ -34,12 +34,23 @@ use self::conditional::Parser as ConditionalExpressionParser;
 use self::r#match::Parser as MatchExpressionParser;
 use self::tuple::Parser as TupleExpressionParser;
 
+///
+/// The terminal operand parser.
+///
 #[derive(Default)]
 pub struct Parser {}
 
 impl Parser {
     ///
-    /// Parses a lowest-level terminal operand, e.g. a literal, identifier, array, conditional, etc.
+    /// Parses a lowest-level terminal operand:
+    /// - parenthesized expression
+    /// - block
+    /// - array
+    /// - conditional
+    /// - match
+    /// - alias (`crate`, `super`, `Self`, `self`)
+    /// - identifier
+    /// - literal (boolean, integer, string)
     ///
     pub fn parse(
         self,

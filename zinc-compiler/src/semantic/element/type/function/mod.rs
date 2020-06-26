@@ -11,7 +11,7 @@ pub mod test;
 
 use std::fmt;
 
-use zinc_bytecode::BuiltinIdentifier;
+use zinc_bytecode::FunctionIdentifier;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
@@ -54,7 +54,7 @@ impl Function {
         Self::BuiltIn(BuiltInFunction::new_assert())
     }
 
-    pub fn new_std(identifier: BuiltinIdentifier) -> Self {
+    pub fn new_std(identifier: FunctionIdentifier) -> Self {
         Self::StandardLibrary(StandardLibraryFunction::new(identifier))
     }
 

@@ -1,5 +1,5 @@
 //!
-//! The enum statement parser.
+//! The `enum` statement parser.
 //!
 
 use std::cell::RefCell;
@@ -17,15 +17,24 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#enum::builder::Builder as EnumStatementBuilder;
 use crate::syntax::tree::statement::r#enum::Statement as EnumStatement;
 
+/// The missing identifier error hint.
 pub static HINT_EXPECTED_IDENTIFIER: &str =
     "enumeration type must have an identifier, e.g. `enum List { ... }`";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     KeywordEnum,
+    /// The `enum` has been parsed so far.
     Identifier,
+    /// The `enum {identifier}` has been parsed so far.
     BracketCurlyLeftOrEnd,
+    /// The `enum {identifier} {` has been parsed so far.
     VariantList,
+    /// The `enum {identifier} { {variants}` has been parsed so far.
     BracketCurlyRight,
 }
 
@@ -35,10 +44,16 @@ impl Default for State {
     }
 }
 
+///
+/// The `enum` statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: EnumStatementBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

@@ -58,7 +58,7 @@ impl File {
             .extension()
             .ok_or(Error::ExtensionNotFound)
             .map_err(SourceError::File)?;
-        if source_file_extension != crate::SOURCE_FILE_EXTENSION {
+        if source_file_extension != zinc_const::source::FILE_EXTENSION {
             return Err(SourceError::File(Error::ExtensionInvalid(
                 source_file_extension.to_owned(),
             )));
@@ -111,14 +111,14 @@ impl File {
     /// Checks whether the file is the application entry point.
     ///
     pub fn is_application_entry(&self) -> bool {
-        self.name.as_str() == crate::APPLICATION_ENTRY_FILE_NAME
+        self.name.as_str() == zinc_const::source::APPLICATION_ENTRY_FILE_NAME
     }
 
     ///
     /// Checks whether the file is the module entry point.
     ///
     pub fn is_module_entry(&self) -> bool {
-        self.name.as_str() == crate::MODULE_ENTRY_FILE_NAME
+        self.name.as_str() == zinc_const::source::MODULE_ENTRY_FILE_NAME
     }
 
     ///

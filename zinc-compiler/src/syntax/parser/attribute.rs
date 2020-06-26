@@ -15,12 +15,20 @@ use crate::syntax::tree::attribute::builder::Builder as AttributeBuilder;
 use crate::syntax::tree::attribute::Attribute;
 use crate::syntax::tree::identifier::Identifier;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     NumberSign,
+    /// The `#` has been parsed so far.
     ExclamationMarkOrNext,
+    /// The `#` with an optional `!` have been parsed so far.
     BrackerSquareLeft,
+    /// The `#[` has been parsed so far.
     Identifier,
+    /// The `#[ {identifier}` has been parsed so far.
     BrackerSquareRight,
 }
 
@@ -30,10 +38,16 @@ impl Default for State {
     }
 }
 
+///
+/// The attribute parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: AttributeBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

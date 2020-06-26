@@ -19,12 +19,20 @@ use zinc_compiler::Source;
 
 use self::error::Error;
 
+///
+/// The compiled Zinc program.
+///
 pub struct Program {
+    /// The witness input data template value.
     pub witness: TemplateValue,
+    /// The program bytecode with metadata.
     pub bytecode: BytecodeProgram,
 }
 
 impl Program {
+    ///
+    /// Creates a test program instance.
+    ///
     pub fn new(
         code: &str,
         path: PathBuf,

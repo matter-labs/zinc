@@ -23,8 +23,12 @@ use self::array::Parser as ArrayParser;
 use self::path::Parser as PathParser;
 use self::tuple::Parser as TupleParser;
 
+///
+/// The type parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The builder of the parsed value.
     builder: TypeBuilder,
 }
 

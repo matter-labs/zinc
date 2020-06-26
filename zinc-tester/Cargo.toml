@@ -20,6 +20,7 @@ serde_json = "1.0"
 
 rayon = "1.3"
 
+zinc-const = { path = "../zinc-const" }
 zinc-compiler = { path = "../zinc-compiler" }
 zinc-bytecode = { path = "../zinc-bytecode" }
 zinc-vm = { path = "../zinc-vm" }

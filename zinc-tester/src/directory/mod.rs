@@ -15,17 +15,24 @@ use serde_derive::Deserialize;
 
 use crate::file::File;
 use crate::metadata::Metadata;
-use crate::runners::Runnable;
+use crate::runners::IRunnable;
 use crate::summary::Summary;
 
 use self::error::Error;
 
+///
+/// The integration test directory.
+///
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Directory {
+    /// The directory file paths.
     pub file_paths: Vec<PathBuf>,
 }
 
 impl Directory {
+    ///
+    /// Reads the test directory and records the test file located there.
+    ///
     pub fn new(path: &PathBuf) -> Result<Self, Error> {
         let directory = fs::read_dir(path).map_err(Error::Reading)?;
         let mut file_paths = Vec::new();
@@ -50,7 +57,7 @@ impl Directory {
             let file_extension = entry_path
                 .extension()
                 .ok_or_else(|| Error::GettingFileExtension(entry_path.as_os_str().to_owned()))?;
-            if file_extension != crate::TEST_FILE_EXTENSION {
+            if file_extension != zinc_const::source::FILE_EXTENSION {
                 return Err(Error::InvalidFileExtension(
                     entry_path.as_os_str().to_owned(),
                     file_extension.to_owned(),
@@ -62,7 +69,10 @@ impl Directory {
         Ok(Self { file_paths })
     }
 
-    pub fn run<R: Runnable>(self, runner: R) -> Summary {
+    ///
+    /// Runs the directory tests and returns their result summary.
+    ///
+    pub fn run<R: IRunnable>(self, runner: R) -> Summary {
         let summary = Summary::default().wrap();
 
         self.file_paths

@@ -690,7 +690,7 @@ impl Analyzer {
         };
         let intermediate =
             GeneratorExpressionOperand::Constant(GeneratorExpressionConstant::Integer(
-                GeneratorExpressionIntegerConstant::new(start, false, zinc_const::BITLENGTH_FIELD),
+                GeneratorExpressionIntegerConstant::new(start, false, zinc_const::bitlength::FIELD),
             ));
 
         self.evaluation_stack.push(StackElement::Evaluated(result));
@@ -864,7 +864,7 @@ impl Analyzer {
                 };
 
                 self.evaluation_stack.push(StackElement::Evaluated(result));
-                self.next_call_type = CallType::Method { instance };
+                self.next_call_type = CallType::new_method(instance);
 
                 Ok(None)
             }

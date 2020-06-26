@@ -6,6 +6,9 @@ use std::path::PathBuf;
 
 use structopt::StructOpt;
 
+///
+/// The Zinc compiler arguments.
+///
 #[derive(Debug, StructOpt)]
 #[structopt(name = "znc", about = "The Zinc compiler")]
 pub struct Arguments {
@@ -33,6 +36,9 @@ pub struct Arguments {
 }
 
 impl Arguments {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new() -> Self {
         Self::from_args()
     }

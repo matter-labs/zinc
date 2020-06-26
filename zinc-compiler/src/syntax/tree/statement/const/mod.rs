@@ -1,5 +1,5 @@
 //!
-//! The const statement.
+//! The `const` statement.
 //!
 
 pub mod builder;
@@ -9,15 +9,25 @@ use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::r#type::Type;
 
+///
+/// The `const` statement.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Statement {
+    /// The location of the syntax construction.
     pub location: Location,
+    /// The constant identifier.
     pub identifier: Identifier,
+    /// The constant type.
     pub r#type: Type,
+    /// The expression assigned to the constant.
     pub expression: ExpressionTree,
 }
 
 impl Statement {
+    ///
+    /// Creates a `const` statement.
+    ///
     pub fn new(
         location: Location,
         identifier: Identifier,

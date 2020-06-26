@@ -1,5 +1,5 @@
 //!
-//! The path expression parser.
+//! The type path expression parser.
 //!
 
 use std::cell::RefCell;
@@ -18,9 +18,14 @@ use crate::syntax::tree::expression::tree::node::operator::Operator as Expressio
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::identifier::Identifier;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     Identifier,
+    /// The operand has been parsed and a `::` operator is expected.
     DoubleColonOrEnd,
 }
 
@@ -30,10 +35,16 @@ impl Default for State {
     }
 }
 
+///
+/// The type path expression parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The token returned from a subparser.
     next: Option<Token>,
+    /// The builder of the parsed value.
     builder: ExpressionTreeBuilder,
 }
 

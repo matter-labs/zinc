@@ -17,6 +17,9 @@ use crate::syntax::tree::literal::string::Literal as StringLiteral;
 use crate::syntax::tree::r#type::Type;
 use crate::syntax::tree::tuple_index::TupleIndex;
 
+///
+/// An expression tree operand.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operand {
     /// a unit value `()`

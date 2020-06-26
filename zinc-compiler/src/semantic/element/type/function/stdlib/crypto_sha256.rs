@@ -5,7 +5,7 @@
 use std::fmt;
 use std::ops::Deref;
 
-use zinc_bytecode::BuiltinIdentifier;
+use zinc_bytecode::FunctionIdentifier;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::function::error::Error;
@@ -15,7 +15,7 @@ use crate::semantic::element::Element;
 #[derive(Debug, Clone)]
 pub struct Function {
     pub location: Option<Location>,
-    pub builtin_identifier: BuiltinIdentifier,
+    pub builtin_identifier: FunctionIdentifier,
     pub identifier: &'static str,
     pub return_type: Box<Type>,
 }
@@ -24,7 +24,7 @@ impl Function {
     pub const ARGUMENT_INDEX_PREIMAGE: usize = 0;
     pub const ARGUMENT_COUNT: usize = 1;
 
-    pub fn new(builtin_identifier: BuiltinIdentifier) -> Self {
+    pub fn new(builtin_identifier: FunctionIdentifier) -> Self {
         Self {
             location: None,
             builtin_identifier,
@@ -32,7 +32,7 @@ impl Function {
             return_type: Box::new(Type::array(
                 Some(Location::default()),
                 Type::boolean(None),
-                zinc_const::BITLENGTH_SHA256_HASH,
+                zinc_const::bitlength::SHA256_HASH,
             )),
         }
     }
@@ -64,7 +64,8 @@ impl Function {
 
         match actual_params.get(Self::ARGUMENT_INDEX_PREIMAGE) {
             Some((Type::Array(array), location)) => match (array.r#type.deref(), array.size) {
-                (Type::Boolean(_), size) if size > 0 && size % zinc_const::BITLENGTH_BYTE == 0 => {}
+                (Type::Boolean(_), size) if size > 0 && size % zinc_const::bitlength::BYTE == 0 => {
+                }
                 (r#type, size) => {
                     return Err(Error::ArgumentType {
                         location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
@@ -73,7 +74,7 @@ impl Function {
                         position: Self::ARGUMENT_INDEX_PREIMAGE + 1,
                         expected: format!(
                             "[bool; N], N > 0, N % {} == 0",
-                            zinc_const::BITLENGTH_BYTE
+                            zinc_const::bitlength::BYTE
                         ),
                         found: format!("array [{}; {}]", r#type, size),
                     })
@@ -85,7 +86,7 @@ impl Function {
                     function: self.identifier.to_owned(),
                     name: "preimage".to_owned(),
                     position: Self::ARGUMENT_INDEX_PREIMAGE + 1,
-                    expected: format!("[bool; N], N > 0, N % {} == 0", zinc_const::BITLENGTH_BYTE),
+                    expected: format!("[bool; N], N > 0, N % {} == 0", zinc_const::bitlength::BYTE),
                     found: r#type.to_string(),
                 })
             }

@@ -14,9 +14,6 @@ use structopt::StructOpt;
 use self::command::error::Error as CommandError;
 use self::command::Command;
 
-const EXIT_CODE_SUCCESS: i32 = 0;
-const EXIT_CODE_FAILURE: i32 = 1;
-
 #[derive(Debug, StructOpt)]
 #[structopt(name = "zargo", about = "Zinc's project manager")]
 struct Arguments {
@@ -34,10 +31,10 @@ fn main() {
     let args: Arguments = Arguments::from_args();
 
     process::exit(match main_inner(args) {
-        Ok(()) => EXIT_CODE_SUCCESS,
+        Ok(()) => zinc_const::exit_code::SUCCESS,
         Err(error) => {
             log::error!("{}", error);
-            EXIT_CODE_FAILURE
+            zinc_const::exit_code::FAILURE
         }
     })
 }

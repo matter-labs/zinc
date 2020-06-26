@@ -8,15 +8,25 @@ use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
+///
+/// The conditional expression.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
+    /// The location of the syntax construction.
     pub location: Location,
+    /// The condition expression.
     pub condition: Box<ExpressionTree>,
+    /// The main conditional block expression.
     pub main_block: BlockExpression,
+    /// The `else` conditional block expression.
     pub else_block: Option<BlockExpression>,
 }
 
 impl Expression {
+    ///
+    /// Creates a conditional expression.
+    ///
     pub fn new(
         location: Location,
         condition: ExpressionTree,

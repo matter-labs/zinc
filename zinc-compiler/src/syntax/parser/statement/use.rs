@@ -1,5 +1,5 @@
 //!
-//! The use statement parser.
+//! The `use` statement parser.
 //!
 
 use std::cell::RefCell;
@@ -16,8 +16,12 @@ use crate::syntax::parser::expression::path::Parser as PathOperandParser;
 use crate::syntax::tree::statement::r#use::builder::Builder as UseStatementBuilder;
 use crate::syntax::tree::statement::r#use::Statement as UseStatement;
 
+///
+/// The `use` statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The builder of the parsed value.
     builder: UseStatementBuilder,
 }
 

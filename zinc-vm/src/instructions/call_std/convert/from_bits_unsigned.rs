@@ -15,11 +15,11 @@ use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
-pub struct UnsignedFromBits {
+pub struct FromBitsUnsigned {
     bitlength: usize,
 }
 
-impl UnsignedFromBits {
+impl FromBitsUnsigned {
     pub fn new(inputs_count: usize) -> Self {
         Self {
             bitlength: inputs_count,
@@ -27,7 +27,7 @@ impl UnsignedFromBits {
     }
 }
 
-impl<E: IEngine> INativeCallable<E> for UnsignedFromBits {
+impl<E: IEngine> INativeCallable<E> for FromBitsUnsigned {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,

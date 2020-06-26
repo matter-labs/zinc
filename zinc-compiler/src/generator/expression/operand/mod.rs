@@ -69,8 +69,8 @@ impl Operand {
                         bytecode.borrow_mut().push_instruction(
                             Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
                                 address,
-                                total_size,
                                 element_size,
+                                total_size,
                             )),
                             Some(location),
                         );
@@ -98,7 +98,7 @@ impl Operand {
                         IntegerConstant::new(
                             BigInt::from(*position),
                             false,
-                            zinc_const::BITLENGTH_FIELD,
+                            zinc_const::bitlength::FIELD,
                         )
                         .write_all_to_bytecode(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(
@@ -116,7 +116,7 @@ impl Operand {
                     if is_indexed {
                         inner.write_all_to_bytecode(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(
-                            Instruction::Slice(zinc_bytecode::Slice::new(total_size, element_size)),
+                            Instruction::Slice(zinc_bytecode::Slice::new(element_size, total_size)),
                             Some(location),
                         );
                     }

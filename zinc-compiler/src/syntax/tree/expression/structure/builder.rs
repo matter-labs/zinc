@@ -1,5 +1,5 @@
 //!
-//! The structure or identifier expression builder.
+//! The structure expression builder.
 //!
 
 use crate::lexical::token::location::Location;
@@ -7,21 +7,35 @@ use crate::syntax::tree::expression::structure::Expression as StructureExpressio
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::identifier::Identifier;
 
+///
+/// The structure expression builder.
+///
 #[derive(Default)]
 pub struct Builder {
+    /// The location of the syntax construction.
     location: Option<Location>,
+    /// The structure expression inner fields.
     fields: Vec<(Identifier, Option<ExpressionTree>)>,
 }
 
 impl Builder {
+    ///
+    /// Sets the corresponding builder value.
+    ///
     pub fn set_location(&mut self, value: Location) {
         self.location = Some(value);
     }
 
+    ///
+    /// Pushes the corresponding builder value.
+    ///
     pub fn push_field_identifier(&mut self, value: Identifier) {
         self.fields.push((value, None));
     }
 
+    ///
+    /// Sets the corresponding builder value.
+    ///
     pub fn set_field_expression(&mut self, value: ExpressionTree) {
         self.fields
             .last_mut()
@@ -35,6 +49,12 @@ impl Builder {
             .1 = Some(value);
     }
 
+    ///
+    /// Finalizes the builder and returns the built value.
+    ///
+    /// # Panics
+    /// If some of the required items has not been set.
+    ///
     pub fn finish(self) -> StructureExpression {
         StructureExpression::new(
             self.location.unwrap_or_else(|| {

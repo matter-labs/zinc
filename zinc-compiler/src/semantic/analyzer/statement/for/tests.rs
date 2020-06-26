@@ -159,7 +159,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Statement(
         StatementError::For(ForStatementError::WhileExpectedBooleanCondition {
             location: Location::new(4, 26),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));
 

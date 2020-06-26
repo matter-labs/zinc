@@ -103,7 +103,7 @@ pub enum Keyword {
 impl Keyword {
     /// The range including the minimal and maximal integer bitlengths.
     pub const INTEGER_BITLENGTH_RANGE: RangeInclusive<usize> =
-        zinc_const::BITLENGTH_BYTE..=zinc_const::BITLENGTH_INTEGER_MAX;
+        zinc_const::bitlength::BYTE..=zinc_const::bitlength::INTEGER_MAX;
 
     ///
     /// Creates a `u{N}` keyword.
@@ -154,7 +154,7 @@ impl TryFrom<&str> for Keyword {
     type Error = Error;
 
     ///
-    /// The converter checks if the number after the 'u' or 'i' symbol represents a valid
+    /// The converter checks if the number after the `u` or `i` symbol represents a valid
     /// amount of bits for an integer value. If the amount is not a valid bitlength, the word is
     /// treated as an ordinar identifier.
     ///
@@ -219,10 +219,10 @@ impl TryFrom<&str> for Keyword {
                     Self::INTEGER_BITLENGTH_RANGE,
                 ));
             }
-            if bitlength % zinc_const::BITLENGTH_BYTE != 0 {
+            if bitlength % zinc_const::bitlength::BYTE != 0 {
                 return Err(Error::IntegerBitlengthNotMultipleOfEight(
                     bitlength,
-                    zinc_const::BITLENGTH_BYTE,
+                    zinc_const::bitlength::BYTE,
                 ));
             }
             return Ok(Self::new_integer_unsigned(bitlength));
@@ -242,10 +242,10 @@ impl TryFrom<&str> for Keyword {
                     Self::INTEGER_BITLENGTH_RANGE,
                 ));
             }
-            if bitlength % zinc_const::BITLENGTH_BYTE != 0 {
+            if bitlength % zinc_const::bitlength::BYTE != 0 {
                 return Err(Error::IntegerBitlengthNotMultipleOfEight(
                     bitlength,
-                    zinc_const::BITLENGTH_BYTE,
+                    zinc_const::bitlength::BYTE,
                 ));
             }
             return Ok(Self::new_integer_signed(bitlength));

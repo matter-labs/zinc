@@ -11,13 +11,13 @@ use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Call {
     fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
-        vm.call(self.address, self.inputs_count)
+        vm.call(self.address, self.input_size)
     }
 }
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Return {
     fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
-        vm.r#return(self.outputs_count)
+        vm.r#return(self.output_size)
     }
 }
 

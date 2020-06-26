@@ -16,17 +16,28 @@ use self::circuit::Circuit;
 use self::contract::Contract;
 use self::unit_test::UnitTest;
 
+///
+/// The Zinc program.
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Program {
+    /// The circuit program variant.
     Circuit(Circuit),
+    /// The contract program variant.
     Contract(Contract),
 }
 
 impl Program {
+    ///
+    /// A shortcut constructor for a non-unit-test circuit.
+    ///
     pub fn new_circuit(input: DataType, output: DataType, instructions: Vec<Instruction>) -> Self {
         Self::Circuit(Circuit::new(input, output, instructions, None))
     }
 
+    ///
+    /// A shortcut constructor for a unit-test circuit.
+    ///
     pub fn new_circuit_unit_test(instructions: Vec<Instruction>, unit_test: UnitTest) -> Self {
         Self::Circuit(Circuit::new(
             DataType::new_empty_structure(),
@@ -36,6 +47,9 @@ impl Program {
         ))
     }
 
+    ///
+    /// A shortcut constructor for a non-unit-test contract.
+    ///
     pub fn new_contract(
         input: DataType,
         output: DataType,
@@ -51,6 +65,9 @@ impl Program {
         ))
     }
 
+    ///
+    /// A shortcut constructor for a unit-test contract.
+    ///
     pub fn new_contract_unit_test(
         instructions: Vec<Instruction>,
         storage: Vec<(String, DataType)>,
@@ -65,6 +82,9 @@ impl Program {
         ))
     }
 
+    ///
+    /// Returns the program input.
+    ///
     pub fn input(&self) -> DataType {
         match self {
             Self::Circuit(ref inner) => inner.input.to_owned(),
@@ -72,6 +92,9 @@ impl Program {
         }
     }
 
+    ///
+    /// Returns the program output.
+    ///
     pub fn output(&self) -> DataType {
         match self {
             Self::Circuit(ref inner) => inner.output.to_owned(),
@@ -79,6 +102,9 @@ impl Program {
         }
     }
 
+    ///
+    /// Returns the program instructions reference.
+    ///
     pub fn instructions(&self) -> &[Instruction] {
         match self {
             Self::Circuit(ref inner) => inner.instructions.as_slice(),
@@ -86,10 +112,16 @@ impl Program {
         }
     }
 
+    ///
+    /// Deserializes a program from `bytes`.
+    ///
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
         bincode::deserialize(bytes).map_err(|e| format!("{:?}", e))
     }
 
+    ///
+    /// Serializes the program into bytes.
+    ///
     pub fn into_bytes(self) -> Vec<u8> {
         bincode::serialize(&self).expect(crate::panic::BINARY_SERIALIZATION)
     }

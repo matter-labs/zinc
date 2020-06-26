@@ -1,5 +1,5 @@
 //!
-//! The 'function return' instruction.
+//! The `function return` instruction.
 //!
 
 use std::fmt;
@@ -9,16 +9,26 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `function return` instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Return {
-    pub outputs_count: usize,
+    /// The number of fields returned and put onto the evaluation stack.
+    pub output_size: usize,
 }
 
 impl Return {
-    pub fn new(outputs_count: usize) -> Self {
-        Self { outputs_count }
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(output_size: usize) -> Self {
+        Self { output_size }
     }
 
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }
@@ -32,6 +42,6 @@ impl Into<Instruction> for Return {
 
 impl fmt::Display for Return {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "return {}", self.outputs_count)
+        write!(f, "return {}", self.output_size)
     }
 }

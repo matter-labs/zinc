@@ -14,7 +14,7 @@ use zinc_bytecode::Program as BytecodeProgram;
 use zinc_vm::IFacade;
 
 use crate::error::Error;
-use crate::error::IoToError;
+use crate::error::IErrorPath;
 
 #[derive(Debug, StructOpt)]
 #[structopt(

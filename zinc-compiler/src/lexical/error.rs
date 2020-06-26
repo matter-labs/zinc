@@ -148,9 +148,9 @@ impl Error {
     }
 
     ///
-    /// Formats a group of words into a comma-separated list.
+    /// Converts a group of characters into a comma-separated list.
     ///
-    /// E.g. [a, b, c] turns into `a`, `b`, `c`.
+    /// E.g. ['a', 'b', 'c'] turns into `a`, `b`, `c`.
     ///
     fn join_expected(chars: Vec<char>) -> String {
         chars

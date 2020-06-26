@@ -17,3 +17,5 @@ rand = "0.4.5"
 hex = "0.4.0"
 
 franklin_crypto = { package = "franklin-crypto", git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc"}
+
+zinc-const = { path = "../zinc-const" }

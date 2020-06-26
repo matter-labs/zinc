@@ -198,7 +198,7 @@ fn main() {
             location: Location::new(4, 18),
             inner: CastingError::CastingFromInvalidType {
                 from: Type::field(None).to_string(),
-                to: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                to: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
             reference: Some(Location::new(4, 27)),
         }),
@@ -222,7 +222,7 @@ fn main() {
         ElementError::Value(ValueError::Casting {
             location: Location::new(4, 18),
             inner: CastingError::CastingToInvalidType {
-                from: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                from: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 to: Type::boolean(None).to_string(),
             },
             reference: Some(Location::new(4, 27)),
@@ -247,7 +247,7 @@ fn main() {
         ElementError::Value(ValueError::Casting {
             location: Location::new(4, 24),
             inner: CastingError::CastingToInvalidType {
-                from: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                from: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 to: Type::boolean(None).to_string(),
             },
             reference: Some(Location::new(4, 17)),

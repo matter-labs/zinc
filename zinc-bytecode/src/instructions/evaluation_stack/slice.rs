@@ -1,5 +1,5 @@
 //!
-//! The 'evaluation stack slice' instruction.
+//! The `evaluation stack slice` instruction.
 //!
 
 use std::fmt;
@@ -9,20 +9,31 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `evaluation stack slice` instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Slice {
-    pub array_len: usize,
-    pub slice_len: usize,
+    /// The size of the sliced chunk.
+    pub slice_size: usize,
+    /// The total size of the data chunk to be sliced.
+    pub total_size: usize,
 }
 
 impl Slice {
-    pub fn new(array_len: usize, slice_len: usize) -> Self {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(slice_size: usize, total_size: usize) -> Self {
         Self {
-            array_len,
-            slice_len,
+            slice_size,
+            total_size,
         }
     }
 
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }
@@ -36,6 +47,6 @@ impl Into<Instruction> for Slice {
 
 impl fmt::Display for Slice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "slice {} {}", self.array_len, self.slice_len)
+        write!(f, "slice {} {}", self.slice_size, self.total_size)
     }
 }

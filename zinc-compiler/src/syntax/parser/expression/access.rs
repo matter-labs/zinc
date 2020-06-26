@@ -24,14 +24,26 @@ use crate::syntax::tree::identifier::builder::Builder as IdentifierBuilder;
 use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 use crate::syntax::tree::tuple_index::builder::Builder as TupleIndexBuilder;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     PathOperand,
+    /// The first path operand has been parsed so far.
+    /// The optional exclamation mark quasi-operator identifies the built-in function call.
     ExclamationMarkOrNext,
+    /// The first path operand with an optional exclamation mark has been parsed so far.
+    /// Expects one of the access or call operators `(`, `[`, `.`.
     AccessOrCallOrEnd,
+    /// The `{identifier} [` has been parsed so far.
     IndexExpression,
+    /// The `{identifier} [ {expression}` has been parsed so far.
     BracketSquareRight,
+    /// The `{identifier} .` has been parsed so far.
     FieldDescriptor,
+    /// The `{identifier} (` with several `{expression} ,`s has been parsed so far.
     ParenthesisRight,
 }
 
@@ -41,10 +53,16 @@ impl Default for State {
     }
 }
 
+///
+/// The array/tuple/structure access operand parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The token returned from a subparser.
     next: Option<Token>,
+    /// The builder of the parsed value.
     builder: ExpressionTreeBuilder,
 }
 

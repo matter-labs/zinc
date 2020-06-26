@@ -15,10 +15,16 @@ use crate::syntax::parser::expression::Parser as ExpressionParser;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::expression::tuple::builder::Builder as TupleExpressionBuilder;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     ParenthesisLeft,
+    /// The `(` has been parsed so far.
     ExpressionOrParenthesisRight,
+    /// The `( {expression}` has been parsed so far.
     CommaOrParenthesisRight,
 }
 
@@ -28,10 +34,16 @@ impl Default for State {
     }
 }
 
+///
+/// The tuple expression parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: TupleExpressionBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

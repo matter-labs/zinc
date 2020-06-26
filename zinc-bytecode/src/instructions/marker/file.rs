@@ -1,5 +1,5 @@
 //!
-//! The 'file marker' instruction.
+//! The `file marker` instruction.
 //!
 
 use std::fmt;
@@ -9,16 +9,26 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `file marker` debug instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FileMarker {
+    /// The source code file path.
     pub file: String,
 }
 
 impl FileMarker {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(file: String) -> Self {
         Self { file }
     }
 
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         true
     }

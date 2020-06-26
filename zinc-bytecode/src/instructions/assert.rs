@@ -1,5 +1,5 @@
 //!
-//! The 'assert' instruction.
+//! The `assert` instruction.
 //!
 
 use std::fmt;
@@ -9,16 +9,26 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `assert` instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Assert {
+    /// The optional error message.
     pub message: Option<String>,
 }
 
 impl Assert {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(message: Option<String>) -> Self {
         Self { message }
     }
 
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
     }

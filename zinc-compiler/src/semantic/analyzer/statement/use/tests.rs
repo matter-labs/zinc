@@ -30,7 +30,7 @@ fn main() {}
                 Location::new(2, 5),
                 BigInt::from(5),
                 false,
-                zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::BYTE,
             )))
             .to_string(),
         }),

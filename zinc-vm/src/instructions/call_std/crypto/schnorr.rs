@@ -16,11 +16,11 @@ use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
 
-pub struct VerifySchnorrSignature {
+pub struct SchnorrSignatureVerify {
     msg_len: usize,
 }
 
-impl VerifySchnorrSignature {
+impl SchnorrSignatureVerify {
     pub fn new(args_count: usize) -> Result<Self, RuntimeError> {
         if args_count < 6 {
             return Err(MalformedBytecode::InvalidArguments(
@@ -35,7 +35,7 @@ impl VerifySchnorrSignature {
     }
 }
 
-impl<E: IEngine> INativeCallable<E> for VerifySchnorrSignature {
+impl<E: IEngine> INativeCallable<E> for SchnorrSignatureVerify {
     fn call<CS>(&self, mut cs: CS, stack: &mut EvaluationStack<E>) -> Result<(), RuntimeError>
     where
         CS: ConstraintSystem<E>,
@@ -155,7 +155,7 @@ mod tests {
     use crate::core::execution_state::evaluation_stack::EvaluationStack;
     use crate::error::RuntimeError;
     use crate::gadgets::scalar::Scalar;
-    use crate::instructions::call_std::crypto::schnorr::VerifySchnorrSignature;
+    use crate::instructions::call_std::crypto::schnorr::SchnorrSignatureVerify;
     use crate::instructions::call_std::INativeCallable;
 
     #[test]
@@ -220,7 +220,7 @@ mod tests {
         }
 
         let mut cs = TestConstraintSystem::new();
-        VerifySchnorrSignature::new(5 + 8 * message.len())
+        SchnorrSignatureVerify::new(5 + 8 * message.len())
             .expect(crate::panic::TEST_DATA_VALID)
             .call(cs.namespace(|| "signature check"), &mut stack)?;
 

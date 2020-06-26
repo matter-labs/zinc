@@ -120,7 +120,7 @@ fn main() {
             name: "format".to_owned(),
             position: BuiltInDebugFunction::ARGUMENT_INDEX_FORMAT_STRING + 1,
             expected: Type::string(None).to_string(),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -188,7 +188,7 @@ fn main() {
             name: "condition".to_owned(),
             position: BuiltInAssertFunction::ARGUMENT_INDEX_CONDITION + 1,
             expected: Type::boolean(None).to_string(),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 
@@ -212,7 +212,7 @@ fn main() {
             name: "message".to_owned(),
             position: BuiltInAssertFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: Type::string(None).to_string(),
-            found: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     ))));
 

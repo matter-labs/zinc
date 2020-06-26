@@ -1,11 +1,18 @@
+//!
+//! The `generate key` command arguments.
+//!
+
 use structopt::StructOpt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
 use crate::arguments::Error;
 
+///
+/// The `generate key` command arguments.
+///
 #[derive(StructOpt)]
-#[structopt(name = "gen-key", about = "generate random private key")]
+#[structopt(name = "gen-key", about = "generate a random private key")]
 pub struct GenKeyCommand {}
 
 impl GenKeyCommand {

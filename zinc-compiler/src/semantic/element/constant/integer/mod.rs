@@ -248,7 +248,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == zinc_const::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::bitlength::FIELD {
             return Err(Error::ForbiddenFieldBitwise {
                 location: self.location,
             });
@@ -282,7 +282,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == zinc_const::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::bitlength::FIELD {
             return Err(Error::ForbiddenFieldBitwise {
                 location: self.location,
             });
@@ -316,7 +316,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == zinc_const::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::bitlength::FIELD {
             return Err(Error::ForbiddenFieldBitwise {
                 location: self.location,
             });
@@ -345,7 +345,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == zinc_const::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::bitlength::FIELD {
             return Err(Error::ForbiddenFieldBitwise {
                 location: self.location,
             });
@@ -392,7 +392,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == zinc_const::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::bitlength::FIELD {
             return Err(Error::ForbiddenFieldBitwise {
                 location: self.location,
             });
@@ -561,7 +561,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == zinc_const::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::bitlength::FIELD {
             return Err(Error::ForbiddenFieldDivision {
                 location: self.location,
             });
@@ -611,7 +611,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == zinc_const::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::bitlength::FIELD {
             return Err(Error::ForbiddenFieldRemainder {
                 location: self.location,
             });
@@ -701,7 +701,7 @@ impl Integer {
             });
         }
 
-        if self.bitlength == zinc_const::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::bitlength::FIELD {
             return Err(Error::ForbiddenFieldBitwise {
                 location: self.location,
             });
@@ -721,7 +721,7 @@ impl Integer {
     }
 
     pub fn negate(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
-        if self.bitlength == zinc_const::BITLENGTH_FIELD {
+        if self.bitlength == zinc_const::bitlength::FIELD {
             return Err(Error::ForbiddenFieldNegation {
                 location: self.location,
             });
@@ -755,7 +755,7 @@ impl Integer {
         self.value.to_usize().ok_or_else(|| Error::IntegerTooLarge {
             location: self.location,
             value: self.value.to_owned(),
-            bitlength: zinc_const::BITLENGTH_INDEX,
+            bitlength: zinc_const::bitlength::INDEX,
         })
     }
 
@@ -763,7 +763,7 @@ impl Integer {
     /// Calculates the minimal bitlength required to represent each element of `literals`.
     ///
     pub fn minimal_bitlength_literals(literals: &[&IntegerLiteral]) -> Result<usize, Error> {
-        let mut result = zinc_const::BITLENGTH_BYTE;
+        let mut result = zinc_const::bitlength::BYTE;
 
         for literal in literals.iter() {
             let bitlength = Self::try_from(*literal)?.bitlength;
@@ -784,7 +784,7 @@ impl Integer {
         is_signed: bool,
         location: Location,
     ) -> Result<usize, Error> {
-        let mut result = zinc_const::BITLENGTH_BYTE;
+        let mut result = zinc_const::bitlength::BYTE;
 
         for value in values.iter() {
             let bitlength = Self::minimal_bitlength(value, is_signed, location)?;
@@ -805,8 +805,8 @@ impl Integer {
         is_signed: bool,
         location: Location,
     ) -> Result<usize, Error> {
-        let mut bitlength = zinc_const::BITLENGTH_BYTE;
-        let mut exponent = BigInt::from(1 << zinc_const::BITLENGTH_BYTE);
+        let mut bitlength = zinc_const::bitlength::BYTE;
+        let mut exponent = BigInt::from(1 << zinc_const::bitlength::BYTE);
 
         while if is_signed {
             if value.is_negative() {
@@ -819,18 +819,18 @@ impl Integer {
         } else {
             value >= &exponent
         } {
-            if bitlength == zinc_const::BITLENGTH_INTEGER_MAX {
-                exponent <<= zinc_const::BITLENGTH_FIELD - zinc_const::BITLENGTH_INTEGER_MAX;
-                bitlength += zinc_const::BITLENGTH_FIELD - zinc_const::BITLENGTH_INTEGER_MAX;
-            } else if bitlength == zinc_const::BITLENGTH_FIELD {
+            if bitlength == zinc_const::bitlength::INTEGER_MAX {
+                exponent <<= zinc_const::bitlength::FIELD - zinc_const::bitlength::INTEGER_MAX;
+                bitlength += zinc_const::bitlength::FIELD - zinc_const::bitlength::INTEGER_MAX;
+            } else if bitlength == zinc_const::bitlength::FIELD {
                 return Err(Error::IntegerTooLarge {
                     location,
                     value: value.to_owned(),
-                    bitlength: zinc_const::BITLENGTH_FIELD,
+                    bitlength: zinc_const::bitlength::FIELD,
                 });
             } else {
-                exponent <<= zinc_const::BITLENGTH_BYTE;
-                bitlength += zinc_const::BITLENGTH_BYTE;
+                exponent <<= zinc_const::bitlength::BYTE;
+                bitlength += zinc_const::bitlength::BYTE;
             }
         }
 
@@ -851,13 +851,13 @@ impl TryFrom<&IntegerLiteral> for Integer {
     ///
     fn try_from(literal: &IntegerLiteral) -> Result<Self, Self::Error> {
         let (string, base) = match literal.inner {
-            LexicalIntegerLiteral::Binary { ref inner } => (inner, zinc_const::BASE_BINARY as u32),
-            LexicalIntegerLiteral::Octal { ref inner } => (inner, zinc_const::BASE_OCTAL as u32),
+            LexicalIntegerLiteral::Binary { ref inner } => (inner, zinc_const::base::BINARY as u32),
+            LexicalIntegerLiteral::Octal { ref inner } => (inner, zinc_const::base::OCTAL as u32),
             LexicalIntegerLiteral::Decimal { ref inner } => {
-                (inner, zinc_const::BASE_DECIMAL as u32)
+                (inner, zinc_const::base::DECIMAL as u32)
             }
             LexicalIntegerLiteral::Hexadecimal { ref inner } => {
-                (inner, zinc_const::BASE_HEXADECIMAL as u32)
+                (inner, zinc_const::base::HEXADECIMAL as u32)
             }
         };
 

@@ -5,7 +5,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use zinc_bytecode::BuiltinIdentifier;
+use zinc_bytecode::FunctionIdentifier;
 
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::structure::Structure as StructureType;
@@ -103,13 +103,13 @@ impl BuiltInScope {
     fn module_crypto() -> Rc<RefCell<Scope>> {
         let std_crypto_scope = Scope::new_built_in("crypto").wrap();
 
-        let std_crypto_sha256 = FunctionType::new_std(BuiltinIdentifier::CryptoSha256);
-        let std_crypto_pedersen = FunctionType::new_std(BuiltinIdentifier::CryptoPedersen);
+        let std_crypto_sha256 = FunctionType::new_std(FunctionIdentifier::CryptoSha256);
+        let std_crypto_pedersen = FunctionType::new_std(FunctionIdentifier::CryptoPedersen);
 
         let std_crypto_schnorr_scope = Scope::new_built_in("schnorr").wrap();
         let std_crypto_schnorr_signature_scope = Scope::new_built_in("Signature").wrap();
         let std_crypto_schnorr_verify =
-            FunctionType::new_std(BuiltinIdentifier::CryptoSchnorrSignatureVerify);
+            FunctionType::new_std(FunctionIdentifier::CryptoSchnorrSignatureVerify);
         Scope::insert_item(
             std_crypto_schnorr_signature_scope.clone(),
             std_crypto_schnorr_verify.identifier(),
@@ -205,11 +205,13 @@ impl BuiltInScope {
     fn module_convert() -> Rc<RefCell<Scope>> {
         let std_convert_scope = Scope::new_built_in("convert").wrap();
 
-        let std_convert_to_bits = FunctionType::new_std(BuiltinIdentifier::ToBits);
+        let std_convert_to_bits = FunctionType::new_std(FunctionIdentifier::ConvertToBits);
         let std_convert_from_bits_unsigned =
-            FunctionType::new_std(BuiltinIdentifier::UnsignedFromBits);
-        let std_convert_from_bits_signed = FunctionType::new_std(BuiltinIdentifier::SignedFromBits);
-        let std_convert_from_bits_field = FunctionType::new_std(BuiltinIdentifier::FieldFromBits);
+            FunctionType::new_std(FunctionIdentifier::ConvertFromBitsUnsigned);
+        let std_convert_from_bits_signed =
+            FunctionType::new_std(FunctionIdentifier::ConvertFromBitsSigned);
+        let std_convert_from_bits_field =
+            FunctionType::new_std(FunctionIdentifier::ConvertFromBitsField);
 
         Scope::insert_item(
             std_convert_scope.clone(),
@@ -250,9 +252,9 @@ impl BuiltInScope {
     fn module_array() -> Rc<RefCell<Scope>> {
         let std_array_scope = Scope::new_built_in("array").wrap();
 
-        let std_array_reverse = FunctionType::new_std(BuiltinIdentifier::ArrayReverse);
-        let std_array_truncate = FunctionType::new_std(BuiltinIdentifier::ArrayTruncate);
-        let std_array_pad = FunctionType::new_std(BuiltinIdentifier::ArrayPad);
+        let std_array_reverse = FunctionType::new_std(FunctionIdentifier::ArrayReverse);
+        let std_array_truncate = FunctionType::new_std(FunctionIdentifier::ArrayTruncate);
+        let std_array_pad = FunctionType::new_std(FunctionIdentifier::ArrayPad);
 
         Scope::insert_item(
             std_array_scope.clone(),
@@ -282,7 +284,7 @@ impl BuiltInScope {
     fn module_ff() -> Rc<RefCell<Scope>> {
         let std_ff_scope = Scope::new_built_in("ff").wrap();
 
-        let std_ff_invert = FunctionType::new_std(BuiltinIdentifier::FieldInverse);
+        let std_ff_invert = FunctionType::new_std(FunctionIdentifier::FieldInverse);
 
         Scope::insert_item(
             std_ff_scope.clone(),

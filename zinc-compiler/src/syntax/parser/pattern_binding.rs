@@ -17,14 +17,22 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::pattern_binding::builder::Builder as BindingPatternBuilder;
 use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
 
+/// The missing type error hint.
 pub static HINT_EXPECTED_TYPE: &str =
     "function argument must have a type, e.g. `fn sum(a: u8, b: u8) {}`";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     MutOrNext,
+    /// The optional `mut` has been parsed so far.
     Binding,
+    /// The `{identifier}` has been parsed so far.
     Colon,
+    /// The `{identifier} :` has been parsed so far.
     Type,
 }
 
@@ -34,10 +42,16 @@ impl Default for State {
     }
 }
 
+///
+/// The binding pattern parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: BindingPatternBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

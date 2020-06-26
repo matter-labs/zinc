@@ -1,5 +1,5 @@
 //!
-//! The fn statement parser.
+//! The `fn` statement parser.
 //!
 
 use std::cell::RefCell;
@@ -18,20 +18,33 @@ use crate::syntax::parser::r#type::Parser as TypeParser;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#fn::builder::Builder as FnStatementBuilder;
 
+/// The missing identifier error hint.
 pub static HINT_EXPECTED_IDENTIFIER: &str =
     "function must have an identifier, e.g. `fn sum(...) { ... }`";
+/// The missing argument list error hint.
 pub static HINT_EXPECTED_ARGUMENT_LIST: &str =
     "function must have the argument list, e.g. `fn sum(a: u8, b: u8) { ... }`";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     KeywordFn,
+    /// The `fn` has been parsed so far.
     Identifier,
+    /// The `fn {identifier}` has been parsed so far.
     ParenthesisLeft,
+    /// The `fn {identifier} (` has been parsed so far.
     ArgumentBindingList,
+    /// The `fn {identifier} ( {arguments}` has been parsed so far.
     ParenthesisRight,
+    /// The `fn {identifier} ( {arguments} )` has been parsed so far.
     ArrowOrBody,
+    /// The `fn {identifier} ( {arguments} ) ->` has been parsed so far.
     ReturnType,
+    /// The `fn {identifier} ( {arguments} )` with optional `-> {type}` has been parsed so far.
     Body,
 }
 
@@ -41,10 +54,16 @@ impl Default for State {
     }
 }
 
+///
+/// The `fn` statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: FnStatementBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

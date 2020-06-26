@@ -17,13 +17,20 @@ use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 use crate::syntax::tree::variant::builder::Builder as VariantBuilder;
 use crate::syntax::tree::variant::Variant;
 
+/// The missing identifier error hint.
 pub static HINT_EXPECTED_IDENTIFIER: &str =
     "enumeration variant must have an identifier, e.g. `Value = 42`";
+/// The missing value error hint.
 pub static HINT_EXPECTED_VALUE: &str = "enumeration variant must be initialized, e.g. `Value = 42`";
 
+///
+/// The variant parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The builder of the parsed value.
     builder: VariantBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

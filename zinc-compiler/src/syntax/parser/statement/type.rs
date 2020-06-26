@@ -1,5 +1,5 @@
 //!
-//! The type statement parser.
+//! The `type` statement parser.
 //!
 
 use std::cell::RefCell;
@@ -17,17 +17,27 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#type::builder::Builder as TypeStatementBuilder;
 use crate::syntax::tree::statement::r#type::Statement as TypeStatement;
 
+/// The missing identifier error hint.
 pub static HINT_EXPECTED_IDENTIFIER: &str =
     "type alias must have an identifier, e.g. `type Complex = (u8, field);`";
+/// The missing type error hint.
 pub static HINT_EXPECTED_TYPE: &str =
     "type alias must be initialized, e.g. `type Complex = (u8, field);`";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     KeywordType,
+    /// The `type` has been parsed so far.
     Identifier,
+    /// The `type {identifier}` has been parsed so far.
     Equals,
+    /// The `type {identifier} =` has been parsed so far.
     Type,
+    /// The `type {identifier} = {type}` has been parsed so far.
     Semicolon,
 }
 
@@ -37,10 +47,16 @@ impl Default for State {
     }
 }
 
+///
+/// The `type` statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The token returned from a subparser.
     next: Option<Token>,
+    /// The builder of the parsed value.
     builder: TypeStatementBuilder,
 }
 

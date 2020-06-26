@@ -1,5 +1,5 @@
 //!
-//! The 'bitwise AND' instruction.
+//! The `bitwise AND` instruction.
 //!
 
 use std::fmt;
@@ -9,16 +9,18 @@ use serde_derive::Serialize;
 
 use crate::instructions::Instruction;
 
+///
+/// The `bitwise AND` instruction.
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct BitwiseAnd;
 
 impl BitwiseAnd {
+    ///
+    /// If the instruction is for the debug mode only.
+    ///
     pub fn is_debug(&self) -> bool {
         false
-    }
-
-    pub fn wrap(self) -> Instruction {
-        Instruction::BitwiseAnd(self)
     }
 }
 

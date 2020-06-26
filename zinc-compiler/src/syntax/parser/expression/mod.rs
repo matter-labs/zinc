@@ -33,10 +33,16 @@ use crate::syntax::tree::expression::tree::builder::Builder as ExpressionTreeBui
 use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     AssignmentFirstOperand,
+    /// The first operand has been parsed and an operator is expected.
     AssignmentOperator,
+    /// The first operand and the operator have been parsed, and the second operand is expected.
     AssignmentSecondOperand,
 }
 
@@ -46,10 +52,16 @@ impl Default for State {
     }
 }
 
+///
+/// The expression parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The token returned from a subparser.
     next: Option<Token>,
+    /// The builder of the parsed value.
     builder: ExpressionTreeBuilder,
 }
 

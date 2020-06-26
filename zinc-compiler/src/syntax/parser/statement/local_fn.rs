@@ -17,8 +17,12 @@ use crate::syntax::parser::statement::r#for::Parser as ForStatementParser;
 use crate::syntax::parser::statement::r#let::Parser as LetStatementParser;
 use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
 
+///
+/// The function-local statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

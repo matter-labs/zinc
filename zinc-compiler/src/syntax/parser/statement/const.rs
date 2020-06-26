@@ -1,5 +1,5 @@
 //!
-//! The const statement parser.
+//! The `const` statement parser.
 //!
 
 use std::cell::RefCell;
@@ -18,19 +18,32 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#const::builder::Builder as ConstStatementBuilder;
 use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
+/// The missing identifier error hint.
 pub static HINT_EXPECTED_IDENTIFIER: &str =
     "constant must have an identifier, e.g. `const DATA: u8 = 42;`";
+/// The missing type error hint.
 pub static HINT_EXPECTED_TYPE: &str = "constant must have a type, e.g. `const DATA: u8 = 42;`";
+/// The missing value error hint.
 pub static HINT_EXPECTED_VALUE: &str = "constant must be initialized, e.g. `const DATA: u8 = 42;`";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     KeywordConst,
+    /// The `const` has been parsed so far.
     Identifier,
+    /// The `const {identifier}` has been parsed so far.
     Colon,
+    /// The `const {identifier} :` has been parsed so far.
     Type,
+    /// The `const {identifier} : {type}` has been parsed so far.
     Equals,
+    /// The `const {identifier} : {type} =` has been parsed so far.
     Expression,
+    /// The `const {identifier} : {type} = {expression}` has been parsed so far.
     Semicolon,
 }
 
@@ -40,10 +53,16 @@ impl Default for State {
     }
 }
 
+///
+/// The `const` statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: ConstStatementBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

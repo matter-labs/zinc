@@ -13,9 +13,14 @@ use crate::lexical::token::Token;
 use crate::syntax::parser::variant::Parser as VariantParser;
 use crate::syntax::tree::variant::Variant;
 
+///
+/// The variant list parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parsed variants.
     variants: Vec<Variant>,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

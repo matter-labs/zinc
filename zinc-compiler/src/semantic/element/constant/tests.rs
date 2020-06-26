@@ -121,7 +121,7 @@ fn main() {
                 Location::new(3, 17),
                 BigInt::from(42),
                 false,
-                zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::BYTE,
             ))
             .to_string(),
         }),
@@ -147,7 +147,7 @@ fn main() {
                 Location::new(3, 25),
                 BigInt::from(42),
                 false,
-                zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::BYTE,
             ))
             .to_string(),
         }),
@@ -173,7 +173,7 @@ fn main() {
                 Location::new(3, 17),
                 BigInt::from(42),
                 false,
-                zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::BYTE,
             ))
             .to_string(),
         }),
@@ -199,7 +199,7 @@ fn main() {
                 Location::new(3, 25),
                 BigInt::from(42),
                 false,
-                zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::BYTE,
             ))
             .to_string(),
         }),
@@ -225,7 +225,7 @@ fn main() {
                 Location::new(3, 17),
                 BigInt::from(42),
                 false,
-                zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::BYTE,
             ))
             .to_string(),
         }),
@@ -251,7 +251,7 @@ fn main() {
                 Location::new(3, 25),
                 BigInt::from(42),
                 false,
-                zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::BYTE,
             ))
             .to_string(),
         }),
@@ -303,7 +303,7 @@ fn main() {
                 Location::new(3, 23),
                 BigInt::from(42),
                 false,
-                zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::BYTE,
             ))
             .to_string(),
         }),
@@ -329,7 +329,7 @@ fn main() {
                 Location::new(3, 25),
                 BigInt::from(42),
                 false,
-                zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::BYTE,
             ))
             .to_string(),
         }),
@@ -401,7 +401,7 @@ fn main() {
                 Location::new(3, 23),
                 BigInt::from(42),
                 false,
-                zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::BYTE,
             ))
             .to_string(),
         }),
@@ -428,7 +428,7 @@ fn main() {
                     Location::new(3, 25),
                     BigInt::from(42),
                     false,
-                    zinc_const::BITLENGTH_BYTE,
+                    zinc_const::bitlength::BYTE,
                 ))
                 .to_string(),
             },
@@ -1102,7 +1102,7 @@ fn main() {
         ElementError::Constant(ConstantError::Casting {
             location: Location::new(4, 26),
             inner: CastingError::CastingToInvalidType {
-                from: Type::integer_unsigned(None, zinc_const::BITLENGTH_BYTE).to_string(),
+                from: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 to: Type::boolean(None).to_string(),
             },
             reference: Some(Location::new(4, 19)),
@@ -1129,7 +1129,7 @@ fn main() {
                 Location::new(3, 18),
                 BigInt::from(42),
                 false,
-                zinc_const::BITLENGTH_BYTE,
+                zinc_const::bitlength::BYTE,
             ))
             .to_string(),
         }),

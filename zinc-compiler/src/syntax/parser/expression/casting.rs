@@ -15,8 +15,12 @@ use crate::syntax::tree::expression::tree::builder::Builder as ExpressionTreeBui
 use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
+///
+/// The casting operand parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The builder of the parsed value.
     builder: ExpressionTreeBuilder,
 }
 

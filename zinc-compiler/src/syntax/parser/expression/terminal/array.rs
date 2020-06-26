@@ -15,14 +15,24 @@ use crate::syntax::parser::expression::Parser as ExpressionParser;
 use crate::syntax::tree::expression::array::builder::Builder as ArrayExpressionBuilder;
 use crate::syntax::tree::expression::array::Expression as ArrayExpression;
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     BracketSquareLeft,
+    /// The `[` has been parsed so far.
     FirstExpressionOrBracketSquareRight,
+    /// The `[ {expression},`s has been parsed so far.
     ExpressionOrBracketSquareRight,
+    /// The `[ {expression}, {expression}`s has been parsed so far.
     CommaOrBracketSquareRight,
+    /// The `[ {expression}` has been parsed so far.
     CommaOrSemicolonOrBracketSquareRight,
+    /// The `[ {expression} ;` has been parsed so far.
     SizeExpression,
+    /// The `[ {expression} ; {expression}` has been parsed so far.
     BracketSquareRight,
 }
 
@@ -32,10 +42,16 @@ impl Default for State {
     }
 }
 
+///
+/// The array expression parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The token returned from a subparser.
     next: Option<Token>,
+    /// The builder of the parsed value.
     builder: ArrayExpressionBuilder,
 }
 

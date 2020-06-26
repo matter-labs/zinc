@@ -13,8 +13,12 @@ use serde_derive::Deserialize;
 
 use self::error::Error;
 
+///
+/// The integration test file.
+///
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct File {
+    /// The test file source code.
     pub code: String,
 }
 

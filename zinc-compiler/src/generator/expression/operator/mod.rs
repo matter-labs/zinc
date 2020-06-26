@@ -2,7 +2,7 @@
 //! The generator expression operator.
 //!
 
-use zinc_bytecode::BuiltinIdentifier;
+use zinc_bytecode::FunctionIdentifier;
 
 use crate::generator::expression::operand::place::Place;
 use crate::generator::expression::Expression;
@@ -139,7 +139,7 @@ pub enum Operator {
         message: Option<String>,
     },
     CallStandardLibrary {
-        identifier: BuiltinIdentifier,
+        identifier: FunctionIdentifier,
         input_size: usize,
         output_size: usize,
     },
@@ -180,7 +180,7 @@ impl Operator {
         Self::CallAssert { message }
     }
 
-    pub fn call_std(identifier: BuiltinIdentifier, input_size: usize, output_size: usize) -> Self {
+    pub fn call_std(identifier: FunctionIdentifier, input_size: usize, output_size: usize) -> Self {
         Self::CallStandardLibrary {
             identifier,
             input_size,

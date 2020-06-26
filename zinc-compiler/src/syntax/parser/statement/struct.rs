@@ -1,5 +1,5 @@
 //!
-//! The struct statement parser.
+//! The `struct` statement parser.
 //!
 
 use std::cell::RefCell;
@@ -17,15 +17,24 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#struct::builder::Builder as StructStatementBuilder;
 use crate::syntax::tree::statement::r#struct::Statement as StructStatement;
 
+/// The missing identifier error hint.
 pub static HINT_EXPECTED_IDENTIFIER: &str =
     "structure type must have an identifier, e.g. `struct Data { ... }`";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     KeywordStruct,
+    /// The `struct` has been parsed so far.
     Identifier,
+    /// The `struct {identifier}` has been parsed so far.
     BracketCurlyLeftOrEnd,
+    /// The `struct {identifier} {` has been parsed so far.
     FieldList,
+    /// The `struct {identifier} { {fields}` has been parsed so far.
     BracketCurlyRight,
 }
 
@@ -35,10 +44,16 @@ impl Default for State {
     }
 }
 
+///
+/// The `struct` statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: StructStatementBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 

@@ -13,46 +13,83 @@ use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
 use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
 use crate::syntax::tree::r#type::Type;
 
+///
+/// The binding pattern builder.
+///
 #[derive(Default)]
 pub struct Builder {
+    /// The location of the syntax construction.
     location: Option<Location>,
+    /// The binding pattern identifier.
     identifier: Option<Identifier>,
+    /// The binding pattern type.
     r#type: Option<Type>,
+    /// If the binding pattern is mutable.
     is_mutable: bool,
+    /// If the binding pattern is a wildcard.
     is_wildcard: bool,
+    /// If the binding pattern is a `self` alias.
     is_self_alias: bool,
+    /// The location of the `self` alias.
     self_location: Option<Location>,
 }
 
 impl Builder {
+    ///
+    /// Sets the corresponding builder value.
+    ///
     pub fn set_location(&mut self, value: Location) {
         self.location = Some(value);
     }
 
+    ///
+    /// Sets the corresponding builder value.
+    ///
     pub fn set_identifier(&mut self, value: Identifier) {
         self.identifier = Some(value);
     }
 
+    ///
+    /// Sets the corresponding builder value.
+    ///
     pub fn set_type(&mut self, value: Type) {
         self.r#type = Some(value);
     }
 
+    ///
+    /// Sets the corresponding builder value.
+    ///
     pub fn set_is_mutable(&mut self) {
         self.is_mutable = true;
     }
 
+    ///
+    /// Sets the corresponding builder value.
+    ///
     pub fn set_is_wildcard(&mut self) {
         self.is_wildcard = true;
     }
 
+    ///
+    /// Sets the corresponding builder value.
+    ///
     pub fn set_is_self_alias(&mut self) {
         self.is_self_alias = true;
     }
 
+    ///
+    /// Sets the corresponding builder value.
+    ///
     pub fn set_self_location(&mut self, value: Location) {
         self.self_location = Some(value);
     }
 
+    ///
+    /// Finalizes the builder and returns the built value.
+    ///
+    /// # Panics
+    /// If some of the required items has not been set.
+    ///
     pub fn finish(mut self) -> BindingPattern {
         let location = self
             .location

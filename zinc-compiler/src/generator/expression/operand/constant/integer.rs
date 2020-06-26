@@ -69,7 +69,7 @@ impl Integer {
 
     pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
         let scalar_type = match (self.is_signed, self.bitlength) {
-            (false, zinc_const::BITLENGTH_FIELD) => ScalarType::Field,
+            (false, zinc_const::bitlength::FIELD) => ScalarType::Field,
             (is_signed, bitlength) => ScalarType::Integer(IntegerType {
                 is_signed,
                 bitlength,

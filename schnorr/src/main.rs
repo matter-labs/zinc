@@ -1,23 +1,25 @@
-pub mod arguments;
+//!
+//! The Schnorr signature tool binary.
+//!
 
-use std::process::exit;
+mod arguments;
 
-use structopt::StructOpt;
+use std::process;
 
 use self::arguments::Arguments;
 use self::arguments::Command;
 
 fn main() {
-    let arguments: Arguments = Arguments::from_args();
+    let arguments = Arguments::new();
 
     let result = match arguments.command {
-        Command::GenKey(c) => c.execute(),
-        Command::PubKey(c) => c.execute(),
-        Command::Sign(c) => c.execute(),
+        Command::GenKey(command) => command.execute(),
+        Command::PubKey(command) => command.execute(),
+        Command::Sign(command) => command.execute(),
     };
 
     if let Err(error) = result {
         eprintln!("{}", error);
-        exit(1);
+        process::exit(zinc_const::exit_code::FAILURE);
     }
 }

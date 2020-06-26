@@ -17,9 +17,13 @@ use self::node::Node;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Tree {
+    /// The location of the syntax construction.
     pub location: Location,
+    /// The value of the node, which is either an operand or operator.
     pub value: Box<Node>,
+    /// The left child of the node.
     pub left: Option<Box<Self>>,
+    /// The right child of the node.
     pub right: Option<Box<Self>>,
 }
 

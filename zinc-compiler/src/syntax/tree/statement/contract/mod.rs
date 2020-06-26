@@ -1,5 +1,5 @@
 //!
-//! The contract statement.
+//! The `contract` statement.
 //!
 
 pub mod builder;
@@ -8,14 +8,23 @@ use crate::lexical::token::location::Location;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::local_contract::Statement as ContractLocalStatement;
 
+///
+/// The `contract` statement.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Statement {
+    /// The location of the syntax construction.
     pub location: Location,
+    /// The contract type identifier.
     pub identifier: Identifier,
+    /// The contract statements.
     pub statements: Vec<ContractLocalStatement>,
 }
 
 impl Statement {
+    ///
+    /// Creates a `contract` statement.
+    ///
     pub fn new(
         location: Location,
         identifier: Identifier,

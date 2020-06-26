@@ -25,10 +25,10 @@ pub fn leaf_value_hash<E: IEngine>(leaf_value: Vec<Scalar<E>>) -> Vec<u8> {
             let _ = fr.into_repr().write_le(&mut field_vec);
         }
 
-        let field_vec_module_eight = field_vec.len() % zinc_const::BITLENGTH_BYTE;
+        let field_vec_module_eight = field_vec.len() % zinc_const::bitlength::BYTE;
         if field_vec_module_eight != 0 {
             field_vec.resize(
-                field_vec.len() + zinc_const::BITLENGTH_BYTE - field_vec_module_eight,
+                field_vec.len() + zinc_const::bitlength::BYTE - field_vec_module_eight,
                 0,
             );
         }
@@ -36,7 +36,7 @@ pub fn leaf_value_hash<E: IEngine>(leaf_value: Vec<Scalar<E>>) -> Vec<u8> {
         let mut field_vec_be = vec![];
         for i in field_vec.into_iter() {
             let mut current_byte: u8 = 0;
-            for j in 0..zinc_const::BITLENGTH_BYTE {
+            for j in 0..zinc_const::bitlength::BYTE {
                 current_byte <<= 1;
                 current_byte += (i >> j) & 1u8;
             }

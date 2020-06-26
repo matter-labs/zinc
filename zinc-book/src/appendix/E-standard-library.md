@@ -147,7 +147,7 @@ Returns: `[{scalar}; N]`
 Truncates an array of size `N` to an array of size `new_length`.
 
 Will cause a compile-error if either:
-- array size is lesser than new length
+- array size is less than new length
 - new length is not a constant expression
 
 Arguments:

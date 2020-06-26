@@ -69,11 +69,11 @@ impl<E: IEngine> Storage<E> {
         for i in (0..self.depth).rev() {
             let next_node = current_node * 2 + ((index >> i) & 1usize);
             let mut current_node_hash = Vec::with_capacity(
-                self.hash_tree[next_node ^ 1usize].len() * zinc_const::BITLENGTH_BYTE,
+                self.hash_tree[next_node ^ 1usize].len() * zinc_const::bitlength::BYTE,
             );
 
             for i in self.hash_tree[next_node ^ 1usize].iter() {
-                for j in (0..zinc_const::BITLENGTH_BYTE).rev() {
+                for j in (0..zinc_const::bitlength::BYTE).rev() {
                     let bit = (i >> j) & 1u8 == 1u8;
                     current_node_hash.push(bit);
                 }
@@ -117,16 +117,16 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
     fn root_hash(&self) -> E::Fr {
         let mut hash_buffer = self.hash_tree[1].to_owned();
         hash_buffer
-            .truncate(zinc_const::BITLENGTH_SHA256_HASH_TRUNCATED / zinc_const::BITLENGTH_BYTE);
+            .truncate(zinc_const::bitlength::SHA256_HASH_TRUNCATED / zinc_const::bitlength::BYTE);
         hash_buffer.resize(
-            zinc_const::BITLENGTH_SHA256_HASH / zinc_const::BITLENGTH_BYTE,
+            zinc_const::bitlength::SHA256_HASH / zinc_const::bitlength::BYTE,
             0,
         );
 
         let mut hash_le = Vec::with_capacity(hash_buffer.len());
         for i in hash_buffer.iter() {
             let mut current_byte: u8 = 0;
-            for j in 0..zinc_const::BITLENGTH_BYTE {
+            for j in 0..zinc_const::bitlength::BYTE {
                 current_byte <<= 1;
                 current_byte += (i >> j) & 1u8;
             }

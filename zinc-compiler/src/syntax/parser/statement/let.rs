@@ -1,5 +1,5 @@
 //!
-//! The let statement parser.
+//! The `let` statement parser.
 //!
 
 use std::cell::RefCell;
@@ -18,19 +18,32 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#let::builder::Builder as LetStatementBuilder;
 use crate::syntax::tree::statement::r#let::Statement as LetStatement;
 
+/// The missing identifier error hint.
 pub static HINT_EXPECTED_IDENTIFIER: &str =
     "variable must have an identifier, e.g. `let value: u8 = 42;`";
+/// The missing value error hint.
 pub static HINT_EXPECTED_VALUE: &str = "variable must be initialized, e.g. `let value: u8 = 42;`";
 
+///
+/// The parser state.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum State {
+    /// The initial state.
     KeywordLet,
+    /// The `let` has been parsed so far. Expects an optional `mut` keyword.
     MutOrIdentifier,
+    /// The `let {identifier}` has been parsed so far.
     Identifier,
+    /// The `let [mut] {identifier}` has been parsed so far.
     ColonOrEquals,
+    /// The `let [mut] {identifier} :` has been parsed so far.
     Type,
+    /// The `let [mut] {identifier} : {type}` has been parsed so far.
     Equals,
+    /// The `let [mut] {identifier} : {type} =` has been parsed so far.
     Expression,
+    /// The `let [mut] {identifier} : {type} = {expression}` has been parsed so far.
     Semicolon,
 }
 
@@ -40,10 +53,16 @@ impl Default for State {
     }
 }
 
+///
+/// The `let` statement parser.
+///
 #[derive(Default)]
 pub struct Parser {
+    /// The parser state.
     state: State,
+    /// The builder of the parsed value.
     builder: LetStatementBuilder,
+    /// The token returned from a subparser.
     next: Option<Token>,
 }
 
