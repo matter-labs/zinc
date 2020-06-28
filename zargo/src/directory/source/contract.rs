@@ -62,6 +62,9 @@ impl Contract {
             .map_err(Error::Writing)
     }
 
+    ///
+    /// The contract main file template function.
+    ///
     fn template(&self) -> String {
         format!(
             r#"//!

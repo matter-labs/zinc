@@ -1,5 +1,5 @@
 //!
-//! The Zinc virtual machine binary `debug` command.
+//! The Zinc virtual machine binary `debug` subcommand.
 //!
 
 use std::fs;
@@ -15,12 +15,13 @@ use zinc_bytecode::TemplateValue;
 
 use zinc_vm::IFacade;
 
+use crate::arguments::command::IExecutable;
 use crate::error::Error;
 use crate::error::IErrorPath;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "debug", about = "Executes circuit with additional checks")]
-pub struct DebugCommand {
+pub struct Command {
     #[structopt(long = "binary", help = "The bytecode file")]
     pub binary_path: PathBuf,
 
@@ -31,8 +32,10 @@ pub struct DebugCommand {
     pub public_data_path: PathBuf,
 }
 
-impl DebugCommand {
-    pub fn execute(&self) -> Result<(), Error> {
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(self) -> Result<i32, Self::Error> {
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
         let program =
@@ -55,6 +58,6 @@ impl DebugCommand {
 
         println!("{}", output_json);
 
-        Ok(())
+        Ok(zinc_const::exit_code::SUCCESS as i32)
     }
 }

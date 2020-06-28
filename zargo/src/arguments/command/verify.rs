@@ -1,5 +1,5 @@
 //!
-//! The `verify` command.
+//! The Zargo project manager `verify` subcommand.
 //!
 
 use std::path::PathBuf;
@@ -7,9 +7,13 @@ use std::path::PathBuf;
 use failure::Fail;
 use structopt::StructOpt;
 
+use crate::arguments::command::IExecutable;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
 
+///
+/// The Zargo project manager `verify` subcommand.
+///
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Verifies the zero-knowledge proof")]
 pub struct Command {
@@ -42,14 +46,19 @@ pub struct Command {
     verifying_key_path: PathBuf,
 }
 
+///
+/// The Zargo project manager `verify` subcommand error.
+///
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(display = "virtual machine {}", _0)]
     VirtualMachine(VirtualMachineError),
 }
 
-impl Command {
-    pub fn execute(self) -> Result<(), Error> {
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(self) -> Result<(), Self::Error> {
         VirtualMachine::verify(
             self.verbosity,
             &self.binary_path,

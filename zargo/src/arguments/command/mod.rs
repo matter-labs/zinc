@@ -1,5 +1,5 @@
 //!
-//! The command.
+//! The Zargo project manager subcommand.
 //!
 
 pub mod build;
@@ -28,6 +28,15 @@ use self::setup::Command as SetupCommand;
 use self::test::Command as TestCommand;
 use self::verify::Command as VerifyCommand;
 
+pub trait IExecutable {
+    type Error;
+
+    ///
+    /// Executes the instance.
+    ///
+    fn execute(self) -> Result<(), Self::Error>;
+}
+
 #[derive(Debug, StructOpt)]
 pub enum Command {
     New(NewCommand),
@@ -42,20 +51,21 @@ pub enum Command {
     ProofCheck(ProofCheckCommand),
 }
 
-impl Command {
-    pub fn execute(self) -> Result<(), Error> {
-        match self {
-            Self::New(command) => command.execute()?,
-            Self::Init(command) => command.execute()?,
-            Self::Build(command) => command.execute()?,
-            Self::Clean(command) => command.execute()?,
-            Self::Run(command) => command.execute()?,
-            Self::Test(command) => command.execute()?,
-            Self::Setup(command) => command.execute()?,
-            Self::Prove(command) => command.execute()?,
-            Self::Verify(command) => command.execute()?,
-            Self::ProofCheck(command) => command.execute()?,
-        }
-        Ok(())
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(self) -> Result<(), Self::Error> {
+        Ok(match self {
+            Self::New(inner) => inner.execute()?,
+            Self::Init(inner) => inner.execute()?,
+            Self::Build(inner) => inner.execute()?,
+            Self::Clean(inner) => inner.execute()?,
+            Self::Run(inner) => inner.execute()?,
+            Self::Test(inner) => inner.execute()?,
+            Self::Setup(inner) => inner.execute()?,
+            Self::Prove(inner) => inner.execute()?,
+            Self::Verify(inner) => inner.execute()?,
+            Self::ProofCheck(inner) => inner.execute()?,
+        })
     }
 }

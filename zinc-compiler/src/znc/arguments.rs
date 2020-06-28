@@ -10,8 +10,9 @@ use structopt::StructOpt;
 /// The Zinc compiler arguments.
 ///
 #[derive(Debug, StructOpt)]
-#[structopt(name = "znc", about = "The Zinc compiler")]
+#[structopt(name = zinc_const::app_name::ZINC_COMPILER, about = "The Zinc compiler")]
 pub struct Arguments {
+    /// The logging level value, which helps the logger to set the logging level.
     #[structopt(
         short = "v",
         parse(from_occurrences),

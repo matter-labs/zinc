@@ -13,8 +13,6 @@ use failure::Fail;
 
 pub struct VirtualMachine {}
 
-static BINARY_NAME_DEFAULT: &str = "zvm";
-
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(display = "spawning: {}", _0)]
@@ -36,7 +34,7 @@ impl VirtualMachine {
         witness_path: &PathBuf,
         public_data_path: &PathBuf,
     ) -> Result<(), Error> {
-        let mut process = process::Command::new(BINARY_NAME_DEFAULT)
+        let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("run")
             .arg("--binary")
@@ -64,7 +62,7 @@ impl VirtualMachine {
         witness_path: &PathBuf,
         public_data_path: &PathBuf,
     ) -> Result<(), Error> {
-        let mut process = process::Command::new(BINARY_NAME_DEFAULT)
+        let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("debug")
             .arg("--binary")
@@ -86,7 +84,7 @@ impl VirtualMachine {
     }
 
     pub fn test(verbosity: usize, binary_path: &PathBuf) -> Result<ExitStatus, Error> {
-        let mut process = process::Command::new(BINARY_NAME_DEFAULT)
+        let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("test")
             .arg("--binary")
@@ -105,7 +103,7 @@ impl VirtualMachine {
         proving_key_path: &PathBuf,
         verifying_key_path: &PathBuf,
     ) -> Result<(), Error> {
-        let mut process = process::Command::new(BINARY_NAME_DEFAULT)
+        let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("setup")
             .arg("--binary")
@@ -133,7 +131,7 @@ impl VirtualMachine {
         witness_path: &PathBuf,
         public_data_path: &PathBuf,
     ) -> Result<(), Error> {
-        let mut child = process::Command::new(BINARY_NAME_DEFAULT)
+        let mut child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("prove")
             .arg("--binary")
@@ -162,7 +160,7 @@ impl VirtualMachine {
         verifying_key_path: &PathBuf,
         public_data_path: &PathBuf,
     ) -> Result<(), Error> {
-        let mut child = process::Command::new(BINARY_NAME_DEFAULT)
+        let mut child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("verify")
             .arg("--binary")
@@ -191,7 +189,7 @@ impl VirtualMachine {
         proving_key_path: &PathBuf,
         verifying_key_path: &PathBuf,
     ) -> Result<(), Error> {
-        let prover_output = process::Command::new(BINARY_NAME_DEFAULT)
+        let prover_output = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("prove")
             .arg("--binary")
@@ -205,7 +203,7 @@ impl VirtualMachine {
             .output()
             .map_err(Error::Spawning)?;
 
-        let mut verifier_child = process::Command::new(BINARY_NAME_DEFAULT)
+        let mut verifier_child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("verify")
             .arg("--binary")

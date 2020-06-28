@@ -1,5 +1,5 @@
 //!
-//! The `clean` command.
+//! The Zargo project manager `clean` subcommand.
 //!
 
 use std::convert::TryFrom;
@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use failure::Fail;
 use structopt::StructOpt;
 
+use crate::arguments::command::IExecutable;
 use crate::directory::build::test::Directory as TestBuildDirectory;
 use crate::directory::build::test::Error as TestBuildDirectoryError;
 use crate::directory::build::Directory as BuildDirectory;
@@ -17,6 +18,9 @@ use crate::directory::data::Error as DataDirectoryError;
 use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
 
+///
+/// The Zargo project manager `clean` subcommand.
+///
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Cleans up the project")]
 pub struct Command {
@@ -35,6 +39,9 @@ pub struct Command {
     manifest_path: PathBuf,
 }
 
+///
+/// The Zargo project manager `clean` subcommand error.
+///
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(display = "manifest file {}", _0)]
@@ -47,8 +54,10 @@ pub enum Error {
     DataDirectory(DataDirectoryError),
 }
 
-impl Command {
-    pub fn execute(self) -> Result<(), Error> {
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(self) -> Result<(), Self::Error> {
         let _manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         let mut manifest_path = self.manifest_path;

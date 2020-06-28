@@ -1,5 +1,5 @@
 //!
-//! The `test` command.
+//! The Zargo project manager `test` subcommand.
 //!
 
 use std::convert::TryFrom;
@@ -11,6 +11,7 @@ use structopt::StructOpt;
 
 use zinc_const::UnitTestExitCode;
 
+use crate::arguments::command::IExecutable;
 use crate::directory::build::test::Directory as TestBuildDirectory;
 use crate::directory::build::test::Error as TestBuildDirectoryError;
 use crate::directory::build::Directory as BuildDirectory;
@@ -23,6 +24,9 @@ use crate::executable::virtual_machine::VirtualMachine;
 use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
 
+///
+/// The Zargo project manager `test` subcommand.
+///
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Runs the project and saves its output")]
 pub struct Command {
@@ -48,6 +52,9 @@ pub struct Command {
     test_binaries_path: PathBuf,
 }
 
+///
+/// The Zargo project manager `test` subcommand error.
+///
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(display = "manifest file {}", _0)]
@@ -62,8 +69,10 @@ pub enum Error {
     UnknownExitCode(Option<i32>),
 }
 
-impl Command {
-    pub fn execute(self) -> Result<(), Error> {
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(self) -> Result<(), Self::Error> {
         let _manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         let mut manifest_path = self.manifest_path.clone();
@@ -78,11 +87,12 @@ impl Command {
         TestBuildDirectory::remove(&manifest_path).map_err(Error::TestBuildDirectory)?;
         TestBuildDirectory::create(&manifest_path).map_err(Error::TestBuildDirectory)?;
 
-        Compiler::build_test(
+        Compiler::build(
             self.verbosity,
             &data_directory_path,
             &build_directory_path,
             &source_directory_path,
+            true,
         )
         .map_err(Error::Compiler)?;
 

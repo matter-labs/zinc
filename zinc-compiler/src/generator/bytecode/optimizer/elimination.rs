@@ -5,6 +5,10 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+use petgraph::algo::DfsSpace;
+use petgraph::graph::Graph;
+use petgraph::graph::NodeIndex;
+
 use zinc_bytecode::Instruction;
 
 ///
@@ -21,36 +25,71 @@ impl Elimination {
     ///
     /// The algorithm works as follows:
     ///
-    /// 1. Create the set of functions called for the current entry. The difference is created by
+    /// 1. Initialize a call graph and create the function ID to graph node ID mapping.
+    ///
+    /// 2. Populate the call graph for the current entry. The difference in the graph is caused by
     /// the first `Call` instruction in the bytecode, which specifies the entry that must be called
     /// at the beginning of the execution.
     ///
-    /// 2. Replace all the unused function code with `NoOperation` instructions, record the number
+    /// 3. Replace all the unused function code with `NoOperation` instructions, record the number
     /// of replaced instructions in order to shift the addresses of functions which appear later
     /// in the bytecode.
     ///
-    /// 3. Filter out the `NoOperation` instructions placed in the previous step.
+    /// 4. Filter out the `NoOperation` instructions placed in the previous step.
     ///
-    /// 4. Replace the function type IDs in `Call` instructions with their shifted addresses.
+    /// 5. Replace the function type IDs in `Call` instructions with their shifted addresses.
     ///
     pub fn optimize(
+        entry_id: usize,
         function_addresses: HashMap<usize, usize>,
         mut instructions: Vec<Instruction>,
     ) -> Self {
-        let mut called_function_ids = HashSet::with_capacity(function_addresses.len());
-        for instruction in instructions.iter_mut() {
-            if let Instruction::Call(zinc_bytecode::Call {
-                address: ref mut type_id,
-                ..
-            }) = instruction
-            {
-                called_function_ids.insert(*type_id);
+        let mut graph = Graph::new();
+        let mut function_node_map = HashMap::with_capacity(function_addresses.len());
+        for (function_id, _) in function_addresses.iter() {
+            let function_node = graph.add_node(1);
+            function_node_map.insert(*function_id, function_node);
+        }
+
+        for (caller_id, start_address) in function_addresses.iter() {
+            let caller_node = function_node_map
+                .get(caller_id)
+                .copied()
+                .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATION);
+
+            for address in *start_address.. {
+                match instructions.get(address) {
+                    Some(Instruction::Call(zinc_bytecode::Call {
+                        address: callee_id, ..
+                    })) => {
+                        let callee_node = function_node_map
+                            .get(callee_id)
+                            .copied()
+                            .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATION);
+
+                        graph.update_edge(caller_node, callee_node, 1);
+                    }
+                    Some(Instruction::Return(_)) => break,
+                    _ => {}
+                }
             }
         }
 
+        let mut graph_workspace = DfsSpace::new(&graph);
         let mut function_address_shifts = HashMap::with_capacity(function_addresses.len());
         for (unique_id, start_address) in function_addresses.iter() {
-            if !called_function_ids.contains(unique_id) {
+            if !petgraph::algo::has_path_connecting(
+                &graph,
+                function_node_map
+                    .get(&entry_id)
+                    .copied()
+                    .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATION),
+                function_node_map
+                    .get(unique_id)
+                    .copied()
+                    .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATION),
+                Some(&mut graph_workspace),
+            ) {
                 let mut removed_count = 0;
                 for address in *start_address.. {
                     let is_end = match instructions.get(address) {

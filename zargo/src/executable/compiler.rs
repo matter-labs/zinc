@@ -11,8 +11,6 @@ use failure::Fail;
 
 pub struct Compiler {}
 
-static BINARY_NAME_DEFAULT: &str = "znc";
-
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(display = "spawning: {}", _0)]
@@ -29,39 +27,19 @@ impl Compiler {
         data_path: &PathBuf,
         build_path: &PathBuf,
         source_path: &PathBuf,
+        is_test_only: bool,
     ) -> Result<(), Error> {
-        let mut child = process::Command::new(BINARY_NAME_DEFAULT)
+        let mut child = process::Command::new(zinc_const::app_name::ZINC_COMPILER)
             .args(vec!["-v"; verbosity])
             .arg("--data")
             .arg(data_path)
             .arg("--build")
             .arg(build_path)
-            .arg(source_path)
-            .spawn()
-            .map_err(Error::Spawning)?;
-
-        let status = child.wait().map_err(Error::Waiting)?;
-
-        if !status.success() {
-            return Err(Error::Failure(status));
-        }
-
-        Ok(())
-    }
-
-    pub fn build_test(
-        verbosity: usize,
-        data_path: &PathBuf,
-        build_path: &PathBuf,
-        source_path: &PathBuf,
-    ) -> Result<(), Error> {
-        let mut child = process::Command::new(BINARY_NAME_DEFAULT)
-            .args(vec!["-v"; verbosity])
-            .arg("--data")
-            .arg(data_path)
-            .arg("--build")
-            .arg(build_path)
-            .arg("--test-only")
+            .args(if is_test_only {
+                vec!["--test-only"]
+            } else {
+                vec![]
+            })
             .arg(source_path)
             .spawn()
             .map_err(Error::Spawning)?;

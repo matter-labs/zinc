@@ -230,7 +230,11 @@ impl Bytecode {
 
             let EliminationOptimizer {
                 output: instructions,
-            } = EliminationOptimizer::optimize(self.function_addresses.clone(), instructions);
+            } = EliminationOptimizer::optimize(
+                entry_id,
+                self.function_addresses.clone(),
+                instructions,
+            );
 
             Self::print_instructions(instructions.as_slice());
 
@@ -289,7 +293,11 @@ impl Bytecode {
 
             let EliminationOptimizer {
                 output: instructions,
-            } = EliminationOptimizer::optimize(self.function_addresses.clone(), instructions);
+            } = EliminationOptimizer::optimize(
+                entry_id,
+                self.function_addresses.clone(),
+                instructions,
+            );
 
             Self::print_instructions(instructions.as_slice());
 

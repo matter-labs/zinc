@@ -7,6 +7,7 @@ pub static VALIDATED_DURING_SOURCE_CODE_MAPPING: &str = "Validated during source
 pub static VALIDATED_DURING_LEXICAL_ANALYSIS: &str = "Validated during lexical analysis";
 pub static VALIDATED_DURING_SYNTAX_ANALYSIS: &str = "Validated during syntax analysis";
 pub static VALIDATED_DURING_SEMANTIC_ANALYSIS: &str = "Validated during semantic analysis";
+pub static VALIDATED_DURING_BYTECODE_GENERATION: &str = "Validated during bytecode generation";
 
 // auxiliary
 pub static MUTEX_SYNC: &str = "Mutexes never panic";

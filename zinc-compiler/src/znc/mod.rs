@@ -18,7 +18,6 @@ use self::arguments::Arguments;
 use self::error::Error;
 use self::error::OutputError;
 
-static BINARY_NAME: &str = "znc";
 static TEST_BINARIES_DIRECTORY: &str = "test/";
 static WITNESS_TEMPLATE_SUFFIX: &str = "_witness";
 static PUBLIC_DATA_TEMPLATE_SUFFIX: &str = "_public_data";
@@ -36,7 +35,7 @@ fn main() {
 fn main_inner() -> Result<(), Error> {
     let args = Arguments::new();
 
-    zinc_utils::logger::init_logger(BINARY_NAME, args.verbosity);
+    zinc_utils::logger::initialize(zinc_const::app_name::ZINC_COMPILER, args.verbosity);
 
     let bytecode = Source::try_from_path(&args.source_path, true)?.compile()?;
     let compiled_entries = Bytecode::unwrap_rc(bytecode).into_entries();

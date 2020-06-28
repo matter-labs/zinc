@@ -22,7 +22,7 @@ const LEVEL_NAME_LENGTH: usize = 10;
 /// 2 for `Debug`,
 /// _ for `Trace`
 ///
-pub fn init_logger(app_name: &'static str, verbosity: usize) {
+pub fn initialize(app_name: &'static str, verbosity: usize) {
     env_logger::builder()
         .filter_level(match verbosity {
             0 => log::LevelFilter::Warn,

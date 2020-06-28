@@ -11,7 +11,8 @@ use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::eddsa;
 
-use crate::arguments::Error;
+use crate::arguments::command::IExecutable;
+use crate::error::Error;
 
 ///
 /// The `public key` command arguments.
@@ -21,10 +22,12 @@ use crate::arguments::Error;
     name = "pub-key",
     about = "recover the public key from the private key"
 )]
-pub struct PubKeyCommand {}
+pub struct Command {}
 
-impl PubKeyCommand {
-    pub fn execute(&self) -> Result<(), Error> {
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(self) -> Result<(), Self::Error> {
         let params = AltJubjubBn256::new();
 
         let mut private_key_hex = vec![0; 64];

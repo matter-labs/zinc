@@ -7,10 +7,15 @@ use std::str::FromStr;
 
 use serde_derive::Deserialize;
 
+///
+/// The Zinc project type.
+///
 #[derive(Debug, Deserialize, Clone, Copy)]
 pub enum ProjectType {
+    /// The zero-knowledge circuit.
     #[serde(rename = "circuit")]
     Circuit,
+    /// The smart-contract.
     #[serde(rename = "contract")]
     Contract,
 }

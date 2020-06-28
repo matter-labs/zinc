@@ -12,14 +12,15 @@ use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::eddsa;
 
-use crate::arguments::Error;
+use crate::arguments::command::IExecutable;
+use crate::error::Error;
 
 ///
 /// The `sign` command arguments.
 ///
 #[derive(StructOpt)]
 #[structopt(name = "sign", about = "generate a signature")]
-pub struct SignCommand {
+pub struct Command {
     #[structopt(short = "k", long = "key", help = "path to the private key")]
     key: PathBuf,
 
@@ -31,8 +32,10 @@ pub struct SignCommand {
     message_path: PathBuf,
 }
 
-impl SignCommand {
-    pub fn execute(&self) -> Result<(), Error> {
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(self) -> Result<(), Self::Error> {
         let params = AltJubjubBn256::new();
 
         let private_key_hex = std::fs::read_to_string(&self.key)?;

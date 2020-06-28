@@ -1,5 +1,5 @@
 //!
-//! The Zinc virtual machine binary `test` command.
+//! The Zinc virtual machine binary `test` subcommand.
 //!
 
 use std::fs;
@@ -10,22 +10,24 @@ use structopt::StructOpt;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
 use zinc_bytecode::Program as BytecodeProgram;
-use zinc_const::UnitTestExitCode;
 
 use zinc_vm::IFacade;
 
+use crate::arguments::command::IExecutable;
 use crate::error::Error;
 use crate::error::IErrorPath;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "test", about = "Executes a unit test")]
-pub struct TestCommand {
+pub struct Command {
     #[structopt(long = "binary", help = "The bytecode file")]
     pub binary_path: PathBuf,
 }
 
-impl TestCommand {
-    pub fn execute(&self) -> Result<UnitTestExitCode, Error> {
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(self) -> Result<i32, Self::Error> {
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
         let program =
@@ -33,6 +35,6 @@ impl TestCommand {
 
         let status = program.test::<Bn256>()?;
 
-        Ok(status)
+        Ok(status as i32)
     }
 }

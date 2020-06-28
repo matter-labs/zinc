@@ -1,5 +1,5 @@
 //!
-//! The Zinc virtual machine binary `prove` command.
+//! The Zinc virtual machine binary `prove` subcommand.
 //!
 
 use std::fs;
@@ -16,12 +16,13 @@ use zinc_bytecode::TemplateValue;
 
 use zinc_vm::IFacade;
 
+use crate::arguments::command::IExecutable;
 use crate::error::Error;
 use crate::error::IErrorPath;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "prove", about = "Executes circuit and prints program's output")]
-pub struct ProveCommand {
+pub struct Command {
     #[structopt(long = "binary", help = "The bytecode file")]
     pub binary_path: PathBuf,
 
@@ -35,8 +36,10 @@ pub struct ProveCommand {
     pub public_data_path: PathBuf,
 }
 
-impl ProveCommand {
-    pub fn execute(self) -> Result<(), Error> {
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(self) -> Result<i32, Self::Error> {
         // Read program
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
@@ -73,6 +76,6 @@ impl ProveCommand {
         let proof_hex = hex::encode(proof_bytes);
         println!("{}", proof_hex);
 
-        Ok(())
+        Ok(zinc_const::exit_code::SUCCESS as i32)
     }
 }

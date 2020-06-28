@@ -62,6 +62,9 @@ impl Circuit {
             .map_err(Error::Writing)
     }
 
+    ///
+    /// The circuit main file template function.
+    ///
     fn template(&self) -> String {
         format!(
             r#"//!

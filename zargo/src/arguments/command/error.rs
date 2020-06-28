@@ -1,40 +1,53 @@
 //!
-//! The command error.
+//! The Zargo project manager subcommand error.
 //!
 
 use failure::Fail;
 
-use crate::command::build::Error as BuildCommandError;
-use crate::command::clean::Error as CleanCommandError;
-use crate::command::init::Error as InitCommandError;
-use crate::command::new::Error as NewCommandError;
-use crate::command::proof_check::Error as ProofCheckCommandError;
-use crate::command::prove::Error as ProveCommandError;
-use crate::command::run::Error as RunCommandError;
-use crate::command::setup::Error as SetupCommandError;
-use crate::command::test::Error as TestCommandError;
-use crate::command::verify::Error as VerifyCommandError;
+use crate::arguments::command::build::Error as BuildCommandError;
+use crate::arguments::command::clean::Error as CleanCommandError;
+use crate::arguments::command::init::Error as InitCommandError;
+use crate::arguments::command::new::Error as NewCommandError;
+use crate::arguments::command::proof_check::Error as ProofCheckCommandError;
+use crate::arguments::command::prove::Error as ProveCommandError;
+use crate::arguments::command::run::Error as RunCommandError;
+use crate::arguments::command::setup::Error as SetupCommandError;
+use crate::arguments::command::test::Error as TestCommandError;
+use crate::arguments::command::verify::Error as VerifyCommandError;
 
+///
+/// The Zargo project manager error.
+///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The `new` command error.
     #[fail(display = "{}", _0)]
     New(NewCommandError),
+    /// The `init` command error.
     #[fail(display = "{}", _0)]
     Init(InitCommandError),
+    /// The `build` command error.
     #[fail(display = "{}", _0)]
     Build(BuildCommandError),
+    /// The `clean` command error.
     #[fail(display = "{}", _0)]
     Clean(CleanCommandError),
+    /// The `run` command error.
     #[fail(display = "{}", _0)]
     Run(RunCommandError),
+    /// The `test` command error.
     #[fail(display = "{}", _0)]
     Test(TestCommandError),
+    /// The `setup` command error.
     #[fail(display = "{}", _0)]
     Setup(SetupCommandError),
+    /// The `prove` command error.
     #[fail(display = "{}", _0)]
     Prove(ProveCommandError),
+    /// The `verify` command error.
     #[fail(display = "{}", _0)]
     Verify(VerifyCommandError),
+    /// The `proof-check` command error.
     #[fail(display = "{}", _0)]
     ProofCheck(ProofCheckCommandError),
 }

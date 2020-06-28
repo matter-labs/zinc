@@ -1,5 +1,5 @@
 //!
-//! The `proof-check` command.
+//! The Zargo project manager `proof-check` subcommand.
 //!
 
 use std::convert::TryFrom;
@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use failure::Fail;
 use structopt::StructOpt;
 
+use crate::arguments::command::IExecutable;
 use crate::directory::build::Directory as BuildDirectory;
 use crate::directory::build::Error as BuildDirectoryError;
 use crate::directory::data::Directory as DataDirectory;
@@ -20,6 +21,9 @@ use crate::executable::virtual_machine::VirtualMachine;
 use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
 
+///
+/// The Zargo project manager `proof-check` subcommand.
+///
 #[derive(Debug, StructOpt)]
 #[structopt(
     about = "Runs the full project building, running, trusted setup, proving & verifying sequence"
@@ -75,6 +79,9 @@ pub struct Command {
     verifying_key_path: PathBuf,
 }
 
+///
+/// The Zargo project manager `proof-check` subcommand error.
+///
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(display = "manifest file {}", _0)]
@@ -93,8 +100,10 @@ pub enum Error {
     VirtualMachineProveAndVerify(VirtualMachineError),
 }
 
-impl Command {
-    pub fn execute(self) -> Result<(), Error> {
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(self) -> Result<(), Self::Error> {
         let _manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         let mut manifest_path = self.manifest_path.clone();
@@ -114,6 +123,7 @@ impl Command {
             &data_directory_path,
             &build_directory_path,
             &source_directory_path,
+            false,
         )
         .map_err(Error::Compiler)?;
 

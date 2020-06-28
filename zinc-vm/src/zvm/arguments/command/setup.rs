@@ -1,5 +1,5 @@
 //!
-//! The Zinc virtual machine binary `setup` command.
+//! The Zinc virtual machine binary `setup` subcommand.
 //!
 
 use std::fs;
@@ -13,6 +13,7 @@ use zinc_bytecode::Program as BytecodeProgram;
 
 use zinc_vm::IFacade;
 
+use crate::arguments::command::IExecutable;
 use crate::error::Error;
 use crate::error::IErrorPath;
 
@@ -21,7 +22,7 @@ use crate::error::IErrorPath;
     name = "setup",
     about = "Generates a pair of proving and verifying keys"
 )]
-pub struct SetupCommand {
+pub struct Command {
     #[structopt(long = "binary", help = "The bytecode file")]
     pub binary_path: PathBuf,
 
@@ -32,8 +33,10 @@ pub struct SetupCommand {
     pub verifying_key_path: PathBuf,
 }
 
-impl SetupCommand {
-    pub fn execute(&self) -> Result<(), Error> {
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(self) -> Result<i32, Self::Error> {
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
         let program =
@@ -56,6 +59,6 @@ impl SetupCommand {
         fs::write(&self.verifying_key_path, vk_hex)
             .error_with_path(|| self.verifying_key_path.to_string_lossy())?;
 
-        Ok(())
+        Ok(zinc_const::exit_code::SUCCESS as i32)
     }
 }

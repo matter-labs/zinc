@@ -2,9 +2,6 @@
 //! The Schnorr signature tool library.
 //!
 
-#![deny(missing_docs)]
-#![deny(clippy::missing_docs_in_private_items)]
-
 use rand::Rng;
 
 use franklin_crypto::bellman::pairing::ff::PrimeField;

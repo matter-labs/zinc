@@ -1,5 +1,5 @@
 //!
-//! The `init` command.
+//! The Zargo project manager `init` subcommand.
 //!
 
 use std::ffi::OsString;
@@ -9,6 +9,7 @@ use std::str::FromStr;
 use failure::Fail;
 use structopt::StructOpt;
 
+use crate::arguments::command::IExecutable;
 use crate::directory::source::circuit::Circuit as CircuitFile;
 use crate::directory::source::circuit::Error as CircuitFileError;
 use crate::directory::source::contract::Contract as ContractFile;
@@ -19,6 +20,9 @@ use crate::manifest::project_type::ProjectType;
 use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
 
+///
+/// The Zargo project manager `init` subcommand.
+///
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Initializes a new project in the specified directory")]
 pub struct Command {
@@ -45,6 +49,9 @@ pub struct Command {
     path: PathBuf,
 }
 
+///
+/// The Zargo project manager `init` subcommand error.
+///
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(
@@ -71,8 +78,10 @@ pub enum Error {
     ContractFile(ContractFileError),
 }
 
-impl Command {
-    pub fn execute(mut self) -> Result<(), Error> {
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(mut self) -> Result<(), Error> {
         let project_name = match self.name.take() {
             Some(name) => name,
             None => self

@@ -7,37 +7,16 @@ mod error;
 
 use std::process;
 
-use structopt::StructOpt;
-
-use crate::arguments::Arguments;
-use crate::arguments::Command;
-
-static BINARY_NAME: &str = "zvm";
+use self::arguments::command::IExecutable;
+use self::arguments::Arguments;
 
 fn main() {
-    let args = Arguments::from_args();
+    let args = Arguments::new();
 
-    zinc_utils::logger::init_logger(BINARY_NAME, args.verbosity);
+    zinc_utils::logger::initialize(zinc_const::app_name::ZINC_VIRTUAL_MACHINE, args.verbosity);
 
-    let result = match args.command {
-        Command::Run(command) => command.execute(),
-        Command::Debug(command) => command.execute(),
-        Command::Test(command) => match command.execute() {
-            Ok(status) => {
-                process::exit(status as i32);
-            }
-            Err(error) => {
-                eprintln!("{}", error);
-                process::exit(zinc_const::exit_code::FAILURE);
-            }
-        },
-        Command::Setup(command) => command.execute(),
-        Command::Prove(command) => command.execute(),
-        Command::Verify(command) => command.execute(),
-    };
-
-    match result {
-        Ok(()) => process::exit(zinc_const::exit_code::SUCCESS),
+    match args.command.execute() {
+        Ok(exit_code) => process::exit(exit_code),
         Err(error) => {
             eprintln!("{}", error);
             process::exit(zinc_const::exit_code::FAILURE);

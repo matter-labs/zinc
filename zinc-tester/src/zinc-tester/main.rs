@@ -43,7 +43,7 @@ fn main() {
             .run(EvaluationRunner::new(args.verbosity, args.filter))
     };
 
-    process::exit(match result {
+    match result {
         summary if summary.failed == 0 && summary.invalid == 0 => {
             println!(
                 "[{}] {} ({})",
@@ -51,7 +51,7 @@ fn main() {
                 "PASSED".green(),
                 summary
             );
-            zinc_const::exit_code::SUCCESS
+            process::exit(zinc_const::exit_code::SUCCESS);
         }
         summary => {
             println!(
@@ -60,7 +60,7 @@ fn main() {
                 "FAILED".bright_red(),
                 summary
             );
-            zinc_const::exit_code::FAILURE
+            process::exit(zinc_const::exit_code::FAILURE);
         }
-    })
+    }
 }

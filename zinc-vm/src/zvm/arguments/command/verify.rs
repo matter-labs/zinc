@@ -1,5 +1,5 @@
 //!
-//! The Zinc virtual machine binary `verify` command.
+//! The Zinc virtual machine binary `verify` subcommand.
 //!
 
 use std::fs;
@@ -18,12 +18,13 @@ use zinc_bytecode::TemplateValue;
 
 use zinc_vm::IFacade;
 
+use crate::arguments::command::IExecutable;
 use crate::error::Error;
 use crate::error::IErrorPath;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "verify", about = "Verifies the proof using verifying key")]
-pub struct VerifyCommand {
+pub struct Command {
     #[structopt(long = "binary", help = "The bytecode file")]
     pub binary_path: PathBuf,
 
@@ -34,8 +35,10 @@ pub struct VerifyCommand {
     pub public_data_path: PathBuf,
 }
 
-impl VerifyCommand {
-    pub fn execute(&self) -> Result<(), Error> {
+impl IExecutable for Command {
+    type Error = Error;
+
+    fn execute(self) -> Result<i32, Self::Error> {
         // Read proof
         let proof_bytes = read_hex(std::io::stdin(), "<stdin>", "proof")?;
         let proof =
@@ -74,7 +77,7 @@ impl VerifyCommand {
             process::exit(1);
         }
 
-        Ok(())
+        Ok(zinc_const::exit_code::SUCCESS as i32)
     }
 }
 
