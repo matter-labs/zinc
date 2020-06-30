@@ -28,7 +28,11 @@ use self::setup::Command as SetupCommand;
 use self::test::Command as TestCommand;
 use self::verify::Command as VerifyCommand;
 
+///
+/// The generic trait used for commands.
+///
 pub trait IExecutable {
+    /// The generic subcommand error type.
     type Error;
 
     ///
@@ -37,17 +41,30 @@ pub trait IExecutable {
     fn execute(self) -> Result<(), Self::Error>;
 }
 
+///
+/// The Zargo project manager subcommand.
+///
 #[derive(Debug, StructOpt)]
 pub enum Command {
+    /// The `new` subcommand.
     New(NewCommand),
+    /// The `init` subcommand.
     Init(InitCommand),
+    /// The `build` subcommand.
     Build(BuildCommand),
+    /// The `clean` subcommand.
     Clean(CleanCommand),
+    /// The `run` subcommand.
     Run(RunCommand),
+    /// The `test` subcommand.
     Test(TestCommand),
+    /// The `setup` subcommand.
     Setup(SetupCommand),
+    /// The `prove` subcommand.
     Prove(ProveCommand),
+    /// The `verify` subcommand.
     Verify(VerifyCommand),
+    /// The `proof-check` subcommand.
     ProofCheck(ProofCheckCommand),
 }
 
@@ -55,7 +72,7 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        Ok(match self {
+        match self {
             Self::New(inner) => inner.execute()?,
             Self::Init(inner) => inner.execute()?,
             Self::Build(inner) => inner.execute()?,
@@ -66,6 +83,8 @@ impl IExecutable for Command {
             Self::Prove(inner) => inner.execute()?,
             Self::Verify(inner) => inner.execute()?,
             Self::ProofCheck(inner) => inner.execute()?,
-        })
+        }
+
+        Ok(())
     }
 }

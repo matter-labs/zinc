@@ -6,6 +6,7 @@ members = [
     "zinc-bytecode",
     "zinc-utils",
     "zinc-vm",
+    "zinc-server",
 
     "zinc-tester",
 

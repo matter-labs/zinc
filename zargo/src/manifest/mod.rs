@@ -21,6 +21,7 @@ use crate::manifest::project_type::ProjectType;
 ///
 #[derive(Deserialize)]
 pub struct Manifest {
+    /// The `project` section.
     pub project: Project,
 }
 
@@ -29,8 +30,11 @@ pub struct Manifest {
 ///
 #[derive(Deserialize)]
 pub struct Project {
+    /// The project name.
     pub name: String,
+    /// The project type. See the inner element description.
     pub r#type: ProjectType,
+    /// The project version in the string format.
     pub version: String,
 }
 
@@ -41,22 +45,22 @@ pub struct Project {
 pub enum Error {
     /// File opening error.
     #[fail(display = "`{}` opening: {}", _0, _1)]
-    Opening(&'static str, io::Error),
+    Opening(String, io::Error),
     /// File metadata getting error.
     #[fail(display = "`{}` metadata: {}", _0, _1)]
-    Metadata(&'static str, io::Error),
+    Metadata(String, io::Error),
     /// File reading error.
     #[fail(display = "`{}` reading: {}", _0, _1)]
-    Reading(&'static str, io::Error),
+    Reading(String, io::Error),
     /// File contents parsing error.
     #[fail(display = "`{}` parsing: {}", _0, _1)]
-    Parsing(&'static str, toml::de::Error),
+    Parsing(String, toml::de::Error),
     /// File creating error.
     #[fail(display = "`{}` creating: {}", _0, _1)]
-    Creating(&'static str, io::Error),
+    Creating(String, io::Error),
     /// File writing error.
     #[fail(display = "`{}` writing: {}", _0, _1)]
-    Writing(&'static str, io::Error),
+    Writing(String, io::Error),
 }
 
 impl Manifest {
@@ -79,7 +83,7 @@ impl Manifest {
     pub fn exists_at(path: &PathBuf) -> bool {
         let mut path = path.to_owned();
         if path.is_dir() {
-            path.push(PathBuf::from(zinc_const::zargo::MANIFEST_FILE_NAME));
+            path.push(PathBuf::from(Self::file_name()));
         }
         path.exists()
     }
@@ -90,13 +94,13 @@ impl Manifest {
     pub fn write_to(self, path: &PathBuf) -> Result<(), Error> {
         let mut path = path.to_owned();
         if path.is_dir() {
-            path.push(PathBuf::from(zinc_const::zargo::MANIFEST_FILE_NAME));
+            path.push(PathBuf::from(Self::file_name()));
         }
 
-        let mut file = File::create(&path)
-            .map_err(|error| Error::Creating(zinc_const::zargo::MANIFEST_FILE_NAME, error))?;
+        let mut file =
+            File::create(&path).map_err(|error| Error::Creating(Self::file_name(), error))?;
         file.write_all(self.template().as_bytes())
-            .map_err(|error| Error::Writing(zinc_const::zargo::MANIFEST_FILE_NAME, error))
+            .map_err(|error| Error::Writing(Self::file_name(), error))
     }
 
     ///
@@ -112,6 +116,17 @@ version = "{}"
             self.project.name, self.project.r#type, self.project.version,
         )
     }
+
+    ///
+    /// Creates a string with the default file name.
+    ///
+    fn file_name() -> String {
+        format!(
+            "{}.{}",
+            zinc_const::file_names::MANIFEST,
+            zinc_const::extensions::MANIFEST
+        )
+    }
 }
 
 impl TryFrom<&PathBuf> for Manifest {
@@ -120,21 +135,20 @@ impl TryFrom<&PathBuf> for Manifest {
     fn try_from(path: &PathBuf) -> Result<Self, Self::Error> {
         let mut path = path.to_owned();
         if path.is_dir() {
-            path.push(PathBuf::from(zinc_const::zargo::MANIFEST_FILE_NAME));
+            path.push(PathBuf::from(Self::file_name()));
         }
 
-        let mut file = File::open(path)
-            .map_err(|error| Error::Opening(zinc_const::zargo::MANIFEST_FILE_NAME, error))?;
+        let mut file =
+            File::open(path).map_err(|error| Error::Opening(Self::file_name(), error))?;
         let size = file
             .metadata()
-            .map_err(|error| Error::Metadata(zinc_const::zargo::MANIFEST_FILE_NAME, error))?
+            .map_err(|error| Error::Metadata(Self::file_name(), error))?
             .len() as usize;
 
         let mut buffer = String::with_capacity(size);
         file.read_to_string(&mut buffer)
-            .map_err(|error| Error::Reading(zinc_const::zargo::MANIFEST_FILE_NAME, error))?;
+            .map_err(|error| Error::Reading(Self::file_name(), error))?;
 
-        Ok(toml::from_str(&buffer)
-            .map_err(|error| Error::Parsing(zinc_const::zargo::MANIFEST_FILE_NAME, error))?)
+        Ok(toml::from_str(&buffer).map_err(|error| Error::Parsing(Self::file_name(), error))?)
     }
 }

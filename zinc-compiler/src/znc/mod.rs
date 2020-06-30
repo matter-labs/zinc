@@ -18,10 +18,16 @@ use self::arguments::Arguments;
 use self::error::Error;
 use self::error::OutputError;
 
+/// The unit tests subdirectory path. Is relative to the bytecode build directory.
 static TEST_BINARIES_DIRECTORY: &str = "test/";
+/// The witness template JSON file suffix. Is appended before the `.json` extension.
 static WITNESS_TEMPLATE_SUFFIX: &str = "_witness";
+/// The public data template JSON file suffix. Is appended before the `.json` extension.
 static PUBLIC_DATA_TEMPLATE_SUFFIX: &str = "_public_data";
 
+///
+/// The application entry point.
+///
 fn main() {
     process::exit(match main_inner() {
         Ok(()) => zinc_const::exit_code::SUCCESS,
@@ -32,6 +38,9 @@ fn main() {
     })
 }
 
+///
+/// The auxiliary `main` function to facilitate the `?` error conversion operator.
+///
 fn main_inner() -> Result<(), Error> {
     let args = Arguments::new();
 

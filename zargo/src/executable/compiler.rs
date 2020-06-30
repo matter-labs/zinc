@@ -9,19 +9,33 @@ use std::process::ExitStatus;
 
 use failure::Fail;
 
+///
+/// The Zinc compiler process representation.
+///
 pub struct Compiler {}
 
+///
+/// The Zinc virtual machine process error.
+///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The process spawning error.
     #[fail(display = "spawning: {}", _0)]
     Spawning(io::Error),
+    /// The process waiting error.
     #[fail(display = "waiting: {}", _0)]
     Waiting(io::Error),
+    /// The process returned a non-success exit code.
     #[fail(display = "failure: {}", _0)]
     Failure(ExitStatus),
 }
 
 impl Compiler {
+    ///
+    /// Executes the compiler process.
+    ///
+    /// If `is_test_only` is set, passes the flag to only build the project unit tests.
+    ///
     pub fn build(
         verbosity: usize,
         data_path: &PathBuf,

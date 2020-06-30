@@ -2,6 +2,9 @@
 //! The Zinc virtual machine library.
 //!
 
+#![allow(missing_docs)]
+#![allow(clippy::missing_docs_in_private_items)]
+
 mod tests;
 
 pub(crate) mod constraint_systems;

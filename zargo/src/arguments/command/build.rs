@@ -27,19 +27,21 @@ use crate::manifest::Manifest;
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Builds the project at the given path")]
 pub struct Command {
+    /// The logging level value, which helps the logger to set the logging level.
     #[structopt(
         short = "v",
         parse(from_occurrences),
         help = "Shows verbose logs, use multiple times for more verbosity"
     )]
-    verbosity: usize,
+    pub verbosity: usize,
 
+    /// The path to the Zargo project manifest file.
     #[structopt(
         long = "manifest-path",
         help = "Path to Zargo.toml",
         default_value = "./Zargo.toml"
     )]
-    manifest_path: PathBuf,
+    pub manifest_path: PathBuf,
 }
 
 ///
@@ -47,14 +49,19 @@ pub struct Command {
 ///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
     ManifestFile(ManifestError),
+    /// The project binary build directory error.
     #[fail(display = "build directory {}", _0)]
     BuildDirectory(BuildDirectoryError),
+    /// The project unit tests binary build directory error.
     #[fail(display = "test build directory {}", _0)]
     TestBuildDirectory(TestBuildDirectoryError),
+    /// The project template, keys, and other auxiliary data directory error.
     #[fail(display = "data directory {}", _0)]
     DataDirectory(DataDirectoryError),
+    /// The compiler process error.
     #[fail(display = "compiler {}", _0)]
     Compiler(CompilerError),
 }

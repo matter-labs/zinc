@@ -27,13 +27,16 @@ pub struct ExecutionState<E: IEngine> {
 }
 
 impl<E: IEngine> ExecutionState<E> {
+    const CONDITIONS_INITIAL_CAPACITY: usize = 16;
+    const FRAMES_INITIAL_CAPACITY: usize = 16;
+
     pub fn new() -> Self {
         Self {
             instruction_counter: 0,
             evaluation_stack: EvaluationStack::new(),
             data_stack: DataStack::new(),
-            conditions_stack: vec![],
-            frames_stack: vec![],
+            conditions_stack: Vec::with_capacity(Self::CONDITIONS_INITIAL_CAPACITY),
+            frames_stack: Vec::with_capacity(Self::FRAMES_INITIAL_CAPACITY),
         }
     }
 }

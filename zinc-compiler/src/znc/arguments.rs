@@ -1,5 +1,5 @@
 //!
-//! The Zinc compiler binary arguments.
+//! The Zinc compiler arguments.
 //!
 
 use std::path::PathBuf;
@@ -20,18 +20,23 @@ pub struct Arguments {
     )]
     pub verbosity: usize,
 
+    /// The path to the keys, template, and other auxiliary data directory.
     #[structopt(
         long = "data",
         parse(from_os_str),
         help = "The witness and public data directory path"
     )]
     pub data_path: PathBuf,
+
+    /// The path to the build directory.
     #[structopt(long = "build", parse(from_os_str), help = "The build directory path")]
     pub build_path: PathBuf,
 
+    /// If set, compiles only unit tests.
     #[structopt(long = "test-only", help = "Build the unit tests only")]
     pub test_only: bool,
 
+    /// The path to the source code directory.
     #[structopt(parse(from_os_str), help = "The source file or `src` directory path")]
     pub source_path: PathBuf,
 }

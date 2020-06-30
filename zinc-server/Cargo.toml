@@ -1,0 +1,25 @@
+[package]
+name = "zinc-server"
+version = "0.1.5"
+authors = ["hedgar2017 <hedgar2017@gmail.com>"]
+edition = "2018"
+description = "The Zinc server"
+
+[[bin]]
+name = "zinc-server"
+path = "src/zinc-server/main.rs"
+
+[dependencies]
+log = "0.4"
+structopt = "0.3"
+failure = "0.1"
+
+serde = "1.0"
+serde_derive = "1.0"
+
+actix-rt = "1.1"
+actix-web = "2.0"
+
+zinc-const = { path = "../zinc-const" }
+zinc-utils = { path = "../zinc-utils" }
+zinc-compiler = { path = "../zinc-compiler" }

@@ -2,9 +2,6 @@
 //! The Zargo project manager binary.
 //!
 
-//#![deny(missing_docs)]
-//#![deny(clippy::missing_docs_in_private_items)]
-
 mod arguments;
 mod directory;
 mod executable;
@@ -15,6 +12,9 @@ use std::process;
 use self::arguments::command::IExecutable;
 use self::arguments::Arguments;
 
+///
+/// The application entry point.
+///
 fn main() {
     let args = Arguments::new();
 

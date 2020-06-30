@@ -25,9 +25,11 @@ impl<E: IEngine> Default for EvaluationStack<E> {
 }
 
 impl<E: IEngine> EvaluationStack<E> {
+    const STACK_INITIAL_CAPACITY: usize = 16;
+
     pub fn new() -> Self {
         Self {
-            stack: vec![vec![]],
+            stack: vec![Vec::with_capacity(Self::STACK_INITIAL_CAPACITY)],
         }
     }
 
@@ -53,7 +55,8 @@ impl<E: IEngine> EvaluationStack<E> {
     }
 
     pub fn fork(&mut self) {
-        self.stack.push(vec![]);
+        self.stack
+            .push(Vec::with_capacity(Self::STACK_INITIAL_CAPACITY));
     }
 
     pub fn merge<CS>(&mut self, mut cs: CS, condition: &Scalar<E>) -> Result<(), RuntimeError>

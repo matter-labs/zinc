@@ -11,23 +11,37 @@ use std::process::Stdio;
 
 use failure::Fail;
 
+///
+/// The Zinc virtual machine process representation.
+///
 pub struct VirtualMachine {}
 
+///
+/// The Zinc virtual machine process error.
+///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The process spawning error.
     #[fail(display = "spawning: {}", _0)]
     Spawning(io::Error),
+    /// The process stdin getting error.
     #[fail(display = "stdin acquisition")]
     StdinAcquisition,
+    /// The process stdout writing error.
     #[fail(display = "stdin writing: {}", _0)]
-    StdinWriting(io::Error),
+    StdoutWriting(io::Error),
+    /// The process waiting error.
     #[fail(display = "waiting: {}", _0)]
     Waiting(io::Error),
+    /// The process returned a non-success exit code.
     #[fail(display = "failure: {}", _0)]
     Failure(ExitStatus),
 }
 
 impl VirtualMachine {
+    ///
+    /// Executes the virtual machine `run` subcommand.
+    ///
     pub fn run(
         verbosity: usize,
         binary_path: &PathBuf,
@@ -55,6 +69,9 @@ impl VirtualMachine {
         Ok(())
     }
 
+    ///
+    /// Executes the virtual machine `debug` subcommand.
+    ///
     #[allow(dead_code)]
     pub fn debug(
         verbosity: usize,
@@ -83,6 +100,9 @@ impl VirtualMachine {
         Ok(())
     }
 
+    ///
+    /// Executes the virtual machine `test` subcommand.
+    ///
     pub fn test(verbosity: usize, binary_path: &PathBuf) -> Result<ExitStatus, Error> {
         let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
@@ -97,6 +117,9 @@ impl VirtualMachine {
         Ok(status)
     }
 
+    ///
+    /// Executes the virtual machine `setup` subcommand.
+    ///
     pub fn setup(
         verbosity: usize,
         binary_path: &PathBuf,
@@ -124,6 +147,9 @@ impl VirtualMachine {
         Ok(())
     }
 
+    ///
+    /// Executes the virtual machine `prove` subcommand.
+    ///
     pub fn prove(
         verbosity: usize,
         binary_path: &PathBuf,
@@ -154,6 +180,9 @@ impl VirtualMachine {
         Ok(())
     }
 
+    ///
+    /// Executes the virtual machine `verify` subcommand.
+    ///
     pub fn verify(
         verbosity: usize,
         binary_path: &PathBuf,
@@ -181,6 +210,11 @@ impl VirtualMachine {
         Ok(())
     }
 
+    ///
+    /// Executes the virtual machine `prove` and `verify` subcommands.
+    ///
+    /// The `prove` command output is passed as the `verify` command input.
+    ///
     pub fn prove_and_verify(
         verbosity: usize,
         binary_path: &PathBuf,
@@ -220,7 +254,7 @@ impl VirtualMachine {
             .as_mut()
             .ok_or(Error::StdinAcquisition)?
             .write_all(prover_output.stdout.as_slice())
-            .map_err(Error::StdinWriting)?;
+            .map_err(Error::StdoutWriting)?;
         let status = verifier_child.wait().map_err(Error::Waiting)?;
 
         if !status.success() {

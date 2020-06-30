@@ -10,6 +10,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use serde_derive::Deserialize;
+
 use crate::error::Error as CompilerError;
 use crate::generator::bytecode::Bytecode;
 use crate::generator::program::Program;
@@ -17,6 +19,7 @@ use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 use crate::source::error::Error as SourceError;
 use crate::source::file::File;
 use crate::source::Source;
+use crate::source::SourceString;
 
 use self::error::Error;
 
@@ -29,12 +32,81 @@ pub struct Directory {
     pub path: PathBuf,
     pub name: String,
     pub entry: File,
-    pub modules: HashMap<String, Source>,
+    pub dependencies: HashMap<String, Source>,
+}
+
+///
+/// The Zinc virtual source code directory, which consists of its name and virtual files.
+///
+#[derive(Debug, Deserialize)]
+pub struct DirectoryString {
+    /// The virtual directory subpath.
+    pub path: String,
+    /// The virtual dependency files.
+    pub modules: HashMap<String, SourceString>,
 }
 
 impl Directory {
     ///
-    /// Initializes an application module directory.
+    /// Initializes an application directory from string data.
+    ///
+    pub fn try_from_string(
+        directory: DirectoryString,
+        is_entry: bool,
+    ) -> Result<Self, SourceError> {
+        let path = PathBuf::from(directory.path);
+
+        let name = path
+            .file_stem()
+            .ok_or(Error::StemNotFound)
+            .map_err(SourceError::Directory)?
+            .to_string_lossy()
+            .to_string();
+
+        let mut entry = None;
+        let mut dependencies = HashMap::new();
+
+        for (name, module) in directory.modules.into_iter() {
+            match module {
+                SourceString::File(file) => {
+                    if is_entry && file.is_module_entry() {
+                        return Err(SourceError::Directory(Error::ModuleEntryInRoot));
+                    }
+
+                    if !is_entry && file.is_application_entry() {
+                        return Err(SourceError::Directory(Error::ApplicationEntryBeyondRoot));
+                    }
+
+                    let file = File::try_from_string(file)?;
+
+                    if file.is_entry() {
+                        entry = Some(file);
+                    } else {
+                        dependencies.insert(name, Source::File(file));
+                    }
+                }
+                SourceString::Directory(directory) => {
+                    let directory = Directory::try_from_string(directory, false)?;
+
+                    dependencies.insert(name, Source::Directory(directory));
+                }
+            }
+        }
+
+        match entry {
+            Some(entry) => Ok(Self {
+                path,
+                name,
+                entry,
+                dependencies,
+            }),
+            None if is_entry => Err(SourceError::Directory(Error::ApplicationEntryNotFound)),
+            None => Err(SourceError::Directory(Error::ModuleEntryNotFound)),
+        }
+    }
+
+    ///
+    /// Initializes an application module from a hard disk directory.
     ///
     pub fn try_from_path(path: &PathBuf, is_entry: bool) -> Result<Self, SourceError> {
         let directory = fs::read_dir(path)
@@ -86,7 +158,7 @@ impl Directory {
                 path: path.to_owned(),
                 name,
                 entry,
-                modules,
+                dependencies: modules,
             }),
             None if is_entry => Err(SourceError::Directory(Error::ApplicationEntryNotFound)),
             None => Err(SourceError::Directory(Error::ModuleEntryNotFound)),
@@ -122,7 +194,7 @@ impl Directory {
             path: path.clone(),
             name: "test".to_owned(),
             entry: File::test(code, path, file_index)?,
-            modules: dependencies,
+            dependencies,
         })
     }
 }

@@ -29,54 +29,61 @@ use crate::manifest::Manifest;
     about = "Runs the full project building, running, trusted setup, proving & verifying sequence"
 )]
 pub struct Command {
+    /// The logging level value, which helps the logger to set the logging level.
     #[structopt(
         short = "v",
         parse(from_occurrences),
         help = "Shows verbose logs, use multiple times for more verbosity"
     )]
-    verbosity: usize,
+    pub verbosity: usize,
 
+    /// The path to the Zargo project manifest file.
     #[structopt(
         long = "manifest-path",
         help = "Path to Zargo.toml",
         default_value = "./Zargo.toml"
     )]
-    manifest_path: PathBuf,
+    pub manifest_path: PathBuf,
 
+    /// The path to the binary bytecode file.
     #[structopt(
         long = "binary",
         help = "Path to the bytecode file",
         default_value = "./build/main.znb"
     )]
-    binary_path: PathBuf,
+    pub binary_path: PathBuf,
 
+    /// The path to the witness JSON file.
     #[structopt(
         long = "witness",
         help = "Path to the witness JSON file",
         default_value = "./data/main_witness.json"
     )]
-    witness_path: PathBuf,
+    pub witness_path: PathBuf,
 
+    /// The path to the public data JSON file.
     #[structopt(
         long = "public-data",
         help = "Path to the public data JSON file",
         default_value = "./data/main_public_data.json"
     )]
-    public_data_path: PathBuf,
+    pub public_data_path: PathBuf,
 
+    /// The path to the proving key file.
     #[structopt(
         long = "proving-key",
         help = "Path to the proving key file",
         default_value = "./data/proving_key"
     )]
-    proving_key_path: PathBuf,
+    pub proving_key_path: PathBuf,
 
+    /// The path to the verifying key file.
     #[structopt(
         long = "verifying-key",
         help = "Path to the verifying key file",
         default_value = "./data/verifying_key.txt"
     )]
-    verifying_key_path: PathBuf,
+    pub verifying_key_path: PathBuf,
 }
 
 ///
@@ -84,18 +91,25 @@ pub struct Command {
 ///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
     ManifestFile(ManifestError),
+    /// The project binary build directory error.
     #[fail(display = "build directory {}", _0)]
     BuildDirectory(BuildDirectoryError),
+    /// The project template, keys, and other auxiliary data directory error.
     #[fail(display = "data directory {}", _0)]
     DataDirectory(DataDirectoryError),
+    /// The compiler process error.
     #[fail(display = "compiler {}", _0)]
     Compiler(CompilerError),
+    /// The virtual machine `run` process error.
     #[fail(display = "virtual machine 'run' {}", _0)]
     VirtualMachineRun(VirtualMachineError),
+    /// The virtual machine `setup` process error.
     #[fail(display = "virtual machine 'setup' {}", _0)]
     VirtualMachineSetup(VirtualMachineError),
+    /// The virtual machine `proof-check` process error.
     #[fail(display = "virtual machine 'prove & verify' {}", _0)]
     VirtualMachineProveAndVerify(VirtualMachineError),
 }

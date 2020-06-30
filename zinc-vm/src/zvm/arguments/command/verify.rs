@@ -1,5 +1,5 @@
 //!
-//! The Zinc virtual machine binary `verify` subcommand.
+//! The Zinc virtual machine `verify` subcommand.
 //!
 
 use std::fs;
@@ -22,15 +22,21 @@ use crate::arguments::command::IExecutable;
 use crate::error::Error;
 use crate::error::IErrorPath;
 
+///
+/// The Zinc virtual machine `verify` subcommand.
+///
 #[derive(Debug, StructOpt)]
 #[structopt(name = "verify", about = "Verifies the proof using verifying key")]
 pub struct Command {
+    /// The path to the binary bytecode file.
     #[structopt(long = "binary", help = "The bytecode file")]
     pub binary_path: PathBuf,
 
+    /// The path to the verifying key file.
     #[structopt(long = "verifying-key", help = "The verifying key path")]
     pub verifying_key_path: PathBuf,
 
+    /// The path to the public data JSON file.
     #[structopt(long = "public-data", help = "Path to public data JSON file")]
     pub public_data_path: PathBuf,
 }
@@ -81,6 +87,9 @@ impl IExecutable for Command {
     }
 }
 
+///
+/// Reads hex data from the `reader`. Used mainly for reading proofs and keys.
+///
 fn read_hex<R: std::io::Read>(
     mut reader: R,
     path_hint: &str,

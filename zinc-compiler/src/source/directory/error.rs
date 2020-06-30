@@ -25,26 +25,26 @@ impl fmt::Display for Error {
             Self::ApplicationEntryNotFound => write!(
                 f,
                 "the application entry file `{}.{}` is missing",
-                zinc_const::source::APPLICATION_ENTRY_FILE_NAME,
-                zinc_const::source::FILE_EXTENSION,
+                zinc_const::file_names::APPLICATION_ENTRY,
+                zinc_const::extensions::SOURCE,
             ),
             Self::ModuleEntryNotFound => write!(
                 f,
                 "the module entry file `{}.{}` is missing",
-                zinc_const::source::MODULE_ENTRY_FILE_NAME,
-                zinc_const::source::FILE_EXTENSION,
+                zinc_const::file_names::MODULE_ENTRY,
+                zinc_const::extensions::SOURCE,
             ),
             Self::ApplicationEntryBeyondRoot => write!(
                 f,
                 "the application entry file `{}.{}` is beyond the source code root",
-                zinc_const::source::APPLICATION_ENTRY_FILE_NAME,
-                zinc_const::source::FILE_EXTENSION,
+                zinc_const::file_names::APPLICATION_ENTRY,
+                zinc_const::extensions::SOURCE,
             ),
             Self::ModuleEntryInRoot => write!(
                 f,
                 "the module entry file `{}.{}` cannot be the application entry",
-                zinc_const::source::MODULE_ENTRY_FILE_NAME,
-                zinc_const::source::FILE_EXTENSION,
+                zinc_const::file_names::MODULE_ENTRY,
+                zinc_const::extensions::SOURCE,
             ),
         }
     }

@@ -9,6 +9,7 @@ use log::Level;
 use colored::ColoredString;
 use colored::Colorize;
 
+/// The space for the logging level name.
 const LEVEL_NAME_LENGTH: usize = 10;
 
 ///
@@ -30,27 +31,26 @@ pub fn initialize(app_name: &'static str, verbosity: usize) {
             2 => log::LevelFilter::Debug,
             _ => log::LevelFilter::Trace,
         })
-        .format(move |buf, record| {
+        .format(move |buffer, record| {
             if let Level::Debug | Level::Trace = record.level() {
                 writeln!(
-                    buf,
+                    buffer,
                     "[{:>5} {:>5}] {}",
                     level_string(record.level()),
                     record.module_path().unwrap_or_else(|| app_name).white(),
                     record.args()
                 )
             } else {
-                let mut padding = String::from("\n");
-                for _ in 0..(app_name.len() + LEVEL_NAME_LENGTH + 4) {
-                    padding.push(' ');
-                }
-
                 writeln!(
-                    buf,
+                    buffer,
                     "[{:>5} {:>5}] {}",
                     level_string(record.level()),
                     app_name.white(),
-                    record.args().to_string().replace("\n", &padding)
+                    format!(
+                        "{}{}",
+                        record.args(),
+                        " ".repeat(app_name.len() + LEVEL_NAME_LENGTH + 4)
+                    )
                 )
             }
         })

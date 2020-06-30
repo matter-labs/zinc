@@ -14,9 +14,11 @@ pub struct Frame<E: IEngine> {
 }
 
 impl<E: IEngine> Frame<E> {
+    const BLOCKS_INITIAL_CAPACITY: usize = 16;
+
     pub fn new(data_stack_address: usize, return_address: usize) -> Self {
         Self {
-            blocks: vec![],
+            blocks: Vec::with_capacity(Self::BLOCKS_INITIAL_CAPACITY),
             return_address,
             stack_frame_start: data_stack_address,
             stack_frame_end: data_stack_address,

@@ -8,11 +8,19 @@ use std::io;
 
 use zinc_compiler::SourceError;
 
+///
+/// The Zinc compiler binary error.
+///
 pub enum Error {
+    /// The Zinc source code error.
     Source(SourceError),
+    /// The output directories creating error.
     DirectoryCreating(OsString, io::Error),
+    /// The witness template JSON file writing error.
     WitnessTemplateOutput(OsString, OutputError),
+    /// The public data template JSON file writing error.
     PublicDataTemplateOutput(OsString, OutputError),
+    /// The bytecode binary file writing error.
     BytecodeOutput(OsString, OutputError),
 }
 
@@ -44,8 +52,13 @@ impl fmt::Display for Error {
     }
 }
 
+///
+/// The file output error.
+///
 pub enum OutputError {
+    /// The file creating error.
     Creating(std::io::Error),
+    /// The file writing error.
     Writing(std::io::Error),
 }
 

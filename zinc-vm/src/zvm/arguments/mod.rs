@@ -8,8 +8,11 @@ use structopt::StructOpt;
 
 use self::command::Command;
 
+///
+/// The Zinc virtual machine arguments.
+///
 #[derive(Debug, StructOpt)]
-#[structopt(name = zinc_const::app_name::ZINC_VIRTUAL_MACHINE, about = "Zinc Virtual Machine")]
+#[structopt(name = zinc_const::app_name::ZINC_VIRTUAL_MACHINE, about = "The Zinc virtual machine")]
 pub struct Arguments {
     /// The logging level value, which helps the logger to set the logging level.
     #[structopt(

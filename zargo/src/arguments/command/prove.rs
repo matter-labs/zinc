@@ -17,40 +17,45 @@ use crate::executable::virtual_machine::VirtualMachine;
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Generates the zero-knowledge proof for given witness data")]
 pub struct Command {
+    /// The logging level value, which helps the logger to set the logging level.
     #[structopt(
         short = "v",
         parse(from_occurrences),
         help = "Shows verbose logs, use multiple times for more verbosity"
     )]
-    verbosity: usize,
+    pub verbosity: usize,
 
+    /// The path to the binary bytecode file.
     #[structopt(
         long = "binary",
         help = "Path to the bytecode file",
         default_value = "./build/main.znb"
     )]
-    binary_path: PathBuf,
+    pub binary_path: PathBuf,
 
+    /// The path to the witness JSON file.
     #[structopt(
         long = "witness",
         help = "Path to the witness JSON file",
         default_value = "./data/main_witness.json"
     )]
-    witness_path: PathBuf,
+    pub witness_path: PathBuf,
 
+    /// The path to the public data JSON file.
     #[structopt(
         long = "public-data",
         help = "Path to the public data JSON file",
         default_value = "./data/main_public_data.json"
     )]
-    public_data_path: PathBuf,
+    pub public_data_path: PathBuf,
 
+    /// The path to the proving key file.
     #[structopt(
         long = "proving-key",
         help = "Path to the proving key file",
         default_value = "./data/proving_key"
     )]
-    proving_key: PathBuf,
+    pub proving_key: PathBuf,
 }
 
 ///
@@ -58,6 +63,7 @@ pub struct Command {
 ///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The virtual machine process error.
     #[fail(display = "virtual machine {}", _0)]
     VirtualMachine(VirtualMachineError),
 }

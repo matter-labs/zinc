@@ -2,23 +2,21 @@
 //! A semantic analyzer tests.
 //!
 
+#![cfg(test)]
+
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 use crate::semantic::analyzer::module::Analyzer as ModuleAnalyzer;
 use crate::semantic::error::Error as SemanticError;
-use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
-use crate::source::file::index::INDEX as FILE_INDEX;
 use crate::source::Source;
 use crate::syntax::parser::Parser;
-use crate::syntax::tree::module::Module as SyntaxModule;
 
 pub(crate) fn compile_entry(code: &str) -> Result<(), Error> {
     compile_entry_with_dependencies(code, HashMap::new())
@@ -168,9 +166,9 @@ fn main() -> u8 {
     let result = crate::semantic::tests::compile_module(
         code,
         0,
-        Scope::new_global(zinc_const::source::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
-        Scope::new_global(zinc_const::source::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
-        Scope::new_global(zinc_const::source::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+        Scope::new_global(zinc_const::file_names::APPLICATION_ENTRY.to_owned()).wrap(),
+        Scope::new_global(zinc_const::file_names::APPLICATION_ENTRY.to_owned()).wrap(),
+        Scope::new_global(zinc_const::file_names::APPLICATION_ENTRY.to_owned()).wrap(),
     )
     .unwrap_err();
 
@@ -192,9 +190,9 @@ contract Uniswap {
     let result = crate::semantic::tests::compile_module(
         code,
         0,
-        Scope::new_global(zinc_const::source::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
-        Scope::new_global(zinc_const::source::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
-        Scope::new_global(zinc_const::source::APPLICATION_ENTRY_FILE_NAME.to_owned()).wrap(),
+        Scope::new_global(zinc_const::file_names::APPLICATION_ENTRY.to_owned()).wrap(),
+        Scope::new_global(zinc_const::file_names::APPLICATION_ENTRY.to_owned()).wrap(),
+        Scope::new_global(zinc_const::file_names::APPLICATION_ENTRY.to_owned()).wrap(),
     )
     .unwrap_err();
 

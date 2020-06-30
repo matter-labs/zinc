@@ -8,7 +8,7 @@ use std::process::ExitStatus;
 ///
 /// The `1` code is reserved for internal errors.
 ///
-pub enum UnitTestExitCode {
+pub enum ExitCode {
     /// The test passed without an error or with an error if it is marked with the `should_panic` attribute.
     Passed = 0,
     /// The test passed with an error or without an error if it is marked with the `should_panic` attribute.
@@ -17,7 +17,7 @@ pub enum UnitTestExitCode {
     Ignored = 3,
 }
 
-impl TryFrom<ExitStatus> for UnitTestExitCode {
+impl TryFrom<ExitStatus> for ExitCode {
     type Error = Option<i32>;
 
     fn try_from(status: ExitStatus) -> Result<Self, Self::Error> {

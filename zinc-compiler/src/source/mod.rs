@@ -1,5 +1,5 @@
 //!
-//! The source code module.
+//! The source code.
 //!
 
 pub mod directory;
@@ -12,21 +12,54 @@ use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use serde_derive::Deserialize;
+
 use crate::generator::bytecode::Bytecode;
 
 use self::directory::Directory;
+use self::directory::DirectoryString;
 use self::error::Error;
 use self::file::File;
+use self::file::FileString;
 
+///
+/// The file system source code representation.
+///
 #[derive(Debug, Clone)]
 pub enum Source {
+    /// The file system data file.
     File(File),
+    /// The file system directory.
     Directory(Directory),
+}
+
+///
+/// The string source code representation.
+///
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum SourceString {
+    /// The virtual file string data.
+    File(FileString),
+    /// The virtual directory string data.
+    Directory(DirectoryString),
 }
 
 impl Source {
     ///
-    /// Initializes an application module representation.
+    /// Initializes an application module from string data.
+    ///
+    pub fn try_from_string(source: SourceString, is_entry: bool) -> Result<Self, Error> {
+        Ok(match source {
+            SourceString::File(inner) => File::try_from_string(inner).map(Source::File)?,
+            SourceString::Directory(inner) => {
+                Directory::try_from_string(inner, is_entry).map(Source::Directory)?
+            }
+        })
+    }
+
+    ///
+    /// Initializes an application module representation from the file system.
     ///
     pub fn try_from_path(path: &PathBuf, is_entry: bool) -> Result<Self, Error> {
         let file_type = fs::metadata(path).map_err(Error::FileMetadata)?.file_type();

@@ -255,7 +255,7 @@ impl Type {
                 .map(|(_name, r#type)| r#type.size())
                 .sum(),
             Self::Enumeration(_inner) => 1,
-            Self::Contract(inner) => 0,
+            Self::Contract(_inner) => 0,
             Self::Function(_inner) => 0,
         }
     }

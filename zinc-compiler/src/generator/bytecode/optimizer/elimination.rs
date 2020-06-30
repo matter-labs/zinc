@@ -3,11 +3,9 @@
 //!
 
 use std::collections::HashMap;
-use std::collections::HashSet;
 
 use petgraph::algo::DfsSpace;
 use petgraph::graph::Graph;
-use petgraph::graph::NodeIndex;
 
 use zinc_bytecode::Instruction;
 

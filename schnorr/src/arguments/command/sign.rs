@@ -21,9 +21,11 @@ use crate::error::Error;
 #[derive(StructOpt)]
 #[structopt(name = "sign", about = "generate a signature")]
 pub struct Command {
+    /// The path to the private key.
     #[structopt(short = "k", long = "key", help = "path to the private key")]
-    key: PathBuf,
+    private_key_path: PathBuf,
 
+    /// The path to the message to sign. If set to `-`, reads from the `stdin`.
     #[structopt(
         short = "m",
         long = "message",
@@ -38,7 +40,7 @@ impl IExecutable for Command {
     fn execute(self) -> Result<(), Self::Error> {
         let params = AltJubjubBn256::new();
 
-        let private_key_hex = std::fs::read_to_string(&self.key)?;
+        let private_key_hex = std::fs::read_to_string(&self.private_key_path)?;
         let bytes = hex::decode(private_key_hex.trim())?;
         let private_key = eddsa::PrivateKey::<Bn256>::read(bytes.as_slice())?;
 

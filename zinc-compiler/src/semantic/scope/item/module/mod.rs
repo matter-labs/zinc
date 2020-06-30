@@ -85,7 +85,7 @@ impl Module {
 
         let (module, dependencies) = match module {
             Source::File(file) => (file.tree, HashMap::new()),
-            Source::Directory(directory) => (directory.entry.tree, directory.modules),
+            Source::Directory(directory) => (directory.entry.tree, directory.dependencies),
         };
 
         let (module, implementation_scopes) = ModuleAnalyzer::declare(

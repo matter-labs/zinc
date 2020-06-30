@@ -1,5 +1,5 @@
 //!
-//! The Zinc virtual machine binary `debug` subcommand.
+//! The Zinc virtual machine `debug` subcommand.
 //!
 
 use std::fs;
@@ -19,15 +19,21 @@ use crate::arguments::command::IExecutable;
 use crate::error::Error;
 use crate::error::IErrorPath;
 
+///
+/// The Zinc virtual machine `debug` subcommand.
+///
 #[derive(Debug, StructOpt)]
 #[structopt(name = "debug", about = "Executes circuit with additional checks")]
 pub struct Command {
+    /// The path to the binary bytecode file.
     #[structopt(long = "binary", help = "The bytecode file")]
     pub binary_path: PathBuf,
 
+    /// The path to the witness JSON file.
     #[structopt(long = "witness", help = "The witness JSON file")]
     pub witness_path: PathBuf,
 
+    /// The path to the public data JSON file.
     #[structopt(long = "public-data", help = "The public data JSON file")]
     pub public_data_path: PathBuf,
 }

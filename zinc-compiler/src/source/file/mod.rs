@@ -11,6 +11,8 @@ use std::io::Read;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use serde_derive::Deserialize;
+
 use crate::error::Error as CompilerError;
 use crate::generator::bytecode::Bytecode;
 use crate::generator::program::Program;
@@ -34,9 +36,77 @@ pub struct File {
     pub tree: SyntaxModule,
 }
 
+///
+/// The Zinc virtual source code file, which consists of its name and source code string.
+///
+#[derive(Debug, Deserialize)]
+pub struct FileString {
+    /// The virtual file subpath.
+    pub path: String,
+    /// The source code string data.
+    pub code: String,
+}
+
+impl FileString {
+    ///
+    /// Checks whether the file is the entry point.
+    ///
+    pub fn is_entry(&self) -> bool {
+        self.is_application_entry() || self.is_module_entry()
+    }
+
+    ///
+    /// Checks whether the file is the application entry point.
+    ///
+    pub fn is_application_entry(&self) -> bool {
+        self.path.as_str() == zinc_const::file_names::APPLICATION_ENTRY
+    }
+
+    ///
+    /// Checks whether the file is the module entry point.
+    ///
+    pub fn is_module_entry(&self) -> bool {
+        self.path.as_str() == zinc_const::file_names::MODULE_ENTRY
+    }
+}
+
 impl File {
     ///
-    /// Initializes an application module file.
+    /// Initializes an application module from a string.
+    ///
+    /// `path` is used to set the virtual module path within a project.
+    ///
+    pub fn try_from_string(file: FileString) -> Result<Self, SourceError> {
+        let path = PathBuf::from(file.path);
+
+        let source_file_extension = path
+            .extension()
+            .ok_or(Error::ExtensionNotFound)
+            .map_err(SourceError::File)?;
+        if source_file_extension != zinc_const::extensions::SOURCE {
+            return Err(SourceError::File(Error::ExtensionInvalid(
+                source_file_extension.to_owned(),
+            )));
+        }
+
+        let name = path
+            .file_stem()
+            .ok_or(Error::StemNotFound)
+            .map_err(SourceError::File)?
+            .to_string_lossy()
+            .to_string();
+
+        let next_file_id = INDEX.next(&path, file.code.clone());
+        let tree = Parser::default()
+            .parse(&file.code, Some(next_file_id))
+            .map_err(|error| error.format())
+            .map_err(SourceError::Compiling)?;
+
+        Ok(Self { path, name, tree })
+    }
+
+    ///
+    /// Initializes an application module from a hard disk file.
     ///
     pub fn try_from_path(path: &PathBuf) -> Result<Self, SourceError> {
         let mut file = fs::File::open(&path)
@@ -58,7 +128,7 @@ impl File {
             .extension()
             .ok_or(Error::ExtensionNotFound)
             .map_err(SourceError::File)?;
-        if source_file_extension != zinc_const::source::FILE_EXTENSION {
+        if source_file_extension != zinc_const::extensions::SOURCE {
             return Err(SourceError::File(Error::ExtensionInvalid(
                 source_file_extension.to_owned(),
             )));
@@ -111,14 +181,14 @@ impl File {
     /// Checks whether the file is the application entry point.
     ///
     pub fn is_application_entry(&self) -> bool {
-        self.name.as_str() == zinc_const::source::APPLICATION_ENTRY_FILE_NAME
+        self.name.as_str() == zinc_const::file_names::APPLICATION_ENTRY
     }
 
     ///
     /// Checks whether the file is the module entry point.
     ///
     pub fn is_module_entry(&self) -> bool {
-        self.name.as_str() == zinc_const::source::MODULE_ENTRY_FILE_NAME
+        self.name.as_str() == zinc_const::file_names::MODULE_ENTRY
     }
 
     ///

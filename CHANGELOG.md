@@ -12,20 +12,30 @@
 - forbidden the bitwise operations on signed integers
 - allowed to declare constants, types, functions, and modules in arbitrary order
 - implemented nested modules with the access to the root and parent modules
+- added the attribute syntax, which supports only the unit test markers for now
+- implemented the Rust-like unit testing functionality
 
 #### Compiler
 
 - fixed the bug where namespace items where resolved from outside the namespace
 - fixed the bug where the type of a match enum variant path pattern was unchecked
+- fixed the bug where a structure could be initialized without fields
+- implemented the per-entry dead code elimination for unreachable functions
 - improved some error messages
 
 #### Zargo
 
-- generalized for managing smart contract projects
+- generalized for managing both circuit and smart contract projects
+- improved some commands and default values to decrease redundancy
+
+#### Source code
+
+- added doc comments for the entire project using `missing_docs_*` lints
+- moved some shared utilities and constants to common crates `zinc_utils` and `zinc_const`
 
 #### Overall
 
-- implemented simple smart contracts
+- implemented basic smart contracts
 
 ## Version 0.1.5 (2020-04-07)
 

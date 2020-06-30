@@ -17,33 +17,37 @@ use crate::executable::virtual_machine::VirtualMachine;
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Verifies the zero-knowledge proof")]
 pub struct Command {
+    /// The logging level value, which helps the logger to set the logging level.
     #[structopt(
         short = "v",
         parse(from_occurrences),
         help = "Shows verbose logs, use multiple times for more verbosity"
     )]
-    verbosity: usize,
+    pub verbosity: usize,
 
+    /// The path to the binary bytecode file.
     #[structopt(
         long = "binary",
         help = "Path to the bytecode file",
         default_value = "./build/main.znb"
     )]
-    binary_path: PathBuf,
+    pub binary_path: PathBuf,
 
+    /// The path to the public data JSON file.
     #[structopt(
         long = "public-data",
         help = "Path to the public data JSON file",
         default_value = "./data/main_public_data.json"
     )]
-    public_data_path: PathBuf,
+    pub public_data_path: PathBuf,
 
+    /// The path to the verifying key file.
     #[structopt(
         long = "verifying-key",
         help = "Path to the verifying key file",
         default_value = "./data/verifying_key.txt"
     )]
-    verifying_key_path: PathBuf,
+    pub verifying_key_path: PathBuf,
 }
 
 ///
@@ -51,6 +55,7 @@ pub struct Command {
 ///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The virtual machine process error.
     #[fail(display = "virtual machine {}", _0)]
     VirtualMachine(VirtualMachineError),
 }

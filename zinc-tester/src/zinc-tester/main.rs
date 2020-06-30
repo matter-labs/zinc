@@ -3,6 +3,7 @@
 //!
 
 mod arguments;
+mod panic;
 
 use std::path::PathBuf;
 use std::process;
@@ -16,9 +17,9 @@ use zinc_tester::ProofCheckRunner;
 
 use self::arguments::Arguments;
 
-static TEST_DIRECTORY_INVALID: &str = "The test files directory must be valid";
-static RAYON_POOL_INITIALIZATION: &str = "The thread pool is initialized only once";
-
+///
+/// The application entry point.
+///
 fn main() {
     let args = Arguments::new();
 
@@ -26,7 +27,7 @@ fn main() {
         ThreadPoolBuilder::new()
             .num_threads(1)
             .build_global()
-            .expect(RAYON_POOL_INITIALIZATION);
+            .expect(self::panic::RAYON_POOL_INITIALIZATION);
     }
     println!(
         "[INTEGRATION] Started with {} worker threads",
@@ -35,11 +36,11 @@ fn main() {
 
     let result = if args.proof_check {
         Directory::new(&PathBuf::from(zinc_tester::TEST_DEFAULT_DIRECTORY))
-            .expect(TEST_DIRECTORY_INVALID)
+            .expect(self::panic::TEST_DIRECTORY_INVALID)
             .run(ProofCheckRunner::new(args.verbosity, args.filter))
     } else {
         Directory::new(&PathBuf::from(zinc_tester::TEST_DEFAULT_DIRECTORY))
-            .expect(TEST_DIRECTORY_INVALID)
+            .expect(self::panic::TEST_DIRECTORY_INVALID)
             .run(EvaluationRunner::new(args.verbosity, args.filter))
     };
 

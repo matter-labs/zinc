@@ -1,5 +1,5 @@
 //!
-//! The Zinc virtual machine binary `setup` subcommand.
+//! The Zinc virtual machine `setup` subcommand.
 //!
 
 use std::fs;
@@ -17,18 +17,24 @@ use crate::arguments::command::IExecutable;
 use crate::error::Error;
 use crate::error::IErrorPath;
 
+///
+/// The Zinc virtual machine `setup` subcommand.
+///
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "setup",
     about = "Generates a pair of proving and verifying keys"
 )]
 pub struct Command {
+    /// The path to the binary bytecode file.
     #[structopt(long = "binary", help = "The bytecode file")]
     pub binary_path: PathBuf,
 
+    /// The path to the proving key file.
     #[structopt(long = "proving-key", help = "The proving key path")]
     pub proving_key_path: PathBuf,
 
+    /// The path to the verifying key file.
     #[structopt(long = "verifying-key", help = "The verifying key path")]
     pub verifying_key_path: PathBuf,
 }

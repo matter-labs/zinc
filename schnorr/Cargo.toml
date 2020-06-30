@@ -7,15 +7,16 @@ description = "The Zinc Schnorr signature generator"
 
 [dependencies]
 log = "0.4"
-env_logger = "0.7"
-structopt = "0.3.8"
-failure = "0.1"
-colored = "1.9.0"
-num-bigint = "0.2.3"
-serde_json = "1.0.44"
-rand = "0.4.5"
-hex = "0.4.0"
+structopt = "0.3"
 
-franklin_crypto = { package = "franklin-crypto", git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc"}
+failure = "0.1"
+colored = "1.9"
+num-bigint = "0.3"
+serde_json = "1.0"
+rand = "0.4"
+hex = "0.4"
+
+franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc" }
 
 zinc-const = { path = "../zinc-const" }
+zinc-utils = { path = "../zinc-utils" }

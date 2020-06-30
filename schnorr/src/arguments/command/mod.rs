@@ -1,5 +1,5 @@
 //!
-//! The Zinc Schnorr signature tool arguments.
+//! The Zinc Schnorr signature tool subcommand.
 //!
 
 pub mod gen_key;
@@ -14,7 +14,11 @@ use self::gen_key::Command as GenKeyCommand;
 use self::pub_key::Command as PubKeyCommand;
 use self::sign::Command as SignCommand;
 
+///
+/// The generic trait used for commands.
+///
 pub trait IExecutable {
+    /// The generic subcommand error type.
     type Error;
 
     ///
@@ -23,10 +27,16 @@ pub trait IExecutable {
     fn execute(self) -> Result<(), Self::Error>;
 }
 
+///
+/// The Zinc Schnorr signature tool subcommand.
+///
 #[derive(StructOpt)]
 pub enum Command {
+    /// The `generate key` subcommand.
     GenKey(GenKeyCommand),
+    /// The `public key` subcommand.
     PubKey(PubKeyCommand),
+    /// The `sign` subcommand.
     Sign(SignCommand),
 }
 

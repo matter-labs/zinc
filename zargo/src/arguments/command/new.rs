@@ -28,27 +28,31 @@ use crate::manifest::Manifest;
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Creates a new project directory")]
 pub struct Command {
+    /// The logging level value, which helps the logger to set the logging level.
     #[structopt(
         short = "v",
         parse(from_occurrences),
         help = "Shows verbose logs, use multiple times for more verbosity"
     )]
-    verbosity: usize,
+    pub verbosity: usize,
 
+    /// The project name, which will appear in the Zargo manifest file.
     #[structopt(
         long = "name",
         help = "Set the project name, defaults to the directory name"
     )]
-    name: Option<String>,
+    pub name: Option<String>,
 
+    /// The project type, which is either a circuit or contract for now.
     #[structopt(
         long = "type",
         help = "Set the project type, either 'circuit' or 'contract'"
     )]
-    r#type: String,
+    pub r#type: String,
 
+    /// The path to the project directory to initialize.
     #[structopt(parse(from_os_str))]
-    path: PathBuf,
+    pub path: PathBuf,
 }
 
 ///
@@ -56,26 +60,37 @@ pub struct Command {
 ///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The invalid project name error.
     #[fail(
         display = "project name is missing and cannot be inferred from path {:?}",
         _0
     )]
     ProjectNameInvalid(OsString),
+    /// The invalid project type error.
     #[fail(
         display = "project type must be either `circuit` or `contract`, found `{}`",
         _0
     )]
     ProjectTypeInvalid(String),
-    #[fail(display = "directory {:?} already exists", _0)]
+    /// The project directory already exists. Use `init` instead.
+    #[fail(
+        display = "directory {:?} already exists. To initialize it with a project, use `zargo init`",
+        _0
+    )]
     DirectoryAlreadyExists(OsString),
+    /// The project directory creating error.
     #[fail(display = "root directory {:?} creating: {}", _0, _1)]
     CreatingRootDirectory(OsString, io::Error),
+    /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
     ManifestFile(ManifestError),
+    /// The project source code directory error.
     #[fail(display = "source directory {}", _0)]
     SourceDirectory(SourceDirectoryError),
+    /// The circuit source code entry point file generation error.
     #[fail(display = "main file {}", _0)]
     CircuitFile(CircuitFileError),
+    /// The contract source code entry point file generation error.
     #[fail(display = "contract file {}", _0)]
     ContractFile(ContractFileError),
 }

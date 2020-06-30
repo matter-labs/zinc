@@ -1,5 +1,5 @@
 //!
-//! The Zinc virtual machine binary subcommand.
+//! The Zinc virtual machine subcommand.
 //!
 
 pub mod debug;
@@ -20,7 +20,11 @@ use self::setup::Command as SetupCommand;
 use self::test::Command as TestCommand;
 use self::verify::Command as VerifyCommand;
 
+///
+/// The generic trait used for commands.
+///
 pub trait IExecutable {
+    /// The generic subcommand error type.
     type Error;
 
     ///
@@ -29,13 +33,22 @@ pub trait IExecutable {
     fn execute(self) -> Result<i32, Self::Error>;
 }
 
+///
+/// The Zinc virtual machine subcommand.
+///
 #[derive(Debug, StructOpt)]
 pub enum Command {
+    /// The `run` subcommand.
     Run(RunCommand),
+    /// The `debug` subcommand.
     Debug(DebugCommand),
+    /// The `test` subcommand.
     Test(TestCommand),
+    /// The `setup` subcommand.
     Setup(SetupCommand),
+    /// The `prove` subcommand.
     Prove(ProveCommand),
+    /// The `verify` subcommand.
     Verify(VerifyCommand),
 }
 

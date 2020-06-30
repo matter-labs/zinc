@@ -1,5 +1,5 @@
 //!
-//! The Zinc virtual machine binary `test` subcommand.
+//! The Zinc virtual machine `test` subcommand.
 //!
 
 use std::fs;
@@ -17,9 +17,13 @@ use crate::arguments::command::IExecutable;
 use crate::error::Error;
 use crate::error::IErrorPath;
 
+///
+/// The Zinc virtual machine `test` subcommand.
+///
 #[derive(Debug, StructOpt)]
 #[structopt(name = "test", about = "Executes a unit test")]
 pub struct Command {
+    /// The path to the binary bytecode file.
     #[structopt(long = "binary", help = "The bytecode file")]
     pub binary_path: PathBuf,
 }

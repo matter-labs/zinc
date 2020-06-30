@@ -31,7 +31,7 @@ pub struct Directory {
 
 impl Directory {
     ///
-    /// Reads the test directory and records the test file located there.
+    /// Reads the test directory and stores the test file paths located there.
     ///
     pub fn new(path: &PathBuf) -> Result<Self, Error> {
         let directory = fs::read_dir(path).map_err(Error::Reading)?;
@@ -57,7 +57,7 @@ impl Directory {
             let file_extension = entry_path
                 .extension()
                 .ok_or_else(|| Error::GettingFileExtension(entry_path.as_os_str().to_owned()))?;
-            if file_extension != zinc_const::source::FILE_EXTENSION {
+            if file_extension != zinc_const::extensions::SOURCE {
                 return Err(Error::InvalidFileExtension(
                     entry_path.as_os_str().to_owned(),
                     file_extension.to_owned(),

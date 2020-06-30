@@ -1,15 +1,14 @@
-use franklin_crypto::bellman::pairing::ff::PrimeField;
-use franklin_crypto::bellman::pairing::ff::PrimeFieldRepr;
 use sha2::Digest;
 use sha2::Sha256;
+
+use franklin_crypto::bellman::pairing::ff::PrimeField;
+use franklin_crypto::bellman::pairing::ff::PrimeFieldRepr;
 
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
 pub fn sha256<E: IEngine>(preimage: &[u8]) -> Vec<u8> {
-    let mut hash = Sha256::new();
-    hash.input(preimage);
-    hash.result().to_vec()
+    Sha256::digest(preimage).to_vec()
 }
 
 pub fn sha256_of_concat<E: IEngine>(left: &[u8], right: &[u8]) -> Vec<u8> {
@@ -17,10 +16,10 @@ pub fn sha256_of_concat<E: IEngine>(left: &[u8], right: &[u8]) -> Vec<u8> {
 }
 
 pub fn leaf_value_hash<E: IEngine>(leaf_value: Vec<Scalar<E>>) -> Vec<u8> {
-    let mut result = vec![];
+    let mut result = Vec::with_capacity(zinc_const::bitlength::SHA256_HASH * leaf_value.len());
 
     for field in leaf_value.into_iter() {
-        let mut field_vec = vec![];
+        let mut field_vec = Vec::with_capacity(zinc_const::bitlength::SHA256_HASH);
         if let Some(fr) = field.get_value() {
             let _ = fr.into_repr().write_le(&mut field_vec);
         }
@@ -33,7 +32,7 @@ pub fn leaf_value_hash<E: IEngine>(leaf_value: Vec<Scalar<E>>) -> Vec<u8> {
             );
         }
 
-        let mut field_vec_be = vec![];
+        let mut field_vec_be = Vec::with_capacity(field_vec.len());
         for i in field_vec.into_iter() {
             let mut current_byte: u8 = 0;
             for j in 0..zinc_const::bitlength::BYTE {

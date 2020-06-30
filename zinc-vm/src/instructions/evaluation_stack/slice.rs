@@ -23,6 +23,8 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Slice {
         }
         array.reverse();
 
+        // TODO: check the array bounds
+
         for i in 0..self.slice_size {
             let condition = vm.condition_top()?;
             let namespace = format!("conditional_get_{}", i);
