@@ -36,9 +36,9 @@ where
     for (i, expected) in expected_stack.iter().enumerate() {
         let value = vm
             .pop()
-            .expect(crate::panic::TEST_DATA_VALID)
+            .expect(zinc_const::panic::TEST_DATA_VALID)
             .try_into_value()
-            .expect(crate::panic::TEST_DATA_VALID);
+            .expect(zinc_const::panic::TEST_DATA_VALID);
 
         assert_eq!(
             value.to_bigint(),

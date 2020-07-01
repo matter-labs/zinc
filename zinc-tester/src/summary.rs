@@ -35,9 +35,9 @@ impl Summary {
     ///
     pub fn unwrap_arc(summary: Arc<Mutex<Self>>) -> Self {
         Arc::try_unwrap(summary)
-            .expect(crate::panic::LAST_SHARED_REFERENCE)
+            .expect(zinc_const::panic::LAST_SHARED_REFERENCE)
             .into_inner()
-            .expect(crate::panic::LAST_SHARED_REFERENCE)
+            .expect(zinc_const::panic::LAST_SHARED_REFERENCE)
     }
 }
 

@@ -21,7 +21,7 @@ fn unsigned_positive_overflow_fail() {
         .push(Add)
         .test(&[256]);
 
-    match res.err().expect(crate::panic::TEST_DATA_VALID) {
+    match res.err().expect(zinc_const::panic::TEST_DATA_VALID) {
         TestingError::RuntimeError(RuntimeError::ValueOverflow { .. }) => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
@@ -35,7 +35,7 @@ fn unsigned_negative_overflow_fail() {
         .push(Sub)
         .test(&[-1]);
 
-    match res.err().expect(crate::panic::TEST_DATA_VALID) {
+    match res.err().expect(zinc_const::panic::TEST_DATA_VALID) {
         TestingError::RuntimeError(RuntimeError::ValueOverflow { .. }) => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
@@ -49,7 +49,7 @@ fn signed_positive_overflow_fail() {
         .push(Add)
         .test(&[128]);
 
-    match res.err().expect(crate::panic::TEST_DATA_VALID) {
+    match res.err().expect(zinc_const::panic::TEST_DATA_VALID) {
         TestingError::RuntimeError(RuntimeError::ValueOverflow { .. }) => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
@@ -63,7 +63,7 @@ fn signed_negative_overflow_fail() {
         .push(Sub)
         .test(&[-129]);
 
-    match res.err().expect(crate::panic::TEST_DATA_VALID) {
+    match res.err().expect(zinc_const::panic::TEST_DATA_VALID) {
         TestingError::RuntimeError(RuntimeError::ValueOverflow { .. }) => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }

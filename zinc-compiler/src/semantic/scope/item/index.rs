@@ -30,7 +30,7 @@ impl Index {
     }
 
     pub fn next(&self, title: String) -> usize {
-        let mut index = self.inner.write().expect(crate::panic::MUTEX_SYNC);
+        let mut index = self.inner.write().expect(zinc_const::panic::MUTEX_SYNC);
         let item_id = index.len();
 
         log::debug!("Item ID {:06} for {}", item_id, title);

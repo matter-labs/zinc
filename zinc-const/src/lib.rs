@@ -10,6 +10,7 @@ pub mod extensions;
 pub mod file_names;
 pub mod http;
 pub mod limit;
+pub mod panic;
 pub mod source;
 pub mod zargo;
 

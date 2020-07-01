@@ -5,6 +5,7 @@
 pub mod directory;
 pub mod error;
 pub mod file;
+pub mod string;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -12,15 +13,12 @@ use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
 
-use serde_derive::Deserialize;
-
 use crate::generator::bytecode::Bytecode;
 
 use self::directory::Directory;
-use self::directory::DirectoryString;
 use self::error::Error;
 use self::file::File;
-use self::file::FileString;
+use self::string::String as SourceString;
 
 ///
 /// The file system source code representation.
@@ -31,18 +29,6 @@ pub enum Source {
     File(File),
     /// The file system directory.
     Directory(Directory),
-}
-
-///
-/// The string source code representation.
-///
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-pub enum SourceString {
-    /// The virtual file string data.
-    File(FileString),
-    /// The virtual directory string data.
-    Directory(DirectoryString),
 }
 
 impl Source {
@@ -130,6 +116,6 @@ impl Source {
         } else {
             Directory::test(code, path, file_index, dependencies).map(Self::Directory)
         }
-        .expect(crate::panic::TEST_DATA_VALID)
+        .expect(zinc_const::panic::TEST_DATA_VALID)
     }
 }

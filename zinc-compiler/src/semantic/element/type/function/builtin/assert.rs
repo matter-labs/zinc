@@ -46,7 +46,7 @@ impl Function {
                 Element::Constant(constant) => (constant.r#type(), true, None),
                 element => {
                     return Err(Error::ArgumentNotEvaluable {
-                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         position: index + 1,
                         found: element.to_string(),
@@ -61,7 +61,7 @@ impl Function {
             Some((Type::Boolean(_), _is_constant, _string, _location)) => {}
             Some((r#type, _is_constant, _string, location)) => {
                 return Err(Error::ArgumentType {
-                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "condition".to_owned(),
                     position: Self::ARGUMENT_INDEX_CONDITION + 1,
@@ -71,7 +71,7 @@ impl Function {
             }
             None => {
                 return Err(Error::ArgumentCount {
-                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT_MANDATORY,
                     found: actual_params.len(),
@@ -83,7 +83,7 @@ impl Function {
             Some((Type::String(_), true, string, _location)) => string.to_owned(),
             Some((r#type, true, _string, location)) => {
                 return Err(Error::ArgumentType {
-                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "message".to_owned(),
                     position: Self::ARGUMENT_INDEX_MESSAGE + 1,
@@ -93,7 +93,7 @@ impl Function {
             }
             Some((r#type, false, _string, location)) => {
                 return Err(Error::ArgumentConstantness {
-                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "message".to_owned(),
                     position: Self::ARGUMENT_INDEX_MESSAGE + 1,
@@ -105,7 +105,7 @@ impl Function {
 
         if actual_params.len() > Self::ARGUMENT_COUNT_OPTIONAL {
             return Err(Error::ArgumentCount {
-                location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 function: self.identifier.to_owned(),
                 expected: Self::ARGUMENT_COUNT_OPTIONAL,
                 found: actual_params.len(),

@@ -2343,7 +2343,9 @@ dependencies = [
  "log",
  "serde",
  "serde_derive",
+ "serde_json",
  "structopt",
+ "zinc-bytecode",
  "zinc-compiler",
  "zinc-const",
  "zinc-utils",
@@ -2375,6 +2377,7 @@ dependencies = [
  "log",
  "num-bigint 0.2.6",
  "num-traits",
+ "zinc-const",
 ]
 
 [[package]]
@@ -2382,6 +2385,7 @@ name = "zinc-vm"
 version = "0.1.5"
 dependencies = [
  "colored",
+ "env_logger",
  "failure",
  "franklin-crypto",
  "hex 0.4.2",

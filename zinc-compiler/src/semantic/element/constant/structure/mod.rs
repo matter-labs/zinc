@@ -25,7 +25,6 @@ pub struct Structure {
     pub location: Location,
     pub r#type: Option<StructureType>,
     pub values: Vec<(Identifier, Constant)>,
-    pub is_validated: bool,
 }
 
 impl Structure {
@@ -34,7 +33,6 @@ impl Structure {
             location,
             r#type: None,
             values: vec![],
-            is_validated: false,
         }
     }
 
@@ -90,7 +88,6 @@ impl Structure {
         }
 
         self.r#type = Some(expected);
-        self.is_validated = true;
 
         Ok(())
     }

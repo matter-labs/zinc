@@ -58,7 +58,7 @@ impl Function {
                 Element::Constant(constant) => constant.r#type(),
                 element => {
                     return Err(Error::ArgumentNotEvaluable {
-                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         position: index + 1,
                         found: element.to_string(),
@@ -84,7 +84,7 @@ impl Function {
                 Some((actual_type, _location)) if actual_type == &r#type => {}
                 Some((actual_type, location)) => {
                     return Err(Error::ArgumentType {
-                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         name,
                         position: index + 1,

@@ -123,6 +123,6 @@ impl Program {
     /// Serializes the program into bytes.
     ///
     pub fn into_bytes(self) -> Vec<u8> {
-        bincode::serialize(&self).expect(crate::panic::BINARY_SERIALIZATION)
+        bincode::serialize(&self).expect(zinc_const::panic::DATA_SERIALIZATION)
     }
 }

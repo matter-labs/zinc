@@ -683,7 +683,7 @@ fn main() -> u8 { call() }
             Source::test(
                 other,
                 PathBuf::from("other.zn"),
-                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
+                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                 HashMap::new(),
             ),
         )]
@@ -734,19 +734,19 @@ fn main() -> u8 { call() }
             Source::test(
                 first,
                 PathBuf::from("first.zn"),
-                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
+                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                 vec![(
                     "second".to_owned(),
                     Source::test(
                         second,
                         PathBuf::from("first/second.zn"),
-                        index_iter.next().expect(crate::panic::TEST_DATA_VALID),
+                        index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                         vec![(
                             "third".to_owned(),
                             Source::test(
                                 third,
                                 PathBuf::from("first/second/third.zn"),
-                                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
+                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                 HashMap::new(),
                             ),
                         )]
@@ -803,7 +803,7 @@ fn main() -> u8 { Call { value: 42 }.call() }
             Source::test(
                 other,
                 PathBuf::from("other.zn"),
-                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
+                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                 HashMap::new(),
             ),
         )]
@@ -872,19 +872,19 @@ fn main() -> u8 { Call { value: 42 }.call() }
             Source::test(
                 first,
                 PathBuf::from("first.zn"),
-                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
+                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                 vec![(
                     "second".to_owned(),
                     Source::test(
                         second,
                         PathBuf::from("first/second.zn"),
-                        index_iter.next().expect(crate::panic::TEST_DATA_VALID),
+                        index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                         vec![(
                             "third".to_owned(),
                             Source::test(
                                 third,
                                 PathBuf::from("first/second/third.zn"),
-                                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
+                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                 HashMap::new(),
                             ),
                         )]

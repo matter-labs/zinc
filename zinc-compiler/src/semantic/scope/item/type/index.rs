@@ -43,13 +43,17 @@ impl Index {
     }
 
     pub fn next(&self, title: String) -> usize {
-        let type_id = self.inner.write().expect(crate::panic::MUTEX_SYNC).len();
+        let type_id = self
+            .inner
+            .write()
+            .expect(zinc_const::panic::MUTEX_SYNC)
+            .len();
 
         self.next_with_id(title, type_id)
     }
 
     fn next_with_id(&self, title: String, type_id: usize) -> usize {
-        let mut index = self.inner.write().expect(crate::panic::MUTEX_SYNC);
+        let mut index = self.inner.write().expect(zinc_const::panic::MUTEX_SYNC);
 
         log::debug!("Type ID {:06} for {}", type_id, title);
 

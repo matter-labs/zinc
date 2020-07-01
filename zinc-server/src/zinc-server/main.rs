@@ -25,13 +25,15 @@ async fn main() -> Result<(), Error> {
 
     let data = AppData::new().wrap();
 
+    let address = format!("{}:{}", zinc_const::http::HOST, args.port);
+
     HttpServer::new(move || {
         App::new()
             .data(data.clone())
             .wrap(middleware::Logger::default())
             .configure(zinc_server::configure)
     })
-    .bind(format!("{}:{}", zinc_const::http::HOST, args.port))
+    .bind(address)
     .map_err(Error::ServerBinding)?
     .run()
     .await

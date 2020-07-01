@@ -583,7 +583,7 @@ fn main() {
                     &Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                     None,
                 )
-                .expect(crate::panic::TEST_DATA_VALID),
+                .expect(zinc_const::panic::TEST_DATA_VALID),
             )
             .to_string(),
         },
@@ -611,7 +611,7 @@ fn main() {
                     &Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                     None,
                 )
-                .expect(crate::panic::TEST_DATA_VALID),
+                .expect(zinc_const::panic::TEST_DATA_VALID),
             )
             .to_string(),
         },
@@ -639,7 +639,7 @@ fn main() {
                     &Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                     None,
                 )
-                .expect(crate::panic::TEST_DATA_VALID),
+                .expect(zinc_const::panic::TEST_DATA_VALID),
             )
             .to_string(),
         },
@@ -667,7 +667,7 @@ fn main() {
                     &Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                     None,
                 )
-                .expect(crate::panic::TEST_DATA_VALID),
+                .expect(zinc_const::panic::TEST_DATA_VALID),
             )
             .to_string(),
         },
@@ -1270,7 +1270,7 @@ fn main() {
                     &Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                     None,
                 )
-                .expect(crate::panic::TEST_DATA_VALID),
+                .expect(zinc_const::panic::TEST_DATA_VALID),
             )
             .to_string(),
         },
@@ -1321,7 +1321,7 @@ fn main() {
                     &Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                     None,
                 )
-                .expect(crate::panic::TEST_DATA_VALID),
+                .expect(zinc_const::panic::TEST_DATA_VALID),
             )
             .to_string(),
         },

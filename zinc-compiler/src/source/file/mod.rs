@@ -4,14 +4,13 @@
 
 pub mod error;
 pub mod index;
+pub mod string;
 
 use std::cell::RefCell;
 use std::fs;
 use std::io::Read;
 use std::path::PathBuf;
 use std::rc::Rc;
-
-use serde_derive::Deserialize;
 
 use crate::error::Error as CompilerError;
 use crate::generator::bytecode::Bytecode;
@@ -25,6 +24,7 @@ use crate::syntax::tree::module::Module as SyntaxModule;
 use self::error::Error;
 use self::index::Data;
 use self::index::INDEX;
+use self::string::String as FileString;
 
 ///
 /// The Zinc source code file, which consists of its path and parsed syntax tree.
@@ -34,40 +34,6 @@ pub struct File {
     pub path: PathBuf,
     pub name: String,
     pub tree: SyntaxModule,
-}
-
-///
-/// The Zinc virtual source code file, which consists of its name and source code string.
-///
-#[derive(Debug, Deserialize)]
-pub struct FileString {
-    /// The virtual file subpath.
-    pub path: String,
-    /// The source code string data.
-    pub code: String,
-}
-
-impl FileString {
-    ///
-    /// Checks whether the file is the entry point.
-    ///
-    pub fn is_entry(&self) -> bool {
-        self.is_application_entry() || self.is_module_entry()
-    }
-
-    ///
-    /// Checks whether the file is the application entry point.
-    ///
-    pub fn is_application_entry(&self) -> bool {
-        self.path.as_str() == zinc_const::file_names::APPLICATION_ENTRY
-    }
-
-    ///
-    /// Checks whether the file is the module entry point.
-    ///
-    pub fn is_module_entry(&self) -> bool {
-        self.path.as_str() == zinc_const::file_names::MODULE_ENTRY
-    }
 }
 
 impl File {
@@ -195,13 +161,17 @@ impl File {
     /// Initializes a test module file.
     ///
     pub fn test(code: &str, path: PathBuf, file_index: usize) -> Result<Self, CompilerError> {
-        INDEX.inner.write().expect(crate::panic::MUTEX_SYNC).insert(
-            file_index,
-            Data {
-                path: path.clone(),
-                code: code.to_owned(),
-            },
-        );
+        INDEX
+            .inner
+            .write()
+            .expect(zinc_const::panic::MUTEX_SYNC)
+            .insert(
+                file_index,
+                Data {
+                    path: path.clone(),
+                    code: code.to_owned(),
+                },
+            );
 
         Ok(Self {
             path,

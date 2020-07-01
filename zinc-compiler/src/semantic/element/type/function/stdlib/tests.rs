@@ -1426,7 +1426,8 @@ fn main() -> [u8; 4] {
                 location: Location::new(3, 31),
                 value: IntegerConstant::new(
                     Location::new(3, 31),
-                    BigInt::from_str("18446744073709551616").expect(crate::panic::TEST_DATA_VALID),
+                    BigInt::from_str("18446744073709551616")
+                        .expect(zinc_const::panic::TEST_DATA_VALID),
                     false,
                     72,
                 )

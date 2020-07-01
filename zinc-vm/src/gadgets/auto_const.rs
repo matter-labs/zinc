@@ -46,12 +46,12 @@ pub mod prelude {
 /// use zinc_vm::gadgets;
 /// use zinc_vm::gadgets::auto_const::prelude::*;
 ///
-/// let a = Scalar::<Bn256>::new_constant_fr(Fr::from_str("42").expect(zinc_vm::panic::TEST_DATA_VALID), ScalarType::Field);
-/// let b = Scalar::<Bn256>::new_constant_fr(Fr::from_str("69").expect(zinc_vm::panic::TEST_DATA_VALID), ScalarType::Field);
+/// let a = Scalar::<Bn256>::new_constant_fr(Fr::from_str("42").expect(zinc_const::panic::TEST_DATA_VALID), ScalarType::Field);
+/// let b = Scalar::<Bn256>::new_constant_fr(Fr::from_str("69").expect(zinc_const::panic::TEST_DATA_VALID), ScalarType::Field);
 ///
 /// let mut cs = TestConstraintSystem::<Bn256>::new();
 ///
-/// let c: Scalar<Bn256> = auto_const!(gadgets::arithmetic::mul::mul, cs.namespace(|| "mul"), &a, &b).expect(zinc_vm::panic::TEST_DATA_VALID);
+/// let c: Scalar<Bn256> = auto_const!(gadgets::arithmetic::mul::mul, cs.namespace(|| "mul"), &a, &b).expect(zinc_const::panic::TEST_DATA_VALID);
 ///
 /// assert!(c.is_constant());
 ///

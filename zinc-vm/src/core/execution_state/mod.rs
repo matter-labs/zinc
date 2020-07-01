@@ -49,7 +49,7 @@ impl<E: IEngine> fmt::Display for ExecutionState<E> {
             "Data stack offset: {}\n",
             self.frames_stack
                 .last()
-                .expect(crate::panic::VALUE_ALWAYS_EXISTS)
+                .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
                 .stack_frame_start
         )?;
         writeln!(f, "{}", self.data_stack)?;

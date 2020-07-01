@@ -1,27 +1,7 @@
-struct Data {
-    a: u8,
-    b: u8,
-}
-
-fn main() -> Data {
-//    f1(1);
-//    f2(1);
-//    f3(1);
-
-    Data {
-        a: 5,
-        b: 10
-    }
-}
-
-fn f1(a: u8) {
-    dbg!("f1({})", a);
-}
-
-fn f2(a: u8) {
-    dbg!("f2({})", a);
-}
-
-fn f3(a: u8) {
-    dbg!("f3({})", a);
+fn main() -> u8 {
+    let mut a: u8 = 10;
+    if a > 5 {
+        a += 5;
+    };
+    a
 }

@@ -275,7 +275,7 @@ fn main() -> u8 {
             Source::test(
                 module_1,
                 PathBuf::from("module_1.zn"),
-                index_iter.next().expect(crate::panic::TEST_DATA_VALID),
+                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                 HashMap::new(),
             ),
         )]

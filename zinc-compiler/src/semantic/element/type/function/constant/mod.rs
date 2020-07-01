@@ -85,7 +85,7 @@ impl Function {
                     return Err(Error::ArgumentConstantness {
                         location: value
                             .location()
-                            .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         name,
                         position: index + 1,
@@ -96,7 +96,7 @@ impl Function {
                     return Err(Error::ArgumentNotEvaluable {
                         location: element
                             .location()
-                            .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         position: index + 1,
                         found: element.to_string(),

@@ -12,7 +12,6 @@ pub(crate) mod core;
 pub(crate) mod error;
 pub mod gadgets;
 pub(crate) mod instructions;
-pub mod panic;
 
 pub use franklin_crypto::bellman::pairing::bn256::Bn256;
 

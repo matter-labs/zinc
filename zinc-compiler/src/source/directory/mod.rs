@@ -3,14 +3,13 @@
 //!
 
 pub mod error;
+pub mod string;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
-
-use serde_derive::Deserialize;
 
 use crate::error::Error as CompilerError;
 use crate::generator::bytecode::Bytecode;
@@ -22,6 +21,7 @@ use crate::source::Source;
 use crate::source::SourceString;
 
 use self::error::Error;
+use self::string::String as DirectoryString;
 
 ///
 /// The Zinc source code directory, which consists of its path, root module (usually `mod.zn`),
@@ -33,17 +33,6 @@ pub struct Directory {
     pub name: String,
     pub entry: File,
     pub dependencies: HashMap<String, Source>,
-}
-
-///
-/// The Zinc virtual source code directory, which consists of its name and virtual files.
-///
-#[derive(Debug, Deserialize)]
-pub struct DirectoryString {
-    /// The virtual directory subpath.
-    pub path: String,
-    /// The virtual dependency files.
-    pub modules: HashMap<String, SourceString>,
 }
 
 impl Directory {

@@ -26,7 +26,6 @@ pub struct Structure {
     pub location: Option<Location>,
     pub fields: Vec<(String, Option<Location>, Type)>,
     pub r#type: Option<StructureType>,
-    pub is_validated: bool,
 }
 
 impl Structure {
@@ -35,7 +34,6 @@ impl Structure {
             location,
             fields: vec![],
             r#type: None,
-            is_validated: false,
         }
     }
 
@@ -49,7 +47,6 @@ impl Structure {
                 .map(|(name, r#type)| (name, None, r#type))
                 .collect(),
             r#type: Some(r#type),
-            is_validated: false,
         }
     }
 
@@ -78,7 +75,7 @@ impl Structure {
                 Some((expected_name, expected_type)) => {
                     if name != expected_name {
                         return Err(Error::FieldExpected {
-                            location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                            location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                             type_identifier: expected.identifier.to_owned(),
                             position: index + 1,
                             expected: expected_name.to_owned(),
@@ -88,7 +85,7 @@ impl Structure {
 
                     if r#type != expected_type {
                         return Err(Error::FieldInvalidType {
-                            location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                            location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                             type_identifier: expected.identifier.to_owned(),
                             field_name: expected_name.to_owned(),
                             expected: expected_type.to_string(),
@@ -98,7 +95,7 @@ impl Structure {
                 }
                 None => {
                     return Err(Error::FieldOutOfRange {
-                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         type_identifier: expected.identifier.to_owned(),
                         expected: expected.fields.len(),
                         found: index + 1,
@@ -108,7 +105,6 @@ impl Structure {
         }
 
         self.r#type = Some(expected);
-        self.is_validated = true;
 
         Ok(())
     }

@@ -89,14 +89,14 @@ impl Value {
                 value => Err(Error::OperatorOrSecondOperandExpectedBoolean {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorOrFirstOperandExpectedBoolean {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -109,14 +109,14 @@ impl Value {
                 value => Err(Error::OperatorXorSecondOperandExpectedBoolean {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorXorFirstOperandExpectedBoolean {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -129,14 +129,14 @@ impl Value {
                 value => Err(Error::OperatorAndSecondOperandExpectedBoolean {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorAndFirstOperandExpectedBoolean {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -151,7 +151,7 @@ impl Value {
             (Self::Unit(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
                 location: value_2
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value_2.r#type().to_string(),
             }),
             (Self::Boolean(value_1), Self::Boolean(_)) => {
@@ -160,7 +160,7 @@ impl Value {
             (Self::Boolean(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean {
                 location: value_2
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value_2.r#type().to_string(),
             }),
             (Self::Integer(integer_1), Self::Integer(integer_2)) => {
@@ -174,13 +174,13 @@ impl Value {
             (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger {
                 location: value_2
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value_2.r#type().to_string(),
             }),
             (value_1, _) => Err(Error::OperatorEqualsFirstOperandExpectedPrimitiveType {
                 location: value_1
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value_1.r#type().to_string(),
             }),
         }
@@ -195,7 +195,7 @@ impl Value {
             (Self::Unit(_), value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
                 location: value_2
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value_2.r#type().to_string(),
             }),
             (Self::Boolean(value_1), Self::Boolean(_)) => Ok((
@@ -206,7 +206,7 @@ impl Value {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean {
                     location: value_2
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value_2.r#type().to_string(),
                 })
             }
@@ -222,14 +222,14 @@ impl Value {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedInteger {
                     location: value_2
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value_2.r#type().to_string(),
                 })
             }
             (value_1, _) => Err(Error::OperatorNotEqualsFirstOperandExpectedPrimitiveType {
                 location: value_1
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value_1.r#type().to_string(),
             }),
         }
@@ -249,14 +249,14 @@ impl Value {
                 value => Err(Error::OperatorGreaterEqualsSecondOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorGreaterEqualsFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -276,14 +276,14 @@ impl Value {
                 value => Err(Error::OperatorLesserEqualsSecondOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorLesserEqualsFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -303,14 +303,14 @@ impl Value {
                 value => Err(Error::OperatorGreaterSecondOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorGreaterFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -330,14 +330,14 @@ impl Value {
                 value => Err(Error::OperatorLesserSecondOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorLesserFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -353,14 +353,14 @@ impl Value {
                 value => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorBitwiseOrFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -376,14 +376,14 @@ impl Value {
                 value => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorBitwiseXorFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -399,14 +399,14 @@ impl Value {
                 value => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorBitwiseAndFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -426,7 +426,7 @@ impl Value {
                     Error::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
                         location: value
                             .location()
-                            .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         found: value.r#type().to_string(),
                     },
                 ),
@@ -434,7 +434,7 @@ impl Value {
             value => Err(Error::OperatorBitwiseShiftLeftFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -454,7 +454,7 @@ impl Value {
                     Error::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
                         location: value
                             .location()
-                            .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         found: value.r#type().to_string(),
                     },
                 ),
@@ -463,7 +463,7 @@ impl Value {
                 Error::OperatorBitwiseShiftRightFirstOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 },
             ),
@@ -480,14 +480,14 @@ impl Value {
                 value => Err(Error::OperatorAdditionSecondOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorAdditionFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -503,14 +503,14 @@ impl Value {
                 value => Err(Error::OperatorSubtractionSecondOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorSubtractionFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -526,14 +526,14 @@ impl Value {
                 value => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorMultiplicationFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -549,14 +549,14 @@ impl Value {
                 value => Err(Error::OperatorDivisionSecondOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorDivisionFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -572,14 +572,14 @@ impl Value {
                 value => Err(Error::OperatorRemainderSecondOperandExpectedInteger {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorRemainderFirstOperandExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -588,7 +588,9 @@ impl Value {
     pub fn cast(self, to: Type) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         let from = self.r#type();
         Caster::cast(&from, &to).map_err(|error| Error::Casting {
-            location: self.location().expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+            location: self
+                .location()
+                .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             inner: error,
             reference: to.location(),
         })?;
@@ -615,7 +617,7 @@ impl Value {
             value => Err(Error::OperatorNotExpectedBoolean {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -630,7 +632,7 @@ impl Value {
             value => Err(Error::OperatorBitwiseNotExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -645,7 +647,7 @@ impl Value {
             value => Err(Error::OperatorNegationExpectedInteger {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -658,14 +660,14 @@ impl Value {
                 value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
                     location: value
                         .location()
-                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     found: value.to_string(),
                 }),
             },
             value => Err(Error::OperatorIndexFirstOperandExpectedArray {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.to_string(),
             }),
         }
@@ -691,7 +693,7 @@ impl Value {
             value => Err(Error::OperatorIndexFirstOperandExpectedArray {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.to_string(),
             }),
         }
@@ -703,7 +705,7 @@ impl Value {
             value => Err(Error::OperatorDotFirstOperandExpectedTuple {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.to_string(),
             }),
         }
@@ -725,7 +727,7 @@ impl Value {
             value => Err(Error::OperatorDotFirstOperandExpectedInstance {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.to_string(),
             }),
         }

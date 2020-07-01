@@ -136,8 +136,8 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
         let mut hash_repr = <E::Fr as PrimeField>::Repr::default();
         hash_repr
             .read_le(hash_le.as_slice())
-            .expect(crate::panic::VALUE_ALWAYS_EXISTS);
-        E::Fr::from_repr(hash_repr).expect(crate::panic::VALUE_ALWAYS_EXISTS)
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
+        E::Fr::from_repr(hash_repr).expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
     }
 
     fn depth(&self) -> usize {

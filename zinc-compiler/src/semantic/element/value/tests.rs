@@ -1052,7 +1052,7 @@ fn main() {
                 &Type::tuple(Some(Location::new(3, 17)), vec![Type::boolean(None); 3]),
                 None,
             )
-            .expect(crate::panic::TEST_DATA_VALID)
+            .expect(zinc_const::panic::TEST_DATA_VALID)
             .to_string(),
         }),
     )));
@@ -1100,7 +1100,7 @@ fn main() {
                 &Type::array(Some(Location::new(3, 17)), Type::boolean(None), 3),
                 None,
             )
-            .expect(crate::panic::TEST_DATA_VALID)
+            .expect(zinc_const::panic::TEST_DATA_VALID)
             .to_string(),
         }),
     )));
@@ -1125,7 +1125,7 @@ fn main() {
                 &Type::array(Some(Location::new(3, 17)), Type::boolean(None), 3),
                 None,
             )
-            .expect(crate::panic::TEST_DATA_VALID)
+            .expect(zinc_const::panic::TEST_DATA_VALID)
             .to_string(),
         }),
     )));

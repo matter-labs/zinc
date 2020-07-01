@@ -99,7 +99,7 @@ impl Bytecode {
     ///
     pub fn unwrap_rc(bytecode: Rc<RefCell<Self>>) -> Self {
         Rc::try_unwrap(bytecode)
-            .expect(crate::panic::LAST_SHARED_REFERENCE)
+            .expect(zinc_const::panic::LAST_SHARED_REFERENCE)
             .into_inner()
     }
 
@@ -265,7 +265,7 @@ impl Bytecode {
                 match serde_json::to_string_pretty(&input_template_value.try_into_json()) {
                     Ok(json) => (json + "\n").into_bytes(),
                     Err(error) => panic!(
-                        crate::panic::JSON_TEMPLATE_SERIALIZATION.to_owned()
+                        zinc_const::panic::DATA_SERIALIZATION.to_owned()
                             + error.to_string().as_str()
                     ),
                 };
@@ -275,7 +275,7 @@ impl Bytecode {
                 match serde_json::to_string_pretty(&output_value_template.try_into_json()) {
                     Ok(json) => (json + "\n").into_bytes(),
                     Err(error) => panic!(
-                        crate::panic::JSON_TEMPLATE_SERIALIZATION.to_owned()
+                        zinc_const::panic::DATA_SERIALIZATION.to_owned()
                             + error.to_string().as_str()
                     ),
                 };

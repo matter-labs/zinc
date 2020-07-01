@@ -50,7 +50,7 @@ impl Function {
                 Element::Constant(constant) => constant.r#type(),
                 element => {
                     return Err(Error::ArgumentNotEvaluable {
-                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         position: index + 1,
                         found: element.to_string(),
@@ -67,7 +67,7 @@ impl Function {
                     if 0 < size && size <= zinc_const::limit::PEDERSEN_HASH_INPUT_BITS => {}
                 (r#type, size) => {
                     return Err(Error::ArgumentType {
-                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         name: "preimage".to_owned(),
                         position: Self::ARGUMENT_INDEX_PREIMAGE + 1,
@@ -81,7 +81,7 @@ impl Function {
             },
             Some((r#type, location)) => {
                 return Err(Error::ArgumentType {
-                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "preimage".to_owned(),
                     position: Self::ARGUMENT_INDEX_PREIMAGE + 1,
@@ -94,7 +94,7 @@ impl Function {
             }
             None => {
                 return Err(Error::ArgumentCount {
-                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT,
                     found: actual_params.len(),
@@ -104,7 +104,7 @@ impl Function {
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
             return Err(Error::ArgumentCount {
-                location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 function: self.identifier.to_owned(),
                 expected: Self::ARGUMENT_COUNT,
                 found: actual_params.len(),

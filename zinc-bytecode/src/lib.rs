@@ -4,7 +4,6 @@
 
 pub(crate) mod data;
 pub(crate) mod instructions;
-pub(crate) mod panic;
 pub(crate) mod program;
 
 pub use self::data::r#type::scalar::integer::Type as IntegerType;

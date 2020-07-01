@@ -207,7 +207,7 @@ impl Place {
             value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
                 location: value
                     .location()
-                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value.to_string(),
             }),
         }

@@ -62,7 +62,7 @@ where
         let index = index
             .get_value()
             .map(|field| gadgets::scalar::fr_bigint::fr_to_bigint::<E>(&field, false))
-            .expect(crate::panic::TEST_DATA_VALID);
+            .expect(zinc_const::panic::TEST_DATA_VALID);
         let merkle_tree_leaf = self.storage.load(index)?;
 
         let leaf_fields = AllocatedLeaf::alloc_leaf_fields(
@@ -124,7 +124,7 @@ where
             index
                 .get_value()
                 .map(|field| gadgets::scalar::fr_bigint::fr_to_bigint::<E>(&field, false))
-                .expect(crate::panic::TEST_DATA_VALID),
+                .expect(zinc_const::panic::TEST_DATA_VALID),
             values.clone(),
         )?;
 
@@ -213,7 +213,7 @@ mod tests {
             cs.namespace(|| "gadget creation"),
             storage_test_dummy,
         )
-        .expect(crate::panic::TEST_DATA_VALID);
+        .expect(zinc_const::panic::TEST_DATA_VALID);
 
         for i in 0..STORAGE_ELEMENT_COUNT {
             let scalar = Scalar::<Bn256>::from(
@@ -221,9 +221,11 @@ mod tests {
                     cs.namespace(|| format!("variable :: index({}); field index({})", i, 1)),
                     || Ok(rng.gen()),
                 )
-                .expect(crate::panic::TEST_DATA_VALID),
+                .expect(zinc_const::panic::TEST_DATA_VALID),
             );
-            let fr = scalar.get_value().expect(crate::panic::TEST_DATA_VALID);
+            let fr = scalar
+                .get_value()
+                .expect(zinc_const::panic::TEST_DATA_VALID);
 
             storage_gadget
                 .store(
@@ -231,7 +233,7 @@ mod tests {
                     Scalar::<Bn256>::new_constant_usize(i, ScalarType::Field),
                     vec![scalar],
                 )
-                .expect(crate::panic::TEST_DATA_VALID);
+                .expect(zinc_const::panic::TEST_DATA_VALID);
 
             let loaded_fr = storage_gadget
                 .load(
@@ -239,10 +241,10 @@ mod tests {
                     1,
                     Scalar::<Bn256>::new_constant_usize(i, ScalarType::Field),
                 )
-                .expect(crate::panic::TEST_DATA_VALID)
+                .expect(zinc_const::panic::TEST_DATA_VALID)
                 .remove(0)
                 .get_value()
-                .expect(crate::panic::TEST_DATA_VALID);
+                .expect(zinc_const::panic::TEST_DATA_VALID);
 
             assert_eq!(loaded_fr, fr);
         }

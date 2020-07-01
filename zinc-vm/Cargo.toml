@@ -33,3 +33,6 @@ franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto.git", 
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }
 zinc-bytecode = { path = "../zinc-bytecode" }
+
+[dev-dependencies]
+env_logger = "0.7"

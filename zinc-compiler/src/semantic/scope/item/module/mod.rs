@@ -192,7 +192,7 @@ impl Module {
                 Ok(inner)
             }
             None => Err(Error::Scope(ScopeError::ReferenceLoop {
-                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             })),
         }
     }
@@ -204,7 +204,7 @@ impl Module {
         match self.state.borrow().as_ref() {
             Some(state) => Ok(state.scope()),
             None => Err(Error::Scope(ScopeError::ReferenceLoop {
-                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             })),
         }
     }

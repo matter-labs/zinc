@@ -14,11 +14,11 @@ use crate::syntax::tree::literal::string::Literal as StringLiteral;
 #[derive(Debug, Clone, PartialEq)]
 pub struct String {
     pub location: Location,
-    pub inner: std::string::String,
+    pub inner: ::std::string::String,
 }
 
 impl String {
-    pub fn new(location: Location, inner: std::string::String) -> Self {
+    pub fn new(location: Location, inner: ::std::string::String) -> Self {
         Self { location, inner }
     }
 

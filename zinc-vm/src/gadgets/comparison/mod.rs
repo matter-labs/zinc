@@ -163,7 +163,7 @@ where
     assert!(length < E::Fr::CAPACITY as usize);
     let base_bigint = (BigInt::from(1) << length) - BigInt::from(1);
     let base = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&base_bigint)
-        .expect(crate::panic::VALUE_ALWAYS_EXISTS);
+        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
 
     let expr =
         Expression::constant::<CS>(base) - left.to_expression::<CS>() + right.to_expression::<CS>();
@@ -171,7 +171,7 @@ where
 
     Ok(bits
         .last()
-        .expect(crate::panic::VALUE_ALWAYS_EXISTS)
+        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
         .clone())
 }
 

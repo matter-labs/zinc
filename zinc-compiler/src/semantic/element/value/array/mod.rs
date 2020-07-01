@@ -68,7 +68,7 @@ impl Array {
             self.r#type = r#type;
         } else if r#type != self.r#type {
             return Err(Error::PushingInvalidType {
-                location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 expected: self.r#type.to_string(),
                 found: r#type.to_string(),
             });
@@ -88,7 +88,7 @@ impl Array {
             self.r#type = r#type;
         } else if r#type != self.r#type {
             return Err(Error::PushingInvalidType {
-                location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 expected: self.r#type.to_string(),
                 found: r#type.to_string(),
             });

@@ -49,7 +49,7 @@ impl Function {
                     let number = integer
                         .to_usize()
                         .map_err(|_error| StdlibError::ArrayNewLengthInvalid {
-                            location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                            location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                             value: integer.to_string(),
                         })
                         .map_err(Error::StandardLibrary)?;
@@ -59,7 +59,7 @@ impl Function {
                 Element::Constant(constant) => (constant.r#type(), true, None),
                 element => {
                     return Err(Error::ArgumentNotEvaluable {
-                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         position: index + 1,
                         found: element.to_string(),
@@ -79,7 +79,7 @@ impl Function {
                 }
                 Some((r#type, _is_constant, _number, location)) => {
                     return Err(Error::ArgumentType {
-                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         name: "array".to_owned(),
                         position: Self::ARGUMENT_INDEX_ARRAY + 1,
@@ -89,7 +89,7 @@ impl Function {
                 }
                 None => {
                     return Err(Error::ArgumentCount {
-                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         expected: Self::ARGUMENT_COUNT,
                         found: actual_params.len(),
@@ -101,7 +101,7 @@ impl Function {
             Some((r#type, true, Some(number), _location)) if r#type.is_scalar_unsigned() => *number,
             Some((r#type, true, _number, location)) => {
                 return Err(Error::ArgumentType {
-                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "new_length".to_owned(),
                     position: Self::ARGUMENT_INDEX_NEW_LENGTH + 1,
@@ -111,7 +111,7 @@ impl Function {
             }
             Some((r#type, false, _number, location)) => {
                 return Err(Error::ArgumentConstantness {
-                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "new_length".to_owned(),
                     position: Self::ARGUMENT_INDEX_NEW_LENGTH + 1,
@@ -120,7 +120,7 @@ impl Function {
             }
             None => {
                 return Err(Error::ArgumentCount {
-                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT,
                     found: actual_params.len(),
@@ -130,7 +130,7 @@ impl Function {
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
             return Err(Error::ArgumentCount {
-                location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 function: self.identifier.to_owned(),
                 expected: Self::ARGUMENT_COUNT,
                 found: actual_params.len(),
@@ -140,7 +140,7 @@ impl Function {
         if new_length > input_array_size {
             return Err(Error::StandardLibrary(
                 StdlibError::ArrayTruncatingToBiggerSize {
-                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     from: input_array_size,
                     to: new_length,
                 },

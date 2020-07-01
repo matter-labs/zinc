@@ -131,7 +131,7 @@ impl Analyzer {
                             element,
                             GeneratorExpressionElement::Operator {
                                 location: function_location
-                                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                                 operator: intermediate,
                             },
                         )
@@ -155,7 +155,7 @@ impl Analyzer {
                             element,
                             GeneratorExpressionElement::Operator {
                                 location: function_location
-                                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                                 operator: intermediate,
                             },
                         )
@@ -195,7 +195,7 @@ impl Analyzer {
                 (
                     element,
                     GeneratorExpressionElement::Operator {
-                        location: function_location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        location: function_location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         operator: intermediate,
                     },
                 )

@@ -184,7 +184,7 @@ impl Type {
                 Ok(inner)
             }
             None => Err(Error::Scope(ScopeError::ReferenceLoop {
-                location: self.location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             })),
         }
     }

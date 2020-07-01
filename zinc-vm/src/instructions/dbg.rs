@@ -33,7 +33,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                 }
                 flat.reverse();
                 let value = TemplateValue::new_from_flat_values(argument_type, &flat)
-                    .expect(crate::panic::VALUE_ALWAYS_EXISTS);
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
                 values.push(value);
             };
         }
@@ -43,7 +43,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                 let mut buffer = self.format;
                 for value in values.into_iter().rev() {
                     let json = serde_json::to_string(&value.try_into_json())
-                        .expect(crate::panic::JSON_TEMPLATE_SERIALIZATION);
+                        .expect(zinc_const::panic::DATA_SERIALIZATION);
                     buffer = buffer.replacen("{}", &json, 1);
                 }
                 eprintln!("{}", buffer);
@@ -64,6 +64,6 @@ mod tests {
             .push(zinc_bytecode::Push::new_field(42.into()))
             .push(zinc_bytecode::Dbg::new("Value: {}".into(), vec![]))
             .test::<u32>(&[])
-            .expect(crate::panic::TEST_DATA_VALID);
+            .expect(zinc_const::panic::TEST_DATA_VALID);
     }
 }

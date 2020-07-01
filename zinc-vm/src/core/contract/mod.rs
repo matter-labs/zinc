@@ -266,7 +266,7 @@ where
             .state
             .frames_stack
             .last_mut()
-            .expect(crate::panic::VALUE_ALWAYS_EXISTS);
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
 
         match frame.blocks.pop() {
             Some(Block::Loop(mut loop_block)) => {

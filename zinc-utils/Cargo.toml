@@ -15,3 +15,5 @@ colored = "1.9"
 
 num-bigint = "0.2"
 num-traits = "0.2"
+
+zinc-const = { path = "../zinc-const" }

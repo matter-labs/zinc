@@ -68,9 +68,9 @@ mod tests {
         );
         assert_eq!(
             gadgets::arithmetic::field::inverse(cs.namespace(|| "one"), &one)
-                .expect(crate::panic::TEST_DATA_VALID)
+                .expect(zinc_const::panic::TEST_DATA_VALID)
                 .get_value()
-                .expect(crate::panic::TEST_DATA_VALID),
+                .expect(zinc_const::panic::TEST_DATA_VALID),
             Fr::one(),
             "one"
         );
