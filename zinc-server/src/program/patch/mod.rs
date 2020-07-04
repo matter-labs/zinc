@@ -1,5 +1,5 @@
 //!
-//! The program resource POST method module.
+//! The program resource PATCH method module.
 //!
 
 pub mod request;
@@ -25,21 +25,13 @@ use self::request::Request;
 use self::response::Response;
 
 ///
-/// The program POST method endpoint handler.
+/// The program PATCH method endpoint handler.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<AppData>>>,
     request: web::Json<Request>,
 ) -> impl Responder {
     let request = request.into_inner();
-
-    if app_data
-        .read()
-        .expect(zinc_const::panic::MUTEX_SYNC)
-        .contains(request.name.as_str())
-    {
-        return web::Json(Response::new_error("Already exists".to_owned()));
-    }
 
     let source = match Source::try_from_string(request.source.clone(), true)
         .map_err(|error| error.to_string())

@@ -1,5 +1,5 @@
 //!
-//! The program resource GET method module.
+//! The program input template resource GET method module.
 //!
 
 pub mod request;
@@ -28,7 +28,7 @@ pub async fn handle(
     let source = app_data
         .read()
         .expect(zinc_const::panic::MUTEX_SYNC)
-        .get_program_source(request.name.as_str());
+        .get_program_entry_input_template(request.name.as_str(), request.entry.as_str());
 
     match source {
         Some(source) => web::Json(Response::new_success(source)),

@@ -1,5 +1,5 @@
 //!
-//! The program resource GET response.
+//! The program source resource GET response.
 //!
 
 use serde_derive::Serialize;
@@ -9,7 +9,7 @@ use zinc_compiler::SourceString;
 use crate::status::Status;
 
 ///
-/// The program resource GET response.
+/// The program source resource GET response.
 ///
 #[derive(Debug, Serialize)]
 #[serde(untagged)]

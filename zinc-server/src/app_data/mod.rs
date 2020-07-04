@@ -2,13 +2,17 @@
 //! The Zinc server shared application data.
 //!
 
+pub mod program;
+
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use serde_json::Value as JsonValue;
+
 use zinc_compiler::SourceString;
 
-use crate::program::Program;
+use self::program::Program;
 
 ///
 /// The Zinc server shared application data.
@@ -39,6 +43,26 @@ impl AppData {
         self.programs
             .get(name)
             .map(|program| program.source.to_owned())
+    }
+
+    ///
+    /// Gets the program entry input template from the storage.
+    ///
+    pub fn get_program_entry_input_template(&self, name: &str, entry: &str) -> Option<JsonValue> {
+        self.programs
+            .get(name)
+            .and_then(|program| program.get_entry(entry).map(|entry| entry.input_template()))
+    }
+
+    ///
+    /// Gets the program entry output template from the storage.
+    ///
+    pub fn get_program_entry_output_template(&self, name: &str, entry: &str) -> Option<JsonValue> {
+        self.programs.get(name).and_then(|program| {
+            program
+                .get_entry(entry)
+                .map(|entry| entry.output_template())
+        })
     }
 
     ///

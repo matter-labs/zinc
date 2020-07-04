@@ -1,11 +1,11 @@
 //!
-//! The program resource GET request.
+//! The program source resource GET request.
 //!
 
 use serde_derive::Deserialize;
 
 ///
-/// The program resource GET request.
+/// The program source resource GET request.
 ///
 #[derive(Debug, Deserialize)]
 pub struct Request {

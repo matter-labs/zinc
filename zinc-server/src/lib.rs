@@ -15,9 +15,23 @@ use actix_web::web;
 ///
 pub fn configure(config: &mut web::ServiceConfig) {
     config.service(
-        web::resource("/program")
-            .route(web::get().to(self::program::get::handle))
-            .route(web::post().to(self::program::post::handle))
-            .route(web::delete().to(self::program::delete::handle)),
+        web::scope("/program")
+            .service(
+                web::resource("")
+                    .route(web::post().to(self::program::post::handle))
+                    .route(web::patch().to(self::program::patch::handle))
+                    .route(web::delete().to(self::program::delete::handle)),
+            )
+            .service(
+                web::resource("/source").route(web::get().to(self::program::source::get::handle)),
+            )
+            .service(
+                web::resource("/input_template")
+                    .route(web::get().to(self::program::input_template::get::handle)),
+            )
+            .service(
+                web::resource("/output_template")
+                    .route(web::get().to(self::program::output_template::get::handle)),
+            ),
     );
 }

@@ -1,5 +1,5 @@
 //!
-//! The program resource DELETE method module.
+//! The program output template resource GET method module.
 //!
 
 pub mod request;
@@ -17,7 +17,7 @@ use self::request::Request;
 use self::response::Response;
 
 ///
-/// The program DELETE method endpoint handler.
+/// The program GET method endpoint handler.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<AppData>>>,
@@ -26,12 +26,12 @@ pub async fn handle(
     let request = request.into_inner();
 
     let source = app_data
-        .write()
+        .read()
         .expect(zinc_const::panic::MUTEX_SYNC)
-        .remove_program(request.name.as_str());
+        .get_program_entry_output_template(request.name.as_str(), request.entry.as_str());
 
     match source {
-        Some(_source) => web::Json(Response::new_success()),
+        Some(source) => web::Json(Response::new_success(source)),
         None => web::Json(Response::new_error("Not found".to_owned())),
     }
 }

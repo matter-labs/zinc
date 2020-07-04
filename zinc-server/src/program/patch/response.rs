@@ -1,5 +1,5 @@
 //!
-//! The program resource DELETE response.
+//! The program resource PATCH response.
 //!
 
 use serde_derive::Serialize;
@@ -7,7 +7,7 @@ use serde_derive::Serialize;
 use crate::status::Status;
 
 ///
-/// The program resource DELETE response.
+/// The program resource PATCH response.
 ///
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
