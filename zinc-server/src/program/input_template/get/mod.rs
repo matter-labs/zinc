@@ -2,36 +2,38 @@
 //! The program input template resource GET method module.
 //!
 
+pub mod error;
 pub mod request;
-pub mod response;
 
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use actix_web::http::StatusCode;
 use actix_web::web;
 use actix_web::Responder;
 
-use crate::app_data::AppData;
+use crate::response::Response;
+use crate::shared_data::SharedData;
 
-use self::request::Request;
-use self::response::Response;
+use self::error::Error;
+use self::request::Query;
 
 ///
-/// The program GET method endpoint handler.
+/// The program input template resource GET method endpoint handler.
 ///
 pub async fn handle(
-    app_data: web::Data<Arc<RwLock<AppData>>>,
-    request: web::Query<Request>,
+    app_data: web::Data<Arc<RwLock<SharedData>>>,
+    query: web::Query<Query>,
 ) -> impl Responder {
-    let request = request.into_inner();
+    let query = query.into_inner();
 
-    let source = app_data
+    let template = app_data
         .read()
         .expect(zinc_const::panic::MUTEX_SYNC)
-        .get_program_entry_input_template(request.name.as_str(), request.entry.as_str());
+        .get_program_entry_input_template(query.name.as_str(), query.entry.as_str());
 
-    match source {
-        Some(source) => web::Json(Response::new_success(source)),
-        None => web::Json(Response::new_error("Not found".to_owned())),
+    match template {
+        Some(template) => Response::new_success_with_data(StatusCode::OK, template),
+        None => Response::new_error(Error::NotFound),
     }
 }

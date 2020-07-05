@@ -1,5 +1,5 @@
 //!
-//! The program resource PATCH method module.
+//! The program resource PUT method module.
 //!
 
 pub mod error;
@@ -28,7 +28,7 @@ use self::request::Body;
 use self::request::Query;
 
 ///
-/// The program resource PATCH method endpoint handler.
+/// The program resource PUT method endpoint handler.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
@@ -38,13 +38,10 @@ pub async fn handle(
     let query = query.into_inner();
     let body = body.into_inner();
 
-    if !app_data
+    let exists = app_data
         .read()
         .expect(zinc_const::panic::MUTEX_SYNC)
-        .contains(query.name.as_str())
-    {
-        return Response::new_error(Error::NotFound);
-    }
+        .contains(query.name.as_str());
 
     let source = match Source::try_from_string(body.source.clone(), true)
         .map_err(|error| error.to_string())
@@ -88,5 +85,9 @@ pub async fn handle(
         .expect(zinc_const::panic::MUTEX_SYNC)
         .insert_program(query.name, Program::new(body.source, entries));
 
-    Response::<(), _>::new_success(StatusCode::NO_CONTENT)
+    Response::<(), _>::new_success(if exists {
+        StatusCode::NO_CONTENT
+    } else {
+        StatusCode::CREATED
+    })
 }

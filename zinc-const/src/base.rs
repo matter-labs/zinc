@@ -1,12 +1,15 @@
 //!
-//! The Zinc integer base constants.
+//! The Zinc number base constants.
 //!
 
-/// The binary integer base.
+/// The binary number base.
 pub const BINARY: usize = 2;
-/// The octal integer base.
+
+/// The octal number base.
 pub const OCTAL: usize = 8;
-/// The decimal integer base.
+
+/// The decimal number base.
 pub const DECIMAL: usize = 10;
-/// The hexadecimal integer base.
+
+/// The hexadecimal number base.
 pub const HEXADECIMAL: usize = 16;

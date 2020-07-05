@@ -42,7 +42,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
             if condition.is_positive() && vm.is_debugging() {
                 let mut buffer = self.format;
                 for value in values.into_iter().rev() {
-                    let json = serde_json::to_string(&value.try_into_json())
+                    let json = serde_json::to_string(&value.into_json())
                         .expect(zinc_const::panic::DATA_SERIALIZATION);
                     buffer = buffer.replacen("{}", &json, 1);
                 }

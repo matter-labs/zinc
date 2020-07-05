@@ -7,7 +7,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use colored::Colorize;
-use serde_json::Map as JsonMap;
 
 use zinc_bytecode::Program as BytecodeProgram;
 
@@ -97,10 +96,8 @@ impl IRunnable for Runner {
                 .prove::<Bn256>(params.clone(), program.witness)
             {
                 Ok((output, proof)) => {
-                    let output_json = output
-                        .clone()
-                        .try_into_json()
-                        .unwrap_or_else(|| JsonMap::new().into());
+                    let output_json = output.clone().into_json();
+
                     if case.expect != output_json {
                         summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
                         println!(

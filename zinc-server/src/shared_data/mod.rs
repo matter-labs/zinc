@@ -12,18 +12,19 @@ use serde_json::Value as JsonValue;
 
 use zinc_compiler::SourceString;
 
+use self::program::entry::Entry;
 use self::program::Program;
 
 ///
 /// The Zinc server shared application data.
 ///
 #[derive(Debug, Default, Clone)]
-pub struct AppData {
+pub struct SharedData {
     /// The published programs storage.
     pub programs: HashMap<String, Program>,
 }
 
-impl AppData {
+impl SharedData {
     /// The program storage initial capacity.
     const PROGRAMS_INITIAL_CAPACITY: usize = 256;
 
@@ -46,12 +47,23 @@ impl AppData {
     }
 
     ///
+    /// Gets the program entry from the storage.
+    ///
+    pub fn get_program_entry(&self, name: &str, entry: &str) -> Option<Entry> {
+        self.programs
+            .get(name)
+            .and_then(|program| program.get_entry(entry).map(|entry| entry.to_owned()))
+    }
+
+    ///
     /// Gets the program entry input template from the storage.
     ///
     pub fn get_program_entry_input_template(&self, name: &str, entry: &str) -> Option<JsonValue> {
-        self.programs
-            .get(name)
-            .and_then(|program| program.get_entry(entry).map(|entry| entry.input_template()))
+        self.programs.get(name).and_then(|program| {
+            program
+                .get_entry(entry)
+                .map(|entry| entry.input_template.to_owned())
+        })
     }
 
     ///
@@ -61,7 +73,7 @@ impl AppData {
         self.programs.get(name).and_then(|program| {
             program
                 .get_entry(entry)
-                .map(|entry| entry.output_template())
+                .map(|entry| entry.output_template.to_owned())
         })
     }
 

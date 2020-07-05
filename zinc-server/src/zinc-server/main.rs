@@ -9,7 +9,7 @@ use actix_web::middleware;
 use actix_web::App;
 use actix_web::HttpServer;
 
-use zinc_server::AppData;
+use zinc_server::SharedData;
 
 use self::arguments::Arguments;
 use self::error::Error;
@@ -23,13 +23,14 @@ async fn main() -> Result<(), Error> {
 
     zinc_utils::logger::initialize(zinc_const::app_name::ZINC_SERVER, args.verbosity);
 
-    let data = AppData::new().wrap();
+    let data = SharedData::new().wrap();
 
     let address = format!("{}:{}", zinc_const::http::HOST, args.port);
 
     HttpServer::new(move || {
         App::new()
             .data(data.clone())
+            .wrap(middleware::DefaultHeaders::new().content_type())
             .wrap(middleware::Logger::default())
             .configure(zinc_server::configure)
     })

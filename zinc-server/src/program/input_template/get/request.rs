@@ -5,10 +5,10 @@
 use serde_derive::Deserialize;
 
 ///
-/// The program input template resource GET request.
+/// The program input template resource GET query.
 ///
 #[derive(Debug, Deserialize)]
-pub struct Request {
+pub struct Query {
     /// The name of the requested program.
     pub name: String,
     /// The name of the requested entry within the program.

@@ -55,23 +55,24 @@ export PROJECT_SOURCE_DIRECTORY="${PROJECT_DIRECTORY}/src/"
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
 
 cargo fmt --all
-#cargo clippy
+cargo clippy
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG}
-#cargo test
-#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL} --proof-check
-cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-server' -- ${LOG_LEVEL} --port 80
+cargo test
+cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL} #--proof-check
 
-#"${ZARGO_PATH}" clean ${LOG_LEVEL} \
-#    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
-#
-#"${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
-#    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
-#    --binary "${PROJECT_BUILD_DIRECTORY}/${PROJECT_ENTRY}.znb" \
-#    --witness "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_witness.json" \
-#    --public-data "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_public_data.json" \
-#    --proving-key "${PROJECT_DATA_DIRECTORY}/proving_key" \
-#    --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying_key.txt"
-#
-#"${ZARGO_PATH}" test ${LOG_LEVEL} \
-#    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
-#    --binary "${PROJECT_BUILD_TEST_DIRECTORY}"
+"${ZARGO_PATH}" clean ${LOG_LEVEL} \
+    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
+
+"${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
+    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
+    --binary "${PROJECT_BUILD_DIRECTORY}/${PROJECT_ENTRY}.znb" \
+    --witness "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_witness.json" \
+    --public-data "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_public_data.json" \
+    --proving-key "${PROJECT_DATA_DIRECTORY}/proving_key" \
+    --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying_key.txt"
+
+"${ZARGO_PATH}" test ${LOG_LEVEL} \
+    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
+    --binary "${PROJECT_BUILD_TEST_DIRECTORY}"
+
+cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-server' -- ${LOG_LEVEL} --port 80

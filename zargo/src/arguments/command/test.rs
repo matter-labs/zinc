@@ -77,6 +77,17 @@ pub enum Error {
     UnknownExitCode(Option<i32>),
 }
 
+///
+/// The unit test summary.
+///
+#[derive(Default)]
+pub struct Summary {
+    pub passed: u8,
+    pub failed: u8,
+    pub invalid: u8,
+    pub ignored: u8,
+}
+
 impl IExecutable for Command {
     type Error = Error;
 
@@ -104,9 +115,7 @@ impl IExecutable for Command {
         )
         .map_err(Error::Compiler)?;
 
-        let mut passed = 0;
-        let mut failed = 0;
-        let mut ignored = 0;
+        let mut summary = Summary::default();
 
         for binary_path in TestBuildDirectory::files(&manifest_path)
             .map_err(Error::TestBuildDirectory)?
@@ -117,22 +126,24 @@ impl IExecutable for Command {
             let code = UnitTestExitCode::try_from(status).map_err(Error::UnknownExitCode)?;
 
             match code {
-                UnitTestExitCode::Passed => passed += 1,
-                UnitTestExitCode::Ignored => ignored += 1,
-                UnitTestExitCode::Failed => failed += 1,
+                UnitTestExitCode::Passed => summary.passed += 1,
+                UnitTestExitCode::Failed => summary.failed += 1,
+                UnitTestExitCode::Invalid => summary.invalid += 1,
+                UnitTestExitCode::Ignored => summary.ignored += 1,
             }
         }
 
         println!(
-            "test result: {}. {} passed; {} failed; {} ignored",
-            if failed == 0 {
+            "test result: {}. {} passed; {} failed; {} invalid; {} ignored",
+            if summary.failed == 0 && summary.invalid == 0 {
                 "ok".green()
             } else {
                 "failed".bright_red()
             },
-            passed,
-            failed,
-            ignored
+            summary.passed,
+            summary.failed,
+            summary.invalid,
+            summary.ignored,
         );
 
         Ok(())

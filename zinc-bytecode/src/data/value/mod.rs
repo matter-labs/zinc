@@ -119,10 +119,10 @@ impl Value {
     ///
     /// Is used to write the value to a witness or public data JSON file.
     ///
-    pub fn try_into_json(self) -> Option<JsonValue> {
+    pub fn into_json(self) -> JsonValue {
         match self {
-            Self::Unit => Some(JsonValue::Null),
-            Self::Scalar(scalar) => Some(match scalar {
+            Self::Unit => JsonValue::Null,
+            Self::Scalar(scalar) => match scalar {
                 ScalarValue::Field(value) => {
                     if value <= BigInt::from(std::u64::MAX) {
                         JsonValue::String(value.to_str_radix(zinc_const::base::DECIMAL as u32))
@@ -148,27 +148,23 @@ impl Value {
                     }
                 }
                 ScalarValue::Boolean(value) => JsonValue::Bool(value),
-            }),
-            Self::Array(values) => Some(JsonValue::Array(
-                values.into_iter().filter_map(Self::try_into_json).collect(),
-            )),
+            },
+            Self::Array(values) => {
+                JsonValue::Array(values.into_iter().map(Self::into_json).collect())
+            }
             Self::Structure(fields) => {
                 let mut object = JsonMap::<String, JsonValue>::with_capacity(fields.len());
                 for (name, value) in fields.into_iter() {
-                    if let Some(value) = Self::try_into_json(value) {
-                        object.insert(name, value);
-                    }
+                    object.insert(name, Self::into_json(value));
                 }
-                Some(JsonValue::Object(object))
+                JsonValue::Object(object)
             }
             Self::Contract(fields) => {
                 let mut object = JsonMap::<String, JsonValue>::with_capacity(fields.len());
                 for (name, value) in fields.into_iter() {
-                    if let Some(value) = Self::try_into_json(value) {
-                        object.insert(name, value);
-                    }
+                    object.insert(name, Self::into_json(value));
                 }
-                Some(JsonValue::Object(object))
+                JsonValue::Object(object)
             }
         }
     }

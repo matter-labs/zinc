@@ -2,36 +2,38 @@
 //! The program resource DELETE method module.
 //!
 
+pub mod error;
 pub mod request;
-pub mod response;
 
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use actix_web::http::StatusCode;
 use actix_web::web;
 use actix_web::Responder;
 
-use crate::app_data::AppData;
+use crate::response::Response;
+use crate::shared_data::SharedData;
 
-use self::request::Request;
-use self::response::Response;
+use self::error::Error;
+use self::request::Query;
 
 ///
-/// The program DELETE method endpoint handler.
+/// The program resource DELETE method endpoint handler.
 ///
 pub async fn handle(
-    app_data: web::Data<Arc<RwLock<AppData>>>,
-    request: web::Query<Request>,
+    app_data: web::Data<Arc<RwLock<SharedData>>>,
+    query: web::Query<Query>,
 ) -> impl Responder {
-    let request = request.into_inner();
+    let query = query.into_inner();
 
     let source = app_data
         .write()
         .expect(zinc_const::panic::MUTEX_SYNC)
-        .remove_program(request.name.as_str());
+        .remove_program(query.name.as_str());
 
     match source {
-        Some(_source) => web::Json(Response::new_success()),
-        None => web::Json(Response::new_error("Not found".to_owned())),
+        Some(_source) => Response::<(), _>::new_success(StatusCode::NO_CONTENT),
+        None => Response::new_error(Error::NotFound),
     }
 }

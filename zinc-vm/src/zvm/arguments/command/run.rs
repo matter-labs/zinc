@@ -5,7 +5,6 @@
 use std::fs;
 use std::path::PathBuf;
 
-use serde_json::Map as JsonMap;
 use structopt::StructOpt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
@@ -54,11 +53,7 @@ impl IExecutable for Command {
 
         let output = program.run::<Bn256>(input)?;
 
-        let output_json = serde_json::to_string_pretty(
-            &output
-                .try_into_json()
-                .unwrap_or_else(|| JsonMap::new().into()),
-        )? + "\n";
+        let output_json = serde_json::to_string_pretty(&output.into_json())? + "\n";
         fs::write(&self.public_data_path, &output_json)
             .error_with_path(|| self.public_data_path.to_string_lossy())?;
 

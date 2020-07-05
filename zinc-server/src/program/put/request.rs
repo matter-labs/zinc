@@ -1,5 +1,5 @@
 //!
-//! The program resource PATCH request.
+//! The program resource PUT request.
 //!
 
 use serde_derive::Deserialize;
@@ -7,7 +7,7 @@ use serde_derive::Deserialize;
 use zinc_compiler::SourceString;
 
 ///
-/// The program resource PATCH request query.
+/// The program resource PUT request query.
 ///
 #[derive(Debug, Deserialize)]
 pub struct Query {
@@ -16,7 +16,7 @@ pub struct Query {
 }
 
 ///
-/// The program resource PATCH request body.
+/// The program resource PUT request body.
 ///
 #[derive(Debug, Deserialize)]
 pub struct Body {

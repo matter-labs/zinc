@@ -4,7 +4,8 @@
 
 pub mod unit_test;
 
-/// The general application success exit code.
+/// The common application success exit code.
 pub const SUCCESS: i32 = 0;
-/// The general application failure exit code.
+
+/// The common application failure exit code.
 pub const FAILURE: i32 = 1;

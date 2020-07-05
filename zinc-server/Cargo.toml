@@ -18,6 +18,7 @@ serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 
+futures = "0.3"
 actix-rt = "1.1"
 actix-web = "2.0"
 
@@ -25,3 +26,4 @@ zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }
 zinc-compiler = { path = "../zinc-compiler" }
 zinc-bytecode = { path = "../zinc-bytecode" }
+zinc-vm = { path = "../zinc-vm" }

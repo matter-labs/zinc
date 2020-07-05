@@ -4,6 +4,8 @@
 
 use serde_json::Value as JsonValue;
 
+use zinc_bytecode::DataType;
+
 ///
 /// The program entry, which consists of the program representation, and the input and
 /// output JSON template values.
@@ -11,7 +13,9 @@ use serde_json::Value as JsonValue;
 #[derive(Debug, Clone)]
 pub struct Entry {
     pub program: zinc_bytecode::Program,
+    pub input_type: DataType,
     pub input_template: JsonValue,
+    pub output_type: DataType,
     pub output_template: JsonValue,
 }
 
@@ -21,27 +25,17 @@ impl Entry {
     ///
     pub fn new(
         program: zinc_bytecode::Program,
+        input_type: DataType,
         input_template: JsonValue,
+        output_type: DataType,
         output_template: JsonValue,
     ) -> Self {
         Self {
             program,
+            input_type,
             input_template,
+            output_type,
             output_template,
         }
-    }
-
-    ///
-    /// Returns the input template.
-    ///
-    pub fn input_template(&self) -> JsonValue {
-        self.input_template.to_owned()
-    }
-
-    ///
-    /// Returns the output template.
-    ///
-    pub fn output_template(&self) -> JsonValue {
-        self.output_template.to_owned()
     }
 }
