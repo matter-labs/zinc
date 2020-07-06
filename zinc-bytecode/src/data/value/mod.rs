@@ -7,6 +7,8 @@ pub mod scalar;
 
 use std::collections::HashSet;
 
+use bson::Bson;
+use bson::Document as BsonDocument;
 use num_bigint::BigInt;
 use num_traits::Num;
 use serde_derive::Deserialize;
@@ -165,6 +167,59 @@ impl Value {
                     object.insert(name, Self::into_json(value));
                 }
                 JsonValue::Object(object)
+            }
+        }
+    }
+
+    ///
+    /// Converts the value to a BSON value.
+    ///
+    /// Is used to write the value to the MongoDB.
+    ///
+    pub fn into_bson(self) -> Bson {
+        match self {
+            Self::Unit => Bson::Null,
+            Self::Scalar(scalar) => match scalar {
+                ScalarValue::Field(value) => {
+                    if value <= BigInt::from(std::u64::MAX) {
+                        Bson::String(value.to_str_radix(zinc_const::base::DECIMAL as u32))
+                    } else {
+                        Bson::String(
+                            String::from("0x")
+                                + value
+                                    .to_str_radix(zinc_const::base::HEXADECIMAL as u32)
+                                    .as_str(),
+                        )
+                    }
+                }
+                ScalarValue::Integer(value, r#type) => {
+                    if value <= BigInt::from(std::u64::MAX) || r#type.is_signed {
+                        Bson::String(value.to_str_radix(zinc_const::base::DECIMAL as u32))
+                    } else {
+                        Bson::String(
+                            String::from("0x")
+                                + value
+                                    .to_str_radix(zinc_const::base::HEXADECIMAL as u32)
+                                    .as_str(),
+                        )
+                    }
+                }
+                ScalarValue::Boolean(value) => Bson::Boolean(value),
+            },
+            Self::Array(values) => Bson::Array(values.into_iter().map(Self::into_bson).collect()),
+            Self::Structure(fields) => {
+                let mut object = BsonDocument::new();
+                for (name, value) in fields.into_iter() {
+                    object.insert(name, Self::into_bson(value));
+                }
+                Bson::Document(object)
+            }
+            Self::Contract(fields) => {
+                let mut object = BsonDocument::new();
+                for (name, value) in fields.into_iter() {
+                    object.insert(name, Self::into_bson(value));
+                }
+                Bson::Document(object)
             }
         }
     }

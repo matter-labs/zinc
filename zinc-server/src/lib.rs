@@ -22,9 +22,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
                     .service(
                         web::resource("")
                             .route(web::head().to(head::handle))
-                            .route(web::post().to(self::program::post::handle))
                             .route(web::put().to(self::program::put::handle))
-                            .route(web::patch().to(self::program::patch::handle))
                             .route(web::delete().to(self::program::delete::handle)),
                     )
                     .service(

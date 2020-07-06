@@ -12,13 +12,15 @@ use actix_web::ResponseError;
 ///
 #[derive(Debug)]
 pub enum Error {
-    Compiling(String),
+    Compiler(String),
+    MongoDb(mongodb::error::Error),
 }
 
 impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
-            Self::Compiling(_) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::Compiler(_) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::MongoDb(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
@@ -35,7 +37,8 @@ impl serde::Serialize for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Compiling(inner) => write!(f, "{}", inner),
+            Self::Compiler(inner) => write!(f, "{}", inner),
+            Self::MongoDb(inner) => write!(f, "MongoDB: {}", inner),
         }
     }
 }

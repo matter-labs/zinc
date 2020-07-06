@@ -75,4 +75,4 @@ cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_L
     --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
     --binary "${PROJECT_BUILD_TEST_DIRECTORY}"
 
-cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-server' -- ${LOG_LEVEL} --port 80
+cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-server' -- ${LOG_LEVEL}

@@ -5,21 +5,20 @@
 pub mod error;
 pub mod request;
 
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
 use actix_web::Responder;
+use mongodb::bson::Document as BsonDocument;
 
-use zinc_bytecode::Program as BytecodeProgram;
-use zinc_bytecode::TemplateValue as BytecodeTemplateValue;
+use zinc_bytecode::DataType;
+use zinc_bytecode::TemplateValue;
 use zinc_compiler::Bytecode;
 use zinc_compiler::Source;
 
 use crate::response::Response;
-use crate::shared_data::program::entry::Entry;
 use crate::shared_data::program::Program;
 use crate::shared_data::SharedData;
 
@@ -41,49 +40,59 @@ pub async fn handle(
     let exists = app_data
         .read()
         .expect(zinc_const::panic::MUTEX_SYNC)
-        .contains(query.name.as_str());
+        .contains_program(query.name.as_str());
 
     let source = match Source::try_from_string(body.source.clone(), true)
         .map_err(|error| error.to_string())
     {
         Ok(source) => source,
-        Err(error) => return Response::new_error(Error::Compiling(error)),
+        Err(error) => return Response::new_error(Error::Compiler(error)),
     };
 
     let bytecode = match source.compile().map_err(|error| error.to_string()) {
         Ok(bytecode) => Bytecode::unwrap_rc(bytecode),
-        Err(error) => return Response::new_error(Error::Compiling(error)),
+        Err(error) => return Response::new_error(Error::Compiler(error)),
     };
 
-    let entries: HashMap<String, Entry> = bytecode
-        .into_entries()
-        .into_iter()
-        .map(|(name, entry)| {
-            let program = BytecodeProgram::from_bytes(entry.into_bytecode().as_slice())
+    let program = match bytecode.contract_storage() {
+        Some(contract_storage) => {
+            let mongodb_client = app_data
+                .read()
+                .expect(zinc_const::panic::MUTEX_SYNC)
+                .mongodb_client
+                .to_owned();
+
+            let value = TemplateValue::new(DataType::Contract(contract_storage.clone()))
+                .into_bson()
+                .as_document()
+                .cloned()
                 .expect(zinc_const::panic::DATA_SERIALIZATION);
 
-            let input_type = program.input();
-            let input_template = BytecodeTemplateValue::new(input_type.clone()).into_json();
+            let collection = mongodb_client
+                .database(zinc_const::mongodb::DATABASE)
+                .collection(query.name.as_str());
 
-            let output_type = program.output();
-            let output_template = BytecodeTemplateValue::new(output_type.clone()).into_json();
+            if let Err(error) = collection.delete_many(BsonDocument::new(), None).await {
+                return Response::new_error(Error::MongoDb(error));
+            }
 
-            let entry = Entry::new(
-                program,
-                input_type,
-                input_template,
-                output_type,
-                output_template,
-            );
+            if let Err(error) = collection.insert_one(value, None).await {
+                return Response::new_error(Error::MongoDb(error));
+            }
 
-            (name, entry)
-        })
-        .collect();
+            Program::new_contract(
+                body.source,
+                Program::from_bytecode(bytecode),
+                contract_storage,
+            )
+        }
+        None => Program::new_circuit(body.source, Program::from_bytecode(bytecode)),
+    };
 
     app_data
         .write()
         .expect(zinc_const::panic::MUTEX_SYNC)
-        .insert_program(query.name, Program::new(body.source, entries));
+        .insert_program(query.name, program);
 
     Response::<(), _>::new_success(if exists {
         StatusCode::NO_CONTENT

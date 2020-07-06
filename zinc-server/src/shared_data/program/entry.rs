@@ -5,14 +5,15 @@
 use serde_json::Value as JsonValue;
 
 use zinc_bytecode::DataType;
+use zinc_bytecode::Program;
 
 ///
 /// The program entry, which consists of the program representation, and the input and
-/// output JSON template values.
+/// output type structures and JSON template values.
 ///
 #[derive(Debug, Clone)]
 pub struct Entry {
-    pub program: zinc_bytecode::Program,
+    pub program: Program,
     pub input_type: DataType,
     pub input_template: JsonValue,
     pub output_type: DataType,
@@ -24,7 +25,7 @@ impl Entry {
     /// A shortcut constructor.
     ///
     pub fn new(
-        program: zinc_bytecode::Program,
+        program: Program,
         input_type: DataType,
         input_template: JsonValue,
         output_type: DataType,

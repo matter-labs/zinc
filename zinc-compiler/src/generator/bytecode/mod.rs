@@ -11,6 +11,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use zinc_bytecode::DataType;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
@@ -210,6 +211,20 @@ impl Bytecode {
         }
 
         self.instructions.push(instruction)
+    }
+
+    ///
+    /// Returns the contract storage structure if the program is a contract.
+    ///
+    /// Converts the generator types to the VM ones.
+    ///
+    pub fn contract_storage(&self) -> Option<Vec<(String, DataType)>> {
+        self.contract_storage.to_owned().map(|storage| {
+            storage
+                .into_iter()
+                .map(|(name, r#type)| (name, r#type.into()))
+                .collect()
+        })
     }
 
     ///

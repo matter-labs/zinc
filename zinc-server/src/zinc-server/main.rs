@@ -8,6 +8,8 @@ mod error;
 use actix_web::middleware;
 use actix_web::App;
 use actix_web::HttpServer;
+use mongodb::options::ClientOptions as MongoClientOptions;
+use mongodb::Client as MongoClient;
 
 use zinc_server::SharedData;
 
@@ -23,9 +25,22 @@ async fn main() -> Result<(), Error> {
 
     zinc_utils::logger::initialize(zinc_const::app_name::ZINC_SERVER, args.verbosity);
 
-    let data = SharedData::new().wrap();
-
-    let address = format!("{}:{}", zinc_const::http::HOST, args.port);
+    let data = SharedData::new(
+        MongoClient::with_options(
+            MongoClientOptions::parse(
+                format!(
+                    "mongodb://{}:{}",
+                    args.mongodb_host,
+                    args.mongodb_port.unwrap_or(zinc_const::mongodb::PORT)
+                )
+                .as_str(),
+            )
+            .await
+            .map_err(Error::MongoDbOptions)?,
+        )
+        .map_err(Error::MongoDbClient)?,
+    )
+    .wrap();
 
     HttpServer::new(move || {
         App::new()
@@ -34,7 +49,11 @@ async fn main() -> Result<(), Error> {
             .wrap(middleware::Logger::default())
             .configure(zinc_server::configure)
     })
-    .bind(address)
+    .bind(format!(
+        "{}:{}",
+        zinc_const::http::HOST,
+        args.http_port.unwrap_or(zinc_const::http::PORT)
+    ))
     .map_err(Error::ServerBinding)?
     .run()
     .await

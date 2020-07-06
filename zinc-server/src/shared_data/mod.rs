@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use mongodb::Client as MongoClient;
 use serde_json::Value as JsonValue;
 
 use zinc_compiler::SourceString;
@@ -18,8 +19,10 @@ use self::program::Program;
 ///
 /// The Zinc server shared application data.
 ///
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct SharedData {
+    /// The MongoDB connection options.
+    pub mongodb_client: MongoClient,
     /// The published programs storage.
     pub programs: HashMap<String, Program>,
 }
@@ -31,8 +34,9 @@ impl SharedData {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new() -> Self {
+    pub fn new(mongodb_client: MongoClient) -> Self {
         Self {
+            mongodb_client,
             programs: HashMap::with_capacity(Self::PROGRAMS_INITIAL_CAPACITY),
         }
     }
@@ -87,14 +91,14 @@ impl SharedData {
     ///
     /// Removes a program from the storage.
     ///
-    pub fn remove_program(&mut self, name: &str) -> Option<SourceString> {
-        self.programs.remove(name).map(|program| program.source)
+    pub fn remove_program(&mut self, name: &str) -> Option<Program> {
+        self.programs.remove(name)
     }
 
     ///
     /// Checks if the program exists in the storage.
     ///
-    pub fn contains(&self, name: &str) -> bool {
+    pub fn contains_program(&self, name: &str) -> bool {
         self.programs.contains_key(name)
     }
 

@@ -12,4 +12,8 @@ pub enum Error {
     ServerBinding(io::Error),
     #[fail(display = "server runtime: {}", _0)]
     ServerRuntime(io::Error),
+    #[fail(display = "MongoDB options: {}", _0)]
+    MongoDbOptions(mongodb::error::Error),
+    #[fail(display = "MongoDB client: {}", _0)]
+    MongoDbClient(mongodb::error::Error),
 }

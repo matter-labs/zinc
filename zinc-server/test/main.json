@@ -4,16 +4,7 @@
         "modules": {
             "main": {
                 "path": "main.zn",
-                "code": "mod data;\nuse self::data::Data;\nfn main(a: u8) -> Data {\n    Data { a: a * 5 }\n}"
-            },
-            "data": {
-                "path": "data/",
-                "modules": {
-                    "mod": {
-                        "path": "mod.zn",
-                        "code": "struct Data { a: u8 }"
-                    }
-                }
+                "code": "contract Test { a: u8; b: u8; c: u8; fn main() -> u8 { 42 } }"
             }
         }        
     }

@@ -13,12 +13,14 @@ use actix_web::ResponseError;
 #[derive(Debug)]
 pub enum Error {
     NotFound,
+    MongoDb(mongodb::error::Error),
 }
 
 impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
             Self::NotFound => StatusCode::NOT_FOUND,
+            Self::MongoDb(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
@@ -36,6 +38,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::NotFound => write!(f, "Not found"),
+            Self::MongoDb(inner) => write!(f, "MongoDB: {}", inner),
         }
     }
 }

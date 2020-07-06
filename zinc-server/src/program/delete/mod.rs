@@ -27,13 +27,31 @@ pub async fn handle(
 ) -> impl Responder {
     let query = query.into_inner();
 
-    let source = app_data
+    let program = match app_data
         .write()
         .expect(zinc_const::panic::MUTEX_SYNC)
-        .remove_program(query.name.as_str());
+        .remove_program(query.name.as_str())
+    {
+        Some(program) => program,
+        None => return Response::new_error(Error::NotFound),
+    };
 
-    match source {
-        Some(_source) => Response::<(), _>::new_success(StatusCode::NO_CONTENT),
-        None => Response::new_error(Error::NotFound),
+    if program.contract_storage.is_some() {
+        let mongodb_client = app_data
+            .read()
+            .expect(zinc_const::panic::MUTEX_SYNC)
+            .mongodb_client
+            .to_owned();
+
+        if let Err(error) = mongodb_client
+            .database(zinc_const::mongodb::DATABASE)
+            .collection(query.name.as_str())
+            .drop(None)
+            .await
+        {
+            return Response::new_error(Error::MongoDb(error));
+        }
     }
+
+    Response::<(), _>::new_success(StatusCode::NO_CONTENT)
 }

@@ -22,13 +22,20 @@ pub struct Arguments {
     pub verbosity: usize,
 
     /// The HTTP server port.
+    #[structopt(long = "http-port", help = "The HTTP server port")]
+    pub http_port: Option<u16>,
+
+    /// The MongoDB server host.
     #[structopt(
-        short = "p",
-        long = "port",
-        help = "The HTTP server port",
-        default_value = "80"
+        long = "mongodb-host",
+        help = "The MongoDB server host",
+        default_value = zinc_const::mongodb::HOST,
     )]
-    pub port: u16,
+    pub mongodb_host: String,
+
+    /// The MongoDB server port.
+    #[structopt(long = "mongodb-port", help = "The MongoDB server port")]
+    pub mongodb_port: Option<u16>,
 }
 
 impl Arguments {
