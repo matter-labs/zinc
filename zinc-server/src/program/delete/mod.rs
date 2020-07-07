@@ -37,16 +37,11 @@ pub async fn handle(
     };
 
     if program.contract_storage.is_some() {
-        let mongodb_client = app_data
+        if let Err(error) = app_data
             .read()
             .expect(zinc_const::panic::MUTEX_SYNC)
             .mongodb_client
-            .to_owned();
-
-        if let Err(error) = mongodb_client
-            .database(zinc_const::mongodb::DATABASE)
-            .collection(query.name.as_str())
-            .drop(None)
+            .drop_collection(query.name.as_str())
             .await
         {
             return Response::new_error(Error::MongoDb(error));

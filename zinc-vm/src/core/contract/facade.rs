@@ -17,9 +17,11 @@ use franklin_crypto::circuit::test::TestConstraintSystem;
 use zinc_bytecode::Contract as BytecodeContract;
 use zinc_bytecode::TemplateValue;
 use zinc_const::UnitTestExitCode;
+use zinc_mongo::Client as MongoClient;
 
 use crate::constraint_systems::debug::DebugCS;
 use crate::core::contract::storage::dummy::Storage as DummyStorage;
+use crate::core::contract::storage::mongo::Storage as MongoStorage;
 use crate::core::contract::storage::setup::Storage as SetupStorage;
 use crate::core::contract::synthesizer::Synthesizer as ContractSynthesizer;
 use crate::core::contract::Contract;
@@ -32,18 +34,30 @@ use crate::gadgets::contract::storage::StorageGadget;
 use crate::IEngine;
 
 impl IFacade for BytecodeContract {
-    fn run<E: IEngine>(self, witness: TemplateValue) -> Result<TemplateValue, RuntimeError> {
+    fn run<E: IEngine>(
+        self,
+        witness: TemplateValue,
+        mongo_client: Option<MongoClient>,
+    ) -> Result<TemplateValue, RuntimeError> {
         let mut cs = DebugCS::<Bn256>::default();
 
         let inputs_flat = witness.into_flat_values();
         let output_type = self.output.to_owned();
 
-        let storage_fields = self
+        let storage_types = self
             .storage
             .iter()
             .map(|(_name, r#type)| r#type.to_owned())
             .collect();
-        let storage = DummyStorage::new(storage_fields);
+        let storage_values = zinc_mongo::wait(
+            mongo_client
+                .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+                .get_storage(self.name.as_str()),
+        )
+        .map_err(RuntimeError::MongoDb)?
+        .into_flat_bigints();
+        let storage = MongoStorage::new(storage_types, storage_values);
+
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
         let mut contract = Contract::new(cs, storage_gadget, true);

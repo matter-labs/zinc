@@ -34,6 +34,7 @@ impl Program {
     /// Creates a test program instance.
     ///
     pub fn new(
+        name: String,
         code: &str,
         path: PathBuf,
         entry: String,
@@ -44,7 +45,7 @@ impl Program {
             .map_err(|error| error.format())
             .map_err(Error::Compiler)?;
 
-        let bytecode = Bytecode::new().wrap();
+        let bytecode = Bytecode::new(name).wrap();
         IntermediateProgram::new(scope.borrow().get_intermediate())
             .write_all_to_bytecode(bytecode.clone());
 

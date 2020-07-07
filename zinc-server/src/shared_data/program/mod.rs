@@ -17,7 +17,6 @@ use self::entry::Entry;
 ///
 /// The program resource.
 ///
-#[derive(Debug, Clone)]
 pub struct Program {
     /// The original program source code, which can be returned back to its authors to be edited.
     pub source: SourceString,

@@ -20,27 +20,34 @@ pub struct Storage<E: IEngine> {
 }
 
 impl<E: IEngine> Storage<E> {
-    pub fn new(values: Vec<DataType>) -> Self {
-        let depth = (values.len() as f64).log2().ceil() as usize;
+    pub fn new(types: Vec<DataType>, values: Vec<Vec<BigInt>>) -> Self {
+        let depth = (types.len() as f64).log2().ceil() as usize;
         let hash_tree_size = 1 << (depth + 1);
-        let leaf_values_count = 1 << depth;
+        let leaf_values_size = 1 << depth;
+
+        let mut leaf_values = types
+            .into_iter()
+            .zip(values)
+            .map(|(r#type, values)| {
+                r#type
+                    .into_flat_scalar_types()
+                    .into_iter()
+                    .zip(values)
+                    .map(|(r#type, value)| {
+                        Scalar::<E>::new_constant_bigint(value, r#type)
+                            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+                    })
+                    .collect::<Vec<Scalar<E>>>()
+            })
+            .collect::<Vec<Vec<Scalar<E>>>>();
+        leaf_values.resize(leaf_values_size, Default::default());
 
         let mut result = Self {
             hash_tree: vec![vec![]; hash_tree_size],
-            leaf_values: vec![vec![]; leaf_values_count],
+            leaf_values,
             depth,
         };
-
-        for (index, r#type) in values.into_iter().enumerate() {
-            let values = r#type
-                .into_flat_scalar_types()
-                .into_iter()
-                .map(|r#type| Scalar::<E>::new_constant_usize(0, r#type))
-                .collect();
-            result.leaf_values[index] = values;
-        }
         result.update_tree();
-
         result
     }
 

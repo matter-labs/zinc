@@ -2,6 +2,9 @@
 //! The Zinc MongoDB constants.
 //!
 
+/// The default MongoDB protocol name.
+pub static PROTOCOL: &str = "mongodb";
+
 /// The default MongoDB server host.
 pub static HOST: &str = "localhost";
 

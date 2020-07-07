@@ -24,7 +24,7 @@ lazy_static = "1.4"
 petgraph = "0.5"
 
 num-traits = "0.2"
-num-bigint = "0.2"
+num-bigint = "0.3"
 
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }

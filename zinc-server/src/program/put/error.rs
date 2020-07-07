@@ -13,7 +13,7 @@ use actix_web::ResponseError;
 #[derive(Debug)]
 pub enum Error {
     Compiler(String),
-    MongoDb(mongodb::error::Error),
+    MongoDb(zinc_mongo::Error),
 }
 
 impl ResponseError for Error {

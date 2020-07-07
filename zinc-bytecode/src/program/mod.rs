@@ -31,15 +31,25 @@ impl Program {
     ///
     /// A shortcut constructor for a non-unit-test circuit.
     ///
-    pub fn new_circuit(input: DataType, output: DataType, instructions: Vec<Instruction>) -> Self {
-        Self::Circuit(Circuit::new(input, output, instructions, None))
+    pub fn new_circuit(
+        name: String,
+        input: DataType,
+        output: DataType,
+        instructions: Vec<Instruction>,
+    ) -> Self {
+        Self::Circuit(Circuit::new(name, input, output, instructions, None))
     }
 
     ///
     /// A shortcut constructor for a unit-test circuit.
     ///
-    pub fn new_circuit_unit_test(instructions: Vec<Instruction>, unit_test: UnitTest) -> Self {
+    pub fn new_circuit_unit_test(
+        name: String,
+        instructions: Vec<Instruction>,
+        unit_test: UnitTest,
+    ) -> Self {
         Self::Circuit(Circuit::new(
+            name,
             DataType::new_empty_structure(),
             DataType::Unit,
             instructions,
@@ -51,12 +61,14 @@ impl Program {
     /// A shortcut constructor for a non-unit-test contract.
     ///
     pub fn new_contract(
+        name: String,
         input: DataType,
         output: DataType,
         instructions: Vec<Instruction>,
         storage: Vec<(String, DataType)>,
     ) -> Self {
         Self::Contract(Contract::new(
+            name,
             input,
             output.into_contract_metadata(),
             instructions,
@@ -69,17 +81,29 @@ impl Program {
     /// A shortcut constructor for a unit-test contract.
     ///
     pub fn new_contract_unit_test(
+        name: String,
         instructions: Vec<Instruction>,
         storage: Vec<(String, DataType)>,
         unit_test: UnitTest,
     ) -> Self {
         Self::Contract(Contract::new(
+            name,
             DataType::new_empty_structure(),
             DataType::Unit,
             instructions,
             storage,
             Some(unit_test),
         ))
+    }
+
+    ///
+    /// Returns the program name.
+    ///
+    pub fn name(&self) -> String {
+        match self {
+            Self::Circuit(ref inner) => inner.name.to_owned(),
+            Self::Contract(ref inner) => inner.name.to_owned(),
+        }
     }
 
     ///

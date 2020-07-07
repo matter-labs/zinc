@@ -11,7 +11,6 @@ use std::sync::RwLock;
 use actix_web::http::StatusCode;
 use actix_web::web;
 use actix_web::Responder;
-use mongodb::bson::Document as BsonDocument;
 
 use zinc_bytecode::DataType;
 use zinc_bytecode::TemplateValue;
@@ -49,45 +48,55 @@ pub async fn handle(
         Err(error) => return Response::new_error(Error::Compiler(error)),
     };
 
-    let bytecode = match source.compile().map_err(|error| error.to_string()) {
+    let bytecode = match source
+        .compile(query.name.clone())
+        .map_err(|error| error.to_string())
+    {
         Ok(bytecode) => Bytecode::unwrap_rc(bytecode),
         Err(error) => return Response::new_error(Error::Compiler(error)),
     };
 
-    let program = match bytecode.contract_storage() {
+    let source = bson::to_bson(&body.source).expect(zinc_const::panic::DATA_SERIALIZATION);
+
+    let (program, record) = match bytecode.contract_storage() {
         Some(contract_storage) => {
-            let mongodb_client = app_data
-                .read()
-                .expect(zinc_const::panic::MUTEX_SYNC)
-                .mongodb_client
-                .to_owned();
+            let storage = zinc_mongo::Storage::from_bson(
+                TemplateValue::new(DataType::Contract(contract_storage.clone())).into_bson(),
+            )
+            .into_bson();
+            let record = bson::doc! {
+                "source": source,
+                "storage": storage,
+            };
 
-            let value = TemplateValue::new(DataType::Contract(contract_storage.clone()))
-                .into_bson()
-                .as_document()
-                .cloned()
-                .expect(zinc_const::panic::DATA_SERIALIZATION);
-
-            let collection = mongodb_client
-                .database(zinc_const::mongodb::DATABASE)
-                .collection(query.name.as_str());
-
-            if let Err(error) = collection.delete_many(BsonDocument::new(), None).await {
-                return Response::new_error(Error::MongoDb(error));
-            }
-
-            if let Err(error) = collection.insert_one(value, None).await {
-                return Response::new_error(Error::MongoDb(error));
-            }
-
-            Program::new_contract(
+            let program = Program::new_contract(
                 body.source,
                 Program::from_bytecode(bytecode),
                 contract_storage,
-            )
+            );
+
+            (program, record)
         }
-        None => Program::new_circuit(body.source, Program::from_bytecode(bytecode)),
+        None => {
+            let record = bson::doc! {
+                "source": source,
+            };
+
+            let program = Program::new_circuit(body.source, Program::from_bytecode(bytecode));
+
+            (program, record)
+        }
     };
+
+    if let Err(error) = app_data
+        .read()
+        .expect(zinc_const::panic::MUTEX_SYNC)
+        .mongodb_client
+        .rewrite_collection(query.name.as_str(), record)
+        .await
+    {
+        return Response::new_error(Error::MongoDb(error));
+    }
 
     app_data
         .write()

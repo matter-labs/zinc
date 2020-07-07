@@ -46,7 +46,7 @@ fn main_inner() -> Result<(), Error> {
 
     zinc_utils::logger::initialize(zinc_const::app_name::ZINC_COMPILER, args.verbosity);
 
-    let bytecode = Source::try_from_path(&args.source_path, true)?.compile()?;
+    let bytecode = Source::try_from_entry(&args.source_path)?.compile("default".to_owned())?;
     let compiled_entries = Bytecode::unwrap_rc(bytecode).into_entries();
 
     for (entry_name, entry) in compiled_entries.into_iter() {

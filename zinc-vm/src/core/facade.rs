@@ -10,6 +10,7 @@ use franklin_crypto::bellman::groth16::VerifyingKey;
 use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
 use zinc_const::UnitTestExitCode;
+use zinc_mongo::Client as MongoClient;
 
 use crate::error::RuntimeError;
 use crate::error::VerificationError;
@@ -17,7 +18,11 @@ use crate::gadgets;
 use crate::IEngine;
 
 pub trait IFacade {
-    fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError>;
+    fn run<E: IEngine>(
+        self,
+        input: TemplateValue,
+        mongo_client: Option<MongoClient>,
+    ) -> Result<TemplateValue, RuntimeError>;
 
     fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError>;
 
@@ -58,10 +63,14 @@ pub trait IFacade {
 }
 
 impl IFacade for BytecodeProgram {
-    fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
+    fn run<E: IEngine>(
+        self,
+        input: TemplateValue,
+        mongo_client: Option<MongoClient>,
+    ) -> Result<TemplateValue, RuntimeError> {
         match self {
-            BytecodeProgram::Circuit(inner) => inner.run::<E>(input),
-            BytecodeProgram::Contract(inner) => inner.run::<E>(input),
+            BytecodeProgram::Circuit(inner) => inner.run::<E>(input, mongo_client),
+            BytecodeProgram::Contract(inner) => inner.run::<E>(input, mongo_client),
         }
     }
 

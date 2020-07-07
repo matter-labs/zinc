@@ -113,6 +113,9 @@ pub enum RuntimeError {
 
     #[fail(display = "the unit test data is missing")]
     UnitTestDataMissing,
+
+    #[fail(display = "MongoDB: {}", _0)]
+    MongoDb(zinc_mongo::Error),
 }
 
 impl From<SynthesisError> for RuntimeError {

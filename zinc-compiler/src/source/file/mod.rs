@@ -124,13 +124,13 @@ impl File {
     /// Gets all the intermediate represenation scattered around the application scope tree and
     /// writes it to the bytecode.
     ///
-    pub fn compile(self) -> Result<Rc<RefCell<Bytecode>>, SourceError> {
+    pub fn compile(self, name: String) -> Result<Rc<RefCell<Bytecode>>, SourceError> {
         let scope = EntryAnalyzer::define(Source::File(self))
             .map_err(CompilerError::Semantic)
             .map_err(|error| error.format())
             .map_err(SourceError::Compiling)?;
 
-        let bytecode = Bytecode::new().wrap();
+        let bytecode = Bytecode::new(name).wrap();
         Program::new(scope.borrow().get_intermediate()).write_all_to_bytecode(bytecode.clone());
 
         Ok(bytecode)

@@ -31,6 +31,8 @@ use self::test::Test;
 ///
 #[derive(Debug)]
 pub struct Bytecode {
+    /// The Zinc program name.
+    name: String,
     /// The Zinc VM instructions written by the bytecode generator
     instructions: Vec<Instruction>,
 
@@ -52,12 +54,6 @@ pub struct Bytecode {
     current_location: Location,
 }
 
-impl Default for Bytecode {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Bytecode {
     const INSTRUCTIONS_INITIAL_CAPACITY: usize = 1024;
     const FUNCTION_ADDRESSES_INITIAL_CAPACITY: usize = 16;
@@ -68,12 +64,13 @@ impl Bytecode {
     /// Creates a new bytecode instance with the placeholders for the entry `Call` and
     /// `Exit` instructions.
     ///
-    pub fn new() -> Self {
+    pub fn new(name: String) -> Self {
         let mut instructions = Vec::with_capacity(Self::INSTRUCTIONS_INITIAL_CAPACITY);
         instructions.push(Instruction::NoOperation(zinc_bytecode::NoOperation));
         instructions.push(Instruction::NoOperation(zinc_bytecode::NoOperation));
 
         Self {
+            name,
             instructions,
 
             contract_storage: None,
@@ -261,6 +258,7 @@ impl Bytecode {
                         .collect();
 
                     BytecodeProgram::new_contract(
+                        self.name.clone(),
                         metadata.input_fields_as_struct().into(),
                         metadata.output_type.clone().into(),
                         instructions,
@@ -268,6 +266,7 @@ impl Bytecode {
                     )
                 }
                 None => BytecodeProgram::new_circuit(
+                    self.name.clone(),
                     metadata.input_fields_as_struct().into(),
                     metadata.output_type.clone().into(),
                     instructions,
@@ -324,6 +323,7 @@ impl Bytecode {
                         .collect();
 
                     BytecodeProgram::new_contract_unit_test(
+                        self.name.clone(),
                         instructions,
                         storage,
                         BytecodeUnitTest::new(
@@ -334,6 +334,7 @@ impl Bytecode {
                     )
                 }
                 None => BytecodeProgram::new_circuit_unit_test(
+                    self.name.clone(),
                     instructions,
                     BytecodeUnitTest::new(test.name.clone(), test.should_panic, test.is_ignored),
                 ),
@@ -348,14 +349,10 @@ impl Bytecode {
 
     fn print_instructions(instructions: &[Instruction]) {
         for (index, instruction) in instructions.iter().enumerate() {
-            match instruction {
-                instruction @ Instruction::FileMarker(_)
-                | instruction @ Instruction::FunctionMarker(_)
-                | instruction @ Instruction::LineMarker(_)
-                | instruction @ Instruction::ColumnMarker(_) => {
-                    log::trace!("{:03} {:?}", index, instruction)
-                }
-                instruction => log::debug!("{:03} {:?}", index, instruction),
+            if instruction.is_debug() {
+                log::trace!("{:03} {:?}", index, instruction)
+            } else {
+                log::debug!("{:03} {:?}", index, instruction)
             }
         }
     }

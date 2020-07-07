@@ -8,10 +8,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use mongodb::Client as MongoClient;
 use serde_json::Value as JsonValue;
 
 use zinc_compiler::SourceString;
+use zinc_mongo::Client as MongoClient;
 
 use self::program::entry::Entry;
 use self::program::Program;
@@ -19,9 +19,8 @@ use self::program::Program;
 ///
 /// The Zinc server shared application data.
 ///
-#[derive(Debug, Clone)]
 pub struct SharedData {
-    /// The MongoDB connection options.
+    /// The MongoDB async client.
     pub mongodb_client: MongoClient,
     /// The published programs storage.
     pub programs: HashMap<String, Program>,

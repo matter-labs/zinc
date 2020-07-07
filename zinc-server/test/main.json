@@ -4,7 +4,7 @@
         "modules": {
             "main": {
                 "path": "main.zn",
-                "code": "contract Test { a: u8; b: u8; c: u8; fn main() -> u8 { 42 } }"
+                "code": "struct Data { b: u8, c: u8, a: u8 } contract Test { utysdrgtb: u8; adfvasd: Data; hghdvas: u8; osgdfg: Data; zdadfsd: u8; badsfa: Data; pub fn main(self) -> u8 { self.utysdrgtb * 2 } }"
             }
         }        
     }

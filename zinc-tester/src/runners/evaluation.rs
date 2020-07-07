@@ -60,22 +60,27 @@ impl IRunnable for Runner {
                 continue;
             }
 
-            let program =
-                match Program::new(file.code.as_str(), path.to_owned(), case.entry, case.input) {
-                    Ok(program) => program,
-                    Err(error) => {
-                        summary.lock().expect(zinc_const::panic::MUTEX_SYNC).invalid += 1;
-                        println!(
-                            "[INTEGRATION] {} {} ({})",
-                            "INVALID".red(),
-                            case_name,
-                            error
-                        );
-                        continue;
-                    }
-                };
+            let program = match Program::new(
+                case_name.clone(),
+                file.code.as_str(),
+                path.to_owned(),
+                case.entry,
+                case.input,
+            ) {
+                Ok(program) => program,
+                Err(error) => {
+                    summary.lock().expect(zinc_const::panic::MUTEX_SYNC).invalid += 1;
+                    println!(
+                        "[INTEGRATION] {} {} ({})",
+                        "INVALID".red(),
+                        case_name,
+                        error
+                    );
+                    continue;
+                }
+            };
 
-            match program.bytecode.run::<Bn256>(program.witness) {
+            match program.bytecode.run::<Bn256>(program.witness, None) {
                 Ok(output) => {
                     let output_json = output.into_json();
 

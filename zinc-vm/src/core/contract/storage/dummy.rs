@@ -40,7 +40,6 @@ impl<E: IEngine> Storage<E> {
             result.leaf_values[index] = values;
         }
         result.update_tree();
-
         result
     }
 

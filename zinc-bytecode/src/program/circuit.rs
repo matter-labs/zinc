@@ -14,6 +14,8 @@ use crate::program::unit_test::UnitTest;
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Circuit {
+    /// The circuit name.
+    pub name: String,
     /// The circuit entry input arguments structure type.
     pub input: DataType,
     /// The circuit entry output type.
@@ -29,12 +31,14 @@ impl Circuit {
     /// Creates a circuit program instance.
     ///
     pub fn new(
+        name: String,
         input: DataType,
         output: DataType,
         instructions: Vec<Instruction>,
         unit_test: Option<UnitTest>,
     ) -> Self {
         Self {
+            name,
             input,
             output,
             instructions,

@@ -25,11 +25,12 @@ rand = "0.4"
 hex = "0.4"
 sha2 = "0.9"
 
-num-bigint = "0.2"
+num-bigint = "0.3"
 num-traits = "0.2"
 
 franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc" }
 
+zinc-mongo = { path = "../zinc-mongo" }
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }
 zinc-bytecode = { path = "../zinc-bytecode" }

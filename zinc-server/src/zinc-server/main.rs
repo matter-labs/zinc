@@ -8,9 +8,8 @@ mod error;
 use actix_web::middleware;
 use actix_web::App;
 use actix_web::HttpServer;
-use mongodb::options::ClientOptions as MongoClientOptions;
-use mongodb::Client as MongoClient;
 
+use zinc_mongo::Client as MongoClient;
 use zinc_server::SharedData;
 
 use self::arguments::Arguments;
@@ -26,19 +25,11 @@ async fn main() -> Result<(), Error> {
     zinc_utils::logger::initialize(zinc_const::app_name::ZINC_SERVER, args.verbosity);
 
     let data = SharedData::new(
-        MongoClient::with_options(
-            MongoClientOptions::parse(
-                format!(
-                    "mongodb://{}:{}",
-                    args.mongodb_host,
-                    args.mongodb_port.unwrap_or(zinc_const::mongodb::PORT)
-                )
-                .as_str(),
-            )
-            .await
-            .map_err(Error::MongoDbOptions)?,
+        MongoClient::new(
+            args.mongodb_host,
+            args.mongodb_port.unwrap_or(zinc_const::mongodb::PORT),
         )
-        .map_err(Error::MongoDbClient)?,
+        .await,
     )
     .wrap();
 

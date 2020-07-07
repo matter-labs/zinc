@@ -48,7 +48,13 @@ pub async fn handle(
         Err(error) => return Response::new_error(Error::InputError(error)),
     };
 
-    let output = match entry.program.run::<Bn256>(input) {
+    let mongo_client = app_data
+        .read()
+        .expect(zinc_const::panic::MUTEX_SYNC)
+        .mongodb_client
+        .clone();
+
+    let output = match entry.program.run::<Bn256>(input, Some(mongo_client)) {
         Ok(output) => output.into_json(),
         Err(error) => return Response::new_error(Error::RuntimeError(error)),
     };

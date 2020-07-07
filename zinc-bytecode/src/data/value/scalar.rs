@@ -13,7 +13,7 @@ use crate::data::r#type::scalar::integer::Type as IntegerType;
 ///
 /// The Zinc VM template scalar value.
 ///
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Value {
     /// Represented with JSON boolean.
     Boolean(bool),

@@ -14,6 +14,8 @@ use crate::program::unit_test::UnitTest;
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Contract {
+    /// The circuit name.
+    pub name: String,
     /// The contract entry input arguments structure type.
     pub input: DataType,
     /// The contract entry output type.
@@ -31,6 +33,7 @@ impl Contract {
     /// Creates a contract program instance.
     ///
     pub fn new(
+        name: String,
         input: DataType,
         output: DataType,
         instructions: Vec<Instruction>,
@@ -38,6 +41,7 @@ impl Contract {
         unit_test: Option<UnitTest>,
     ) -> Self {
         Self {
+            name,
             input,
             output,
             instructions,

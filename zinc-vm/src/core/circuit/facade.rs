@@ -16,6 +16,7 @@ use franklin_crypto::circuit::test::TestConstraintSystem;
 use zinc_bytecode::Circuit as BytecodeCircuit;
 use zinc_bytecode::TemplateValue;
 use zinc_const::UnitTestExitCode;
+use zinc_mongo::Client as MongoClient;
 
 use crate::constraint_systems::debug::DebugCS;
 use crate::core::circuit::synthesizer::Synthesizer as CircuitSynthesizer;
@@ -27,7 +28,11 @@ use crate::error::TypeSizeError;
 use crate::IEngine;
 
 impl IFacade for BytecodeCircuit {
-    fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
+    fn run<E: IEngine>(
+        self,
+        input: TemplateValue,
+        _mongo_client: Option<MongoClient>,
+    ) -> Result<TemplateValue, RuntimeError> {
         let cs = DebugCS::<Bn256>::default();
 
         let inputs_flat = input.into_flat_values();

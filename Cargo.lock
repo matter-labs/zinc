@@ -576,9 +576,9 @@ checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
 name = "chrono"
-version = "0.4.12"
+version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0fee792e164f78f5fe0c296cc2eb3688a2ca2b70cdff33040922d298203f0c4"
+checksum = "c74d84029116787153e02106bf53e66828452a4b325cc8652b788b5967c0a0b6"
 dependencies = [
  "num-integer",
  "num-traits",
@@ -1181,9 +1181,9 @@ dependencies = [
 
 [[package]]
 name = "hermit-abi"
-version = "0.1.14"
+version = "0.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9586eedd4ce6b3c498bc3b4dd92fc9f11166aa908a914071953768066c67909"
+checksum = "3deed196b6e7f9e44a2ae8d94225d80302d81208b1bb673fd21fe634645c85a9"
 dependencies = [
  "libc",
 ]
@@ -1560,7 +1560,6 @@ dependencies = [
  "autocfg",
  "num-integer",
  "num-traits",
- "serde",
 ]
 
 [[package]]
@@ -1572,6 +1571,7 @@ dependencies = [
  "autocfg",
  "num-integer",
  "num-traits",
+ "serde",
 ]
 
 [[package]]
@@ -2197,9 +2197,9 @@ checksum = "c111b5bd5695e56cffe5129854aa230b39c93a305372fdbb2668ca2394eea9f8"
 
 [[package]]
 name = "smallvec"
-version = "1.4.0"
+version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7cb5678e1615754284ec264d9bb5b4c27d2018577fd90ac0ceb578591ed5ee4"
+checksum = "3757cb9d89161a2f24e1cf78efa0c1fcff485d18e3f55e0aa3480824ddaa0f3f"
 
 [[package]]
 name = "socket2"
@@ -2854,7 +2854,7 @@ dependencies = [
  "bson",
  "failure",
  "log",
- "num-bigint 0.2.6",
+ "num-bigint 0.3.0",
  "num-traits",
  "serde",
  "serde_derive",
@@ -2869,7 +2869,7 @@ dependencies = [
  "colored",
  "lazy_static",
  "log",
- "num-bigint 0.2.6",
+ "num-bigint 0.3.0",
  "num-traits",
  "petgraph",
  "serde",
@@ -2886,15 +2886,30 @@ name = "zinc-const"
 version = "0.1.5"
 
 [[package]]
+name = "zinc-mongo"
+version = "0.1.5"
+dependencies = [
+ "bson",
+ "failure",
+ "futures 0.3.5",
+ "mongodb",
+ "num-bigint 0.3.0",
+ "num-traits",
+ "serde",
+ "serde_derive",
+ "zinc-const",
+]
+
+[[package]]
 name = "zinc-server"
 version = "0.1.5"
 dependencies = [
  "actix-rt",
  "actix-web",
+ "bson",
  "failure",
  "futures 0.3.5",
  "log",
- "mongodb",
  "serde",
  "serde_derive",
  "serde_json",
@@ -2902,6 +2917,7 @@ dependencies = [
  "zinc-bytecode",
  "zinc-compiler",
  "zinc-const",
+ "zinc-mongo",
  "zinc-utils",
  "zinc-vm",
 ]
@@ -2920,6 +2936,7 @@ dependencies = [
  "zinc-bytecode",
  "zinc-compiler",
  "zinc-const",
+ "zinc-mongo",
  "zinc-vm",
 ]
 
@@ -2930,7 +2947,7 @@ dependencies = [
  "colored",
  "env_logger",
  "log",
- "num-bigint 0.2.6",
+ "num-bigint 0.3.0",
  "num-traits",
  "zinc-const",
 ]
@@ -2946,7 +2963,7 @@ dependencies = [
  "hex 0.4.2",
  "lazy_static",
  "log",
- "num-bigint 0.2.6",
+ "num-bigint 0.3.0",
  "num-traits",
  "rand 0.4.6",
  "serde_json",
@@ -2954,5 +2971,6 @@ dependencies = [
  "structopt",
  "zinc-bytecode",
  "zinc-const",
+ "zinc-mongo",
  "zinc-utils",
 ]

@@ -45,13 +45,30 @@ impl Source {
     }
 
     ///
-    /// Initializes an application module representation from the file system.
+    /// Initializes the entry application module representation from the file system.
     ///
-    pub fn try_from_path(path: &PathBuf, is_entry: bool) -> Result<Self, Error> {
+    pub fn try_from_entry(path: &PathBuf) -> Result<Self, Error> {
         let file_type = fs::metadata(path).map_err(Error::FileMetadata)?.file_type();
 
         if file_type.is_dir() {
-            return Directory::try_from_path(path, is_entry).map(Self::Directory);
+            return Directory::try_from_path(path, true).map(Self::Directory);
+        }
+
+        if file_type.is_file() {
+            return File::try_from_path(path).map(Self::File);
+        }
+
+        Err(Error::FileTypeUnknown)
+    }
+
+    ///
+    /// Initializes an application module representation from the file system.
+    ///
+    pub fn try_from_path(path: &PathBuf) -> Result<Self, Error> {
+        let file_type = fs::metadata(path).map_err(Error::FileMetadata)?.file_type();
+
+        if file_type.is_dir() {
+            return Directory::try_from_path(path, false).map(Self::Directory);
         }
 
         if file_type.is_file() {
@@ -65,10 +82,10 @@ impl Source {
     /// Gets all the intermediate represenation scattered around the application scope tree and
     /// writes it to the bytecode.
     ///
-    pub fn compile(self) -> Result<Rc<RefCell<Bytecode>>, Error> {
+    pub fn compile(self, name: String) -> Result<Rc<RefCell<Bytecode>>, Error> {
         match self {
-            Self::File(inner) => inner.compile(),
-            Self::Directory(inner) => inner.compile(),
+            Self::File(inner) => inner.compile(name),
+            Self::Directory(inner) => inner.compile(name),
         }
     }
 
