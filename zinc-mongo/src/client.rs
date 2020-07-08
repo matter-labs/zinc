@@ -51,6 +51,28 @@ impl Client {
     }
 
     ///
+    /// Returns a contract storage data from the collection
+    ///
+    pub async fn update_storage(&self, name: &str, storage: Storage) -> Result<(), Error> {
+        let collection = self
+            .inner
+            .database(zinc_const::mongodb::DATABASE)
+            .collection(name);
+
+        collection
+            .update_one(
+                bson::doc! {},
+                mongodb::options::UpdateModifications::Document(bson::doc! {
+                    "storage": storage.data,
+                }),
+                None,
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    ///
     /// Removes all the records from the `name` collection and writes the `record` thereto.
     ///
     pub async fn rewrite_collection(&self, name: &str, record: BsonDocument) -> Result<(), Error> {

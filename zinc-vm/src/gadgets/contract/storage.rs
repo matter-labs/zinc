@@ -174,6 +174,10 @@ where
     pub fn root_hash(&self) -> Result<Scalar<E>, RuntimeError> {
         Ok(self.root_hash.clone())
     }
+
+    pub fn into_storage(self) -> S {
+        self.storage
+    }
 }
 
 #[cfg(test)]

@@ -1,3 +1,5 @@
 {
-    "input": {}
+    "input": {
+        "amount": "42"
+    }
 }

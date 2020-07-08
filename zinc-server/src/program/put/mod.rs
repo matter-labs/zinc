@@ -16,6 +16,7 @@ use zinc_bytecode::DataType;
 use zinc_bytecode::TemplateValue;
 use zinc_compiler::Bytecode;
 use zinc_compiler::Source;
+use zinc_mongo::Storage as MongoStorage;
 
 use crate::response::Response;
 use crate::shared_data::program::Program;
@@ -60,10 +61,9 @@ pub async fn handle(
 
     let (program, record) = match bytecode.contract_storage() {
         Some(contract_storage) => {
-            let storage = zinc_mongo::Storage::from_bson(
-                TemplateValue::new(DataType::Contract(contract_storage.clone())).into_bson(),
-            )
-            .into_bson();
+            let r#type = DataType::Contract(contract_storage.clone());
+            let storage =
+                MongoStorage::from_bson(TemplateValue::new(r#type).into_bson()).into_bson();
             let record = bson::doc! {
                 "source": source,
                 "storage": storage,

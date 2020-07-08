@@ -15,6 +15,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_bytecode::Contract as BytecodeContract;
+use zinc_bytecode::DataType;
 use zinc_bytecode::TemplateValue;
 use zinc_const::UnitTestExitCode;
 use zinc_mongo::Client as MongoClient;
@@ -30,6 +31,7 @@ use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::error::TypeSizeError;
 use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
+use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::contract::storage::StorageGadget;
 use crate::IEngine;
 
@@ -41,22 +43,21 @@ impl IFacade for BytecodeContract {
     ) -> Result<TemplateValue, RuntimeError> {
         let mut cs = DebugCS::<Bn256>::default();
 
+        let mongo_client = mongo_client.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
+        let name = self.name.clone();
+
         let inputs_flat = witness.into_flat_values();
         let output_type = self.output.to_owned();
 
-        let storage_types = self
+        let storage_types: Vec<DataType> = self
             .storage
             .iter()
             .map(|(_name, r#type)| r#type.to_owned())
             .collect();
-        let storage_values = zinc_mongo::wait(
-            mongo_client
-                .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
-                .get_storage(self.name.as_str()),
-        )
-        .map_err(RuntimeError::MongoDb)?
-        .into_flat_bigints();
-        let storage = MongoStorage::new(storage_types, storage_values);
+        let storage_values = zinc_mongo::wait(mongo_client.get_storage(name.as_str()))
+            .map_err(RuntimeError::MongoDb)?
+            .into_flat_bigints();
+        let storage = MongoStorage::new(storage_types.clone(), storage_values);
 
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
@@ -84,6 +85,11 @@ impl IFacade for BytecodeContract {
         if !cs.is_satisfied() {
             return Err(RuntimeError::UnsatisfiedConstraint);
         }
+
+        let storage_values = contract.into_storage().into_values();
+        let storage = zinc_mongo::Storage::from_flat_values(storage_types, storage_values);
+        zinc_mongo::wait(mongo_client.update_storage(name.as_str(), storage))
+            .map_err(RuntimeError::MongoDb)?;
 
         let output_flat = result
             .into_iter()

@@ -1,4 +1,5 @@
 use num_bigint::BigInt;
+use num_bigint::ToBigInt;
 use num_traits::ToPrimitive;
 
 use franklin_crypto::bellman::pairing::ff::Field;
@@ -64,6 +65,20 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
             None,
             self.depth,
         ))
+    }
+
+    fn into_values(self) -> Vec<Vec<BigInt>> {
+        self.leaf_values
+            .into_iter()
+            .map(|field| {
+                field
+                    .into_iter()
+                    .map(|scalar| {
+                        Scalar::to_bigint(&scalar).expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+                    })
+                    .collect()
+            })
+            .collect()
     }
 
     fn root_hash(&self) -> E::Fr {

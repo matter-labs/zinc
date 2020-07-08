@@ -125,6 +125,10 @@ where
         self.get_outputs()
     }
 
+    fn into_storage(self) -> S {
+        self.storage.into_storage()
+    }
+
     fn init_storage(&mut self) -> Result<(), RuntimeError> {
         // Temporary fix to avoid "unconstrained" error
         let root_hash = self.storage.root_hash()?;

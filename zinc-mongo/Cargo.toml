@@ -18,3 +18,4 @@ futures = "0.3"
 mongodb = "1.0"
 
 zinc-const = { path = "../zinc-const" }
+zinc-bytecode = { path = "../zinc-bytecode" }

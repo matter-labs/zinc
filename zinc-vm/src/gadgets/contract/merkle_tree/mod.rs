@@ -24,6 +24,11 @@ pub trait IMerkleTree<E: IEngine> {
     ) -> Result<StorageLeaf<E>, RuntimeError>;
 
     ///
+    /// Returns the storage values.
+    ///
+    fn into_values(self) -> Vec<Vec<BigInt>>;
+
+    ///
     /// Returns the Merkle tree root hash.
     ///
     fn root_hash(&self) -> E::Fr;
