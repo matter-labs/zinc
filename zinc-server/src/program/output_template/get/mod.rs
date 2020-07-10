@@ -33,7 +33,7 @@ pub async fn handle(
         .get_program_entry_output_template(query.name.as_str(), query.entry.as_str());
 
     match template {
-        Some(template) => Response::new_success_with_data(StatusCode::OK, template),
-        None => Response::new_error(Error::NotFound),
+        Some(template) => Response::success_with_data(StatusCode::OK, template),
+        None => Response::error(Error::NotFound),
     }
 }

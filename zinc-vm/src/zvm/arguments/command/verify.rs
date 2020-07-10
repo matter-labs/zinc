@@ -4,7 +4,6 @@
 
 use std::fs;
 use std::path::PathBuf;
-use std::process;
 
 use colored::Colorize;
 use structopt::StructOpt;
@@ -16,7 +15,7 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
 
-use zinc_vm::IFacade;
+use zinc_vm::Facade;
 
 use crate::arguments::command::IExecutable;
 use crate::error::Error;
@@ -71,19 +70,18 @@ impl IExecutable for Command {
         let output_text = fs::read_to_string(&self.public_data_path)
             .error_with_path(|| self.public_data_path.to_string_lossy())?;
         let output_value = serde_json::from_str(output_text.as_str())?;
-        let output_struct = TemplateValue::from_typed_json(output_value, program.output())?;
+        let output_struct = TemplateValue::try_from_typed_json(output_value, program.output())?;
 
         // Verify
-        let verified = BytecodeProgram::verify::<Bn256>(key, proof, output_struct)?;
+        let verified = Facade::verify::<Bn256>(key, proof, output_struct)?;
 
-        if verified {
+        Ok(if verified {
             println!("{}", "✔  Verified".bold().green());
+            zinc_const::exit_code::SUCCESS as i32
         } else {
             println!("{}", "✘  Failed".bold().red());
-            process::exit(1);
-        }
-
-        Ok(zinc_const::exit_code::SUCCESS as i32)
+            zinc_const::exit_code::FAILURE as i32
+        })
     }
 }
 

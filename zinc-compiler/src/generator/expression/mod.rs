@@ -16,9 +16,9 @@ use zinc_bytecode::FunctionIdentifier;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::ScalarType;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::operand::place::Place;
+use crate::generator::state::State;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
@@ -57,7 +57,7 @@ impl Expression {
         self.elements.push(Element::Operator { location, operator })
     }
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         for element in self.elements.into_iter() {
             match element {
                 Element::Operand(operand) => {
@@ -381,7 +381,7 @@ impl Expression {
     }
 
     fn assignment(
-        bytecode: Rc<RefCell<Bytecode>>,
+        bytecode: Rc<RefCell<State>>,
         mut place: Place,
         expression: Self,
         location: Location,
@@ -495,7 +495,7 @@ impl Expression {
     }
 
     fn assignment_with_operation(
-        bytecode: Rc<RefCell<Bytecode>>,
+        bytecode: Rc<RefCell<State>>,
         mut place: Place,
         expression: Self,
         operation: Instruction,
@@ -649,24 +649,19 @@ impl Expression {
         }
     }
 
-    fn binary(bytecode: Rc<RefCell<Bytecode>>, instruction: Instruction, location: Location) {
+    fn binary(bytecode: Rc<RefCell<State>>, instruction: Instruction, location: Location) {
         bytecode
             .borrow_mut()
             .push_instruction(instruction, Some(location));
     }
 
-    fn unary(bytecode: Rc<RefCell<Bytecode>>, instruction: Instruction, location: Location) {
+    fn unary(bytecode: Rc<RefCell<State>>, instruction: Instruction, location: Location) {
         bytecode
             .borrow_mut()
             .push_instruction(instruction, Some(location));
     }
 
-    fn call(
-        bytecode: Rc<RefCell<Bytecode>>,
-        type_id: usize,
-        input_size: usize,
-        location: Location,
-    ) {
+    fn call(bytecode: Rc<RefCell<State>>, type_id: usize, input_size: usize, location: Location) {
         bytecode.borrow_mut().push_instruction(
             Instruction::Call(zinc_bytecode::Call::new(type_id, input_size)),
             Some(location),
@@ -674,7 +669,7 @@ impl Expression {
     }
 
     fn call_debug(
-        bytecode: Rc<RefCell<Bytecode>>,
+        bytecode: Rc<RefCell<State>>,
         format: String,
         input_types: Vec<DataType>,
         location: Location,
@@ -685,7 +680,7 @@ impl Expression {
         );
     }
 
-    fn call_assert(bytecode: Rc<RefCell<Bytecode>>, message: Option<String>, location: Location) {
+    fn call_assert(bytecode: Rc<RefCell<State>>, message: Option<String>, location: Location) {
         bytecode.borrow_mut().push_instruction(
             Instruction::Assert(zinc_bytecode::Assert::new(message)),
             Some(location),
@@ -693,7 +688,7 @@ impl Expression {
     }
 
     fn call_standard_library(
-        bytecode: Rc<RefCell<Bytecode>>,
+        bytecode: Rc<RefCell<State>>,
         identifier: FunctionIdentifier,
         input_size: usize,
         output_size: usize,

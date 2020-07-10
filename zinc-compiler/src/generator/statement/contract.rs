@@ -5,8 +5,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::r#type::Type;
+use crate::generator::state::State;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type as SemanticType;
 
@@ -33,7 +33,7 @@ impl Statement {
         }
     }
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         bytecode.borrow_mut().set_contract_storage(self.fields)
     }
 }

@@ -9,8 +9,8 @@ use std::collections::HashMap;
 use zinc_bytecode::DataType;
 use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue as BytecodeTemplateValue;
-use zinc_compiler::Bytecode;
 use zinc_compiler::SourceString;
+use zinc_compiler::State;
 
 use self::entry::Entry;
 
@@ -60,7 +60,7 @@ impl Program {
         self.entries.get(name)
     }
 
-    pub fn from_bytecode(bytecode: Bytecode) -> HashMap<String, Entry> {
+    pub fn from_bytecode(bytecode: State) -> HashMap<String, Entry> {
         bytecode
             .into_entries()
             .into_iter()

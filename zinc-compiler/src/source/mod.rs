@@ -13,7 +13,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
 
-use crate::generator::bytecode::Bytecode;
+use crate::generator::state::State;
 
 use self::directory::Directory;
 use self::error::Error;
@@ -82,7 +82,7 @@ impl Source {
     /// Gets all the intermediate represenation scattered around the application scope tree and
     /// writes it to the bytecode.
     ///
-    pub fn compile(self, name: String) -> Result<Rc<RefCell<Bytecode>>, Error> {
+    pub fn compile(self, name: String) -> Result<Rc<RefCell<State>>, Error> {
         match self {
             Self::File(inner) => inner.compile(name),
             Self::Directory(inner) => inner.compile(name),

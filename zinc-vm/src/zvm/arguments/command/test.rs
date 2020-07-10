@@ -11,7 +11,8 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 
 use zinc_bytecode::Program as BytecodeProgram;
 
-use zinc_vm::IFacade;
+use zinc_vm::CircuitFacade;
+use zinc_vm::ContractFacade;
 
 use crate::arguments::command::IExecutable;
 use crate::error::Error;
@@ -37,7 +38,10 @@ impl IExecutable for Command {
         let program =
             BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
-        let status = program.test::<Bn256>()?;
+        let status = match program {
+            BytecodeProgram::Circuit(circuit) => CircuitFacade::new(circuit).test::<Bn256>()?,
+            BytecodeProgram::Contract(contract) => ContractFacade::new(contract).test::<Bn256>()?,
+        };
 
         Ok(status as i32)
     }

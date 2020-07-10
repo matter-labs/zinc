@@ -14,7 +14,7 @@ use zinc_bytecode::Contract as BytecodeContract;
 
 use crate::constraint_systems::dedup::DedupCS;
 use crate::constraint_systems::logging::LoggingCS;
-use crate::core::contract::Contract;
+use crate::core::contract::State;
 use crate::error::RuntimeError;
 use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
@@ -41,7 +41,7 @@ where
             self.storage,
         )?;
 
-        let mut contract = Contract::new(DedupCS::new(LoggingCS::new(cs)), storage, false);
+        let mut contract = State::new(DedupCS::new(LoggingCS::new(cs)), storage, false);
         *self.output =
             Some(contract.run(self.bytecode, self.inputs.as_deref(), |_| {}, |_| Ok(())));
 

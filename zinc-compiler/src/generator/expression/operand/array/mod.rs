@@ -8,8 +8,8 @@ pub mod variant;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::Expression as GeneratorExpression;
+use crate::generator::state::State;
 
 use self::variant::Variant;
 
@@ -34,7 +34,7 @@ impl Expression {
         }
     }
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         match self.variant {
             Variant::List { expressions } => {
                 for expression in expressions.into_iter() {

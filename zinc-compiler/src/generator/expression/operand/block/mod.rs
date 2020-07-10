@@ -7,8 +7,8 @@ pub mod builder;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::Expression as GeneratorExpression;
+use crate::generator::state::State;
 use crate::generator::statement::Statement;
 
 ///
@@ -28,7 +28,7 @@ impl Expression {
         }
     }
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         for statement in self.statements.into_iter() {
             statement.write_all_to_bytecode(bytecode.clone());
         }

@@ -33,7 +33,7 @@ pub async fn handle(
         .get_program_source(query.name.as_str());
 
     match source {
-        Some(source) => Response::new_success_with_data(StatusCode::OK, source),
-        None => Response::new_error(Error::NotFound),
+        Some(source) => Response::success_with_data(StatusCode::OK, source),
+        None => Response::error(Error::NotFound),
     }
 }

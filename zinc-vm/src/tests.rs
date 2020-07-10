@@ -17,11 +17,11 @@ use zinc_bytecode::Circuit as BytecodeCircuit;
 use zinc_bytecode::DataType;
 use zinc_bytecode::Instruction;
 
-use crate::core::circuit::Circuit;
+use crate::core::circuit::State;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 
-type TestVirtualMachine = Circuit<Bn256, TestConstraintSystem<Bn256>>;
+type TestVirtualMachine = State<Bn256, TestConstraintSystem<Bn256>>;
 
 fn new_test_constrained_vm() -> TestVirtualMachine {
     let cs = TestConstraintSystem::new();

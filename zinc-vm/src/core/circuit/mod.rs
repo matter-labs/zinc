@@ -32,7 +32,7 @@ use crate::instructions::call_std::INativeCallable;
 use crate::instructions::IExecutable;
 use crate::IEngine;
 
-pub struct Circuit<E, CS>
+pub struct State<E, CS>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -45,7 +45,7 @@ where
     pub(crate) location: Location,
 }
 
-impl<E, CS> Circuit<E, CS>
+impl<E, CS> State<E, CS>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -169,7 +169,7 @@ where
     }
 }
 
-impl<E, CS> IVirtualMachine for Circuit<E, CS>
+impl<E, CS> IVirtualMachine for State<E, CS>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -205,7 +205,7 @@ where
         _address: Scalar<Self::E>,
         _size: usize,
     ) -> Result<Vec<Scalar<Self::E>>, RuntimeError> {
-        unimplemented!()
+        Err(RuntimeError::OnlyForContracts)
     }
 
     fn storage_store(
@@ -213,7 +213,7 @@ where
         _address: Scalar<Self::E>,
         _value: Vec<Scalar<Self::E>>,
     ) -> Result<(), RuntimeError> {
-        unimplemented!()
+        Err(RuntimeError::OnlyForContracts)
     }
 
     fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {

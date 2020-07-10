@@ -32,9 +32,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                     flat.push(value);
                 }
                 flat.reverse();
-                let value = TemplateValue::new_from_flat_values(argument_type, &flat)
-                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
-                values.push(value);
+                values.push(TemplateValue::from_flat_values(argument_type, &flat));
             };
         }
 

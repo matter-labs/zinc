@@ -2882,6 +2882,7 @@ dependencies = [
  "num-traits",
  "serde",
  "serde_derive",
+ "tokio",
  "zinc-bytecode",
  "zinc-const",
 ]
@@ -2922,7 +2923,6 @@ dependencies = [
  "zinc-bytecode",
  "zinc-compiler",
  "zinc-const",
- "zinc-mongo",
  "zinc-vm",
 ]
 

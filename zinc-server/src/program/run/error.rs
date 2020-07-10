@@ -17,6 +17,7 @@ use zinc_vm::RuntimeError;
 pub enum Error {
     NotFound,
     InputError(TemplateValueError),
+    MongoDb(zinc_mongo::Error),
     RuntimeError(RuntimeError),
 }
 
@@ -25,6 +26,7 @@ impl ResponseError for Error {
         match self {
             Self::NotFound => StatusCode::NOT_FOUND,
             Self::InputError(_) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::MongoDb(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::RuntimeError(_) => StatusCode::UNPROCESSABLE_ENTITY,
         }
     }
@@ -44,6 +46,7 @@ impl fmt::Display for Error {
         match self {
             Self::NotFound => write!(f, "Not found"),
             Self::InputError(inner) => write!(f, "Invalid input: {}", inner),
+            Self::MongoDb(inner) => write!(f, "MongoDB: {}", inner),
             Self::RuntimeError(inner) => write!(f, "Runtime error: {}", inner),
         }
     }

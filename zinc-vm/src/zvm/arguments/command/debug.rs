@@ -12,7 +12,8 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
 
-use zinc_vm::IFacade;
+use zinc_vm::CircuitFacade;
+use zinc_vm::ContractFacade;
 
 use crate::arguments::command::IExecutable;
 use crate::error::Error;
@@ -49,10 +50,16 @@ impl IExecutable for Command {
         let input_text = fs::read_to_string(&self.witness_path)
             .error_with_path(|| self.witness_path.to_string_lossy())?;
         let json = serde_json::from_str(&input_text)?;
-        let input = TemplateValue::from_typed_json(json, program.input())?;
+        let input = TemplateValue::try_from_typed_json(json, program.input())?;
 
-        let output = program.debug::<Bn256>(input)?;
-
+        let output = match program {
+            BytecodeProgram::Circuit(circuit) => {
+                CircuitFacade::new(circuit).debug::<Bn256>(input)?
+            }
+            BytecodeProgram::Contract(contract) => {
+                ContractFacade::new(contract).debug::<Bn256>(input)?
+            }
+        };
         let output_json = serde_json::to_string_pretty(&output.into_json())? + "\n";
         fs::write(&self.public_data_path, &output_json)
             .error_with_path(|| self.public_data_path.to_string_lossy())?;

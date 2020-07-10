@@ -13,7 +13,7 @@ use zinc_bytecode::Instruction;
 use zinc_bytecode::Push;
 use zinc_bytecode::ScalarType;
 
-use crate::generator::bytecode::Bytecode;
+use crate::generator::state::State;
 use crate::semantic::element::constant::boolean::Boolean as SemanticBooleanConstant;
 
 #[derive(Debug, Clone)]
@@ -30,7 +30,7 @@ impl Boolean {
         Self::new(boolean.inner)
     }
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         let value = if self.inner {
             BigInt::one()
         } else {

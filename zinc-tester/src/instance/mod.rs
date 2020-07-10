@@ -1,5 +1,5 @@
 //!
-//! The Zinc tester program.
+//! The Zinc tester instance.
 //!
 
 pub mod error;
@@ -11,27 +11,27 @@ use serde_json::Value as JsonValue;
 
 use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
-use zinc_compiler::Bytecode;
 use zinc_compiler::EntryAnalyzer;
 use zinc_compiler::Error as CompilerError;
-use zinc_compiler::Program as IntermediateProgram;
+use zinc_compiler::Module as IntermediateProgram;
 use zinc_compiler::Source;
+use zinc_compiler::State;
 
 use self::error::Error;
 
 ///
-/// The compiled Zinc program.
+/// The compiled Zinc instance.
 ///
-pub struct Program {
+pub struct Instance {
     /// The witness input data template value.
     pub witness: TemplateValue,
-    /// The program bytecode with metadata.
-    pub bytecode: BytecodeProgram,
+    /// The instance bytecode with metadata.
+    pub program: BytecodeProgram,
 }
 
-impl Program {
+impl Instance {
     ///
-    /// Creates a test program instance.
+    /// Creates a test instance instance.
     ///
     pub fn new(
         name: String,
@@ -45,11 +45,11 @@ impl Program {
             .map_err(|error| error.format())
             .map_err(Error::Compiler)?;
 
-        let bytecode = Bytecode::new(name).wrap();
+        let bytecode = State::new(name).wrap();
         IntermediateProgram::new(scope.borrow().get_intermediate())
             .write_all_to_bytecode(bytecode.clone());
 
-        let entry = Bytecode::unwrap_rc(bytecode)
+        let entry = State::unwrap_rc(bytecode)
             .into_entries()
             .remove(entry.as_str())
             .ok_or_else(|| Error::EntryNotFound(entry))?;
@@ -57,9 +57,12 @@ impl Program {
         let bytecode = BytecodeProgram::from_bytes(entry.into_bytecode().as_slice())
             .map_err(Error::Program)?;
 
-        let witness = TemplateValue::from_typed_json(witness, bytecode.input())
+        let witness = TemplateValue::try_from_typed_json(witness, bytecode.input())
             .map_err(Error::TemplateValue)?;
 
-        Ok(Self { witness, bytecode })
+        Ok(Self {
+            witness,
+            program: bytecode,
+        })
     }
 }

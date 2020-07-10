@@ -56,6 +56,9 @@ pub enum Error {
         /// The inner `hex` error.
         error: FromHexError,
     },
+
+    #[fail(display = "MongoDB: {}", _0)]
+    MongoDb(zinc_mongo::Error),
 }
 
 impl From<RuntimeError> for Error {

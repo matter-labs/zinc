@@ -7,12 +7,12 @@ use std::rc::Rc;
 
 use zinc_bytecode::Instruction;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::block::Expression as BlockExpression;
 use crate::generator::expression::operand::constant::boolean::Boolean as BooleanConstant;
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::r#type::Type;
+use crate::generator::state::State;
 use crate::lexical::token::location::Location;
 
 use num_bigint::BigInt;
@@ -60,7 +60,7 @@ impl Statement {
         }
     }
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         let index_type =
             Type::integer(self.index_variable_is_signed, self.index_variable_bitlength);
         let index_size = index_type.size();

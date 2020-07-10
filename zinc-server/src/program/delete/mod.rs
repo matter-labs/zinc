@@ -33,7 +33,7 @@ pub async fn handle(
         .remove_program(query.name.as_str())
     {
         Some(program) => program,
-        None => return Response::new_error(Error::NotFound),
+        None => return Response::error(Error::NotFound),
     };
 
     if program.contract_storage.is_some() {
@@ -44,9 +44,9 @@ pub async fn handle(
             .drop_collection(query.name.as_str())
             .await
         {
-            return Response::new_error(Error::MongoDb(error));
+            return Response::error(Error::MongoDb(error));
         }
     }
 
-    Response::<(), _>::new_success(StatusCode::NO_CONTENT)
+    Response::<(), _>::success(StatusCode::NO_CONTENT)
 }

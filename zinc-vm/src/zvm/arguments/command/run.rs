@@ -13,7 +13,8 @@ use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
 use zinc_mongo::Client as MongoClient;
 
-use zinc_vm::IFacade;
+use zinc_vm::CircuitFacade;
+use zinc_vm::ContractFacade;
 
 use crate::arguments::command::IExecutable;
 use crate::error::Error;
@@ -58,18 +59,30 @@ impl IExecutable for Command {
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
         let program =
             BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
+        let name = program.name();
 
         let input_text = fs::read_to_string(&self.witness_path)
             .error_with_path(|| self.witness_path.to_string_lossy())?;
         let json = serde_json::from_str(&input_text)?;
-        let input = TemplateValue::from_typed_json(json, program.input())?;
+        let input = TemplateValue::try_from_typed_json(json, program.input())?;
 
         let mongo_client = zinc_mongo::wait(MongoClient::new(
             self.mongodb_host,
             self.mongodb_port.unwrap_or(zinc_const::mongodb::PORT),
         ));
 
-        let output = program.run::<Bn256>(input, Some(mongo_client))?;
+        let output = match program {
+            BytecodeProgram::Circuit(circuit) => CircuitFacade::new(circuit).run::<Bn256>(input)?,
+            BytecodeProgram::Contract(contract) => {
+                let storage = zinc_mongo::wait(mongo_client.get_storage(name.as_str()))
+                    .map_err(Error::MongoDb)?;
+                let (output, storage) =
+                    ContractFacade::new(contract).run::<Bn256>(input, Some(storage))?;
+                zinc_mongo::wait(mongo_client.update_storage(name.as_str(), storage))
+                    .map_err(Error::MongoDb)?;
+                output
+            }
+        };
 
         let public_data_path = self.public_data_path;
         let output_json = serde_json::to_string_pretty(&output.into_json())? + "\n";

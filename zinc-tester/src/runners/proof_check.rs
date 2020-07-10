@@ -9,13 +9,14 @@ use std::sync::Mutex;
 use colored::Colorize;
 
 use zinc_bytecode::Program as BytecodeProgram;
-
 use zinc_vm::Bn256;
-use zinc_vm::IFacade;
+use zinc_vm::CircuitFacade;
+use zinc_vm::ContractFacade;
+use zinc_vm::Facade;
 
 use crate::file::File;
+use crate::instance::Instance;
 use crate::metadata::Metadata;
-use crate::program::Program;
 use crate::runners::IRunnable;
 use crate::Summary;
 
@@ -62,7 +63,7 @@ impl IRunnable for Runner {
                 continue;
             }
 
-            let program = match Program::new(
+            let instance = match Instance::new(
                 case_name.clone(),
                 file.code.as_str(),
                 path.to_owned(),
@@ -82,7 +83,12 @@ impl IRunnable for Runner {
                 }
             };
 
-            let params = match program.bytecode.clone().setup::<Bn256>() {
+            let params = match match instance.program.clone() {
+                BytecodeProgram::Circuit(circuit) => CircuitFacade::new(circuit).setup::<Bn256>(),
+                BytecodeProgram::Contract(contract) => {
+                    ContractFacade::new(contract).setup::<Bn256>()
+                }
+            } {
                 Ok(params) => params,
                 Err(error) => {
                     summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
@@ -96,10 +102,14 @@ impl IRunnable for Runner {
                 }
             };
 
-            let (output, proof) = match program
-                .bytecode
-                .prove::<Bn256>(params.clone(), program.witness)
-            {
+            let (output, proof) = match match instance.program.clone() {
+                BytecodeProgram::Circuit(circuit) => {
+                    CircuitFacade::new(circuit).prove::<Bn256>(params.clone(), instance.witness)
+                }
+                BytecodeProgram::Contract(contract) => {
+                    ContractFacade::new(contract).prove::<Bn256>(params.clone(), instance.witness)
+                }
+            } {
                 Ok((output, proof)) => {
                     let output_json = output.clone().into_json();
 
@@ -138,7 +148,7 @@ impl IRunnable for Runner {
                 }
             };
 
-            match BytecodeProgram::verify(params.vk, proof, output) {
+            match Facade::verify(params.vk, proof, output) {
                 Ok(success) => {
                     if success {
                         summary.lock().expect(zinc_const::panic::MUTEX_SYNC).passed += 1;

@@ -16,33 +16,34 @@ use franklin_crypto::circuit::test::TestConstraintSystem;
 use zinc_bytecode::Circuit as BytecodeCircuit;
 use zinc_bytecode::TemplateValue;
 use zinc_const::UnitTestExitCode;
-use zinc_mongo::Client as MongoClient;
 
 use crate::constraint_systems::debug::DebugCS;
 use crate::core::circuit::synthesizer::Synthesizer as CircuitSynthesizer;
-use crate::core::circuit::Circuit;
-use crate::core::facade::IFacade;
+use crate::core::circuit::State as CircuitState;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
-use crate::error::TypeSizeError;
 use crate::IEngine;
 
-impl IFacade for BytecodeCircuit {
-    fn run<E: IEngine>(
-        self,
-        input: TemplateValue,
-        _mongo_client: Option<MongoClient>,
-    ) -> Result<TemplateValue, RuntimeError> {
+pub struct Facade {
+    inner: BytecodeCircuit,
+}
+
+impl Facade {
+    pub fn new(inner: BytecodeCircuit) -> Self {
+        Self { inner }
+    }
+
+    pub fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
         let cs = DebugCS::<Bn256>::default();
 
         let inputs_flat = input.into_flat_values();
-        let output_type = self.output.to_owned();
+        let output_type = self.inner.output.to_owned();
 
-        let mut circuit = Circuit::new(cs, true);
+        let mut state = CircuitState::new(cs, true);
 
         let mut num_constraints = 0;
-        let result = circuit.run(
-            self,
+        let result = state.run(
+            self.inner,
             Some(&inputs_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
@@ -58,7 +59,7 @@ impl IFacade for BytecodeCircuit {
             },
         )?;
 
-        let cs = circuit.constraint_system();
+        let cs = state.constraint_system();
         if !cs.is_satisfied() {
             return Err(RuntimeError::UnsatisfiedConstraint);
         }
@@ -68,28 +69,22 @@ impl IFacade for BytecodeCircuit {
             .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
             .collect::<Vec<_>>();
 
-        let value =
-            TemplateValue::new_from_flat_values(output_type, &output_flat).ok_or_else(|| {
-                TypeSizeError::Output {
-                    expected: 0,
-                    actual: 0,
-                }
-            })?;
+        let value = TemplateValue::from_flat_values(output_type, &output_flat);
 
         Ok(value)
     }
 
-    fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
+    pub fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
         let cs = TestConstraintSystem::<Bn256>::new();
 
         let inputs_flat = input.into_flat_values();
-        let output_type = self.output.to_owned();
+        let output_type = self.inner.output.to_owned();
 
-        let mut circuit = Circuit::new(cs, true);
+        let mut state = CircuitState::new(cs, true);
 
         let mut num_constraints = 0;
-        let result = circuit.run(
-            self,
+        let result = state.run(
+            self.inner,
             Some(&inputs_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
@@ -105,7 +100,7 @@ impl IFacade for BytecodeCircuit {
             },
         )?;
 
-        let cs = circuit.constraint_system();
+        let cs = state.constraint_system();
 
         log::debug!("{}", cs.pretty_print());
 
@@ -131,19 +126,14 @@ impl IFacade for BytecodeCircuit {
             .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
             .collect::<Vec<_>>();
 
-        let value =
-            TemplateValue::new_from_flat_values(output_type, &output_flat).ok_or_else(|| {
-                TypeSizeError::Output {
-                    expected: 0,
-                    actual: 0,
-                }
-            })?;
+        let value = TemplateValue::from_flat_values(output_type, &output_flat);
 
         Ok(value)
     }
 
-    fn test<E: IEngine>(mut self) -> Result<UnitTestExitCode, RuntimeError> {
+    pub fn test<E: IEngine>(mut self) -> Result<UnitTestExitCode, RuntimeError> {
         let unit_test = self
+            .inner
             .unit_test
             .take()
             .ok_or(RuntimeError::UnitTestDataMissing)?;
@@ -154,9 +144,9 @@ impl IFacade for BytecodeCircuit {
         }
 
         let cs = TestConstraintSystem::<Bn256>::new();
-        let mut circuit = Circuit::new(cs, true);
+        let mut state = CircuitState::new(cs, true);
 
-        let result = circuit.run(self, Some(&[]), |_| {}, |_| Ok(()));
+        let result = state.run(self.inner, Some(&[]), |_| {}, |_| Ok(()));
         let code = match result {
             Ok(_) if unit_test.should_panic => {
                 println!(
@@ -184,14 +174,14 @@ impl IFacade for BytecodeCircuit {
         Ok(code)
     }
 
-    fn setup<E: IEngine>(self) -> Result<Parameters<E>, RuntimeError> {
+    pub fn setup<E: IEngine>(self) -> Result<Parameters<E>, RuntimeError> {
         let rng = &mut rand::thread_rng();
         let mut result = None;
 
         let synthesizable = CircuitSynthesizer {
             inputs: None,
             output: &mut result,
-            bytecode: self,
+            bytecode: self.inner,
 
             _pd: PhantomData,
         };
@@ -204,7 +194,7 @@ impl IFacade for BytecodeCircuit {
         }
     }
 
-    fn prove<E: IEngine>(
+    pub fn prove<E: IEngine>(
         self,
         params: Parameters<E>,
         witness: TemplateValue,
@@ -213,12 +203,12 @@ impl IFacade for BytecodeCircuit {
         let rng = &mut rand::thread_rng();
 
         let inputs_flat = witness.into_flat_values();
-        let output_type = self.output.to_owned();
+        let output_type = self.inner.output.to_owned();
 
         let synthesizable = CircuitSynthesizer {
             inputs: Some(inputs_flat),
             output: &mut result,
-            bytecode: self,
+            bytecode: self.inner,
 
             _pd: PhantomData,
         };
@@ -237,11 +227,7 @@ impl IFacade for BytecodeCircuit {
                         .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
                         .collect();
 
-                    let value = TemplateValue::new_from_flat_values(output_type, &output_flat)
-                        .ok_or_else(|| TypeSizeError::Output {
-                            expected: 0,
-                            actual: 0,
-                        })?;
+                    let value = TemplateValue::from_flat_values(output_type, &output_flat);
 
                     Ok((value, proof))
                 }

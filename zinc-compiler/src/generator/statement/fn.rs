@@ -7,9 +7,9 @@ use std::rc::Rc;
 
 use zinc_bytecode::Instruction;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::block::Expression;
 use crate::generator::r#type::Type;
+use crate::generator::state::State;
 use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::attribute::Attribute;
 use crate::semantic::element::r#type::Type as SemanticType;
@@ -66,7 +66,7 @@ impl Statement {
         }
     }
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         let output_size = self
             .output_type
             .as_ref()

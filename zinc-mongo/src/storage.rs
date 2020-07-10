@@ -27,6 +27,18 @@ pub struct Storage {
 
 impl Storage {
     ///
+    /// Initializes a storage with zero values.
+    ///
+    pub fn new(types: Vec<DataType>) -> Self {
+        let values: Vec<Vec<BigInt>> = types
+            .iter()
+            .map(|r#type| vec![BigInt::zero(); r#type.size()])
+            .collect();
+
+        Self::from_flat_values(types, values)
+    }
+
+    ///
     /// Converts a BSON document into an array form, which preserves the field order and
     /// can be stored in a persistent storage.
     ///
@@ -49,7 +61,7 @@ impl Storage {
         let storage = values
             .into_iter()
             .zip(types)
-            .map(|(values, r#type)| Self::field_from_flat_values(r#type, values.as_slice()))
+            .filter_map(|(values, r#type)| Self::reshape_field(r#type, values.as_slice()))
             .collect();
 
         Self { data: storage }
@@ -65,54 +77,66 @@ impl Storage {
     ///
     /// Converts the storage into series of `BigInt`s.
     ///
-    pub fn into_flat_bigints(self) -> Vec<Vec<BigInt>> {
+    pub fn into_flat_values(self) -> Vec<Vec<BigInt>> {
         self.data.into_iter().map(Self::flatten_field).collect()
     }
 
     ///
     /// Fills values from slice, returns number of used values or None if there is not enough.
     ///
-    fn field_from_flat_values(r#type: DataType, flat_values: &[BigInt]) -> Bson {
+    fn reshape_field(r#type: DataType, flat_values: &[BigInt]) -> Option<Bson> {
         match r#type {
-            DataType::Scalar(scalar) => match scalar {
-                ScalarType::Field | ScalarType::Integer(_) => {
-                    Bson::String(flat_values.first().unwrap().to_string())
-                }
-                ScalarType::Boolean => {
-                    Bson::Boolean(flat_values.first().unwrap() != &BigInt::from(0))
-                }
+            DataType::Scalar(r#type) => match r#type {
+                ScalarType::Boolean => flat_values
+                    .first()
+                    .cloned()
+                    .map(|value| value != BigInt::zero())
+                    .map(Bson::Boolean),
+                ScalarType::Field | ScalarType::Integer(_) => flat_values
+                    .first()
+                    .map(|value| value.to_string())
+                    .map(Bson::String),
             },
             DataType::Array(r#type, size) => {
                 let mut offset = 0;
                 let mut array = BsonArray::with_capacity(size);
                 for _ in 0..size {
                     let slice = &flat_values[offset..];
-                    offset += r#type.size();
-                    array.push(Self::field_from_flat_values(*r#type.clone(), slice));
+                    let size = r#type.size();
+                    if let Some(value) = Self::reshape_field(*r#type.clone(), slice) {
+                        offset += size;
+                        array.push(value);
+                    }
                 }
-                Bson::Array(array)
+                Some(Bson::Array(array))
             }
             DataType::Tuple(types) => {
                 let mut offset = 0;
-                let mut array = BsonArray::with_capacity(types.len());
+                let mut tuple = BsonArray::with_capacity(types.len());
                 for r#type in types.into_iter() {
                     let slice = &flat_values[offset..];
-                    offset += r#type.size();
-                    array.push(Self::field_from_flat_values(r#type, slice));
+                    let size = r#type.size();
+                    if let Some(value) = Self::reshape_field(r#type, slice) {
+                        offset += size;
+                        tuple.push(value);
+                    }
                 }
-                Bson::Array(array)
+                Some(Bson::Array(tuple))
             }
             DataType::Structure(fields) | DataType::Contract(fields) => {
                 let mut offset = 0;
                 let mut document = BsonDocument::new();
                 for (name, r#type) in fields.into_iter() {
                     let slice = &flat_values[offset..];
-                    offset += r#type.size();
-                    document.insert(name, Self::field_from_flat_values(r#type, slice));
+                    let size = r#type.size();
+                    if let Some(value) = Self::reshape_field(r#type, slice) {
+                        offset += size;
+                        document.insert(name, value);
+                    }
                 }
-                Bson::Document(document)
+                Some(Bson::Document(document))
             }
-            _ => todo!(),
+            _ => None,
         }
     }
 

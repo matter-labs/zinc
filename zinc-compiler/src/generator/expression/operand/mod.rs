@@ -18,8 +18,8 @@ use num_bigint::BigInt;
 
 use zinc_bytecode::Instruction;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
+use crate::generator::state::State;
 use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
 use crate::semantic::element::place::memory_type::MemoryType;
@@ -49,7 +49,7 @@ pub enum Operand {
 }
 
 impl Operand {
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         match self {
             Self::Constant(inner) => inner.write_all_to_bytecode(bytecode),
             Self::Place(mut inner) => match inner.memory_type {

@@ -4,8 +4,8 @@
 
 pub(crate) mod directory;
 pub(crate) mod file;
+pub(crate) mod instance;
 pub(crate) mod metadata;
-pub(crate) mod program;
 pub(crate) mod runners;
 pub(crate) mod summary;
 

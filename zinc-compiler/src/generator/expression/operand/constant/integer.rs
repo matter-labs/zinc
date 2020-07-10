@@ -14,7 +14,7 @@ use zinc_bytecode::IntegerType;
 use zinc_bytecode::Push;
 use zinc_bytecode::ScalarType;
 
-use crate::generator::bytecode::Bytecode;
+use crate::generator::state::State;
 use crate::semantic::element::constant::integer::Integer as SemanticIntegerConstant;
 
 #[derive(Debug, Clone)]
@@ -67,7 +67,7 @@ impl Integer {
         )
     }
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         let scalar_type = match (self.is_signed, self.bitlength) {
             (false, zinc_const::bitlength::FIELD) => ScalarType::Field,
             (is_signed, bitlength) => ScalarType::Integer(IntegerType {

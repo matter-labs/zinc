@@ -9,10 +9,10 @@ use num_bigint::BigInt;
 
 use zinc_bytecode::Instruction;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::Expression;
 use crate::generator::r#type::Type;
+use crate::generator::state::State;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type as SemanticType;
 
@@ -42,7 +42,7 @@ impl Statement {
         })
     }
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         let size = self.r#type.size();
         let address = bytecode.borrow_mut().define_variable(Some(self.name), size);
 

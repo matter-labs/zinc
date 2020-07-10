@@ -11,8 +11,8 @@ use num_traits::Zero;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::ScalarType;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
+use crate::generator::state::State;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
 use crate::semantic::element::place::memory_type::MemoryType;
 use crate::semantic::element::place::Place as SemanticPlace;
@@ -28,7 +28,7 @@ pub struct Place {
 }
 
 impl Place {
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         if !self.elements.is_empty() {
             IntegerConstant::new(BigInt::zero(), false, zinc_const::bitlength::FIELD)
                 .write_all_to_bytecode(bytecode.clone());

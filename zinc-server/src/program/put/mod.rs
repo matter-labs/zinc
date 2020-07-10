@@ -14,8 +14,8 @@ use actix_web::Responder;
 
 use zinc_bytecode::DataType;
 use zinc_bytecode::TemplateValue;
-use zinc_compiler::Bytecode;
 use zinc_compiler::Source;
+use zinc_compiler::State;
 use zinc_mongo::Storage as MongoStorage;
 
 use crate::response::Response;
@@ -46,15 +46,15 @@ pub async fn handle(
         .map_err(|error| error.to_string())
     {
         Ok(source) => source,
-        Err(error) => return Response::new_error(Error::Compiler(error)),
+        Err(error) => return Response::error(Error::Compiler(error)),
     };
 
     let bytecode = match source
         .compile(query.name.clone())
         .map_err(|error| error.to_string())
     {
-        Ok(bytecode) => Bytecode::unwrap_rc(bytecode),
-        Err(error) => return Response::new_error(Error::Compiler(error)),
+        Ok(bytecode) => State::unwrap_rc(bytecode),
+        Err(error) => return Response::error(Error::Compiler(error)),
     };
 
     let source = bson::to_bson(&body.source).expect(zinc_const::panic::DATA_SERIALIZATION);
@@ -95,7 +95,7 @@ pub async fn handle(
         .rewrite_collection(query.name.as_str(), record)
         .await
     {
-        return Response::new_error(Error::MongoDb(error));
+        return Response::error(Error::MongoDb(error));
     }
 
     app_data
@@ -103,7 +103,7 @@ pub async fn handle(
         .expect(zinc_const::panic::MUTEX_SYNC)
         .insert_program(query.name, program);
 
-    Response::<(), _>::new_success(if exists {
+    Response::<(), _>::success(if exists {
         StatusCode::NO_CONTENT
     } else {
         StatusCode::CREATED

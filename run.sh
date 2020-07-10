@@ -58,7 +58,7 @@ cargo fmt --all
 cargo clippy
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG}
 cargo test
-#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL} --proof-check
+cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL} --proof-check
 
 "${ZARGO_PATH}" clean ${LOG_LEVEL} \
     --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"

@@ -9,10 +9,10 @@ use std::rc::Rc;
 
 use zinc_bytecode::Instruction;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::constant::Constant;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::r#type::Type;
+use crate::generator::state::State;
 use crate::lexical::token::location::Location;
 
 ///
@@ -47,7 +47,7 @@ impl Expression {
         }
     }
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         let branch_count = self.branches.len();
         let scrutinee_size = self.scrutinee_type.size();
 

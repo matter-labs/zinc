@@ -10,9 +10,9 @@ use std::fs::File;
 use std::io::Write;
 use std::process;
 
-use zinc_compiler::Bytecode;
 use zinc_compiler::Entry;
 use zinc_compiler::Source;
+use zinc_compiler::State;
 
 use self::arguments::Arguments;
 use self::error::Error;
@@ -47,7 +47,7 @@ fn main_inner() -> Result<(), Error> {
     zinc_utils::logger::initialize(zinc_const::app_name::ZINC_COMPILER, args.verbosity);
 
     let bytecode = Source::try_from_entry(&args.source_path)?.compile("default".to_owned())?;
-    let compiled_entries = Bytecode::unwrap_rc(bytecode).into_entries();
+    let compiled_entries = State::unwrap_rc(bytecode).into_entries();
 
     for (entry_name, entry) in compiled_entries.into_iter() {
         let mut bytecode_path = args.build_path.clone();

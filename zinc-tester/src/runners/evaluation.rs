@@ -8,12 +8,14 @@ use std::sync::Mutex;
 
 use colored::Colorize;
 
+use zinc_bytecode::Program as BytecodeProgram;
 use zinc_vm::Bn256;
-use zinc_vm::IFacade;
+use zinc_vm::CircuitFacade;
+use zinc_vm::ContractFacade;
 
 use crate::file::File;
+use crate::instance::Instance;
 use crate::metadata::Metadata;
-use crate::program::Program;
 use crate::runners::IRunnable;
 use crate::Summary;
 
@@ -60,7 +62,7 @@ impl IRunnable for Runner {
                 continue;
             }
 
-            let program = match Program::new(
+            let instance = match Instance::new(
                 case_name.clone(),
                 file.code.as_str(),
                 path.to_owned(),
@@ -80,7 +82,16 @@ impl IRunnable for Runner {
                 }
             };
 
-            match program.bytecode.run::<Bn256>(program.witness, None) {
+            let result = match instance.program {
+                BytecodeProgram::Circuit(circuit) => {
+                    CircuitFacade::new(circuit).run::<Bn256>(instance.witness)
+                }
+                BytecodeProgram::Contract(contract) => ContractFacade::new(contract)
+                    .run::<Bn256>(instance.witness, None)
+                    .map(|(output, _storage)| output),
+            };
+
+            match result {
                 Ok(output) => {
                     let output_json = output.into_json();
 

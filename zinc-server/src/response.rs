@@ -36,7 +36,7 @@ where
     E: serde::Serialize + actix_web::ResponseError,
 {
     fn default() -> Self {
-        Self::new_success(StatusCode::OK)
+        Self::success(StatusCode::OK)
     }
 }
 
@@ -48,14 +48,14 @@ where
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_success(code: StatusCode) -> Self {
+    pub fn success(code: StatusCode) -> Self {
         Self::Success { code, data: None }
     }
 
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_success_with_data(code: StatusCode, data: T) -> Self {
+    pub fn success_with_data(code: StatusCode, data: T) -> Self {
         Self::Success {
             code,
             data: Some(data),
@@ -65,7 +65,7 @@ where
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_error(error: E) -> Self {
+    pub fn error(error: E) -> Self {
         Self::Error(error)
     }
 }

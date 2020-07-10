@@ -11,6 +11,7 @@ use bson::Bson;
 use bson::Document as BsonDocument;
 use num_bigint::BigInt;
 use num_traits::Num;
+use num_traits::Zero;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use serde_json::Map as JsonMap;
@@ -77,15 +78,92 @@ impl Value {
     }
 
     ///
+    /// Creates a value of `r#type` from the JSON `value`.
+    ///
+    pub fn try_from_typed_json(value: JsonValue, r#type: DataType) -> Result<Self, Error> {
+        match r#type {
+            DataType::Unit => Self::unit_from_json(value),
+            DataType::Scalar(inner) => Self::scalar_from_json(value, inner),
+            DataType::Enumeration => Self::field_from_json(value),
+
+            DataType::Array(inner, size) => Self::array_from_json(value, *inner, size),
+            DataType::Tuple(inner) => Self::tuple_from_json(value, inner),
+            DataType::Structure(fields) => Self::structure_from_json(value, fields),
+            DataType::Contract(fields) => Self::contract_from_json(value, fields),
+        }
+    }
+
+    ///
     /// Creates a value from a flat array `flat_values` and data `r#type`.
     ///
-    pub fn new_from_flat_values(r#type: DataType, flat_values: &[BigInt]) -> Option<Self> {
-        let mut value = Self::new(r#type);
-        let consumed = value.fill_from_flat_values(flat_values)?;
-        if consumed == flat_values.len() {
-            Some(value)
-        } else {
-            None
+    pub fn from_flat_values(r#type: DataType, flat_values: &[BigInt]) -> Self {
+        match r#type {
+            DataType::Unit => Self::Unit,
+            DataType::Scalar(r#type) => match r#type {
+                ScalarType::Boolean => flat_values
+                    .first()
+                    .cloned()
+                    .map(|value| value != BigInt::zero())
+                    .map(ScalarValue::Boolean)
+                    .map(Self::Scalar),
+                ScalarType::Integer(r#type) => flat_values
+                    .first()
+                    .cloned()
+                    .map(|value| ScalarValue::Integer(value, r#type))
+                    .map(Self::Scalar),
+                ScalarType::Field => flat_values
+                    .first()
+                    .cloned()
+                    .map(ScalarValue::Field)
+                    .map(Self::Scalar),
+            }
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+            DataType::Enumeration => flat_values
+                .first()
+                .cloned()
+                .map(ScalarValue::Field)
+                .map(Self::Scalar)
+                .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+            DataType::Array(r#type, size) => {
+                let mut offset = 0;
+                let mut result = Vec::with_capacity(size);
+                for _ in 0..size {
+                    let slice = &flat_values[offset..];
+                    offset += r#type.size();
+                    result.push(Self::from_flat_values(*r#type.clone(), slice));
+                }
+                Self::Array(result)
+            }
+            DataType::Tuple(types) => {
+                let mut offset = 0;
+                let mut result = Vec::with_capacity(types.len());
+                for r#type in types.into_iter() {
+                    let slice = &flat_values[offset..];
+                    offset += r#type.size();
+                    result.push(Self::from_flat_values(r#type, slice));
+                }
+                Self::Array(result)
+            }
+            DataType::Structure(fields) => {
+                let mut offset = 0;
+                let mut result = Vec::with_capacity(fields.len());
+                for (name, r#type) in fields.into_iter() {
+                    let slice = &flat_values[offset..];
+                    offset += r#type.size();
+                    result.push((name, Self::from_flat_values(r#type, slice)));
+                }
+                Self::Structure(result)
+            }
+            DataType::Contract(fields) => {
+                let mut offset = 0;
+                let mut result = Vec::with_capacity(fields.len());
+                for (name, r#type) in fields.into_iter() {
+                    let slice = &flat_values[offset..];
+                    offset += r#type.size();
+                    result.push((name, Self::from_flat_values(r#type, slice)));
+                }
+                Self::Contract(result)
+            }
         }
     }
 
@@ -225,66 +303,6 @@ impl Value {
     }
 
     ///
-    /// Creates a value of `r#type` from the JSON `value`.
-    ///
-    pub fn from_typed_json(value: JsonValue, r#type: DataType) -> Result<Self, Error> {
-        match r#type {
-            DataType::Unit => Self::unit_from_json(value),
-            DataType::Scalar(inner) => Self::scalar_from_json(value, inner),
-            DataType::Enumeration => Self::field_from_json(value),
-
-            DataType::Array(inner, size) => Self::array_from_json(value, *inner, size),
-            DataType::Tuple(inner) => Self::tuple_from_json(value, inner),
-            DataType::Structure(fields) => Self::structure_from_json(value, fields),
-            DataType::Contract(fields) => Self::contract_from_json(value, fields),
-        }
-    }
-
-    ///
-    /// Fills values from slice, returns number of used values or None if there is not enough.
-    ///
-    fn fill_from_flat_values(&mut self, flat_values: &[BigInt]) -> Option<usize> {
-        match self {
-            Self::Unit => Some(0),
-            Self::Scalar(scalar) => {
-                match scalar {
-                    ScalarValue::Field(value) | ScalarValue::Integer(value, _) => {
-                        *value = flat_values.first()?.clone();
-                    }
-                    ScalarValue::Boolean(value) => {
-                        *value = flat_values.first()? != &BigInt::from(0);
-                    }
-                }
-                Some(1)
-            }
-            Self::Array(values) => {
-                let mut offset = 0;
-                for value in values.iter_mut() {
-                    let slice = &flat_values[offset..];
-                    offset += value.fill_from_flat_values(slice)?;
-                }
-                Some(offset)
-            }
-            Self::Structure(fields) => {
-                let mut offset = 0;
-                for (_name, value) in fields.iter_mut() {
-                    let slice = &flat_values[offset..];
-                    offset += value.fill_from_flat_values(slice)?;
-                }
-                Some(offset)
-            }
-            Self::Contract(fields) => {
-                let mut offset = 0;
-                for (_name, value) in fields.iter_mut() {
-                    let slice = &flat_values[offset..];
-                    offset += value.fill_from_flat_values(slice)?;
-                }
-                Some(offset)
-            }
-        }
-    }
-
-    ///
     /// Creates a unit value from the JSON `value`.
     ///
     fn unit_from_json(value: JsonValue) -> Result<Self, Error> {
@@ -395,7 +413,7 @@ impl Value {
 
         let mut values = Vec::with_capacity(size);
         for (index, value) in array.into_iter().enumerate() {
-            let typed_value = Self::from_typed_json(value, r#type.clone()).push_array(index)?;
+            let typed_value = Self::try_from_typed_json(value, r#type.clone()).push_array(index)?;
 
             values.push(typed_value);
         }
@@ -422,7 +440,7 @@ impl Value {
 
         let mut values = Vec::with_capacity(types.len());
         for (index, (value, r#type)) in array.into_iter().zip(types).enumerate() {
-            let typed_value = Self::from_typed_json(value, r#type).push_array(index)?;
+            let typed_value = Self::try_from_typed_json(value, r#type).push_array(index)?;
             values.push(typed_value);
         }
 
@@ -450,7 +468,8 @@ impl Value {
                 .remove(name.as_str())
                 .ok_or_else(|| ErrorType::MissingField(name.clone()))?;
 
-            let value = Self::from_typed_json(json_value, r#type).push_structure(name.as_str())?;
+            let value =
+                Self::try_from_typed_json(json_value, r#type).push_structure(name.as_str())?;
 
             field_values.push((name, value));
         }
@@ -485,7 +504,8 @@ impl Value {
                 .remove(name.as_str())
                 .ok_or_else(|| ErrorType::MissingField(name.clone()))?;
 
-            let value = Self::from_typed_json(json_value, r#type).push_structure(name.as_str())?;
+            let value =
+                Self::try_from_typed_json(json_value, r#type).push_structure(name.as_str())?;
 
             field_values.push((name, value));
         }

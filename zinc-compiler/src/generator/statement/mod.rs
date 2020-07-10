@@ -10,8 +10,8 @@ pub mod r#let;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::Expression;
+use crate::generator::state::State;
 
 use self::contract::Statement as ContractStatement;
 use self::r#fn::Statement as FnStatement;
@@ -31,7 +31,7 @@ pub enum Statement {
 }
 
 impl Statement {
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         match self {
             Self::Fn(inner) => inner.write_all_to_bytecode(bytecode),
             Self::Let(inner) => inner.write_all_to_bytecode(bytecode),

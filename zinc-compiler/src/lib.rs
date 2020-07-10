@@ -14,9 +14,9 @@ pub(crate) mod source;
 pub(crate) mod syntax;
 
 pub use self::error::Error;
-pub use self::generator::bytecode::entry::Entry;
-pub use self::generator::bytecode::Bytecode;
-pub use self::generator::program::Program;
+pub use self::generator::module::Module;
+pub use self::generator::state::entry::Entry;
+pub use self::generator::state::State;
 pub use self::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 pub use self::semantic::scope::Scope;
 pub use self::source::directory::string::String as SourceDirectoryString;

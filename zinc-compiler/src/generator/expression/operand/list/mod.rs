@@ -7,8 +7,8 @@ pub mod builder;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::Expression as GeneratorExpression;
+use crate::generator::state::State;
 
 ///
 /// The list expression which is translated to Zinc VM data.
@@ -23,7 +23,7 @@ impl Expression {
         Self { expressions }
     }
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         for expression in self.expressions.into_iter() {
             expression.write_all_to_bytecode(bytecode.clone());
         }

@@ -114,6 +114,9 @@ pub enum RuntimeError {
     #[fail(display = "the unit test data is missing")]
     UnitTestDataMissing,
 
+    #[fail(display = "the instruction is available only for contracts")]
+    OnlyForContracts,
+
     #[fail(display = "MongoDB: {}", _0)]
     MongoDb(zinc_mongo::Error),
 }

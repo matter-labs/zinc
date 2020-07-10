@@ -9,9 +9,9 @@ use std::rc::Rc;
 
 use zinc_bytecode::Instruction;
 
-use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::block::Expression as BlockExpression;
 use crate::generator::expression::Expression as GeneratorExpression;
+use crate::generator::state::State;
 use crate::lexical::token::location::Location;
 
 ///
@@ -40,7 +40,7 @@ impl Expression {
         }
     }
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
         self.condition.write_all_to_bytecode(bytecode.clone());
         bytecode
             .borrow_mut()

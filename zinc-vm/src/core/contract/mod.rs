@@ -36,7 +36,7 @@ use crate::instructions::call_std::INativeCallable;
 use crate::instructions::IExecutable;
 use crate::IEngine;
 
-pub struct Contract<E, CS, S, H>
+pub struct State<E, CS, S, H>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -52,7 +52,7 @@ where
     pub(crate) location: Location,
 }
 
-impl<E, CS, S, H> Contract<E, CS, S, H>
+impl<E, CS, S, H> State<E, CS, S, H>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -201,7 +201,7 @@ where
     }
 }
 
-impl<E, CS, S, H> IVirtualMachine for Contract<E, CS, S, H>
+impl<E, CS, S, H> IVirtualMachine for State<E, CS, S, H>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,

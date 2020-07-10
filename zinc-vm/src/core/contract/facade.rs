@@ -18,54 +18,57 @@ use zinc_bytecode::Contract as BytecodeContract;
 use zinc_bytecode::DataType;
 use zinc_bytecode::TemplateValue;
 use zinc_const::UnitTestExitCode;
-use zinc_mongo::Client as MongoClient;
 
 use crate::constraint_systems::debug::DebugCS;
 use crate::core::contract::storage::dummy::Storage as DummyStorage;
 use crate::core::contract::storage::mongo::Storage as MongoStorage;
 use crate::core::contract::storage::setup::Storage as SetupStorage;
 use crate::core::contract::synthesizer::Synthesizer as ContractSynthesizer;
-use crate::core::contract::Contract;
-use crate::core::facade::IFacade;
+use crate::core::contract::State as ContractState;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
-use crate::error::TypeSizeError;
 use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::contract::storage::StorageGadget;
 use crate::IEngine;
 
-impl IFacade for BytecodeContract {
-    fn run<E: IEngine>(
+pub struct Facade {
+    inner: BytecodeContract,
+}
+
+impl Facade {
+    pub fn new(inner: BytecodeContract) -> Self {
+        Self { inner }
+    }
+
+    pub fn run<E: IEngine>(
         self,
         witness: TemplateValue,
-        mongo_client: Option<MongoClient>,
-    ) -> Result<TemplateValue, RuntimeError> {
+        storage: Option<zinc_mongo::Storage>,
+    ) -> Result<(TemplateValue, zinc_mongo::Storage), RuntimeError> {
         let mut cs = DebugCS::<Bn256>::default();
 
-        let mongo_client = mongo_client.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
-        let name = self.name.clone();
-
         let inputs_flat = witness.into_flat_values();
-        let output_type = self.output.to_owned();
+        let output_type = self.inner.output.to_owned();
 
         let storage_types: Vec<DataType> = self
+            .inner
             .storage
             .iter()
             .map(|(_name, r#type)| r#type.to_owned())
             .collect();
-        let storage_values = zinc_mongo::wait(mongo_client.get_storage(name.as_str()))
-            .map_err(RuntimeError::MongoDb)?
-            .into_flat_bigints();
+        let storage_values = storage
+            .unwrap_or_else(|| zinc_mongo::Storage::new(storage_types.clone()))
+            .into_flat_values();
         let storage = MongoStorage::new(storage_types.clone(), storage_values);
-
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
-        let mut contract = Contract::new(cs, storage_gadget, true);
+
+        let mut state = ContractState::new(cs, storage_gadget, true);
 
         let mut num_constraints = 0;
-        let result = contract.run(
-            self,
+        let result = state.run(
+            self.inner,
             Some(&inputs_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
@@ -81,39 +84,32 @@ impl IFacade for BytecodeContract {
             },
         )?;
 
-        let cs = contract.constraint_system();
+        let cs = state.constraint_system();
         if !cs.is_satisfied() {
             return Err(RuntimeError::UnsatisfiedConstraint);
         }
 
-        let storage_values = contract.into_storage().into_values();
+        let storage_values = state.into_storage().into_values();
         let storage = zinc_mongo::Storage::from_flat_values(storage_types, storage_values);
-        zinc_mongo::wait(mongo_client.update_storage(name.as_str(), storage))
-            .map_err(RuntimeError::MongoDb)?;
 
         let output_flat = result
             .into_iter()
             .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
             .collect::<Vec<_>>();
 
-        let value =
-            TemplateValue::new_from_flat_values(output_type, &output_flat).ok_or_else(|| {
-                TypeSizeError::Output {
-                    expected: 0,
-                    actual: 0,
-                }
-            })?;
+        let value = TemplateValue::from_flat_values(output_type, &output_flat);
 
-        Ok(value)
+        Ok((value, storage))
     }
 
-    fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
+    pub fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
         let mut cs = TestConstraintSystem::<Bn256>::new();
 
         let inputs_flat = input.into_flat_values();
-        let output_type = self.output.to_owned();
+        let output_type = self.inner.output.to_owned();
 
         let storage_fields = self
+            .inner
             .storage
             .iter()
             .map(|(_name, r#type)| r#type.to_owned())
@@ -121,11 +117,11 @@ impl IFacade for BytecodeContract {
         let storage = DummyStorage::new(storage_fields);
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
-        let mut contract = Contract::new(cs, storage_gadget, true);
+        let mut state = ContractState::new(cs, storage_gadget, true);
 
         let mut num_constraints = 0;
-        let result = contract.run(
-            self,
+        let result = state.run(
+            self.inner,
             Some(&inputs_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
@@ -141,7 +137,7 @@ impl IFacade for BytecodeContract {
             },
         )?;
 
-        let cs = contract.constraint_system();
+        let cs = state.constraint_system();
 
         log::debug!("{}", cs.pretty_print());
 
@@ -167,19 +163,14 @@ impl IFacade for BytecodeContract {
             .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
             .collect::<Vec<_>>();
 
-        let value =
-            TemplateValue::new_from_flat_values(output_type, &output_flat).ok_or_else(|| {
-                TypeSizeError::Output {
-                    expected: 0,
-                    actual: 0,
-                }
-            })?;
+        let value = TemplateValue::from_flat_values(output_type, &output_flat);
 
         Ok(value)
     }
 
-    fn test<E: IEngine>(mut self) -> Result<UnitTestExitCode, RuntimeError> {
+    pub fn test<E: IEngine>(mut self) -> Result<UnitTestExitCode, RuntimeError> {
         let unit_test = self
+            .inner
             .unit_test
             .take()
             .ok_or(RuntimeError::UnitTestDataMissing)?;
@@ -192,6 +183,7 @@ impl IFacade for BytecodeContract {
         let mut cs = TestConstraintSystem::<Bn256>::new();
 
         let storage_fields = self
+            .inner
             .storage
             .iter()
             .map(|(_name, r#type)| r#type.to_owned())
@@ -200,9 +192,9 @@ impl IFacade for BytecodeContract {
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
 
-        let mut contract = Contract::new(cs, storage_gadget, true);
+        let mut state = ContractState::new(cs, storage_gadget, true);
 
-        let result = contract.run(self, Some(&[]), |_| {}, |_| Ok(()));
+        let result = state.run(self.inner, Some(&[]), |_| {}, |_| Ok(()));
         let code = match result {
             Ok(_) if unit_test.should_panic => {
                 println!(
@@ -230,11 +222,12 @@ impl IFacade for BytecodeContract {
         Ok(code)
     }
 
-    fn setup<E: IEngine>(self) -> Result<Parameters<E>, RuntimeError> {
+    pub fn setup<E: IEngine>(self) -> Result<Parameters<E>, RuntimeError> {
         let rng = &mut rand::thread_rng();
         let mut result = None;
 
         let storage_fields = self
+            .inner
             .storage
             .iter()
             .map(|(_name, r#type)| r#type.to_owned())
@@ -244,7 +237,7 @@ impl IFacade for BytecodeContract {
         let synthesizable = ContractSynthesizer {
             inputs: None,
             output: &mut result,
-            bytecode: self,
+            bytecode: self.inner,
             storage,
 
             _pd: PhantomData,
@@ -258,7 +251,7 @@ impl IFacade for BytecodeContract {
         }
     }
 
-    fn prove<E: IEngine>(
+    pub fn prove<E: IEngine>(
         self,
         params: Parameters<E>,
         witness: TemplateValue,
@@ -267,9 +260,10 @@ impl IFacade for BytecodeContract {
         let rng = &mut rand::thread_rng();
 
         let inputs_flat = witness.into_flat_values();
-        let output_type = self.output.to_owned();
+        let output_type = self.inner.output.to_owned();
 
         let storage_fields = self
+            .inner
             .storage
             .iter()
             .map(|(_name, r#type)| r#type.to_owned())
@@ -279,7 +273,7 @@ impl IFacade for BytecodeContract {
         let synthesizable = ContractSynthesizer {
             inputs: Some(inputs_flat),
             output: &mut result,
-            bytecode: self,
+            bytecode: self.inner,
             storage,
 
             _pd: PhantomData,
@@ -299,11 +293,7 @@ impl IFacade for BytecodeContract {
                         .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
                         .collect();
 
-                    let value = TemplateValue::new_from_flat_values(output_type, &output_flat)
-                        .ok_or_else(|| TypeSizeError::Output {
-                            expected: 0,
-                            actual: 0,
-                        })?;
+                    let value = TemplateValue::from_flat_values(output_type, &output_flat);
 
                     Ok((value, proof))
                 }

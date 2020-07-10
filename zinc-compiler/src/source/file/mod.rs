@@ -13,8 +13,8 @@ use std::path::PathBuf;
 use std::rc::Rc;
 
 use crate::error::Error as CompilerError;
-use crate::generator::bytecode::Bytecode;
-use crate::generator::program::Program;
+use crate::generator::module::Module;
+use crate::generator::state::State;
 use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 use crate::source::error::Error as SourceError;
 use crate::source::Source;
@@ -124,14 +124,14 @@ impl File {
     /// Gets all the intermediate represenation scattered around the application scope tree and
     /// writes it to the bytecode.
     ///
-    pub fn compile(self, name: String) -> Result<Rc<RefCell<Bytecode>>, SourceError> {
+    pub fn compile(self, name: String) -> Result<Rc<RefCell<State>>, SourceError> {
         let scope = EntryAnalyzer::define(Source::File(self))
             .map_err(CompilerError::Semantic)
             .map_err(|error| error.format())
             .map_err(SourceError::Compiling)?;
 
-        let bytecode = Bytecode::new(name).wrap();
-        Program::new(scope.borrow().get_intermediate()).write_all_to_bytecode(bytecode.clone());
+        let bytecode = State::new(name).wrap();
+        Module::new(scope.borrow().get_intermediate()).write_all_to_bytecode(bytecode.clone());
 
         Ok(bytecode)
     }
