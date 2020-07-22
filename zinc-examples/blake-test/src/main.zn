@@ -1,0 +1,15 @@
+//!
+//! The 'blake-test' main module.
+//!
+
+use std::crypto::blake2s;
+use std::convert::to_bits;
+use std::array::pad;
+
+const BLAKE2S_HASH_SIZE: u64 = 256;
+const INT32_BITS:u8 = 32; 
+
+fn main(preimage: u32) -> [bool; BLAKE2S_HASH_SIZE] {
+    let preimage_bits: [bool; INT32_BITS] = to_bits(preimage);
+    blake2s(preimage_bits)
+}
