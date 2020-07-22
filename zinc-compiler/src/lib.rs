@@ -34,6 +34,7 @@ pub const BITLENGTH_INDEX: usize = 64;
 pub const BITLENGTH_MAX_INT: usize = 248;
 pub const BITLENGTH_FIELD: usize = 254;
 pub const BITLENGTH_SHA256_HASH: usize = 256;
+pub const BITLENGTH_BLAKE2S_HASH: usize = 256;
 
 pub const LIMIT_PEDERSEN_HASH_INPUT_BITS: usize = 512;
 pub const LIMIT_SCHNORR_MESSAGE_BYTES: usize = 31;
