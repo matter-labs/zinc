@@ -15,6 +15,9 @@ where
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         match self.identifier {
+            BuiltinIdentifier::CryptoBlake2s => {
+                vm.call_native(stdlib::crypto::Blake2s::new(self.inputs_count)?)
+            }
             BuiltinIdentifier::CryptoSchnorrSignatureVerify => {
                 vm.call_native(VerifySchnorrSignature::new(self.inputs_count)?)
             }

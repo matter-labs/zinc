@@ -15,4 +15,5 @@ pub enum BuiltinIdentifier {
     ArrayPad,
     CryptoSchnorrSignatureVerify,
     FieldInverse,
+    CryptoBlake2s,
 }
