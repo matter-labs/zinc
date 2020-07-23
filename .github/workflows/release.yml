@@ -21,7 +21,7 @@ jobs:
       - name: Bundle binaries
         run: |
           mkdir zinc-linux
-          cp target/release/{zargo,znc,zinc-tester} zinc-linux
+          cp target/release/{zargo,znc,zinc-tester,zvm} zinc-linux
           tar -czf zinc-linux.tar.gz zinc-linux
           rm -rf zinc-linux
 
