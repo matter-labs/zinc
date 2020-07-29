@@ -18,6 +18,9 @@ use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
 use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 use crate::syntax::tree::literal::string::Literal as StringLiteral;
 
+///
+/// The literal semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

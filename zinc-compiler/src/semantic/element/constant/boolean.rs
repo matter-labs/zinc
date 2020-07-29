@@ -5,39 +5,46 @@
 use std::fmt;
 
 use crate::lexical::token::location::Location;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
 
 ///
-/// Simple wrapper around the `bool` value.
+/// Simple wrapper around the `bool` constant.
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Boolean {
+    /// The location, where the value appears in the code.
     pub location: Location,
+    /// The inner boolean value.
     pub inner: bool,
 }
 
 impl Boolean {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(location: Location, inner: bool) -> Self {
         Self { location, inner }
     }
 
+    ///
+    /// Checks whether the value is true.
+    ///
     pub fn is_true(&self) -> bool {
         self.inner
     }
 
+    ///
+    /// Checks whether the value is false.
+    ///
     pub fn is_false(&self) -> bool {
         !self.inner
     }
 
-    pub fn r#type(&self) -> Type {
-        Type::boolean(None)
-    }
-
-    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.r#type() == other.r#type()
-    }
-
+    ///
+    /// Executes the `||` logical OR operator.
+    ///
     pub fn or(self, other: Self) -> Self {
         let result = self.inner || other.inner;
         Self {
@@ -46,6 +53,9 @@ impl Boolean {
         }
     }
 
+    ///
+    /// Executes the `^^` logical XOR operator.
+    ///
     pub fn xor(self, other: Self) -> Self {
         let result = !self.inner && other.inner || self.inner && !other.inner;
         Self {
@@ -54,6 +64,9 @@ impl Boolean {
         }
     }
 
+    ///
+    /// Executes the `&&` logical AND operator.
+    ///
     pub fn and(self, other: Self) -> Self {
         let result = self.inner && other.inner;
         Self {
@@ -62,6 +75,9 @@ impl Boolean {
         }
     }
 
+    ///
+    /// Executes the `==` equals comparison operator.
+    ///
     pub fn equals(self, other: Self) -> Self {
         let result = self.inner == other.inner;
         Self {
@@ -70,6 +86,9 @@ impl Boolean {
         }
     }
 
+    ///
+    /// Executes the `!=` not-equals comparison operator.
+    ///
     pub fn not_equals(self, other: Self) -> Self {
         let result = self.inner != other.inner;
         Self {
@@ -78,12 +97,25 @@ impl Boolean {
         }
     }
 
+    ///
+    /// Executes the `!` logical NOT operator.
+    ///
     pub fn not(self) -> Self {
         let result = !self.inner;
         Self {
             location: self.location,
             inner: result,
         }
+    }
+}
+
+impl ITyped for Boolean {
+    fn r#type(&self) -> Type {
+        Type::boolean(None)
+    }
+
+    fn has_the_same_type_as(&self, other: &Self) -> bool {
+        self.r#type() == other.r#type()
     }
 }
 

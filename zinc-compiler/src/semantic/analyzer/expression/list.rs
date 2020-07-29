@@ -15,6 +15,9 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::expression::list::Expression as ListExpression;
 
+///
+/// The list semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

@@ -1,0 +1,11 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "4"
+//#     },
+//#     "expect": "64516"
+//# } ] }
+
+fn main(witness: u8) -> i24 {
+    65536 - 255 * (witness as i24)
+}

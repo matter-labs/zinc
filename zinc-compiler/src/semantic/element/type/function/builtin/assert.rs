@@ -5,23 +5,40 @@
 use std::fmt;
 
 use crate::lexical::token::location::Location;
+use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::function::error::Error;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 
+///
+/// The semantic analyzer `assert!` built-in function element.
+///
 #[derive(Debug, Default, Clone)]
 pub struct Function {
+    /// The location where the function is called.
     pub location: Option<Location>,
+    /// The function identifier.
     pub identifier: &'static str,
 }
 
 impl Function {
+    /// The position of the `condition` argument in the function argument list.
     pub const ARGUMENT_INDEX_CONDITION: usize = 0;
+
+    /// The position of the optional `message` argument in the function argument list.
     pub const ARGUMENT_INDEX_MESSAGE: usize = 1;
+
+    /// The number of arguments, not including the optional ones.
     pub const ARGUMENT_COUNT_MANDATORY: usize = 1;
+
+    /// The number of arguments, including the optional ones.
     pub const ARGUMENT_COUNT_OPTIONAL: usize = 2;
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new() -> Self {
         Self {
             location: None,
@@ -29,13 +46,16 @@ impl Function {
         }
     }
 
+    ///
+    /// Calls the function with the `argument_list`, validating the call.
+    ///
     pub fn call(
         self,
         location: Option<Location>,
-        actual_elements: Vec<Element>,
+        argument_list: ArgumentList,
     ) -> Result<(Type, Option<String>), Error> {
-        let mut actual_params = Vec::with_capacity(actual_elements.len());
-        for (index, element) in actual_elements.into_iter().enumerate() {
+        let mut actual_params = Vec::with_capacity(argument_list.arguments.len());
+        for (index, element) in argument_list.arguments.into_iter().enumerate() {
             let location = element.location();
 
             let (r#type, is_constant, string) = match element {
@@ -75,6 +95,7 @@ impl Function {
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT_MANDATORY,
                     found: actual_params.len(),
+                    reference: None,
                 })
             }
         }
@@ -109,6 +130,7 @@ impl Function {
                 function: self.identifier.to_owned(),
                 expected: Self::ARGUMENT_COUNT_OPTIONAL,
                 found: actual_params.len(),
+                reference: None,
             });
         }
 

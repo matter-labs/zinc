@@ -32,11 +32,11 @@ pub enum Error {
 
 impl Compiler {
     ///
-    /// Executes the compiler process.
+    /// Executes the compiler process, building the debug build without optimizations.
     ///
     /// If `is_test_only` is set, passes the flag to only build the project unit tests.
     ///
-    pub fn build(
+    pub fn build_debug(
         verbosity: usize,
         data_path: &PathBuf,
         build_path: &PathBuf,
@@ -54,6 +54,43 @@ impl Compiler {
             } else {
                 vec![]
             })
+            .arg(source_path)
+            .spawn()
+            .map_err(Error::Spawning)?;
+
+        let status = child.wait().map_err(Error::Waiting)?;
+
+        if !status.success() {
+            return Err(Error::Failure(status));
+        }
+
+        Ok(())
+    }
+
+    ///
+    /// Executes the compiler process, building the release build with optimizations.
+    ///
+    /// If `is_test_only` is set, passes the flag to only build the project unit tests.
+    ///
+    pub fn build_release(
+        verbosity: usize,
+        data_path: &PathBuf,
+        build_path: &PathBuf,
+        source_path: &PathBuf,
+        is_test_only: bool,
+    ) -> Result<(), Error> {
+        let mut child = process::Command::new(zinc_const::app_name::ZINC_COMPILER)
+            .args(vec!["-v"; verbosity])
+            .arg("--data")
+            .arg(data_path)
+            .arg("--build")
+            .arg(build_path)
+            .args(if is_test_only {
+                vec!["--test-only"]
+            } else {
+                vec![]
+            })
+            .arg("--optimize-dead-function-elimination")
             .arg(source_path)
             .spawn()
             .map_err(Error::Spawning)?;

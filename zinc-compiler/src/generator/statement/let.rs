@@ -13,6 +13,7 @@ use crate::generator::expression::operand::constant::integer::Integer as Integer
 use crate::generator::expression::Expression;
 use crate::generator::r#type::Type;
 use crate::generator::state::State;
+use crate::generator::IBytecodeWritable;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type as SemanticType;
 
@@ -21,13 +22,20 @@ use crate::semantic::element::r#type::Type as SemanticType;
 ///
 #[derive(Debug, Clone)]
 pub struct Statement {
+    /// The statement location in the source code.
     pub location: Location,
+    /// The declared variable name.
     pub name: String,
+    /// The declared variable type.
     pub r#type: Type,
+    /// The expression assigned to the variable.
     pub expression: Expression,
 }
 
 impl Statement {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         location: Location,
         name: String,
@@ -41,18 +49,20 @@ impl Statement {
             expression,
         })
     }
+}
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
+impl IBytecodeWritable for Statement {
+    fn write_all(self, bytecode: Rc<RefCell<State>>) {
         let size = self.r#type.size();
         let address = bytecode.borrow_mut().define_variable(Some(self.name), size);
 
-        self.expression.write_all_to_bytecode(bytecode.clone());
+        self.expression.write_all(bytecode.clone());
 
         match self.r#type {
             Type::Contract { fields } => {
                 for (index, (_name, r#type)) in fields.into_iter().enumerate().rev() {
                     IntegerConstant::new(BigInt::from(index), false, zinc_const::bitlength::FIELD)
-                        .write_all_to_bytecode(bytecode.clone());
+                        .write_all(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
                         Instruction::StorageStore(zinc_bytecode::StorageStore::new(r#type.size())),
                         Some(self.location),

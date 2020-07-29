@@ -1,0 +1,37 @@
+//!
+//! The Curve Stableswap constants.
+//!
+
+use crate::types::Integer;
+use crate::types::Address;
+use crate::types::Timestamp;
+
+const ZERO: Integer = 0;
+const ONE: Integer = 1;
+const ZEROS: [Integer; N_COINS] = [0 as Integer; N_COINS];
+const ZERO_TIME: Timestamp = 0;
+const ZERO_ADDRESS: Address = 0;
+
+const HASH_SIZE: u64 = 256;
+
+const N_COINS: u8 = 2;
+
+const USE_LENDING: [bool; N_COINS] = [false; N_COINS];
+
+const FEE_DENOMINATOR: Integer = 10_000_000_000;
+const LENDING_PRECISION: Integer = 1_000_000_000_000_000_000;
+const PRECISION: Integer = 1_000_000_000_000_000_000;
+const PRECISION_MUL: [Integer; N_COINS] = [
+    PRECISION / PRECISION, // DAI
+    PRECISION / 1_000_000, // USDC
+];
+
+const ADMIN_ACTIONS_DELAY: Timestamp = 86400 * 3;
+const MIN_RAMP_TIME: Timestamp = 86400;
+
+const MAX_ADMIN_FEE: Integer = 5_000_000_000;
+const MAX_FEE: Integer = 5_000_000_000;
+const MAX_A: Integer = 1_000_000;
+const MAX_A_CHANGE: Integer = 10;
+
+const KILL_DEADLINE_DT: Timestamp = 86400 * 30 * 2;

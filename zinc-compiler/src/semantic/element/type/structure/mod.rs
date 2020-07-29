@@ -22,14 +22,22 @@ use crate::semantic::scope::Scope;
 ///
 #[derive(Debug, Clone)]
 pub struct Structure {
+    /// The structure type location in the code.
     pub location: Option<Location>,
+    /// The structure type identifier.
     pub identifier: String,
+    /// The unique structure type ID.
     pub type_id: usize,
+    /// The ordered structure fields array.
     pub fields: Vec<(String, Type)>,
+    /// The structure scope, where its methods and associated items are declared.
     pub scope: Rc<RefCell<Scope>>,
 }
 
 impl Structure {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         location: Option<Location>,
         identifier: String,

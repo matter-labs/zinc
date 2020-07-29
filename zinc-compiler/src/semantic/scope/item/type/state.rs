@@ -10,16 +10,23 @@ use crate::semantic::element::r#type::Type as TypeElement;
 use crate::semantic::scope::item::r#type::statement::Statement as TypeStatementVariant;
 use crate::semantic::scope::Scope;
 
+///
+/// The definition state, which is either `declared` or `defined`.
+///
 #[derive(Debug, Clone)]
 pub enum State {
-    /// Waiting to be defined during the second pass
+    /// Waiting to be defined during the second pass.
     Declared {
+        /// The statement syntax representation.
         inner: TypeStatementVariant,
+        /// The scope, where the type is declared and must be defined later.
         scope: Rc<RefCell<Scope>>,
     },
-    /// Defined element ready to be used from anywhere
+    /// Defined element ready to be used from anywhere.
     Defined {
+        /// The semantic type element.
         inner: TypeElement,
+        /// There bytecode generator IR representation, if exists.
         intermediate: Option<GeneratorStatement>,
     },
 }

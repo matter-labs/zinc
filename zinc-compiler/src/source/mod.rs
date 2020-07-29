@@ -120,7 +120,7 @@ impl Source {
     }
 
     ///
-    /// Initialized a test module.
+    /// Initializes a test module.
     ///
     pub fn test(
         code: &str,

@@ -48,10 +48,13 @@ impl Builder {
     /// If some of the required items has not been set.
     ///
     pub fn finish(mut self) -> ArrayExpression {
-        let location = self
-            .location
-            .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location"));
+        let location = self.location.take().unwrap_or_else(|| {
+            panic!(
+                "{}{}",
+                zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                "location"
+            )
+        });
 
         match self.size_expression.take() {
             Some(size_expression) => ArrayExpression::new_repeated(
@@ -59,7 +62,7 @@ impl Builder {
                 self.elements.pop().unwrap_or_else(|| {
                     panic!(
                         "{}{}",
-                        crate::panic::BUILDER_REQUIRES_VALUE,
+                        zinc_const::panic::BUILDER_REQUIRES_VALUE,
                         "size expression"
                     )
                 }),

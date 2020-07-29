@@ -13,6 +13,7 @@ use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::place::Place;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::contract::error::Error as ContractValueError;
 use crate::semantic::element::value::error::Error as ValueError;
@@ -23,6 +24,9 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 
+///
+/// The path expression translator.
+///
 pub struct Translator {}
 
 impl Translator {
@@ -69,7 +73,7 @@ impl Translator {
             },
             TranslationRule::Value => match *Scope::resolve_path(scope, &path)?.borrow() {
                 ScopeItem::Variable(ref variable) => {
-                    let value = Value::try_from_type(&variable.r#type, Some(location))
+                    let value = Value::try_from_type(&variable.r#type, false, Some(location))
                         .map_err(ElementError::Value)
                         .map_err(Error::Element)?;
                     let r#type = value.r#type();
@@ -147,7 +151,9 @@ impl Translator {
             TranslationRule::Type => match *Scope::resolve_path(scope, &path)?.borrow() {
                 ScopeItem::Type(ref r#type) => {
                     let mut r#type = r#type.define()?;
-                    r#type.set_location(location);
+                    if !r#type.is_source_function() {
+                        r#type.set_location(location);
+                    }
 
                     Ok((Element::Type(r#type), None))
                 }

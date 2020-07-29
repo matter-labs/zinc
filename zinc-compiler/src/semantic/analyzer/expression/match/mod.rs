@@ -25,6 +25,7 @@ use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::unit::Unit as UnitConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
@@ -36,9 +37,13 @@ use crate::syntax::tree::pattern_match::variant::Variant as MatchPatternVariant;
 
 use self::exhausting::Data as ExhaustingData;
 
+///
+/// The `match` expression semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {
+    /// The number of mandatory branches number to generate useful conditional code.
     const REQUIRED_BRANCHES_COUNT: usize = 2;
 
     ///
@@ -84,7 +89,7 @@ impl Analyzer {
             builder.set_scrutinee(
                 scrutinee_expression,
                 GeneratorType::try_from_semantic(&scrutinee_type)
-                    .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
+                    .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
             );
         } else {
             return Err(Error::Expression(ExpressionError::Match(
@@ -148,7 +153,7 @@ impl Analyzer {
 
                     let constant =
                         GeneratorConstant::try_from_semantic(&Constant::Boolean(constant))
-                            .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
+                            .expect(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
                     let (result, branch) =
                         ExpressionAnalyzer::new(scope_stack.top(), TranslationRule::Value)
                             .analyze(expression)?;
@@ -193,7 +198,7 @@ impl Analyzer {
 
                     let constant =
                         GeneratorConstant::try_from_semantic(&Constant::Integer(constant))
-                            .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
+                            .expect(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
                     let (result, branch) =
                         ExpressionAnalyzer::new(scope_stack.top(), TranslationRule::Value)
                             .analyze(expression)?;
@@ -253,7 +258,7 @@ impl Analyzer {
                     }
 
                     let constant = GeneratorConstant::try_from_semantic(&constant)
-                        .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
+                        .expect(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
                     let (result, branch) =
                         ExpressionAnalyzer::new(scope_stack.top(), TranslationRule::Value)
                             .analyze(expression)?;

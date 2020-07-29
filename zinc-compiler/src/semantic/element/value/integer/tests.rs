@@ -164,7 +164,7 @@ fn main() {
 }
 
 #[test]
-fn error_types_mismatch_bitwise_or() {
+fn error_types_mismatch_bitor() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -189,7 +189,7 @@ fn main() {
 }
 
 #[test]
-fn error_types_mismatch_bitwise_xor() {
+fn error_types_mismatch_bitxor() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -214,7 +214,7 @@ fn main() {
 }
 
 #[test]
-fn error_types_mismatch_bitwise_and() {
+fn error_types_mismatch_bitand() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -380,6 +380,7 @@ fn main() {
                     Some(Location::new(4, 28)),
                     true,
                     zinc_const::bitlength::BYTE,
+                    true,
                 )
                 .to_string(),
             },
@@ -408,6 +409,7 @@ fn main() {
                     Some(Location::new(4, 28)),
                     true,
                     zinc_const::bitlength::BYTE,
+                    true,
                 )
                 .to_string(),
             },
@@ -579,7 +581,7 @@ fn main() {
 }
 
 #[test]
-fn error_forbidden_signed_bitwise_or() {
+fn error_forbidden_signed_bitor() {
     let input = r#"
 fn main() {
     let signed_1: i8 = 42;
@@ -602,7 +604,7 @@ fn main() {
 }
 
 #[test]
-fn error_forbidden_field_bitwise_or() {
+fn error_forbidden_field_bitor() {
     let input = r#"
 fn main() {
     let field_1: field = 42;
@@ -625,7 +627,7 @@ fn main() {
 }
 
 #[test]
-fn error_forbidden_signed_bitwise_xor() {
+fn error_forbidden_signed_bitxor() {
     let input = r#"
 fn main() {
     let signed_1: i8 = 42;
@@ -648,7 +650,7 @@ fn main() {
 }
 
 #[test]
-fn error_forbidden_field_bitwise_xor() {
+fn error_forbidden_field_bitxor() {
     let input = r#"
 fn main() {
     let field_1: field = 42;
@@ -671,7 +673,7 @@ fn main() {
 }
 
 #[test]
-fn error_forbidden_signed_bitwise_and() {
+fn error_forbidden_signed_bitand() {
     let input = r#"
 fn main() {
     let signed_1: i8 = 42;
@@ -694,7 +696,7 @@ fn main() {
 }
 
 #[test]
-fn error_forbidden_field_bitwise_and() {
+fn error_forbidden_field_bitand() {
     let input = r#"
 fn main() {
     let field_1: field = 42;

@@ -6,7 +6,7 @@
 pub static PROTOCOL: &str = "mongodb";
 
 /// The default MongoDB server host.
-pub static HOST: &str = "localhost";
+pub static HOST: &str = "127.0.0.1";
 
 /// The default MongoDB server port.
 pub const PORT: u16 = 27017;

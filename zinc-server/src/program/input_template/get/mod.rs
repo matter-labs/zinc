@@ -19,7 +19,7 @@ use self::error::Error;
 use self::request::Query;
 
 ///
-/// The program input template resource GET method endpoint handler.
+/// The HTTP request handler.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,

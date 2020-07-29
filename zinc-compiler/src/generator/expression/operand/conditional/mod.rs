@@ -12,6 +12,7 @@ use zinc_bytecode::Instruction;
 use crate::generator::expression::operand::block::Expression as BlockExpression;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::state::State;
+use crate::generator::IBytecodeWritable;
 use crate::lexical::token::location::Location;
 
 ///
@@ -19,13 +20,20 @@ use crate::lexical::token::location::Location;
 ///
 #[derive(Debug, Clone)]
 pub struct Expression {
+    /// The conditional expression location.
     location: Location,
+    /// The condition expression.
     condition: GeneratorExpression,
+    /// The main block expression.
     main_block: BlockExpression,
+    /// The `else`-block expression.
     else_block: Option<BlockExpression>,
 }
 
 impl Expression {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         location: Location,
         condition: GeneratorExpression,
@@ -39,19 +47,21 @@ impl Expression {
             else_block,
         }
     }
+}
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
-        self.condition.write_all_to_bytecode(bytecode.clone());
+impl IBytecodeWritable for Expression {
+    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+        self.condition.write_all(bytecode.clone());
         bytecode
             .borrow_mut()
             .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
-        self.main_block.write_all_to_bytecode(bytecode.clone());
+        self.main_block.write_all(bytecode.clone());
 
         if let Some(else_block) = self.else_block {
             bytecode
                 .borrow_mut()
                 .push_instruction(Instruction::Else(zinc_bytecode::Else), Some(self.location));
-            else_block.write_all_to_bytecode(bytecode.clone());
+            else_block.write_all(bytecode.clone());
         }
 
         bytecode.borrow_mut().push_instruction(

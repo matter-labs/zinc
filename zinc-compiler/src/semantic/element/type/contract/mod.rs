@@ -25,14 +25,22 @@ use crate::semantic::scope::Scope;
 ///
 #[derive(Debug, Clone)]
 pub struct Contract {
+    /// The contract type location in the code.
     pub location: Option<Location>,
+    /// The contract type identifier.
     pub identifier: String,
+    /// The unique contract type ID.
     pub type_id: usize,
+    /// The ordered contract storage fields array.
     pub fields: Vec<(String, Type)>,
+    /// The contract scope, where its methods and associated items are declared.
     pub scope: Rc<RefCell<Scope>>,
 }
 
 impl Contract {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         location: Option<Location>,
         identifier: String,

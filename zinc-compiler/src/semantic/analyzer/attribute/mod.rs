@@ -10,14 +10,23 @@ use crate::syntax::tree::attribute::Attribute as SyntaxAttribute;
 
 use self::error::Error;
 
+///
+/// The semantic attribute.
+///
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Attribute {
+    /// The `#[test]` attribute.
     Test,
+    /// The `#[should_panic]` attribute.
     ShouldPanic,
+    /// The `#[ignore]` attribute.
     Ignore,
 }
 
 impl Attribute {
+    ///
+    /// If the attribute is related to unit tests.
+    ///
     pub fn is_test(&self) -> bool {
         match self {
             Self::Test => true,

@@ -16,12 +16,24 @@ pub mod tuple;
 pub mod unit;
 
 use std::fmt;
+use std::ops::Add;
+use std::ops::BitAnd;
+use std::ops::BitOr;
+use std::ops::BitXor;
+use std::ops::Div;
+use std::ops::Mul;
+use std::ops::Neg;
+use std::ops::Rem;
+use std::ops::Shl;
+use std::ops::Shr;
+use std::ops::Sub;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::lexical::token::location::Location;
 use crate::semantic::casting::Caster;
 use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::access::index::Index as IndexAccess;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
 use crate::syntax::tree::identifier::Identifier;
@@ -40,56 +52,34 @@ use self::unit::Unit;
 ///
 /// Constants are parts of a constant expression.
 ///
+/// The compiler preserves the constant values as long as it can.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Constant {
+    /// The unit `()` type constant.
     Unit(Unit),
+    /// The boolean type constant.
     Boolean(Boolean),
+    /// The integer type value.
     Integer(Integer),
+    /// The range type value.
     Range(Range),
+    /// The inclusive range type value.
     RangeInclusive(RangeInclusive),
+    /// The string type value.
     String(String),
+    /// The array type value.
     Array(Array),
+    /// The tuple type value.
     Tuple(Tuple),
+    /// The structure type value.
     Structure(Structure),
 }
 
 impl Constant {
-    pub fn r#type(&self) -> Type {
-        match self {
-            Self::Unit(inner) => inner.r#type(),
-            Self::Boolean(inner) => inner.r#type(),
-            Self::Integer(inner) => inner.r#type(),
-            Self::Range(inner) => inner.r#type(),
-            Self::RangeInclusive(inner) => inner.r#type(),
-            Self::String(inner) => inner.r#type(),
-            Self::Array(inner) => inner.r#type(),
-            Self::Tuple(inner) => inner.r#type(),
-            Self::Structure(inner) => inner.r#type(),
-        }
-    }
-
-    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::Unit(inner_1), Self::Unit(inner_2)) => inner_1.has_the_same_type_as(inner_2),
-            (Self::Boolean(inner_1), Self::Boolean(inner_2)) => {
-                inner_1.has_the_same_type_as(inner_2)
-            }
-            (Self::Integer(inner_1), Self::Integer(inner_2)) => {
-                inner_1.has_the_same_type_as(inner_2)
-            }
-            (Self::Range(inner_1), Self::Range(inner_2)) => inner_1.has_the_same_type_as(inner_2),
-            (Self::RangeInclusive(inner_1), Self::RangeInclusive(inner_2)) => {
-                inner_1.has_the_same_type_as(inner_2)
-            }
-            (Self::Array(inner_1), Self::Array(inner_2)) => inner_1.has_the_same_type_as(inner_2),
-            (Self::Tuple(inner_1), Self::Tuple(inner_2)) => inner_1.has_the_same_type_as(inner_2),
-            (Self::Structure(inner_1), Self::Structure(inner_2)) => {
-                inner_1.has_the_same_type_as(inner_2)
-            }
-            _ => false,
-        }
-    }
-
+    ///
+    /// Executes the `..=` range inclusive operator.
+    ///
     pub fn range_inclusive(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
@@ -109,6 +99,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `..` range operator.
+    ///
     pub fn range(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
@@ -128,6 +121,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `||` logical OR operator.
+    ///
     pub fn or(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Boolean(constant_1) => match other {
@@ -147,6 +143,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `^^` logical XOR operator.
+    ///
     pub fn xor(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Boolean(constant_1) => match other {
@@ -166,6 +165,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `&&` logical AND operator.
+    ///
     pub fn and(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Boolean(constant_1) => match other {
@@ -185,11 +187,14 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `==` equals comparison operator.
+    ///
     pub fn equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match (self, other) {
             (Self::Unit(constant_1), Self::Unit(_)) => Ok((
                 Self::Boolean(Boolean::new(constant_1.location, true)),
-                GeneratorExpressionOperator::Equals,
+                GeneratorExpressionOperator::equals(),
             )),
             (Self::Unit(_), constant_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
                 location: constant_2.location(),
@@ -197,7 +202,7 @@ impl Constant {
             }),
             (Self::Boolean(constant_1), Self::Boolean(constant_2)) => Ok((
                 Self::Boolean(constant_1.equals(constant_2)),
-                GeneratorExpressionOperator::Equals,
+                GeneratorExpressionOperator::equals(),
             )),
             (Self::Boolean(_), constant_2) => {
                 Err(Error::OperatorEqualsSecondOperandExpectedBoolean {
@@ -222,11 +227,14 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `!=` not-equals comparison operator.
+    ///
     pub fn not_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match (self, other) {
             (Self::Unit(constant_1), Self::Unit(_)) => Ok((
                 Self::Boolean(Boolean::new(constant_1.location, false)),
-                GeneratorExpressionOperator::NotEquals,
+                GeneratorExpressionOperator::not_equals(),
             )),
             (Self::Unit(_), constant_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
                 location: constant_2.location(),
@@ -234,7 +242,7 @@ impl Constant {
             }),
             (Self::Boolean(constant_1), Self::Boolean(constant_2)) => Ok((
                 Self::Boolean(constant_1.not_equals(constant_2)),
-                GeneratorExpressionOperator::NotEquals,
+                GeneratorExpressionOperator::not_equals(),
             )),
             (Self::Boolean(_), constant_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean {
@@ -259,6 +267,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `>=` greater-equals comparison operator.
+    ///
     pub fn greater_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
@@ -278,6 +289,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `<=` lesser-equals comparison operator.
+    ///
     pub fn lesser_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
@@ -297,6 +311,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `>` greater comparison operator.
+    ///
     pub fn greater(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
@@ -316,6 +333,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `<` lesser comparison operator.
+    ///
     pub fn lesser(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
@@ -334,12 +354,16 @@ impl Constant {
             }),
         }
     }
+}
 
-    pub fn bitwise_or(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl BitOr for Constant {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn bitor(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .bitwise_or(integer_2)
+                    .bitor(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
@@ -353,12 +377,16 @@ impl Constant {
             }),
         }
     }
+}
 
-    pub fn bitwise_xor(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl BitXor for Constant {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn bitxor(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .bitwise_xor(integer_2)
+                    .bitxor(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
@@ -372,12 +400,16 @@ impl Constant {
             }),
         }
     }
+}
 
-    pub fn bitwise_and(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl BitAnd for Constant {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn bitand(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .bitwise_and(integer_2)
+                    .bitand(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
@@ -391,15 +423,16 @@ impl Constant {
             }),
         }
     }
+}
 
-    pub fn bitwise_shift_left(
-        self,
-        other: Self,
-    ) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Shl<Self> for Constant {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn shl(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .bitwise_shift_left(integer_2)
+                    .shl(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(
@@ -415,15 +448,16 @@ impl Constant {
             }),
         }
     }
+}
 
-    pub fn bitwise_shift_right(
-        self,
-        other: Self,
-    ) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Shr<Self> for Constant {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn shr(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .bitwise_shift_right(integer_2)
+                    .shr(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(
@@ -441,8 +475,12 @@ impl Constant {
             ),
         }
     }
+}
 
-    pub fn add(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Add for Constant {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn add(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -460,12 +498,16 @@ impl Constant {
             }),
         }
     }
+}
 
-    pub fn subtract(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Sub for Constant {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn sub(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .subtract(integer_2)
+                    .sub(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorSubtractionSecondOperandExpectedInteger {
@@ -479,12 +521,16 @@ impl Constant {
             }),
         }
     }
+}
 
-    pub fn multiply(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Mul for Constant {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn mul(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .multiply(integer_2)
+                    .mul(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger {
@@ -498,12 +544,16 @@ impl Constant {
             }),
         }
     }
+}
 
-    pub fn divide(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Div for Constant {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn div(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .divide(integer_2)
+                    .div(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorDivisionSecondOperandExpectedInteger {
@@ -517,12 +567,16 @@ impl Constant {
             }),
         }
     }
+}
 
-    pub fn remainder(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Rem for Constant {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn rem(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .remainder(integer_2)
+                    .rem(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorRemainderSecondOperandExpectedInteger {
@@ -536,13 +590,18 @@ impl Constant {
             }),
         }
     }
+}
 
+impl Constant {
+    ///
+    /// Executes the `as` casting operator.
+    ///
     pub fn cast(self, to: Type) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         let from = self.r#type();
         Caster::cast(&from, &to).map_err(|error| Error::Casting {
             location: self.location(),
             inner: error,
-            reference: to.location(),
+            reference: to.location().expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
         })?;
 
         let (is_signed, bitlength) = match to {
@@ -561,6 +620,9 @@ impl Constant {
         })
     }
 
+    ///
+    /// Executes the `!` logical NOT operator.
+    ///
     pub fn not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Boolean(constant) => Ok((
@@ -574,6 +636,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `~` bitwise NOT operator.
+    ///
     pub fn bitwise_not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer) => integer
@@ -586,11 +651,15 @@ impl Constant {
             }),
         }
     }
+}
 
-    pub fn negate(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Neg for Constant {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn neg(self) -> Self::Output {
         match self {
             Self::Integer(integer) => integer
-                .negate()
+                .neg()
                 .map(|(integer, operator)| (Self::Integer(integer), operator))
                 .map_err(Error::Integer),
             constant => Err(Error::OperatorNegationExpectedInteger {
@@ -599,7 +668,12 @@ impl Constant {
             }),
         }
     }
+}
 
+impl Constant {
+    ///
+    /// Executes the `[]` array index operator.
+    ///
     pub fn index(self, other: Constant) -> Result<(Self, IndexAccess), Error> {
         match self {
             Constant::Array(array) => match other {
@@ -624,6 +698,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `.` dot field access operator for a tuple.
+    ///
     pub fn tuple_field(self, index: TupleIndex) -> Result<(Self, StackFieldAccess), Error> {
         match self {
             Constant::Tuple(tuple) => tuple.slice(index).map_err(Error::Tuple),
@@ -634,6 +711,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Executes the `.` dot field access operator for a structure.
+    ///
     pub fn structure_field(
         self,
         identifier: Identifier,
@@ -647,6 +727,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Sets the constant location in the code.
+    ///
     pub fn set_location(&mut self, value: Location) {
         match self {
             Self::Unit(inner) => inner.location = value,
@@ -661,6 +744,9 @@ impl Constant {
         }
     }
 
+    ///
+    /// Returns the constant location in the code.
+    ///
     pub fn location(&self) -> Location {
         match self {
             Self::Unit(inner) => inner.location,
@@ -672,6 +758,54 @@ impl Constant {
             Self::Array(inner) => inner.location,
             Self::Tuple(inner) => inner.location,
             Self::Structure(inner) => inner.location,
+        }
+    }
+
+    ///
+    /// If the constant was created from a literal.
+    ///
+    pub fn is_literal(&self) -> bool {
+        match self {
+            Self::Integer(inner) => inner.is_literal,
+            _ => false,
+        }
+    }
+}
+
+impl ITyped for Constant {
+    fn r#type(&self) -> Type {
+        match self {
+            Self::Unit(inner) => inner.r#type(),
+            Self::Boolean(inner) => inner.r#type(),
+            Self::Integer(inner) => inner.r#type(),
+            Self::Range(inner) => inner.r#type(),
+            Self::RangeInclusive(inner) => inner.r#type(),
+            Self::String(inner) => inner.r#type(),
+            Self::Array(inner) => inner.r#type(),
+            Self::Tuple(inner) => inner.r#type(),
+            Self::Structure(inner) => inner.r#type(),
+        }
+    }
+
+    fn has_the_same_type_as(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Unit(inner_1), Self::Unit(inner_2)) => inner_1.has_the_same_type_as(inner_2),
+            (Self::Boolean(inner_1), Self::Boolean(inner_2)) => {
+                inner_1.has_the_same_type_as(inner_2)
+            }
+            (Self::Integer(inner_1), Self::Integer(inner_2)) => {
+                inner_1.has_the_same_type_as(inner_2)
+            }
+            (Self::Range(inner_1), Self::Range(inner_2)) => inner_1.has_the_same_type_as(inner_2),
+            (Self::RangeInclusive(inner_1), Self::RangeInclusive(inner_2)) => {
+                inner_1.has_the_same_type_as(inner_2)
+            }
+            (Self::Array(inner_1), Self::Array(inner_2)) => inner_1.has_the_same_type_as(inner_2),
+            (Self::Tuple(inner_1), Self::Tuple(inner_2)) => inner_1.has_the_same_type_as(inner_2),
+            (Self::Structure(inner_1), Self::Structure(inner_2)) => {
+                inner_1.has_the_same_type_as(inner_2)
+            }
+            _ => false,
         }
     }
 }

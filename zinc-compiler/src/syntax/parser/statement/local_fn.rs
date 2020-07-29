@@ -155,6 +155,7 @@ mod tests {
                 Location::new(1, 1),
                 ExpressionTreeNode::operand(ExpressionOperand::Block(BlockExpression::new(
                     Location::new(1, 1),
+                    false,
                     vec![],
                     Some(ExpressionTree::new(
                         Location::new(1, 3),

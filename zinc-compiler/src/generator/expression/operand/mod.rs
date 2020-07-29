@@ -20,6 +20,7 @@ use zinc_bytecode::Instruction;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::state::State;
+use crate::generator::IBytecodeWritable;
 use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
 use crate::semantic::element::place::memory_type::MemoryType;
@@ -38,20 +39,28 @@ use self::r#match::Expression as MatchExpression;
 ///
 #[derive(Debug, Clone)]
 pub enum Operand {
+    /// The constant operand.
     Constant(Constant),
+    /// The memory descriptor operand.
     Place(Place),
+    /// The array literal expression operand.
     Array(ArrayExpression),
+    /// The variable group (usually tuple or structure fields) expression operand.
     Group(GroupExpression),
+    /// The function argument list expression.
     List(ListExpression),
+    /// The block expression.
     Block(BlockExpression),
+    /// The conditional expression.
     Conditional(ConditionalExpression),
+    /// The `match` expression.
     Match(MatchExpression),
 }
 
-impl Operand {
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
+impl IBytecodeWritable for Operand {
+    fn write_all(self, bytecode: Rc<RefCell<State>>) {
         match self {
-            Self::Constant(inner) => inner.write_all_to_bytecode(bytecode),
+            Self::Constant(inner) => inner.write_all(bytecode),
             Self::Place(mut inner) => match inner.memory_type {
                 MemoryType::Stack => {
                     let location = inner.identifier.location;
@@ -60,12 +69,12 @@ impl Operand {
                     let address = bytecode
                         .borrow()
                         .get_variable_address(inner.identifier.name.as_str())
-                        .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+                        .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
 
                     let is_indexed = !inner.elements.is_empty();
 
                     if is_indexed {
-                        inner.write_all_to_bytecode(bytecode.clone());
+                        inner.write_all(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(
                             Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
                                 address,
@@ -100,7 +109,7 @@ impl Operand {
                             false,
                             zinc_const::bitlength::FIELD,
                         )
-                        .write_all_to_bytecode(bytecode.clone());
+                        .write_all(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(
                             Instruction::StorageLoad(zinc_bytecode::StorageLoad::new(
                                 *element_size,
@@ -114,7 +123,7 @@ impl Operand {
                     let is_indexed = !inner.elements.is_empty();
 
                     if is_indexed {
-                        inner.write_all_to_bytecode(bytecode.clone());
+                        inner.write_all(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(
                             Instruction::Slice(zinc_bytecode::Slice::new(element_size, total_size)),
                             Some(location),
@@ -122,12 +131,12 @@ impl Operand {
                     }
                 }
             },
-            Self::Array(inner) => inner.write_all_to_bytecode(bytecode),
-            Self::Group(inner) => inner.write_all_to_bytecode(bytecode),
-            Self::List(inner) => inner.write_all_to_bytecode(bytecode),
-            Self::Block(inner) => inner.write_all_to_bytecode(bytecode),
-            Self::Conditional(inner) => inner.write_all_to_bytecode(bytecode),
-            Self::Match(inner) => inner.write_all_to_bytecode(bytecode),
+            Self::Array(inner) => inner.write_all(bytecode),
+            Self::Group(inner) => inner.write_all(bytecode),
+            Self::List(inner) => inner.write_all(bytecode),
+            Self::Block(inner) => inner.write_all(bytecode),
+            Self::Conditional(inner) => inner.write_all(bytecode),
+            Self::Match(inner) => inner.write_all(bytecode),
         }
     }
 }

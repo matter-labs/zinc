@@ -31,6 +31,7 @@ fn main() {}
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         }),

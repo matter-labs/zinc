@@ -32,9 +32,9 @@ contract Exchange {
     total_supply: Balance;
 
     /// UNI balance of an address
-    balances: [Balance; 0]; // TODO: [Balance; 2^160]
+    balances: [Balance; 0]; // should be [Balance; 2^160]
     /// UNI allowance of one address on another
-    allowances: [[Balance; 0]; 0]; // TODO: [[Balance; 2^160]; 2^160]
+    allowances: [[Balance; 0]; 0]; // should be [[Balance; 2^160]; 2^160]
 
     ///
     /// Deposit ETH and Tokens (self.token_address) at current ratio to mint UNI tokens.
@@ -121,7 +121,7 @@ contract Exchange {
 
         self.balances[tx.from] -= amount;
         self.total_supply = total_liquidity - amount;
-//        send(tx.from, eth_amount); // TODO: external call
+//        send(tx.from, eth_amount);
         assert!(self.transfer(tx, tx.from, token_amount));
 
         (eth_amount, token_amount)
@@ -217,7 +217,7 @@ contract Exchange {
         // Throws if eth_sold > max_eth
         let eth_refund: Balance = max_eth - eth_sold;
         if eth_refund > ZERO_BALANCE {
-//            send(buyer, eth_refund); // TODO: external call
+//            send(buyer, eth_refund);
         };
         assert!(self.transfer(tx, tx.to, tokens_bought));
 
@@ -352,7 +352,7 @@ contract Exchange {
         let tokens_sold: Balance = utils::get_output_price(eth_bought, token_reserve, self.total_supply);
         assert!(max_tokens >= tokens_sold, "tokens sold is always > 0");
 
-//        send(tx.to, eth_bought); // TODO: external call
+//        send(tx.to, eth_bought);
 
         assert!(self.transfer_from(tx, buyer, self.token_address, tokens_sold));
 

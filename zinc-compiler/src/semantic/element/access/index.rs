@@ -16,6 +16,9 @@ pub struct Index {
 }
 
 impl Index {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(element_size: usize, total_size: usize, offset: Option<usize>) -> Self {
         Self {
             element_size,

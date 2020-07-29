@@ -49,7 +49,7 @@ impl Analyzer {
 
             Ok(scope)
         } else {
-            panic!(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+            panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
         }
     }
 }

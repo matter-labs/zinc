@@ -14,12 +14,12 @@ use crate::semantic::scope::Scope;
 /// to allow shared access.
 ///
 pub struct Stack {
+    /// The scope stack elements, where the deepest scope is the last element.
     pub elements: Vec<Rc<RefCell<Scope>>>,
 }
 
-static THERE_MUST_ALWAYS_BE_A_SCOPE: &str = "Scope stack balance is kept by the evaluation logic";
-
 impl Stack {
+    /// The scope stack array default capacity.
     const ELEMENTS_INITIAL_CAPACITY: usize = 16;
 
     ///
@@ -38,7 +38,7 @@ impl Stack {
         self.elements
             .last()
             .cloned()
-            .expect(THERE_MUST_ALWAYS_BE_A_SCOPE)
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
     }
 
     ///
@@ -57,6 +57,8 @@ impl Stack {
     /// Removes the deepest scope from the current hierarchy.
     ///
     pub fn pop(&mut self) {
-        self.elements.pop().expect(THERE_MUST_ALWAYS_BE_A_SCOPE);
+        self.elements
+            .pop()
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
     }
 }

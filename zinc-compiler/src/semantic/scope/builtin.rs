@@ -23,12 +23,20 @@ use crate::semantic::scope::Scope;
 #[derive(Debug)]
 pub struct BuiltInScope {}
 
+///
+/// The built-in structures type IDs.
+///
 pub enum BuiltInTypeId {
+    /// The `std::crypto::ecc::Point` structure type ID.
     StdCryptoEccPoint = 0,
+    /// The `std::crypto::schnorr::Signature` structure type ID.
     StdCryptoSchnorrSignature = 1,
 }
 
 impl BuiltInScope {
+    ///
+    /// Initializes the built-in module scope.
+    ///
     pub fn initialize() -> Rc<RefCell<Scope>> {
         let std_scope = Scope::new_built_in("std").wrap();
 
@@ -100,6 +108,9 @@ impl BuiltInScope {
         root_scope
     }
 
+    ///
+    /// Initializes the `std::crypto` module scope.
+    ///
     fn module_crypto() -> Rc<RefCell<Scope>> {
         let std_crypto_scope = Scope::new_built_in("crypto").wrap();
 
@@ -202,6 +213,9 @@ impl BuiltInScope {
         std_crypto_scope
     }
 
+    ///
+    /// Initializes the `std::convert` module scope.
+    ///
     fn module_convert() -> Rc<RefCell<Scope>> {
         let std_convert_scope = Scope::new_built_in("convert").wrap();
 
@@ -249,6 +263,9 @@ impl BuiltInScope {
         std_convert_scope
     }
 
+    ///
+    /// Initializes the `std::array` module scope.
+    ///
     fn module_array() -> Rc<RefCell<Scope>> {
         let std_array_scope = Scope::new_built_in("array").wrap();
 
@@ -281,6 +298,9 @@ impl BuiltInScope {
         std_array_scope
     }
 
+    ///
+    /// Initializes the `std::ff` module scope.
+    ///
     fn module_ff() -> Rc<RefCell<Scope>> {
         let std_ff_scope = Scope::new_built_in("ff").wrap();
 

@@ -12,8 +12,10 @@ use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockExpressionAnalyzer;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
+use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::function::error::Error;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
@@ -22,17 +24,29 @@ use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
 
+///
+/// The semantic analyzer constant function element.
+///
 #[derive(Debug, Clone)]
 pub struct Function {
+    /// The location where the function is called.
     pub location: Location,
+    /// The function identifier.
     pub identifier: String,
+    /// The unique function type ID.
     pub type_id: usize,
+    /// The function formal parameters list.
     pub formal_params: Vec<(String, Type)>,
+    /// The function return type.
     pub return_type: Box<Type>,
+    /// The function body, which is executed each time the function is called.
     pub body: BlockExpression,
 }
 
 impl Function {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         location: Location,
         identifier: String,
@@ -51,6 +65,9 @@ impl Function {
         }
     }
 
+    ///
+    /// The function input arguments total size in the virtual compiler data stack.
+    ///
     pub fn input_size(&self) -> usize {
         self.formal_params
             .iter()
@@ -58,25 +75,29 @@ impl Function {
             .sum()
     }
 
+    ///
+    /// The function result type size in the virtual compiler data stack.
+    ///
     pub fn output_size(&self) -> usize {
         self.return_type.size()
     }
 
-    pub fn validate(
-        &self,
-        actual_elements: Vec<Element>,
-    ) -> Result<Vec<(String, Constant)>, Error> {
-        if actual_elements.len() != self.formal_params.len() {
+    ///
+    /// Validates the function call with the `argument_list`.
+    ///
+    pub fn validate(&self, argument_list: ArgumentList) -> Result<Vec<(String, Constant)>, Error> {
+        if argument_list.arguments.len() != self.formal_params.len() {
             return Err(Error::ArgumentCount {
                 location: self.location,
                 function: self.identifier.to_owned(),
                 expected: self.formal_params.len(),
-                found: actual_elements.len(),
+                found: argument_list.arguments.len(),
+                reference: Some(argument_list.location),
             });
         }
 
-        let mut actual_params = Vec::with_capacity(actual_elements.len());
-        for (index, element) in actual_elements.into_iter().enumerate() {
+        let mut actual_params = Vec::with_capacity(argument_list.arguments.len());
+        for (index, element) in argument_list.arguments.into_iter().enumerate() {
             let name = self.formal_params[index].0.to_owned();
 
             let constant = match element {
@@ -127,6 +148,7 @@ impl Function {
                         function: self.identifier.to_owned(),
                         expected: formal_params_length,
                         found: actual_params.len(),
+                        reference: Some(argument_list.location),
                     })
                 }
             }
@@ -135,6 +157,11 @@ impl Function {
         Ok(actual_params)
     }
 
+    ///
+    /// Calls the constant function with a specific set of constant `arguments`, which are
+    /// declared in their own `scope`, and then executes the function body in a constant context,
+    /// where the result is calculated and checked for possible violations, like integer overflow.
+    ///
     pub fn call(
         self,
         arguments: Vec<(String, Constant)>,

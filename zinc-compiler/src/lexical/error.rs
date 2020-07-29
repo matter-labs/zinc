@@ -6,7 +6,7 @@ use crate::lexical::token::lexeme::literal::integer::Integer;
 use crate::lexical::token::location::Location;
 
 ///
-/// The lexical error.
+/// The lexical parser error.
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Error {

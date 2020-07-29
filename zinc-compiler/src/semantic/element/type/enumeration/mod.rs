@@ -27,15 +27,24 @@ use crate::syntax::tree::variant::Variant;
 ///
 #[derive(Debug, Clone)]
 pub struct Enumeration {
+    /// The enumeration type location in the code.
     pub location: Option<Location>,
+    /// The enumeration type identifier.
     pub identifier: String,
+    /// The unique enumeration type ID.
     pub type_id: usize,
+    /// The enumeration elements bitlength, enough to fit the largest variant.
     pub bitlength: usize,
+    /// The ordered list of the variant values.
     pub values: Vec<BigInt>,
+    /// The enumeration scope, where its methods and associated items are declared.
     pub scope: Rc<RefCell<Scope>>,
 }
 
 impl Enumeration {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         location: Location,
         identifier: String,
@@ -78,7 +87,7 @@ impl Enumeration {
             let identifier_location = identifier.location;
 
             let mut constant =
-                IntegerConstant::new(identifier_location, value, false, minimal_bitlength);
+                IntegerConstant::new(identifier_location, value, false, minimal_bitlength, false);
 
             constant.set_enumeration(enumeration.clone());
 

@@ -16,6 +16,9 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
+///
+/// The `const` statement semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

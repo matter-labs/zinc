@@ -10,6 +10,9 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#type::Statement as TypeStatement;
 
+///
+/// The `type` statement semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

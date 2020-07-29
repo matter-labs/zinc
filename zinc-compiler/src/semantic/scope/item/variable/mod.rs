@@ -17,15 +17,24 @@ use self::memory_type::MemoryType;
 ///
 #[derive(Debug, Clone)]
 pub struct Variable {
+    /// The location, where the variable is declared.
     pub location: Location,
+    /// The unique item ID, allocated upon declaration.
     pub item_id: usize,
+    /// Whether the variable is mutable.
     pub is_mutable: bool,
+    /// The variable name.
     pub identifier: String,
+    /// The variable type.
     pub r#type: Type,
+    /// The memory type, where the variable is declared.
     pub memory_type: MemoryType,
 }
 
 impl Variable {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         location: Location,
         is_mutable: bool,

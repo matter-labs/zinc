@@ -237,7 +237,7 @@ mod tests {
                     )),
                 ),
                 None,
-                BlockExpression::new(Location::new(1, 15), vec![], None),
+                BlockExpression::new(Location::new(1, 15), false, vec![], None),
             ),
             None,
         ));
@@ -280,6 +280,7 @@ mod tests {
                 None,
                 BlockExpression::new(
                     Location::new(1, 16),
+                    false,
                     vec![],
                     Some(ExpressionTree::new_with_leaves(
                         Location::new(1, 20),

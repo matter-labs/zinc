@@ -11,14 +11,24 @@ use num_traits::Zero;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::enumeration::Enumeration;
 
+///
+/// The object, describing the `match` expression exhaustion process.
+///
 pub struct Data {
+    /// The patterns, which appear in the `match` expression.
     patterns: HashMap<BigInt, Location>,
+    /// The enumeration type, is the `match` expressions matches one.
+    /// In this case, all the enumeration variant must be covered at least once.
     enumeration_type: Option<Enumeration>,
 }
 
 impl Data {
+    /// The pattern hashmap default capacity.
     const DEFAULT_INITIAL_PATTERN_HASHMAP_SIZE: usize = 4;
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new() -> Self {
         Self {
             patterns: HashMap::with_capacity(Self::DEFAULT_INITIAL_PATTERN_HASHMAP_SIZE),
@@ -26,11 +36,17 @@ impl Data {
         }
     }
 
+    ///
+    /// Inserts a boolean pattern to the exhaustion hashmap.
+    ///
     pub fn insert_boolean(&mut self, value: bool, location: Location) -> Option<Location> {
         self.patterns
             .insert(if value { BigInt::one() } else { BigInt::zero() }, location)
     }
 
+    ///
+    /// Inserts an integer pattern to the exhaustion hashmap.
+    ///
     pub fn insert_integer(
         &mut self,
         value: BigInt,
@@ -41,6 +57,9 @@ impl Data {
         self.patterns.insert(value, location)
     }
 
+    ///
+    /// Checks if the boolean patterns cover all the possible boolean values.
+    ///
     pub fn has_exhausted_boolean(&self) -> bool {
         let mut current = self.patterns.keys().cloned().collect::<Vec<BigInt>>();
         current.sort();
@@ -50,6 +69,9 @@ impl Data {
         current == full
     }
 
+    ///
+    /// Checks if the integer patterns cover all the possible integer values.
+    ///
     pub fn has_exhausted_integer(&self) -> bool {
         match self.enumeration_type {
             Some(ref enumeration) => {

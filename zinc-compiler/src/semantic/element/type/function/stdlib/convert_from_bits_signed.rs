@@ -8,36 +8,53 @@ use std::ops::Deref;
 use zinc_bytecode::FunctionIdentifier;
 
 use crate::lexical::token::location::Location;
+use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::r#type::function::error::Error;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 
+///
+/// The semantic analyzer standard library `std::convert::from_bits_signed` function element.
+///
 #[derive(Debug, Clone)]
 pub struct Function {
+    /// The location where the function is called.
     pub location: Option<Location>,
-    pub builtin_identifier: FunctionIdentifier,
+    /// The unique built-in function identifier.
+    pub stdlib_identifier: FunctionIdentifier,
+    /// The function identifier.
     pub identifier: &'static str,
 }
 
 impl Function {
+    /// The position of the `bits` argument in the function argument list.
     pub const ARGUMENT_INDEX_BITS: usize = 0;
+
+    /// The expected number of the function arguments.
     pub const ARGUMENT_COUNT: usize = 1;
 
-    pub fn new(builtin_identifier: FunctionIdentifier) -> Self {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(stdlib_identifier: FunctionIdentifier) -> Self {
         Self {
             location: None,
-            builtin_identifier,
+            stdlib_identifier,
             identifier: "from_bits_signed",
         }
     }
 
+    ///
+    /// Calls the function with the `argument_list`, validating the call.
+    ///
     pub fn call(
         self,
         location: Option<Location>,
-        actual_elements: Vec<Element>,
+        argument_list: ArgumentList,
     ) -> Result<Type, Error> {
-        let mut actual_params = Vec::with_capacity(actual_elements.len());
-        for (index, element) in actual_elements.into_iter().enumerate() {
+        let mut actual_params = Vec::with_capacity(argument_list.arguments.len());
+        for (index, element) in argument_list.arguments.into_iter().enumerate() {
             let location = element.location();
 
             let r#type = match element {
@@ -100,6 +117,7 @@ impl Function {
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT,
                     found: actual_params.len(),
+                    reference: None,
                 })
             }
         };
@@ -110,6 +128,7 @@ impl Function {
                 function: self.identifier.to_owned(),
                 expected: Self::ARGUMENT_COUNT,
                 found: actual_params.len(),
+                reference: None,
             });
         }
 

@@ -57,6 +57,7 @@ impl<E: IEngine> DataStack<E> {
                 Some(old_cd) => old_cd.old.clone(),
                 None => self.memory[address].clone(),
             };
+
             delta.insert(
                 address,
                 CellDelta {
@@ -71,12 +72,16 @@ impl<E: IEngine> DataStack<E> {
         Ok(())
     }
 
-    /// Create a new memory state branch
+    ///
+    /// Create a new memory state branch.
+    ///
     pub fn fork(&mut self) {
         self.branches.push(DataStackBranch::new());
     }
 
+    ///
     /// Create an alternative branch (same parent as current one).
+    ///
     pub fn switch_branch(&mut self) -> Result<(), RuntimeError> {
         let mut branch = self
             .branches
@@ -110,7 +115,9 @@ impl<E: IEngine> DataStack<E> {
 
     fn revert(&mut self, delta: &DataStackDelta<E>) {
         for (address, d) in delta.iter() {
-            self.memory[*address] = d.old.clone();
+            if let Some(cell) = self.memory.get_mut(*address) {
+                *cell = d.old.clone();
+            }
         }
     }
 
@@ -122,13 +129,12 @@ impl<E: IEngine> DataStack<E> {
         delta: &DataStackDelta<E>,
     ) -> Result<(), RuntimeError> {
         for (&addr, diff) in delta.iter() {
-            match (&self.memory[addr], &diff.new) {
-                (None, _) => {}
-                (Some(Cell::Value(old)), Cell::Value(new)) => {
-                    let cs = cs.namespace(|| format!("merge address {}", addr));
-                    let value = gadgets::select::conditional(cs, &condition, new, old)?;
-                    self.set(addr, Cell::Value(value))?;
-                }
+            if let (Some(Some(Cell::Value(old))), Cell::Value(new)) =
+                (&self.memory.get(addr), &diff.new)
+            {
+                let cs = cs.namespace(|| format!("merge address {}", addr));
+                let value = gadgets::select::conditional(cs, &condition, new, old)?;
+                self.set(addr, Cell::Value(value))?;
             }
         }
 
@@ -148,22 +154,26 @@ impl<E: IEngine> DataStack<E> {
     {
         for (addr, diff) in delta_then.iter() {
             let alt = if let Some(diff) = delta_else.get(addr) {
-                Some(diff.new.clone())
+                Some(Some(diff.new.to_owned()))
             } else {
-                self.memory[*addr].clone()
+                self.memory.get(*addr).cloned()
             };
 
-            match (&alt, &diff.new) {
-                (None, _) => {}
-                (Some(Cell::Value(old)), Cell::Value(new)) => {
-                    let cs = cs.namespace(|| format!("merge address {}", addr));
-                    let value = gadgets::select::conditional(cs, &condition, new, old)?;
-                    self.set(*addr, Cell::Value(value))?;
-                }
+            if let (Some(Some(Cell::Value(old))), Cell::Value(new)) = (&alt, &diff.new) {
+                let cs = cs.namespace(|| format!("merge address {}", addr));
+                let value = gadgets::select::conditional(cs, &condition, new, old)?;
+                self.set(*addr, Cell::Value(value))?;
             }
         }
 
         Ok(())
+    }
+
+    ///
+    /// Erase the memory starting from `start_address`.
+    ///
+    pub fn drop_from(&mut self, start_address: usize) {
+        self.memory.truncate(start_address);
     }
 }
 

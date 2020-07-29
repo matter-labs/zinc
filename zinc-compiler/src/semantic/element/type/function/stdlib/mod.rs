@@ -22,9 +22,9 @@ use std::fmt;
 use zinc_bytecode::FunctionIdentifier;
 
 use crate::lexical::token::location::Location;
+use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::Element;
 
 use self::array_pad::Function as ArrayPadFunction;
 use self::array_reverse::Function as ArrayReverseFunction;
@@ -38,25 +38,42 @@ use self::crypto_schnorr_signature_verify::Function as SchnorrSignatureVerifyFun
 use self::crypto_sha256::Function as Sha256Function;
 use self::ff_invert::Function as FfInvertFunction;
 
+///
+/// The semantic analyzer standard library function element.
+///
 #[derive(Debug, Clone)]
 pub enum Function {
+    /// The `std::crypto::sha256` function variant.
     CryptoSha256(Sha256Function),
+    /// The `std::crypto::pedersen` function variant.
     CryptoPedersen(PedersenFunction),
+    /// The `std::crypto::schnorr::Signature::verify` function variant.
     CryptoSchnorrSignatureVerify(SchnorrSignatureVerifyFunction),
 
+    /// The `std::convert::to_bits` function variant.
     ConvertToBits(ToBitsFunction),
+    /// The `std::convert::from_bits_unsigned` function variant.
     ConvertFromBitsUnsigned(FromBitsUnsignedFunction),
+    /// The `std::convert::from_bits_signed` function variant.
     ConvertFromBitsSigned(FromBitsSignedFunction),
+    /// The `std::convert::from_bits_field` function variant.
     ConvertFromBitsField(FromBitsFieldFunction),
 
+    /// The `std::array::reverse` function variant.
     ArrayReverse(ArrayReverseFunction),
+    /// The `std::array::truncate` function variant.
     ArrayTruncate(ArrayTruncateFunction),
+    /// The `std::array::pad` function variant.
     ArrayPad(ArrayPadFunction),
 
+    /// The `std::ff::invert` function variant.
     FfInvert(FfInvertFunction),
 }
 
 impl Function {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(identifier: FunctionIdentifier) -> Self {
         match identifier {
             FunctionIdentifier::CryptoSha256 => Self::CryptoSha256(Sha256Function::new(identifier)),
@@ -92,25 +109,35 @@ impl Function {
         }
     }
 
-    pub fn call(self, location: Option<Location>, elements: Vec<Element>) -> Result<Type, Error> {
+    ///
+    /// Calls the function with the `argument_list`, validating the call.
+    ///
+    pub fn call(
+        self,
+        location: Option<Location>,
+        argument_list: ArgumentList,
+    ) -> Result<Type, Error> {
         match self {
-            Self::CryptoSha256(inner) => inner.call(location, elements),
-            Self::CryptoPedersen(inner) => inner.call(location, elements),
-            Self::CryptoSchnorrSignatureVerify(inner) => inner.call(location, elements),
+            Self::CryptoSha256(inner) => inner.call(location, argument_list),
+            Self::CryptoPedersen(inner) => inner.call(location, argument_list),
+            Self::CryptoSchnorrSignatureVerify(inner) => inner.call(location, argument_list),
 
-            Self::ConvertToBits(inner) => inner.call(location, elements),
-            Self::ConvertFromBitsUnsigned(inner) => inner.call(location, elements),
-            Self::ConvertFromBitsSigned(inner) => inner.call(location, elements),
-            Self::ConvertFromBitsField(inner) => inner.call(location, elements),
+            Self::ConvertToBits(inner) => inner.call(location, argument_list),
+            Self::ConvertFromBitsUnsigned(inner) => inner.call(location, argument_list),
+            Self::ConvertFromBitsSigned(inner) => inner.call(location, argument_list),
+            Self::ConvertFromBitsField(inner) => inner.call(location, argument_list),
 
-            Self::ArrayReverse(inner) => inner.call(location, elements),
-            Self::ArrayTruncate(inner) => inner.call(location, elements),
-            Self::ArrayPad(inner) => inner.call(location, elements),
+            Self::ArrayReverse(inner) => inner.call(location, argument_list),
+            Self::ArrayTruncate(inner) => inner.call(location, argument_list),
+            Self::ArrayPad(inner) => inner.call(location, argument_list),
 
-            Self::FfInvert(inner) => inner.call(location, elements),
+            Self::FfInvert(inner) => inner.call(location, argument_list),
         }
     }
 
+    ///
+    /// Returns the function identifier, which is known at compile time.
+    ///
     pub fn identifier(&self) -> &'static str {
         match self {
             Self::CryptoSha256(inner) => inner.identifier,
@@ -130,25 +157,31 @@ impl Function {
         }
     }
 
-    pub fn builtin_identifier(&self) -> FunctionIdentifier {
+    ///
+    /// The unique standard library function identifier.
+    ///
+    pub fn stdlib_identifier(&self) -> FunctionIdentifier {
         match self {
-            Self::CryptoSha256(inner) => inner.builtin_identifier,
-            Self::CryptoPedersen(inner) => inner.builtin_identifier,
-            Self::CryptoSchnorrSignatureVerify(inner) => inner.builtin_identifier,
+            Self::CryptoSha256(inner) => inner.stdlib_identifier,
+            Self::CryptoPedersen(inner) => inner.stdlib_identifier,
+            Self::CryptoSchnorrSignatureVerify(inner) => inner.stdlib_identifier,
 
-            Self::ConvertToBits(inner) => inner.builtin_identifier,
-            Self::ConvertFromBitsUnsigned(inner) => inner.builtin_identifier,
-            Self::ConvertFromBitsSigned(inner) => inner.builtin_identifier,
-            Self::ConvertFromBitsField(inner) => inner.builtin_identifier,
+            Self::ConvertToBits(inner) => inner.stdlib_identifier,
+            Self::ConvertFromBitsUnsigned(inner) => inner.stdlib_identifier,
+            Self::ConvertFromBitsSigned(inner) => inner.stdlib_identifier,
+            Self::ConvertFromBitsField(inner) => inner.stdlib_identifier,
 
-            Self::ArrayReverse(inner) => inner.builtin_identifier,
-            Self::ArrayTruncate(inner) => inner.builtin_identifier,
-            Self::ArrayPad(inner) => inner.builtin_identifier,
+            Self::ArrayReverse(inner) => inner.stdlib_identifier,
+            Self::ArrayTruncate(inner) => inner.stdlib_identifier,
+            Self::ArrayPad(inner) => inner.stdlib_identifier,
 
-            Self::FfInvert(inner) => inner.builtin_identifier,
+            Self::FfInvert(inner) => inner.stdlib_identifier,
         }
     }
 
+    ///
+    /// Sets the function call location in the code.
+    ///
     pub fn set_location(&mut self, location: Location) {
         match self {
             Self::CryptoSha256(inner) => inner.location = Some(location),
@@ -168,6 +201,9 @@ impl Function {
         }
     }
 
+    ///
+    /// Returns the location of the function call.
+    ///
     pub fn location(&self) -> Option<Location> {
         match self {
             Self::CryptoSha256(inner) => inner.location,

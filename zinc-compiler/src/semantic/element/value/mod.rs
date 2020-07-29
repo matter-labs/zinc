@@ -14,6 +14,17 @@ pub mod tuple;
 pub mod unit;
 
 use std::fmt;
+use std::ops::Add;
+use std::ops::BitAnd;
+use std::ops::BitOr;
+use std::ops::BitXor;
+use std::ops::Div;
+use std::ops::Mul;
+use std::ops::Neg;
+use std::ops::Rem;
+use std::ops::Shl;
+use std::ops::Shr;
+use std::ops::Sub;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::lexical::token::location::Location;
@@ -23,6 +34,7 @@ use crate::semantic::element::access::dot::Dot as DotAccessVariant;
 use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::place::Place;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
 use crate::syntax::tree::identifier::Identifier;
@@ -39,49 +51,31 @@ use self::unit::Unit;
 ///
 /// Value are parts of a non-constant expression.
 ///
+/// If a constant value of an expression cannot be known, it coersed to a value, that is, to a
+/// value, which will be only known at runtime.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
+    /// The unit `()` type value.
     Unit(Unit),
+    /// The boolean type value.
     Boolean(Boolean),
+    /// The integer type value.
     Integer(Integer),
+    /// The array type value.
     Array(Array),
+    /// The tuple type value.
     Tuple(Tuple),
+    /// The structure type value.
     Structure(Structure),
+    /// The contract type value.
     Contract(Contract),
 }
 
 impl Value {
-    pub fn r#type(&self) -> Type {
-        match self {
-            Self::Unit(inner) => inner.r#type(),
-            Self::Boolean(inner) => inner.r#type(),
-            Self::Integer(inner) => inner.r#type(),
-            Self::Array(inner) => inner.r#type(),
-            Self::Tuple(inner) => inner.r#type(),
-            Self::Structure(inner) => inner.r#type(),
-            Self::Contract(inner) => inner.r#type(),
-        }
-    }
-
-    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::Unit(_), Self::Unit(_)) => true,
-            (Self::Boolean(_), Self::Boolean(_)) => true,
-            (Self::Integer(value_1), Self::Integer(value_2)) => {
-                value_1.has_the_same_type_as(value_2)
-            }
-            (Self::Array(value_1), Self::Array(value_2)) => value_1.has_the_same_type_as(value_2),
-            (Self::Tuple(value_1), Self::Tuple(value_2)) => value_1.has_the_same_type_as(value_2),
-            (Self::Structure(value_1), Self::Structure(value_2)) => {
-                value_1.has_the_same_type_as(value_2)
-            }
-            (Self::Contract(value_1), Self::Contract(value_2)) => {
-                value_1.has_the_same_type_as(value_2)
-            }
-            _ => false,
-        }
-    }
-
+    ///
+    /// Executes the `||` logical OR operator.
+    ///
     pub fn or(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Boolean(value_1) => match other {
@@ -102,6 +96,9 @@ impl Value {
         }
     }
 
+    ///
+    /// Executes the `^^` logical XOR operator.
+    ///
     pub fn xor(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Boolean(value_1) => match other {
@@ -122,6 +119,9 @@ impl Value {
         }
     }
 
+    ///
+    /// Executes the `&&` logical AND operator.
+    ///
     pub fn and(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Boolean(value_1) => match other {
@@ -142,11 +142,14 @@ impl Value {
         }
     }
 
+    ///
+    /// Executes the `==` equals comparison operator.
+    ///
     pub fn equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match (self, other) {
             (Self::Unit(value_1), Self::Unit(_)) => Ok((
                 Self::Boolean(Boolean::new(value_1.location)),
-                GeneratorExpressionOperator::Equals,
+                GeneratorExpressionOperator::equals(),
             )),
             (Self::Unit(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
                 location: value_2
@@ -154,9 +157,10 @@ impl Value {
                     .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 found: value_2.r#type().to_string(),
             }),
-            (Self::Boolean(value_1), Self::Boolean(_)) => {
-                Ok((Self::Boolean(value_1), GeneratorExpressionOperator::Equals))
-            }
+            (Self::Boolean(value_1), Self::Boolean(_)) => Ok((
+                Self::Boolean(value_1),
+                GeneratorExpressionOperator::equals(),
+            )),
             (Self::Boolean(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean {
                 location: value_2
                     .location()
@@ -186,11 +190,14 @@ impl Value {
         }
     }
 
+    ///
+    /// Executes the `!=` not-equals comparison operator.
+    ///
     pub fn not_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match (self, other) {
             (Self::Unit(value_1), Self::Unit(_)) => Ok((
                 Self::Boolean(Boolean::new(value_1.location)),
-                GeneratorExpressionOperator::NotEquals,
+                GeneratorExpressionOperator::not_equals(),
             )),
             (Self::Unit(_), value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
                 location: value_2
@@ -200,7 +207,7 @@ impl Value {
             }),
             (Self::Boolean(value_1), Self::Boolean(_)) => Ok((
                 Self::Boolean(value_1),
-                GeneratorExpressionOperator::NotEquals,
+                GeneratorExpressionOperator::not_equals(),
             )),
             (Self::Boolean(_), value_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean {
@@ -235,6 +242,9 @@ impl Value {
         }
     }
 
+    ///
+    /// Executes the `>=` greater-equals comparison operator.
+    ///
     pub fn greater_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
@@ -262,6 +272,9 @@ impl Value {
         }
     }
 
+    ///
+    /// Executes the `<=` lesser-equals comparison operator.
+    ///
     pub fn lesser_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
@@ -289,6 +302,9 @@ impl Value {
         }
     }
 
+    ///
+    /// Executes the `>` greater comparison operator.
+    ///
     pub fn greater(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
@@ -316,6 +332,9 @@ impl Value {
         }
     }
 
+    ///
+    /// Executes the `<` lesser comparison operator.
+    ///
     pub fn lesser(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
@@ -342,12 +361,16 @@ impl Value {
             }),
         }
     }
+}
 
-    pub fn bitwise_or(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl BitOr for Value {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn bitor(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .bitwise_or(integer_2)
+                    .bitor(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
@@ -365,12 +388,16 @@ impl Value {
             }),
         }
     }
+}
 
-    pub fn bitwise_xor(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl BitXor for Value {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn bitxor(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .bitwise_xor(integer_2)
+                    .bitxor(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
@@ -388,12 +415,16 @@ impl Value {
             }),
         }
     }
+}
 
-    pub fn bitwise_and(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl BitAnd for Value {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn bitand(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .bitwise_and(integer_2)
+                    .bitand(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
@@ -411,15 +442,16 @@ impl Value {
             }),
         }
     }
+}
 
-    pub fn bitwise_shift_left(
-        self,
-        other: Self,
-    ) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Shl<Self> for Value {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn shl(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .bitwise_shift_left(integer_2)
+                    .shl(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(
@@ -439,15 +471,16 @@ impl Value {
             }),
         }
     }
+}
 
-    pub fn bitwise_shift_right(
-        self,
-        other: Self,
-    ) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Shr<Self> for Value {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn shr(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .bitwise_shift_right(integer_2)
+                    .shr(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(
@@ -469,8 +502,12 @@ impl Value {
             ),
         }
     }
+}
 
-    pub fn add(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Add for Value {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn add(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -492,12 +529,16 @@ impl Value {
             }),
         }
     }
+}
 
-    pub fn subtract(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Sub for Value {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn sub(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .subtract(integer_2)
+                    .sub(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorSubtractionSecondOperandExpectedInteger {
@@ -515,12 +556,16 @@ impl Value {
             }),
         }
     }
+}
 
-    pub fn multiply(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Mul for Value {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn mul(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .multiply(integer_2)
+                    .mul(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger {
@@ -538,12 +583,16 @@ impl Value {
             }),
         }
     }
+}
 
-    pub fn divide(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Div for Value {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn div(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .divide(integer_2)
+                    .div(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorDivisionSecondOperandExpectedInteger {
@@ -561,12 +610,16 @@ impl Value {
             }),
         }
     }
+}
 
-    pub fn remainder(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Rem for Value {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn rem(self, other: Self) -> Self::Output {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .remainder(integer_2)
+                    .rem(integer_2)
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorRemainderSecondOperandExpectedInteger {
@@ -584,7 +637,12 @@ impl Value {
             }),
         }
     }
+}
 
+impl Value {
+    ///
+    /// Executes the `as` casting operator.
+    ///
     pub fn cast(self, to: Type) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         let from = self.r#type();
         Caster::cast(&from, &to).map_err(|error| Error::Casting {
@@ -592,7 +650,7 @@ impl Value {
                 .location()
                 .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             inner: error,
-            reference: to.location(),
+            reference: to.location().expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
         })?;
 
         let (is_signed, bitlength) = match to {
@@ -611,6 +669,9 @@ impl Value {
         })
     }
 
+    ///
+    /// Executes the `!` logical NOT operator.
+    ///
     pub fn not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Boolean(inner) => Ok((Self::Boolean(inner), GeneratorExpressionOperator::Not)),
@@ -623,6 +684,9 @@ impl Value {
         }
     }
 
+    ///
+    /// Executes the `~` bitwise NOT operator.
+    ///
     pub fn bitwise_not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer) => integer
@@ -637,11 +701,15 @@ impl Value {
             }),
         }
     }
+}
 
-    pub fn negate(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+impl Neg for Value {
+    type Output = Result<(Self, GeneratorExpressionOperator), Error>;
+
+    fn neg(self) -> Self::Output {
         match self {
             Self::Integer(integer) => integer
-                .negate()
+                .neg()
                 .map(|(integer, operator)| (Self::Integer(integer), operator))
                 .map_err(Error::Integer),
             value => Err(Error::OperatorNegationExpectedInteger {
@@ -652,7 +720,12 @@ impl Value {
             }),
         }
     }
+}
 
+impl Value {
+    ///
+    /// Executes the `[]` array index operator with a non-constant value.
+    ///
     pub fn index_value(self, other: Self) -> Result<(Self, IndexAccess), Error> {
         match self {
             Value::Array(array) => match other {
@@ -673,6 +746,9 @@ impl Value {
         }
     }
 
+    ///
+    /// Executes the `[]` array index operator with a constant value.
+    ///
     pub fn index_constant(self, other: Constant) -> Result<(Self, IndexAccess), Error> {
         match self {
             Value::Array(array) => match other {
@@ -699,6 +775,9 @@ impl Value {
         }
     }
 
+    ///
+    /// Executes the `.` dot field access operator for a tuple.
+    ///
     pub fn tuple_field(self, tuple_index: TupleIndex) -> Result<(Self, StackFieldAccess), Error> {
         match self {
             Value::Tuple(tuple) => tuple.slice(tuple_index).map_err(Error::Tuple),
@@ -711,6 +790,9 @@ impl Value {
         }
     }
 
+    ///
+    /// Executes the `.` dot field access operator for a structure.
+    ///
     pub fn structure_field(
         self,
         identifier: Identifier,
@@ -733,13 +815,26 @@ impl Value {
         }
     }
 
+    ///
+    /// Tries to create a value from the memory place's type, passing it to the
+    /// `try_from_type` function.
+    ///
     pub fn try_from_place(place: &Place) -> Result<Self, Error> {
         let location = place.identifier.location;
 
-        Self::try_from_type(&place.r#type, Some(location))
+        Self::try_from_type(&place.r#type, false, Some(location))
     }
 
-    pub fn try_from_type(r#type: &Type, location: Option<Location>) -> Result<Self, Error> {
+    ///
+    /// Tries to create a value from the `r#type`.
+    ///
+    /// Values can be created from any type, except functions and ranges.
+    ///
+    pub fn try_from_type(
+        r#type: &Type,
+        is_literal: bool,
+        location: Option<Location>,
+    ) -> Result<Self, Error> {
         Ok(match r#type {
             Type::Unit(_) => Self::Unit(Unit::new(location.or_else(|| r#type.location()))),
             Type::Boolean(_) => Self::Boolean(Boolean::new(location.or_else(|| r#type.location()))),
@@ -747,16 +842,19 @@ impl Value {
                 location.or_else(|| r#type.location()),
                 false,
                 *bitlength,
+                is_literal,
             )),
             Type::IntegerSigned { bitlength, .. } => Self::Integer(Integer::new(
                 location.or_else(|| r#type.location()),
                 true,
                 *bitlength,
+                is_literal,
             )),
             Type::Field(_) => Self::Integer(Integer::new(
                 location.or_else(|| r#type.location()),
                 false,
                 zinc_const::bitlength::FIELD,
+                is_literal,
             )),
             Type::Array(inner) => Self::Array(Array::new_with_values(
                 location.or_else(|| inner.location.to_owned()),
@@ -772,8 +870,12 @@ impl Value {
                 inner.to_owned(),
             )),
             Type::Enumeration(inner) => {
-                let mut integer =
-                    Integer::new(location.or_else(|| inner.location), false, inner.bitlength);
+                let mut integer = Integer::new(
+                    location.or_else(|| inner.location),
+                    false,
+                    inner.bitlength,
+                    false,
+                );
                 integer.set_enumeration(inner.to_owned());
                 Self::Integer(integer)
             }
@@ -781,14 +883,25 @@ impl Value {
                 location.or_else(|| inner.location),
                 inner.to_owned(),
             )),
-            _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
+            _ => panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
     }
 
+    ///
+    /// Tries to create a value from the `constant`, passing its type to the
+    /// `try_from_type` function.
+    ///
     pub fn try_from_constant(constant: Constant) -> Result<Self, Error> {
-        Self::try_from_type(&constant.r#type(), Some(constant.location()))
+        Self::try_from_type(
+            &constant.r#type(),
+            constant.is_literal(),
+            Some(constant.location()),
+        )
     }
 
+    ///
+    /// Returns the constant location in the code.
+    ///
     pub fn location(&self) -> Option<Location> {
         match self {
             Self::Unit(inner) => inner.location,
@@ -798,6 +911,39 @@ impl Value {
             Self::Tuple(inner) => inner.location,
             Self::Structure(inner) => inner.location,
             Self::Contract(inner) => inner.location,
+        }
+    }
+}
+
+impl ITyped for Value {
+    fn r#type(&self) -> Type {
+        match self {
+            Self::Unit(inner) => inner.r#type(),
+            Self::Boolean(inner) => inner.r#type(),
+            Self::Integer(inner) => inner.r#type(),
+            Self::Array(inner) => inner.r#type(),
+            Self::Tuple(inner) => inner.r#type(),
+            Self::Structure(inner) => inner.r#type(),
+            Self::Contract(inner) => inner.r#type(),
+        }
+    }
+
+    fn has_the_same_type_as(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Unit(_), Self::Unit(_)) => true,
+            (Self::Boolean(_), Self::Boolean(_)) => true,
+            (Self::Integer(value_1), Self::Integer(value_2)) => {
+                value_1.has_the_same_type_as(value_2)
+            }
+            (Self::Array(value_1), Self::Array(value_2)) => value_1.has_the_same_type_as(value_2),
+            (Self::Tuple(value_1), Self::Tuple(value_2)) => value_1.has_the_same_type_as(value_2),
+            (Self::Structure(value_1), Self::Structure(value_2)) => {
+                value_1.has_the_same_type_as(value_2)
+            }
+            (Self::Contract(value_1), Self::Contract(value_2)) => {
+                value_1.has_the_same_type_as(value_2)
+            }
+            _ => false,
         }
     }
 }

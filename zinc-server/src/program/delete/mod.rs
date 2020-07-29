@@ -19,7 +19,7 @@ use self::error::Error;
 use self::request::Query;
 
 ///
-/// The program resource DELETE method endpoint handler.
+/// The HTTP request handler.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,

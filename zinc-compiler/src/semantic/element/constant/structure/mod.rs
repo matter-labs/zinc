@@ -11,6 +11,7 @@ use std::fmt;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::constant::Constant;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
 use crate::syntax::tree::identifier::Identifier;
@@ -22,12 +23,20 @@ use self::error::Error;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Structure {
+    /// The location of the structure expression, which start from the `{` left curly bracket.
     pub location: Location,
+    /// The structure type, which is set for values validation.
     pub r#type: Option<StructureType>,
+    /// The ordered structure values array.
     pub values: Vec<(Identifier, Constant)>,
 }
 
 impl Structure {
+    ///
+    /// A shortcut constructor.
+    ///
+    /// The type is not set here, so the value must be `validate`d later.
+    ///
     pub fn new(location: Location) -> Self {
         Self {
             location,
@@ -36,21 +45,16 @@ impl Structure {
         }
     }
 
-    pub fn r#type(&self) -> Type {
-        self.r#type
-            .clone()
-            .map(Type::Structure)
-            .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
-    }
-
-    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.r#type == other.r#type
-    }
-
+    ///
+    /// Pushes a typed element into the structure fields array.
+    ///
     pub fn push(&mut self, identifier: Identifier, value: Constant) {
         self.values.push((identifier, value));
     }
 
+    ///
+    /// Sets the structure type and checks if the pushed field types match it.
+    ///
     pub fn validate(&mut self, expected: StructureType) -> Result<(), Error> {
         for (index, (identifier, constant)) in self.values.iter().enumerate() {
             match expected.fields.get(index) {
@@ -92,6 +96,9 @@ impl Structure {
         Ok(())
     }
 
+    ///
+    /// Slices the structure, returning the specified field.
+    ///
     pub fn slice(self, identifier: Identifier) -> Result<(Constant, StackFieldAccess), Error> {
         let mut offset = 0;
         let total_size = self.r#type().size();
@@ -113,10 +120,23 @@ impl Structure {
             location: identifier.location,
             type_identifier: self
                 .r#type
-                .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+                .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
                 .identifier,
             field_name: identifier.name,
         })
+    }
+}
+
+impl ITyped for Structure {
+    fn r#type(&self) -> Type {
+        self.r#type
+            .clone()
+            .map(Type::Structure)
+            .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+    }
+
+    fn has_the_same_type_as(&self, other: &Self) -> bool {
+        self.r#type == other.r#type
     }
 }
 
@@ -127,7 +147,7 @@ impl fmt::Display for Structure {
             "'{}' with fields {{ {} }}",
             self.r#type
                 .as_ref()
-                .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+                .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
                 .identifier,
             self.values
                 .iter()

@@ -30,6 +30,9 @@ use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#for::Statement as ForStatement;
 
+///
+/// The `for` statement semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

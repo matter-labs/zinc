@@ -43,6 +43,7 @@ fn main() {
             function: "sha256".to_owned(),
             expected: CryptoSha256Function::ARGUMENT_COUNT,
             found: CryptoSha256Function::ARGUMENT_COUNT - 1,
+            reference: None,
         }),
     ))));
 
@@ -65,6 +66,7 @@ fn main() {
             function: "sha256".to_owned(),
             expected: CryptoSha256Function::ARGUMENT_COUNT,
             found: CryptoSha256Function::ARGUMENT_COUNT + 1,
+            reference: None,
         }),
     ))));
 
@@ -159,6 +161,7 @@ fn main() {
             function: "pedersen".to_owned(),
             expected: CryptoPedersenFunction::ARGUMENT_COUNT,
             found: CryptoPedersenFunction::ARGUMENT_COUNT - 1,
+            reference: None,
         }),
     ))));
 
@@ -181,6 +184,7 @@ fn main() {
             function: "pedersen".to_owned(),
             expected: CryptoPedersenFunction::ARGUMENT_COUNT,
             found: CryptoPedersenFunction::ARGUMENT_COUNT + 1,
+            reference: None,
         }),
     ))));
 
@@ -299,6 +303,7 @@ fn main() {
             function: "verify".to_owned(),
             expected: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT,
             found: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT - 1,
+            reference: None,
         }),
     ))));
 
@@ -331,6 +336,7 @@ fn main() {
             function: "verify".to_owned(),
             expected: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT,
             found: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT + 1,
+            reference: None,
         }),
     ))));
 
@@ -536,6 +542,7 @@ fn main() {
             function: "from_bits_unsigned".to_owned(),
             expected: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT,
             found: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT - 1,
+            reference: None,
         }),
     ))));
 
@@ -558,6 +565,7 @@ fn main() {
             function: "from_bits_unsigned".to_owned(),
             expected: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT,
             found: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT + 1,
+            reference: None,
         }),
     ))));
 
@@ -701,6 +709,7 @@ fn main() {
             function: "from_bits_signed".to_owned(),
             expected: ConvertFromBitsSignedFunction::ARGUMENT_COUNT,
             found: ConvertFromBitsSignedFunction::ARGUMENT_COUNT - 1,
+            reference: None,
         }),
     ))));
 
@@ -723,6 +732,7 @@ fn main() {
             function: "from_bits_signed".to_owned(),
             expected: ConvertFromBitsSignedFunction::ARGUMENT_COUNT,
             found: ConvertFromBitsSignedFunction::ARGUMENT_COUNT + 1,
+            reference: None,
         }),
     ))));
 
@@ -866,6 +876,7 @@ fn main() {
             function: "from_bits_field".to_owned(),
             expected: ConvertFromBitsFieldFunction::ARGUMENT_COUNT,
             found: ConvertFromBitsFieldFunction::ARGUMENT_COUNT - 1,
+            reference: None,
         }),
     ))));
 
@@ -888,6 +899,7 @@ fn main() {
             function: "from_bits_field".to_owned(),
             expected: ConvertFromBitsFieldFunction::ARGUMENT_COUNT,
             found: ConvertFromBitsFieldFunction::ARGUMENT_COUNT + 1,
+            reference: None,
         }),
     ))));
 
@@ -987,6 +999,7 @@ fn main() {
             function: "to_bits".to_owned(),
             expected: ConvertToBitsFunction::ARGUMENT_COUNT,
             found: ConvertToBitsFunction::ARGUMENT_COUNT - 1,
+            reference: None,
         }),
     ))));
 
@@ -1009,6 +1022,7 @@ fn main() {
             function: "to_bits".to_owned(),
             expected: ConvertToBitsFunction::ARGUMENT_COUNT,
             found: ConvertToBitsFunction::ARGUMENT_COUNT + 1,
+            reference: None,
         }),
     ))));
 
@@ -1056,6 +1070,7 @@ fn main() {
             function: "reverse".to_owned(),
             expected: ArrayReverseFunction::ARGUMENT_COUNT,
             found: ArrayReverseFunction::ARGUMENT_COUNT - 1,
+            reference: None,
         }),
     ))));
 
@@ -1078,6 +1093,7 @@ fn main() {
             function: "reverse".to_owned(),
             expected: ArrayReverseFunction::ARGUMENT_COUNT,
             found: ArrayReverseFunction::ARGUMENT_COUNT + 1,
+            reference: None,
         }),
     ))));
 
@@ -1124,6 +1140,7 @@ fn main() {
             function: "truncate".to_owned(),
             expected: ArrayTruncateFunction::ARGUMENT_COUNT,
             found: ArrayTruncateFunction::ARGUMENT_COUNT - 1,
+            reference: None,
         }),
     ))));
 
@@ -1146,6 +1163,7 @@ fn main() {
             function: "truncate".to_owned(),
             expected: ArrayTruncateFunction::ARGUMENT_COUNT,
             found: ArrayTruncateFunction::ARGUMENT_COUNT + 1,
+            reference: None,
         }),
     ))));
 
@@ -1263,6 +1281,7 @@ fn main() {
             function: "pad".to_owned(),
             expected: ArrayPadFunction::ARGUMENT_COUNT,
             found: ArrayPadFunction::ARGUMENT_COUNT - 1,
+            reference: None,
         }),
     ))));
 
@@ -1285,6 +1304,7 @@ fn main() {
             function: "pad".to_owned(),
             expected: ArrayPadFunction::ARGUMENT_COUNT,
             found: ArrayPadFunction::ARGUMENT_COUNT + 1,
+            reference: None,
         }),
     ))));
 
@@ -1430,6 +1450,7 @@ fn main() -> [u8; 4] {
                         .expect(zinc_const::panic::TEST_DATA_VALID),
                     false,
                     72,
+                    true,
                 )
                 .to_string(),
             },
@@ -1455,6 +1476,7 @@ fn main() {
             function: "invert".to_owned(),
             expected: FfInvertFunction::ARGUMENT_COUNT,
             found: FfInvertFunction::ARGUMENT_COUNT - 1,
+            reference: None,
         }),
     ))));
 
@@ -1477,6 +1499,7 @@ fn main() {
             function: "invert".to_owned(),
             expected: FfInvertFunction::ARGUMENT_COUNT,
             found: FfInvertFunction::ARGUMENT_COUNT + 1,
+            reference: None,
         }),
     ))));
 

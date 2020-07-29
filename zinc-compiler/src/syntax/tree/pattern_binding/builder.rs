@@ -91,57 +91,60 @@ impl Builder {
     /// If some of the required items has not been set.
     ///
     pub fn finish(mut self) -> BindingPattern {
-        let location = self
-            .location
-            .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location"));
+        let location = self.location.take().unwrap_or_else(|| {
+            panic!(
+                "{}{}",
+                zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                "location"
+            )
+        });
 
-        let (variant, r#type) =
-            if self.is_wildcard {
-                let variant = BindingPatternVariant::new_wildcard();
+        let (variant, r#type) = if self.is_wildcard {
+            let variant = BindingPatternVariant::new_wildcard();
 
-                let r#type = self.r#type.take().unwrap_or_else(|| {
-                    panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "type")
-                });
+            let r#type = self.r#type.take().unwrap_or_else(|| {
+                panic!("{}{}", zinc_const::panic::BUILDER_REQUIRES_VALUE, "type")
+            });
 
-                (variant, r#type)
-            } else if self.is_self_alias {
-                let self_location = self.self_location.take().unwrap_or_else(|| {
-                    panic!(
-                        "{}{}",
-                        crate::panic::BUILDER_REQUIRES_VALUE,
-                        "self location"
-                    )
-                });
-
-                let variant = BindingPatternVariant::new_self_alias(self_location, self.is_mutable);
-
-                let r#type = Type::new(
-                    self_location,
-                    TypeVariant::alias(ExpressionTree::new(
-                        self_location,
-                        ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                            Identifier::new(self_location, Keyword::SelfUppercase.to_string()),
-                        )),
-                    )),
-                );
-
-                (variant, r#type)
-            } else if let Some(identifier) = self.identifier.take() {
-                let variant = BindingPatternVariant::new_binding(identifier, self.is_mutable);
-
-                let r#type = self.r#type.take().unwrap_or_else(|| {
-                    panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "type")
-                });
-
-                (variant, r#type)
-            } else {
+            (variant, r#type)
+        } else if self.is_self_alias {
+            let self_location = self.self_location.take().unwrap_or_else(|| {
                 panic!(
                     "{}{}",
-                    crate::panic::BUILDER_REQUIRES_VALUE,
-                    "identifier | self | wildcard"
-                );
-            };
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                    "self location"
+                )
+            });
+
+            let variant = BindingPatternVariant::new_self_alias(self_location, self.is_mutable);
+
+            let r#type = Type::new(
+                self_location,
+                TypeVariant::alias(ExpressionTree::new(
+                    self_location,
+                    ExpressionTreeNode::operand(ExpressionOperand::Identifier(Identifier::new(
+                        self_location,
+                        Keyword::SelfUppercase.to_string(),
+                    ))),
+                )),
+            );
+
+            (variant, r#type)
+        } else if let Some(identifier) = self.identifier.take() {
+            let variant = BindingPatternVariant::new_binding(identifier, self.is_mutable);
+
+            let r#type = self.r#type.take().unwrap_or_else(|| {
+                panic!("{}{}", zinc_const::panic::BUILDER_REQUIRES_VALUE, "type")
+            });
+
+            (variant, r#type)
+        } else {
+            panic!(
+                "{}{}",
+                zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                "identifier | self | wildcard"
+            );
+        };
 
         BindingPattern::new(location, variant, r#type)
     }

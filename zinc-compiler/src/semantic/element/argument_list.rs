@@ -12,11 +12,16 @@ use crate::semantic::element::Element;
 ///
 #[derive(Debug, Clone)]
 pub struct ArgumentList {
+    /// The argument list location in the code.
     pub location: Location,
+    /// The argument list semantic elements.
     pub arguments: Vec<Element>,
 }
 
 impl ArgumentList {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(location: Location, arguments: Vec<Element>) -> Self {
         Self {
             location,

@@ -51,7 +51,7 @@ impl Builder {
             .unwrap_or_else(|| {
                 panic!(
                     "{}{}",
-                    crate::panic::BUILDER_REQUIRES_VALUE,
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
                     "branch pattern"
                 )
             })
@@ -67,10 +67,18 @@ impl Builder {
     pub fn finish(self) -> MatchExpression {
         MatchExpression::new(
             self.location.unwrap_or_else(|| {
-                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location")
+                panic!(
+                    "{}{}",
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
             }),
             self.scrutinee.unwrap_or_else(|| {
-                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "scrutinee")
+                panic!(
+                    "{}{}",
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                    "scrutinee"
+                )
             }),
             self.branches
                 .into_iter()
@@ -80,7 +88,7 @@ impl Builder {
                         expression.unwrap_or_else(|| {
                             panic!(
                                 "{}{}",
-                                crate::panic::BUILDER_REQUIRES_VALUE,
+                                zinc_const::panic::BUILDER_REQUIRES_VALUE,
                                 "branch expression"
                             )
                         }),

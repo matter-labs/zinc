@@ -27,7 +27,7 @@ use self::request::Body;
 use self::request::Query;
 
 ///
-/// The program resource PUT method endpoint handler.
+/// The HTTP request handler.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
@@ -88,6 +88,8 @@ pub async fn handle(
         }
     };
 
+    let entries: Vec<String> = program.entries.keys().cloned().collect();
+
     if let Err(error) = app_data
         .read()
         .expect(zinc_const::panic::MUTEX_SYNC)
@@ -103,9 +105,11 @@ pub async fn handle(
         .expect(zinc_const::panic::MUTEX_SYNC)
         .insert_program(query.name, program);
 
-    Response::<(), _>::success(if exists {
+    let status_code = if exists {
         StatusCode::NO_CONTENT
     } else {
         StatusCode::CREATED
-    })
+    };
+
+    Response::success_with_data(status_code, entries)
 }

@@ -6,13 +6,22 @@ use std::ffi::OsString;
 use std::fmt;
 use std::io;
 
+///
+/// The source code file error.
+///
 #[derive(Debug)]
 pub enum Error {
+    /// The file opening error.
     Opening(io::Error),
+    /// The file metadata getting error.
     Metadata(io::Error),
+    /// The file reading error.
     Reading(io::Error),
+    /// The file has no extension.
     ExtensionNotFound,
+    /// The file extension is not the one we are looking for.
     ExtensionInvalid(OsString),
+    /// The file has no stem, that is, name without the extension.
     StemNotFound,
 }
 

@@ -32,6 +32,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },
@@ -67,7 +68,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_assignment_bitwise_or_1st_operand_expected_place() {
+fn error_operator_assignment_bitor_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 |= 5;
@@ -82,6 +83,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },
@@ -93,7 +95,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_assignment_bitwise_or_2nd_operand_expected_evaluable() {
+fn error_operator_assignment_bitor_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -117,7 +119,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_assignment_bitwise_xor_1st_operand_expected_place() {
+fn error_operator_assignment_bitxor_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 ^= 5;
@@ -132,6 +134,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },
@@ -143,7 +146,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_assignment_bitwise_xor_2nd_operand_expected_evaluable() {
+fn error_operator_assignment_bitxor_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -167,7 +170,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_assignment_bitwise_and_1st_operand_expected_place() {
+fn error_operator_assignment_bitand_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 &= 5;
@@ -182,6 +185,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },
@@ -193,7 +197,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_assignment_bitwise_and_2nd_operand_expected_evaluable() {
+fn error_operator_assignment_bitand_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -232,6 +236,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },
@@ -282,6 +287,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },
@@ -332,6 +338,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },
@@ -382,6 +389,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },
@@ -432,6 +440,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },
@@ -482,6 +491,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },
@@ -532,6 +542,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },
@@ -581,6 +592,7 @@ fn main() {
             found: Element::Value(
                 Value::try_from_type(
                     &Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
+                    false,
                     None,
                 )
                 .expect(zinc_const::panic::TEST_DATA_VALID),
@@ -609,6 +621,7 @@ fn main() {
             found: Element::Value(
                 Value::try_from_type(
                     &Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
+                    false,
                     None,
                 )
                 .expect(zinc_const::panic::TEST_DATA_VALID),
@@ -637,6 +650,7 @@ fn main() {
             found: Element::Value(
                 Value::try_from_type(
                     &Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
+                    false,
                     None,
                 )
                 .expect(zinc_const::panic::TEST_DATA_VALID),
@@ -665,6 +679,7 @@ fn main() {
             found: Element::Value(
                 Value::try_from_type(
                     &Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
+                    false,
                     None,
                 )
                 .expect(zinc_const::panic::TEST_DATA_VALID),
@@ -1093,7 +1108,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_bitwise_or_1st_operand_expected_evaluable() {
+fn error_operator_bitor_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1116,7 +1131,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_bitwise_or_2nd_operand_expected_evaluable() {
+fn error_operator_bitor_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1139,7 +1154,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_bitwise_xor_1st_operand_expected_evaluable() {
+fn error_operator_bitxor_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1162,7 +1177,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_bitwise_xor_2nd_operand_expected_evaluable() {
+fn error_operator_bitxor_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1185,7 +1200,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_bitwise_and_1st_operand_expected_evaluable() {
+fn error_operator_bitand_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1208,7 +1223,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_bitwise_and_2nd_operand_expected_evaluable() {
+fn error_operator_bitand_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1268,6 +1283,7 @@ fn main() {
             found: Element::Value(
                 Value::try_from_type(
                     &Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
+                    false,
                     None,
                 )
                 .expect(zinc_const::panic::TEST_DATA_VALID),
@@ -1319,6 +1335,7 @@ fn main() {
             found: Element::Value(
                 Value::try_from_type(
                     &Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
+                    false,
                     None,
                 )
                 .expect(zinc_const::panic::TEST_DATA_VALID),
@@ -1737,6 +1754,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },
@@ -1767,6 +1785,7 @@ fn main() {
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             )))
             .to_string(),
         },

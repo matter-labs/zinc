@@ -49,7 +49,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::BuiltIn(BuiltInFunctionError::Unknown {
-            location: Location::new(5, 5),
+            location: Location::new(5, 13),
             function: "unknown".to_owned(),
         })),
     ))));
@@ -118,7 +118,7 @@ fn main() {
             location: Location::new(3, 10),
             function: "dbg".to_owned(),
             name: "format".to_owned(),
-            position: BuiltInDebugFunction::ARGUMENT_INDEX_FORMAT_STRING + 1,
+            position: BuiltInDebugFunction::ARGUMENT_INDEX_FORMAT + 1,
             expected: Type::string(None).to_string(),
             found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
@@ -143,6 +143,7 @@ fn main() {
             function: "assert".to_owned(),
             expected: BuiltInAssertFunction::ARGUMENT_COUNT_MANDATORY,
             found: BuiltInAssertFunction::ARGUMENT_COUNT_MANDATORY - 1,
+            reference: None,
         }),
     ))));
 
@@ -165,6 +166,7 @@ fn main() {
             function: "assert".to_owned(),
             expected: BuiltInAssertFunction::ARGUMENT_COUNT_OPTIONAL,
             found: BuiltInAssertFunction::ARGUMENT_COUNT_OPTIONAL + 1,
+            reference: None,
         }),
     ))));
 

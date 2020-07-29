@@ -25,6 +25,9 @@ use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
 use crate::syntax::tree::statement::r#impl::Statement as ImplStatement;
 
+///
+/// The `impl` statement semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

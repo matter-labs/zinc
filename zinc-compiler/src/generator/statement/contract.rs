@@ -7,6 +7,7 @@ use std::rc::Rc;
 
 use crate::generator::r#type::Type;
 use crate::generator::state::State;
+use crate::generator::IBytecodeWritable;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type as SemanticType;
 
@@ -15,11 +16,16 @@ use crate::semantic::element::r#type::Type as SemanticType;
 ///
 #[derive(Debug, Clone)]
 pub struct Statement {
+    /// The statement location in the source code.
     pub location: Location,
+    /// The contract storage fields ordered array.
     pub fields: Vec<(String, Type)>,
 }
 
 impl Statement {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(location: Location, fields: Vec<(String, SemanticType)>) -> Self {
         Self {
             location,
@@ -32,8 +38,10 @@ impl Statement {
                 .collect(),
         }
     }
+}
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
+impl IBytecodeWritable for Statement {
+    fn write_all(self, bytecode: Rc<RefCell<State>>) {
         bytecode.borrow_mut().set_contract_storage(self.fields)
     }
 }

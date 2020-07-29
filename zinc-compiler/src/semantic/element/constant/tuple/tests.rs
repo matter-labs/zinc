@@ -13,7 +13,7 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
-fn error_field_does_not_exist() {
+fn error_field_out_of_range() {
     let input = r#"
 fn main() {
     const VALUE: bool = (true, true, false).5;
@@ -21,17 +21,12 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Constant(ConstantError::Tuple(
-            TupleConstantError::FieldDoesNotExist {
-                location: Location::new(3, 45),
-                type_identifier: Type::tuple(
-                    Some(Location::new(3, 45)),
-                    vec![Type::boolean(None); 3],
-                )
+        ElementError::Constant(ConstantError::Tuple(TupleConstantError::FieldOutOrRange {
+            location: Location::new(3, 45),
+            type_identifier: Type::tuple(Some(Location::new(3, 45)), vec![Type::boolean(None); 3])
                 .to_string(),
-                field_index: 5,
-            },
-        )),
+            field_index: 5,
+        })),
     )));
 
     let result = crate::semantic::tests::compile_entry(input);

@@ -24,6 +24,9 @@ use crate::semantic::scope::Scope;
 use crate::syntax::tree::expression::array::variant::Variant as ArrayExpressionVariant;
 use crate::syntax::tree::expression::array::Expression as ArrayExpression;
 
+///
+/// The array semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

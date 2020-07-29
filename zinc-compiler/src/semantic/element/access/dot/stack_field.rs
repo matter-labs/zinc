@@ -2,6 +2,12 @@
 //! The semantic analyzer element dot stack data field access.
 //!
 
+///
+/// The stack field dot access data.
+///
+/// Contains all the necessary information to generate instructions for getting
+/// data from the virtual machine data stack.
+///
 #[derive(Debug, Clone)]
 pub struct StackField {
     /// The name of the tuple or structure element
@@ -17,6 +23,9 @@ pub struct StackField {
 }
 
 impl StackField {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         name: String,
         position: usize,

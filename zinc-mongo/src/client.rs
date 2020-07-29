@@ -32,7 +32,7 @@ impl Client {
     }
 
     ///
-    /// Returns a contract storage data from the collection
+    /// Returns a contract storage data from the collection.
     ///
     pub async fn get_storage(&self, name: &str) -> Result<Storage, Error> {
         let collection = self
@@ -51,7 +51,7 @@ impl Client {
     }
 
     ///
-    /// Returns a contract storage data from the collection
+    /// Returns a contract storage data from the collection.
     ///
     pub async fn update_storage(&self, name: &str, storage: Storage) -> Result<(), Error> {
         let collection = self

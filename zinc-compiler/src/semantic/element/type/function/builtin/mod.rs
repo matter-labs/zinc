@@ -15,21 +15,35 @@ use crate::lexical::token::location::Location;
 use self::assert::Function as AssertFunction;
 use self::debug::Function as DebugFunction;
 
+///
+/// The semantic analyzer built-in function element.
+///
 #[derive(Debug, Clone)]
 pub enum Function {
+    /// The `assert!(...)` function. See the inner element description.
     Assert(AssertFunction),
+    /// The `dbg!(...)` function. See the inner element description.
     Debug(DebugFunction),
 }
 
 impl Function {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new_assert() -> Self {
         Self::Assert(AssertFunction::new())
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new_debug() -> Self {
         Self::Debug(DebugFunction::new())
     }
 
+    ///
+    /// Returns the function identifier, which is known at compile time.
+    ///
     pub fn identifier(&self) -> &'static str {
         match self {
             Self::Assert(inner) => inner.identifier,
@@ -37,6 +51,9 @@ impl Function {
         }
     }
 
+    ///
+    /// Sets the function call location in the code.
+    ///
     pub fn set_location(&mut self, location: Location) {
         match self {
             Self::Assert(inner) => inner.location = Some(location),
@@ -44,6 +61,9 @@ impl Function {
         }
     }
 
+    ///
+    /// Returns the location of the function call.
+    ///
     pub fn location(&self) -> Option<Location> {
         match self {
             Self::Assert(inner) => inner.location,

@@ -14,6 +14,8 @@ use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatemen
 pub struct Builder {
     /// The location of the syntax construction.
     location: Option<Location>,
+    /// If the block is unconstrained.
+    is_unconstrained: bool,
     /// The function block statements.
     statements: Vec<FunctionLocalStatement>,
     /// The optional last statement, which is the result of the block.
@@ -24,8 +26,17 @@ impl Builder {
     ///
     /// Sets the corresponding builder value.
     ///
-    pub fn set_location(&mut self, value: Location) {
-        self.location = Some(value);
+    pub fn set_location_if_unset(&mut self, value: Location) {
+        if self.location.is_none() {
+            self.location = Some(value);
+        }
+    }
+
+    ///
+    /// Sets the unconstrained flag.
+    ///
+    pub fn set_unconstrained(&mut self) {
+        self.is_unconstrained = true;
     }
 
     ///
@@ -51,8 +62,13 @@ impl Builder {
     pub fn finish(mut self) -> BlockExpression {
         BlockExpression::new(
             self.location.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location")
+                panic!(
+                    "{}{}",
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
             }),
+            self.is_unconstrained,
             self.statements,
             self.expression.take(),
         )

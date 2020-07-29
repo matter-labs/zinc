@@ -11,6 +11,7 @@
 - implemented primitive constant functions
 - forbidden the bitwise operations on signed integers
 - allowed to declare constants, types, functions, and modules in arbitrary order
+- implemented the smallest possible type inference for integer literals in expressions
 - implemented nested modules with the access to the root and parent modules
 - added the attribute syntax, which supports only the unit test markers for now
 - implemented the Rust-like unit testing functionality

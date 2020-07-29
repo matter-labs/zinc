@@ -10,6 +10,7 @@ use std::rc::Rc;
 
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::state::State;
+use crate::generator::IBytecodeWritable;
 
 use self::variant::Variant;
 
@@ -18,32 +19,41 @@ use self::variant::Variant;
 ///
 #[derive(Debug, Clone)]
 pub struct Expression {
+    /// The array expression variant.
     variant: Variant,
 }
 
 impl Expression {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new_list(expressions: Vec<GeneratorExpression>) -> Self {
         Self {
             variant: Variant::new_list(expressions),
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new_repeated(expression: GeneratorExpression, size: usize) -> Self {
         Self {
             variant: Variant::new_repeated(expression, size),
         }
     }
+}
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
+impl IBytecodeWritable for Expression {
+    fn write_all(self, bytecode: Rc<RefCell<State>>) {
         match self.variant {
             Variant::List { expressions } => {
                 for expression in expressions.into_iter() {
-                    expression.write_all_to_bytecode(bytecode.clone());
+                    expression.write_all(bytecode.clone());
                 }
             }
             Variant::Repeated { expression, size } => {
                 for expression in vec![expression; size].into_iter() {
-                    expression.write_all_to_bytecode(bytecode.clone());
+                    expression.write_all(bytecode.clone());
                 }
             }
         }

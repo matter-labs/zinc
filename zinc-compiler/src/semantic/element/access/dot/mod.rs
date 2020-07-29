@@ -11,7 +11,7 @@ use self::contract_field::ContractField;
 use self::stack_field::StackField;
 
 ///
-/// Tuple or structure field access, or namespace method access data.
+/// Tuple, structure, or contract field access, or namespace method access data.
 ///
 pub enum Dot {
     /// Stack data field access via the dot `.` operator
@@ -19,5 +19,8 @@ pub enum Dot {
     /// Contract storage field access via the dot `.` operator
     ContractField(ContractField),
     /// Method call via the dot `.` operator
-    Method { instance: Element },
+    Method {
+        /// The `self`, instance argument, for which the method is called.
+        instance: Box<Element>,
+    },
 }

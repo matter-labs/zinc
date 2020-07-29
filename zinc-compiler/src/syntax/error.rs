@@ -6,7 +6,7 @@ use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::location::Location;
 
 ///
-/// The syntax error.
+/// The syntax parser error.
 ///
 #[derive(Debug, PartialEq)]
 pub enum Error {

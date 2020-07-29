@@ -10,6 +10,9 @@ use crate::semantic::element::r#type::Type;
 
 use self::error::Error;
 
+///
+/// The casting object namespace.
+///
 pub struct Caster {}
 
 impl Caster {

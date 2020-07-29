@@ -1,0 +1,693 @@
+//!
+//! The Curve Stableswap contract.
+//!
+
+mod constants;
+mod types;
+mod transaction;
+
+use self::types::Address;
+use self::types::Timestamp;
+use self::types::Integer;
+use self::types::Balances;
+use self::transaction::Transaction;
+use self::constants::N_COINS;
+use self::constants::ZERO;
+use self::constants::ZERO_TIME;
+use self::constants::ONE;
+
+contract Stableswap {
+    coins: [Address; N_COINS];
+    balances: Balances;
+    fee: Integer;
+    admin_fee: Integer;
+
+    owner: Address;
+    token: Address;
+
+    initial_A: Integer;
+    future_A: Integer;
+    initial_A_time: Timestamp;
+    future_A_time: Timestamp;
+
+    admin_actions_deadline: Timestamp;
+    transfer_ownership_deadline: Timestamp;
+    future_fee: Integer;
+    future_admin_fee: Integer;
+    future_owner: Address;
+
+    kill_deadline: Timestamp;
+    is_killed: bool;
+
+    ///
+    /// _coins: Addresses of ERC20 conracts of coins
+    /// _pool_token: Address of the token representing LP share
+    /// _A: Amplification coefficient multiplied by n * (n - 1)
+    /// _fee: Fee to charge for exchanges
+    ///
+    pub fn initialize(
+        mut self,
+        tx: Transaction,
+
+        _coins: [Address; N_COINS],
+        _pool_token: Address,
+        _A: Integer,
+        _fee: Integer,
+    ) {
+        for i in 0..N_COINS {
+            assert!(_coins[i] != constants::ZERO_ADDRESS, "Coin address cannot be zero");
+            self.balances[i] = ZERO;
+        }
+        self.coins = _coins;
+        self.initial_A = _A;
+        self.future_A = _A;
+        self.fee = _fee;
+        self.owner = tx.from;
+        self.kill_deadline = tx.block.timestamp + constants::KILL_DEADLINE_DT;
+        self.is_killed = false;
+        self.token = _pool_token;
+    }
+
+    pub fn get_A(self, tx: Transaction) -> Integer {
+        self.get_A_inner(tx)
+    }
+
+    ///
+    /// Returns portfolio virtual price (for calculating profit)
+    /// scaled up by 1e18.
+    ///
+    pub fn get_virtual_price(self, tx: Transaction) -> Integer {
+        let D: Integer = Self::get_D(self.get_xp(self.get_rates()), self.get_A(tx));
+
+        // D is in the units similar to DAI (e.g. converted to precision 1e18)
+        // When balanced, D = n * x_u - total virtual value of the portfolio
+
+        let token_supply: Integer = 100; // self.token.totalSupply()
+        D * constants::PRECISION / ONE
+    }
+
+    ///
+    /// Simplified method to calculate addition or reduction in token supply at
+    /// deposit or withdrawal without taking fees into account (but looking at
+    /// slippage).
+    /// Needed to prevent front-running, not for precise calculations!
+    ///
+    pub fn calc_token_amount(
+        self,
+        tx: Transaction,
+        amounts: Balances,
+        deposit: bool,
+    ) -> Integer {
+        let mut _balances: Balances = self.balances;
+        let rates: Balances = self.get_rates();
+        let amp: Integer = self.get_A_inner(tx);
+        let D0: Integer = Self::get_D_mem(rates, _balances, amp);
+
+        for i in 0..N_COINS {
+            if deposit {
+                _balances[i] += amounts[i];
+            } else {
+                _balances[i] -= amounts[i];
+            };
+        }
+
+        let D1: Integer = Self::get_D_mem(rates, _balances, amp);
+        let token_amount: Integer = 1; // self.token.totalSupply()
+        let diff: Integer = if deposit {
+            D1 - D0
+        } else {
+            D0 - D1
+        };
+        diff * token_amount / D0
+    }
+
+    // @nonreentrant('lock')
+    pub fn add_liquidity(
+        mut self,
+        tx: Transaction,
+        amounts: Balances,
+        min_mint_amount: Integer,
+    ) {
+        // Amounts is amounts of c-tokens
+        assert!(!self.is_killed);
+
+        let use_landing: [bool; N_COINS] = constants::USE_LENDING;
+        let mut fees: Balances = constants::ZEROS;
+        let _fee: Integer = self.fee * (N_COINS / (4 * (N_COINS - 1))) as Integer;
+        let _admin_fee: Integer = self.admin_fee;
+        let amp: Integer = self.get_A_inner(tx);
+
+        let token_supply: Integer = 100; // self.token.totalSupply();
+        let rates: Balances = self.get_rates();
+
+        // Initial invariant
+        let mut D0: Integer = ZERO;
+        let old_balances: Balances = self.balances;
+        if token_supply > ZERO {
+            D0 = Self::get_D_mem(rates, old_balances, amp);
+        };
+
+        let mut new_balances: Balances = old_balances;
+        for i in 0..N_COINS {
+            if token_supply == ZERO {
+                assert!(amounts[i] > ZERO);
+            };
+            // balances store amounts of c-tokens
+            new_balances[i] = old_balances[i] + amounts[i];
+        }
+
+        // Invariant after change
+        let D1: Integer = Self::get_D_mem(rates, new_balances, amp);
+        assert!(D1 > D0);
+
+        // We need to recalculate the invariant accounting for fees
+        // to calculate fair user's share
+        let mut D2: Integer = D1;
+        if token_supply > ZERO {
+            // Only account for fees if we are not the first to deposit
+            for i in 0..N_COINS {
+                let ideal_balance: Integer = D1 * old_balances[i] / D0;
+                let difference: Integer = if ideal_balance > new_balances[i] {
+                    ideal_balance - new_balances[i]
+                } else {
+                    new_balances[i] - ideal_balance
+                };
+                fees[i] = _fee * difference / constants::FEE_DENOMINATOR;
+                self.balances[i] = new_balances[i] - (fees[i] * _admin_fee / constants::FEE_DENOMINATOR);
+                new_balances[i] -= fees[i];
+            }
+
+            D2 = Self::get_D_mem(rates, new_balances, amp);
+        } else {
+            self.balances = new_balances;
+        };
+
+        // Calculate, how much pool tokens to mint
+        let mint_amount: Integer = if token_supply == ZERO {
+            D1
+        } else {
+            token_supply * (D2 - D0) / D0
+        };
+
+        assert!(mint_amount >= min_mint_amount, "Slippage screwed you");
+
+        // Take coins from the sender
+//        for i in 0..N_COINS {
+//            if amounts[i] > 0 {
+//               assert_modifiable(
+//                    cERC20(self.coins[i]).transferFrom(msg.sender, self, amounts[i]))
+//            }
+//        }
+//
+//        self.token.mint(tx.from, mint_amount);
+//
+//        log.AddLiquidity(msg.sender, amounts, fees, D1, token_supply + mint_amount)
+    }
+
+    pub fn get_dy(self, tx: Transaction, i: i128, j: i128, dx: Integer) -> Integer {
+        // dx and dy in c-units
+
+        let rates: Balances = self.get_rates();
+        let xp: Balances = self.get_xp(rates);
+
+        let x: Integer = xp[i] + (dx * rates[i] / constants::PRECISION);
+        let y: Integer = self.get_y(tx, i, j, x, xp);
+        let dy: Integer = (xp[j] - y - ONE) * constants::PRECISION / rates[j];
+        let _fee: Integer = self.fee * dy / constants::FEE_DENOMINATOR;
+
+        dy - _fee
+    }
+
+    pub fn get_dy_underlying(self, tx: Transaction, i: i128, j: i128, dx: Integer) -> Integer {
+        // dx and dy in underlying units
+
+        let rates: Balances = self.get_rates();
+        let xp: Balances = self.get_xp(rates);
+        let precisions: Balances = constants::PRECISION_MUL;
+
+        let x: Integer = xp[i] + dx * precisions[i];
+        let y: Integer = self.get_y(tx, i, j, x, xp);
+        let dy: Integer = (xp[j] - y - ONE) / precisions[j];
+        let _fee: Integer = self.fee * dy / constants::FEE_DENOMINATOR;
+
+        dy - _fee
+    }
+
+    pub fn exchange(self, tx: Transaction, i: i128, j: i128, dx: Integer, min_dy: Integer) {
+        let rates: Balances = self.get_rates();
+        let dy: Integer = self.exchange_inner(tx, i, j, dx, rates);
+        assert!(dy >= min_dy, "Exchange resulted in fewer coins than expected");
+        let use_lending: [bool; N_COINS] = constants::USE_LENDING;
+
+//        assert_modifiable(cERC20(self.coins[i]).transferFrom(msg.sender, self, dx))
+//        assert_modifiable(cERC20(self.coins[j]).transfer(msg.sender, dy))
+//
+//        log.TokenExchange(msg.sender, i, dx, j, dy)
+    }
+
+    pub fn remove_liquidity(mut self, _amount: Integer, min_amounts: Balances) {
+        let total_supply: Integer = ZERO; // self.token.totalSupply()
+        let mut amounts: Balances = constants::ZEROS;
+        let fees: Balances = constants::ZEROS;
+        let use_lending: [bool; N_COINS] = constants::USE_LENDING;
+
+        for i in 0..N_COINS {
+            let value: Integer = self.balances[i] * _amount / total_supply;
+            assert!(value >= min_amounts[i], "Withdrawal resulted in fewer coins than expected");
+            self.balances[i] -= value;
+            amounts[i] -= value;
+        }
+
+//        self.token.burnFrom(msg.sender, _amount); // Will raise if not enough
+//
+//        log.RemoveLiquidity(msg.sender, amounts, fees, total_supply - _amount);
+    }
+
+    pub fn remove_liquidity_imbalance(mut self, tx: Transaction, amounts: Balances, max_burn_amount: Integer) {
+        assert!(!self.is_killed);
+        let use_lending: [bool; N_COINS] = constants::USE_LENDING;
+
+        let token_supply: Integer = 100; //self.token.totalSupply()
+        assert!(token_supply > ZERO);
+
+        let _fee: Integer = self.fee * (N_COINS / (4 * (N_COINS - 1))) as Integer;
+        let _admin_fee: Integer = self.admin_fee;
+        let rates: Balances = self.get_rates();
+        let amp: Integer = self.get_A_inner(tx);
+
+        let old_balances: Balances = self.balances;
+        let mut new_balances: Balances = old_balances;
+        let D0: Integer = Self::get_D_mem(rates, old_balances, amp);
+        for i in 0..N_COINS {
+            new_balances[i] -= amounts[i];
+        }
+        let D1: Integer = Self::get_D_mem(rates, new_balances, amp);
+        let mut fees: Balances = constants::ZEROS;
+        for i in 0..N_COINS {
+            let ideal_balance: Integer = D1 * old_balances[i] / D0;
+            let difference: Integer = if ideal_balance > new_balances[i] {
+                ideal_balance - new_balances[i]
+            } else {
+                new_balances[i] - ideal_balance
+            };
+            fees[i] = _fee * difference / constants::FEE_DENOMINATOR;
+            self.balances[i] = new_balances[i] - (fees[i] * _admin_fee / constants::FEE_DENOMINATOR);
+            new_balances[i] -= fees[i];
+        }
+        let D2: Integer = Self::get_D_mem(rates, new_balances, amp);
+
+        let token_amount: Integer = (D0 - D2) * token_supply / D0 + ONE;
+        assert!(token_amount < max_burn_amount, "Slippage screwed you");
+
+//        for i in 0..N_COINS {
+//            if amounts[i] > 0:
+//                assert_modifiable(cERC20(self.coins[i]).transfer(msg.sender, amounts[i]))
+//        }
+
+//        self.token.burnFrom(msg.sender, token_amount)  # Will raise if not enough
+//
+//        log.RemoveLiquidityImbalance(msg.sender, amounts, fees, D1, token_supply - token_amount)
+    }
+
+    pub fn remove_liquidity_one_coin(mut self, tx: Transaction, _token_amount: Integer, i: i128, min_amount: Integer) {
+        let mut dy: Integer = ZERO;
+        let mut dy_fee: Integer = ZERO;
+        let rates: Balances = self.get_rates();
+
+        let result = self.calc_withdraw_one_coin_inner(tx, _token_amount, i, rates);
+        dy = result.0;
+        dy_fee = result.1;
+        assert!(dy >= min_amount, "Not enough coins removed");
+
+        self.balances[i] -= (dy + dy_fee * self.admin_fee / constants::FEE_DENOMINATOR);
+//        self.token.burnFrom(msg.sender, _token_amount)
+//        assert_modifiable(ERC20(self.coins[i]).transfer(msg.sender, dy))
+//
+//        log.RemoveLiquidityOne(msg.sender, _token_amount, dy)
+    }
+
+    pub fn calc_withdraw_one_coin(self, tx: Transaction, _token_amount: Integer, i: i128) -> Integer {
+        let rates: Balances = self.get_rates();
+        self.calc_withdraw_one_coin_inner(tx, _token_amount, i, rates).0
+    }
+
+    fn exchange_inner(mut self, tx: Transaction, i: i128, j: i128, dx: Integer, rates: Balances) -> Integer {
+        assert!(!self.is_killed);
+        // dx and dy are in c-tokens
+
+        let old_balances: Balances = self.balances;
+        let xp: Balances = Self::get_xp_mem(rates, old_balances);
+
+        let x: Integer = xp[i] + dx * rates[i] / constants::PRECISION;
+        let y: Integer = self.get_y(tx, i, j, x, xp);
+
+        let mut dy: Integer = xp[j] - y - ONE; // -1 just in case there were some rounding errors
+        let dy_fee: Integer = dy * self.fee / constants::FEE_DENOMINATOR;
+        let mut dy_admin_fee: Integer = dy_fee * self.admin_fee / constants::FEE_DENOMINATOR;
+
+        // Convert all to real units
+        dy -= dy_fee;
+        dy *= constants::PRECISION / rates[j];
+        dy_admin_fee *= constants::PRECISION / rates[j];
+
+        // Change balances exactly in same way as we change actual ERC20 coin amounts
+        self.balances[i] = old_balances[i] + dx;
+        // When rounding errors happen, we undercharge admin fee in favor of LP
+        self.balances[j] = old_balances[j] - dy - dy_admin_fee;
+
+        dy
+    }
+
+    ///
+    /// Handle ramping A up or down.
+    ///
+    fn get_A_inner(
+        self,
+        tx: Transaction,
+    ) -> Integer {
+        let t1: Timestamp = self.future_A_time;
+        let A1: Integer = self.future_A;
+
+        if tx.block.timestamp < t1 {
+            let A0: Integer = self.initial_A;
+            let t0: Timestamp = self.initial_A_time;
+
+            // Expressions in Integer type cannot have negative numbers, thus:
+            if A1 > A0 {
+                A0 + (A1 - A0) * ((tx.block.timestamp - t0) / (t1 - t0)) as Integer
+            } else {
+                A0 - (A0 - A1) * ((tx.block.timestamp - t0) / (t1 - t0)) as Integer
+            }
+        } else {
+            A1
+        }
+    }
+
+    fn get_rates(self) -> Balances {
+        let mut result: Balances = constants::PRECISION_MUL;
+        let use_lending: [bool; N_COINS] = constants::USE_LENDING;
+        for i in 0..N_COINS {
+            // Used with no lending
+            let mut rate: Integer = constants::LENDING_PRECISION;
+//            if use_lending[i] {
+//                rate = cERC20(self.coins[i]).exchangeRateCurrent();
+//            }
+            result[i] *= rate;
+        }
+        result
+    }
+
+    fn get_xp(
+        self,
+        rates: Balances,
+    ) -> Balances {
+        let mut result: Balances = rates;
+        for i in 0..N_COINS {
+            result[i] *= self.balances[i] * constants::LENDING_PRECISION;
+        }
+        result
+    }
+
+    fn get_xp_mem(
+        rates: Balances,
+        _balances: Balances,
+    ) -> Balances {
+        let mut result: Balances = rates;
+        for i in 0..N_COINS {
+            result[i] *= _balances[i] / constants::LENDING_PRECISION;
+        }
+        result
+    }
+
+    pub fn get_D(xp: Balances, amp: Integer) -> Integer {
+        let mut S: Integer = ZERO;
+
+        for i in 0..N_COINS {
+            S += xp[i];
+        }
+
+        if S == ZERO {
+            ZERO
+        } else {
+            let mut Dprev: Integer = ZERO;
+            let mut D: Integer = S;
+            let Ann: Integer = amp * (N_COINS as Integer);
+
+            // Equality with the precision of 1
+            for _n in 0..4 while D > ONE + Dprev && Dprev > ONE + D {
+                let mut D_P: Integer = D;
+                for i in 0..N_COINS {
+                    // If division by 0, this will be borked: only withdrawal will work. And that is good
+                    D_P *= D / (xp[i] * (N_COINS as Integer));
+                    Dprev = D;
+                    D = (Ann * S + D_P * (N_COINS as Integer)) * D / ((Ann - ONE) * D + ((N_COINS + 1) as Integer) * D_P);
+                }
+            }
+
+            D
+        }
+    }
+
+    fn get_D_mem(rates: Balances, _balances: Balances, amp: Integer) -> Integer {
+        Self::get_D(Self::get_xp_mem(rates, _balances), amp)
+    }
+
+    fn get_y(self, tx: Transaction, i: i128, j: i128, x: Integer, _xp: Balances) -> Integer {
+        // x in the input is converted to the same price/precision
+
+        assert!(i != j && i >= 0 && j >= 0 && i < N_COINS as i128 && j < N_COINS as i128);
+
+        let amp: Integer = self.get_A_inner(tx);
+        let D: Integer = Self::get_D(_xp, amp);
+        let mut c: Integer = D;
+        let mut S_: Integer = ZERO;
+        let Ann: Integer = amp * (N_COINS as Integer);
+
+        let mut _x: Integer = ZERO;
+        for _i in 0..N_COINS {
+            let to_update = if _i as i128 == i {
+                _x = x;
+                true
+            } else if _i as i128 != j {
+                _x = _xp[_i];
+                true
+            } else {
+                false
+            };
+
+            if to_update {
+                S_ += _x;
+                c *= D / (_x * (N_COINS as Integer));
+            }
+        }
+        c *= D / (_x * (N_COINS as Integer));
+
+        let b: Integer = S_ + D / Ann; // - D
+        let mut y_prev: Integer = ZERO;
+        let mut y: Integer = D;
+        for _i in 0..255 while (y > y_prev && y - y_prev > ONE) || (y_prev <= y && y_prev - y > ONE) {
+            y_prev = y;
+            y = (y * y + c) / (2 * y + b - D);
+        }
+
+        y
+    }
+
+    ///
+    /// Calculate x[i] if one reduces D from being calculated for xp to D
+
+    /// Done by solving quadratic equation iteratively.
+    /// x_1**2 + x1 * (sum' - (A*n**n - 1) * D / (A * n**n)) = D ** (n + 1) / (n ** (2 * n) * prod' * A)
+    /// x_1**2 + b*x_1 = c
+
+    /// x_1 = (x_1**2 + c) / (2*x_1 + b)
+    ///
+    fn get_y_D(A: Integer, i: i128, xp: Balances, D: Integer) -> Integer {
+        // x in the input is converted to the same price/precision
+
+        assert!(i >= 0 && i < N_COINS as i128);
+
+        let mut c: Integer = D;
+        let mut S_: Integer = ZERO;
+        let Ann: Integer = A * (N_COINS as Integer);
+
+        let mut _x: Integer = ZERO;
+        for _i in 0..N_COINS {
+            let to_update = if _i as i128 == i {
+                _x = xp[_i];
+                true
+            } else {
+                false
+            };
+
+            if to_update {
+                S_ += _x;
+                c *= D / (_x * (N_COINS as Integer));
+            }
+        }
+        c *= D / (_x * (N_COINS as Integer));
+
+        let b: Integer = S_ + D / Ann; // - D
+        let mut y_prev: Integer = ZERO;
+        let mut y: Integer = D;
+        for _i in 0..255 while (y > y_prev && y - y_prev > ONE) || (y_prev <= y && y_prev - y > ONE) {
+            y_prev = y;
+            y = (y * y + c) / (2 * y + b - D);
+        }
+
+        y
+    }
+
+    fn calc_withdraw_one_coin_inner(self, tx: Transaction, _token_amount: Integer, i: i128, rates: Balances) -> (Integer, Integer) {
+        // First, need to calculate
+        // * Get current D
+        // * Solve Eqn against y_i for D - _token_amount
+
+        let amp: Integer = self.get_A_inner(tx);
+        let _fee: Integer = self.fee * (N_COINS / (4 * (N_COINS - 1))) as Integer;
+        let precisions: Balances = constants::PRECISION_MUL;
+        let total_supply: Integer = ZERO; // self.token.totalSupply()
+
+        let xp: Balances = self.get_xp(rates);
+
+        let D0: Integer = Self::get_D(xp, amp);
+        let D1: Integer = D0 - _token_amount * D0 / total_supply;
+        let mut xp_reduced: Balances = xp;
+
+        let new_y: Integer = Self::get_y_D(amp, i, xp, D1);
+        let dy_0: Integer = (xp[i] - new_y) / precisions[i]; // w/o fees
+
+        for j in 0..N_COINS {
+            let dx_expected: Integer = if j as i128 == i {
+                xp[j] * D1 / D0 - new_y
+            } else {
+                xp[j] - xp[j] * D1 / D0
+            };
+            xp_reduced[j] -= _fee * dx_expected / constants::FEE_DENOMINATOR;
+        }
+
+        let mut dy: Integer = xp_reduced[i] - Self::get_y_D(amp, i, xp_reduced, D1);
+        dy = (dy - ONE) / precisions[i];
+
+        (dy, dy_0 - dy)
+    }
+
+    // Admin functions
+
+    pub fn ramp_A(mut self, tx: Transaction, _future_A: Integer, _future_time: Timestamp) {
+        assert!(tx.from == self.owner);
+        assert!(tx.block.timestamp >= self.initial_A_time + constants::MIN_RAMP_TIME);
+        assert!(_future_time >= tx.block.timestamp + constants::MIN_RAMP_TIME);
+
+        let _initial_A: Integer = self.get_A_inner(tx);
+        assert!(_future_A > ZERO && _future_A < constants::MAX_A);
+        assert!((_future_A >= _initial_A && _future_A <= _initial_A * constants::MAX_A_CHANGE) || (_future_A < _initial_A && _future_A * constants::MAX_A_CHANGE >= _initial_A));
+
+        self.initial_A = _initial_A;
+        self.future_A = _future_A;
+        self.initial_A_time = tx.block.timestamp;
+        self.future_A_time = _future_time;
+
+//        log.RampA(_initial_A, _future_A, block.timestamp, _future_time)
+    }
+
+    pub fn stop_ramp_A(mut self, tx: Transaction) {
+        assert!(tx.from == self.owner);
+
+        let current_A: Integer = self.get_A_inner(tx);
+        self.initial_A = current_A;
+        self.future_A = current_A;
+        self.initial_A_time = tx.block.timestamp;
+        self.future_A_time = tx.block.timestamp;
+
+        // now (block.timestamp < t1) is always False, so we return saved A
+
+//        log.StopRampA(current_A, block.timestamp)
+    }
+
+    pub fn commit_new_fee(mut self, tx: Transaction, new_fee: Integer, new_admin_fee: Integer) {
+        assert!(tx.from == self.owner);
+        assert!(self.admin_actions_deadline == ZERO_TIME);
+        assert!(new_admin_fee <= constants::MAX_ADMIN_FEE);
+        assert!(new_fee <= constants::MAX_FEE);
+
+        let _deadline: Timestamp = tx.block.timestamp + constants::ADMIN_ACTIONS_DELAY;
+        self.admin_actions_deadline = _deadline;
+        self.future_fee = new_fee;
+        self.future_admin_fee = new_admin_fee;
+
+//        log.CommitNewFee(_deadline, new_fee, new_admin_fee)
+    }
+
+    pub fn apply_new_fee(mut self, tx: Transaction) {
+        assert!(tx.from == self.owner);
+        assert!(self.admin_actions_deadline <= tx.block.timestamp && self.admin_actions_deadline > ZERO_TIME);
+
+        self.admin_actions_deadline = ZERO_TIME;
+        let _fee: Integer = self.future_fee;
+        let _admin_fee: Integer = self.future_admin_fee;
+        self.fee = _fee;
+        self.admin_fee = _admin_fee;
+
+//        log.NewFee(_fee, _admin_fee)
+    }
+
+    pub fn revert_new_parameters(mut self, tx: Transaction) {
+        assert!(tx.from == self.owner);
+
+        self.admin_actions_deadline = ZERO_TIME;
+    }
+
+    pub fn commit_transfer_ownership(mut self, tx: Transaction, _owner: Address) {
+        assert!(tx.from == self.owner);
+        assert!(self.transfer_ownership_deadline == ZERO_TIME);
+
+        let _deadline: Timestamp = tx.block.timestamp + constants::ADMIN_ACTIONS_DELAY;
+        self.transfer_ownership_deadline = _deadline;
+        self.future_owner = _owner;
+
+//        log.CommitNewAdmin(_deadline, _owner)
+    }
+
+    pub fn apply_transfer_ownership(mut self, tx: Transaction) {
+        assert!(tx.from == self.owner);
+        assert!(tx.block.timestamp >= self.transfer_ownership_deadline && self.transfer_ownership_deadline > ZERO_TIME);
+
+        self.transfer_ownership_deadline = ZERO_TIME;
+        let _owner: Address = self.future_owner;
+        self.owner = _owner;
+
+//        log.NewAdmin(_owner)
+    }
+
+    pub fn revert_transfer_ownership(mut self, tx: Transaction) {
+        assert!(tx.from == self.owner);
+
+        self.transfer_ownership_deadline = ZERO_TIME;
+    }
+
+    pub fn withdraw_admin_fees(mut self, tx: Transaction) {
+        assert!(tx.from == self.owner);
+
+//        for i in 0..N_COINS {
+//            let c: Address = self.coins[i];
+//            let value: Integer = cERC20(c).balanceOf(self) - self.balances[i];
+//            if value > 0 {
+//                assert_modifiable(cERC20(c).transfer(msg.sender, value))
+//            }
+//        }
+    }
+
+    pub fn kill_me(mut self, tx: Transaction) {
+        assert!(tx.from == self.owner);
+        assert!(self.kill_deadline > tx.block.timestamp);
+
+        self.is_killed = true;
+    }
+
+    pub fn unkill_me(mut self, tx: Transaction) {
+        assert!(tx.from == self.owner);
+
+        self.is_killed = false;
+    }
+}

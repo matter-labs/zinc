@@ -42,7 +42,7 @@ impl Builder {
             .unwrap_or_else(|| {
                 panic!(
                     "{}{}",
-                    crate::panic::BUILDER_REQUIRES_VALUE,
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
                     "field identifier"
                 )
             })
@@ -58,7 +58,11 @@ impl Builder {
     pub fn finish(self) -> StructureExpression {
         StructureExpression::new(
             self.location.unwrap_or_else(|| {
-                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location")
+                panic!(
+                    "{}{}",
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
             }),
             self.fields
                 .into_iter()
@@ -68,7 +72,7 @@ impl Builder {
                         expression.unwrap_or_else(|| {
                             panic!(
                                 "{}{}",
-                                crate::panic::BUILDER_REQUIRES_VALUE,
+                                zinc_const::panic::BUILDER_REQUIRES_VALUE,
                                 "field expression"
                             )
                         }),

@@ -22,9 +22,9 @@ fn merkle_node_hash(left: Sha256Digest, right: Sha256Digest) -> Sha256Digest {
     let left_bits = std::convert::to_bits(left);
     let right_bits = std::convert::to_bits(right);
 
-    for i in (0 as u16)..(248 as u16) {
+    for i in 0..248 {
         data[i] = left_bits[i];
-        data[(248 as u16) + i] = right_bits[i];
+        data[248 + i as u16] = right_bits[i];
     }
 
     let digest_bits = truncate(sha256(data), 248);

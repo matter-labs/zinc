@@ -39,15 +39,17 @@ impl Builder {
     /// If some of the required items has not been set.
     ///
     pub fn finish(mut self) -> TupleIndex {
-        let location = self
-            .location
-            .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location"));
+        let location = self.location.take().unwrap_or_else(|| {
+            panic!(
+                "{}{}",
+                zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                "location"
+            )
+        });
 
-        let literal = self
-            .literal
-            .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "literal"));
+        let literal = self.literal.take().unwrap_or_else(|| {
+            panic!("{}{}", zinc_const::panic::BUILDER_REQUIRES_VALUE, "literal")
+        });
 
         TupleIndex::new(location, literal)
     }

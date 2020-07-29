@@ -122,6 +122,7 @@ fn main() {
                 BigInt::from(42),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             ))
             .to_string(),
         }),
@@ -148,6 +149,7 @@ fn main() {
                 BigInt::from(42),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             ))
             .to_string(),
         }),
@@ -174,6 +176,7 @@ fn main() {
                 BigInt::from(42),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             ))
             .to_string(),
         }),
@@ -200,6 +203,7 @@ fn main() {
                 BigInt::from(42),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             ))
             .to_string(),
         }),
@@ -226,6 +230,7 @@ fn main() {
                 BigInt::from(42),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             ))
             .to_string(),
         }),
@@ -252,6 +257,7 @@ fn main() {
                 BigInt::from(42),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             ))
             .to_string(),
         }),
@@ -304,6 +310,7 @@ fn main() {
                 BigInt::from(42),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             ))
             .to_string(),
         }),
@@ -330,6 +337,7 @@ fn main() {
                 BigInt::from(42),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             ))
             .to_string(),
         }),
@@ -402,6 +410,7 @@ fn main() {
                 BigInt::from(42),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             ))
             .to_string(),
         }),
@@ -429,6 +438,7 @@ fn main() {
                     BigInt::from(42),
                     false,
                     zinc_const::bitlength::BYTE,
+                    true,
                 ))
                 .to_string(),
             },
@@ -636,7 +646,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_bitwise_or_1st_expected_integer() {
+fn error_operator_bitor_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true | 42;
@@ -659,7 +669,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_bitwise_or_2nd_expected_integer() {
+fn error_operator_bitor_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 | true;
@@ -682,7 +692,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_bitwise_xor_1st_expected_integer() {
+fn error_operator_bitxor_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true ^ 42;
@@ -705,7 +715,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_bitwise_xor_2nd_expected_integer() {
+fn error_operator_bitxor_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 ^ true;
@@ -728,7 +738,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_bitwise_and_1st_expected_integer() {
+fn error_operator_bitand_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true & 42;
@@ -751,7 +761,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_bitwise_and_2nd_expected_integer() {
+fn error_operator_bitand_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 & true;
@@ -1105,7 +1115,7 @@ fn main() {
                 from: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 to: Type::boolean(None).to_string(),
             },
-            reference: Some(Location::new(4, 19)),
+            reference: Location::new(4, 19),
         }),
     )));
 
@@ -1130,6 +1140,7 @@ fn main() {
                 BigInt::from(42),
                 false,
                 zinc_const::bitlength::BYTE,
+                true,
             ))
             .to_string(),
         }),

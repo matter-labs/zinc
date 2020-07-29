@@ -8,14 +8,22 @@ use std::io;
 use crate::source::directory::error::Error as DirectoryError;
 use crate::source::file::error::Error as FileError;
 
+///
+/// The source code module error.
+///
 #[derive(Debug)]
 pub enum Error {
+    /// File metadata getting error.
     FileMetadata(io::Error),
+    /// Failed to get the file type, that is, file or directory.
     FileTypeUnknown,
 
+    /// The source code file error.
     File(FileError),
+    /// The source code directory error.
     Directory(DirectoryError),
 
+    /// The source code compiler analysis error, formatted as string.
     Compiling(String),
 }
 

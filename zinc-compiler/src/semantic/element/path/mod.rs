@@ -13,11 +13,16 @@ use crate::syntax::tree::identifier::Identifier;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Path {
+    /// The location of the path expression.
     pub location: Location,
+    /// The array of identifiers, which appear around the `::` operators.
     pub elements: Vec<Identifier>,
 }
 
 impl Path {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(location: Location, initial: Identifier) -> Self {
         Self {
             location,
@@ -25,14 +30,20 @@ impl Path {
         }
     }
 
+    ///
+    /// Pushes another path identifier element.
+    ///
     pub fn push_element(&mut self, element: Identifier) {
         self.elements.push(element);
     }
 
+    ///
+    /// The last path element, which is the actual name of the item accessed via the path.
+    ///
     pub fn last(&self) -> &Identifier {
         self.elements
             .last()
-            .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)
+            .expect(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)
     }
 }
 

@@ -13,7 +13,7 @@ use crate::semantic::element::value::tuple::error::Error as TupleValueError;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
-fn error_field_does_not_exist() {
+fn error_field_out_of_range() {
     let input = r#"
 fn main() {
     let result = (true, true, false).5;
@@ -21,7 +21,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Tuple(TupleValueError::FieldDoesNotExist {
+        ElementError::Value(ValueError::Tuple(TupleValueError::FieldOutOrRange {
             location: Location::new(3, 38),
             type_identifier: Type::tuple(Some(Location::new(3, 38)), vec![Type::boolean(None); 3])
                 .to_string(),

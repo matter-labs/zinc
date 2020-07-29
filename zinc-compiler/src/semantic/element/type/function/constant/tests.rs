@@ -31,10 +31,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
-            location: Location::new(7, 17),
+            location: Location::new(2, 1),
             function: "another".to_owned(),
             expected: 1,
             found: 0,
+            reference: Some(Location::new(7, 24)),
         }),
     ))));
 
@@ -57,10 +58,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
-            location: Location::new(7, 17),
+            location: Location::new(2, 1),
             function: "another".to_owned(),
             expected: 1,
             found: 2,
+            reference: Some(Location::new(7, 24)),
         }),
     ))));
 

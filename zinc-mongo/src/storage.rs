@@ -18,7 +18,7 @@ use zinc_bytecode::ScalarType;
 ///
 /// The MongoDB contract storage.
 ///
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Storage {
     /// The storage fields array.
     #[serde(rename = "storage")]
@@ -77,8 +77,19 @@ impl Storage {
     ///
     /// Converts the storage into series of `BigInt`s.
     ///
-    pub fn into_flat_values(self) -> Vec<Vec<BigInt>> {
+    pub fn into_flat_fields(self) -> Vec<Vec<BigInt>> {
         self.data.into_iter().map(Self::flatten_field).collect()
+    }
+
+    ///
+    /// Converts the storage into an array of `BigInt`s.
+    ///
+    pub fn into_flat_values(self) -> Vec<BigInt> {
+        self.data
+            .into_iter()
+            .map(Self::flatten_field)
+            .flatten()
+            .collect()
     }
 
     ///

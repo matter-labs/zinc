@@ -11,11 +11,16 @@ use crate::lexical::token::location::Location;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct TupleIndex {
+    /// The location in the code.
     pub location: Location,
+    /// The tuple index value, that is, the tuple element position.
     pub value: usize,
 }
 
 impl TupleIndex {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(location: Location, value: usize) -> Self {
         Self { location, value }
     }

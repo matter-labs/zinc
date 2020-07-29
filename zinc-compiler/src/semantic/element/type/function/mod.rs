@@ -46,18 +46,30 @@ pub enum Function {
 }
 
 impl Function {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new_dbg() -> Self {
         Self::BuiltIn(BuiltInFunction::new_debug())
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new_assert() -> Self {
         Self::BuiltIn(BuiltInFunction::new_assert())
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new_std(identifier: FunctionIdentifier) -> Self {
         Self::StandardLibrary(StandardLibraryFunction::new(identifier))
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new_runtime(
         location: Location,
         identifier: String,
@@ -74,6 +86,9 @@ impl Function {
         ))
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new_constant(
         location: Location,
         identifier: String,
@@ -92,10 +107,16 @@ impl Function {
         ))
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new_test(location: Location, identifier: String, type_id: usize) -> Self {
         Self::Test(TestFunction::new(location, identifier, type_id))
     }
 
+    ///
+    /// Returns the function identifier.
+    ///
     pub fn identifier(&self) -> String {
         match self {
             Self::BuiltIn(inner) => inner.identifier().to_owned(),
@@ -106,6 +127,9 @@ impl Function {
         }
     }
 
+    ///
+    /// Sets the location for the function element.
+    ///
     pub fn set_location(&mut self, value: Location) {
         match self {
             Self::BuiltIn(inner) => inner.set_location(value),
@@ -116,6 +140,9 @@ impl Function {
         }
     }
 
+    ///
+    /// Returns the location of the function element.
+    ///
     pub fn location(&self) -> Option<Location> {
         match self {
             Self::BuiltIn(inner) => inner.location(),

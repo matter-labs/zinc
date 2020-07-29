@@ -10,6 +10,9 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#enum::Statement as EnumStatement;
 
+///
+/// The `enum` statement semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

@@ -7,13 +7,21 @@ use std::fmt;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
 
+///
+/// The semantic analyzer tuple type element.
+///
 #[derive(Debug, Clone)]
 pub struct Tuple {
+    /// The type location in the code.
     pub location: Option<Location>,
+    /// The tuple element types.
     pub types: Vec<Type>,
 }
 
 impl Tuple {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(location: Option<Location>, types: Vec<Type>) -> Self {
         Self { location, types }
     }

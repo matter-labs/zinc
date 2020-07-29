@@ -17,6 +17,9 @@ use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::contract::Statement as ContractStatement;
 use crate::syntax::tree::statement::local_contract::Statement as ContractLocalStatement;
 
+///
+/// The `contract` statement semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

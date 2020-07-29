@@ -59,7 +59,7 @@ impl Facade {
             .collect();
         let storage_values = storage
             .unwrap_or_else(|| zinc_mongo::Storage::new(storage_types.clone()))
-            .into_flat_values();
+            .into_flat_fields();
         let storage = MongoStorage::new(storage_types.clone(), storage_values);
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;

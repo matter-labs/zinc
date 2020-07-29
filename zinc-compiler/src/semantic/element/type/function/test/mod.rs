@@ -10,14 +10,23 @@ use std::fmt;
 
 use crate::lexical::token::location::Location;
 
+///
+/// The semantic analyzer test function element.
+///
 #[derive(Debug, Clone)]
 pub struct Function {
+    /// The function location in the code.
     pub location: Location,
+    /// The function identifier.
     pub identifier: String,
+    /// The unique function ID, allocated during the semantic analysis,
     pub type_id: usize,
 }
 
 impl Function {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(location: Location, identifier: String, type_id: usize) -> Self {
         Self {
             location,

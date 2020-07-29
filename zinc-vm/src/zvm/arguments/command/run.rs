@@ -66,7 +66,9 @@ impl IExecutable for Command {
         let json = serde_json::from_str(&input_text)?;
         let input = TemplateValue::try_from_typed_json(json, program.input())?;
 
-        let mongo_client = zinc_mongo::wait(MongoClient::new(
+        let mut runtime = zinc_mongo::Runtime::new().expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
+
+        let mongo_client = runtime.block_on(MongoClient::new(
             self.mongodb_host,
             self.mongodb_port.unwrap_or(zinc_const::mongodb::PORT),
         ));
@@ -74,11 +76,13 @@ impl IExecutable for Command {
         let output = match program {
             BytecodeProgram::Circuit(circuit) => CircuitFacade::new(circuit).run::<Bn256>(input)?,
             BytecodeProgram::Contract(contract) => {
-                let storage = zinc_mongo::wait(mongo_client.get_storage(name.as_str()))
+                let storage = runtime
+                    .block_on(mongo_client.get_storage(name.as_str()))
                     .map_err(Error::MongoDb)?;
                 let (output, storage) =
                     ContractFacade::new(contract).run::<Bn256>(input, Some(storage))?;
-                zinc_mongo::wait(mongo_client.update_storage(name.as_str(), storage))
+                runtime
+                    .block_on(mongo_client.update_storage(name.as_str(), storage))
                     .map_err(Error::MongoDb)?;
                 output
             }

@@ -11,6 +11,7 @@ use std::fmt;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::constant::Constant;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
 
@@ -21,11 +22,16 @@ use self::error::Error;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Tuple {
+    /// The location, where the tuple appears in the code.
     pub location: Location,
+    /// The tuple element values.
     pub values: Vec<Constant>,
 }
 
 impl Tuple {
+    ///
+    /// A shortcut constructor, which is called before pushing the element values.
+    ///
     pub fn new(location: Location) -> Self {
         Self {
             location,
@@ -33,6 +39,9 @@ impl Tuple {
         }
     }
 
+    ///
+    /// A shortcut constructor, which is called before pushing the element values.
+    ///
     pub fn with_capacity(location: Location, capacity: usize) -> Self {
         Self {
             location,
@@ -40,33 +49,37 @@ impl Tuple {
         }
     }
 
+    ///
+    /// A shortcut constructor, which is called when the type and values are already known.
+    ///
     pub fn new_with_values(location: Location, values: Vec<Constant>) -> Self {
         Self { location, values }
     }
 
-    pub fn r#type(&self) -> Type {
-        Type::tuple(
-            Some(self.location),
-            self.values.iter().map(|value| value.r#type()).collect(),
-        )
-    }
-
+    ///
+    /// The tuple fields count.
+    ///
     pub fn len(&self) -> usize {
         self.values.len()
     }
 
+    ///
+    /// If the tuple fields count is exactly zero.
+    ///
     pub fn is_empty(&self) -> bool {
         self.values.is_empty()
     }
 
-    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.values == other.values
-    }
-
+    ///
+    /// Pushes a typed element into the tuple fields array.
+    ///
     pub fn push(&mut self, value: Constant) {
         self.values.push(value);
     }
 
+    ///
+    /// Slices the tuple, returning the specified field.
+    ///
     pub fn slice(mut self, index: TupleIndex) -> Result<(Constant, StackFieldAccess), Error> {
         let TupleIndex {
             location,
@@ -77,7 +90,7 @@ impl Tuple {
         let total_size = self.r#type().size();
 
         if index >= self.values.len() {
-            return Err(Error::FieldDoesNotExist {
+            return Err(Error::FieldOutOrRange {
                 location,
                 type_identifier: self.r#type().to_string(),
                 field_index: index,
@@ -96,6 +109,19 @@ impl Tuple {
             StackFieldAccess::new(index.to_string(), index, offset, element_size, total_size);
 
         Ok((self.values.remove(index), access))
+    }
+}
+
+impl ITyped for Tuple {
+    fn r#type(&self) -> Type {
+        Type::tuple(
+            Some(self.location),
+            self.values.iter().map(|value| value.r#type()).collect(),
+        )
+    }
+
+    fn has_the_same_type_as(&self, other: &Self) -> bool {
+        self.values == other.values
     }
 }
 

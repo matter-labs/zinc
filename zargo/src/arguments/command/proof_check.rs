@@ -84,6 +84,10 @@ pub struct Command {
         default_value = "./data/verifying_key.txt"
     )]
     pub verifying_key_path: PathBuf,
+
+    /// Whether to run the release build.
+    #[structopt(long = "release", help = "Run the release build")]
+    pub is_release: bool,
 }
 
 ///
@@ -132,14 +136,25 @@ impl IExecutable for Command {
         BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
         DataDirectory::create(&manifest_path).map_err(Error::DataDirectory)?;
 
-        Compiler::build(
-            self.verbosity,
-            &data_directory_path,
-            &build_directory_path,
-            &source_directory_path,
-            false,
-        )
-        .map_err(Error::Compiler)?;
+        if self.is_release {
+            Compiler::build_release(
+                self.verbosity,
+                &data_directory_path,
+                &build_directory_path,
+                &source_directory_path,
+                false,
+            )
+            .map_err(Error::Compiler)?;
+        } else {
+            Compiler::build_debug(
+                self.verbosity,
+                &data_directory_path,
+                &build_directory_path,
+                &source_directory_path,
+                false,
+            )
+            .map_err(Error::Compiler)?;
+        }
 
         VirtualMachine::run(
             self.verbosity,

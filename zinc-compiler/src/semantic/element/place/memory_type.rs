@@ -9,9 +9,9 @@ use crate::semantic::scope::item::variable::memory_type::MemoryType as VariableI
 ///
 #[derive(Debug, Clone)]
 pub enum MemoryType {
-    /// Data allocated on the VM data stack
+    /// Data allocated on the VM data stack.
     Stack,
-    /// The contract data field allocated in the contract storage
+    /// The contract data field allocated in the contract storage.
     ContractStorage,
 }
 

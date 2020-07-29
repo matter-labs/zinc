@@ -20,6 +20,9 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::expression::tuple::Expression as TupleExpression;
 
+///
+/// The tuple semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {
@@ -74,7 +77,7 @@ impl Analyzer {
     /// Returns the constant tuple semantic element.
     ///
     fn constant(scope: Rc<RefCell<Scope>>, tuple: TupleExpression) -> Result<Element, Error> {
-        let mut result = TupleConstant::new(tuple.location);
+        let mut result = TupleConstant::with_capacity(tuple.location, tuple.elements.len());
 
         for expression in tuple.elements.into_iter() {
             let expression_location = expression.location;

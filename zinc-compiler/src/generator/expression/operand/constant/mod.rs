@@ -9,19 +9,31 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::generator::state::State;
+use crate::generator::IBytecodeWritable;
 use crate::semantic::element::constant::Constant as SemanticConstant;
 
 use self::boolean::Boolean;
 use self::integer::Integer;
 
+///
+/// The constant operand, which is pushed directly into the bytecode.
+///
 #[derive(Debug, Clone)]
 pub enum Constant {
+    /// The boolean constant.
     Boolean(Boolean),
+    /// The integer constant.
     Integer(Integer),
+    /// The constant group, which is created from an array, tuple, structure, etc.
     Group(Vec<Self>),
 }
 
 impl Constant {
+    ///
+    /// Tries to create a constant from the semantic one.
+    ///
+    /// If the constant only exists at compile time, `None` is returned.
+    ///
     pub fn try_from_semantic(constant: &SemanticConstant) -> Option<Self> {
         match constant {
             SemanticConstant::Boolean(inner) => Some(Self::Boolean(Boolean::from_semantic(inner))),
@@ -65,14 +77,16 @@ impl Constant {
             _ => None,
         }
     }
+}
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
+impl IBytecodeWritable for Constant {
+    fn write_all(self, bytecode: Rc<RefCell<State>>) {
         match self {
-            Self::Boolean(inner) => inner.write_all_to_bytecode(bytecode),
-            Self::Integer(inner) => inner.write_all_to_bytecode(bytecode),
+            Self::Boolean(inner) => inner.write_all(bytecode),
+            Self::Integer(inner) => inner.write_all(bytecode),
             Self::Group(inner) => {
                 for constant in inner.into_iter() {
-                    constant.write_all_to_bytecode(bytecode.clone());
+                    constant.write_all(bytecode.clone());
                 }
             }
         }

@@ -383,7 +383,7 @@ fn main() {
 }
 
 #[test]
-fn error_tuple_field_does_not_exist() {
+fn error_tuple_field_out_of_range() {
     let input = r#"
 fn main() {
     let tuple = (1, 2, 3);
@@ -392,7 +392,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::TupleFieldDoesNotExist {
+        ElementError::Place(PlaceError::TupleFieldOutOfRange {
             location: Location::new(4, 24),
             type_identifier: Type::tuple(
                 Some(Location::new(4, 24)),

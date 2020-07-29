@@ -7,6 +7,7 @@ use std::rc::Rc;
 
 use crate::error::Error;
 use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::lexeme::symbol::Symbol;
 use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::Token;
@@ -22,6 +23,8 @@ use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatemen
 #[derive(Debug, Clone, Copy)]
 pub enum State {
     /// The initial state.
+    UnconstrainedOrNext,
+    /// The `unconstrained` has been probably parsed so far.
     BracketCurlyLeft,
     /// The `{` has been parsed so far.
     StatementOrBracketCurlyRight,
@@ -31,7 +34,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        Self::BracketCurlyLeft
+        Self::UnconstrainedOrNext
     }
 }
 
@@ -53,7 +56,7 @@ impl Parser {
     /// Parses a block expression.
     ///
     /// '
-    /// {
+    /// [unconstrained] {
     ///     let a = 42;
     ///     let b = 25;
     ///     a + b
@@ -67,13 +70,29 @@ impl Parser {
     ) -> Result<(BlockExpression, Option<Token>), Error> {
         loop {
             match self.state {
-                State::BracketCurlyLeft => {
+                State::UnconstrainedOrNext => {
                     match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Keyword(Keyword::Unconstrained),
+                            location,
+                        } => {
+                            self.builder.set_location_if_unset(location);
+                            self.builder.set_unconstrained();
+                        }
+                        token => {
+                            self.next = Some(token);
+                        }
+                    }
+
+                    self.state = State::BracketCurlyLeft;
+                }
+                State::BracketCurlyLeft => {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             location,
                         } => {
-                            self.builder.set_location(location);
+                            self.builder.set_location_if_unset(location);
                             self.state = State::StatementOrBracketCurlyRight;
                         }
                         Token { lexeme, location } => {
@@ -156,7 +175,7 @@ mod tests {
         let input = r#"{}"#;
 
         let expected = Ok((
-            BlockExpression::new(Location::new(1, 1), vec![], None),
+            BlockExpression::new(Location::new(1, 1), false, vec![], None),
             None,
         ));
 
@@ -166,12 +185,13 @@ mod tests {
     }
 
     #[test]
-    fn ok_statements_with_expression() {
+    fn ok_expression() {
         let input = r#"{ 2 + 1 }"#;
 
         let expected = Ok((
             BlockExpression::new(
                 Location::new(1, 1),
+                false,
                 vec![],
                 Some(ExpressionTree::new_with_leaves(
                     Location::new(1, 5),
@@ -190,6 +210,46 @@ mod tests {
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
                                 Location::new(1, 7),
+                                LexicalIntegerLiteral::new_decimal("1".to_owned()),
+                            ),
+                        )),
+                    )),
+                )),
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_expression_unconstrained() {
+        let input = r#"unconstrained { 2 + 1 }"#;
+
+        let expected = Ok((
+            BlockExpression::new(
+                Location::new(1, 1),
+                true,
+                vec![],
+                Some(ExpressionTree::new_with_leaves(
+                    Location::new(1, 19),
+                    ExpressionTreeNode::operator(ExpressionOperator::Addition),
+                    Some(ExpressionTree::new(
+                        Location::new(1, 17),
+                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 17),
+                                LexicalIntegerLiteral::new_decimal("2".to_owned()),
+                            ),
+                        )),
+                    )),
+                    Some(ExpressionTree::new(
+                        Location::new(1, 21),
+                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 21),
                                 LexicalIntegerLiteral::new_decimal("1".to_owned()),
                             ),
                         )),

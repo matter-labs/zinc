@@ -32,8 +32,11 @@ use self::statement::Statement as TypeStatementVariant;
 ///
 #[derive(Debug, Clone)]
 pub struct Type {
+    /// The location where the type was declared. `None` for built-in items.
     pub location: Option<Location>,
+    /// The unique type ID, allocated upon declaration.
     pub item_id: usize,
+    /// The definition state, which is either `declared` or `defined`.
     pub state: RefCell<Option<State>>,
 }
 
@@ -52,7 +55,6 @@ impl Type {
         scope: Rc<RefCell<Scope>>,
     ) -> Result<Self, Error> {
         let item_id = ITEM_INDEX.next(format!("type {}", inner.identifier().name));
-        log::trace!("Declared type with ID {}", item_id);
 
         let (inner, scope) = match inner {
             TypeStatementVariant::Contract(statement) => {
@@ -99,7 +101,6 @@ impl Type {
             }
         );
         let item_id = ITEM_INDEX.next(title);
-        log::trace!("Defined type with ID {}", item_id);
 
         Self {
             location,
@@ -139,8 +140,6 @@ impl Type {
 
         match variant {
             Some(State::Declared { inner, scope }) => {
-                log::trace!("Defining type with ID {}", self.item_id);
-
                 let (r#type, intermediate) = match inner {
                     TypeStatementVariant::Type(inner) => {
                         (TypeStatementAnalyzer::define(scope, inner)?, None)

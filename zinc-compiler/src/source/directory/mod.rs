@@ -14,6 +14,7 @@ use std::rc::Rc;
 use crate::error::Error as CompilerError;
 use crate::generator::module::Module;
 use crate::generator::state::State;
+use crate::generator::IBytecodeWritable;
 use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 use crate::source::error::Error as SourceError;
 use crate::source::file::File;
@@ -29,9 +30,13 @@ use self::string::String as DirectoryString;
 ///
 #[derive(Debug, Clone)]
 pub struct Directory {
+    /// The full directory path.
     pub path: PathBuf,
+    /// The directory name.
     pub name: String,
+    /// The directory entry file, that is, a module, library, or application entry.
     pub entry: File,
+    /// The module dependencies.
     pub dependencies: HashMap<String, Source>,
 }
 
@@ -165,7 +170,7 @@ impl Directory {
             .map_err(SourceError::Compiling)?;
 
         let bytecode = State::new(name).wrap();
-        Module::new(scope.borrow().get_intermediate()).write_all_to_bytecode(bytecode.clone());
+        Module::new(scope.borrow().get_intermediate()).write_all(bytecode.clone());
 
         Ok(bytecode)
     }

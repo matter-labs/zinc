@@ -28,6 +28,9 @@ use crate::semantic::scope::Scope;
 
 use self::r#type::Type as CallType;
 
+///
+/// The function call semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {
@@ -50,6 +53,7 @@ impl Analyzer {
             Element::Path(path) => match *Scope::resolve_path(scope.clone(), &path)?.borrow() {
                 ScopeItem::Type(ref r#type) => {
                     let r#type = r#type.define()?;
+
                     match r#type {
                         Type::Function(function) => function,
                         r#type => {
@@ -83,7 +87,7 @@ impl Analyzer {
 
         let mut argument_list = match operand_2 {
             Element::ArgumentList(values) => values,
-            _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
+            _ => panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
 
         match call_type.take() {
@@ -113,13 +117,13 @@ impl Analyzer {
                 match function {
                     BuiltInFunctionType::Debug(function) => {
                         let (return_type, format, argument_types) = function
-                            .call(function_location, argument_list.arguments)
+                            .call(function_location, argument_list)
                             .map_err(|error| {
                                 Error::Element(ElementError::Type(TypeError::Function(error)))
                             })?;
 
                         let element = Element::Value(
-                            Value::try_from_type(&return_type, None)
+                            Value::try_from_type(&return_type, false, None)
                                 .map_err(ElementError::Value)
                                 .map_err(Error::Element)?,
                         );
@@ -138,13 +142,13 @@ impl Analyzer {
                     }
                     BuiltInFunctionType::Assert(function) => {
                         let (return_type, message) = function
-                            .call(function_location, argument_list.arguments)
+                            .call(function_location, argument_list)
                             .map_err(|error| {
                                 Error::Element(ElementError::Type(TypeError::Function(error)))
                             })?;
 
                         let element = Element::Value(
-                            Value::try_from_type(&return_type, None)
+                            Value::try_from_type(&return_type, false, None)
                                 .map_err(ElementError::Value)
                                 .map_err(Error::Element)?,
                         );
@@ -172,16 +176,17 @@ impl Analyzer {
                     ))));
                 }
 
-                let builtin_identifier = function.builtin_identifier();
+                let builtin_identifier = function.stdlib_identifier();
 
-                let return_type = function
-                    .call(function_location, argument_list.arguments)
-                    .map_err(|error| {
-                        Error::Element(ElementError::Type(TypeError::Function(error)))
-                    })?;
+                let return_type =
+                    function
+                        .call(function_location, argument_list)
+                        .map_err(|error| {
+                            Error::Element(ElementError::Type(TypeError::Function(error)))
+                        })?;
 
                 let element = Element::Value(
-                    Value::try_from_type(&return_type, None)
+                    Value::try_from_type(&return_type, false, None)
                         .map_err(ElementError::Value)
                         .map_err(Error::Element)?,
                 );
@@ -204,7 +209,7 @@ impl Analyzer {
                 if let CallType::BuiltIn = call_type {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
                         FunctionError::BuiltIn(BuiltInFunctionError::Unknown {
-                            location: function_location.unwrap_or(location),
+                            location,
                             function: function.identifier,
                         }),
                     ))));
@@ -213,12 +218,12 @@ impl Analyzer {
                 let location = function.location;
                 let type_id = function.type_id;
 
-                let return_type = function.call(argument_list.arguments).map_err(|error| {
+                let return_type = function.call(argument_list).map_err(|error| {
                     Error::Element(ElementError::Type(TypeError::Function(error)))
                 })?;
 
                 let element = Element::Value(
-                    Value::try_from_type(&return_type, None)
+                    Value::try_from_type(&return_type, false, None)
                         .map_err(ElementError::Value)
                         .map_err(Error::Element)?,
                 );
@@ -237,23 +242,21 @@ impl Analyzer {
                 if let CallType::BuiltIn = call_type {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
                         FunctionError::BuiltIn(BuiltInFunctionError::Unknown {
-                            location: function_location.unwrap_or(location),
+                            location,
                             function: function.identifier,
                         }),
                     ))));
                 }
 
-                let arguments = function
-                    .validate(argument_list.arguments)
-                    .map_err(|error| {
-                        Error::Element(ElementError::Type(TypeError::Function(error)))
-                    })?;
+                let arguments = function.validate(argument_list).map_err(|error| {
+                    Error::Element(ElementError::Type(TypeError::Function(error)))
+                })?;
 
                 let constant = function.call(arguments, scope)?;
 
                 let intermediate = GeneratorConstant::try_from_semantic(&constant)
                     .map(GeneratorExpressionOperand::Constant)
-                    .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+                    .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
 
                 (
                     Element::Constant(constant),

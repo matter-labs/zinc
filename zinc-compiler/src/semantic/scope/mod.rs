@@ -45,13 +45,18 @@ use self::item::Item;
 ///
 #[derive(Debug, Clone)]
 pub struct Scope {
+    /// The scope name, that is, namespace name like module name, structure name, etc.
     name: String,
+    /// The vertical parent scope, which the current one has access to.
     parent: Option<Rc<RefCell<Self>>>,
+    /// The hashmap with items declared at the current scope level, with item names as keys.
     items: RefCell<HashMap<String, Rc<RefCell<Item>>>>,
+    /// Whether the scope is the built-in one, that is, the root scope with built-in items.
     is_built_in: bool,
 }
 
 impl Scope {
+    /// The scope items hashmap default capacity.
     const ITEMS_INITIAL_CAPACITY: usize = 1024;
 
     ///
@@ -376,7 +381,7 @@ impl Scope {
             .borrow()
             .get(&Keyword::SelfLowercase.to_string())
             .cloned()
-            .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+            .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
     }
 
     ///
@@ -497,7 +502,7 @@ impl Scope {
     }
 
     ///
-    /// Displays the scopr hierarchy.
+    /// Displays the scope hierarchy.
     ///
     /// Is used for testing purposes.
     ///

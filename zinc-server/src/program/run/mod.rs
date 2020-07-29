@@ -11,7 +11,9 @@ use std::sync::RwLock;
 use actix_web::http::StatusCode;
 use actix_web::web;
 use actix_web::Responder;
+use serde_json::json;
 
+use zinc_bytecode::DataType;
 use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue as BytecodeTemplateValue;
 use zinc_vm::Bn256;
@@ -26,7 +28,7 @@ use self::request::Body;
 use self::request::Query;
 
 ///
-/// The program run feature POST method endpoint handler.
+/// The HTTP request handler.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
@@ -50,11 +52,11 @@ pub async fn handle(
         Err(error) => return Response::error(Error::InputError(error)),
     };
 
-    let output = match entry.program {
+    match entry.program {
         BytecodeProgram::Circuit(circuit) => {
             match CircuitFacade::new(circuit).run::<Bn256>(input) {
-                Ok(output) => output,
-                Err(error) => return Response::error(Error::RuntimeError(error)),
+                Ok(output) => Response::success_with_data(StatusCode::OK, output.into_json()),
+                Err(error) => Response::error(Error::RuntimeError(error)),
             }
         }
         BytecodeProgram::Contract(contract) => {
@@ -68,6 +70,7 @@ pub async fn handle(
                 Ok(storage) => storage,
                 Err(error) => return Response::error(Error::MongoDb(error)),
             };
+            let storage_type = DataType::Contract(contract.storage.clone());
 
             let (output, storage) =
                 match ContractFacade::new(contract).run::<Bn256>(input, Some(storage)) {
@@ -76,15 +79,23 @@ pub async fn handle(
                 };
 
             if let Err(error) = mongo_client
-                .update_storage(query.name.as_str(), storage)
+                .update_storage(query.name.as_str(), storage.clone())
                 .await
             {
                 return Response::error(Error::MongoDb(error));
             }
 
-            output
-        }
-    };
+            let storage = BytecodeTemplateValue::from_flat_values(
+                storage_type,
+                storage.into_flat_values().as_slice(),
+            );
 
-    Response::success_with_data(StatusCode::OK, output)
+            let data = json!({
+                "output": output.into_json(),
+                "storage": storage.into_json(),
+            });
+
+            Response::success_with_data(StatusCode::OK, data)
+        }
+    }
 }

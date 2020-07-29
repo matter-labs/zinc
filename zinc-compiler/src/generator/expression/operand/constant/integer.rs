@@ -15,16 +15,26 @@ use zinc_bytecode::Push;
 use zinc_bytecode::ScalarType;
 
 use crate::generator::state::State;
+use crate::generator::IBytecodeWritable;
 use crate::semantic::element::constant::integer::Integer as SemanticIntegerConstant;
 
+///
+/// The generator expression integer constant operand.
+///
 #[derive(Debug, Clone)]
 pub struct Integer {
+    /// The inner value.
     pub value: BigInt,
+    /// Whether the integer type is signed.
     pub is_signed: bool,
+    /// The integer type bitlength.
     pub bitlength: usize,
 }
 
 impl Integer {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(value: BigInt, is_signed: bool, bitlength: usize) -> Self {
         Self {
             value,
@@ -33,6 +43,9 @@ impl Integer {
         }
     }
 
+    ///
+    /// Returns the minimum value for the specified type.
+    ///
     pub fn new_min(is_signed: bool, bitlength: usize) -> Self {
         let value = match (is_signed, bitlength) {
             (false, _bitlength) => BigInt::zero(),
@@ -46,6 +59,9 @@ impl Integer {
         }
     }
 
+    ///
+    /// Returns the maximum value for the specified type.
+    ///
     pub fn new_max(is_signed: bool, bitlength: usize) -> Self {
         let value = match (is_signed, bitlength) {
             (false, bitlength) => (BigInt::one() << bitlength) - BigInt::one(),
@@ -59,6 +75,9 @@ impl Integer {
         }
     }
 
+    ///
+    /// Converts from the semantic integer constant.
+    ///
     pub fn from_semantic(integer: &SemanticIntegerConstant) -> Self {
         Self::new(
             integer.value.to_owned(),
@@ -66,8 +85,10 @@ impl Integer {
             integer.bitlength,
         )
     }
+}
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
+impl IBytecodeWritable for Integer {
+    fn write_all(self, bytecode: Rc<RefCell<State>>) {
         let scalar_type = match (self.is_signed, self.bitlength) {
             (false, zinc_const::bitlength::FIELD) => ScalarType::Field,
             (is_signed, bitlength) => ScalarType::Integer(IntegerType {

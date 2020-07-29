@@ -200,7 +200,7 @@ fn main() {
                 from: Type::field(None).to_string(),
                 to: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
-            reference: Some(Location::new(4, 27)),
+            reference: Location::new(4, 27),
         }),
     )));
 
@@ -225,7 +225,7 @@ fn main() {
                 from: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 to: Type::boolean(None).to_string(),
             },
-            reference: Some(Location::new(4, 27)),
+            reference: Location::new(4, 27),
         }),
     )));
 
@@ -250,7 +250,7 @@ fn main() {
                 from: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 to: Type::boolean(None).to_string(),
             },
-            reference: Some(Location::new(4, 17)),
+            reference: Location::new(4, 17),
         }),
     )));
 

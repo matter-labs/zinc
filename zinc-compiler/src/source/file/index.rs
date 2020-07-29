@@ -13,6 +13,7 @@ use lazy_static::lazy_static;
 ///
 #[derive(Debug)]
 pub struct Index {
+    /// The inner file data storage with the file unique ID as the key.
     pub inner: RwLock<HashMap<usize, Data>>,
 }
 
@@ -21,7 +22,9 @@ pub struct Index {
 ///
 #[derive(Debug)]
 pub struct Data {
+    /// The full file path.
     pub path: PathBuf,
+    /// The file contents as string.
     pub code: String,
 }
 
@@ -30,14 +33,21 @@ lazy_static! {
 }
 
 impl Index {
+    /// The default file index capacity.
     const INITIAL_CAPACITY: usize = 64;
 
+    ///
+    /// Initializes an index instance.
+    ///
     pub fn new() -> Self {
         Self {
             inner: RwLock::new(HashMap::with_capacity(Self::INITIAL_CAPACITY)),
         }
     }
 
+    ///
+    /// Allocates the next file sequence ID.
+    ///
     pub fn next(&self, path: &PathBuf, code: String) -> usize {
         let mut index = self.inner.write().expect(zinc_const::panic::MUTEX_SYNC);
         let sequence_id = index.len();
@@ -54,12 +64,15 @@ impl Index {
         sequence_id
     }
 
+    ///
+    /// Get the file path by its index.
+    ///
     pub fn get_path(&self, index: usize) -> PathBuf {
         self.inner
             .read()
             .expect(zinc_const::panic::MUTEX_SYNC)
             .get(&index)
-            .expect(crate::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
+            .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .path
             .to_owned()
     }

@@ -41,14 +41,23 @@ use crate::semantic::scope::error::Error as ScopeError;
 use crate::source::file::index::INDEX as FILE_INDEX;
 use crate::syntax::error::Error as SyntaxError;
 
+///
+/// The Zinc compiler error.
+///
 #[derive(Debug, PartialEq)]
 pub enum Error {
+    /// The lexical analysis error.
     Lexical(LexicalError),
+    /// The syntax analysis error.
     Syntax(SyntaxError),
+    /// The semantic analysis error.
     Semantic(SemanticError),
 }
 
 impl Error {
+    ///
+    /// Formats the compiler error into the user-friendly readable output.
+    ///
     pub fn format(self) -> String {
         match self {
             Self::Lexical(LexicalError::UnterminatedBlockComment { start, end }) => {
@@ -981,7 +990,7 @@ impl Error {
                     )
                         .as_str(),
                     location,
-                    reference,
+                    Some(reference),
                     Some("only integer values can be casted to an integer with different bitlength or field element"),
                 )
             }
@@ -1181,9 +1190,9 @@ impl Error {
                                    Some(format!("consider initializing the value, e.g. `{} {{ a: 42, b: 25, ... }}`", type_identifier).as_str()),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Tuple(TupleValueError::FieldDoesNotExist { location, type_identifier, field_index })))) |
-            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Tuple(TupleConstantError::FieldDoesNotExist { location, type_identifier, field_index })))) |
-            Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::TupleFieldDoesNotExist { location, type_identifier, field_index }))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Tuple(TupleValueError::FieldOutOrRange { location, type_identifier, field_index })))) |
+            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Tuple(TupleConstantError::FieldOutOrRange { location, type_identifier, field_index })))) |
+            Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::TupleFieldOutOfRange { location, type_identifier, field_index }))) => {
                 Self::format_line( format!(
                         "`{}` has no field with index `{}`",
                         type_identifier, field_index,
@@ -1596,13 +1605,14 @@ impl Error {
                     Some("consider removing circular references between the items"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::ArgumentCount { location, function, expected, found })))) => {
-                Self::format_line( format!(
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::ArgumentCount { location, function, expected, found, reference })))) => {
+                Self::format_line_with_reference( format!(
                         "function `{}` expected {} arguments, found {}",
                         function, expected, found
                     )
                         .as_str(),
                     location,
+                    reference,
                     None,
                 )
             }
@@ -1969,6 +1979,11 @@ impl Error {
         }
     }
 
+    ///
+    /// Formats an error `message` with an optional `help` message.
+    ///
+    /// The error is locationless, that is, not related to any specific place in the source code.
+    ///
     fn format_message(message: &str, help: Option<&str>) -> String {
         let mut strings = Vec::with_capacity(8);
         strings.push(String::new());
@@ -1984,6 +1999,11 @@ impl Error {
         strings.join("\n")
     }
 
+    ///
+    /// Formats an error `message` with an optional `help` message.
+    ///
+    /// The error has a location, that is, points to a specific place in the source code.
+    ///
     fn format_line(message: &str, location: Location, help: Option<&str>) -> String {
         let index = FILE_INDEX
             .inner
@@ -1991,7 +2011,7 @@ impl Error {
             .expect(zinc_const::panic::MUTEX_SYNC);
         let context = index
             .get(&location.file_index)
-            .expect(crate::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
+            .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .code
             .lines()
             .collect::<Vec<&str>>();
@@ -2030,6 +2050,11 @@ impl Error {
         strings.join("\n")
     }
 
+    ///
+    /// Formats an error `message` with an optional `help` message.
+    ///
+    /// The error has a second location reference, which helps the user to fix the error more easily.
+    ///
     fn format_line_with_reference(
         message: &str,
         location: Location,
@@ -2042,7 +2067,7 @@ impl Error {
             .expect(zinc_const::panic::MUTEX_SYNC);
         let context = index
             .get(&location.file_index)
-            .expect(crate::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
+            .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .code
             .lines()
             .collect::<Vec<&str>>();
@@ -2057,7 +2082,7 @@ impl Error {
         if let Some(reference) = reference {
             let context = index
                 .get(&reference.file_index)
-                .expect(crate::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
+                .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
                 .code
                 .lines()
                 .collect::<Vec<&str>>();
@@ -2109,6 +2134,11 @@ impl Error {
         strings.join("\n")
     }
 
+    ///
+    /// Formats an error `message` with an optional `help` message.
+    ///
+    /// The error has two location bounds, which enclose the erroneous part of the source code.
+    ///
     fn format_range(
         message: &'static str,
         start: Location,
@@ -2121,7 +2151,7 @@ impl Error {
             .expect(zinc_const::panic::MUTEX_SYNC);
         let context = index
             .get(&start.file_index)
-            .expect(crate::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
+            .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .code
             .lines()
             .collect::<Vec<&str>>();

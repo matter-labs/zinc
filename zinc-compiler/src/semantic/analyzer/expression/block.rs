@@ -22,6 +22,9 @@ use crate::semantic::scope::Scope;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
 use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
 
+///
+/// The block expression semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {
@@ -36,6 +39,10 @@ impl Analyzer {
         rule: TranslationRule,
     ) -> Result<(Element, GeneratorBlockExpression), Error> {
         let mut builder = GeneratorBlockExpressionBuilder::default();
+
+        if block.is_unconstrained {
+            builder.set_unconstrained();
+        }
 
         let mut scope_stack = ScopeStack::new(scope);
         scope_stack.push(None);

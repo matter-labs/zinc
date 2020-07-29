@@ -13,36 +13,82 @@ use crate::semantic::element::r#type::Type as SemanticType;
 ///
 /// Is converted from a semantic type during the bytecode generation.
 ///
+/// Each type has its own logic of writing to the bytecode.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
+    /// The IR unit type, which is not written to the bytecode.
     Unit,
+    /// The IR boolean type.
     Boolean,
-    IntegerUnsigned { bitlength: usize },
-    IntegerSigned { bitlength: usize },
+    /// The IR unsigned integer type.
+    IntegerUnsigned {
+        /// The integer type bitlength.
+        bitlength: usize,
+    },
+    /// The IR signed integer type.
+    IntegerSigned {
+        /// The integer type bitlength.
+        bitlength: usize,
+    },
+    /// The IR field type.
     Field,
-    Array { r#type: Box<Self>, size: usize },
-    Tuple { types: Vec<Self> },
-    Structure { fields: Vec<(String, Self)> },
-    Contract { fields: Vec<(String, Self)> },
+    /// The IR array type.
+    Array {
+        /// The array element type.
+        r#type: Box<Self>,
+        /// The array size.
+        size: usize,
+    },
+    /// The IR tuple type.
+    Tuple {
+        /// The tuple element types.
+        types: Vec<Self>,
+    },
+    /// The IR structure type.
+    Structure {
+        /// The ordered structure fields array.
+        fields: Vec<(String, Self)>,
+    },
+    /// The IR contract type.
+    Contract {
+        /// The ordered contract storage fields array.
+        fields: Vec<(String, Self)>,
+    },
 }
 
 impl Type {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn unit() -> Self {
         Self::Unit
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn boolean() -> Self {
         Self::Boolean
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn integer_unsigned(bitlength: usize) -> Self {
         Self::IntegerUnsigned { bitlength }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn integer_signed(bitlength: usize) -> Self {
         Self::IntegerSigned { bitlength }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn integer(is_signed: bool, bitlength: usize) -> Self {
         if is_signed {
             Self::IntegerSigned { bitlength }
@@ -51,10 +97,16 @@ impl Type {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn field() -> Self {
         Self::Field
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn array(r#type: Self, size: usize) -> Self {
         Self::Array {
             r#type: Box::new(r#type),
@@ -62,18 +114,30 @@ impl Type {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn tuple(types: Vec<Self>) -> Self {
         Self::Tuple { types }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn structure(fields: Vec<(String, Self)>) -> Self {
         Self::Structure { fields }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn contract(fields: Vec<(String, Self)>) -> Self {
         Self::Contract { fields }
     }
 
+    ///
+    /// The type size in the Zinc VM data stack.
+    ///
     pub fn size(&self) -> usize {
         match self {
             Self::Unit => 0,
@@ -88,6 +152,12 @@ impl Type {
         }
     }
 
+    ///
+    /// Tries to convert the semantic type to the IR generator type.
+    ///
+    /// Some types like ranges and functions exist only at compile time and cannot be converted.
+    /// In such cases, `None` is returned.
+    ///
     pub fn try_from_semantic(r#type: &SemanticType) -> Option<Self> {
         match r#type {
             SemanticType::Unit(_) => Some(Self::unit()),

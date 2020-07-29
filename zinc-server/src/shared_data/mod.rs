@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use serde_json::json;
 use serde_json::Value as JsonValue;
 
 use zinc_compiler::SourceString;
@@ -41,6 +42,13 @@ impl SharedData {
     }
 
     ///
+    /// Gets the program.
+    ///
+    pub fn get_programs(&self) -> Vec<String> {
+        self.programs.keys().cloned().collect()
+    }
+
+    ///
     /// Gets the program source code from the storage.
     ///
     pub fn get_program_source(&self, name: &str) -> Option<SourceString> {
@@ -56,6 +64,20 @@ impl SharedData {
         self.programs
             .get(name)
             .and_then(|program| program.get_entry(entry).map(|entry| entry.to_owned()))
+    }
+
+    ///
+    /// Gets the program entry input and output templates from the storage.
+    ///
+    pub fn get_program_entry_templates(&self, name: &str, entry: &str) -> Option<JsonValue> {
+        self.programs.get(name).and_then(|program| {
+            program.get_entry(entry).map(|entry| {
+                json!({
+                    "input": entry.input_template.to_owned(),
+                    "output": entry.output_template.to_owned(),
+                })
+            })
+        })
     }
 
     ///

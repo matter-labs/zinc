@@ -62,7 +62,7 @@ impl Program {
 
     pub fn from_bytecode(bytecode: State) -> HashMap<String, Entry> {
         bytecode
-            .into_entries()
+            .into_entries(true)
             .into_iter()
             .map(|(name, entry)| {
                 let program = BytecodeProgram::from_bytes(entry.into_bytecode().as_slice())

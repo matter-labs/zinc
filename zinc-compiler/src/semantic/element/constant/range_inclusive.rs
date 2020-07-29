@@ -7,6 +7,7 @@ use std::fmt;
 use num_bigint::BigInt;
 
 use crate::lexical::token::location::Location;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 
 ///
@@ -16,14 +17,22 @@ use crate::semantic::element::r#type::Type;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct RangeInclusive {
+    /// The location, where the value appears in the code.
     pub location: Location,
+    /// The range start constant.
     pub start: BigInt,
+    /// The range end constant.
     pub end: BigInt,
+    /// If the range bounds type is signed.
     pub is_signed: bool,
+    /// The bitlength, enough to fit the bigger range bound.
     pub bitlength: usize,
 }
 
 impl RangeInclusive {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         location: Location,
         start: BigInt,
@@ -40,15 +49,20 @@ impl RangeInclusive {
         }
     }
 
-    pub fn r#type(&self) -> Type {
-        Type::range_inclusive(Some(self.location), self.bounds_type())
-    }
-
+    ///
+    /// Returns the range bound type.
+    ///
     pub fn bounds_type(&self) -> Type {
         Type::scalar(Some(self.location), self.is_signed, self.bitlength)
     }
+}
 
-    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
+impl ITyped for RangeInclusive {
+    fn r#type(&self) -> Type {
+        Type::range_inclusive(Some(self.location), self.bounds_type())
+    }
+
+    fn has_the_same_type_as(&self, other: &Self) -> bool {
         self.r#type() == other.r#type()
     }
 }

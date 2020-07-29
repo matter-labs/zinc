@@ -10,6 +10,7 @@ use zinc_bytecode::Instruction;
 use crate::generator::expression::operand::block::Expression;
 use crate::generator::r#type::Type;
 use crate::generator::state::State;
+use crate::generator::IBytecodeWritable;
 use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::attribute::Attribute;
 use crate::semantic::element::r#type::Type as SemanticType;
@@ -19,18 +20,30 @@ use crate::semantic::element::r#type::Type as SemanticType;
 ///
 #[derive(Debug, Clone)]
 pub struct Statement {
+    /// The statement location in the source code.
     pub location: Location,
+    /// The function name.
     pub identifier: String,
+    /// The function arguments, where the compile time only ones like `()` are already filtered out.
     pub input_arguments: Vec<(String, Type)>,
+    /// The function body.
     pub body: Expression,
-    pub output_type: Option<Type>,
+    /// The function result type, which defaults to `()` if not specified.
+    pub output_type: Type,
+    /// The function unique ID, which is assigned during the semantic analysis.
     pub type_id: usize,
+    /// Whether the function is a contract entry.
     pub is_contract_entry: bool,
+    /// Whether the function is a circuit entry.
     pub is_main: bool,
+    /// The function attibutes, e.g. the unit test ones.
     pub attributes: Vec<Attribute>,
 }
 
 impl Statement {
+    ///
+    /// A shortcut constructor.
+    ///
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         location: Location,
@@ -51,7 +64,7 @@ impl Statement {
             })
             .collect();
 
-        let output_type = Type::try_from_semantic(&output_type);
+        let output_type = Type::try_from_semantic(&output_type).unwrap_or_else(Type::unit);
 
         Self {
             location,
@@ -65,13 +78,11 @@ impl Statement {
             attributes,
         }
     }
+}
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
-        let output_size = self
-            .output_type
-            .as_ref()
-            .map(|r#type| r#type.size())
-            .unwrap_or_default();
+impl IBytecodeWritable for Statement {
+    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+        let output_size = self.output_type.size();
 
         if self.is_main || self.is_contract_entry {
             bytecode.borrow_mut().start_entry_function(
@@ -106,7 +117,7 @@ impl Statement {
             }
         }
 
-        self.body.write_all_to_bytecode(bytecode.clone());
+        self.body.write_all(bytecode.clone());
 
         bytecode.borrow_mut().push_instruction(
             Instruction::Return(zinc_bytecode::Return::new(output_size)),

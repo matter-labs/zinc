@@ -166,6 +166,317 @@ fn ok_minimal_bitlength() {
 }
 
 #[test]
+fn ok_literal_inference() {
+    // none of the operands are literals
+    assert_eq!(
+        IntegerConstant::infer_literal_types(
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(256),
+                false,
+                zinc_const::bitlength::BYTE * 2,
+                false,
+            ),
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(8),
+                false,
+                zinc_const::bitlength::BYTE,
+                false,
+            ),
+        ),
+        (None, None),
+    );
+    assert_eq!(
+        IntegerConstant::infer_literal_types(
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(65535),
+                false,
+                zinc_const::bitlength::BYTE * 2,
+                false,
+            ),
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(8),
+                false,
+                zinc_const::bitlength::BYTE,
+                false,
+            ),
+        ),
+        (None, None),
+    );
+    assert_eq!(
+        IntegerConstant::infer_literal_types(
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(8),
+                false,
+                zinc_const::bitlength::BYTE,
+                false,
+            ),
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(256),
+                false,
+                zinc_const::bitlength::BYTE * 2,
+                false,
+            ),
+        ),
+        (None, None),
+    );
+    assert_eq!(
+        IntegerConstant::infer_literal_types(
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(8),
+                false,
+                zinc_const::bitlength::BYTE,
+                false,
+            ),
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(65535),
+                false,
+                zinc_const::bitlength::BYTE * 2,
+                false,
+            ),
+        ),
+        (None, None),
+    );
+
+    // the first operand is a literal
+    assert_eq!(
+        IntegerConstant::infer_literal_types(
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(8),
+                false,
+                zinc_const::bitlength::BYTE,
+                true,
+            ),
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(256),
+                false,
+                zinc_const::bitlength::BYTE * 2,
+                false,
+            ),
+        ),
+        (
+            Some(Type::integer(
+                Some(Location::default()),
+                false,
+                zinc_const::bitlength::BYTE * 2
+            )),
+            None
+        ),
+    );
+    assert_eq!(
+        IntegerConstant::infer_literal_types(
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(8),
+                false,
+                zinc_const::bitlength::BYTE,
+                true,
+            ),
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(65535),
+                false,
+                zinc_const::bitlength::BYTE * 2,
+                false,
+            ),
+        ),
+        (
+            Some(Type::integer(
+                Some(Location::default()),
+                false,
+                zinc_const::bitlength::BYTE * 2
+            )),
+            None
+        ),
+    );
+
+    // the second operand is a literal
+    assert_eq!(
+        IntegerConstant::infer_literal_types(
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(256),
+                false,
+                zinc_const::bitlength::BYTE * 2,
+                false,
+            ),
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(8),
+                false,
+                zinc_const::bitlength::BYTE,
+                true,
+            ),
+        ),
+        (
+            None,
+            Some(Type::integer(
+                Some(Location::default()),
+                false,
+                zinc_const::bitlength::BYTE * 2
+            ))
+        ),
+    );
+    assert_eq!(
+        IntegerConstant::infer_literal_types(
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(65535),
+                false,
+                zinc_const::bitlength::BYTE * 2,
+                false,
+            ),
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(8),
+                false,
+                zinc_const::bitlength::BYTE,
+                true,
+            ),
+        ),
+        (
+            None,
+            Some(Type::integer(
+                Some(Location::default()),
+                false,
+                zinc_const::bitlength::BYTE * 2
+            ))
+        ),
+    );
+
+    // both operands are literals
+    assert_eq!(
+        IntegerConstant::infer_literal_types(
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(256),
+                false,
+                zinc_const::bitlength::BYTE * 2,
+                true,
+            ),
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(8),
+                false,
+                zinc_const::bitlength::BYTE,
+                true,
+            ),
+        ),
+        (
+            Some(Type::integer(
+                Some(Location::default()),
+                false,
+                zinc_const::bitlength::BYTE * 2
+            )),
+            Some(Type::integer(
+                Some(Location::default()),
+                false,
+                zinc_const::bitlength::BYTE * 2
+            )),
+        ),
+    );
+    assert_eq!(
+        IntegerConstant::infer_literal_types(
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(65535),
+                false,
+                zinc_const::bitlength::BYTE * 2,
+                true,
+            ),
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(8),
+                false,
+                zinc_const::bitlength::BYTE,
+                true,
+            ),
+        ),
+        (
+            Some(Type::integer(
+                Some(Location::default()),
+                false,
+                zinc_const::bitlength::BYTE * 2
+            )),
+            Some(Type::integer(
+                Some(Location::default()),
+                false,
+                zinc_const::bitlength::BYTE * 2
+            )),
+        ),
+    );
+    assert_eq!(
+        IntegerConstant::infer_literal_types(
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(8),
+                false,
+                zinc_const::bitlength::BYTE,
+                true,
+            ),
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(256),
+                false,
+                zinc_const::bitlength::BYTE * 2,
+                true,
+            ),
+        ),
+        (
+            Some(Type::integer(
+                Some(Location::default()),
+                false,
+                zinc_const::bitlength::BYTE * 2
+            )),
+            Some(Type::integer(
+                Some(Location::default()),
+                false,
+                zinc_const::bitlength::BYTE * 2
+            )),
+        ),
+    );
+    assert_eq!(
+        IntegerConstant::infer_literal_types(
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(8),
+                false,
+                zinc_const::bitlength::BYTE,
+                true,
+            ),
+            &mut IntegerConstant::new(
+                Location::default(),
+                BigInt::from(65535),
+                false,
+                zinc_const::bitlength::BYTE * 2,
+                true,
+            ),
+        ),
+        (
+            Some(Type::integer(
+                Some(Location::default()),
+                false,
+                zinc_const::bitlength::BYTE * 2
+            )),
+            Some(Type::integer(
+                Some(Location::default()),
+                false,
+                zinc_const::bitlength::BYTE * 2
+            )),
+        ),
+    );
+}
+
+#[test]
 fn error_integer_too_large_ordinar_constant() {
     let input = r#"
 fn main() {
@@ -564,7 +875,7 @@ fn main() {
 }
 
 #[test]
-fn error_types_mismatch_bitwise_or() {
+fn error_types_mismatch_bitor() {
     let input = r#"
 fn main() {
     let value = 42 as u64 | 64 as u128;
@@ -587,7 +898,7 @@ fn main() {
 }
 
 #[test]
-fn error_types_mismatch_bitwise_or_enumeration() {
+fn error_types_mismatch_bitor_enumeration() {
     let input = r#"
 enum Default {
     Value = 42,
@@ -614,7 +925,7 @@ fn main() {
 }
 
 #[test]
-fn error_types_mismatch_bitwise_or_two_enumerations() {
+fn error_types_mismatch_bitor_two_enumerations() {
     let input = r#"
 enum One {
     Value = 42,
@@ -645,7 +956,7 @@ fn main() {
 }
 
 #[test]
-fn error_types_mismatch_bitwise_xor() {
+fn error_types_mismatch_bitxor() {
     let input = r#"
 fn main() {
     let value = 42 as u64 ^ 64 as u128;
@@ -668,7 +979,7 @@ fn main() {
 }
 
 #[test]
-fn error_types_mismatch_bitwise_xor_enumeration() {
+fn error_types_mismatch_bitxor_enumeration() {
     let input = r#"
 enum Default {
     Value = 42,
@@ -695,7 +1006,7 @@ fn main() {
 }
 
 #[test]
-fn error_types_mismatch_bitwise_xor_two_enumerations() {
+fn error_types_mismatch_bitxor_two_enumerations() {
     let input = r#"
 enum One {
     Value = 42,
@@ -726,7 +1037,7 @@ fn main() {
 }
 
 #[test]
-fn error_types_mismatch_bitwise_and() {
+fn error_types_mismatch_bitand() {
     let input = r#"
 fn main() {
     let value = 42 as u64 & 64 as u128;
@@ -749,7 +1060,7 @@ fn main() {
 }
 
 #[test]
-fn error_types_mismatch_bitwise_and_enumeration() {
+fn error_types_mismatch_bitand_enumeration() {
     let input = r#"
 enum Default {
     Value = 42,
@@ -776,7 +1087,7 @@ fn main() {
 }
 
 #[test]
-fn error_types_mismatch_bitwise_and_two_enumerations() {
+fn error_types_mismatch_bitand_two_enumerations() {
     let input = r#"
 enum One {
     Value = 42,
@@ -1228,6 +1539,7 @@ fn main() {
                     BigInt::from(-2),
                     true,
                     zinc_const::bitlength::BYTE,
+                    true,
                 )
                 .to_string(),
             },
@@ -1256,6 +1568,7 @@ fn main() {
                     BigInt::from(-2),
                     true,
                     zinc_const::bitlength::BYTE,
+                    true,
                 )
                 .to_string(),
             },
@@ -1280,7 +1593,8 @@ fn main() {
             IntegerConstantError::OverflowAddition {
                 location: Location::new(3, 18),
                 value: BigInt::from(-170),
-                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
+                    .to_string(),
             },
         )),
     )));
@@ -1303,7 +1617,8 @@ fn main() {
             IntegerConstantError::OverflowAddition {
                 location: Location::new(3, 17),
                 value: BigInt::from(142),
-                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
+                    .to_string(),
             },
         )),
     )));
@@ -1326,7 +1641,12 @@ fn main() {
             IntegerConstantError::OverflowAddition {
                 location: Location::new(3, 17),
                 value: BigInt::from(297),
-                r#type: Type::integer(None, false, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(
+                    Some(Location::default()),
+                    false,
+                    zinc_const::bitlength::BYTE,
+                )
+                .to_string(),
             },
         )),
     )));
@@ -1349,7 +1669,8 @@ fn main() {
             IntegerConstantError::OverflowSubtraction {
                 location: Location::new(3, 18),
                 value: BigInt::from(-142),
-                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
+                    .to_string(),
             },
         )),
     )));
@@ -1372,7 +1693,8 @@ fn main() {
             IntegerConstantError::OverflowSubtraction {
                 location: Location::new(3, 18),
                 value: BigInt::from(150),
-                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
+                    .to_string(),
             },
         )),
     )));
@@ -1395,7 +1717,12 @@ fn main() {
             IntegerConstantError::OverflowSubtraction {
                 location: Location::new(3, 17),
                 value: BigInt::from(-213),
-                r#type: Type::integer(None, false, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(
+                    Some(Location::default()),
+                    false,
+                    zinc_const::bitlength::BYTE,
+                )
+                .to_string(),
             },
         )),
     )));
@@ -1418,7 +1745,8 @@ fn main() {
             IntegerConstantError::OverflowMultiplication {
                 location: Location::new(3, 18),
                 value: BigInt::from(-200),
-                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
+                    .to_string(),
             },
         )),
     )));
@@ -1441,7 +1769,8 @@ fn main() {
             IntegerConstantError::OverflowMultiplication {
                 location: Location::new(3, 17),
                 value: BigInt::from(200),
-                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
+                    .to_string(),
             },
         )),
     )));
@@ -1464,7 +1793,12 @@ fn main() {
             IntegerConstantError::OverflowMultiplication {
                 location: Location::new(3, 17),
                 value: BigInt::from(420),
-                r#type: Type::integer(None, false, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(
+                    Some(Location::default()),
+                    false,
+                    zinc_const::bitlength::BYTE,
+                )
+                .to_string(),
             },
         )),
     )));
@@ -1487,7 +1821,8 @@ fn main() {
             IntegerConstantError::OverflowDivision {
                 location: Location::new(3, 18),
                 value: BigInt::from(128),
-                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
+                    .to_string(),
             },
         )),
     )));
@@ -1510,7 +1845,8 @@ fn main() {
             IntegerConstantError::OverflowCasting {
                 location: Location::new(3, 17),
                 value: BigInt::from(200),
-                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
+                    .to_string(),
             },
         )),
     )));
@@ -1533,7 +1869,12 @@ fn main() {
             IntegerConstantError::OverflowCasting {
                 location: Location::new(3, 19),
                 value: BigInt::from(-100),
-                r#type: Type::integer(None, false, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(
+                    Some(Location::default()),
+                    false,
+                    zinc_const::bitlength::BYTE,
+                )
+                .to_string(),
             },
         )),
     )));
@@ -1556,7 +1897,8 @@ fn main() {
             IntegerConstantError::OverflowNegation {
                 location: Location::new(3, 19),
                 value: BigInt::from(128),
-                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
+                    .to_string(),
             },
         )),
     )));
@@ -1579,7 +1921,8 @@ fn main() {
             IntegerConstantError::OverflowNegation {
                 location: Location::new(3, 18),
                 value: BigInt::from(-200),
-                r#type: Type::integer(None, true, zinc_const::bitlength::BYTE).to_string(),
+                r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
+                    .to_string(),
             },
         )),
     )));
@@ -1632,7 +1975,7 @@ fn main() {
 }
 
 #[test]
-fn error_forbidden_signed_bitwise_or() {
+fn error_forbidden_signed_bitor() {
     let input = r#"
 fn main() {
     let value = -42 | -1;
@@ -1653,7 +1996,7 @@ fn main() {
 }
 
 #[test]
-fn error_forbidden_field_bitwise_or() {
+fn error_forbidden_field_bitor() {
     let input = r#"
 fn main() {
     let value = 42 as field | 1 as field;
@@ -1674,7 +2017,7 @@ fn main() {
 }
 
 #[test]
-fn error_forbidden_signed_bitwise_xor() {
+fn error_forbidden_signed_bitxor() {
     let input = r#"
 fn main() {
     let value = -42 ^ -1;
@@ -1695,7 +2038,7 @@ fn main() {
 }
 
 #[test]
-fn error_forbidden_field_bitwise_xor() {
+fn error_forbidden_field_bitxor() {
     let input = r#"
 fn main() {
     let value = 42 as field ^ 1 as field;
@@ -1716,7 +2059,7 @@ fn main() {
 }
 
 #[test]
-fn error_forbidden_signed_bitwise_and() {
+fn error_forbidden_signed_bitand() {
     let input = r#"
 fn main() {
     let value = -42 & -1;
@@ -1737,7 +2080,7 @@ fn main() {
 }
 
 #[test]
-fn error_forbidden_field_bitwise_and() {
+fn error_forbidden_field_bitand() {
     let input = r#"
 fn main() {
     let value = 42 as field & 1 as field;

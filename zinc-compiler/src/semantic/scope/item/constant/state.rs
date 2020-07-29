@@ -9,13 +9,21 @@ use crate::semantic::element::constant::Constant as ConstantElement;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
+///
+/// The definition state, which is either `declared` or `defined`.
+///
 #[derive(Debug, Clone)]
 pub enum State {
-    /// Waiting to be defined during the second pass
+    /// Waiting to be defined during the second pass.
     Declared {
+        /// The constant syntax representation.
         inner: ConstStatement,
+        /// The scope, where the constant is declared and must be defined later.
         scope: Rc<RefCell<Scope>>,
     },
-    /// Defined element ready to be used from anywhere
-    Defined { inner: ConstantElement },
+    /// Defined element ready to be used from anywhere.
+    Defined {
+        /// The semantic constant element.
+        inner: ConstantElement,
+    },
 }

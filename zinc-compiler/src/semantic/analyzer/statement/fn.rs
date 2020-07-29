@@ -37,6 +37,9 @@ pub enum Context {
     Contract,
 }
 
+///
+/// The `fn` statement semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

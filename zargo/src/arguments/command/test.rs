@@ -106,7 +106,7 @@ impl IExecutable for Command {
         TestBuildDirectory::remove(&manifest_path).map_err(Error::TestBuildDirectory)?;
         TestBuildDirectory::create(&manifest_path).map_err(Error::TestBuildDirectory)?;
 
-        Compiler::build(
+        Compiler::build_debug(
             self.verbosity,
             &data_directory_path,
             &build_directory_path,

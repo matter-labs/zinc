@@ -39,6 +39,13 @@ pub struct Arguments {
     /// The path to the source code directory.
     #[structopt(parse(from_os_str), help = "The source file or `src` directory path")]
     pub source_path: PathBuf,
+
+    /// Whether to apply the dead function elimination optimization.
+    #[structopt(
+        long = "optimize-dead-function-elimination",
+        help = "Eliminate the dead function code"
+    )]
+    pub optimize_dead_function_elimination: bool,
 }
 
 impl Arguments {

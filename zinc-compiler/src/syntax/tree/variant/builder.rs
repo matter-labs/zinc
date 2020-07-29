@@ -51,14 +51,22 @@ impl Builder {
     pub fn finish(&mut self) -> Variant {
         Variant::new(
             self.location.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location")
+                panic!(
+                    "{}{}",
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
             }),
             self.identifier.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "identifier")
+                panic!(
+                    "{}{}",
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                    "identifier"
+                )
             }),
-            self.literal
-                .take()
-                .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "literal")),
+            self.literal.take().unwrap_or_else(|| {
+                panic!("{}{}", zinc_const::panic::BUILDER_REQUIRES_VALUE, "literal")
+            }),
         )
     }
 }

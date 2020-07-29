@@ -46,6 +46,7 @@ where
     counter: NamespaceCounter<E, CS>,
     state: ExecutionState<E>,
     outputs: Vec<Scalar<E>>,
+    is_unconstrained: bool,
     storage: StorageGadget<E, S, H>,
 
     pub(crate) debugging: bool,
@@ -64,6 +65,7 @@ where
             counter: NamespaceCounter::new(cs),
             state: ExecutionState::new(),
             outputs: vec![],
+            is_unconstrained: false,
             storage,
 
             debugging,
@@ -79,7 +81,7 @@ where
         mut check_cs: F,
     ) -> Result<Vec<Option<BigInt>>, RuntimeError>
     where
-        CB: FnMut(&CS) -> (),
+        CB: FnMut(&CS),
         F: FnMut(&CS) -> Result<(), RuntimeError>,
     {
         self.counter.cs.enforce(
@@ -315,6 +317,8 @@ where
 
         self.state.instruction_counter = frame.return_address;
 
+        self.state.data_stack.drop_from(frame.stack_frame_start);
+
         for p in outputs.into_iter().rev() {
             self.push(p)?;
         }
@@ -434,6 +438,14 @@ where
             .last()
             .map(|e| (*e).clone())
             .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
+    }
+
+    fn set_unconstrained(&mut self) {
+        self.is_unconstrained = true;
+    }
+
+    fn unset_unconstrained(&mut self) {
+        self.is_unconstrained = false;
     }
 
     fn constraint_system(&mut self) -> &mut CS {

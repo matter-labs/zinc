@@ -1,0 +1,9 @@
+//!
+//! The Curve Stableswap types.
+//!
+
+type Address = u160;
+type Timestamp = u64;
+type Integer = u248;
+type Hash = [bool; crate::constants::HASH_SIZE];
+type Balances = [Integer; crate::constants::N_COINS];

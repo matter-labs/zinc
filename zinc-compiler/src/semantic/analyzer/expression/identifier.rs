@@ -14,6 +14,9 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
 
+///
+/// The identifier semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

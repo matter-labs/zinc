@@ -175,19 +175,22 @@ impl Builder {
     ///
     pub fn finish(mut self) -> ExpressionTree {
         if self.value.is_none() && self.left.is_some() {
-            return self
-                .left
-                .take()
-                .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "left"));
+            return self.left.take().unwrap_or_else(|| {
+                panic!("{}{}", zinc_const::panic::BUILDER_REQUIRES_VALUE, "left")
+            });
         }
 
         ExpressionTree::new_with_leaves(
             self.location.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location")
+                panic!(
+                    "{}{}",
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
             }),
-            self.value
-                .take()
-                .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "value")),
+            self.value.take().unwrap_or_else(|| {
+                panic!("{}{}", zinc_const::panic::BUILDER_REQUIRES_VALUE, "value")
+            }),
             self.left.take(),
             self.right.take(),
         )

@@ -51,10 +51,18 @@ impl Builder {
     pub fn finish(mut self) -> ContractStatement {
         ContractStatement::new(
             self.location.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location")
+                panic!(
+                    "{}{}",
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
             }),
             self.identifier.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "identifier")
+                panic!(
+                    "{}{}",
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                    "identifier"
+                )
             }),
             self.statements,
         )

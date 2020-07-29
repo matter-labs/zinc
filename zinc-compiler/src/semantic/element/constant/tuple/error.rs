@@ -4,11 +4,18 @@
 
 use crate::lexical::token::location::Location;
 
+///
+/// The semantic analyzer constant tuple element error.
+///
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    FieldDoesNotExist {
+    /// The tuple index cannot be greater or equal to the tuple elements count.
+    FieldOutOrRange {
+        /// The error location data.
         location: Location,
+        /// The stringified field type.
         type_identifier: String,
+        /// The index that is out of range.
         field_index: usize,
     },
 }

@@ -5,6 +5,7 @@
 use std::fmt;
 
 use crate::lexical::token::location::Location;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::syntax::tree::literal::string::Literal as StringLiteral;
 
@@ -13,20 +14,27 @@ use crate::syntax::tree::literal::string::Literal as StringLiteral;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct String {
+    /// The location, where the value appears in the code.
     pub location: Location,
+    /// The inner string value.
     pub inner: ::std::string::String,
 }
 
 impl String {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(location: Location, inner: ::std::string::String) -> Self {
         Self { location, inner }
     }
+}
 
-    pub fn r#type(&self) -> Type {
+impl ITyped for String {
+    fn r#type(&self) -> Type {
         Type::string(Some(self.location))
     }
 
-    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
+    fn has_the_same_type_as(&self, other: &Self) -> bool {
         self.r#type() == other.r#type()
     }
 }

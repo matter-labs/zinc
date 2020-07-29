@@ -20,6 +20,9 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::expression::structure::Expression as StructureExpression;
 
+///
+/// The structure semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

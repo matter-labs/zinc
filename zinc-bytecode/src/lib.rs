@@ -60,6 +60,8 @@ pub use self::instructions::operator::logical::and::And;
 pub use self::instructions::operator::logical::not::Not;
 pub use self::instructions::operator::logical::or::Or;
 pub use self::instructions::operator::logical::xor::Xor;
+pub use self::instructions::state::set_unconstrained::SetUnconstrained;
+pub use self::instructions::state::unset_unconstrained::UnsetUnconstrained;
 pub use self::instructions::Instruction;
 pub use self::program::circuit::Circuit;
 pub use self::program::contract::Contract;

@@ -27,9 +27,13 @@ use self::state::State;
 ///
 #[derive(Debug, Clone)]
 pub struct Module {
+    /// The location where the module was declared. `None` for built-in modules.
     pub location: Option<Location>,
+    /// The unique module ID, allocated upon declaration.
     pub item_id: usize,
+    /// The module identifier.
     pub identifier: String,
+    /// The definition state, which is either `declared` or `defined`.
     pub state: RefCell<Option<State>>,
 }
 
@@ -81,7 +85,6 @@ impl Module {
         is_entry: bool,
     ) -> Result<Self, Error> {
         let item_id = ITEM_INDEX.next(format!("module {}", identifier));
-        log::trace!("Declared module with ID {}", item_id);
 
         let (module, dependencies) = match module {
             Source::File(file) => (file.tree, HashMap::new()),
@@ -123,13 +126,12 @@ impl Module {
     ) -> Self {
         let title = format!("{}{}", identifier, if is_alias { " (alias)" } else { "" });
         let item_id = ITEM_INDEX.next(format!("module {}", title));
-        log::trace!("Defined module with ID {}", item_id);
 
         Self {
             location,
             item_id,
             identifier,
-            state: RefCell::new(Some(State::Defined { inner: scope })),
+            state: RefCell::new(Some(State::Defined { scope })),
         }
     }
 
@@ -143,7 +145,7 @@ impl Module {
             location: None,
             item_id,
             identifier,
-            state: RefCell::new(Some(State::Defined { inner: scope })),
+            state: RefCell::new(Some(State::Defined { scope })),
         }
     }
 
@@ -165,10 +167,8 @@ impl Module {
                 scope_crate,
                 scope_super,
             }) => {
-                log::trace!("Defining module with ID {}", self.item_id);
-
                 self.state.replace(Some(State::Defined {
-                    inner: scope.clone(),
+                    scope: scope.clone(),
                 }));
 
                 let crate_item = Scope::get_module_self_alias(scope_crate);
@@ -184,12 +184,12 @@ impl Module {
 
                 Ok(scope)
             }
-            Some(State::Defined { inner }) => {
+            Some(State::Defined { scope }) => {
                 self.state.replace(Some(State::Defined {
-                    inner: inner.clone(),
+                    scope: scope.clone(),
                 }));
 
-                Ok(inner)
+                Ok(scope)
             }
             None => Err(Error::Scope(ScopeError::ReferenceLoop {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),

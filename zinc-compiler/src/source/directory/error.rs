@@ -5,14 +5,24 @@
 use std::fmt;
 use std::io;
 
+///
+/// The source code directory error.
+///
 #[derive(Debug)]
 pub enum Error {
+    /// The directory opening error.
     Reading(io::Error),
+    /// The directory entry getting error.
     DirectoryEntry(io::Error),
+    /// The directory name getting error.
     StemNotFound,
+    /// The application entry not found. Only for the root directory.
     ApplicationEntryNotFound,
+    /// The module entry not found.
     ModuleEntryNotFound,
+    /// The application entry file is deeper than the root directory.
     ApplicationEntryBeyondRoot,
+    /// The module entry is in the root directory. Only the application entry allowed there.
     ModuleEntryInRoot,
 }
 

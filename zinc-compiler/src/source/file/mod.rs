@@ -15,6 +15,7 @@ use std::rc::Rc;
 use crate::error::Error as CompilerError;
 use crate::generator::module::Module;
 use crate::generator::state::State;
+use crate::generator::IBytecodeWritable;
 use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 use crate::source::error::Error as SourceError;
 use crate::source::Source;
@@ -31,8 +32,11 @@ use self::string::String as FileString;
 ///
 #[derive(Debug, Clone)]
 pub struct File {
+    /// The full file path.
     pub path: PathBuf,
+    /// The file name without the extension.
     pub name: String,
+    /// The source code syntax tree.
     pub tree: SyntaxModule,
 }
 
@@ -131,7 +135,7 @@ impl File {
             .map_err(SourceError::Compiling)?;
 
         let bytecode = State::new(name).wrap();
-        Module::new(scope.borrow().get_intermediate()).write_all_to_bytecode(bytecode.clone());
+        Module::new(scope.borrow().get_intermediate()).write_all(bytecode.clone());
 
         Ok(bytecode)
     }

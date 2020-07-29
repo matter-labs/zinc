@@ -11,16 +11,27 @@ use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
 use crate::syntax::tree::statement::r#struct::Statement as StructStatement;
 use crate::syntax::tree::statement::r#type::Statement as TypeStatement;
 
+///
+/// The item declaration statement, which may be resolved
+///
 #[derive(Debug, Clone)]
 pub enum Statement {
+    /// The `type` statement.
     Type(TypeStatement),
+    /// The `struct` statement.
     Struct(StructStatement),
+    /// The `enum` statement.
     Enum(EnumStatement),
+    /// The `fn` statement.
     Fn(FnStatement, FnStatementAnalyzerContext),
+    /// The `contract` statement.
     Contract(ContractStatement),
 }
 
 impl Statement {
+    ///
+    /// The location where the statement is declared.
+    ///
     pub fn location(&self) -> Location {
         match self {
             Self::Type(inner) => inner.location,
@@ -31,6 +42,9 @@ impl Statement {
         }
     }
 
+    ///
+    /// The identifier of the item, declared with the statement.
+    ///
     pub fn identifier(&self) -> &Identifier {
         match self {
             Self::Type(inner) => &inner.identifier,

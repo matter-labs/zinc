@@ -7,20 +7,33 @@ mod tests;
 use std::fmt;
 
 use crate::lexical::token::location::Location;
+use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::r#type::function::error::Error;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 
+///
+/// The semantic analyzer runtime function element.
+///
 #[derive(Debug, Clone)]
 pub struct Function {
+    /// The location where the function is called.
     pub location: Location,
+    /// The function identifier.
     pub identifier: String,
+    /// The unique function type ID.
     pub type_id: usize,
+    /// The function formal parameters list.
     pub formal_params: Vec<(String, Type)>,
+    /// The function return type.
     pub return_type: Box<Type>,
 }
 
 impl Function {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         location: Location,
         identifier: String,
@@ -37,6 +50,9 @@ impl Function {
         }
     }
 
+    ///
+    /// The function input arguments total size in the Zinc VM data stack.
+    ///
     pub fn input_size(&self) -> usize {
         self.formal_params
             .iter()
@@ -44,13 +60,19 @@ impl Function {
             .sum()
     }
 
+    ///
+    /// The function result type size in the Zinc VM data stack.
+    ///
     pub fn output_size(&self) -> usize {
         self.return_type.size()
     }
 
-    pub fn call(self, actual_elements: Vec<Element>) -> Result<Type, Error> {
-        let mut actual_params = Vec::with_capacity(actual_elements.len());
-        for (index, element) in actual_elements.into_iter().enumerate() {
+    ///
+    /// Calls the function with the `argument_list`, validating the call.
+    ///
+    pub fn call(self, argument_list: ArgumentList) -> Result<Type, Error> {
+        let mut actual_params = Vec::with_capacity(argument_list.arguments.len());
+        for (index, element) in argument_list.arguments.into_iter().enumerate() {
             let location = element.location();
 
             let r#type = match element {
@@ -75,6 +97,7 @@ impl Function {
                 function: self.identifier.to_owned(),
                 expected: self.formal_params.len(),
                 found: actual_params.len(),
+                reference: Some(argument_list.location),
             });
         }
 
@@ -98,6 +121,7 @@ impl Function {
                         function: self.identifier.to_owned(),
                         expected: formal_params_length,
                         found: actual_params.len(),
+                        reference: Some(argument_list.location),
                     })
                 }
             }

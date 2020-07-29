@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer place element.
+//! The semantic analyzer memory place element.
 //!
 
 mod tests;
@@ -32,17 +32,29 @@ use self::element::Element as PlaceElement;
 use self::error::Error;
 use self::memory_type::MemoryType;
 
+///
+/// The semantic analyzer memory place element.
+///
 #[derive(Debug, Clone)]
 pub struct Place {
+    /// The memory place identifier, which is usually a variable name.
     pub identifier: Identifier,
+    /// The memory place type, which is changed each time we access an item deeper into the data structure.
     pub r#type: Type,
+    /// The variable total size, which is not changed during indexing.
     pub total_size: usize,
+    /// If the memory place, usually a variable, is declared as mutable.
     pub is_mutable: bool,
+    /// The memory type, which the memory place is part of.
     pub memory_type: MemoryType,
+    /// The memory place path, which consists of array indexes and fields accesses.
     pub elements: Vec<PlaceElement>,
 }
 
 impl Place {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         identifier: Identifier,
         mut r#type: Type,
@@ -62,6 +74,9 @@ impl Place {
         }
     }
 
+    ///
+    /// Validates the array index or slice operator and changes the internal state.
+    ///
     pub fn index(mut self, index_value: Element) -> Result<(Self, IndexAccess), Error> {
         let (inner_type, array_size) = match self.r#type {
             Type::Array(ref array) => (
@@ -213,6 +228,9 @@ impl Place {
         }
     }
 
+    ///
+    /// Validates the tuple field access operator and changes the internal state.
+    ///
     pub fn tuple_field(mut self, index: TupleIndex) -> Result<(Self, DotAccessVariant), Error> {
         let TupleIndex {
             location,
@@ -224,7 +242,7 @@ impl Place {
         match self.r#type {
             Type::Tuple(ref tuple) => {
                 if index >= tuple.types.len() {
-                    return Err(Error::TupleFieldDoesNotExist {
+                    return Err(Error::TupleFieldOutOfRange {
                         location,
                         type_identifier: self.r#type.to_string(),
                         field_index: index,
@@ -257,6 +275,9 @@ impl Place {
         }
     }
 
+    ///
+    /// Validates the structure field access operator and changes the internal state.
+    ///
     pub fn structure_field(
         mut self,
         identifier: Identifier,
@@ -298,7 +319,7 @@ impl Place {
                     if let ScopeItem::Variable(ref variable) = *item.borrow() {
                         let position = match variable.memory_type {
                             VariableItemMemoryType::ContractStorage { index } => index,
-                            _ => panic!(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
+                            _ => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
                         };
                         let element_size = variable.r#type.size();
                         let access = DotAccessVariant::ContractField(ContractFieldAccess::new(
@@ -329,6 +350,9 @@ impl Place {
         }
     }
 
+    ///
+    /// Push a place path `element`, if it is already known and validated.
+    ///
     pub fn push_element(&mut self, element: PlaceElement) {
         self.elements.push(element);
     }

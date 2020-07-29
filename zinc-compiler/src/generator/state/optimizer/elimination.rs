@@ -15,11 +15,9 @@ use zinc_bytecode::Instruction;
 /// Usually there are several entry points to an application. Each entry ends up with its own
 /// call graph, so we can remove the unused functions from the bytecode.
 ///
-pub struct Elimination {
-    pub output: Vec<Instruction>,
-}
+pub struct Optimizer;
 
-impl Elimination {
+impl Optimizer {
     ///
     /// The algorithm works as follows:
     ///
@@ -39,9 +37,9 @@ impl Elimination {
     ///
     pub fn optimize(
         entry_id: usize,
+        mut instructions: &mut Vec<Instruction>,
         function_addresses: HashMap<usize, usize>,
-        mut instructions: Vec<Instruction>,
-    ) -> Self {
+    ) {
         let mut graph = Graph::new();
         let mut function_node_map = HashMap::with_capacity(function_addresses.len());
         for (function_id, _) in function_addresses.iter() {
@@ -53,7 +51,7 @@ impl Elimination {
             let caller_node = function_node_map
                 .get(caller_id)
                 .copied()
-                .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATION);
+                .expect(zinc_const::panic::VALIDATED_DURING_TARGET_CODE_GENERATION);
 
             for address in *start_address.. {
                 match instructions.get(address) {
@@ -63,7 +61,7 @@ impl Elimination {
                         let callee_node = function_node_map
                             .get(callee_id)
                             .copied()
-                            .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATION);
+                            .expect(zinc_const::panic::VALIDATED_DURING_TARGET_CODE_GENERATION);
 
                         graph.update_edge(caller_node, callee_node, 1);
                     }
@@ -74,18 +72,19 @@ impl Elimination {
         }
 
         let mut graph_workspace = DfsSpace::new(&graph);
-        let mut function_address_shifts = HashMap::with_capacity(function_addresses.len());
+        let mut function_address_shifts =
+            HashMap::<usize, usize>::with_capacity(function_addresses.len());
         for (unique_id, start_address) in function_addresses.iter() {
             if !petgraph::algo::has_path_connecting(
                 &graph,
                 function_node_map
                     .get(&entry_id)
                     .copied()
-                    .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATION),
+                    .expect(zinc_const::panic::VALIDATED_DURING_TARGET_CODE_GENERATION),
                 function_node_map
                     .get(unique_id)
                     .copied()
-                    .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATION),
+                    .expect(zinc_const::panic::VALIDATED_DURING_TARGET_CODE_GENERATION),
                 Some(&mut graph_workspace),
             ) {
                 let mut removed_count = 0;
@@ -106,7 +105,7 @@ impl Elimination {
                 for (unique_id, shifted_address) in function_addresses.iter() {
                     if shifted_address > start_address {
                         function_address_shifts
-                            .entry(unique_id)
+                            .entry(*unique_id)
                             .and_modify(|value| *value += removed_count)
                             .or_insert(removed_count);
                     }
@@ -114,11 +113,44 @@ impl Elimination {
             }
         }
 
-        let mut instructions: Vec<Instruction> = instructions
-            .into_iter()
-            .filter(|instruction| !matches!(instruction, Instruction::NoOperation(_)))
-            .collect();
+        instructions.retain(|instruction| !matches!(instruction, Instruction::NoOperation(_)));
+        Self::set_shifted_addresses(
+            &mut instructions,
+            &function_addresses,
+            &function_address_shifts,
+        );
+    }
 
+    ///
+    /// Replaces the function type IDs in `Call` instructions with their addresses.
+    ///
+    pub fn set_addresses(
+        instructions: &mut Vec<Instruction>,
+        function_addresses: &HashMap<usize, usize>,
+    ) {
+        for instruction in instructions.iter_mut() {
+            if let Instruction::Call(zinc_bytecode::Call {
+                address: ref mut type_id,
+                ..
+            }) = instruction
+            {
+                *type_id = function_addresses
+                    .get(&type_id)
+                    .copied()
+                    .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+            }
+        }
+    }
+
+    ///
+    /// Replaces the function type IDs in `Call` instructions with their addresses,
+    /// shifted after the dead function code elimination.
+    ///
+    fn set_shifted_addresses(
+        instructions: &mut Vec<Instruction>,
+        function_addresses: &HashMap<usize, usize>,
+        function_address_shifts: &HashMap<usize, usize>,
+    ) {
         for instruction in instructions.iter_mut() {
             if let Instruction::Call(zinc_bytecode::Call {
                 address: ref mut type_id,
@@ -133,13 +165,9 @@ impl Elimination {
                 *type_id = function_addresses
                     .get(&type_id)
                     .copied()
-                    .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+                    .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
                     - shift;
             }
-        }
-
-        Self {
-            output: instructions,
         }
     }
 }

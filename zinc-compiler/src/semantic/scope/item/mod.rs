@@ -26,11 +26,40 @@ use self::variable::Variable;
 ///
 /// Items are variables, constants, types, modules, etc.
 ///
+/// Items are not defined at once. At first, they are only declared. Then, they are hoisted to the
+/// top of their scope, where the item names are stored with their syntax representations.
+/// When an item is referenced for the first time, it is **defined**.
+///
+/// **Definition** means that the syntax construction is analyzed for its semantic meaning and some
+/// actions related to the item type are taken, e.g. a constant value is assigned to the item name.
+/// This approach allows to reference items which were declared **above** the item being analyzed.
+///
+/// ```
+/// const A: u8 = C;
+///
+/// const B: u8 = 2;
+///
+/// const C: u8 = 40 + B;
+/// ```
+///
+/// The items are declared and defined in the following order:
+///
+/// 1. Hoist and declare item `A`.
+/// 2. Hoist and declare item `B`.
+/// 3. Hoist and declare item `C`.
+/// 4. Define item `A`, which references the declared, but not defined, item `C`.
+/// 5. Define item `C`, which was referenced by the item `A` definition, and also references the item `B`.
+/// 6. Define item `B`, which was referenced by the item `C`.
+///
 #[derive(Debug, Clone)]
 pub enum Item {
+    /// The variable item. See the inner element description.
     Variable(Variable),
+    /// The constant item. See the inner element description.
     Constant(Constant),
+    /// The type item. See the inner element description.
     Type(Type),
+    /// The module item. See the inner element description.
     Module(Module),
 }
 

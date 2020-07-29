@@ -14,23 +14,36 @@ use zinc_bytecode::Push;
 use zinc_bytecode::ScalarType;
 
 use crate::generator::state::State;
+use crate::generator::IBytecodeWritable;
 use crate::semantic::element::constant::boolean::Boolean as SemanticBooleanConstant;
 
+///
+/// The generator expression boolean constant operand.
+///
 #[derive(Debug, Clone)]
 pub struct Boolean {
+    /// The inner value.
     pub inner: bool,
 }
 
 impl Boolean {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(inner: bool) -> Self {
         Self { inner }
     }
 
+    ///
+    /// Converts from the semantic boolean constant.
+    ///
     pub fn from_semantic(boolean: &SemanticBooleanConstant) -> Self {
         Self::new(boolean.inner)
     }
+}
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
+impl IBytecodeWritable for Boolean {
+    fn write_all(self, bytecode: Rc<RefCell<State>>) {
         let value = if self.inner {
             BigInt::one()
         } else {

@@ -5,26 +5,33 @@
 use std::fmt;
 
 use crate::lexical::token::location::Location;
+use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 
 ///
-/// Simple wrapper around the boolean value.
+/// Simple wrapper around the `bool` value.
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Boolean {
+    /// The location, where the value appears in the code.
     pub location: Option<Location>,
 }
 
 impl Boolean {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(location: Option<Location>) -> Self {
         Self { location }
     }
+}
 
-    pub fn r#type(&self) -> Type {
+impl ITyped for Boolean {
+    fn r#type(&self) -> Type {
         Type::boolean(self.location)
     }
 
-    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
+    fn has_the_same_type_as(&self, other: &Self) -> bool {
         self.r#type() == other.r#type()
     }
 }

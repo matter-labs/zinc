@@ -24,8 +24,11 @@ use self::state::State;
 ///
 #[derive(Debug, Clone)]
 pub struct Constant {
+    /// The location, where the constant is declared.
     pub location: Location,
+    /// The unique constant ID, allocated upon declaration.
     pub item_id: usize,
+    /// The definition state, which is either `declared` or `defined`.
     pub state: RefCell<Option<State>>,
 }
 

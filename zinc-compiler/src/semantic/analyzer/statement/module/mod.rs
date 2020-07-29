@@ -8,6 +8,9 @@ use crate::semantic::error::Error;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::module::Statement as ModStatement;
 
+///
+/// The `mod` statement semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

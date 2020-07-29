@@ -12,30 +12,51 @@ use crate::semantic::element::access::dot::stack_field::StackField as StackField
 use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 
+///
+/// The semantic analyzer memory place path parts.
+///
 #[derive(Debug, Clone)]
 pub enum Element {
+    /// Array indexing with a non-constant index, which is the second operand of the `[]` index operator.
     IndexExpression {
+        /// The expression intermediate representation, which must be translated to the target code separately.
         expression: GeneratorExpression,
+        /// The array access data, which helps to generate the target code without redundant calculations.
         access: IndexAccess,
     },
+    /// Array indexing with a constant index, which is the second operand of the `[]` index operator.
     IndexConstant {
+        /// The constant array index.
         constant: IntegerConstant,
+        /// The array access data, which helps to generate the target code without redundant calculations.
         access: IndexAccess,
     },
+    /// Array slicing with a constant range, which is the second operand of the `[]` index operator.
     IndexRange {
+        /// The constant array slice range left bound.
         start: BigInt,
+        /// The constant array slice range right bound.
         end: BigInt,
+        /// The array access data, which helps to generate the target code without redundant calculations.
         access: IndexAccess,
     },
+    /// Array slicing with an inclusive constant range, which is the second operand of the `[]` index operator.
     IndexRangeInclusive {
+        /// The constant array slice range left bound.
         start: BigInt,
+        /// The constant array slice range right bound.
         end: BigInt,
+        /// The array access data, which helps to generate the target code without redundant calculations.
         access: IndexAccess,
     },
+    /// The tuple or structure field access via the `.` operator.
     StackField {
+        /// The data stack access data, which helps to generate the target code without redundant calculations.
         access: StackFieldAccess,
     },
+    /// The contract storage field access via the `.` operator.
     ContractField {
+        /// The contract storage access data, which helps to generate the target code without redundant calculations.
         access: ContractFieldAccess,
     },
 }

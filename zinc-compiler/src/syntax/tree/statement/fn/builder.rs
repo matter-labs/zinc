@@ -99,18 +99,26 @@ impl Builder {
     pub fn finish(mut self) -> FnStatement {
         FnStatement::new(
             self.location.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location")
+                panic!(
+                    "{}{}",
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
             }),
             self.is_public,
             self.is_constant,
             self.identifier.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "identifier")
+                panic!(
+                    "{}{}",
+                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                    "identifier"
+                )
             }),
             self.argument_bindings,
             self.return_type.take(),
-            self.body
-                .take()
-                .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "body")),
+            self.body.take().unwrap_or_else(|| {
+                panic!("{}{}", zinc_const::panic::BUILDER_REQUIRES_VALUE, "body")
+            }),
             self.attributes,
         )
     }

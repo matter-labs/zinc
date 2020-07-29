@@ -2,6 +2,12 @@
 //! The semantic analyzer element dot contract storage data field access.
 //!
 
+///
+/// The contract field dot access data.
+///
+/// Contains all the necessary information to generate instructions for getting
+/// data from the contract storage.
+///
 #[derive(Debug, Clone)]
 pub struct ContractField {
     /// The name of the tuple or structure element
@@ -17,6 +23,9 @@ pub struct ContractField {
 }
 
 impl ContractField {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         name: String,
         position: usize,

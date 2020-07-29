@@ -11,6 +11,9 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::r#type::Type as SyntaxType;
 
+///
+/// The type semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

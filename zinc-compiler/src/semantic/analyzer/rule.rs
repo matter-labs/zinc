@@ -12,18 +12,18 @@ use crate::syntax::tree::expression::tree::node::operator::Operator as Expressio
 ///
 #[derive(Debug, Clone, Copy)]
 pub enum Rule {
-    /// describes a runtime memory location
+    /// Describes a runtime memory location.
     Place,
-    /// describes a runtime value
+    /// Describes a runtime value.
     Value,
 
-    /// describes a compile-time constant
+    /// Describes a compile-time constant.
     Constant,
-    /// describes a compile-time type
+    /// Describes a compile-time type.
     Type,
-    /// describes a compile-time path
+    /// Describes a compile-time path.
     Path,
-    /// describes a compile-time field identifier or path element
+    /// Describes a compile-time field identifier or path element.
     Field,
 }
 
@@ -138,17 +138,19 @@ impl Rule {
 
             ExpressionOperator::Casting => Self::Type,
 
-            ExpressionOperator::Not => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
+            ExpressionOperator::Not => panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
             ExpressionOperator::BitwiseNot => {
-                panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)
+                panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)
             }
-            ExpressionOperator::Negation => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
+            ExpressionOperator::Negation => {
+                panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)
+            }
 
             ExpressionOperator::Index => rule.constant_or_value(),
             ExpressionOperator::Dot => Self::Field,
 
             ExpressionOperator::CallBuiltIn => {
-                panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)
+                panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)
             }
             ExpressionOperator::Call => rule.constant_or_value(),
 

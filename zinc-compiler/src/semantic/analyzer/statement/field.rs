@@ -11,6 +11,9 @@ use crate::semantic::scope::item::variable::memory_type::MemoryType;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::field::Statement as FieldStatement;
 
+///
+/// The field statement semantic analyzer.
+///
 pub struct Analyzer {}
 
 impl Analyzer {

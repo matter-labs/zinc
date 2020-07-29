@@ -23,7 +23,7 @@ use crate::source::file::index::INDEX as FILE_INDEX;
 
 use self::entry::Entry;
 use self::metadata::Metadata;
-use self::optimizer::elimination::Elimination as EliminationOptimizer;
+use self::optimizer::elimination::Optimizer as EliminationOptimizer;
 use self::test::Test;
 
 ///
@@ -55,9 +55,16 @@ pub struct State {
 }
 
 impl State {
+    /// The instruction array default capacity.
     const INSTRUCTIONS_INITIAL_CAPACITY: usize = 1024;
+
+    /// The function address hashmap default capacity.
     const FUNCTION_ADDRESSES_INITIAL_CAPACITY: usize = 16;
+
+    /// The variable address hashmap default capacity.
     const VARIABLE_ADDRESSES_INITIAL_CAPACITY: usize = 16;
+
+    /// The application entry hashmap default capacity.
     const ENTRY_METADATA_INITIAL_CAPACITY: usize = 16;
 
     ///
@@ -108,6 +115,9 @@ impl State {
         self.variable_addresses.get(name).copied()
     }
 
+    ///
+    /// Sets the contract storage, which means the application is a contract.
+    ///
     pub fn set_contract_storage(&mut self, fields: Vec<(String, Type)>) {
         self.contract_storage = Some(fields);
     }
@@ -143,13 +153,9 @@ impl State {
         type_id: usize,
         identifier: String,
         input_arguments: Vec<(String, Type)>,
-        output_type: Option<Type>,
+        output_type: Type,
     ) {
-        let metadata = Metadata::new(
-            identifier.clone(),
-            input_arguments,
-            output_type.unwrap_or_else(|| Type::structure(vec![])),
-        );
+        let metadata = Metadata::new(identifier.clone(), input_arguments, output_type);
         self.entry_metadata.insert(type_id, metadata);
 
         self.start_function(location, type_id, identifier);
@@ -231,7 +237,7 @@ impl State {
     /// of the function stored as `address`es with their actual addresses in the bytecode,
     /// since the addresses are only known after the functions are written thereto.
     ///
-    pub fn into_entries(self) -> HashMap<String, Entry> {
+    pub fn into_entries(self, optimize_dead_function_elimination: bool) -> HashMap<String, Entry> {
         let mut data = HashMap::with_capacity(self.entry_metadata.len());
 
         for (entry_id, metadata) in self.entry_metadata.into_iter() {
@@ -240,13 +246,15 @@ impl State {
                 Instruction::Call(zinc_bytecode::Call::new(entry_id, metadata.input_size()));
             instructions[1] = Instruction::Exit(zinc_bytecode::Exit::new(metadata.output_size()));
 
-            let EliminationOptimizer {
-                output: instructions,
-            } = EliminationOptimizer::optimize(
-                entry_id,
-                self.function_addresses.clone(),
-                instructions,
-            );
+            if optimize_dead_function_elimination {
+                EliminationOptimizer::optimize(
+                    entry_id,
+                    &mut instructions,
+                    self.function_addresses.clone(),
+                );
+            } else {
+                EliminationOptimizer::set_addresses(&mut instructions, &self.function_addresses);
+            };
 
             Self::print_instructions(instructions.as_slice());
 
@@ -305,13 +313,15 @@ impl State {
             instructions[0] = Instruction::Call(zinc_bytecode::Call::new(entry_id, 0));
             instructions[1] = Instruction::Exit(zinc_bytecode::Exit::new(0));
 
-            let EliminationOptimizer {
-                output: instructions,
-            } = EliminationOptimizer::optimize(
-                entry_id,
-                self.function_addresses.clone(),
-                instructions,
-            );
+            if optimize_dead_function_elimination {
+                EliminationOptimizer::optimize(
+                    entry_id,
+                    &mut instructions,
+                    self.function_addresses.clone(),
+                );
+            } else {
+                EliminationOptimizer::set_addresses(&mut instructions, &self.function_addresses);
+            };
 
             Self::print_instructions(instructions.as_slice());
 
@@ -347,6 +357,11 @@ impl State {
         data
     }
 
+    ///
+    /// Prints the bytecode instructions to the terminal.
+    ///
+    /// Some instructions, like location markers, are only printed on `trace` logging level.
+    ///
     fn print_instructions(instructions: &[Instruction]) {
         for (index, instruction) in instructions.iter().enumerate() {
             if instruction.is_debug() {

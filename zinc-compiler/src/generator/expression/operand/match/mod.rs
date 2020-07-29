@@ -13,6 +13,7 @@ use crate::generator::expression::operand::constant::Constant;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::r#type::Type;
 use crate::generator::state::State;
+use crate::generator::IBytecodeWritable;
 use crate::lexical::token::location::Location;
 
 ///
@@ -20,15 +21,24 @@ use crate::lexical::token::location::Location;
 ///
 #[derive(Debug, Clone)]
 pub struct Expression {
+    /// The `match` expression location.
     location: Location,
+    /// The scrutinee (matched) expression.
     scrutinee: GeneratorExpression,
+    /// The scrutinee (matched) expression type.
     scrutinee_type: Type,
+    /// The branches ordered array, where each branch consists of a pattern and result expression.
     branches: Vec<(Constant, GeneratorExpression)>,
+    /// The binding branch, which is the last fallback branch.
     binding_branch: Option<(GeneratorExpression, String)>,
+    /// The wildcard `_` branch, which is the last fallback branch. Ignored if `binding_branch` is set.
     wildcard_branch: Option<GeneratorExpression>,
 }
 
 impl Expression {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn new(
         location: Location,
         scrutinee: GeneratorExpression,
@@ -46,8 +56,10 @@ impl Expression {
             wildcard_branch,
         }
     }
+}
 
-    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<State>>) {
+impl IBytecodeWritable for Expression {
+    fn write_all(self, bytecode: Rc<RefCell<State>>) {
         let branch_count = self.branches.len();
         let scrutinee_size = self.scrutinee_type.size();
 
@@ -60,7 +72,7 @@ impl Expression {
             .borrow_mut()
             .define_variable(binding_name, scrutinee_size);
 
-        self.scrutinee.write_all_to_bytecode(bytecode.clone());
+        self.scrutinee.write_all(bytecode.clone());
         bytecode.borrow_mut().push_instruction(
             Instruction::Store(zinc_bytecode::Store::new(scrutinee_address, scrutinee_size)),
             Some(self.location),
@@ -71,23 +83,23 @@ impl Expression {
                 Instruction::Load(zinc_bytecode::Load::new(scrutinee_address, scrutinee_size)),
                 Some(self.location),
             );
-            branch_pattern.write_all_to_bytecode(bytecode.clone());
+            branch_pattern.write_all(bytecode.clone());
             bytecode
                 .borrow_mut()
                 .push_instruction(Instruction::Eq(zinc_bytecode::Eq), Some(self.location));
             bytecode
                 .borrow_mut()
                 .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
-            branch_expression.write_all_to_bytecode(bytecode.clone());
+            branch_expression.write_all(bytecode.clone());
             bytecode
                 .borrow_mut()
                 .push_instruction(Instruction::Else(zinc_bytecode::Else), Some(self.location));
         }
 
         if let Some(binding_branch) = binding_branch {
-            binding_branch.write_all_to_bytecode(bytecode.clone());
+            binding_branch.write_all(bytecode.clone());
         } else if let Some(wildcard_branch) = self.wildcard_branch {
-            wildcard_branch.write_all_to_bytecode(bytecode.clone());
+            wildcard_branch.write_all(bytecode.clone());
         }
 
         bytecode.borrow_mut().push_instruction(

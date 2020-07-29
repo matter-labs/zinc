@@ -9,6 +9,7 @@ pub mod contract;
 pub mod enumeration;
 pub mod error;
 pub mod function;
+pub mod i_typed;
 pub mod range;
 pub mod range_inclusive;
 pub mod structure;
@@ -41,6 +42,7 @@ use self::array::Array;
 use self::contract::Contract;
 use self::enumeration::Enumeration;
 use self::function::Function;
+use self::i_typed::ITyped;
 use self::range::Range;
 use self::range_inclusive::RangeInclusive;
 use self::structure::Structure;
@@ -53,51 +55,64 @@ use self::tuple::Tuple;
 ///
 #[derive(Debug, Clone)]
 pub enum Type {
-    /// the `()` type
+    /// The `()` type.
     Unit(Option<Location>),
-    /// the `bool` type
+    /// The `bool` type.
     Boolean(Option<Location>),
-    /// the `u{N}` type
+    /// The `u{N}` type.
     IntegerUnsigned {
+        /// The location where the type appears in the code.
         location: Option<Location>,
+        /// The integer type bitlength.
         bitlength: usize,
     },
-    /// the `i{N}` type
+    /// The `i{N}` type.
     IntegerSigned {
+        /// The location where the type appears in the code.
         location: Option<Location>,
+        /// The integer type bitlength.
         bitlength: usize,
     },
-    /// the `field` type
+    /// The `field` type.
     Field(Option<Location>),
-    /// the compile-time only type used mostly for `dbg!` format strings and `assert!` messages
+    /// The compile-time only type used mostly for `dbg!` format strings and `assert!` messages.
     String(Option<Location>),
-    /// the compile-time only type used for loop bounds and array slicing
+    /// The compile-time only type used for loop bounds and array slicing.
     Range(Range),
-    /// the compile-time only type used for loop bounds and array slicing
+    /// The compile-time only type used for loop bounds and array slicing.
     RangeInclusive(RangeInclusive),
-    /// the ordinar array type
+    /// The ordinar array type.
     Array(Array),
-    /// the ordinar tuple type
+    /// The ordinar tuple type.
     Tuple(Tuple),
-    /// the ordinar structure type declared with a `struct` statement
+    /// The ordinar structure type declared with a `struct` statement.
     Structure(Structure),
-    /// the ordinar enumeration type declared with an `enum` statement
+    /// The ordinar enumeration type declared with an `enum` statement.
     Enumeration(Enumeration),
-    /// the special function type declared with an `fn` statement
+    /// The special function type declared with an `fn` statement.
     Function(Function),
-    /// the special contract type declared with a `contract` statement
+    /// The special contract type declared with a `contract` statement.
     Contract(Contract),
 }
 
 impl Type {
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn unit(location: Option<Location>) -> Self {
         Self::Unit(location)
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn boolean(location: Option<Location>) -> Self {
         Self::Boolean(location)
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn integer_unsigned(location: Option<Location>, bitlength: usize) -> Self {
         Self::IntegerUnsigned {
             location,
@@ -105,6 +120,9 @@ impl Type {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn integer_signed(location: Option<Location>, bitlength: usize) -> Self {
         Self::IntegerSigned {
             location,
@@ -112,6 +130,9 @@ impl Type {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn integer(location: Option<Location>, is_signed: bool, bitlength: usize) -> Self {
         if is_signed {
             Self::integer_signed(location, bitlength)
@@ -120,10 +141,16 @@ impl Type {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn field(location: Option<Location>) -> Self {
         Self::Field(location)
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn scalar(location: Option<Location>, is_signed: bool, bitlength: usize) -> Self {
         if is_signed {
             Self::integer_signed(location, bitlength)
@@ -136,26 +163,44 @@ impl Type {
         }
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn string(location: Option<Location>) -> Self {
         Self::String(location)
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn range(location: Option<Location>, r#type: Self) -> Self {
         Self::Range(Range::new(location, Box::new(r#type)))
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn range_inclusive(location: Option<Location>, r#type: Self) -> Self {
         Self::RangeInclusive(RangeInclusive::new(location, Box::new(r#type)))
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn array(location: Option<Location>, r#type: Self, size: usize) -> Self {
         Self::Array(Array::new(location, Box::new(r#type), size))
     }
 
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn tuple(location: Option<Location>, types: Vec<Self>) -> Self {
         Self::Tuple(Tuple::new(location, types))
     }
 
+    ///
+    /// A helper type constructor, which allocates a unique sequence ID for the type.
+    ///
     pub fn structure(
         location: Option<Location>,
         identifier: String,
@@ -167,6 +212,9 @@ impl Type {
         Self::Structure(Structure::new(location, identifier, type_id, fields, scope))
     }
 
+    ///
+    /// A helper type constructor, which allocates a unique sequence ID for the type.
+    ///
     pub fn enumeration(
         location: Location,
         identifier: String,
@@ -178,6 +226,9 @@ impl Type {
         Enumeration::new(location, identifier, type_id, variants, scope).map(Self::Enumeration)
     }
 
+    ///
+    /// A helper type constructor, which allocates a unique sequence ID for the type.
+    ///
     pub fn runtime_function(
         location: Location,
         identifier: String,
@@ -198,6 +249,9 @@ impl Type {
         )
     }
 
+    ///
+    /// A helper type constructor, which allocates a unique sequence ID for the type.
+    ///
     pub fn constant_function(
         location: Location,
         identifier: String,
@@ -217,6 +271,9 @@ impl Type {
         ))
     }
 
+    ///
+    /// A helper type constructor, which allocates a unique sequence ID for the type.
+    ///
     pub fn test_function(location: Location, identifier: String) -> (Self, usize) {
         let type_id = TYPE_INDEX.next(format!("function {}", identifier));
 
@@ -226,6 +283,9 @@ impl Type {
         )
     }
 
+    ///
+    /// A helper type constructor, which allocates a unique sequence ID for the type.
+    ///
     pub fn contract(
         location: Option<Location>,
         identifier: String,
@@ -237,6 +297,12 @@ impl Type {
         Self::Contract(Contract::new(location, identifier, type_id, fields, scope))
     }
 
+    ///
+    /// Returns the type size in the virtual machine data stack.
+    ///
+    /// The contract's size is zero, since its fields are stored in the contract storage, but not
+    /// in the data stack.
+    ///
     pub fn size(&self) -> usize {
         match self {
             Self::Unit(_) => 0,
@@ -260,6 +326,9 @@ impl Type {
         }
     }
 
+    ///
+    /// Checks if the type is scalar (a primitive non-unit type).
+    ///
     pub fn is_scalar(&self) -> bool {
         match self {
             Self::Boolean(_) => true,
@@ -271,6 +340,10 @@ impl Type {
         }
     }
 
+    ///
+    /// Checks if the type is an unsigned scalar one (booleans, unsigned integers, fields and
+    /// enumeration values).
+    ///
     pub fn is_scalar_unsigned(&self) -> bool {
         match self {
             Self::Boolean(_) => true,
@@ -281,6 +354,9 @@ impl Type {
         }
     }
 
+    ///
+    /// Checks if the type is a signed scalar one (only signed integer for now).
+    ///
     pub fn is_scalar_signed(&self) -> bool {
         match self {
             Self::IntegerSigned { .. } => true,
@@ -288,6 +364,9 @@ impl Type {
         }
     }
 
+    ///
+    /// Checks if the type is a boolean (bit) array.
+    ///
     pub fn is_bit_array(&self) -> bool {
         match self {
             Self::Array(array) => array.r#type.deref() == &Self::boolean(None),
@@ -295,6 +374,9 @@ impl Type {
         }
     }
 
+    ///
+    /// Checks if the type is an unsigned 8-bit integer (byte) array.
+    ///
     pub fn is_byte_array(&self) -> bool {
         match self {
             Self::Array(array) => {
@@ -304,6 +386,9 @@ impl Type {
         }
     }
 
+    ///
+    /// Checks if the type is an array of scalars (a primitive non-unit type).
+    ///
     pub fn is_scalar_array(&self) -> bool {
         match self {
             Self::Array(array) => array.r#type.is_scalar(),
@@ -311,6 +396,23 @@ impl Type {
         }
     }
 
+    ///
+    /// Checks if the type is a manually declared function, that is, not a built-in one.
+    ///
+    pub fn is_source_function(&self) -> bool {
+        match self {
+            Self::Function(Function::Runtime(_)) => true,
+            Self::Function(Function::Constant(_)) => true,
+            _ => false,
+        }
+    }
+
+    ///
+    /// Resolves the semantic type from the syntax one.
+    ///
+    /// For primitive types, the semantic type is simply converted from the syntax tree.
+    /// For complex type, the path is resolved in the `scope` tree.
+    ///
     pub fn try_from_syntax(r#type: SyntaxType, scope: Rc<RefCell<Scope>>) -> Result<Self, Error> {
         let location = r#type.location;
 
@@ -370,6 +472,12 @@ impl Type {
         })
     }
 
+    ///
+    /// Gets the semantic element type where it is possible.
+    ///
+    /// This method should not be called for elements where the type is impossible to get.
+    /// In such cases, the method will panic.
+    ///
     pub fn from_element(element: &Element, scope: Rc<RefCell<Scope>>) -> Result<Self, Error> {
         Ok(match element {
             Element::Value(value) => value.r#type(),
@@ -391,17 +499,20 @@ impl Type {
                     r#type.set_location(path.last().location);
                     r#type
                 }
-                _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
+                _ => panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
             },
             Element::Place(place) => {
                 let mut r#type = place.r#type.to_owned();
                 r#type.set_location(place.identifier.location);
                 r#type
             }
-            _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
+            _ => panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
     }
 
+    ///
+    /// Sets the location for the type element.
+    ///
     pub fn set_location(&mut self, value: Location) {
         match self {
             Self::Unit(location) => *location = Some(value),
@@ -421,6 +532,9 @@ impl Type {
         }
     }
 
+    ///
+    /// Returns the location of the type element.
+    ///
     pub fn location(&self) -> Option<Location> {
         match self {
             Self::Unit(location) => *location,

@@ -48,15 +48,21 @@ impl Builder {
     /// If some of the required items has not been set.
     ///
     pub fn finish(mut self) -> Attribute {
-        let location = self
-            .location
-            .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location"));
+        let location = self.location.take().unwrap_or_else(|| {
+            panic!(
+                "{}{}",
+                zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                "location"
+            )
+        });
 
-        let identifier = self
-            .identifier
-            .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "identifier"));
+        let identifier = self.identifier.take().unwrap_or_else(|| {
+            panic!(
+                "{}{}",
+                zinc_const::panic::BUILDER_REQUIRES_VALUE,
+                "identifier"
+            )
+        });
 
         Attribute::new(location, self.is_inner, identifier)
     }

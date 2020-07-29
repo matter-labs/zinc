@@ -13,6 +13,7 @@ use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
 use zinc_compiler::EntryAnalyzer;
 use zinc_compiler::Error as CompilerError;
+use zinc_compiler::IBytecodeWritable;
 use zinc_compiler::Module as IntermediateProgram;
 use zinc_compiler::Source;
 use zinc_compiler::State;
@@ -46,23 +47,19 @@ impl Instance {
             .map_err(Error::Compiler)?;
 
         let bytecode = State::new(name).wrap();
-        IntermediateProgram::new(scope.borrow().get_intermediate())
-            .write_all_to_bytecode(bytecode.clone());
+        IntermediateProgram::new(scope.borrow().get_intermediate()).write_all(bytecode.clone());
 
         let entry = State::unwrap_rc(bytecode)
-            .into_entries()
+            .into_entries(true)
             .remove(entry.as_str())
             .ok_or_else(|| Error::EntryNotFound(entry))?;
 
-        let bytecode = BytecodeProgram::from_bytes(entry.into_bytecode().as_slice())
+        let program = BytecodeProgram::from_bytes(entry.into_bytecode().as_slice())
             .map_err(Error::Program)?;
 
-        let witness = TemplateValue::try_from_typed_json(witness, bytecode.input())
+        let witness = TemplateValue::try_from_typed_json(witness, program.input())
             .map_err(Error::TemplateValue)?;
 
-        Ok(Self {
-            witness,
-            program: bytecode,
-        })
+        Ok(Self { witness, program })
     }
 }

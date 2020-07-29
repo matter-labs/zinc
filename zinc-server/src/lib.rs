@@ -22,6 +22,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
                     .service(
                         web::resource("")
                             .route(web::head().to(head::handle))
+                            .route(web::get().to(self::program::get::handle))
                             .route(web::put().to(self::program::put::handle))
                             .route(web::delete().to(self::program::delete::handle)),
                     )
@@ -34,6 +35,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
                         web::resource("/source")
                             .route(web::head().to(head::handle))
                             .route(web::get().to(self::program::source::get::handle)),
+                    )
+                    .service(
+                        web::resource("/templates")
+                            .route(web::head().to(head::handle))
+                            .route(web::get().to(self::program::templates::get::handle)),
                     )
                     .service(
                         web::resource("/input_template")

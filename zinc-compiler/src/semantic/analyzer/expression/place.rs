@@ -10,6 +10,9 @@ use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 
+///
+/// The place expression translator.
+///
 pub struct Translator {}
 
 impl Translator {

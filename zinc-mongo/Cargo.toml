@@ -15,7 +15,6 @@ num-traits = "0.2"
 num-bigint = "0.3"
 
 tokio = "0.2"
-futures = "0.3"
 mongodb = "1.0"
 
 zinc-const = { path = "../zinc-const" }
