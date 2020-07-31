@@ -8,7 +8,7 @@ use zinc_bytecode::BitwiseAnd;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
-use crate::gadgets::bitwise;
+use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for BitwiseAnd {
@@ -18,7 +18,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for BitwiseAnd {
 
         let cs = vm.constraint_system();
 
-        let result = bitwise::and::bit_and(cs.namespace(|| "bit_and"), &left, &right)?;
+        let result = gadgets::bitwise::and::bit_and(cs.namespace(|| "bit_and"), &left, &right)?;
 
         vm.push(result.into())
     }

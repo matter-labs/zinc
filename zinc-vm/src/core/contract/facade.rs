@@ -2,7 +2,9 @@
 //! The virtual machine contract facade.
 //!
 
+use std::cell::RefCell;
 use std::marker::PhantomData;
+use std::rc::Rc;
 
 use colored::Colorize;
 use num_bigint::BigInt;
@@ -19,7 +21,7 @@ use zinc_bytecode::DataType;
 use zinc_bytecode::TemplateValue;
 use zinc_const::UnitTestExitCode;
 
-use crate::constraint_systems::debug::DebugCS;
+use crate::constraint_systems::main::Main as MainCS;
 use crate::core::contract::storage::dummy::Storage as DummyStorage;
 use crate::core::contract::storage::mongo::Storage as MongoStorage;
 use crate::core::contract::storage::setup::Storage as SetupStorage;
@@ -46,7 +48,8 @@ impl Facade {
         witness: TemplateValue,
         storage: Option<zinc_mongo::Storage>,
     ) -> Result<(TemplateValue, zinc_mongo::Storage), RuntimeError> {
-        let mut cs = DebugCS::<Bn256>::default();
+        let unconstrained = Rc::new(RefCell::new(false));
+        let mut cs = MainCS::<Bn256>::new(unconstrained.clone());
 
         let inputs_flat = witness.into_flat_values();
         let output_type = self.inner.output.to_owned();
@@ -64,7 +67,7 @@ impl Facade {
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
 
-        let mut state = ContractState::new(cs, storage_gadget, true);
+        let mut state = ContractState::new(cs, storage_gadget, unconstrained, false);
 
         let mut num_constraints = 0;
         let result = state.run(
@@ -117,7 +120,7 @@ impl Facade {
         let storage = DummyStorage::new(storage_fields);
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
-        let mut state = ContractState::new(cs, storage_gadget, true);
+        let mut state = ContractState::new(cs, storage_gadget, Rc::new(RefCell::new(false)), true);
 
         let mut num_constraints = 0;
         let result = state.run(
@@ -192,7 +195,7 @@ impl Facade {
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
 
-        let mut state = ContractState::new(cs, storage_gadget, true);
+        let mut state = ContractState::new(cs, storage_gadget, Rc::new(RefCell::new(false)), true);
 
         let result = state.run(self.inner, Some(&[]), |_| {}, |_| Ok(()));
         let code = match result {

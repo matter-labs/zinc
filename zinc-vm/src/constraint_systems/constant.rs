@@ -9,9 +9,10 @@ use franklin_crypto::bellman::Variable;
 
 use crate::IEngine;
 
-pub struct ConstantCS;
+#[derive(Default)]
+pub struct Constant {}
 
-impl<E: IEngine> ConstraintSystem<E> for ConstantCS {
+impl<E: IEngine> ConstraintSystem<E> for Constant {
     type Root = Self;
 
     fn alloc<F, A, AR>(&mut self, _annotation: A, f: F) -> Result<Variable, SynthesisError>

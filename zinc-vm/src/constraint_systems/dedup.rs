@@ -13,12 +13,12 @@ use franklin_crypto::bellman::LinearCombination;
 use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::bellman::Variable;
 
-pub struct DedupCS<E, CS>(CS, PhantomData<E>)
+pub struct Dedup<E, CS>(CS, PhantomData<E>)
 where
     E: Engine,
     CS: ConstraintSystem<E>;
 
-impl<E, CS> DedupCS<E, CS>
+impl<E, CS> Dedup<E, CS>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -69,7 +69,7 @@ where
     }
 }
 
-impl<E, CS> ConstraintSystem<E> for DedupCS<E, CS>
+impl<E, CS> ConstraintSystem<E> for Dedup<E, CS>
 where
     E: Engine,
     CS: ConstraintSystem<E>,

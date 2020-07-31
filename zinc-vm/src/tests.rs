@@ -4,6 +4,9 @@
 
 #![cfg(test)]
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use colored::Colorize;
 use failure::Fail;
 use num_bigint::BigInt;
@@ -25,7 +28,7 @@ type TestVirtualMachine = State<Bn256, TestConstraintSystem<Bn256>>;
 
 fn new_test_constrained_vm() -> TestVirtualMachine {
     let cs = TestConstraintSystem::new();
-    TestVirtualMachine::new(cs, true)
+    TestVirtualMachine::new(cs, Rc::new(RefCell::new(false)), true)
 }
 
 fn assert_stack_eq<VM, BI>(vm: &mut VM, expected_stack: &[BI])

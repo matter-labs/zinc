@@ -2,7 +2,9 @@
 //! The virtual machine contract synthesizer.
 //!
 
+use std::cell::RefCell;
 use std::marker::PhantomData;
+use std::rc::Rc;
 
 use num_bigint::BigInt;
 
@@ -12,8 +14,8 @@ use franklin_crypto::bellman::SynthesisError;
 
 use zinc_bytecode::Contract as BytecodeContract;
 
-use crate::constraint_systems::dedup::DedupCS;
-use crate::constraint_systems::logging::LoggingCS;
+use crate::constraint_systems::dedup::Dedup as DedupCS;
+use crate::constraint_systems::logging::Logging as LoggingCS;
 use crate::core::contract::State;
 use crate::error::RuntimeError;
 use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
@@ -41,7 +43,12 @@ where
             self.storage,
         )?;
 
-        let mut contract = State::new(DedupCS::new(LoggingCS::new(cs)), storage, false);
+        let mut contract = State::new(
+            DedupCS::new(LoggingCS::new(cs)),
+            storage,
+            Rc::new(RefCell::new(false)),
+            false,
+        );
         *self.output =
             Some(contract.run(self.bytecode, self.inputs.as_deref(), |_| {}, |_| Ok(())));
 

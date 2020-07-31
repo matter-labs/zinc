@@ -3,7 +3,7 @@
 //!
 
 pub mod prelude {
-    pub use crate::constraint_systems::constant::ConstantCS;
+    pub use crate::constraint_systems::constant::Constant as ConstantCS;
     pub use crate::gadgets::scalar::variant::Variant as ScalarVariant;
     pub use crate::gadgets::scalar::Scalar;
 
@@ -67,7 +67,7 @@ macro_rules! auto_const {
         let a = $a;
         match a.get_variant() {
             ScalarVariant::Constant { .. } => {
-                let const_cs = ConstantCS;
+                let const_cs = ConstantCS::default();
                 let result = $op(const_cs, a);
                 result.and_then(|result| result.to_constant())
             }
@@ -80,7 +80,7 @@ macro_rules! auto_const {
         let b = $b;
         match (a.get_variant(), b.get_variant()) {
             (ScalarVariant::Constant { .. }, ScalarVariant::Constant { .. }) => {
-                let const_cs = ConstantCS;
+                let const_cs = ConstantCS::default();
                 let result = $op(const_cs, a, b);
                 result.and_then(|result| result.to_constant())
             }

@@ -429,22 +429,24 @@ contract Stableswap {
         if S == ZERO {
             ZERO
         } else {
-            let mut Dprev: Integer = ZERO;
-            let mut D: Integer = S;
-            let Ann: Integer = amp * (N_COINS as Integer);
+            unconstrained {
+                let mut Dprev: Integer = ZERO;
+                let mut D: Integer = S;
+                let Ann: Integer = amp * (N_COINS as Integer);
 
-            // Equality with the precision of 1
-            for _n in 0..4 while D > ONE + Dprev && Dprev > ONE + D {
-                let mut D_P: Integer = D;
-                for i in 0..N_COINS {
-                    // If division by 0, this will be borked: only withdrawal will work. And that is good
-                    D_P *= D / (xp[i] * (N_COINS as Integer));
-                    Dprev = D;
-                    D = (Ann * S + D_P * (N_COINS as Integer)) * D / ((Ann - ONE) * D + ((N_COINS + 1) as Integer) * D_P);
+                // Equality with the precision of 1
+                for _n in 0..4 while D > ONE + Dprev && Dprev > ONE + D {
+                    let mut D_P: Integer = D;
+                    for i in 0..N_COINS {
+                        // If division by 0, this will be borked: only withdrawal will work. And that is good
+                        D_P *= D / (xp[i] * (N_COINS as Integer));
+                        Dprev = D;
+                        D = (Ann * S + D_P * (N_COINS as Integer)) * D / ((Ann - ONE) * D + ((N_COINS + 1) as Integer) * D_P);
+                    }
                 }
-            }
 
-            D
+                D
+            }
         }
     }
 

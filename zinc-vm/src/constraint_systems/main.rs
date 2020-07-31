@@ -2,6 +2,9 @@
 //! The debug constraint system.
 //!
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::Index;
@@ -11,15 +14,29 @@ use franklin_crypto::bellman::Variable;
 
 use crate::IEngine;
 
-pub struct DebugCS<E: IEngine> {
+pub struct Main<E: IEngine> {
     inputs: Vec<E::Fr>,
     witness: Vec<E::Fr>,
 
     satisfied: bool,
     constraints_num: usize,
+    unconstrained: Rc<RefCell<bool>>,
 }
 
-impl<E: IEngine> DebugCS<E> {
+impl<E: IEngine> Main<E> {
+    pub fn new(unconstrained: Rc<RefCell<bool>>) -> Self {
+        let mut cs = Self {
+            inputs: Vec::new(),
+            witness: Vec::new(),
+            satisfied: true,
+            constraints_num: 0,
+            unconstrained,
+        };
+
+        cs.inputs.push(E::Fr::one());
+        cs
+    }
+
     fn eval_lc(terms: &[(Variable, E::Fr)], inputs: &[E::Fr], witness: &[E::Fr]) -> E::Fr {
         let mut acc = E::Fr::zero();
 
@@ -37,21 +54,7 @@ impl<E: IEngine> DebugCS<E> {
     }
 }
 
-impl<E: IEngine> Default for DebugCS<E> {
-    fn default() -> Self {
-        let mut cs = Self {
-            inputs: Vec::new(),
-            witness: Vec::new(),
-            satisfied: true,
-            constraints_num: 0,
-        };
-
-        cs.inputs.push(E::Fr::one());
-        cs
-    }
-}
-
-impl<E: IEngine> DebugCS<E> {
+impl<E: IEngine> Main<E> {
     pub fn is_satisfied(&self) -> bool {
         self.satisfied
     }
@@ -59,9 +62,13 @@ impl<E: IEngine> DebugCS<E> {
     pub fn num_constraints(&self) -> usize {
         self.constraints_num
     }
+
+    pub fn is_unconstrained(&self) -> bool {
+        *self.unconstrained.borrow()
+    }
 }
 
-impl<E: IEngine> ConstraintSystem<E> for DebugCS<E> {
+impl<E: IEngine> ConstraintSystem<E> for Main<E> {
     type Root = Self;
 
     fn alloc<F, A, AR>(&mut self, _annotation: A, f: F) -> Result<Variable, SynthesisError>
@@ -70,6 +77,11 @@ impl<E: IEngine> ConstraintSystem<E> for DebugCS<E> {
         A: FnOnce() -> AR,
         AR: Into<String>,
     {
+        if self.is_unconstrained() {
+            f()?;
+            return Ok(<Self as ConstraintSystem<E>>::one());
+        }
+
         let value = f()?;
         self.witness.push(value);
         Ok(Variable::new_unchecked(Index::Aux(self.witness.len() - 1)))
@@ -81,6 +93,11 @@ impl<E: IEngine> ConstraintSystem<E> for DebugCS<E> {
         A: FnOnce() -> AR,
         AR: Into<String>,
     {
+        if self.is_unconstrained() {
+            f()?;
+            return Ok(<Self as ConstraintSystem<E>>::one());
+        }
+
         let value = f()?;
         self.inputs.push(value);
         Ok(Variable::new_unchecked(Index::Input(self.inputs.len() - 1)))
@@ -94,6 +111,10 @@ impl<E: IEngine> ConstraintSystem<E> for DebugCS<E> {
         LB: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
         LC: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
     {
+        if self.is_unconstrained() {
+            return;
+        }
+
         let zero = LinearCombination::zero();
         let value_a = Self::eval_lc(a(zero.clone()).as_ref(), &self.inputs, &self.witness);
         let value_b = Self::eval_lc(b(zero.clone()).as_ref(), &self.inputs, &self.witness);

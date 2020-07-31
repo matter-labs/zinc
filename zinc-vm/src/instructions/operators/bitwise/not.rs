@@ -8,7 +8,7 @@ use zinc_bytecode::BitwiseNot;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
-use crate::gadgets::bitwise;
+use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for BitwiseNot {
@@ -17,7 +17,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for BitwiseNot {
 
         let cs = vm.constraint_system();
 
-        let result = bitwise::not::bit_not(cs.namespace(|| "bit_not"), &scalar)?;
+        let result = gadgets::bitwise::not::bit_not(cs.namespace(|| "bit_not"), &scalar)?;
 
         vm.push(result.into())
     }

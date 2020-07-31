@@ -6,6 +6,9 @@ pub mod facade;
 pub mod storage;
 pub mod synthesizer;
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use colored::Colorize;
 use num_bigint::BigInt;
 use num_bigint::ToBigInt;
@@ -46,7 +49,9 @@ where
     counter: NamespaceCounter<E, CS>,
     state: ExecutionState<E>,
     outputs: Vec<Scalar<E>>,
-    is_unconstrained: bool,
+
+    unconstrained: Rc<RefCell<bool>>,
+
     storage: StorageGadget<E, S, H>,
 
     pub(crate) debugging: bool,
@@ -60,12 +65,19 @@ where
     S: IMerkleTree<E>,
     H: IMerkleTreeHasher<E>,
 {
-    pub fn new(cs: CS, storage: StorageGadget<E, S, H>, debugging: bool) -> Self {
+    pub fn new(
+        cs: CS,
+        storage: StorageGadget<E, S, H>,
+        unconstrained: Rc<RefCell<bool>>,
+        debugging: bool,
+    ) -> Self {
         Self {
             counter: NamespaceCounter::new(cs),
             state: ExecutionState::new(),
             outputs: vec![],
-            is_unconstrained: false,
+
+            unconstrained,
+
             storage,
 
             debugging,
@@ -374,9 +386,8 @@ where
 
         self.condition_pop()?;
         let prev = self.condition_top()?;
-        let cs = self.constraint_system();
-        let not_cond = gadgets::logical::not::not(cs.namespace(|| "not"), &condition)?;
-        let next = gadgets::logical::and::and(cs.namespace(|| "and"), &prev, &not_cond)?;
+        let not_cond = gadgets::logical::not::not(self.counter.next(), &condition)?;
+        let next = gadgets::logical::and::and(self.counter.next(), &prev, &not_cond)?;
         self.condition_push(next)?;
 
         self.state.data_stack.switch_branch()?;
@@ -441,11 +452,15 @@ where
     }
 
     fn set_unconstrained(&mut self) {
-        self.is_unconstrained = true;
+        *self.unconstrained.borrow_mut() = true;
     }
 
     fn unset_unconstrained(&mut self) {
-        self.is_unconstrained = false;
+        *self.unconstrained.borrow_mut() = false;
+    }
+
+    fn is_unconstrained(&self) -> bool {
+        *self.unconstrained.borrow()
     }
 
     fn constraint_system(&mut self) -> &mut CS {

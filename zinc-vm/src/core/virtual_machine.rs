@@ -60,6 +60,7 @@ pub trait IVirtualMachine {
 
     fn set_unconstrained(&mut self);
     fn unset_unconstrained(&mut self);
+    fn is_unconstrained(&self) -> bool;
 
     fn constraint_system(&mut self) -> &mut Self::CS;
 

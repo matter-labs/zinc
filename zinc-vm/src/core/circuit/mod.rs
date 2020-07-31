@@ -5,6 +5,9 @@
 pub mod facade;
 pub mod synthesizer;
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use colored::Colorize;
 use num_bigint::BigInt;
 use num_bigint::ToBigInt;
@@ -40,7 +43,8 @@ where
     counter: NamespaceCounter<E, CS>,
     state: ExecutionState<E>,
     outputs: Vec<Scalar<E>>,
-    is_unconstrained: bool,
+
+    unconstrained: Rc<RefCell<bool>>,
 
     pub(crate) debugging: bool,
     pub(crate) location: Location,
@@ -51,12 +55,13 @@ where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    pub fn new(cs: CS, debugging: bool) -> Self {
+    pub fn new(cs: CS, unconstrained: Rc<RefCell<bool>>, debugging: bool) -> Self {
         Self {
             counter: NamespaceCounter::new(cs),
             state: ExecutionState::new(),
             outputs: vec![],
-            is_unconstrained: false,
+
+            unconstrained,
 
             debugging,
             location: Location::new(),
@@ -405,11 +410,15 @@ where
     }
 
     fn set_unconstrained(&mut self) {
-        self.is_unconstrained = true;
+        *self.unconstrained.borrow_mut() = true;
     }
 
     fn unset_unconstrained(&mut self) {
-        self.is_unconstrained = false;
+        *self.unconstrained.borrow_mut() = false;
+    }
+
+    fn is_unconstrained(&self) -> bool {
+        *self.unconstrained.borrow()
     }
 
     fn constraint_system(&mut self) -> &mut CS {

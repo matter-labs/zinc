@@ -8,7 +8,7 @@ use zinc_bytecode::BitwiseShiftRight;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
-use crate::gadgets::bitwise;
+use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for BitwiseShiftRight {
@@ -18,8 +18,11 @@ impl<VM: IVirtualMachine> IExecutable<VM> for BitwiseShiftRight {
 
         let cs = vm.constraint_system();
 
-        let result =
-            bitwise::shift_right::shift_right(cs.namespace(|| "shift right"), &num, &shift)?;
+        let result = gadgets::bitwise::shift_right::shift_right(
+            cs.namespace(|| "bit_shift_right"),
+            &num,
+            &shift,
+        )?;
 
         vm.push(result.into())
     }

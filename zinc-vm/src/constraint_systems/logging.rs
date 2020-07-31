@@ -16,12 +16,12 @@ use franklin_crypto::bellman::Variable;
 
 use crate::gadgets;
 
-pub struct LoggingCS<E, CS>(CS, PhantomData<E>)
+pub struct Logging<E, CS>(CS, PhantomData<E>)
 where
     E: Engine,
     CS: ConstraintSystem<E>;
 
-impl<E, CS> LoggingCS<E, CS>
+impl<E, CS> Logging<E, CS>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -31,7 +31,7 @@ where
     }
 }
 
-impl<E, CS> ConstraintSystem<E> for LoggingCS<E, CS>
+impl<E, CS> ConstraintSystem<E> for Logging<E, CS>
 where
     E: Engine,
     CS: ConstraintSystem<E>,

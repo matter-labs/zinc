@@ -2,7 +2,9 @@
 //! The virtual machine circuit facade.
 //!
 
+use std::cell::RefCell;
 use std::marker::PhantomData;
+use std::rc::Rc;
 
 use colored::Colorize;
 use num_bigint::BigInt;
@@ -17,7 +19,7 @@ use zinc_bytecode::Circuit as BytecodeCircuit;
 use zinc_bytecode::TemplateValue;
 use zinc_const::UnitTestExitCode;
 
-use crate::constraint_systems::debug::DebugCS;
+use crate::constraint_systems::main::Main as MainCS;
 use crate::core::circuit::synthesizer::Synthesizer as CircuitSynthesizer;
 use crate::core::circuit::State as CircuitState;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -34,12 +36,13 @@ impl Facade {
     }
 
     pub fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
-        let cs = DebugCS::<Bn256>::default();
+        let unconstrained = Rc::new(RefCell::new(false));
+        let cs = MainCS::<Bn256>::new(unconstrained.clone());
 
         let inputs_flat = input.into_flat_values();
         let output_type = self.inner.output.to_owned();
 
-        let mut state = CircuitState::new(cs, true);
+        let mut state = CircuitState::new(cs, unconstrained, false);
 
         let mut num_constraints = 0;
         let result = state.run(
@@ -80,7 +83,7 @@ impl Facade {
         let inputs_flat = input.into_flat_values();
         let output_type = self.inner.output.to_owned();
 
-        let mut state = CircuitState::new(cs, true);
+        let mut state = CircuitState::new(cs, Rc::new(RefCell::new(false)), true);
 
         let mut num_constraints = 0;
         let result = state.run(
@@ -144,7 +147,8 @@ impl Facade {
         }
 
         let cs = TestConstraintSystem::<Bn256>::new();
-        let mut state = CircuitState::new(cs, true);
+
+        let mut state = CircuitState::new(cs, Rc::new(RefCell::new(false)), true);
 
         let result = state.run(self.inner, Some(&[]), |_| {}, |_| Ok(()));
         let code = match result {

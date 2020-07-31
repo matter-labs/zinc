@@ -8,7 +8,7 @@ use zinc_bytecode::BitwiseXor;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
-use crate::gadgets::bitwise;
+use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for BitwiseXor {
@@ -18,7 +18,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for BitwiseXor {
 
         let cs = vm.constraint_system();
 
-        let result = bitwise::xor::bit_xor(cs.namespace(|| "bit_xor"), &left, &right)?;
+        let result = gadgets::bitwise::xor::bit_xor(cs.namespace(|| "bit_xor"), &left, &right)?;
 
         vm.push(result.into())
     }
