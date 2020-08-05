@@ -9,7 +9,7 @@ use actix_web::middleware;
 use actix_web::App;
 use actix_web::HttpServer;
 
-use zinc_mongo::Client as MongoClient;
+use zinc_postgres::Client as PostgresqlClient;
 use zinc_server::SharedData;
 
 use self::arguments::Arguments;
@@ -25,11 +25,14 @@ async fn main() -> Result<(), Error> {
     zinc_utils::logger::initialize(zinc_const::app_name::ZINC_SERVER, args.verbosity);
 
     let data = SharedData::new(
-        MongoClient::new(
-            args.mongodb_host,
-            args.mongodb_port.unwrap_or(zinc_const::mongodb::PORT),
+        PostgresqlClient::new(
+            args.postgresql_host,
+            args.postgresql_port.unwrap_or(zinc_const::postgresql::PORT),
+            args.postgresql_user,
+            args.postgresql_password,
+            args.postgresql_database,
         )
-        .await,
+        .await?,
     )
     .wrap();
 

@@ -2,14 +2,14 @@
 //! The Zinc MongoDB constants.
 //!
 
-/// The default MongoDB protocol name.
+/// The default protocol name.
 pub static PROTOCOL: &str = "mongodb";
 
-/// The default MongoDB server host.
-pub static HOST: &str = "127.0.0.1";
+/// The default server host.
+pub static HOST: &str = "localhost";
 
-/// The default MongoDB server port.
+/// The default server port.
 pub const PORT: u16 = 27017;
 
-/// The default MongoDB database name.
+/// The default database name.
 pub static DATABASE: &str = "zinc";

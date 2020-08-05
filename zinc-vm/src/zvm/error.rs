@@ -57,8 +57,9 @@ pub enum Error {
         error: FromHexError,
     },
 
-    #[fail(display = "MongoDB: {}", _0)]
-    MongoDb(zinc_mongo::Error),
+    /// The PostgreSQL library error.
+    #[fail(display = "PostgreSQL: {}", _0)]
+    Postgresql(zinc_postgres::Error),
 }
 
 impl From<RuntimeError> for Error {
@@ -82,6 +83,12 @@ impl From<serde_json::Error> for Error {
 impl From<TemplateValueError> for Error {
     fn from(error: TemplateValueError) -> Self {
         Error::JsonValue(error)
+    }
+}
+
+impl From<zinc_postgres::Error> for Error {
+    fn from(error: zinc_postgres::Error) -> Self {
+        Error::Postgresql(error)
     }
 }
 

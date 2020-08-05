@@ -13,6 +13,7 @@
 - allowed to declare constants, types, functions, and modules in arbitrary order
 - implemented the smallest possible type inference for integer literals in expressions
 - implemented nested modules with the access to the root and parent modules
+- added the `unconstrained` block modifier to prevent creating unnecessary constraints
 - added the attribute syntax, which supports only the unit test markers for now
 - implemented the Rust-like unit testing functionality
 
@@ -37,6 +38,7 @@
 #### Overall
 
 - implemented basic smart contracts
+- created the Zinc server application for publishing and running smart contracts
 
 ## Version 0.1.5 (2020-04-07)
 

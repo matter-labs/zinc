@@ -15,6 +15,7 @@ use self::integer::Type as IntegerType;
 /// The Zinc VM scalar type.
 ///
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Type {
     /// The `bool` scalar type.
     Boolean,

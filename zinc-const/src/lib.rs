@@ -12,6 +12,7 @@ pub mod http;
 pub mod limit;
 pub mod mongodb;
 pub mod panic;
+pub mod postgresql;
 pub mod source;
 pub mod zargo;
 

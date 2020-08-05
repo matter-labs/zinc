@@ -117,8 +117,8 @@ pub enum RuntimeError {
     #[fail(display = "the instruction is available only for contracts")]
     OnlyForContracts,
 
-    #[fail(display = "MongoDB: {}", _0)]
-    MongoDb(zinc_mongo::Error),
+    #[fail(display = "PostgreSQL: {}", _0)]
+    Postgresql(zinc_postgres::Error),
 }
 
 impl From<SynthesisError> for RuntimeError {
@@ -136,5 +136,11 @@ impl From<MalformedBytecode> for RuntimeError {
 impl From<TypeSizeError> for RuntimeError {
     fn from(error: TypeSizeError) -> Self {
         RuntimeError::TypeSize(error)
+    }
+}
+
+impl From<zinc_postgres::Error> for RuntimeError {
+    fn from(error: zinc_postgres::Error) -> Self {
+        RuntimeError::Postgresql(error)
     }
 }

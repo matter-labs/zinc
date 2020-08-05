@@ -30,7 +30,7 @@ num-traits = "0.2"
 
 franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc" }
 
-zinc-mongo = { path = "../zinc-mongo" }
+zinc-postgres = { path = "../zinc-postgres" }
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }
 zinc-bytecode = { path = "../zinc-bytecode" }

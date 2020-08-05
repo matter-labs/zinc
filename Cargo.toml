@@ -8,7 +8,7 @@ members = [
     "zinc-const",
     "zinc-vm",
     "zinc-server",
-    "zinc-mongo",
+    "zinc-postgres",
     "zinc-tester",
 
     "schnorr",

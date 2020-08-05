@@ -15,6 +15,7 @@ use self::scalar::Type as ScalarType;
 /// Is converted from the bytecode generator type during writing the metadata.
 ///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum Type {
     /// The `()` type.
     Unit,

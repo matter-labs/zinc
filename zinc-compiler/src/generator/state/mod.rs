@@ -109,6 +109,13 @@ impl State {
     }
 
     ///
+    /// Returns the program name.
+    ///
+    pub fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    ///
     /// Returns the variable address in the function data stack frame.
     ///
     pub fn get_variable_address(&self, name: &str) -> Option<usize> {
