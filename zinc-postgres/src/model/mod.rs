@@ -2,7 +2,7 @@
 //! The PostgreSQL table data models.
 //!
 
-pub mod entry;
+pub mod contract;
 pub mod field;
-pub mod instance;
-pub mod program;
+pub mod method;
+pub mod template;

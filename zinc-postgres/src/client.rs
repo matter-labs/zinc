@@ -7,13 +7,12 @@ use sqlx::postgres::PgPoolOptions;
 use sqlx::Postgres;
 
 use crate::error::Error;
-use crate::model::entry::insert::input::Input as EntryInsertInput;
-use crate::model::entry::select::templates::Input as EntrySelectTemplatesInput;
-use crate::model::entry::select::templates::Output as EntrySelectTemplatesOutput;
-use crate::model::program::insert::input::Input as ProgramInsertInput;
-use crate::model::program::select::all::Output as ProgramSelectAllOutput;
-use crate::model::program::select::source::Input as ProgramSelectSourceInput;
-use crate::model::program::select::source::Output as ProgramSelectSourceOutput;
+use crate::model::method::insert::input::Input as MethodInsertInput;
+use crate::model::method::select::types::Input as MethodSelectTypesInput;
+use crate::model::method::select::types::Output as MethodSelectTypesOutput;
+use crate::model::template::insert::input::Input as TemplateInsertInput;
+use crate::model::template::select::single::Input as TemplateSelectInput;
+use crate::model::template::select::single::Output as TemplateSelectOutput;
 
 ///
 /// The PostgreSQL asynchronous client adapter.
@@ -53,105 +52,78 @@ impl Client {
     }
 
     ///
-    /// Selects programs from the `programs` table.
+    /// Select a template from the `templates` table.
     ///
-    pub async fn select_programs_all(&self) -> Result<Vec<ProgramSelectAllOutput>, Error> {
-        const STATEMENT: &str = r#"
-        SELECT
-            id,
-            name,
-            version
-        FROM contract.programs;
-        "#;
-
-        Ok(sqlx::query_as(STATEMENT).fetch_all(&self.pool).await?)
-    }
-
-    ///
-    /// Select the program source code from the `programs` table.
-    ///
-    pub async fn select_program_source(
+    pub async fn select_template(
         &self,
-        input: ProgramSelectSourceInput,
-    ) -> Result<ProgramSelectSourceOutput, Error> {
+        input: TemplateSelectInput,
+    ) -> Result<TemplateSelectOutput, Error> {
         const STATEMENT: &str = r#"
         SELECT
-            source
-        FROM contract.programs
+            source, verifying_key
+        FROM sandbox.templates
         WHERE
-            id = $1;
+            account_id = $1;
         "#;
 
         Ok(sqlx::query_as(STATEMENT)
-            .bind(&input.id)
+            .bind(&input.account_id)
             .fetch_one(&self.pool)
             .await?)
     }
 
     ///
-    /// Inserts a program into the `programs` table.
+    /// Inserts a template into the `templates` table.
     ///
-    pub async fn insert_program(&self, input: ProgramInsertInput) -> Result<i32, Error> {
+    pub async fn insert_template(&self, input: TemplateInsertInput) -> Result<(), Error> {
         const STATEMENT: &str = r#"
-        INSERT INTO contract.programs (
+        INSERT INTO sandbox.templates (
+            account_id,
             name,
             version,
-
-            source,
+            bytecode,
             storage_type,
-
-            proving_key,
             verifying_key,
-
             created_at
         ) VALUES (
             $1,
             $2,
-
             $3,
             $4,
-
             $5,
             $6,
-
             NOW()
-        ) RETURNING id;
+        );
         "#;
 
-        let row: (i32,) = sqlx::query_as(STATEMENT)
+        sqlx::query(STATEMENT)
+            .bind(input.account_id)
             .bind(input.name)
             .bind(input.version)
-            .bind(input.source)
+            .bind(input.bytecode)
             .bind(input.storage_type)
-            .bind(input.proving_key)
             .bind(input.verifying_key)
-            .fetch_one(&self.pool)
+            .execute(&self.pool)
             .await?;
 
-        let program_id = row.0;
-
-        Ok(program_id)
+        Ok(())
     }
 
     ///
-    /// Inserts the program entries into the `entries` table.
+    /// Inserts the template methods into the `methods` table.
     ///
-    pub async fn insert_entries(&self, input: Vec<EntryInsertInput>) -> Result<(), Error> {
+    pub async fn insert_methods(&self, input: Vec<MethodInsertInput>) -> Result<(), Error> {
         const STATEMENT: &str = r#"
-        INSERT INTO contract.entries (
-            program_id,
-
+        INSERT INTO sandbox.methods (
+            template_id,
             name,
             is_mutable,
-
             input_type,
             output_type
         ) VALUES (
             $1,
-
             $2,
             $3,
-
             $4,
             $5
         );
@@ -159,7 +131,7 @@ impl Client {
 
         for entry in input.into_iter() {
             sqlx::query(STATEMENT)
-                .bind(entry.program_id)
+                .bind(entry.template_id)
                 .bind(entry.name)
                 .bind(entry.is_mutable)
                 .bind(entry.input_type)
@@ -172,25 +144,26 @@ impl Client {
     }
 
     ///
-    /// Select the entry templates source code from the `entries` table.
+    /// Select the method types from the `methods` table.
     ///
-    pub async fn select_entry_templates(
+    pub async fn select_method_types(
         &self,
-        input: EntrySelectTemplatesInput,
-    ) -> Result<EntrySelectTemplatesOutput, Error> {
+        input: MethodSelectTypesInput,
+    ) -> Result<MethodSelectTypesOutput, Error> {
         const STATEMENT: &str = r#"
         SELECT
-            entries.input_type,
-            entries.output_type,
-            programs.storage_type
-        FROM contract.entries
-        LEFT JOIN contract.programs ON entries.program_id = programs.id
+            methods.input_type,
+            methods.output_type,
+            templates.storage_type
+        FROM sandbox.methods
+        LEFT JOIN sandbox.templates ON methods.template_id = templates.account_id
         WHERE
-            entries.id = $1;
+            methods.template_id = $1 AND methods.name = $2;
         "#;
 
         Ok(sqlx::query_as(STATEMENT)
-            .bind(&input.id)
+            .bind(&input.template_id)
+            .bind(&input.name)
             .fetch_one(&self.pool)
             .await?)
     }

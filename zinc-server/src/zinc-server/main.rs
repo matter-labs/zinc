@@ -16,7 +16,7 @@ use self::arguments::Arguments;
 use self::error::Error;
 
 ///
-/// The application entry point.
+/// The application method point.
 ///
 #[actix_rt::main]
 async fn main() -> Result<(), Error> {

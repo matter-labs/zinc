@@ -2,29 +2,31 @@
 //! The Zinc VM generator state.
 //!
 
-pub mod entry;
-pub mod metadata;
+pub mod bytecode;
+pub mod method;
 pub mod optimizer;
-pub mod test;
+pub mod unit_test;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use zinc_bytecode::CircuitUnitTest;
+use zinc_bytecode::ContractMethod;
+use zinc_bytecode::ContractUnitTest;
 use zinc_bytecode::DataType;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::Program as BytecodeProgram;
 use zinc_bytecode::TemplateValue;
-use zinc_bytecode::UnitTest as BytecodeUnitTest;
 
 use crate::generator::r#type::Type;
 use crate::lexical::token::location::Location;
 use crate::source::file::index::INDEX as FILE_INDEX;
 
-use self::entry::Entry;
-use self::metadata::Metadata;
+use self::bytecode::Bytecode;
+use self::method::Method;
 use self::optimizer::elimination::Optimizer as EliminationOptimizer;
-use self::test::Test;
+use self::unit_test::UnitTest;
 
 ///
 /// The Zinc VM generator state, used for generating the target code.
@@ -33,23 +35,22 @@ use self::test::Test;
 pub struct State {
     /// The Zinc program name.
     name: String,
+
     /// The Zinc VM instructions written by the bytecode generator.
     instructions: Vec<Instruction>,
-
     /// The contract storage structure.
     contract_storage: Option<Vec<(String, Type)>>,
-    /// Metadata of each application entry.
-    entry_metadata: HashMap<usize, Metadata>,
+    /// Metadata of each contract method.
+    methods: HashMap<usize, Method>,
     /// Unit tests.
-    tests: HashMap<usize, Test>,
+    unit_tests: HashMap<usize, UnitTest>,
 
-    /// Data stack addresses of variables declared at runtime.
-    variable_addresses: HashMap<String, usize>,
     /// Bytecode addresses of the functions written to the bytecode.
     function_addresses: HashMap<usize, usize>,
+    /// Data stack addresses of variables declared at runtime.
+    variable_addresses: HashMap<String, usize>,
     /// The pointer which is reset at the beginning of each function.
     data_stack_pointer: usize,
-
     /// The location pointer used to pass debug information to the VM.
     current_location: Location,
 }
@@ -72,22 +73,17 @@ impl State {
     /// `Exit` instructions.
     ///
     pub fn new(name: String) -> Self {
-        let mut instructions = Vec::with_capacity(Self::INSTRUCTIONS_INITIAL_CAPACITY);
-        instructions.push(Instruction::NoOperation(zinc_bytecode::NoOperation));
-        instructions.push(Instruction::NoOperation(zinc_bytecode::NoOperation));
-
         Self {
             name,
-            instructions,
 
+            instructions: Vec::with_capacity(Self::INSTRUCTIONS_INITIAL_CAPACITY),
             contract_storage: None,
-            entry_metadata: HashMap::with_capacity(Self::ENTRY_METADATA_INITIAL_CAPACITY),
-            tests: HashMap::with_capacity(Self::ENTRY_METADATA_INITIAL_CAPACITY),
+            methods: HashMap::with_capacity(Self::ENTRY_METADATA_INITIAL_CAPACITY),
+            unit_tests: HashMap::with_capacity(Self::ENTRY_METADATA_INITIAL_CAPACITY),
 
-            variable_addresses: HashMap::with_capacity(Self::VARIABLE_ADDRESSES_INITIAL_CAPACITY),
             function_addresses: HashMap::with_capacity(Self::FUNCTION_ADDRESSES_INITIAL_CAPACITY),
+            variable_addresses: HashMap::with_capacity(Self::VARIABLE_ADDRESSES_INITIAL_CAPACITY),
             data_stack_pointer: 0,
-
             current_location: Location::new_beginning(None),
         }
     }
@@ -159,11 +155,12 @@ impl State {
         location: Location,
         type_id: usize,
         identifier: String,
+        is_mutable: bool,
         input_arguments: Vec<(String, Type)>,
         output_type: Type,
     ) {
-        let metadata = Metadata::new(identifier.clone(), input_arguments, output_type);
-        self.entry_metadata.insert(type_id, metadata);
+        let method = Method::new(identifier.clone(), is_mutable, input_arguments, output_type);
+        self.methods.insert(type_id, method);
 
         self.start_function(location, type_id, identifier);
     }
@@ -179,10 +176,8 @@ impl State {
         should_panic: bool,
         is_ignored: bool,
     ) {
-        self.tests.insert(
-            type_id,
-            Test::new(identifier.clone(), should_panic, is_ignored),
-        );
+        let test = UnitTest::new(identifier.clone(), should_panic, is_ignored);
+        self.unit_tests.insert(type_id, test);
 
         self.start_function(location, type_id, identifier);
     }
@@ -244,124 +239,82 @@ impl State {
     /// of the function stored as `address`es with their actual addresses in the bytecode,
     /// since the addresses are only known after the functions are written thereto.
     ///
-    pub fn into_entries(self, optimize_dead_function_elimination: bool) -> HashMap<String, Entry> {
-        let mut data = HashMap::with_capacity(self.entry_metadata.len());
+    pub fn into_program(mut self, optimize_dead_function_elimination: bool) -> BytecodeProgram {
+        Self::print_instructions(self.instructions.as_slice());
 
-        for (entry_id, metadata) in self.entry_metadata.into_iter() {
-            let mut instructions = self.instructions.clone();
-            instructions[0] =
-                Instruction::Call(zinc_bytecode::Call::new(entry_id, metadata.input_size()));
-            instructions[1] = Instruction::Exit(zinc_bytecode::Exit::new(metadata.output_size()));
-
-            if optimize_dead_function_elimination {
-                EliminationOptimizer::optimize(
-                    entry_id,
-                    &mut instructions,
-                    self.function_addresses.clone(),
-                );
-            } else {
-                EliminationOptimizer::set_addresses(&mut instructions, &self.function_addresses);
-            };
-
-            Self::print_instructions(instructions.as_slice());
-
-            let bytecode = match self.contract_storage.as_ref() {
-                Some(storage) => {
-                    let storage = storage
-                        .iter()
-                        .map(|(name, r#type)| (name.to_owned(), r#type.to_owned().into()))
-                        .collect();
-
-                    BytecodeProgram::new_contract(
-                        self.name.clone(),
-                        metadata.input_fields_as_struct().into(),
-                        metadata.output_type.clone().into(),
-                        instructions,
-                        storage,
-                    )
-                }
-                None => BytecodeProgram::new_circuit(
-                    self.name.clone(),
-                    metadata.input_fields_as_struct().into(),
-                    metadata.output_type.clone().into(),
-                    instructions,
-                ),
-            }
-            .into_bytes();
-
-            let input_template_value = TemplateValue::new(metadata.input_fields_as_struct().into());
-            let witness_template =
-                match serde_json::to_string_pretty(&input_template_value.into_json()) {
-                    Ok(json) => (json + "\n").into_bytes(),
-                    Err(error) => panic!(
-                        zinc_const::panic::DATA_SERIALIZATION.to_owned()
-                            + error.to_string().as_str()
-                    ),
-                };
-
-            let output_value_template = TemplateValue::new(metadata.output_type.into());
-            let public_data_template =
-                match serde_json::to_string_pretty(&output_value_template.into_json()) {
-                    Ok(json) => (json + "\n").into_bytes(),
-                    Err(error) => panic!(
-                        zinc_const::panic::DATA_SERIALIZATION.to_owned()
-                            + error.to_string().as_str()
-                    ),
-                };
-
-            data.insert(
-                metadata.entry_name,
-                Entry::new(bytecode, witness_template, public_data_template),
-            );
-        }
-
-        for (entry_id, test) in self.tests.into_iter() {
-            let mut instructions = self.instructions.clone();
-            instructions[0] = Instruction::Call(zinc_bytecode::Call::new(entry_id, 0));
-            instructions[1] = Instruction::Exit(zinc_bytecode::Exit::new(0));
-
-            if optimize_dead_function_elimination {
-                EliminationOptimizer::optimize(
-                    entry_id,
-                    &mut instructions,
-                    self.function_addresses.clone(),
-                );
-            } else {
-                EliminationOptimizer::set_addresses(&mut instructions, &self.function_addresses);
-            };
-
-            Self::print_instructions(instructions.as_slice());
-
-            let bytecode = match self.contract_storage.as_ref() {
-                Some(storage) => {
-                    let storage = storage
-                        .iter()
-                        .map(|(name, r#type)| (name.to_owned(), r#type.to_owned().into()))
-                        .collect();
-
-                    BytecodeProgram::new_contract_unit_test(
-                        self.name.clone(),
-                        instructions,
-                        storage,
-                        BytecodeUnitTest::new(
-                            test.name.clone(),
-                            test.should_panic,
-                            test.is_ignored,
+        match self.contract_storage.take() {
+            Some(storage) => {
+                let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
+                for (unique_id, unit_test) in self.unit_tests.into_iter() {
+                    let address = self.function_addresses.get(&unique_id).cloned().unwrap();
+                    unit_tests.insert(
+                        unit_test.name,
+                        ContractUnitTest::new(
+                            address,
+                            unit_test.should_panic,
+                            unit_test.is_ignored,
                         ),
-                    )
+                    );
                 }
-                None => BytecodeProgram::new_circuit_unit_test(
-                    self.name.clone(),
-                    instructions,
-                    BytecodeUnitTest::new(test.name.clone(), test.should_panic, test.is_ignored),
-                ),
+
+                let mut methods = HashMap::with_capacity(self.methods.len());
+                for (unique_id, method) in self.methods.into_iter() {
+                    let address = self.function_addresses.get(&unique_id).cloned().unwrap();
+                    let input = method.input_fields_as_struct().into();
+                    let output = method.output_type.into();
+                    methods.insert(method.name, ContractMethod::new(input, output, address));
+                }
+
+                let storage = storage
+                    .into_iter()
+                    .map(|(name, r#type)| (name, r#type.into()))
+                    .collect();
+
+                BytecodeProgram::new_contract(
+                    self.name,
+                    self.instructions,
+                    storage,
+                    methods,
+                    unit_tests,
+                )
             }
-            .into_bytes();
+            None => {
+                let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
+                for (unique_id, unit_test) in self.unit_tests.into_iter() {
+                    let address = self.function_addresses.get(&unique_id).cloned().unwrap();
+                    unit_tests.insert(
+                        unit_test.name,
+                        CircuitUnitTest::new(address, unit_test.should_panic, unit_test.is_ignored),
+                    );
+                }
 
-            data.insert(test.name, Entry::new_test(bytecode));
+                let entry = self
+                    .methods
+                    .into_iter()
+                    .map(|(_name, entry)| entry)
+                    .collect::<Vec<Method>>()
+                    .remove(0);
+
+                let input = entry.input_fields_as_struct().into();
+                let output = entry.output_type.into();
+                BytecodeProgram::new_circuit(
+                    self.name,
+                    self.instructions,
+                    input,
+                    output,
+                    unit_tests,
+                )
+            }
         }
-
-        data
+        //            if optimize_dead_function_elimination {
+        //                EliminationOptimizer::optimize(
+        //                    entry_id,
+        //                    &mut instructions,
+        //                    self.function_addresses.clone(),
+        //                );
+        //            } else {
+        //                EliminationOptimizer::set_addresses(&mut instructions, &self.function_addresses);
+        //            };
     }
 
     ///

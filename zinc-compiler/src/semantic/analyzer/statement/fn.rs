@@ -91,10 +91,18 @@ impl Analyzer {
 
         let mut scope_stack = ScopeStack::new(scope);
 
+        let mut is_mutable = false;
+
         let mut arguments = Vec::with_capacity(statement.argument_bindings.len());
         for (index, argument_binding) in statement.argument_bindings.iter().enumerate() {
             let identifier = match argument_binding.variant {
-                BindingPatternVariant::Binding { ref identifier, .. } => identifier.name.to_owned(),
+                BindingPatternVariant::Binding {
+                    ref identifier,
+                    is_mutable: _is_mutable,
+                } => {
+                    is_mutable = _is_mutable;
+                    identifier.name.to_owned()
+                }
                 BindingPatternVariant::Wildcard => continue,
                 BindingPatternVariant::SelfAlias { .. } => {
                     if index != 0 {
@@ -224,6 +232,7 @@ impl Analyzer {
         let intermediate = GeneratorFunctionStatement::new(
             location,
             statement.identifier.name,
+            is_mutable,
             arguments,
             intermediate,
             expected_type,
@@ -445,6 +454,7 @@ impl Analyzer {
         let intermediate = GeneratorFunctionStatement::new(
             location,
             statement.identifier.name,
+            false,
             vec![],
             intermediate,
             Type::Unit(None),

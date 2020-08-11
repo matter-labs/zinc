@@ -419,7 +419,7 @@ contract Stableswap {
         result
     }
 
-    pub fn get_D(xp: Balances, amp: Integer) -> Integer {
+    fn get_D(xp: Balances, amp: Integer) -> Integer {
         let mut S: Integer = ZERO;
 
         for i in 0..N_COINS {

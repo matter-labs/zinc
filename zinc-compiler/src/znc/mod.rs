@@ -48,7 +48,7 @@ fn main_inner() -> Result<(), Error> {
 
     let bytecode = Source::try_from_entry(&args.source_path)?.compile("stableswap".to_owned())?;
     let compiled_entries =
-        State::unwrap_rc(bytecode).into_entries(args.optimize_dead_function_elimination);
+        State::unwrap_rc(bytecode).into_methods(args.optimize_dead_function_elimination);
 
     for (entry_name, entry) in compiled_entries.into_iter() {
         let mut bytecode_path = args.build_path.clone();

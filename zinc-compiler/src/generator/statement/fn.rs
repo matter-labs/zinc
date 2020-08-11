@@ -24,6 +24,8 @@ pub struct Statement {
     pub location: Location,
     /// The function name.
     pub identifier: String,
+    /// Whether the function can mutate its arguments.
+    pub is_mutable: bool,
     /// The function arguments, where the compile time only ones like `()` are already filtered out.
     pub input_arguments: Vec<(String, Type)>,
     /// The function body.
@@ -48,6 +50,7 @@ impl Statement {
     pub fn new(
         location: Location,
         identifier: String,
+        is_mutable: bool,
         input_arguments: Vec<(String, SemanticType)>,
         body: Expression,
         output_type: SemanticType,
@@ -69,6 +72,7 @@ impl Statement {
         Self {
             location,
             identifier,
+            is_mutable,
             input_arguments,
             body,
             output_type,
@@ -89,6 +93,7 @@ impl IBytecodeWritable for Statement {
                 self.location,
                 self.type_id,
                 self.identifier,
+                self.is_mutable,
                 self.input_arguments.clone(),
                 self.output_type,
             );

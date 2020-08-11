@@ -32,7 +32,7 @@ pub enum Type {
     Structure(Vec<(String, Type)>),
     /// The contract type, which behaves almost like a structure, but its size is zero.
     /// The zero size prevents the `self` contract alias to be considered as a part of contract
-    /// entry input, since `self` is used to address the contract storage, but not the entry input.
+    /// method input, since `self` is used to address the contract storage, but not the data stack.
     Contract(Vec<(String, Type)>),
 }
 
@@ -73,7 +73,7 @@ impl Type {
 
     ///
     /// Wraps the type into a structure, which consists of the contract output result itself and a
-    /// field for the contract storage root hash, which is also an implicit part of the entry output.
+    /// field for the contract storage root hash, which is also an implicit part of the method output.
     ///
     pub fn into_contract_metadata(self) -> Self {
         Self::Structure(vec![
@@ -85,8 +85,8 @@ impl Type {
     ///
     /// Returns the type size.
     ///
-    /// Skips the contract values since they are not supposed to be passed from the entry input file,
-    /// but are read from the contract storage.
+    /// Skips the contract values since they are not supposed to be passed from the input file,
+    /// but instead are read from the contract storage.
     ///
     pub fn size(&self) -> usize {
         match self {

@@ -16,8 +16,8 @@ use zinc_postgres::Client as PostgresqlClient;
 pub struct SharedData {
     /// The PostgreSQL async client.
     pub postgresql_client: PostgresqlClient,
-    /// The precompiled program entries.
-    pub programs: HashMap<i32, HashMap<String, BytecodeProgram>>,
+    /// The precompiled contract methods.
+    pub contracts: HashMap<i64, BytecodeProgram>,
 }
 
 impl SharedData {
@@ -27,42 +27,16 @@ impl SharedData {
     pub fn new(postgresql_client: PostgresqlClient) -> Self {
         Self {
             postgresql_client,
-            programs: HashMap::new(),
+            contracts: HashMap::new(),
         }
     }
 
     ///
-    /// Consumes the compiled program state, appending the entry points to the in-memory
-    /// program cache at the specified `key`, which uniquely identifies the program.
+    /// Consumes the compiled contract state, inserting the compiled program into the in-memory
+    /// contract cache at the specified `key`, which uniquely identifies the contract.
     ///
-    pub fn append_programs(
-        &mut self,
-        key: i32,
-        compiled: State,
-    ) -> HashMap<String, BytecodeProgram> {
-        for (name, entry) in compiled.into_entries(true).into_iter() {
-            let program = BytecodeProgram::from_bytes(entry.into_bytecode().as_slice())
-                .expect(zinc_const::panic::DATA_SERIALIZATION);
-
-            self.programs
-                .entry(key)
-                .or_insert_with(HashMap::new)
-                .insert(name, program);
-        }
-
-        self.programs
-            .get(&key)
-            .cloned()
-            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
-    }
-
-    ///
-    /// Gets a compiled program entry from the in-memory cache by `program_key` and `entry_name`.
-    ///
-    pub fn get_entry(&self, key: i32, entry_name: &str) -> Option<BytecodeProgram> {
-        self.programs
-            .get(&key)
-            .and_then(|entries| entries.get(entry_name).cloned())
+    pub fn insert_contract(&mut self, key: i64, state: State) {
+        self.contracts.insert(key, state.into_program(true));
     }
 
     ///

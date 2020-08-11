@@ -50,7 +50,7 @@ impl Instance {
         IntermediateProgram::new(scope.borrow().get_intermediate()).write_all(bytecode.clone());
 
         let entry = State::unwrap_rc(bytecode)
-            .into_entries(true)
+            .into_methods(true)
             .remove(entry.as_str())
             .ok_or_else(|| Error::EntryNotFound(entry))?;
 
