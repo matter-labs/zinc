@@ -10,7 +10,7 @@ use num_bigint::ToBigInt;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
-use zinc_bytecode::ScalarType;
+use zinc_build::ScalarType;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::execution_state::data_stack::DataStack;

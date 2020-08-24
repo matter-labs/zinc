@@ -28,32 +28,36 @@ pub struct Command {
     /// The path to the binary bytecode file.
     #[structopt(
         long = "binary",
+        parse(from_os_str),
         help = "Path to the bytecode file",
-        default_value = "./build/main.znb"
+        default_value = zinc_const::path::BINARY,
     )]
     pub binary_path: PathBuf,
 
     /// The path to the witness JSON file.
     #[structopt(
         long = "witness",
+        parse(from_os_str),
         help = "Path to the witness JSON file",
-        default_value = "./data/main_witness.json"
+        default_value = zinc_const::path::WITNESS,
     )]
     pub witness_path: PathBuf,
 
     /// The path to the public data JSON file.
     #[structopt(
         long = "public-data",
+        parse(from_os_str),
         help = "Path to the public data JSON file",
-        default_value = "./data/main_public_data.json"
+        default_value = zinc_const::path::PUBLIC_DATA,
     )]
     pub public_data_path: PathBuf,
 
     /// The path to the proving key file.
     #[structopt(
         long = "proving-key",
+        parse(from_os_str),
         help = "Path to the proving key file",
-        default_value = "./data/proving_key"
+        default_value = zinc_const::path::PROVING_KEY,
     )]
     pub proving_key: PathBuf,
 }

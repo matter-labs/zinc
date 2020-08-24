@@ -4,8 +4,8 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Rem;
-use zinc_bytecode::ScalarType;
+use zinc_build::Rem;
+use zinc_build::ScalarType;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -46,37 +46,25 @@ mod test {
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
-    use zinc_bytecode::IntegerType;
+    use zinc_build::IntegerType;
 
     #[test]
     fn test_rem() -> Result<(), TestingError> {
         let _ = env_logger::builder().is_test(true).try_init();
 
         TestRunner::new()
-            .push(zinc_bytecode::Push::new(9.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(4.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Rem)
-            .push(zinc_bytecode::Push::new(9.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(
-                (-4).into(),
-                IntegerType::I8.into(),
-            ))
-            .push(zinc_bytecode::Rem)
-            .push(zinc_bytecode::Push::new(
-                (-9).into(),
-                IntegerType::I8.into(),
-            ))
-            .push(zinc_bytecode::Push::new(4.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Rem)
-            .push(zinc_bytecode::Push::new(
-                (-9).into(),
-                IntegerType::I8.into(),
-            ))
-            .push(zinc_bytecode::Push::new(
-                (-4).into(),
-                IntegerType::I8.into(),
-            ))
-            .push(zinc_bytecode::Rem)
+            .push(zinc_build::Push::new(9.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(4.into(), IntegerType::I8.into()))
+            .push(zinc_build::Rem)
+            .push(zinc_build::Push::new(9.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new((-4).into(), IntegerType::I8.into()))
+            .push(zinc_build::Rem)
+            .push(zinc_build::Push::new((-9).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(4.into(), IntegerType::I8.into()))
+            .push(zinc_build::Rem)
+            .push(zinc_build::Push::new((-9).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new((-4).into(), IntegerType::I8.into()))
+            .push(zinc_build::Rem)
             .test(&[3, 3, 1, 1])
     }
 }

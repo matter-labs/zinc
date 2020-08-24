@@ -8,8 +8,8 @@ use std::rc::Rc;
 use num_bigint::BigInt;
 use num_traits::Zero;
 
-use zinc_bytecode::Instruction;
-use zinc_bytecode::ScalarType;
+use zinc_build::Instruction;
+use zinc_build::ScalarType;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::state::State;
@@ -49,7 +49,7 @@ impl IBytecodeWritable for Place {
                 SemanticPlaceElement::IndexConstant { constant, access } => {
                     IntegerConstant::from_semantic(&constant).write_all(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::Cast(zinc_bytecode::Cast::new(ScalarType::Field)),
+                        Instruction::Cast(zinc_build::Cast::new(ScalarType::Field)),
                         Some(self.identifier.location),
                     );
                     IntegerConstant::new(
@@ -59,18 +59,18 @@ impl IBytecodeWritable for Place {
                     )
                     .write_all(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::Mul(zinc_bytecode::Mul),
+                        Instruction::Mul(zinc_build::Mul),
                         Some(self.identifier.location),
                     );
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::Add(zinc_bytecode::Add),
+                        Instruction::Add(zinc_build::Add),
                         Some(self.identifier.location),
                     );
                 }
                 SemanticPlaceElement::IndexExpression { expression, access } => {
                     expression.write_all(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::Cast(zinc_bytecode::Cast::new(ScalarType::Field)),
+                        Instruction::Cast(zinc_build::Cast::new(ScalarType::Field)),
                         Some(self.identifier.location),
                     );
                     IntegerConstant::new(
@@ -80,11 +80,11 @@ impl IBytecodeWritable for Place {
                     )
                     .write_all(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::Mul(zinc_bytecode::Mul),
+                        Instruction::Mul(zinc_build::Mul),
                         Some(self.identifier.location),
                     );
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::Add(zinc_bytecode::Add),
+                        Instruction::Add(zinc_build::Add),
                         Some(self.identifier.location),
                     );
                 }
@@ -96,7 +96,7 @@ impl IBytecodeWritable for Place {
                     )
                     .write_all(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::Add(zinc_bytecode::Add),
+                        Instruction::Add(zinc_build::Add),
                         Some(self.identifier.location),
                     );
                 }
@@ -108,7 +108,7 @@ impl IBytecodeWritable for Place {
                     )
                     .write_all(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::Add(zinc_bytecode::Add),
+                        Instruction::Add(zinc_build::Add),
                         Some(self.identifier.location),
                     );
                 }
@@ -120,7 +120,7 @@ impl IBytecodeWritable for Place {
                     )
                     .write_all(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::Add(zinc_bytecode::Add),
+                        Instruction::Add(zinc_build::Add),
                         Some(self.identifier.location),
                     );
                 }

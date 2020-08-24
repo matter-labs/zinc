@@ -3,7 +3,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_bytecode::ScalarType;
+use zinc_build::ScalarType;
 
 use crate::auto_const;
 use crate::error::RuntimeError;

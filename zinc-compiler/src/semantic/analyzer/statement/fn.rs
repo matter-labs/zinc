@@ -96,15 +96,12 @@ impl Analyzer {
         let mut arguments = Vec::with_capacity(statement.argument_bindings.len());
         for (index, argument_binding) in statement.argument_bindings.iter().enumerate() {
             let identifier = match argument_binding.variant {
-                BindingPatternVariant::Binding {
-                    ref identifier,
-                    is_mutable: _is_mutable,
-                } => {
-                    is_mutable = _is_mutable;
-                    identifier.name.to_owned()
-                }
+                BindingPatternVariant::Binding { ref identifier, .. } => identifier.name.to_owned(),
                 BindingPatternVariant::Wildcard => continue,
-                BindingPatternVariant::SelfAlias { .. } => {
+                BindingPatternVariant::SelfAlias {
+                    is_mutable: _is_mutable,
+                    ..
+                } => {
                     if index != 0 {
                         return Err(Error::Element(ElementError::Type(TypeError::Function(
                             FunctionError::FunctionMethodSelfNotFirst {
@@ -115,6 +112,8 @@ impl Analyzer {
                             },
                         ))));
                     }
+
+                    is_mutable = _is_mutable;
 
                     Keyword::SelfLowercase.to_string()
                 }

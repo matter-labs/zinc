@@ -2,9 +2,6 @@
 //! The debug constraint system.
 //!
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::Index;
@@ -20,17 +17,15 @@ pub struct Main<E: IEngine> {
 
     satisfied: bool,
     constraints_num: usize,
-    unconstrained: Rc<RefCell<bool>>,
 }
 
 impl<E: IEngine> Main<E> {
-    pub fn new(unconstrained: Rc<RefCell<bool>>) -> Self {
+    pub fn new() -> Self {
         let mut cs = Self {
             inputs: Vec::new(),
             witness: Vec::new(),
             satisfied: true,
             constraints_num: 0,
-            unconstrained,
         };
 
         cs.inputs.push(E::Fr::one());
@@ -62,10 +57,6 @@ impl<E: IEngine> Main<E> {
     pub fn num_constraints(&self) -> usize {
         self.constraints_num
     }
-
-    pub fn is_unconstrained(&self) -> bool {
-        *self.unconstrained.borrow()
-    }
 }
 
 impl<E: IEngine> ConstraintSystem<E> for Main<E> {
@@ -77,11 +68,6 @@ impl<E: IEngine> ConstraintSystem<E> for Main<E> {
         A: FnOnce() -> AR,
         AR: Into<String>,
     {
-        if self.is_unconstrained() {
-            f()?;
-            return Ok(<Self as ConstraintSystem<E>>::one());
-        }
-
         let value = f()?;
         self.witness.push(value);
         Ok(Variable::new_unchecked(Index::Aux(self.witness.len() - 1)))
@@ -93,11 +79,6 @@ impl<E: IEngine> ConstraintSystem<E> for Main<E> {
         A: FnOnce() -> AR,
         AR: Into<String>,
     {
-        if self.is_unconstrained() {
-            f()?;
-            return Ok(<Self as ConstraintSystem<E>>::one());
-        }
-
         let value = f()?;
         self.inputs.push(value);
         Ok(Variable::new_unchecked(Index::Input(self.inputs.len() - 1)))
@@ -111,10 +92,6 @@ impl<E: IEngine> ConstraintSystem<E> for Main<E> {
         LB: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
         LC: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
     {
-        if self.is_unconstrained() {
-            return;
-        }
-
         let zero = LinearCombination::zero();
         let value_a = Self::eval_lc(a(zero.clone()).as_ref(), &self.inputs, &self.witness);
         let value_b = Self::eval_lc(b(zero.clone()).as_ref(), &self.inputs, &self.witness);

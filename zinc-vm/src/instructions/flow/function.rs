@@ -2,8 +2,8 @@
 //! The function instructions.
 //!
 
-use zinc_bytecode::Call;
-use zinc_bytecode::Return;
+use zinc_build::Call;
+use zinc_build::Return;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
@@ -30,22 +30,22 @@ mod tests {
     fn test() -> Result<(), TestingError> {
         TestRunner::new()
             // call main
-            .push(zinc_bytecode::Call::new(11, 0))
+            .push(zinc_build::Call::new(11, 0))
             // fn min(field, field) -> field
-            .push(zinc_bytecode::Load::new(0, 1))
-            .push(zinc_bytecode::Load::new(1, 1))
-            .push(zinc_bytecode::Lt)
-            .push(zinc_bytecode::If)
-            .push(zinc_bytecode::Load::new(0, 1))
-            .push(zinc_bytecode::Else)
-            .push(zinc_bytecode::Load::new(1, 1))
-            .push(zinc_bytecode::EndIf)
-            .push(zinc_bytecode::Return::new(1))
+            .push(zinc_build::Load::new(0, 1))
+            .push(zinc_build::Load::new(1, 1))
+            .push(zinc_build::Lt)
+            .push(zinc_build::If)
+            .push(zinc_build::Load::new(0, 1))
+            .push(zinc_build::Else)
+            .push(zinc_build::Load::new(1, 1))
+            .push(zinc_build::EndIf)
+            .push(zinc_build::Return::new(1))
             // fn main
-            .push(zinc_bytecode::Push::new_field(42.into()))
-            .push(zinc_bytecode::Push::new_field(5.into()))
-            .push(zinc_bytecode::Push::new_field(3.into()))
-            .push(zinc_bytecode::Call::new(2, 2))
+            .push(zinc_build::Push::new_field(42.into()))
+            .push(zinc_build::Push::new_field(5.into()))
+            .push(zinc_build::Push::new_field(3.into()))
+            .push(zinc_build::Call::new(2, 2))
             .test(&[3, 42])
     }
 }

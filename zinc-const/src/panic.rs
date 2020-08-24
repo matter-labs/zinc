@@ -35,3 +35,6 @@ pub static VALIDATED_DURING_SEMANTIC_ANALYSIS: &str = "Validated during semantic
 /// The target code generation compiler phase responsibility.
 pub static VALIDATED_DURING_TARGET_CODE_GENERATION: &str =
     "Validated during target code generation";
+
+/// The virtual machine runtime execution responsibility.
+pub static VALIDATED_DURING_RUNTIME_EXECUTION: &str = "Validated during runtime execution";

@@ -5,7 +5,7 @@ use num_traits::ToPrimitive;
 use franklin_crypto::bellman::pairing::ff::PrimeField;
 use franklin_crypto::bellman::pairing::ff::PrimeFieldRepr;
 
-use zinc_bytecode::DataType;
+use zinc_build::Type as BuildType;
 
 use crate::core::contract::storage::leaf::Leaf as StorageLeaf;
 use crate::core::contract::storage::sha256;
@@ -21,7 +21,7 @@ pub struct Storage<E: IEngine> {
 }
 
 impl<E: IEngine> Storage<E> {
-    pub fn new(values: Vec<DataType>) -> Self {
+    pub fn new(values: Vec<BuildType>) -> Self {
         let depth = (values.len() as f64).log2().ceil() as usize;
         let hash_tree_size = 1 << (depth + 1);
         let leaf_values_count = 1 << depth;

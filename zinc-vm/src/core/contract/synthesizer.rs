@@ -2,9 +2,7 @@
 //! The virtual machine contract synthesizer.
 //!
 
-use std::cell::RefCell;
 use std::marker::PhantomData;
-use std::rc::Rc;
 
 use num_bigint::BigInt;
 
@@ -12,7 +10,7 @@ use franklin_crypto::bellman;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::SynthesisError;
 
-use zinc_bytecode::Contract as BytecodeContract;
+use zinc_build::Contract as BytecodeContract;
 
 use crate::constraint_systems::dedup::Dedup as DedupCS;
 use crate::constraint_systems::logging::Logging as LoggingCS;
@@ -27,6 +25,7 @@ pub struct Synthesizer<'a, E: IEngine, S: IMerkleTree<E>> {
     pub inputs: Option<Vec<BigInt>>,
     pub output: &'a mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
     pub bytecode: BytecodeContract,
+    pub method_name: String,
     pub storage: S,
 
     pub _pd: PhantomData<E>,
@@ -43,14 +42,14 @@ where
             self.storage,
         )?;
 
-        let mut contract = State::new(
-            DedupCS::new(LoggingCS::new(cs)),
-            storage,
-            Rc::new(RefCell::new(false)),
-            false,
-        );
-        *self.output =
-            Some(contract.run(self.bytecode, self.inputs.as_deref(), |_| {}, |_| Ok(())));
+        let mut contract = State::new(DedupCS::new(LoggingCS::new(cs)), storage, false);
+        *self.output = Some(contract.run(
+            self.bytecode,
+            self.method_name,
+            self.inputs.as_deref(),
+            |_| {},
+            |_| Ok(()),
+        ));
 
         Ok(())
     }

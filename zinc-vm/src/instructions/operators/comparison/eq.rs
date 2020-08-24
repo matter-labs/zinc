@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Eq;
+use zinc_build::Eq;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -32,15 +32,15 @@ mod test {
     #[test]
     fn test_eq() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new_field(1.into()))
-            .push(zinc_bytecode::Push::new_field(2.into()))
-            .push(zinc_bytecode::Eq)
-            .push(zinc_bytecode::Push::new_field(2.into()))
-            .push(zinc_bytecode::Push::new_field(2.into()))
-            .push(zinc_bytecode::Eq)
-            .push(zinc_bytecode::Push::new_field(2.into()))
-            .push(zinc_bytecode::Push::new_field(1.into()))
-            .push(zinc_bytecode::Eq)
+            .push(zinc_build::Push::new_field(1.into()))
+            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Eq)
+            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Eq)
+            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Push::new_field(1.into()))
+            .push(zinc_build::Eq)
             .test(&[0, 1, 0])
     }
 }

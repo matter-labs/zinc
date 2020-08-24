@@ -2,7 +2,7 @@
 //! The `Exit` instruction.
 //!
 
-use zinc_bytecode::Exit;
+use zinc_build::Exit;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
@@ -24,9 +24,9 @@ mod tests {
     #[test]
     fn test_exit() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new_field(1.into()))
-            .push(zinc_bytecode::Exit::new(0))
-            .push(zinc_bytecode::Push::new_field(2.into()))
+            .push(zinc_build::Push::new_field(1.into()))
+            .push(zinc_build::Exit::new(0))
+            .push(zinc_build::Push::new_field(2.into()))
             .test(&[1])
     }
 }

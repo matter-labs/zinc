@@ -2,8 +2,8 @@
 //! The loop instructions.
 //!
 
-use zinc_bytecode::LoopBegin;
-use zinc_bytecode::LoopEnd;
+use zinc_build::LoopBegin;
+use zinc_build::LoopEnd;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
@@ -31,22 +31,22 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
 
         TestRunner::new()
-            .push(zinc_bytecode::Push::new_field(0.into()))
-            .push(zinc_bytecode::Store::new(0, 1))
-            .push(zinc_bytecode::Push::new_field(0.into()))
-            .push(zinc_bytecode::Store::new(1, 1))
-            .push(zinc_bytecode::LoopBegin::new(10))
-            .push(zinc_bytecode::Load::new(0, 1))
-            .push(zinc_bytecode::Push::new_field(1.into()))
-            .push(zinc_bytecode::Add)
-            .push(zinc_bytecode::Store::new(0, 1))
-            .push(zinc_bytecode::Load::new(0, 1))
-            .push(zinc_bytecode::Load::new(1, 1))
-            .push(zinc_bytecode::Add)
-            .push(zinc_bytecode::Store::new(1, 1))
-            .push(zinc_bytecode::LoopEnd)
-            .push(zinc_bytecode::Load::new(0, 1))
-            .push(zinc_bytecode::Load::new(1, 1))
+            .push(zinc_build::Push::new_field(0.into()))
+            .push(zinc_build::Store::new(0, 1))
+            .push(zinc_build::Push::new_field(0.into()))
+            .push(zinc_build::Store::new(1, 1))
+            .push(zinc_build::LoopBegin::new(10))
+            .push(zinc_build::Load::new(0, 1))
+            .push(zinc_build::Push::new_field(1.into()))
+            .push(zinc_build::Add)
+            .push(zinc_build::Store::new(0, 1))
+            .push(zinc_build::Load::new(0, 1))
+            .push(zinc_build::Load::new(1, 1))
+            .push(zinc_build::Add)
+            .push(zinc_build::Store::new(1, 1))
+            .push(zinc_build::LoopEnd)
+            .push(zinc_build::Load::new(0, 1))
+            .push(zinc_build::Load::new(1, 1))
             .test(&[55, 10])
     }
 }

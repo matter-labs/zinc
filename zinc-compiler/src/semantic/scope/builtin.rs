@@ -5,7 +5,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use zinc_bytecode::FunctionIdentifier;
+use zinc_build::FunctionIdentifier;
 
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::structure::Structure as StructureType;

@@ -2,9 +2,7 @@
 //! The virtual machine circuit facade.
 //!
 
-use std::cell::RefCell;
 use std::marker::PhantomData;
-use std::rc::Rc;
 
 use colored::Colorize;
 use num_bigint::BigInt;
@@ -15,8 +13,8 @@ use franklin_crypto::bellman::groth16::Proof;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
-use zinc_bytecode::Circuit as BytecodeCircuit;
-use zinc_bytecode::TemplateValue;
+use zinc_build::Circuit as BuildCircuit;
+use zinc_build::Value as BuildValue;
 use zinc_const::UnitTestExitCode;
 
 use crate::constraint_systems::main::Main as MainCS;
@@ -27,22 +25,21 @@ use crate::error::RuntimeError;
 use crate::IEngine;
 
 pub struct Facade {
-    inner: BytecodeCircuit,
+    inner: BuildCircuit,
 }
 
 impl Facade {
-    pub fn new(inner: BytecodeCircuit) -> Self {
+    pub fn new(inner: BuildCircuit) -> Self {
         Self { inner }
     }
 
-    pub fn run<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
-        let unconstrained = Rc::new(RefCell::new(false));
-        let cs = MainCS::<Bn256>::new(unconstrained.clone());
+    pub fn run<E: IEngine>(self, input: BuildValue) -> Result<BuildValue, RuntimeError> {
+        let cs = MainCS::<Bn256>::new();
 
         let inputs_flat = input.into_flat_values();
         let output_type = self.inner.output.to_owned();
 
-        let mut state = CircuitState::new(cs, unconstrained, false);
+        let mut state = CircuitState::new(cs, false);
 
         let mut num_constraints = 0;
         let result = state.run(
@@ -72,18 +69,18 @@ impl Facade {
             .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
             .collect::<Vec<_>>();
 
-        let value = TemplateValue::from_flat_values(output_type, &output_flat);
+        let value = BuildValue::from_flat_values(output_type, &output_flat);
 
         Ok(value)
     }
 
-    pub fn debug<E: IEngine>(self, input: TemplateValue) -> Result<TemplateValue, RuntimeError> {
+    pub fn debug<E: IEngine>(self, input: BuildValue) -> Result<BuildValue, RuntimeError> {
         let cs = TestConstraintSystem::<Bn256>::new();
 
         let inputs_flat = input.into_flat_values();
         let output_type = self.inner.output.to_owned();
 
-        let mut state = CircuitState::new(cs, Rc::new(RefCell::new(false)), true);
+        let mut state = CircuitState::new(cs, true);
 
         let mut num_constraints = 0;
         let result = state.run(
@@ -129,53 +126,49 @@ impl Facade {
             .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
             .collect::<Vec<_>>();
 
-        let value = TemplateValue::from_flat_values(output_type, &output_flat);
+        let value = BuildValue::from_flat_values(output_type, &output_flat);
 
         Ok(value)
     }
 
-    pub fn test<E: IEngine>(mut self) -> Result<UnitTestExitCode, RuntimeError> {
-        let unit_test = self
-            .inner
-            .unit_test
-            .take()
-            .ok_or(RuntimeError::UnitTestDataMissing)?;
+    pub fn test<E: IEngine>(self) -> Result<UnitTestExitCode, RuntimeError> {
+        let mut exit_code = UnitTestExitCode::Passed;
 
-        if unit_test.is_ignored {
-            println!("test {} ... {}", unit_test.name, "ignore".yellow());
-            return Ok(UnitTestExitCode::Ignored);
+        for (name, unit_test) in self.inner.unit_tests.clone().into_iter() {
+            if unit_test.is_ignored {
+                println!("test {} ... {}", name, "ignore".yellow());
+                return Ok(UnitTestExitCode::Ignored);
+            }
+
+            let cs = TestConstraintSystem::<Bn256>::new();
+
+            let mut state = CircuitState::new(cs, true);
+
+            let result = state.run(self.inner.clone(), Some(&[]), |_| {}, |_| Ok(()));
+            match result {
+                Err(_) if unit_test.should_panic => {
+                    println!("test {} ... {} (failed)", name, "ok".green());
+                }
+                Ok(_) if unit_test.should_panic => {
+                    println!(
+                        "test {} ... {} (should have failed)",
+                        name,
+                        "error".bright_red()
+                    );
+                    exit_code = UnitTestExitCode::Failed;
+                }
+
+                Ok(_) => {
+                    println!("test {} ... {}", name, "ok".green());
+                }
+                Err(_) => {
+                    println!("test {} ... {}", name, "error".bright_red());
+                    exit_code = UnitTestExitCode::Failed;
+                }
+            };
         }
 
-        let cs = TestConstraintSystem::<Bn256>::new();
-
-        let mut state = CircuitState::new(cs, Rc::new(RefCell::new(false)), true);
-
-        let result = state.run(self.inner, Some(&[]), |_| {}, |_| Ok(()));
-        let code = match result {
-            Ok(_) if unit_test.should_panic => {
-                println!(
-                    "test {} ... {} (should have failed)",
-                    unit_test.name,
-                    "error".bright_red()
-                );
-                UnitTestExitCode::Failed
-            }
-            Err(_) if unit_test.should_panic => {
-                println!("test {} ... {} (failed)", unit_test.name, "ok".green());
-                UnitTestExitCode::Passed
-            }
-
-            Ok(_) => {
-                println!("test {} ... {}", unit_test.name, "ok".green());
-                UnitTestExitCode::Passed
-            }
-            Err(_) => {
-                println!("test {} ... {}", unit_test.name, "error".bright_red());
-                UnitTestExitCode::Failed
-            }
-        };
-
-        Ok(code)
+        Ok(exit_code)
     }
 
     pub fn setup<E: IEngine>(self) -> Result<Parameters<E>, RuntimeError> {
@@ -201,12 +194,12 @@ impl Facade {
     pub fn prove<E: IEngine>(
         self,
         params: Parameters<E>,
-        witness: TemplateValue,
-    ) -> Result<(TemplateValue, Proof<E>), RuntimeError> {
+        input: BuildValue,
+    ) -> Result<(BuildValue, Proof<E>), RuntimeError> {
         let mut result = None;
         let rng = &mut rand::thread_rng();
 
-        let inputs_flat = witness.into_flat_values();
+        let inputs_flat = input.into_flat_values();
         let output_type = self.inner.output.to_owned();
 
         let synthesizable = CircuitSynthesizer {
@@ -231,7 +224,7 @@ impl Facade {
                         .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
                         .collect();
 
-                    let value = TemplateValue::from_flat_values(output_type, &output_flat);
+                    let value = BuildValue::from_flat_values(output_type, &output_flat);
 
                     Ok((value, proof))
                 }

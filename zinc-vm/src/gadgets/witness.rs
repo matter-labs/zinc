@@ -8,7 +8,7 @@ use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::Assignment;
 
-use zinc_bytecode::ScalarType;
+use zinc_build::ScalarType;
 
 use crate::error::RuntimeError;
 use crate::gadgets;

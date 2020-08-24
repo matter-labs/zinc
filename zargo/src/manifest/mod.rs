@@ -123,8 +123,8 @@ version = "{}"
     fn file_name() -> String {
         format!(
             "{}.{}",
-            zinc_const::file_names::MANIFEST,
-            zinc_const::extensions::MANIFEST
+            zinc_const::file_name::MANIFEST,
+            zinc_const::extension::MANIFEST
         )
     }
 }

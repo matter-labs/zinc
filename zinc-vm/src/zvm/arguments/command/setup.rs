@@ -9,7 +9,7 @@ use structopt::StructOpt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
-use zinc_bytecode::Program as BytecodeProgram;
+use zinc_build::Program as BuildProgram;
 
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
@@ -38,6 +38,10 @@ pub struct Command {
     /// The path to the verifying key file.
     #[structopt(long = "verifying-key", help = "The verifying key path")]
     pub verifying_key_path: PathBuf,
+
+    /// The method name to call, if the program is a contract.
+    #[structopt(long = "method", help = "The method name")]
+    pub method: Option<String>,
 }
 
 impl IExecutable for Command {
@@ -46,21 +50,22 @@ impl IExecutable for Command {
     fn execute(self) -> Result<i32, Self::Error> {
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let program =
-            BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
+        let program = BuildProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         let params = match program {
-            BytecodeProgram::Circuit(circuit) => CircuitFacade::new(circuit).setup::<Bn256>()?,
-            BytecodeProgram::Contract(contract) => {
-                ContractFacade::new(contract).setup::<Bn256>()?
+            BuildProgram::Circuit(circuit) => CircuitFacade::new(circuit).setup::<Bn256>()?,
+            BuildProgram::Contract(contract) => {
+                let method_name = self.method.ok_or(Error::MethodNameNotFound)?;
+                ContractFacade::new(contract).setup::<Bn256>(method_name)?
             }
         };
 
-        let pkey_file = fs::File::create(&self.proving_key_path)
-            .error_with_path(|| self.proving_key_path.to_string_lossy())?;
+        let proving_key_path = self.proving_key_path;
+        let pkey_file = fs::File::create(&proving_key_path)
+            .error_with_path(|| proving_key_path.to_string_lossy())?;
         params
             .write(pkey_file)
-            .error_with_path(|| self.proving_key_path.to_string_lossy())?;
+            .error_with_path(|| proving_key_path.to_string_lossy())?;
 
         let vk_hex = {
             let mut vk_bytes = Vec::new();
@@ -68,8 +73,9 @@ impl IExecutable for Command {
             hex::encode(vk_bytes) + "\n"
         };
 
-        fs::write(&self.verifying_key_path, vk_hex)
-            .error_with_path(|| self.verifying_key_path.to_string_lossy())?;
+        let verifying_key_path = self.verifying_key_path;
+        fs::write(&verifying_key_path, vk_hex)
+            .error_with_path(|| verifying_key_path.to_string_lossy())?;
 
         Ok(zinc_const::exit_code::SUCCESS as i32)
     }

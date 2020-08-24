@@ -7,7 +7,7 @@ use std::rc::Rc;
 
 use num_bigint::BigInt;
 
-use zinc_bytecode::Instruction;
+use zinc_build::Instruction;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::Expression;
@@ -64,7 +64,7 @@ impl IBytecodeWritable for Statement {
                     IntegerConstant::new(BigInt::from(index), false, zinc_const::bitlength::FIELD)
                         .write_all(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::StorageStore(zinc_bytecode::StorageStore::new(r#type.size())),
+                        Instruction::StorageStore(zinc_build::StorageStore::new(r#type.size())),
                         Some(self.location),
                     );
                 }
@@ -72,12 +72,12 @@ impl IBytecodeWritable for Statement {
             r#type => {
                 if let Some(scalar_type) = r#type.into() {
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::Cast(zinc_bytecode::Cast::new(scalar_type)),
+                        Instruction::Cast(zinc_build::Cast::new(scalar_type)),
                         Some(self.location),
                     );
                 }
                 bytecode.borrow_mut().push_instruction(
-                    Instruction::Store(zinc_bytecode::Store::new(address, size)),
+                    Instruction::Store(zinc_build::Store::new(address, size)),
                     Some(self.location),
                 );
             }

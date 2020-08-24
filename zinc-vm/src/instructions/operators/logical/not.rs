@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Not;
+use zinc_build::Not;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -25,7 +25,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Not {
 
 #[cfg(test)]
 mod test {
-    use zinc_bytecode::ScalarType;
+    use zinc_build::ScalarType;
 
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
@@ -33,10 +33,10 @@ mod test {
     #[test]
     fn test_not() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Not)
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Not)
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Not)
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Not)
             .test(&[0, 1])
     }
 }

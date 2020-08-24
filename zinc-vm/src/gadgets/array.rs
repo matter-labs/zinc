@@ -48,7 +48,7 @@ where
                 return Err(RuntimeError::IndexOutOfBounds {
                     lower_bound: 0,
                     upper_bound: array.len(),
-                    actual: i,
+                    found: i,
                 });
             }
             Ok(array[i].clone())
@@ -96,7 +96,7 @@ where
                 return Err(RuntimeError::IndexOutOfBounds {
                     lower_bound: 0,
                     upper_bound: array.len(),
-                    actual: i,
+                    found: i,
                 });
             }
             new_array[i] = value;

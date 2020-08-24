@@ -5,7 +5,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use zinc_bytecode::Instruction;
+use zinc_build::Instruction;
 
 use crate::generator::expression::operand::block::Expression;
 use crate::generator::r#type::Type;
@@ -124,9 +124,16 @@ impl IBytecodeWritable for Statement {
 
         self.body.write_all(bytecode.clone());
 
-        bytecode.borrow_mut().push_instruction(
-            Instruction::Return(zinc_bytecode::Return::new(output_size)),
-            Some(self.location),
-        );
+        if self.is_main || self.is_contract_entry {
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Exit(zinc_build::Exit::new(output_size)),
+                Some(self.location),
+            );
+        } else {
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Return(zinc_build::Return::new(output_size)),
+                Some(self.location),
+            );
+        }
     }
 }

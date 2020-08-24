@@ -9,7 +9,7 @@ use structopt::StructOpt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
-use zinc_bytecode::Program as BytecodeProgram;
+use zinc_build::Program as BuildProgram;
 
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
@@ -35,12 +35,11 @@ impl IExecutable for Command {
     fn execute(self) -> Result<i32, Self::Error> {
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let program =
-            BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
+        let program = BuildProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         let status = match program {
-            BytecodeProgram::Circuit(circuit) => CircuitFacade::new(circuit).test::<Bn256>()?,
-            BytecodeProgram::Contract(contract) => ContractFacade::new(contract).test::<Bn256>()?,
+            BuildProgram::Circuit(circuit) => CircuitFacade::new(circuit).test::<Bn256>()?,
+            BuildProgram::Contract(contract) => ContractFacade::new(contract).test::<Bn256>()?,
         };
 
         Ok(status as i32)

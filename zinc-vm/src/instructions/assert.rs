@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Assert;
+use zinc_build::Assert;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
@@ -35,21 +35,21 @@ mod tests {
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
-    use zinc_bytecode::ScalarType;
+    use zinc_build::ScalarType;
 
     #[test]
     fn test_assert_ok() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Assert::new(None))
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Assert::new(None))
             .test::<i32>(&[])
     }
 
     #[test]
     fn test_assert_fail() {
         let res = TestRunner::new()
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Assert::new(None))
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Assert::new(None))
             .test::<i32>(&[]);
 
         match res {
@@ -61,11 +61,11 @@ mod tests {
     #[test]
     fn test_assert_in_condition() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::If)
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Assert::new(None))
-            .push(zinc_bytecode::EndIf)
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::If)
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Assert::new(None))
+            .push(zinc_build::EndIf)
             .test::<i32>(&[])
     }
 }

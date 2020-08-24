@@ -4,8 +4,8 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Div;
-use zinc_bytecode::ScalarType;
+use zinc_build::Div;
+use zinc_build::ScalarType;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -56,7 +56,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Div {
             _ => {
                 return Err(RuntimeError::TypeError {
                     expected: "integer or field".to_string(),
-                    actual: scalar_type.to_string(),
+                    found: scalar_type.to_string(),
                 })
             }
         };
@@ -70,35 +70,23 @@ mod test {
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
-    use zinc_bytecode::IntegerType;
+    use zinc_build::IntegerType;
 
     #[test]
     fn test_div() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new((9).into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new((4).into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Div)
-            .push(zinc_bytecode::Push::new((9).into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(
-                (-4).into(),
-                IntegerType::I8.into(),
-            ))
-            .push(zinc_bytecode::Div)
-            .push(zinc_bytecode::Push::new(
-                (-9).into(),
-                IntegerType::I8.into(),
-            ))
-            .push(zinc_bytecode::Push::new((4).into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Div)
-            .push(zinc_bytecode::Push::new(
-                (-9).into(),
-                IntegerType::I8.into(),
-            ))
-            .push(zinc_bytecode::Push::new(
-                (-4).into(),
-                IntegerType::I8.into(),
-            ))
-            .push(zinc_bytecode::Div)
+            .push(zinc_build::Push::new((9).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new((4).into(), IntegerType::I8.into()))
+            .push(zinc_build::Div)
+            .push(zinc_build::Push::new((9).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new((-4).into(), IntegerType::I8.into()))
+            .push(zinc_build::Div)
+            .push(zinc_build::Push::new((-9).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new((4).into(), IntegerType::I8.into()))
+            .push(zinc_build::Div)
+            .push(zinc_build::Push::new((-9).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new((-4).into(), IntegerType::I8.into()))
+            .push(zinc_build::Div)
             .test(&[3, -3, -2, 2])
     }
 }

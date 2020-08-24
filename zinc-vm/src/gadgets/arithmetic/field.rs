@@ -50,7 +50,7 @@ mod tests {
     use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::test::TestConstraintSystem;
 
-    use zinc_bytecode::ScalarType;
+    use zinc_build::ScalarType;
 
     use crate::gadgets;
     use crate::gadgets::scalar::Scalar;

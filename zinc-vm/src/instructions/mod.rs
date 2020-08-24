@@ -14,7 +14,7 @@ pub mod noop;
 pub mod operators;
 pub mod state;
 
-use zinc_bytecode::Instruction;
+use zinc_build::Instruction;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;

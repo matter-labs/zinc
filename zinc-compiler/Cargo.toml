@@ -1,6 +1,6 @@
 [package]
 name = "zinc-compiler"
-version = "0.1.5"
+version = "0.2.0"
 authors = [
     "Alex Zarudnyy <hedgar2017@gmail.com>",
     "Alexander Movchan <am@matterlabs.dev>",
@@ -28,4 +28,4 @@ num-bigint = "0.3"
 
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }
-zinc-bytecode = { path = "../zinc-bytecode" }
+zinc-build = { path = "../zinc-build" }

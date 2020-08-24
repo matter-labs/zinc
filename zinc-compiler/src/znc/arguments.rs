@@ -20,31 +20,45 @@ pub struct Arguments {
     )]
     pub verbosity: usize,
 
+    /// The project name, which is specified in the project manifest file.
+    #[structopt(
+        long = "name",
+        help = "The project name specified in the manifest file"
+    )]
+    pub name: String,
+
     /// The path to the keys, template, and other auxiliary data directory.
     #[structopt(
         long = "data",
         parse(from_os_str),
-        help = "The witness and public data directory path"
+        help = "The witness and public data directory path",
+        default_value = zinc_const::directory::DATA,
     )]
     pub data_path: PathBuf,
 
-    /// The path to the build directory.
-    #[structopt(long = "build", parse(from_os_str), help = "The build directory path")]
-    pub build_path: PathBuf,
+    /// The path to the bytecode file.
+    #[structopt(
+        long = "binary",
+        parse(from_os_str),
+        help = "The path to the bytecode file",
+        default_value = zinc_const::path::BINARY,
+    )]
+    pub binary_path: PathBuf,
+
+    /// The path to the source code directory.
+    #[structopt(
+        parse(from_os_str),
+        help = "The source file or `src` directory path",
+        default_value = zinc_const::directory::SOURCE,
+    )]
+    pub source_path: PathBuf,
 
     /// If set, compiles only unit tests.
     #[structopt(long = "test-only", help = "Build the unit tests only")]
     pub test_only: bool,
 
-    /// The path to the source code directory.
-    #[structopt(parse(from_os_str), help = "The source file or `src` directory path")]
-    pub source_path: PathBuf,
-
     /// Whether to apply the dead function elimination optimization.
-    #[structopt(
-        long = "optimize-dead-function-elimination",
-        help = "Eliminate the dead function code"
-    )]
+    #[structopt(long = "opt-dfe", help = "Eliminate the dead function code")]
     pub optimize_dead_function_elimination: bool,
 }
 

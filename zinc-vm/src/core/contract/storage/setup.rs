@@ -4,7 +4,7 @@ use num_traits::ToPrimitive;
 
 use franklin_crypto::bellman::pairing::ff::Field;
 
-use zinc_bytecode::DataType;
+use zinc_build::Type as BuildType;
 
 use crate::core::contract::storage::leaf::Leaf as StorageLeaf;
 use crate::error::RuntimeError;
@@ -18,7 +18,7 @@ pub struct Storage<E: IEngine> {
 }
 
 impl<E: IEngine> Storage<E> {
-    pub fn new(values: Vec<DataType>) -> Self {
+    pub fn new(values: Vec<BuildType>) -> Self {
         let depth = (values.len() as f64).log2().ceil() as usize;
         let leaf_values_count = 1 << depth;
 

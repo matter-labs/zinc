@@ -39,7 +39,7 @@ pub mod prelude {
 /// use franklin_crypto::circuit::test::TestConstraintSystem;
 /// use franklin_crypto::bellman::ConstraintSystem;
 ///
-/// use zinc_bytecode::ScalarType;
+/// use zinc_build::ScalarType;
 ///
 /// use zinc_vm::auto_const;
 /// use zinc_vm::gadgets::scalar::Scalar;

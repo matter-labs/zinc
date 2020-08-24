@@ -2,7 +2,7 @@
 //! The `StorageStore` instruction.
 //!
 
-use zinc_bytecode::StorageStore;
+use zinc_build::StorageStore;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;

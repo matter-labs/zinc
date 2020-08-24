@@ -5,18 +5,15 @@
 pub mod facade;
 pub mod synthesizer;
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use colored::Colorize;
 use num_bigint::BigInt;
 use num_bigint::ToBigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Circuit as BytecodeCircuit;
-use zinc_bytecode::DataType;
-use zinc_bytecode::ScalarType;
+use zinc_build::Circuit as BuildCircuit;
+use zinc_build::ScalarType;
+use zinc_build::Type as BuildType;
 
 use crate::core::counter::NamespaceCounter;
 use crate::core::execution_state::block::branch::Branch;
@@ -44,8 +41,6 @@ where
     state: ExecutionState<E>,
     outputs: Vec<Scalar<E>>,
 
-    unconstrained: Rc<RefCell<bool>>,
-
     pub(crate) debugging: bool,
     pub(crate) location: Location,
 }
@@ -55,13 +50,11 @@ where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    pub fn new(cs: CS, unconstrained: Rc<RefCell<bool>>, debugging: bool) -> Self {
+    pub fn new(cs: CS, debugging: bool) -> Self {
         Self {
             counter: NamespaceCounter::new(cs),
             state: ExecutionState::new(),
             outputs: vec![],
-
-            unconstrained,
 
             debugging,
             location: Location::new(),
@@ -70,7 +63,7 @@ where
 
     pub fn run<CB, F>(
         &mut self,
-        bytecode: BytecodeCircuit,
+        circuit: BuildCircuit,
         inputs: Option<&[BigInt]>,
         mut instruction_callback: CB,
         mut check_cs: F,
@@ -88,13 +81,22 @@ where
         let one = Scalar::new_constant_usize(1, ScalarType::Boolean);
         self.condition_push(one)?;
 
-        self.init_root_frame(bytecode.input, inputs)?;
+        let input_size = circuit.input.size();
+        self.state.frames_stack.push(Frame::new(0, std::usize::MAX));
+        self.init_root_frame(circuit.input, inputs)?;
+        if let Err(error) = zinc_build::Call::new(circuit.address, input_size)
+            .execute(self)
+            .and(check_cs(&self.counter.cs))
+        {
+            log::error!("{}\nat {}", error, self.location.to_string().blue());
+            return Err(error);
+        }
 
         let mut step = 0;
-        while self.state.instruction_counter < bytecode.instructions.len() {
+        while self.state.instruction_counter < circuit.instructions.len() {
             let namespace = format!("step={}, addr={}", step, self.state.instruction_counter);
             self.counter.cs.push_namespace(|| namespace);
-            let instruction = bytecode.instructions[self.state.instruction_counter].to_owned();
+            let instruction = circuit.instructions[self.state.instruction_counter].to_owned();
 
             let log_message = format!(
                 "{}:{} > {}",
@@ -123,11 +125,9 @@ where
 
     fn init_root_frame(
         &mut self,
-        input_type: DataType,
+        input_type: BuildType,
         inputs: Option<&[BigInt]>,
     ) -> Result<(), RuntimeError> {
-        self.state.frames_stack.push(Frame::new(0, std::usize::MAX));
-
         let types = input_type.into_flat_scalar_types();
 
         // Convert Option<&[BigInt]> to iterator of Option<&BigInt> and zip with types.
@@ -410,15 +410,15 @@ where
     }
 
     fn set_unconstrained(&mut self) {
-        *self.unconstrained.borrow_mut() = true;
+        //        *self.unconstrained.borrow_mut() = true;
     }
 
     fn unset_unconstrained(&mut self) {
-        *self.unconstrained.borrow_mut() = false;
+        //        *self.unconstrained.borrow_mut() = false;
     }
 
     fn is_unconstrained(&self) -> bool {
-        *self.unconstrained.borrow()
+        false
     }
 
     fn constraint_system(&mut self) -> &mut CS {

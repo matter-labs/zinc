@@ -166,9 +166,9 @@ fn main() -> u8 {
     let result = crate::semantic::tests::compile_module(
         code,
         0,
-        Scope::new_global(zinc_const::file_names::APPLICATION_ENTRY.to_owned()).wrap(),
-        Scope::new_global(zinc_const::file_names::APPLICATION_ENTRY.to_owned()).wrap(),
-        Scope::new_global(zinc_const::file_names::APPLICATION_ENTRY.to_owned()).wrap(),
+        Scope::new_global(zinc_const::file_name::APPLICATION_ENTRY.to_owned()).wrap(),
+        Scope::new_global(zinc_const::file_name::APPLICATION_ENTRY.to_owned()).wrap(),
+        Scope::new_global(zinc_const::file_name::APPLICATION_ENTRY.to_owned()).wrap(),
     )
     .unwrap_err();
 
@@ -190,9 +190,9 @@ contract Uniswap {
     let result = crate::semantic::tests::compile_module(
         code,
         0,
-        Scope::new_global(zinc_const::file_names::APPLICATION_ENTRY.to_owned()).wrap(),
-        Scope::new_global(zinc_const::file_names::APPLICATION_ENTRY.to_owned()).wrap(),
-        Scope::new_global(zinc_const::file_names::APPLICATION_ENTRY.to_owned()).wrap(),
+        Scope::new_global(zinc_const::file_name::APPLICATION_ENTRY.to_owned()).wrap(),
+        Scope::new_global(zinc_const::file_name::APPLICATION_ENTRY.to_owned()).wrap(),
+        Scope::new_global(zinc_const::file_name::APPLICATION_ENTRY.to_owned()).wrap(),
     )
     .unwrap_err();
 

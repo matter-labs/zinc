@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Le;
+use zinc_build::Le;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -29,34 +29,28 @@ mod test {
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
-    use zinc_bytecode::IntegerType;
+    use zinc_build::IntegerType;
 
     #[test]
     fn test_le() -> Result<(), TestingError> {
         let _ = env_logger::builder().is_test(true).try_init();
 
         TestRunner::new()
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Le)
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Le)
-            .push(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Le)
-            .push(zinc_bytecode::Push::new(
-                (-2).into(),
-                IntegerType::I8.into(),
-            ))
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Le)
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(
-                (-2).into(),
-                IntegerType::I8.into(),
-            ))
-            .push(zinc_bytecode::Le)
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(1.into(), IntegerType::I8.into()))
+            .push(zinc_build::Le)
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Le)
+            .push(zinc_build::Push::new(1.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Le)
+            .push(zinc_build::Push::new((-2).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Le)
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new((-2).into(), IntegerType::I8.into()))
+            .push(zinc_build::Le)
             .test(&[0, 1, 1, 1, 0])
     }
 }

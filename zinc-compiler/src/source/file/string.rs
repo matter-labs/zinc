@@ -28,13 +28,13 @@ impl String {
     /// Checks whether the file is the application entry point.
     ///
     pub fn is_application_entry(&self) -> bool {
-        self.path.as_str() == zinc_const::file_names::APPLICATION_ENTRY
+        self.path.as_str() == zinc_const::file_name::APPLICATION_ENTRY
     }
 
     ///
     /// Checks whether the file is the module entry point.
     ///
     pub fn is_module_entry(&self) -> bool {
-        self.path.as_str() == zinc_const::file_names::MODULE_ENTRY
+        self.path.as_str() == zinc_const::file_name::MODULE_ENTRY
     }
 }

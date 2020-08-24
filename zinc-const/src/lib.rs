@@ -5,13 +5,15 @@
 pub mod app_name;
 pub mod base;
 pub mod bitlength;
+pub mod directory;
 pub mod exit_code;
-pub mod extensions;
-pub mod file_names;
+pub mod extension;
+pub mod file_name;
 pub mod http;
 pub mod limit;
 pub mod mongodb;
 pub mod panic;
+pub mod path;
 pub mod postgresql;
 pub mod source;
 pub mod zargo;

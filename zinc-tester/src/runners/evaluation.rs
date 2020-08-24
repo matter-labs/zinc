@@ -8,7 +8,8 @@ use std::sync::Mutex;
 
 use colored::Colorize;
 
-use zinc_bytecode::Program as BytecodeProgram;
+use zinc_build::Program as BuildProgram;
+use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
@@ -66,7 +67,7 @@ impl IRunnable for Runner {
                 case_name.clone(),
                 file.code.as_str(),
                 path.to_owned(),
-                case.entry,
+                case.method.clone(),
                 case.input,
             ) {
                 Ok(program) => program,
@@ -83,12 +84,21 @@ impl IRunnable for Runner {
             };
 
             let result = match instance.program {
-                BytecodeProgram::Circuit(circuit) => {
+                BuildProgram::Circuit(circuit) => {
                     CircuitFacade::new(circuit).run::<Bn256>(instance.witness)
                 }
-                BytecodeProgram::Contract(contract) => ContractFacade::new(contract)
-                    .run::<Bn256>(instance.witness, None)
-                    .map(|(output, _storage)| output),
+                BuildProgram::Contract(contract) => {
+                    let storage: Vec<(String, BuildValue)> = contract
+                        .storage
+                        .clone()
+                        .into_iter()
+                        .map(|(name, r#type)| (name, BuildValue::new(r#type)))
+                        .collect();
+
+                    ContractFacade::new(contract)
+                        .run::<Bn256>(instance.witness, BuildValue::Contract(storage), case.method)
+                        .map(|(output, _storage)| output)
+                }
             };
 
             match result {

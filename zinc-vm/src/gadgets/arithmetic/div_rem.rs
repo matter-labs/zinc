@@ -1,7 +1,7 @@
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::Assignment;
 
-use zinc_bytecode::ScalarType;
+use zinc_build::ScalarType;
 use zinc_utils::math;
 
 use crate::auto_const;

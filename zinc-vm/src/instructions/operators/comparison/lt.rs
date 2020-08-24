@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Lt;
+use zinc_build::Lt;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -30,8 +30,8 @@ mod test {
     use franklin_crypto::bellman::pairing::bn256::Fr;
     use franklin_crypto::bellman::pairing::ff::Field;
 
-    use zinc_bytecode::IntegerType;
-    use zinc_bytecode::ScalarType;
+    use zinc_build::IntegerType;
+    use zinc_build::ScalarType;
 
     use crate::gadgets;
     use crate::tests::TestRunner;
@@ -40,15 +40,15 @@ mod test {
     #[test]
     fn simple() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Lt)
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Lt)
-            .push(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Lt)
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(1.into(), IntegerType::I8.into()))
+            .push(zinc_build::Lt)
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Lt)
+            .push(zinc_build::Push::new(1.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Lt)
             .test(&[1, 0, 0])
     }
 
@@ -59,15 +59,15 @@ mod test {
         let max = gadgets::scalar::fr_bigint::fr_to_bigint::<Bn256>(&max_fr, false);
 
         TestRunner::new()
-            .push(zinc_bytecode::Push::new(max.clone(), ScalarType::Field))
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Field))
-            .push(zinc_bytecode::Lt)
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Field))
-            .push(zinc_bytecode::Push::new(max.clone(), ScalarType::Field))
-            .push(zinc_bytecode::Lt)
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Field))
-            .push(zinc_bytecode::Push::new(max.clone(), ScalarType::Field))
-            .push(zinc_bytecode::Lt)
+            .push(zinc_build::Push::new(max.clone(), ScalarType::Field))
+            .push(zinc_build::Push::new(0.into(), ScalarType::Field))
+            .push(zinc_build::Lt)
+            .push(zinc_build::Push::new(0.into(), ScalarType::Field))
+            .push(zinc_build::Push::new(max.clone(), ScalarType::Field))
+            .push(zinc_build::Lt)
+            .push(zinc_build::Push::new(1.into(), ScalarType::Field))
+            .push(zinc_build::Push::new(max.clone(), ScalarType::Field))
+            .push(zinc_build::Lt)
             .test(&[1, 1, 0])
     }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "zinc-vm"
-version = "0.1.5"
+version = "0.2.0"
 authors = [
     "Alexander Movchan <am@matterlabs.dev>",
     "Alex Z <a.zarudnyy@matterlabs.dev>",
@@ -30,10 +30,9 @@ num-traits = "0.2"
 
 franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc" }
 
-zinc-postgres = { path = "../zinc-postgres" }
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }
-zinc-bytecode = { path = "../zinc-bytecode" }
+zinc-build = { path = "../zinc-build" }
 
 [dev-dependencies]
 env_logger = "0.7"

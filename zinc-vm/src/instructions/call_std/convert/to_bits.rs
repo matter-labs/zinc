@@ -7,8 +7,8 @@ use num_bigint::BigInt;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;
 
-use zinc_bytecode::IntegerType;
-use zinc_bytecode::ScalarType;
+use zinc_build::IntegerType;
+use zinc_build::ScalarType;
 
 use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::error::RuntimeError;
@@ -73,7 +73,7 @@ where
         r#type => {
             return Err(RuntimeError::TypeError {
                 expected: "signed type".to_string(),
-                actual: r#type.to_string(),
+                found: r#type.to_string(),
             })
         }
     };

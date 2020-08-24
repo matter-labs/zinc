@@ -150,7 +150,7 @@ mod tests {
     use franklin_crypto::jubjub;
     use franklin_crypto::jubjub::JubjubEngine;
 
-    use zinc_bytecode::ScalarType;
+    use zinc_build::ScalarType;
 
     use crate::core::execution_state::evaluation_stack::EvaluationStack;
     use crate::error::RuntimeError;

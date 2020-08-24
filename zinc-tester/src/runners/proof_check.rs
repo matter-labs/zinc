@@ -8,7 +8,7 @@ use std::sync::Mutex;
 
 use colored::Colorize;
 
-use zinc_bytecode::Program as BytecodeProgram;
+use zinc_build::Program as BuildProgram;
 use zinc_vm::Bn256;
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
@@ -67,7 +67,7 @@ impl IRunnable for Runner {
                 case_name.clone(),
                 file.code.as_str(),
                 path.to_owned(),
-                case.entry,
+                case.method.clone(),
                 case.input,
             ) {
                 Ok(program) => program,
@@ -84,9 +84,9 @@ impl IRunnable for Runner {
             };
 
             let params = match match instance.program.clone() {
-                BytecodeProgram::Circuit(circuit) => CircuitFacade::new(circuit).setup::<Bn256>(),
-                BytecodeProgram::Contract(contract) => {
-                    ContractFacade::new(contract).setup::<Bn256>()
+                BuildProgram::Circuit(circuit) => CircuitFacade::new(circuit).setup::<Bn256>(),
+                BuildProgram::Contract(contract) => {
+                    ContractFacade::new(contract).setup::<Bn256>(case.method.clone())
                 }
             } {
                 Ok(params) => params,
@@ -102,51 +102,51 @@ impl IRunnable for Runner {
                 }
             };
 
-            let (output, proof) = match match instance.program.clone() {
-                BytecodeProgram::Circuit(circuit) => {
-                    CircuitFacade::new(circuit).prove::<Bn256>(params.clone(), instance.witness)
-                }
-                BytecodeProgram::Contract(contract) => {
-                    ContractFacade::new(contract).prove::<Bn256>(params.clone(), instance.witness)
-                }
-            } {
-                Ok((output, proof)) => {
-                    let output_json = output.clone().into_json();
-
-                    if case.expect != output_json {
-                        summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
-                        println!(
-                            "[INTEGRATION] {} {} (expected {}, but got {})",
-                            "FAILED".bright_red(),
-                            case_name,
-                            case.expect,
-                            output_json
-                        );
+            let (output, proof) =
+                match match instance.program.clone() {
+                    BuildProgram::Circuit(circuit) => {
+                        CircuitFacade::new(circuit).prove::<Bn256>(params.clone(), instance.witness)
                     }
-                    (output, proof)
-                }
-                Err(error) => {
-                    if case.should_panic {
-                        summary.lock().expect(zinc_const::panic::MUTEX_SYNC).passed += 1;
-                        if self.verbosity > 0 {
+                    BuildProgram::Contract(contract) => ContractFacade::new(contract)
+                        .prove::<Bn256>(params.clone(), instance.witness, case.method),
+                } {
+                    Ok((output, proof)) => {
+                        let output_json = output.clone().into_json();
+
+                        if case.expect != output_json {
+                            summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
                             println!(
-                                "[INTEGRATION] {} {} (panicked)",
-                                "PASSED".green(),
-                                case_name
+                                "[INTEGRATION] {} {} (expected {}, but got {})",
+                                "FAILED".bright_red(),
+                                case_name,
+                                case.expect,
+                                output_json
                             );
                         }
-                    } else {
-                        summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
-                        println!(
-                            "[INTEGRATION] {} {} (prove: {})",
-                            "FAILED".bright_red(),
-                            case_name,
-                            error
-                        );
+                        (output, proof)
                     }
-                    continue;
-                }
-            };
+                    Err(error) => {
+                        if case.should_panic {
+                            summary.lock().expect(zinc_const::panic::MUTEX_SYNC).passed += 1;
+                            if self.verbosity > 0 {
+                                println!(
+                                    "[INTEGRATION] {} {} (panicked)",
+                                    "PASSED".green(),
+                                    case_name
+                                );
+                            }
+                        } else {
+                            summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
+                            println!(
+                                "[INTEGRATION] {} {} (prove: {})",
+                                "FAILED".bright_red(),
+                                case_name,
+                                error
+                            );
+                        }
+                        continue;
+                    }
+                };
 
             match Facade::verify(params.vk, proof, output) {
                 Ok(success) => {

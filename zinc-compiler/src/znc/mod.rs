@@ -10,20 +10,13 @@ use std::fs::File;
 use std::io::Write;
 use std::process;
 
-use zinc_compiler::Entry;
+use zinc_build::Bytes;
 use zinc_compiler::Source;
 use zinc_compiler::State;
 
 use self::arguments::Arguments;
 use self::error::Error;
 use self::error::OutputError;
-
-/// The unit tests subdirectory path. Is relative to the bytecode build directory.
-static TEST_BINARIES_DIRECTORY: &str = "test/";
-/// The witness template JSON file suffix. Is appended before the `.json` extension.
-static WITNESS_TEMPLATE_SUFFIX: &str = "_witness";
-/// The public data template JSON file suffix. Is appended before the `.json` extension.
-static PUBLIC_DATA_TEMPLATE_SUFFIX: &str = "_public_data";
 
 ///
 /// The application entry point.
@@ -46,45 +39,117 @@ fn main_inner() -> Result<(), Error> {
 
     zinc_utils::logger::initialize(zinc_const::app_name::ZINC_COMPILER, args.verbosity);
 
-    let bytecode = Source::try_from_entry(&args.source_path)?.compile("stableswap".to_owned())?;
-    let compiled_entries =
-        State::unwrap_rc(bytecode).into_methods(args.optimize_dead_function_elimination);
+    let bytecode = Source::try_from_entry(&args.source_path)?.compile(args.name)?;
+    let bytes = State::unwrap_rc(bytecode).into_bytes(args.optimize_dead_function_elimination);
 
-    for (entry_name, entry) in compiled_entries.into_iter() {
-        let mut bytecode_path = args.build_path.clone();
+    let mut build_directory_path = args.binary_path.clone();
+    build_directory_path.pop();
+    fs::create_dir_all(&build_directory_path).map_err(|error| {
+        Error::DirectoryCreating(build_directory_path.as_os_str().to_owned(), error)
+    })?;
 
-        match entry {
-            Entry::Default {
-                bytecode,
-                witness_template,
-                public_data_template,
-            } => {
-                if args.test_only {
-                    continue;
-                }
+    let mut witness_template_path = args.data_path.clone();
+    fs::create_dir_all(&witness_template_path).map_err(|error| {
+        Error::DirectoryCreating(witness_template_path.as_os_str().to_owned(), error)
+    })?;
 
-                fs::create_dir_all(&bytecode_path).map_err(|error| {
-                    Error::DirectoryCreating(bytecode_path.as_os_str().to_owned(), error)
-                })?;
-                bytecode_path.push(format!("{}.znb", entry_name));
+    let mut public_data_template_path = args.data_path;
+    fs::create_dir_all(&public_data_template_path).map_err(|error| {
+        Error::DirectoryCreating(public_data_template_path.as_os_str().to_owned(), error)
+    })?;
 
-                let mut witness_template_path = args.data_path.clone();
-                fs::create_dir_all(&witness_template_path).map_err(|error| {
-                    Error::DirectoryCreating(witness_template_path.as_os_str().to_owned(), error)
-                })?;
-                witness_template_path
-                    .push(format!("{}{}.json", entry_name, WITNESS_TEMPLATE_SUFFIX));
+    match bytes {
+        Bytes::Circuit {
+            bytecode,
+            input_template,
+            output_template,
+        } => {
+            witness_template_path.push(format!(
+                "{}.{}",
+                zinc_const::file_name::WITNESS,
+                zinc_const::extension::TEMPLATE
+            ));
+            if !witness_template_path.exists() {
+                File::create(&witness_template_path)
+                    .map_err(OutputError::Creating)
+                    .map_err(|error| {
+                        Error::WitnessTemplateOutput(
+                            witness_template_path.as_os_str().to_owned(),
+                            error,
+                        )
+                    })?
+                    .write_all(input_template.as_slice())
+                    .map_err(OutputError::Writing)
+                    .map_err(|error| {
+                        Error::WitnessTemplateOutput(
+                            witness_template_path.as_os_str().to_owned(),
+                            error,
+                        )
+                    })?;
+                log::info!("Witness template written to {:?}", witness_template_path);
+            } else {
+                log::info!(
+                    "Witness template {:?} already exists. Skipping",
+                    witness_template_path
+                );
+            }
 
-                let mut public_data_template_path = args.data_path.clone();
-                fs::create_dir_all(&public_data_template_path).map_err(|error| {
-                    Error::DirectoryCreating(
+            public_data_template_path.push(format!(
+                "{}.{}",
+                zinc_const::file_name::PUBLIC_DATA,
+                zinc_const::extension::TEMPLATE
+            ));
+            File::create(&public_data_template_path)
+                .map_err(OutputError::Creating)
+                .map_err(|error| {
+                    Error::PublicDataTemplateOutput(
+                        public_data_template_path.as_os_str().to_owned(),
+                        error,
+                    )
+                })?
+                .write_all(output_template.as_slice())
+                .map_err(OutputError::Writing)
+                .map_err(|error| {
+                    Error::PublicDataTemplateOutput(
                         public_data_template_path.as_os_str().to_owned(),
                         error,
                     )
                 })?;
-                public_data_template_path.push(format!(
-                    "{}{}.json",
-                    entry_name, PUBLIC_DATA_TEMPLATE_SUFFIX
+            log::info!(
+                "Public data template written to {:?}",
+                public_data_template_path
+            );
+
+            let binary_path = args.binary_path;
+            if binary_path.exists() {
+                fs::remove_file(&binary_path)
+                    .map_err(OutputError::Removing)
+                    .map_err(|error| {
+                        Error::BytecodeOutput(binary_path.as_os_str().to_owned(), error)
+                    })?;
+            }
+            File::create(&binary_path)
+                .map_err(OutputError::Creating)
+                .map_err(|error| Error::BytecodeOutput(binary_path.as_os_str().to_owned(), error))?
+                .write_all(bytecode.as_slice())
+                .map_err(OutputError::Writing)
+                .map_err(|error| {
+                    Error::BytecodeOutput(binary_path.as_os_str().to_owned(), error)
+                })?;
+            log::info!("Compiled to {:?}", binary_path);
+        }
+        Bytes::Contract {
+            bytecode,
+            input_templates,
+            output_templates,
+        } => {
+            for (name, bytes) in input_templates.into_iter() {
+                let mut witness_template_path = witness_template_path.clone();
+                witness_template_path.push(format!(
+                    "{}_{}.{}",
+                    zinc_const::file_name::WITNESS,
+                    name,
+                    zinc_const::extension::TEMPLATE
                 ));
 
                 if !witness_template_path.exists() {
@@ -96,7 +161,7 @@ fn main_inner() -> Result<(), Error> {
                                 error,
                             )
                         })?
-                        .write_all(witness_template.as_slice())
+                        .write_all(bytes.as_slice())
                         .map_err(OutputError::Writing)
                         .map_err(|error| {
                             Error::WitnessTemplateOutput(
@@ -111,6 +176,16 @@ fn main_inner() -> Result<(), Error> {
                         witness_template_path
                     );
                 }
+            }
+
+            for (name, bytes) in output_templates.into_iter() {
+                let mut public_data_template_path = public_data_template_path.clone();
+                public_data_template_path.push(format!(
+                    "{}_{}.{}",
+                    zinc_const::file_name::PUBLIC_DATA,
+                    name,
+                    zinc_const::extension::TEMPLATE
+                ));
 
                 File::create(&public_data_template_path)
                     .map_err(OutputError::Creating)
@@ -120,7 +195,7 @@ fn main_inner() -> Result<(), Error> {
                             error,
                         )
                     })?
-                    .write_all(public_data_template.as_slice())
+                    .write_all(bytes.as_slice())
                     .map_err(OutputError::Writing)
                     .map_err(|error| {
                         Error::PublicDataTemplateOutput(
@@ -132,38 +207,25 @@ fn main_inner() -> Result<(), Error> {
                     "Public data template written to {:?}",
                     public_data_template_path
                 );
-
-                File::create(&bytecode_path)
-                    .map_err(OutputError::Creating)
-                    .map_err(|error| {
-                        Error::BytecodeOutput(bytecode_path.as_os_str().to_owned(), error)
-                    })?
-                    .write_all(bytecode.as_slice())
-                    .map_err(OutputError::Writing)
-                    .map_err(|error| {
-                        Error::BytecodeOutput(bytecode_path.as_os_str().to_owned(), error)
-                    })?;
-                log::info!("Compiled to {:?}", bytecode_path);
             }
-            Entry::Test { bytecode } => {
-                bytecode_path.push(TEST_BINARIES_DIRECTORY);
-                fs::create_dir_all(&bytecode_path).map_err(|error| {
-                    Error::DirectoryCreating(bytecode_path.as_os_str().to_owned(), error)
+
+            let binary_path = args.binary_path;
+            if binary_path.exists() {
+                fs::remove_file(&binary_path)
+                    .map_err(OutputError::Removing)
+                    .map_err(|error| {
+                        Error::BytecodeOutput(binary_path.as_os_str().to_owned(), error)
+                    })?;
+            }
+            File::create(&binary_path)
+                .map_err(OutputError::Creating)
+                .map_err(|error| Error::BytecodeOutput(binary_path.as_os_str().to_owned(), error))?
+                .write_all(bytecode.as_slice())
+                .map_err(OutputError::Writing)
+                .map_err(|error| {
+                    Error::BytecodeOutput(binary_path.as_os_str().to_owned(), error)
                 })?;
-                bytecode_path.push(format!("{}.znb", entry_name));
-
-                File::create(&bytecode_path)
-                    .map_err(OutputError::Creating)
-                    .map_err(|error| {
-                        Error::BytecodeOutput(bytecode_path.as_os_str().to_owned(), error)
-                    })?
-                    .write_all(bytecode.as_slice())
-                    .map_err(OutputError::Writing)
-                    .map_err(|error| {
-                        Error::BytecodeOutput(bytecode_path.as_os_str().to_owned(), error)
-                    })?;
-                log::info!("Compiled to {:?}", bytecode_path);
-            }
+            log::info!("Compiled to {:?}", binary_path);
         }
     }
 

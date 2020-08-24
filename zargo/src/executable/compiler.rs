@@ -38,17 +38,20 @@ impl Compiler {
     ///
     pub fn build_debug(
         verbosity: usize,
+        name: String,
         data_path: &PathBuf,
-        build_path: &PathBuf,
         source_path: &PathBuf,
+        binary_path: &PathBuf,
         is_test_only: bool,
     ) -> Result<(), Error> {
         let mut child = process::Command::new(zinc_const::app_name::ZINC_COMPILER)
             .args(vec!["-v"; verbosity])
+            .arg("--name")
+            .arg(name)
             .arg("--data")
             .arg(data_path)
-            .arg("--build")
-            .arg(build_path)
+            .arg("--binary")
+            .arg(binary_path)
             .args(if is_test_only {
                 vec!["--test-only"]
             } else {
@@ -74,23 +77,26 @@ impl Compiler {
     ///
     pub fn build_release(
         verbosity: usize,
+        name: String,
         data_path: &PathBuf,
-        build_path: &PathBuf,
         source_path: &PathBuf,
+        binary_path: &PathBuf,
         is_test_only: bool,
     ) -> Result<(), Error> {
         let mut child = process::Command::new(zinc_const::app_name::ZINC_COMPILER)
             .args(vec!["-v"; verbosity])
+            .arg("--name")
+            .arg(name)
             .arg("--data")
             .arg(data_path)
-            .arg("--build")
-            .arg(build_path)
+            .arg("--binary")
+            .arg(binary_path)
             .args(if is_test_only {
                 vec!["--test-only"]
             } else {
                 vec![]
             })
-            .arg("--optimize-dead-function-elimination")
+            .arg("--opt-dfe")
             .arg(source_path)
             .spawn()
             .map_err(Error::Spawning)?;

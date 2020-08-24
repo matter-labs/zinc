@@ -52,7 +52,7 @@ impl Contract {
             if !path.ends_with(zinc_const::zargo::SOURCE_DIRECTORY_SUBPATH) {
                 path.push(PathBuf::from(zinc_const::zargo::SOURCE_DIRECTORY_SUBPATH));
             }
-            let file_name = format!("{}.{}", name, zinc_const::extensions::SOURCE);
+            let file_name = format!("{}.{}", name, zinc_const::extension::SOURCE);
             path.push(PathBuf::from(file_name));
         }
         path.exists()
@@ -69,8 +69,8 @@ impl Contract {
             }
             let file_name = format!(
                 "{}.{}",
-                zinc_const::file_names::APPLICATION_ENTRY,
-                zinc_const::extensions::SOURCE,
+                zinc_const::file_name::APPLICATION_ENTRY,
+                zinc_const::extension::SOURCE,
             );
             path.push(PathBuf::from(file_name));
         }

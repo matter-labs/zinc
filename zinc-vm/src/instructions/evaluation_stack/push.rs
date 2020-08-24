@@ -2,7 +2,7 @@
 //! The `Push` instruction.
 //!
 
-use zinc_bytecode::Push;
+use zinc_build::Push;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -23,19 +23,16 @@ mod tests {
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
-    use zinc_bytecode::IntegerType;
+    use zinc_build::IntegerType;
 
     #[test]
     fn test_push() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new_field(0.into()))
-            .push(zinc_bytecode::Push::new_field(42.into()))
-            .push(zinc_bytecode::Push::new_field(0xABCD.into()))
-            .push(zinc_bytecode::Push::new(
-                (-1).into(),
-                IntegerType::I8.into(),
-            ))
-            .push(zinc_bytecode::Push::new(
+            .push(zinc_build::Push::new_field(0.into()))
+            .push(zinc_build::Push::new_field(42.into()))
+            .push(zinc_build::Push::new_field(0xABCD.into()))
+            .push(zinc_build::Push::new((-1).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
                 (-1000).into(),
                 IntegerType::I16.into(),
             ))

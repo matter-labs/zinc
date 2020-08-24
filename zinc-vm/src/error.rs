@@ -7,15 +7,15 @@ use num_bigint::BigInt;
 
 use franklin_crypto::bellman::SynthesisError;
 
-use zinc_bytecode::ScalarType;
+use zinc_build::ScalarType;
 
 #[derive(Debug, Fail)]
 pub enum TypeSizeError {
-    #[fail(display = "expected input value of size {}, got {}", expected, actual)]
-    Input { expected: usize, actual: usize },
+    #[fail(display = "expected input value of size {}, got {}", expected, found)]
+    Input { expected: usize, found: usize },
 
-    #[fail(display = "expected output value of size {}, got {}", expected, actual)]
-    Output { expected: usize, actual: usize },
+    #[fail(display = "expected output value of size {}, got {}", expected, found)]
+    Output { expected: usize, found: usize },
 }
 
 #[derive(Debug, Fail)]
@@ -70,16 +70,16 @@ pub enum RuntimeError {
 
     #[fail(
         display = "index out of bounds: expected index in range {}..{}, got {}",
-        lower_bound, upper_bound, actual
+        lower_bound, upper_bound, found
     )]
     IndexOutOfBounds {
         lower_bound: usize,
         upper_bound: usize,
-        actual: usize,
+        found: usize,
     },
 
-    #[fail(display = "type error: expected {}, got {}", expected, actual)]
-    TypeError { expected: String, actual: String },
+    #[fail(display = "type error: expected {}, got {}", expected, found)]
+    TypeError { expected: String, found: String },
 
     #[fail(display = "constant value expected, got variable (witness)")]
     ExpectedConstant,
@@ -117,8 +117,11 @@ pub enum RuntimeError {
     #[fail(display = "the instruction is available only for contracts")]
     OnlyForContracts,
 
-    #[fail(display = "PostgreSQL: {}", _0)]
-    Postgresql(zinc_postgres::Error),
+    #[fail(display = "invalid storage value")]
+    InvalidStorageValue,
+
+    #[fail(display = "contract method `{}` does not exist", _0)]
+    MethodNotFound { found: String },
 }
 
 impl From<SynthesisError> for RuntimeError {
@@ -136,11 +139,5 @@ impl From<MalformedBytecode> for RuntimeError {
 impl From<TypeSizeError> for RuntimeError {
     fn from(error: TypeSizeError) -> Self {
         RuntimeError::TypeSize(error)
-    }
-}
-
-impl From<zinc_postgres::Error> for RuntimeError {
-    fn from(error: zinc_postgres::Error) -> Self {
-        RuntimeError::Postgresql(error)
     }
 }

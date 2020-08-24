@@ -7,8 +7,8 @@ use num_traits::Signed;
 
 use franklin_crypto::bellman::SynthesisError;
 
-use zinc_bytecode::Dbg;
-use zinc_bytecode::TemplateValue;
+use zinc_build::Dbg;
+use zinc_build::Value as BuildValue;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
@@ -19,7 +19,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
         let mut values = Vec::with_capacity(self.argument_types.len());
 
         for argument_type in self.argument_types.into_iter().rev() {
-            let size = TemplateValue::new(argument_type.clone())
+            let size = BuildValue::new(argument_type.clone())
                 .into_flat_values()
                 .len();
 
@@ -32,7 +32,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                     flat.push(value);
                 }
                 flat.reverse();
-                values.push(TemplateValue::from_flat_values(argument_type, &flat));
+                values.push(BuildValue::from_flat_values(argument_type, &flat));
             };
         }
 
@@ -59,8 +59,8 @@ mod tests {
     #[test]
     fn test() {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new_field(42.into()))
-            .push(zinc_bytecode::Dbg::new("Value: {}".into(), vec![]))
+            .push(zinc_build::Push::new_field(42.into()))
+            .push(zinc_build::Dbg::new("Value: {}".into(), vec![]))
             .test::<u32>(&[])
             .expect(zinc_const::panic::TEST_DATA_VALID);
     }

@@ -4,8 +4,8 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Neg;
-use zinc_bytecode::ScalarType;
+use zinc_build::Neg;
+use zinc_build::ScalarType;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -37,7 +37,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Neg {
             }
             scalar_type => Err(RuntimeError::TypeError {
                 expected: "integer type".to_string(),
-                actual: scalar_type.to_string(),
+                found: scalar_type.to_string(),
             }),
         }
     }
@@ -47,9 +47,9 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Neg {
 mod test {
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
-    use zinc_bytecode::IntegerType;
-    use zinc_bytecode::Neg;
-    use zinc_bytecode::Push;
+    use zinc_build::IntegerType;
+    use zinc_build::Neg;
+    use zinc_build::Push;
 
     #[test]
     fn test_neg() -> Result<(), TestingError> {

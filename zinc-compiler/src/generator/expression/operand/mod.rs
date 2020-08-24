@@ -16,7 +16,7 @@ use std::rc::Rc;
 
 use num_bigint::BigInt;
 
-use zinc_bytecode::Instruction;
+use zinc_build::Instruction;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::state::State;
@@ -76,7 +76,7 @@ impl IBytecodeWritable for Operand {
                     if is_indexed {
                         inner.write_all(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(
-                            Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
+                            Instruction::LoadByIndex(zinc_build::LoadByIndex::new(
                                 address,
                                 element_size,
                                 total_size,
@@ -85,7 +85,7 @@ impl IBytecodeWritable for Operand {
                         );
                     } else {
                         bytecode.borrow_mut().push_instruction(
-                            Instruction::Load(zinc_bytecode::Load::new(address, total_size)),
+                            Instruction::Load(zinc_build::Load::new(address, total_size)),
                             Some(location),
                         );
                     }
@@ -111,9 +111,7 @@ impl IBytecodeWritable for Operand {
                         )
                         .write_all(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(
-                            Instruction::StorageLoad(zinc_bytecode::StorageLoad::new(
-                                *element_size,
-                            )),
+                            Instruction::StorageLoad(zinc_build::StorageLoad::new(*element_size)),
                             Some(inner.identifier.location),
                         );
 
@@ -125,7 +123,7 @@ impl IBytecodeWritable for Operand {
                     if is_indexed {
                         inner.write_all(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(
-                            Instruction::Slice(zinc_bytecode::Slice::new(element_size, total_size)),
+                            Instruction::Slice(zinc_build::Slice::new(element_size, total_size)),
                             Some(location),
                         );
                     }

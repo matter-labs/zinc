@@ -9,9 +9,8 @@ use structopt::StructOpt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
-use zinc_bytecode::Program as BytecodeProgram;
-use zinc_bytecode::TemplateValue;
-use zinc_mongo::Client as MongoClient;
+use zinc_build::Program as BuildProgram;
+use zinc_build::Value as BuildValue;
 
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
@@ -38,58 +37,49 @@ pub struct Command {
     #[structopt(long = "public-data", help = "The public data JSON file")]
     pub public_data_path: PathBuf,
 
-    /// The MongoDB server host.
-    #[structopt(
-        long = "mongodb-host",
-        help = "The MongoDB server host",
-        default_value = zinc_const::mongodb::HOST,
-    )]
-    pub mongodb_host: String,
-
-    /// The MongoDB server port.
-    #[structopt(long = "mongodb-port", help = "The MongoDB server port")]
-    pub mongodb_port: Option<u16>,
+    /// The method name to call, if the program is a contract.
+    #[structopt(long = "method", help = "The method name")]
+    pub method: Option<String>,
 }
 
 impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<i32, Self::Error> {
-        let bytes =
+        let bytecode =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let program =
-            BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
-        let name = program.name();
-
-        let input_text = fs::read_to_string(&self.witness_path)
+        let input_template = fs::read_to_string(&self.witness_path)
             .error_with_path(|| self.witness_path.to_string_lossy())?;
-        let json = serde_json::from_str(&input_text)?;
-        let input = TemplateValue::try_from_typed_json(json, program.input())?;
 
-        let mut runtime = zinc_mongo::Runtime::new().expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
-
-        let mongo_client = runtime.block_on(MongoClient::new(
-            self.mongodb_host,
-            self.mongodb_port.unwrap_or(zinc_const::mongodb::PORT),
-        ));
+        let program =
+            BuildProgram::from_bytes(bytecode.as_slice()).map_err(Error::ProgramDecoding)?;
+        let input_json = serde_json::from_str(&input_template)?;
 
         let output = match program {
-            BytecodeProgram::Circuit(circuit) => CircuitFacade::new(circuit).run::<Bn256>(input)?,
-            BytecodeProgram::Contract(contract) => {
-                let storage = runtime
-                    .block_on(mongo_client.get_storage(name.as_str()))
-                    .map_err(Error::MongoDb)?;
-                let (output, storage) =
-                    ContractFacade::new(contract).run::<Bn256>(input, Some(storage))?;
-                runtime
-                    .block_on(mongo_client.update_storage(name.as_str(), storage))
-                    .map_err(Error::MongoDb)?;
+            BuildProgram::Circuit(circuit) => {
+                let input_type = circuit.input.clone();
+                let input_values = BuildValue::try_from_typed_json(input_json, input_type)?;
+                CircuitFacade::new(circuit).run::<Bn256>(input_values)?
+            }
+            BuildProgram::Contract(contract) => {
+                let method_name = self.method.ok_or(Error::MethodNameNotFound)?;
+                let method = contract.methods.get(method_name.as_str()).cloned().ok_or(
+                    Error::MethodNotFound {
+                        name: method_name.clone(),
+                    },
+                )?;
+                let input_values = BuildValue::try_from_typed_json(input_json, method.input)?;
+                let (output, storage) = ContractFacade::new(contract).run::<Bn256>(
+                    input_values,
+                    BuildValue::Contract(vec![]),
+                    method_name,
+                )?;
                 output
             }
         };
 
-        let public_data_path = self.public_data_path;
         let output_json = serde_json::to_string_pretty(&output.into_json())? + "\n";
+        let public_data_path = self.public_data_path;
         fs::write(&public_data_path, &output_json)
             .error_with_path(|| public_data_path.to_string_lossy())?;
 

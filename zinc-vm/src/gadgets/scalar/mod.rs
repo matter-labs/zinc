@@ -20,8 +20,8 @@ use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::Assignment;
 
-use zinc_bytecode::IntegerType;
-use zinc_bytecode::ScalarType;
+use zinc_build::IntegerType;
+use zinc_build::ScalarType;
 
 use crate::error::RuntimeError;
 use crate::IEngine;

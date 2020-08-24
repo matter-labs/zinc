@@ -2,7 +2,7 @@
 //! The `Load` instruction.
 //!
 
-use zinc_bytecode::Load;
+use zinc_build::Load;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;

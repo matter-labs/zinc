@@ -2,7 +2,7 @@
 //! The state modifying `set unconstrained` instruction.
 //!
 
-use zinc_bytecode::SetUnconstrained;
+use zinc_build::SetUnconstrained;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;

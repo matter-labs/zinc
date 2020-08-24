@@ -4,10 +4,10 @@
 
 #![cfg(test)]
 
-use zinc_bytecode::Add;
-use zinc_bytecode::IntegerType;
-use zinc_bytecode::Push;
-use zinc_bytecode::Sub;
+use zinc_build::Add;
+use zinc_build::IntegerType;
+use zinc_build::Push;
+use zinc_build::Sub;
 
 use crate::error::RuntimeError;
 use crate::tests::TestRunner;

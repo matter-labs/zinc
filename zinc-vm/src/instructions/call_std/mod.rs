@@ -9,8 +9,8 @@ pub mod ff;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::CallStd;
-use zinc_bytecode::FunctionIdentifier;
+use zinc_build::CallStd;
+use zinc_build::FunctionIdentifier;
 
 use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::core::virtual_machine::IVirtualMachine;

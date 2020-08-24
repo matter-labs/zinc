@@ -7,7 +7,8 @@ use std::io;
 use failure::Fail;
 use hex::FromHexError;
 
-use zinc_bytecode::TemplateValueError;
+use zinc_build::ValueError as BuildValueError;
+
 use zinc_vm::RuntimeError;
 use zinc_vm::VerificationError;
 
@@ -42,7 +43,7 @@ pub enum Error {
         display = "invalid json structure: {}\nNote: remove the file ./data/witness.json so the compiler may recreate it",
         _0
     )]
-    JsonValue(TemplateValueError),
+    JsonValue(BuildValueError),
 
     /// The bytecode deserialization error.
     #[fail(display = "failed to decode program: {}", _0)]
@@ -57,9 +58,13 @@ pub enum Error {
         error: FromHexError,
     },
 
-    /// The PostgreSQL library error.
-    #[fail(display = "PostgreSQL: {}", _0)]
-    Postgresql(zinc_postgres::Error),
+    /// The method name is not specified.
+    #[fail(display = "method name is missing")]
+    MethodNameNotFound,
+
+    /// The method does not exist in the contract.
+    #[fail(display = "method `{}` not found", _0)]
+    MethodNotFound { name: String },
 }
 
 impl From<RuntimeError> for Error {
@@ -80,15 +85,9 @@ impl From<serde_json::Error> for Error {
     }
 }
 
-impl From<TemplateValueError> for Error {
-    fn from(error: TemplateValueError) -> Self {
+impl From<BuildValueError> for Error {
+    fn from(error: BuildValueError) -> Self {
         Error::JsonValue(error)
-    }
-}
-
-impl From<zinc_postgres::Error> for Error {
-    fn from(error: zinc_postgres::Error) -> Self {
-        Error::Postgresql(error)
     }
 }
 

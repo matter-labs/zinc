@@ -12,8 +12,8 @@ use franklin_crypto::bellman::groth16::Proof;
 use franklin_crypto::bellman::groth16::VerifyingKey;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
-use zinc_bytecode::Program as BytecodeProgram;
-use zinc_bytecode::TemplateValue;
+use zinc_build::Program as BuildProgram;
+use zinc_build::Value as BuildValue;
 
 use zinc_vm::Facade;
 
@@ -38,6 +38,10 @@ pub struct Command {
     /// The path to the public data JSON file.
     #[structopt(long = "public-data", help = "Path to public data JSON file")]
     pub public_data_path: PathBuf,
+
+    /// The method name to call, if the program is a contract.
+    #[structopt(long = "method", help = "The method name")]
+    pub method: Option<String>,
 }
 
 impl IExecutable for Command {
@@ -52,8 +56,7 @@ impl IExecutable for Command {
         // Read program
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let program =
-            BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
+        let program = BuildProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         // Read verification key
         let key_file = fs::File::open(&self.verifying_key_path)
@@ -69,11 +72,23 @@ impl IExecutable for Command {
         // Read public input
         let output_text = fs::read_to_string(&self.public_data_path)
             .error_with_path(|| self.public_data_path.to_string_lossy())?;
-        let output_value = serde_json::from_str(output_text.as_str())?;
-        let output_struct = TemplateValue::try_from_typed_json(output_value, program.output())?;
+        let output_json = serde_json::from_str(output_text.as_str())?;
+        let output_type = match program {
+            BuildProgram::Circuit(circuit) => circuit.output,
+            BuildProgram::Contract(contract) => {
+                let method_name = self.method.ok_or(Error::MethodNameNotFound)?;
+                let method = contract
+                    .methods
+                    .get(method_name.as_str())
+                    .cloned()
+                    .ok_or(Error::MethodNotFound { name: method_name })?;
+                method.output
+            }
+        };
+        let output_value = BuildValue::try_from_typed_json(output_json, output_type)?;
 
         // Verify
-        let verified = Facade::verify::<Bn256>(key, proof, output_struct)?;
+        let verified = Facade::verify::<Bn256>(key, proof, output_value)?;
 
         Ok(if verified {
             println!("{}", "✔  Verified".bold().green());

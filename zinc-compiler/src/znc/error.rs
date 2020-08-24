@@ -60,6 +60,8 @@ pub enum OutputError {
     Creating(std::io::Error),
     /// The file writing error.
     Writing(std::io::Error),
+    /// The file removing error.
+    Removing(std::io::Error),
 }
 
 impl fmt::Display for OutputError {
@@ -67,6 +69,7 @@ impl fmt::Display for OutputError {
         match self {
             Self::Creating(inner) => write!(f, "creating: {}", inner),
             Self::Writing(inner) => write!(f, "writing: {}", inner),
+            Self::Removing(inner) => write!(f, "removing: {}", inner),
         }
     }
 }

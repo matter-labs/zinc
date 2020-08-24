@@ -9,8 +9,6 @@ use failure::Fail;
 use structopt::StructOpt;
 
 use crate::arguments::command::IExecutable;
-use crate::directory::build::test::Directory as TestBuildDirectory;
-use crate::directory::build::test::Error as TestBuildDirectoryError;
 use crate::directory::build::Directory as BuildDirectory;
 use crate::directory::build::Error as BuildDirectoryError;
 use crate::directory::data::Directory as DataDirectory;
@@ -35,8 +33,9 @@ pub struct Command {
     /// The path to the Zargo project manifest file.
     #[structopt(
         long = "manifest-path",
+        parse(from_os_str),
         help = "Path to Zargo.toml",
-        default_value = "./Zargo.toml"
+        default_value = zinc_const::path::MANIFEST,
     )]
     pub manifest_path: PathBuf,
 }
@@ -52,9 +51,6 @@ pub enum Error {
     /// The project binary build directory error.
     #[fail(display = "build directory {}", _0)]
     BuildDirectory(BuildDirectoryError),
-    /// The project unit tests binary build directory error.
-    #[fail(display = "test build directory {}", _0)]
-    TestBuildDirectory(TestBuildDirectoryError),
     /// The project template, keys, and other auxiliary data directory error.
     #[fail(display = "data directory {}", _0)]
     DataDirectory(DataDirectoryError),
@@ -72,7 +68,6 @@ impl IExecutable for Command {
         }
 
         BuildDirectory::remove(&manifest_path).map_err(Error::BuildDirectory)?;
-        TestBuildDirectory::remove(&manifest_path).map_err(Error::TestBuildDirectory)?;
         DataDirectory::remove(&manifest_path).map_err(Error::DataDirectory)?;
 
         Ok(())

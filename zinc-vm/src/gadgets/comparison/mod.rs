@@ -6,7 +6,7 @@ use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_bytecode::ScalarType;
+use zinc_build::ScalarType;
 
 use crate::auto_const;
 use crate::error::RuntimeError;
@@ -86,7 +86,7 @@ where
             }
             ScalarType::Boolean => Err(RuntimeError::TypeError {
                 expected: "field or integer type".into(),
-                actual: "boolean".to_string(),
+                found: "boolean".to_string(),
             }),
         }
     }

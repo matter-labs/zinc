@@ -6,7 +6,7 @@ use franklin_crypto::bellman::pairing::ff::PrimeField;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_bytecode::ScalarType;
+use zinc_build::ScalarType;
 
 use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::error::RuntimeError;

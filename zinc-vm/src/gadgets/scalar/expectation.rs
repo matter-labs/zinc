@@ -1,6 +1,6 @@
 use franklin_crypto::bellman::pairing::ff::PrimeField;
 
-use zinc_bytecode::ScalarType;
+use zinc_build::ScalarType;
 
 use crate::error::RuntimeError;
 use crate::IEngine;
@@ -20,7 +20,7 @@ impl ITypeExpectation for ScalarType {
         if left != right {
             return Err(RuntimeError::TypeError {
                 expected: left.to_string(),
-                actual: right.to_string(),
+                found: right.to_string(),
             });
         }
 
@@ -31,7 +31,7 @@ impl ITypeExpectation for ScalarType {
         if self != &expected {
             return Err(RuntimeError::TypeError {
                 expected: expected.to_string(),
-                actual: self.to_string(),
+                found: self.to_string(),
             });
         }
 
@@ -51,7 +51,7 @@ impl ITypeExpectation for ScalarType {
                 } else {
                     "unsigned integer".to_string()
                 },
-                actual: self.to_string(),
+                found: self.to_string(),
             });
         }
 

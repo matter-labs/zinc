@@ -4,7 +4,7 @@
 
 use failure::Fail;
 
-use zinc_bytecode::TemplateValueError;
+use zinc_build::ValueError as BuildValueError;
 
 ///
 /// The test program error.
@@ -14,13 +14,10 @@ pub enum Error {
     /// The source code could not be compiled succesfully.
     #[fail(display = "compiler: {}", _0)]
     Compiler(String),
-    /// The program could not be parsed from the bytecode bytes.
-    #[fail(display = "program: {}", _0)]
-    Program(String),
     /// The program input could not be filled from the test metadata.
-    #[fail(display = "template value: {}", _0)]
-    TemplateValue(TemplateValueError),
-    /// The required entry could not be found in the test program.
-    #[fail(display = "entry not found: {}", _0)]
-    EntryNotFound(String),
+    #[fail(display = "input value: {}", _0)]
+    InputValue(BuildValueError),
+    /// The method could not be found in the test program.
+    #[fail(display = "method `{}` not found", _0)]
+    MethodNotFound(String),
 }

@@ -4,8 +4,8 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Mul;
-use zinc_bytecode::ScalarType;
+use zinc_build::Mul;
+use zinc_build::ScalarType;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -46,9 +46,9 @@ mod test {
     #[test]
     fn test_mul() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new_field(3.into()))
-            .push(zinc_bytecode::Push::new_field(4.into()))
-            .push(zinc_bytecode::Mul)
+            .push(zinc_build::Push::new_field(3.into()))
+            .push(zinc_build::Push::new_field(4.into()))
+            .push(zinc_build::Mul)
             .test(&[12])
     }
 }

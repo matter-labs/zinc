@@ -5,7 +5,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_bytecode::ScalarType;
+use zinc_build::ScalarType;
 
 use crate::error::RuntimeError;
 use crate::gadgets;

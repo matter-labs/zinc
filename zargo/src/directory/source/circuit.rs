@@ -53,8 +53,8 @@ impl Circuit {
             }
             let file_name = format!(
                 "{}.{}",
-                zinc_const::file_names::APPLICATION_ENTRY,
-                zinc_const::extensions::SOURCE
+                zinc_const::file_name::APPLICATION_ENTRY,
+                zinc_const::extension::SOURCE
             );
             path.push(PathBuf::from(file_name));
         }
@@ -72,8 +72,8 @@ impl Circuit {
             }
             let file_name = format!(
                 "{}.{}",
-                zinc_const::file_names::APPLICATION_ENTRY,
-                zinc_const::extensions::SOURCE,
+                zinc_const::file_name::APPLICATION_ENTRY,
+                zinc_const::extension::SOURCE,
             );
             path.push(PathBuf::from(file_name));
         }

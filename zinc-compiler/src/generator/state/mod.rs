@@ -2,7 +2,6 @@
 //! The Zinc VM generator state.
 //!
 
-pub mod bytecode;
 pub mod method;
 pub mod optimizer;
 pub mod unit_test;
@@ -11,19 +10,18 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use zinc_bytecode::CircuitUnitTest;
-use zinc_bytecode::ContractMethod;
-use zinc_bytecode::ContractUnitTest;
-use zinc_bytecode::DataType;
-use zinc_bytecode::Instruction;
-use zinc_bytecode::Program as BytecodeProgram;
-use zinc_bytecode::TemplateValue;
+use zinc_build::Bytes;
+use zinc_build::ContractMethod;
+use zinc_build::Instruction;
+use zinc_build::Program as BuildProgram;
+use zinc_build::Type as BuildType;
+use zinc_build::UnitTest as BuildUnitTest;
+use zinc_build::Value as BuildValue;
 
 use crate::generator::r#type::Type;
 use crate::lexical::token::location::Location;
 use crate::source::file::index::INDEX as FILE_INDEX;
 
-use self::bytecode::Bytecode;
 use self::method::Method;
 use self::optimizer::elimination::Optimizer as EliminationOptimizer;
 use self::unit_test::UnitTest;
@@ -139,11 +137,11 @@ impl State {
             .to_string_lossy()
             .to_string();
         self.instructions
-            .push(Instruction::FileMarker(zinc_bytecode::FileMarker::new(
+            .push(Instruction::FileMarker(zinc_build::FileMarker::new(
                 file_path,
             )));
         self.instructions.push(Instruction::FunctionMarker(
-            zinc_bytecode::FunctionMarker::new(identifier),
+            zinc_build::FunctionMarker::new(identifier),
         ));
     }
 
@@ -202,13 +200,14 @@ impl State {
         if let Some(location) = location {
             if self.current_location != location {
                 if self.current_location.line != location.line {
-                    self.instructions.push(Instruction::LineMarker(
-                        zinc_bytecode::LineMarker::new(location.line),
-                    ));
+                    self.instructions
+                        .push(Instruction::LineMarker(zinc_build::LineMarker::new(
+                            location.line,
+                        )));
                 }
                 if self.current_location.column != location.column {
                     self.instructions.push(Instruction::ColumnMarker(
-                        zinc_bytecode::ColumnMarker::new(location.column),
+                        zinc_build::ColumnMarker::new(location.column),
                     ));
                 }
                 self.current_location = location;
@@ -223,7 +222,7 @@ impl State {
     ///
     /// Converts the generator types to the VM ones.
     ///
-    pub fn contract_storage(&self) -> Option<Vec<(String, DataType)>> {
+    pub fn contract_storage(&self) -> Option<Vec<(String, BuildType)>> {
         self.contract_storage.to_owned().map(|storage| {
             storage
                 .into_iter()
@@ -233,36 +232,40 @@ impl State {
     }
 
     ///
-    /// Generates the bytecode for the entry specified with `entry_id`.
+    /// Converts the compiled application state into a set of byte arrays, which are ready to be
+    /// written to the Zinc project build files.
     ///
-    /// Besides that, the function walks through the `Call` instructions and replaces `type_id`s
-    /// of the function stored as `address`es with their actual addresses in the bytecode,
-    /// since the addresses are only known after the functions are written thereto.
-    ///
-    pub fn into_program(mut self, optimize_dead_function_elimination: bool) -> BytecodeProgram {
+    pub fn into_program(mut self, _optimize_dead_function_elimination: bool) -> BuildProgram {
         Self::print_instructions(self.instructions.as_slice());
 
         match self.contract_storage.take() {
             Some(storage) => {
                 let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
                 for (unique_id, unit_test) in self.unit_tests.into_iter() {
-                    let address = self.function_addresses.get(&unique_id).cloned().unwrap();
+                    let address = self
+                        .function_addresses
+                        .get(&unique_id)
+                        .cloned()
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
                     unit_tests.insert(
                         unit_test.name,
-                        ContractUnitTest::new(
-                            address,
-                            unit_test.should_panic,
-                            unit_test.is_ignored,
-                        ),
+                        BuildUnitTest::new(address, unit_test.should_panic, unit_test.is_ignored),
                     );
                 }
 
                 let mut methods = HashMap::with_capacity(self.methods.len());
                 for (unique_id, method) in self.methods.into_iter() {
-                    let address = self.function_addresses.get(&unique_id).cloned().unwrap();
+                    let address = self
+                        .function_addresses
+                        .get(&unique_id)
+                        .cloned()
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
                     let input = method.input_fields_as_struct().into();
                     let output = method.output_type.into();
-                    methods.insert(method.name, ContractMethod::new(input, output, address));
+                    methods.insert(
+                        method.name,
+                        ContractMethod::new(address, method.is_mutable, input, output),
+                    );
                 }
 
                 let storage = storage
@@ -270,51 +273,99 @@ impl State {
                     .map(|(name, r#type)| (name, r#type.into()))
                     .collect();
 
-                BytecodeProgram::new_contract(
+                EliminationOptimizer::set_addresses(
+                    &mut self.instructions,
+                    &self.function_addresses,
+                );
+
+                BuildProgram::new_contract(
                     self.name,
-                    self.instructions,
                     storage,
                     methods,
                     unit_tests,
+                    self.instructions,
                 )
             }
             None => {
                 let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
                 for (unique_id, unit_test) in self.unit_tests.into_iter() {
-                    let address = self.function_addresses.get(&unique_id).cloned().unwrap();
+                    let address = self
+                        .function_addresses
+                        .get(&unique_id)
+                        .cloned()
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
                     unit_tests.insert(
                         unit_test.name,
-                        CircuitUnitTest::new(address, unit_test.should_panic, unit_test.is_ignored),
+                        BuildUnitTest::new(address, unit_test.should_panic, unit_test.is_ignored),
                     );
                 }
 
-                let entry = self
+                let (entry_id, entry) = self
                     .methods
                     .into_iter()
-                    .map(|(_name, entry)| entry)
-                    .collect::<Vec<Method>>()
+                    .collect::<Vec<(usize, Method)>>()
                     .remove(0);
-
                 let input = entry.input_fields_as_struct().into();
                 let output = entry.output_type.into();
-                BytecodeProgram::new_circuit(
+                EliminationOptimizer::set_addresses(
+                    &mut self.instructions,
+                    &self.function_addresses,
+                );
+                let address = self
+                    .function_addresses
+                    .get(&entry_id)
+                    .cloned()
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
+
+                BuildProgram::new_circuit(
                     self.name,
-                    self.instructions,
+                    address,
                     input,
                     output,
                     unit_tests,
+                    self.instructions,
                 )
             }
         }
-        //            if optimize_dead_function_elimination {
-        //                EliminationOptimizer::optimize(
-        //                    entry_id,
-        //                    &mut instructions,
-        //                    self.function_addresses.clone(),
-        //                );
-        //            } else {
-        //                EliminationOptimizer::set_addresses(&mut instructions, &self.function_addresses);
-        //            };
+    }
+
+    ///
+    /// Converts the compiled application state into a set of byte arrays, which are ready to be
+    /// written to the Zinc project build files.
+    ///
+    pub fn into_bytes(self, optimize_dead_function_elimination: bool) -> Bytes {
+        match self.into_program(optimize_dead_function_elimination) {
+            BuildProgram::Circuit(circuit) => {
+                let input_template =
+                    serde_json::to_vec(&BuildValue::new(circuit.input.clone()).into_json())
+                        .expect(zinc_const::panic::DATA_SERIALIZATION);
+                let output_template =
+                    serde_json::to_vec(&BuildValue::new(circuit.output.clone()).into_json())
+                        .expect(zinc_const::panic::DATA_SERIALIZATION);
+                let bytecode = BuildProgram::Circuit(circuit).into_bytes();
+
+                Bytes::new_circuit(bytecode, input_template, output_template)
+            }
+            BuildProgram::Contract(contract) => {
+                let mut input_templates = HashMap::with_capacity(contract.methods.len());
+                let mut output_templates = HashMap::with_capacity(contract.methods.len());
+                for (name, method) in contract.methods.iter() {
+                    input_templates.insert(
+                        name.to_owned(),
+                        serde_json::to_vec(&BuildValue::new(method.input.to_owned()).into_json())
+                            .expect(zinc_const::panic::DATA_SERIALIZATION),
+                    );
+                    output_templates.insert(
+                        name.to_owned(),
+                        serde_json::to_vec(&BuildValue::new(method.output.to_owned()).into_json())
+                            .expect(zinc_const::panic::DATA_SERIALIZATION),
+                    );
+                }
+                let bytecode = BuildProgram::Contract(contract).into_bytes();
+
+                Bytes::new_contract(bytecode, input_templates, output_templates)
+            }
+        }
     }
 
     ///

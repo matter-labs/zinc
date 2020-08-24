@@ -2,9 +2,9 @@
 //! The generator type.
 //!
 
-use zinc_bytecode::DataType;
-use zinc_bytecode::IntegerType;
-use zinc_bytecode::ScalarType;
+use zinc_build::IntegerType;
+use zinc_build::ScalarType;
+use zinc_build::Type as BuildType;
 
 use crate::semantic::element::r#type::Type as SemanticType;
 
@@ -212,38 +212,38 @@ impl Type {
     }
 }
 
-impl Into<DataType> for Type {
-    fn into(self) -> DataType {
+impl Into<BuildType> for Type {
+    fn into(self) -> BuildType {
         match self {
-            Self::Unit => DataType::Unit,
-            Self::Boolean => DataType::Scalar(ScalarType::Boolean),
+            Self::Unit => BuildType::Unit,
+            Self::Boolean => BuildType::Scalar(ScalarType::Boolean),
             Self::IntegerUnsigned { bitlength } => {
-                DataType::Scalar(ScalarType::Integer(IntegerType {
+                BuildType::Scalar(ScalarType::Integer(IntegerType {
                     is_signed: false,
                     bitlength,
                 }))
             }
             Self::IntegerSigned { bitlength } => {
-                DataType::Scalar(ScalarType::Integer(IntegerType {
+                BuildType::Scalar(ScalarType::Integer(IntegerType {
                     is_signed: true,
                     bitlength,
                 }))
             }
-            Self::Field => DataType::Scalar(ScalarType::Field),
+            Self::Field => BuildType::Scalar(ScalarType::Field),
             Self::Array { r#type, size } => {
-                let element_type: DataType = (*r#type).into();
-                DataType::Array(Box::new(element_type), size)
+                let element_type: BuildType = (*r#type).into();
+                BuildType::Array(Box::new(element_type), size)
             }
             Self::Tuple { types } => {
-                DataType::Tuple(types.into_iter().map(|r#type| r#type.into()).collect())
+                BuildType::Tuple(types.into_iter().map(|r#type| r#type.into()).collect())
             }
-            Self::Structure { fields } => DataType::Structure(
+            Self::Structure { fields } => BuildType::Structure(
                 fields
                     .into_iter()
                     .map(|(name, r#type)| (name, r#type.into()))
                     .collect(),
             ),
-            Self::Contract { fields } => DataType::Contract(
+            Self::Contract { fields } => BuildType::Contract(
                 fields
                     .into_iter()
                     .map(|(name, r#type)| (name, r#type.into()))

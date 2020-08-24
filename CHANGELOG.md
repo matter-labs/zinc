@@ -1,21 +1,21 @@
 # The Zinc changelog
 
-## Version 0.X.X (2020-XX-XX)
+## Version 0.2.0 (2020-09-XX)
 
 #### Language
 
 - added methods with the by-value `self` instance parameter
-- added the sugar syntax for calling methods via the dot `.` operator
+- added the syntax sugar for calling methods via the dot `.` operator
 - allowed the bitwise operations on non-constant and witness values
-- extended constant expressions to include arrays, tuples, structures, blocks, conditionals, and matches
+- extended constant expressions with arrays, tuples, structures, blocks, conditionals, and matches
 - implemented primitive constant functions
-- forbidden the bitwise operations on signed integers
+- forbidden the bitwise operations on signed integers and fields
 - allowed to declare constants, types, functions, and modules in arbitrary order
 - implemented the smallest possible type inference for integer literals in expressions
-- implemented nested modules with the access to the root and parent modules
+- implemented Rust-like nested modules with the access to the root and parent modules
 - added the `unconstrained` block modifier to prevent creating unnecessary constraints
-- added the attribute syntax, which supports only the unit test markers for now
-- implemented the Rust-like unit testing functionality
+- added the attribute syntax, which supports only unit test markers for now
+- implemented the Rust-like unit-testing functionality
 
 #### Compiler
 

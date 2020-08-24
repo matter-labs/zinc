@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Ne;
+use zinc_build::Ne;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -32,15 +32,15 @@ mod test {
     #[test]
     fn test_ne() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new_field(1.into()))
-            .push(zinc_bytecode::Push::new_field(2.into()))
-            .push(zinc_bytecode::Ne)
-            .push(zinc_bytecode::Push::new_field(2.into()))
-            .push(zinc_bytecode::Push::new_field(2.into()))
-            .push(zinc_bytecode::Ne)
-            .push(zinc_bytecode::Push::new_field(2.into()))
-            .push(zinc_bytecode::Push::new_field(1.into()))
-            .push(zinc_bytecode::Ne)
+            .push(zinc_build::Push::new_field(1.into()))
+            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Ne)
+            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Ne)
+            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Push::new_field(1.into()))
+            .push(zinc_build::Ne)
             .test(&[1, 0, 1])
     }
 }

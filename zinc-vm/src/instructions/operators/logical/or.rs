@@ -2,7 +2,7 @@
 //! The `Or` instruction.
 //!
 
-use zinc_bytecode::Or;
+use zinc_build::Or;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -23,7 +23,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Or {
 
 #[cfg(test)]
 mod tests {
-    use zinc_bytecode::ScalarType;
+    use zinc_build::ScalarType;
 
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
@@ -31,18 +31,18 @@ mod tests {
     #[test]
     fn test_or() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Or)
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Or)
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Or)
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Or)
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Or)
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Or)
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Or)
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Or)
             .test(&[1, 1, 1, 0])
     }
 }

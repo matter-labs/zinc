@@ -10,8 +10,8 @@ use structopt::StructOpt;
 use franklin_crypto::bellman::groth16::Parameters;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
-use zinc_bytecode::Program as BytecodeProgram;
-use zinc_bytecode::TemplateValue;
+use zinc_build::Program as BuildProgram;
+use zinc_build::Value as BuildValue;
 
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
@@ -41,6 +41,10 @@ pub struct Command {
     /// The path to the public data JSON file.
     #[structopt(long = "public-data", help = "The public data JSON file")]
     pub public_data_path: PathBuf,
+
+    /// The method name to call, if the program is a contract.
+    #[structopt(long = "method", help = "The method name")]
+    pub method: Option<String>,
 }
 
 impl IExecutable for Command {
@@ -50,34 +54,44 @@ impl IExecutable for Command {
         // Read program
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let program =
-            BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
+        let program = BuildProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         // Read verifying key
-        let file = fs::File::open(&self.proving_key_path)
-            .error_with_path(|| self.proving_key_path.to_string_lossy())?;
+        let proving_key_path = self.proving_key_path;
+        let file = fs::File::open(&proving_key_path)
+            .error_with_path(|| proving_key_path.to_string_lossy())?;
         let params = Parameters::<Bn256>::read(file, true)
-            .error_with_path(|| self.proving_key_path.to_string_lossy())?;
+            .error_with_path(|| proving_key_path.to_string_lossy())?;
 
         // Read witness
-        let witness_json = fs::read_to_string(&self.witness_path)
-            .error_with_path(|| self.witness_path.to_string_lossy())?;
-        let witness_value = serde_json::from_str(&witness_json)?;
-        let witness_struct = TemplateValue::try_from_typed_json(witness_value, program.input())?;
+        let witness_path = self.witness_path;
+        let input_template =
+            fs::read_to_string(&witness_path).error_with_path(|| witness_path.to_string_lossy())?;
+        let input_json = serde_json::from_str(&input_template)?;
 
-        let (pubdata, proof) = match program {
-            BytecodeProgram::Circuit(circuit) => {
-                CircuitFacade::new(circuit).prove::<Bn256>(params, witness_struct)?
+        let (output, proof) = match program {
+            BuildProgram::Circuit(circuit) => {
+                let input_type = circuit.input.clone();
+                let input_values = BuildValue::try_from_typed_json(input_json, input_type)?;
+                CircuitFacade::new(circuit).prove::<Bn256>(params, input_values)?
             }
-            BytecodeProgram::Contract(contract) => {
-                ContractFacade::new(contract).prove::<Bn256>(params, witness_struct)?
+            BuildProgram::Contract(contract) => {
+                let method_name = self.method.ok_or(Error::MethodNameNotFound)?;
+                let method = contract.methods.get(method_name.as_str()).cloned().ok_or(
+                    Error::MethodNotFound {
+                        name: method_name.clone(),
+                    },
+                )?;
+                let input_values = BuildValue::try_from_typed_json(input_json, method.input)?;
+                ContractFacade::new(contract).prove::<Bn256>(params, input_values, method_name)?
             }
         };
 
         // Write pubdata
-        let pubdata_json = serde_json::to_string_pretty(&pubdata.into_json())? + "\n";
-        fs::write(&self.public_data_path, &pubdata_json)
-            .error_with_path(|| self.public_data_path.to_string_lossy())?;
+        let pubdata_json = serde_json::to_string_pretty(&output.into_json())? + "\n";
+        let public_data_path = self.public_data_path;
+        fs::write(&public_data_path, &pubdata_json)
+            .error_with_path(|| public_data_path.to_string_lossy())?;
 
         // Write proof to stdout
         let mut proof_bytes = Vec::new();

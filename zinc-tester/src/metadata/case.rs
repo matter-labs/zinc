@@ -14,7 +14,7 @@ pub struct Case {
     pub case: String,
     /// The entry which must be run for the case.
     #[serde(default = "crate::default_entry")]
-    pub entry: String,
+    pub method: String,
     /// The entry input data.
     pub input: JsonValue,
     /// The entry expected output data.

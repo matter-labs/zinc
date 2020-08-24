@@ -2,7 +2,7 @@
 //! The generator expression operator.
 //!
 
-use zinc_bytecode::FunctionIdentifier;
+use zinc_build::FunctionIdentifier;
 
 use crate::generator::expression::operand::place::Place;
 use crate::generator::expression::Expression;

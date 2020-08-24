@@ -9,7 +9,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_bytecode::IntegerType;
+use zinc_build::IntegerType;
 
 use crate::core::execution_state::evaluation_stack::EvaluationStack;
 use crate::error::MalformedBytecode;

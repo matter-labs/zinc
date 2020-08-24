@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Gt;
+use zinc_build::Gt;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -29,20 +29,20 @@ mod test {
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
-    use zinc_bytecode::IntegerType;
+    use zinc_build::IntegerType;
 
     #[test]
     fn test_gt() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Gt)
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Gt)
-            .push(zinc_bytecode::Push::new(1.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_bytecode::Gt)
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(1.into(), IntegerType::I8.into()))
+            .push(zinc_build::Gt)
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Gt)
+            .push(zinc_build::Push::new(1.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Gt)
             .test(&[0, 0, 1])
     }
 }

@@ -53,7 +53,7 @@ impl File {
             .extension()
             .ok_or(Error::ExtensionNotFound)
             .map_err(SourceError::File)?;
-        if source_file_extension != zinc_const::extensions::SOURCE {
+        if source_file_extension != zinc_const::extension::SOURCE {
             return Err(SourceError::File(Error::ExtensionInvalid(
                 source_file_extension.to_owned(),
             )));
@@ -98,7 +98,7 @@ impl File {
             .extension()
             .ok_or(Error::ExtensionNotFound)
             .map_err(SourceError::File)?;
-        if source_file_extension != zinc_const::extensions::SOURCE {
+        if source_file_extension != zinc_const::extension::SOURCE {
             return Err(SourceError::File(Error::ExtensionInvalid(
                 source_file_extension.to_owned(),
             )));
@@ -151,14 +151,14 @@ impl File {
     /// Checks whether the file is the application entry point.
     ///
     pub fn is_application_entry(&self) -> bool {
-        self.name.as_str() == zinc_const::file_names::APPLICATION_ENTRY
+        self.name.as_str() == zinc_const::file_name::APPLICATION_ENTRY
     }
 
     ///
     /// Checks whether the file is the module entry point.
     ///
     pub fn is_module_entry(&self) -> bool {
-        self.name.as_str() == zinc_const::file_names::MODULE_ENTRY
+        self.name.as_str() == zinc_const::file_name::MODULE_ENTRY
     }
 
     ///

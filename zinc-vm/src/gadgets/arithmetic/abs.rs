@@ -1,7 +1,7 @@
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::IntegerType;
-use zinc_bytecode::ScalarType;
+use zinc_build::IntegerType;
+use zinc_build::ScalarType;
 
 use crate::auto_const;
 use crate::error::RuntimeError;

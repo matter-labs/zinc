@@ -40,48 +40,54 @@ pub struct Command {
     /// The path to the Zargo project manifest file.
     #[structopt(
         long = "manifest-path",
+        parse(from_os_str),
         help = "Path to Zargo.toml",
-        default_value = "./Zargo.toml"
+        default_value = zinc_const::path::MANIFEST,
     )]
     pub manifest_path: PathBuf,
 
     /// The path to the binary bytecode file.
     #[structopt(
         long = "binary",
+        parse(from_os_str),
         help = "Path to the bytecode file",
-        default_value = "./build/main.znb"
+        default_value = zinc_const::path::BINARY,
     )]
     pub binary_path: PathBuf,
 
     /// The path to the witness JSON file.
     #[structopt(
         long = "witness",
+        parse(from_os_str),
         help = "Path to the witness JSON file",
-        default_value = "./data/main_witness.json"
+        default_value = zinc_const::path::WITNESS,
     )]
     pub witness_path: PathBuf,
 
     /// The path to the public data JSON file.
     #[structopt(
         long = "public-data",
+        parse(from_os_str),
         help = "Path to the public data JSON file",
-        default_value = "./data/main_public_data.json"
+        default_value = zinc_const::path::PUBLIC_DATA,
     )]
     pub public_data_path: PathBuf,
 
     /// The path to the proving key file.
     #[structopt(
         long = "proving-key",
+        parse(from_os_str),
         help = "Path to the proving key file",
-        default_value = "./data/proving_key"
+        default_value = zinc_const::path::PROVING_KEY,
     )]
     pub proving_key_path: PathBuf,
 
     /// The path to the verifying key file.
     #[structopt(
         long = "verifying-key",
+        parse(from_os_str),
         help = "Path to the verifying key file",
-        default_value = "./data/verifying_key.txt"
+        default_value = zinc_const::path::VERIFYING_KEY,
     )]
     pub verifying_key_path: PathBuf,
 
@@ -122,16 +128,15 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        let _manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
+        let manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         let mut manifest_path = self.manifest_path.clone();
         if manifest_path.is_file() {
             manifest_path.pop();
         }
 
-        let source_directory_path = SourceDirectory::path(&manifest_path);
-        let build_directory_path = BuildDirectory::path(&manifest_path);
         let data_directory_path = DataDirectory::path(&manifest_path);
+        let source_directory_path = SourceDirectory::path(&manifest_path);
 
         BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
         DataDirectory::create(&manifest_path).map_err(Error::DataDirectory)?;
@@ -139,18 +144,20 @@ impl IExecutable for Command {
         if self.is_release {
             Compiler::build_release(
                 self.verbosity,
+                manifest.project.name,
                 &data_directory_path,
-                &build_directory_path,
                 &source_directory_path,
+                &self.binary_path,
                 false,
             )
             .map_err(Error::Compiler)?;
         } else {
             Compiler::build_debug(
                 self.verbosity,
+                manifest.project.name,
                 &data_directory_path,
-                &build_directory_path,
                 &source_directory_path,
+                &self.binary_path,
                 false,
             )
             .map_err(Error::Compiler)?;

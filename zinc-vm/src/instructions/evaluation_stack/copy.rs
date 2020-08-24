@@ -2,7 +2,7 @@
 //! The `Copy` instruction.
 //!
 
-use zinc_bytecode::Copy;
+use zinc_build::Copy;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;

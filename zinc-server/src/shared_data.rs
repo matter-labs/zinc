@@ -6,28 +6,29 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use zinc_bytecode::Program as BytecodeProgram;
+use zinc_build::Program as BuildProgram;
 use zinc_compiler::State;
-use zinc_postgres::Client as PostgresqlClient;
+
+use crate::database::client::Client as DatabaseClient;
 
 ///
 /// The Zinc server shared application data.
 ///
 pub struct SharedData {
-    /// The PostgreSQL async client.
-    pub postgresql_client: PostgresqlClient,
-    /// The precompiled contract methods.
-    pub contracts: HashMap<i64, BytecodeProgram>,
+    /// The PostgreSQL asynchronous client.
+    pub postgresql_client: DatabaseClient,
+    /// The precompiled contract templates.
+    pub templates: HashMap<i64, BuildProgram>,
 }
 
 impl SharedData {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(postgresql_client: PostgresqlClient) -> Self {
+    pub fn new(postgresql_client: DatabaseClient) -> Self {
         Self {
             postgresql_client,
-            contracts: HashMap::new(),
+            templates: HashMap::new(),
         }
     }
 
@@ -36,7 +37,7 @@ impl SharedData {
     /// contract cache at the specified `key`, which uniquely identifies the contract.
     ///
     pub fn insert_contract(&mut self, key: i64, state: State) {
-        self.contracts.insert(key, state.into_program(true));
+        self.templates.insert(key, state.into_program(true));
     }
 
     ///

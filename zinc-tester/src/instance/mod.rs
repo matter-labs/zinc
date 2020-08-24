@@ -9,8 +9,8 @@ use std::path::PathBuf;
 
 use serde_json::Value as JsonValue;
 
-use zinc_bytecode::Program as BytecodeProgram;
-use zinc_bytecode::TemplateValue;
+use zinc_build::Program as BuildProgram;
+use zinc_build::Value as BuildValue;
 use zinc_compiler::EntryAnalyzer;
 use zinc_compiler::Error as CompilerError;
 use zinc_compiler::IBytecodeWritable;
@@ -25,9 +25,9 @@ use self::error::Error;
 ///
 pub struct Instance {
     /// The witness input data template value.
-    pub witness: TemplateValue,
+    pub witness: BuildValue,
     /// The instance bytecode with metadata.
-    pub program: BytecodeProgram,
+    pub program: BuildProgram,
 }
 
 impl Instance {
@@ -38,7 +38,7 @@ impl Instance {
         name: String,
         code: &str,
         path: PathBuf,
-        entry: String,
+        method: String,
         witness: JsonValue,
     ) -> Result<Self, Error> {
         let scope = EntryAnalyzer::define(Source::test(code, path, 0, HashMap::new()))
@@ -49,16 +49,20 @@ impl Instance {
         let bytecode = State::new(name).wrap();
         IntermediateProgram::new(scope.borrow().get_intermediate()).write_all(bytecode.clone());
 
-        let entry = State::unwrap_rc(bytecode)
-            .into_methods(true)
-            .remove(entry.as_str())
-            .ok_or_else(|| Error::EntryNotFound(entry))?;
+        let program = State::unwrap_rc(bytecode).into_program(true);
 
-        let program = BytecodeProgram::from_bytes(entry.into_bytecode().as_slice())
-            .map_err(Error::Program)?;
+        let input_type = match program {
+            BuildProgram::Circuit(ref circuit) => circuit.input.to_owned(),
+            BuildProgram::Contract(ref contract) => contract
+                .methods
+                .get(method.as_str())
+                .ok_or(Error::MethodNotFound(method))?
+                .input
+                .to_owned(),
+        };
 
-        let witness = TemplateValue::try_from_typed_json(witness, program.input())
-            .map_err(Error::TemplateValue)?;
+        let witness =
+            BuildValue::try_from_typed_json(witness, input_type).map_err(Error::InputValue)?;
 
         Ok(Self { witness, program })
     }

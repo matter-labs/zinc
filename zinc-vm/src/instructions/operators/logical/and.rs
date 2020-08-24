@@ -2,7 +2,7 @@
 //! The `And` instruction.
 //!
 
-use zinc_bytecode::And;
+use zinc_build::And;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -23,7 +23,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for And {
 
 #[cfg(test)]
 mod tests {
-    use zinc_bytecode::ScalarType;
+    use zinc_build::ScalarType;
 
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
@@ -31,18 +31,18 @@ mod tests {
     #[test]
     fn test_and() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::And)
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::And)
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::And)
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::And)
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::And)
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::And)
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::And)
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::And)
             .test(&[1, 0, 0, 0])
     }
 }

@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use zinc_bytecode::FunctionIdentifier;
+use zinc_build::FunctionIdentifier;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::argument_list::ArgumentList;

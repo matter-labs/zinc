@@ -4,8 +4,7 @@
 
 #![cfg(test)]
 
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::collections::HashMap;
 
 use colored::Colorize;
 use failure::Fail;
@@ -15,10 +14,10 @@ use num_bigint::ToBigInt;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
-use zinc_bytecode::Call;
-use zinc_bytecode::Circuit as BytecodeCircuit;
-use zinc_bytecode::DataType;
-use zinc_bytecode::Instruction;
+use zinc_build::Call;
+use zinc_build::Circuit as BuildCircuit;
+use zinc_build::Instruction;
+use zinc_build::Type as BuildType;
 
 use crate::core::circuit::State;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -28,7 +27,7 @@ type TestVirtualMachine = State<Bn256, TestConstraintSystem<Bn256>>;
 
 fn new_test_constrained_vm() -> TestVirtualMachine {
     let cs = TestConstraintSystem::new();
-    TestVirtualMachine::new(cs, Rc::new(RefCell::new(false)), true)
+    TestVirtualMachine::new(cs, true)
 }
 
 fn assert_stack_eq<VM, BI>(vm: &mut VM, expected_stack: &[BI])
@@ -93,12 +92,13 @@ impl TestRunner {
     ) -> Result<(), TestingError> {
         let mut vm = new_test_constrained_vm();
 
-        let circuit = BytecodeCircuit::new(
+        let circuit = BuildCircuit::new(
             "test".to_owned(),
-            DataType::Unit,
-            DataType::Unit,
+            0,
+            BuildType::Unit,
+            BuildType::Unit,
+            HashMap::new(),
             self.instructions,
-            None,
         );
 
         vm.run(circuit, Some(&[]), |_| {}, |_| Ok(()))

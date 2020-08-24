@@ -4,7 +4,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::circuit::boolean::Boolean;
 
-use zinc_bytecode::ScalarType;
+use zinc_build::ScalarType;
 
 use crate::error::RuntimeError;
 use crate::gadgets;
@@ -191,8 +191,8 @@ mod tests {
     use franklin_crypto::circuit::num::AllocatedNum;
     use franklin_crypto::circuit::test::TestConstraintSystem;
 
-    use zinc_bytecode::DataType;
-    use zinc_bytecode::ScalarType;
+    use zinc_build::ScalarType;
+    use zinc_build::Type as BuildType;
 
     use crate::core::contract::storage::dummy::Storage as DummyStorage;
     use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
@@ -209,7 +209,7 @@ mod tests {
 
         let storage_test_dummy =
             DummyStorage::<Bn256>::new(vec![
-                DataType::Scalar(ScalarType::Field);
+                BuildType::Scalar(ScalarType::Field);
                 STORAGE_ELEMENT_COUNT
             ]);
 

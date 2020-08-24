@@ -7,7 +7,7 @@ pub mod builder;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use zinc_bytecode::Instruction;
+use zinc_build::Instruction;
 
 use crate::generator::expression::operand::block::Expression as BlockExpression;
 use crate::generator::expression::Expression as GeneratorExpression;
@@ -54,19 +54,18 @@ impl IBytecodeWritable for Expression {
         self.condition.write_all(bytecode.clone());
         bytecode
             .borrow_mut()
-            .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
+            .push_instruction(Instruction::If(zinc_build::If), Some(self.location));
         self.main_block.write_all(bytecode.clone());
 
         if let Some(else_block) = self.else_block {
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::Else(zinc_bytecode::Else), Some(self.location));
+                .push_instruction(Instruction::Else(zinc_build::Else), Some(self.location));
             else_block.write_all(bytecode.clone());
         }
 
-        bytecode.borrow_mut().push_instruction(
-            Instruction::EndIf(zinc_bytecode::EndIf),
-            Some(self.location),
-        );
+        bytecode
+            .borrow_mut()
+            .push_instruction(Instruction::EndIf(zinc_build::EndIf), Some(self.location));
     }
 }

@@ -9,9 +9,9 @@ use num_bigint::BigInt;
 use num_traits::One;
 use num_traits::Zero;
 
-use zinc_bytecode::Instruction;
-use zinc_bytecode::Push;
-use zinc_bytecode::ScalarType;
+use zinc_build::Instruction;
+use zinc_build::Push;
+use zinc_build::ScalarType;
 
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;

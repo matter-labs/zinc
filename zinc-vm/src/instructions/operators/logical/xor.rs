@@ -2,7 +2,7 @@
 //! The `Xor` instruction.
 //!
 
-use zinc_bytecode::Xor;
+use zinc_build::Xor;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -23,7 +23,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Xor {
 
 #[cfg(test)]
 mod tests {
-    use zinc_bytecode::ScalarType;
+    use zinc_build::ScalarType;
 
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
@@ -31,18 +31,18 @@ mod tests {
     #[test]
     fn test_xor() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Xor)
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Xor)
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Xor)
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_bytecode::Xor)
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Xor)
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Xor)
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Xor)
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Xor)
             .test(&[0, 1, 1, 0])
     }
 }

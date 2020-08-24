@@ -5,7 +5,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use zinc_bytecode::Instruction;
+use zinc_build::Instruction;
 
 use crate::generator::expression::operand::block::Expression as BlockExpression;
 use crate::generator::expression::operand::constant::boolean::Boolean as BooleanConstant;
@@ -89,7 +89,7 @@ impl IBytecodeWritable for Statement {
         )
         .write_all(bytecode.clone());
         bytecode.borrow_mut().push_instruction(
-            Instruction::Store(zinc_bytecode::Store::new(index_address, index_size)),
+            Instruction::Store(zinc_build::Store::new(index_address, index_size)),
             Some(self.location),
         );
 
@@ -100,7 +100,7 @@ impl IBytecodeWritable for Statement {
                 .define_variable(None, Type::boolean().size());
             while_allowed.write_all(bytecode.clone());
             bytecode.borrow_mut().push_instruction(
-                Instruction::Store(zinc_bytecode::Store::new(while_allowed_address, 1)),
+                Instruction::Store(zinc_build::Store::new(while_allowed_address, 1)),
                 Some(self.location),
             );
             Some(while_allowed_address)
@@ -109,7 +109,7 @@ impl IBytecodeWritable for Statement {
         };
 
         bytecode.borrow_mut().push_instruction(
-            Instruction::LoopBegin(zinc_bytecode::LoopBegin::new(self.iterations_count)),
+            Instruction::LoopBegin(zinc_build::LoopBegin::new(self.iterations_count)),
             Some(self.location),
         );
 
@@ -119,25 +119,13 @@ impl IBytecodeWritable for Statement {
             while_condition.write_all(bytecode.clone());
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::Not(zinc_bytecode::Not), Some(self.location));
+                .push_instruction(Instruction::Not(zinc_build::Not), Some(self.location));
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
+                .push_instruction(Instruction::If(zinc_build::If), Some(self.location));
             BooleanConstant::new(false).write_all(bytecode.clone());
             bytecode.borrow_mut().push_instruction(
-                Instruction::Store(zinc_bytecode::Store::new(
-                    while_allowed_address,
-                    Type::boolean().size(),
-                )),
-                Some(self.location),
-            );
-            bytecode.borrow_mut().push_instruction(
-                Instruction::EndIf(zinc_bytecode::EndIf),
-                Some(self.location),
-            );
-
-            bytecode.borrow_mut().push_instruction(
-                Instruction::Load(zinc_bytecode::Load::new(
+                Instruction::Store(zinc_build::Store::new(
                     while_allowed_address,
                     Type::boolean().size(),
                 )),
@@ -145,31 +133,41 @@ impl IBytecodeWritable for Statement {
             );
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
-            self.body.write_all(bytecode.clone());
+                .push_instruction(Instruction::EndIf(zinc_build::EndIf), Some(self.location));
+
             bytecode.borrow_mut().push_instruction(
-                Instruction::EndIf(zinc_bytecode::EndIf),
+                Instruction::Load(zinc_build::Load::new(
+                    while_allowed_address,
+                    Type::boolean().size(),
+                )),
                 Some(self.location),
             );
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::If(zinc_build::If), Some(self.location));
+            self.body.write_all(bytecode.clone());
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::EndIf(zinc_build::EndIf), Some(self.location));
         } else {
             self.body.write_all(bytecode.clone());
         }
 
         if self.is_reversed {
             bytecode.borrow_mut().push_instruction(
-                Instruction::Load(zinc_bytecode::Load::new(index_address, 1)),
+                Instruction::Load(zinc_build::Load::new(index_address, 1)),
                 Some(self.location),
             );
             IntegerConstant::new_min(self.index_variable_is_signed, self.index_variable_bitlength)
                 .write_all(bytecode.clone());
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::Gt(zinc_bytecode::Gt), Some(self.location));
+                .push_instruction(Instruction::Gt(zinc_build::Gt), Some(self.location));
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
+                .push_instruction(Instruction::If(zinc_build::If), Some(self.location));
             bytecode.borrow_mut().push_instruction(
-                Instruction::Load(zinc_bytecode::Load::new(index_address, 1)),
+                Instruction::Load(zinc_build::Load::new(index_address, 1)),
                 Some(self.location),
             );
             IntegerConstant::new(
@@ -180,30 +178,29 @@ impl IBytecodeWritable for Statement {
             .write_all(bytecode.clone());
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::Sub(zinc_bytecode::Sub), Some(self.location));
+                .push_instruction(Instruction::Sub(zinc_build::Sub), Some(self.location));
             bytecode.borrow_mut().push_instruction(
-                Instruction::Store(zinc_bytecode::Store::new(index_address, 1)),
+                Instruction::Store(zinc_build::Store::new(index_address, 1)),
                 Some(self.location),
             );
-            bytecode.borrow_mut().push_instruction(
-                Instruction::EndIf(zinc_bytecode::EndIf),
-                Some(self.location),
-            );
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::EndIf(zinc_build::EndIf), Some(self.location));
         } else {
             bytecode.borrow_mut().push_instruction(
-                Instruction::Load(zinc_bytecode::Load::new(index_address, 1)),
+                Instruction::Load(zinc_build::Load::new(index_address, 1)),
                 Some(self.location),
             );
             IntegerConstant::new_max(self.index_variable_is_signed, self.index_variable_bitlength)
                 .write_all(bytecode.clone());
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::Lt(zinc_bytecode::Lt), Some(self.location));
+                .push_instruction(Instruction::Lt(zinc_build::Lt), Some(self.location));
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
+                .push_instruction(Instruction::If(zinc_build::If), Some(self.location));
             bytecode.borrow_mut().push_instruction(
-                Instruction::Load(zinc_bytecode::Load::new(index_address, 1)),
+                Instruction::Load(zinc_build::Load::new(index_address, 1)),
                 Some(self.location),
             );
             IntegerConstant::new(
@@ -214,18 +211,17 @@ impl IBytecodeWritable for Statement {
             .write_all(bytecode.clone());
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::Add(zinc_bytecode::Add), Some(self.location));
+                .push_instruction(Instruction::Add(zinc_build::Add), Some(self.location));
             bytecode.borrow_mut().push_instruction(
-                Instruction::Store(zinc_bytecode::Store::new(index_address, 1)),
+                Instruction::Store(zinc_build::Store::new(index_address, 1)),
                 Some(self.location),
             );
-            bytecode.borrow_mut().push_instruction(
-                Instruction::EndIf(zinc_bytecode::EndIf),
-                Some(self.location),
-            );
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::EndIf(zinc_build::EndIf), Some(self.location));
         };
         bytecode.borrow_mut().push_instruction(
-            Instruction::LoopEnd(zinc_bytecode::LoopEnd),
+            Instruction::LoopEnd(zinc_build::LoopEnd),
             Some(self.location),
         );
     }

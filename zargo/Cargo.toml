@@ -1,6 +1,6 @@
 [package]
 name = "zargo"
-version = "0.1.5"
+version = "0.2.0"
 authors = ["Alex Z <a.zarudnyy@matterlabs.dev>"]
 edition = "2018"
 description = "The Zinc project manager"
@@ -14,7 +14,6 @@ log = "0.4"
 structopt = "0.3"
 
 failure = "0.1"
-colored = "1.9"
 toml = "0.5"
 
 serde = "1.0"

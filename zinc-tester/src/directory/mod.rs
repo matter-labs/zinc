@@ -57,7 +57,7 @@ impl Directory {
             let file_extension = entry_path
                 .extension()
                 .ok_or_else(|| Error::GettingFileExtension(entry_path.as_os_str().to_owned()))?;
-            if file_extension != zinc_const::extensions::SOURCE {
+            if file_extension != zinc_const::extension::SOURCE {
                 return Err(Error::InvalidFileExtension(
                     entry_path.as_os_str().to_owned(),
                     file_extension.to_owned(),

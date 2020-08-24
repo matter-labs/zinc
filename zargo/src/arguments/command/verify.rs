@@ -28,24 +28,27 @@ pub struct Command {
     /// The path to the binary bytecode file.
     #[structopt(
         long = "binary",
+        parse(from_os_str),
         help = "Path to the bytecode file",
-        default_value = "./build/main.znb"
+        default_value = zinc_const::path::BINARY,
     )]
     pub binary_path: PathBuf,
 
     /// The path to the public data JSON file.
     #[structopt(
         long = "public-data",
+        parse(from_os_str),
         help = "Path to the public data JSON file",
-        default_value = "./data/main_public_data.json"
+        default_value = zinc_const::path::PUBLIC_DATA,
     )]
     pub public_data_path: PathBuf,
 
     /// The path to the verifying key file.
     #[structopt(
         long = "verifying-key",
+        parse(from_os_str),
         help = "Path to the verifying key file",
-        default_value = "./data/verifying_key.txt"
+        default_value = zinc_const::path::VERIFYING_KEY,
     )]
     pub verifying_key_path: PathBuf,
 }

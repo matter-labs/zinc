@@ -7,7 +7,7 @@ pub mod builder;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use zinc_bytecode::Instruction;
+use zinc_build::Instruction;
 
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::state::State;
@@ -48,7 +48,7 @@ impl IBytecodeWritable for Expression {
     fn write_all(self, bytecode: Rc<RefCell<State>>) {
         if self.is_unconstrained {
             bytecode.borrow_mut().push_instruction(
-                Instruction::SetUnconstrained(zinc_bytecode::SetUnconstrained),
+                Instruction::SetUnconstrained(zinc_build::SetUnconstrained),
                 None,
             );
         }
@@ -62,7 +62,7 @@ impl IBytecodeWritable for Expression {
 
         if self.is_unconstrained {
             bytecode.borrow_mut().push_instruction(
-                Instruction::UnsetUnconstrained(zinc_bytecode::UnsetUnconstrained),
+                Instruction::UnsetUnconstrained(zinc_build::UnsetUnconstrained),
                 None,
             );
         }

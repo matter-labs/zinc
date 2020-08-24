@@ -9,8 +9,8 @@ use structopt::StructOpt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
-use zinc_bytecode::Program as BytecodeProgram;
-use zinc_bytecode::TemplateValue;
+use zinc_build::Program as BuildProgram;
+use zinc_build::Value as BuildValue;
 
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
@@ -36,35 +36,54 @@ pub struct Command {
     /// The path to the public data JSON file.
     #[structopt(long = "public-data", help = "The public data JSON file")]
     pub public_data_path: PathBuf,
+
+    /// The method name to call, if the program is a contract.
+    #[structopt(long = "method", help = "The method name")]
+    pub method: Option<String>,
 }
 
 impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<i32, Self::Error> {
-        let bytes =
+        let bytecode =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let program =
-            BytecodeProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
-
-        let input_text = fs::read_to_string(&self.witness_path)
+        let input_template = fs::read_to_string(&self.witness_path)
             .error_with_path(|| self.witness_path.to_string_lossy())?;
-        let json = serde_json::from_str(&input_text)?;
-        let input = TemplateValue::try_from_typed_json(json, program.input())?;
+
+        let program =
+            BuildProgram::from_bytes(bytecode.as_slice()).map_err(Error::ProgramDecoding)?;
+        let input_json = serde_json::from_str(&input_template)?;
 
         let output = match program {
-            BytecodeProgram::Circuit(circuit) => {
-                CircuitFacade::new(circuit).debug::<Bn256>(input)?
+            BuildProgram::Circuit(circuit) => {
+                let input_type = circuit.input.clone();
+                let input_values = BuildValue::try_from_typed_json(input_json, input_type)?;
+                CircuitFacade::new(circuit).debug::<Bn256>(input_values)?
             }
-            BytecodeProgram::Contract(contract) => {
-                ContractFacade::new(contract).debug::<Bn256>(input)?
+            BuildProgram::Contract(contract) => {
+                let method_name = self.method.ok_or(Error::MethodNameNotFound)?;
+                let method = contract.methods.get(method_name.as_str()).cloned().ok_or(
+                    Error::MethodNotFound {
+                        name: method_name.clone(),
+                    },
+                )?;
+                let input_values = BuildValue::try_from_typed_json(input_json, method.input)?;
+                let (output, storage) = ContractFacade::new(contract).debug::<Bn256>(
+                    input_values,
+                    BuildValue::Contract(vec![]),
+                    method_name,
+                )?;
+                output
             }
         };
-        let output_json = serde_json::to_string_pretty(&output.into_json())? + "\n";
-        fs::write(&self.public_data_path, &output_json)
-            .error_with_path(|| self.public_data_path.to_string_lossy())?;
 
-        println!("{}", output_json);
+        let output_json = serde_json::to_string_pretty(&output.into_json())? + "\n";
+        let public_data_path = self.public_data_path;
+        fs::write(&public_data_path, &output_json)
+            .error_with_path(|| public_data_path.to_string_lossy())?;
+
+        print!("{}", output_json);
 
         Ok(zinc_const::exit_code::SUCCESS as i32)
     }

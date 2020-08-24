@@ -11,10 +11,10 @@ use std::rc::Rc;
 
 use num_bigint::BigInt;
 
-use zinc_bytecode::DataType;
-use zinc_bytecode::FunctionIdentifier;
-use zinc_bytecode::Instruction;
-use zinc_bytecode::ScalarType;
+use zinc_build::FunctionIdentifier;
+use zinc_build::Instruction;
+use zinc_build::ScalarType;
+use zinc_build::Type as BuildType;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::operand::place::Place;
@@ -106,13 +106,13 @@ impl Expression {
 
                 bytecode.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(
+                        Instruction::StoreByIndex(zinc_build::StoreByIndex::new(
                             address,
                             element_size,
                             total_size,
                         ))
                     } else {
-                        Instruction::Store(zinc_bytecode::Store::new(address, total_size))
+                        Instruction::Store(zinc_build::Store::new(address, total_size))
                     },
                     Some(location),
                 );
@@ -140,7 +140,7 @@ impl Expression {
                     )
                     .write_all(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::StorageLoad(zinc_bytecode::StorageLoad::new(*element_size)),
+                        Instruction::StorageLoad(zinc_build::StorageLoad::new(*element_size)),
                         Some(place.identifier.location),
                     );
 
@@ -154,7 +154,7 @@ impl Expression {
                 let is_indexed = !place.elements.is_empty();
 
                 bytecode.borrow_mut().push_instruction(
-                    Instruction::Store(zinc_bytecode::Store::new(address, total_size)),
+                    Instruction::Store(zinc_build::Store::new(address, total_size)),
                     Some(location),
                 );
 
@@ -166,19 +166,19 @@ impl Expression {
 
                 bytecode.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(
+                        Instruction::StoreByIndex(zinc_build::StoreByIndex::new(
                             address,
                             element_size,
                             total_size,
                         ))
                     } else {
-                        Instruction::Store(zinc_bytecode::Store::new(address, total_size))
+                        Instruction::Store(zinc_build::Store::new(address, total_size))
                     },
                     Some(location),
                 );
 
                 bytecode.borrow_mut().push_instruction(
-                    Instruction::Load(zinc_bytecode::Load::new(address, total_size)),
+                    Instruction::Load(zinc_build::Load::new(address, total_size)),
                     Some(location),
                 );
 
@@ -189,7 +189,7 @@ impl Expression {
                 )
                 .write_all(bytecode.clone());
                 bytecode.borrow_mut().push_instruction(
-                    Instruction::StorageStore(zinc_bytecode::StorageStore::new(total_size)),
+                    Instruction::StorageStore(zinc_build::StorageStore::new(total_size)),
                     Some(location),
                 );
             }
@@ -220,18 +220,18 @@ impl Expression {
                     place.write_all(bytecode.clone());
                     bytecode
                         .borrow_mut()
-                        .push_instruction(Instruction::Copy(zinc_bytecode::Copy), Some(location));
+                        .push_instruction(Instruction::Copy(zinc_build::Copy), Some(location));
                 }
 
                 bytecode.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
+                        Instruction::LoadByIndex(zinc_build::LoadByIndex::new(
                             address,
                             element_size,
                             total_size,
                         ))
                     } else {
-                        Instruction::Load(zinc_bytecode::Load::new(address, total_size))
+                        Instruction::Load(zinc_build::Load::new(address, total_size))
                     },
                     Some(location),
                 );
@@ -244,13 +244,13 @@ impl Expression {
 
                 bytecode.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(
+                        Instruction::StoreByIndex(zinc_build::StoreByIndex::new(
                             address,
                             element_size,
                             total_size,
                         ))
                     } else {
-                        Instruction::Store(zinc_bytecode::Store::new(address, total_size))
+                        Instruction::Store(zinc_build::Store::new(address, total_size))
                     },
                     Some(location),
                 );
@@ -278,7 +278,7 @@ impl Expression {
                     )
                     .write_all(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
-                        Instruction::StorageLoad(zinc_bytecode::StorageLoad::new(*element_size)),
+                        Instruction::StorageLoad(zinc_build::StorageLoad::new(*element_size)),
                         Some(place.identifier.location),
                     );
 
@@ -292,7 +292,7 @@ impl Expression {
                 let is_indexed = !place.elements.is_empty();
 
                 bytecode.borrow_mut().push_instruction(
-                    Instruction::Store(zinc_bytecode::Store::new(address, total_size)),
+                    Instruction::Store(zinc_build::Store::new(address, total_size)),
                     Some(location),
                 );
 
@@ -300,18 +300,18 @@ impl Expression {
                     place.write_all(bytecode.clone());
                     bytecode
                         .borrow_mut()
-                        .push_instruction(Instruction::Copy(zinc_bytecode::Copy), Some(location));
+                        .push_instruction(Instruction::Copy(zinc_build::Copy), Some(location));
                 }
 
                 bytecode.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
+                        Instruction::LoadByIndex(zinc_build::LoadByIndex::new(
                             address,
                             element_size,
                             total_size,
                         ))
                     } else {
-                        Instruction::Load(zinc_bytecode::Load::new(address, total_size))
+                        Instruction::Load(zinc_build::Load::new(address, total_size))
                     },
                     Some(location),
                 );
@@ -324,19 +324,19 @@ impl Expression {
 
                 bytecode.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(
+                        Instruction::StoreByIndex(zinc_build::StoreByIndex::new(
                             address,
                             element_size,
                             total_size,
                         ))
                     } else {
-                        Instruction::Store(zinc_bytecode::Store::new(address, total_size))
+                        Instruction::Store(zinc_build::Store::new(address, total_size))
                     },
                     Some(location),
                 );
 
                 bytecode.borrow_mut().push_instruction(
-                    Instruction::Load(zinc_bytecode::Load::new(address, total_size)),
+                    Instruction::Load(zinc_build::Load::new(address, total_size)),
                     Some(location),
                 );
 
@@ -347,7 +347,7 @@ impl Expression {
                 )
                 .write_all(bytecode.clone());
                 bytecode.borrow_mut().push_instruction(
-                    Instruction::StorageStore(zinc_bytecode::StorageStore::new(total_size)),
+                    Instruction::StorageStore(zinc_build::StorageStore::new(total_size)),
                     Some(location),
                 );
             }
@@ -377,7 +377,7 @@ impl Expression {
     ///
     fn call(bytecode: Rc<RefCell<State>>, type_id: usize, input_size: usize, location: Location) {
         bytecode.borrow_mut().push_instruction(
-            Instruction::Call(zinc_bytecode::Call::new(type_id, input_size)),
+            Instruction::Call(zinc_build::Call::new(type_id, input_size)),
             Some(location),
         );
     }
@@ -388,11 +388,11 @@ impl Expression {
     fn call_debug(
         bytecode: Rc<RefCell<State>>,
         format: String,
-        input_types: Vec<DataType>,
+        input_types: Vec<BuildType>,
         location: Location,
     ) {
         bytecode.borrow_mut().push_instruction(
-            Instruction::Dbg(zinc_bytecode::Dbg::new(format, input_types)),
+            Instruction::Dbg(zinc_build::Dbg::new(format, input_types)),
             Some(location),
         );
     }
@@ -402,7 +402,7 @@ impl Expression {
     ///
     fn call_assert(bytecode: Rc<RefCell<State>>, message: Option<String>, location: Location) {
         bytecode.borrow_mut().push_instruction(
-            Instruction::Assert(zinc_bytecode::Assert::new(message)),
+            Instruction::Assert(zinc_build::Assert::new(message)),
             Some(location),
         );
     }
@@ -418,7 +418,7 @@ impl Expression {
         location: Location,
     ) {
         bytecode.borrow_mut().push_instruction(
-            Instruction::CallStd(zinc_bytecode::CallStd::new(
+            Instruction::CallStd(zinc_build::CallStd::new(
                 identifier,
                 input_size,
                 output_size,
@@ -450,7 +450,7 @@ impl IBytecodeWritable for Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::BitwiseOr(zinc_bytecode::BitwiseOr),
+                        Instruction::BitwiseOr(zinc_build::BitwiseOr),
                         location,
                     ),
                     Operator::AssignmentBitwiseXor {
@@ -461,7 +461,7 @@ impl IBytecodeWritable for Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::BitwiseXor(zinc_bytecode::BitwiseXor),
+                        Instruction::BitwiseXor(zinc_build::BitwiseXor),
                         location,
                     ),
                     Operator::AssignmentBitwiseAnd {
@@ -472,7 +472,7 @@ impl IBytecodeWritable for Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::BitwiseAnd(zinc_bytecode::BitwiseAnd),
+                        Instruction::BitwiseAnd(zinc_build::BitwiseAnd),
                         location,
                     ),
                     Operator::AssignmentBitwiseShiftLeft {
@@ -483,7 +483,7 @@ impl IBytecodeWritable for Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::BitwiseShiftLeft(zinc_bytecode::BitwiseShiftLeft),
+                        Instruction::BitwiseShiftLeft(zinc_build::BitwiseShiftLeft),
                         location,
                     ),
                     Operator::AssignmentBitwiseShiftRight {
@@ -494,7 +494,7 @@ impl IBytecodeWritable for Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::BitwiseShiftRight(zinc_bytecode::BitwiseShiftRight),
+                        Instruction::BitwiseShiftRight(zinc_build::BitwiseShiftRight),
                         location,
                     ),
                     Operator::AssignmentAddition {
@@ -505,7 +505,7 @@ impl IBytecodeWritable for Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::Add(zinc_bytecode::Add),
+                        Instruction::Add(zinc_build::Add),
                         location,
                     ),
                     Operator::AssignmentSubtraction {
@@ -516,7 +516,7 @@ impl IBytecodeWritable for Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::Sub(zinc_bytecode::Sub),
+                        Instruction::Sub(zinc_build::Sub),
                         location,
                     ),
                     Operator::AssignmentMultiplication {
@@ -527,7 +527,7 @@ impl IBytecodeWritable for Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::Mul(zinc_bytecode::Mul),
+                        Instruction::Mul(zinc_build::Mul),
                         location,
                     ),
                     Operator::AssignmentDivision {
@@ -538,7 +538,7 @@ impl IBytecodeWritable for Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::Div(zinc_bytecode::Div),
+                        Instruction::Div(zinc_build::Div),
                         location,
                     ),
                     Operator::AssignmentRemainder {
@@ -549,106 +549,92 @@ impl IBytecodeWritable for Expression {
                         bytecode.clone(),
                         place,
                         expression,
-                        Instruction::Rem(zinc_bytecode::Rem),
+                        Instruction::Rem(zinc_build::Rem),
                         location,
                     ),
 
-                    Operator::Or => Self::binary(
-                        bytecode.clone(),
-                        Instruction::Or(zinc_bytecode::Or),
-                        location,
-                    ),
+                    Operator::Or => {
+                        Self::binary(bytecode.clone(), Instruction::Or(zinc_build::Or), location)
+                    }
                     Operator::Xor => Self::binary(
                         bytecode.clone(),
-                        Instruction::Xor(zinc_bytecode::Xor),
+                        Instruction::Xor(zinc_build::Xor),
                         location,
                     ),
                     Operator::And => Self::binary(
                         bytecode.clone(),
-                        Instruction::And(zinc_bytecode::And),
+                        Instruction::And(zinc_build::And),
                         location,
                     ),
 
-                    Operator::Equals { .. } => Self::binary(
-                        bytecode.clone(),
-                        Instruction::Eq(zinc_bytecode::Eq),
-                        location,
-                    ),
-                    Operator::NotEquals { .. } => Self::binary(
-                        bytecode.clone(),
-                        Instruction::Ne(zinc_bytecode::Ne),
-                        location,
-                    ),
-                    Operator::GreaterEquals { .. } => Self::binary(
-                        bytecode.clone(),
-                        Instruction::Ge(zinc_bytecode::Ge),
-                        location,
-                    ),
-                    Operator::LesserEquals { .. } => Self::binary(
-                        bytecode.clone(),
-                        Instruction::Le(zinc_bytecode::Le),
-                        location,
-                    ),
-                    Operator::Greater { .. } => Self::binary(
-                        bytecode.clone(),
-                        Instruction::Gt(zinc_bytecode::Gt),
-                        location,
-                    ),
-                    Operator::Lesser { .. } => Self::binary(
-                        bytecode.clone(),
-                        Instruction::Lt(zinc_bytecode::Lt),
-                        location,
-                    ),
+                    Operator::Equals { .. } => {
+                        Self::binary(bytecode.clone(), Instruction::Eq(zinc_build::Eq), location)
+                    }
+                    Operator::NotEquals { .. } => {
+                        Self::binary(bytecode.clone(), Instruction::Ne(zinc_build::Ne), location)
+                    }
+                    Operator::GreaterEquals { .. } => {
+                        Self::binary(bytecode.clone(), Instruction::Ge(zinc_build::Ge), location)
+                    }
+                    Operator::LesserEquals { .. } => {
+                        Self::binary(bytecode.clone(), Instruction::Le(zinc_build::Le), location)
+                    }
+                    Operator::Greater { .. } => {
+                        Self::binary(bytecode.clone(), Instruction::Gt(zinc_build::Gt), location)
+                    }
+                    Operator::Lesser { .. } => {
+                        Self::binary(bytecode.clone(), Instruction::Lt(zinc_build::Lt), location)
+                    }
 
                     Operator::BitwiseOr { .. } => Self::binary(
                         bytecode.clone(),
-                        Instruction::BitwiseOr(zinc_bytecode::BitwiseOr),
+                        Instruction::BitwiseOr(zinc_build::BitwiseOr),
                         location,
                     ),
                     Operator::BitwiseXor { .. } => Self::binary(
                         bytecode.clone(),
-                        Instruction::BitwiseXor(zinc_bytecode::BitwiseXor),
+                        Instruction::BitwiseXor(zinc_build::BitwiseXor),
                         location,
                     ),
                     Operator::BitwiseAnd { .. } => Self::binary(
                         bytecode.clone(),
-                        Instruction::BitwiseAnd(zinc_bytecode::BitwiseAnd),
+                        Instruction::BitwiseAnd(zinc_build::BitwiseAnd),
                         location,
                     ),
                     Operator::BitwiseShiftLeft => Self::binary(
                         bytecode.clone(),
-                        Instruction::BitwiseShiftLeft(zinc_bytecode::BitwiseShiftLeft),
+                        Instruction::BitwiseShiftLeft(zinc_build::BitwiseShiftLeft),
                         location,
                     ),
                     Operator::BitwiseShiftRight => Self::binary(
                         bytecode.clone(),
-                        Instruction::BitwiseShiftRight(zinc_bytecode::BitwiseShiftRight),
+                        Instruction::BitwiseShiftRight(zinc_build::BitwiseShiftRight),
                         location,
                     ),
 
                     Operator::Addition { .. } => Self::binary(
                         bytecode.clone(),
-                        Instruction::Add(zinc_bytecode::Add),
+                        Instruction::Add(zinc_build::Add),
                         location,
                     ),
                     Operator::Subtraction { .. } => Self::binary(
                         bytecode.clone(),
-                        Instruction::Sub(zinc_bytecode::Sub),
+                        Instruction::Sub(zinc_build::Sub),
                         location,
                     ),
                     Operator::Multiplication { .. } => Self::binary(
                         bytecode.clone(),
-                        Instruction::Mul(zinc_bytecode::Mul),
+                        Instruction::Mul(zinc_build::Mul),
                         location,
                     ),
                     Operator::Division { .. } => Self::binary(
                         bytecode.clone(),
-                        Instruction::Div(zinc_bytecode::Div),
+                        Instruction::Div(zinc_build::Div),
                         location,
                     ),
                     Operator::Remainder { .. } => Self::binary(
                         bytecode.clone(),
-                        Instruction::Rem(zinc_bytecode::Rem),
+                        Instruction::Rem(zinc_build::Rem),
                         location,
                     ),
 
@@ -656,7 +642,7 @@ impl IBytecodeWritable for Expression {
                         if let Some(scalar_type) = r#type.into() {
                             Self::unary(
                                 bytecode.clone(),
-                                Instruction::Cast(zinc_bytecode::Cast::new(scalar_type)),
+                                Instruction::Cast(zinc_build::Cast::new(scalar_type)),
                                 location,
                             )
                         }
@@ -664,17 +650,17 @@ impl IBytecodeWritable for Expression {
 
                     Operator::Not => Self::unary(
                         bytecode.clone(),
-                        Instruction::Not(zinc_bytecode::Not),
+                        Instruction::Not(zinc_build::Not),
                         location,
                     ),
                     Operator::BitwiseNot => Self::unary(
                         bytecode.clone(),
-                        Instruction::BitwiseNot(zinc_bytecode::BitwiseNot),
+                        Instruction::BitwiseNot(zinc_build::BitwiseNot),
                         location,
                     ),
                     Operator::Negation => Self::unary(
                         bytecode.clone(),
-                        Instruction::Neg(zinc_bytecode::Neg),
+                        Instruction::Neg(zinc_build::Neg),
                         location,
                     ),
 
@@ -689,12 +675,12 @@ impl IBytecodeWritable for Expression {
                         } else {
                             expression.write_all(bytecode.clone());
                             bytecode.borrow_mut().push_instruction(
-                                Instruction::Cast(zinc_bytecode::Cast::new(ScalarType::Field)),
+                                Instruction::Cast(zinc_build::Cast::new(ScalarType::Field)),
                                 Some(location),
                             );
                         }
                         bytecode.borrow_mut().push_instruction(
-                            Instruction::Slice(zinc_bytecode::Slice::new(
+                            Instruction::Slice(zinc_build::Slice::new(
                                 access.element_size,
                                 access.total_size,
                             )),
@@ -709,7 +695,7 @@ impl IBytecodeWritable for Expression {
                         )
                         .write_all(bytecode.clone());
                         bytecode.borrow_mut().push_instruction(
-                            Instruction::Slice(zinc_bytecode::Slice::new(
+                            Instruction::Slice(zinc_build::Slice::new(
                                 access.element_size,
                                 access.total_size,
                             )),

@@ -2,7 +2,7 @@
 //! The `NoOperation` instruction.
 //!
 
-use zinc_bytecode::NoOperation;
+use zinc_build::NoOperation;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;

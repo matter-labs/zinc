@@ -9,8 +9,6 @@ use failure::Fail;
 use structopt::StructOpt;
 
 use crate::arguments::command::IExecutable;
-use crate::directory::build::test::Directory as TestBuildDirectory;
-use crate::directory::build::test::Error as TestBuildDirectoryError;
 use crate::directory::build::Directory as BuildDirectory;
 use crate::directory::build::Error as BuildDirectoryError;
 use crate::directory::data::Directory as DataDirectory;
@@ -39,12 +37,21 @@ pub struct Command {
     #[structopt(
         long = "manifest-path",
         help = "Path to Zargo.toml",
-        default_value = "./Zargo.toml"
+        default_value = zinc_const::path::MANIFEST,
     )]
     pub manifest_path: PathBuf,
 
+    /// The path to the binary bytecode file.
+    #[structopt(
+        long = "binary",
+        parse(from_os_str),
+        help = "Path to the bytecode file",
+        default_value = zinc_const::path::BINARY,
+    )]
+    pub binary_path: PathBuf,
+
     /// Whether to run the release build.
-    #[structopt(long = "release", help = "Run the release build")]
+    #[structopt(long = "release", help = "Build the release version")]
     pub is_release: bool,
 }
 
@@ -59,9 +66,6 @@ pub enum Error {
     /// The project binary build directory error.
     #[fail(display = "build directory {}", _0)]
     BuildDirectory(BuildDirectoryError),
-    /// The project unit tests binary build directory error.
-    #[fail(display = "test build directory {}", _0)]
-    TestBuildDirectory(TestBuildDirectoryError),
     /// The project template, keys, and other auxiliary data directory error.
     #[fail(display = "data directory {}", _0)]
     DataDirectory(DataDirectoryError),
@@ -74,36 +78,36 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        let _manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
+        let manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         let mut manifest_path = self.manifest_path.clone();
         if manifest_path.is_file() {
             manifest_path.pop();
         }
 
-        let source_directory_path = SourceDirectory::path(&manifest_path);
-        let build_directory_path = BuildDirectory::path(&manifest_path);
         let data_directory_path = DataDirectory::path(&manifest_path);
+        let source_directory_path = SourceDirectory::path(&manifest_path);
 
         BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
-        TestBuildDirectory::create(&manifest_path).map_err(Error::TestBuildDirectory)?;
         DataDirectory::create(&manifest_path).map_err(Error::DataDirectory)?;
 
         if self.is_release {
             Compiler::build_release(
                 self.verbosity,
+                manifest.project.name,
                 &data_directory_path,
-                &build_directory_path,
                 &source_directory_path,
+                &self.binary_path,
                 false,
             )
             .map_err(Error::Compiler)?;
         } else {
             Compiler::build_debug(
                 self.verbosity,
+                manifest.project.name,
                 &data_directory_path,
-                &build_directory_path,
                 &source_directory_path,
+                &self.binary_path,
                 false,
             )
             .map_err(Error::Compiler)?;

@@ -28,24 +28,27 @@ pub struct Command {
     /// The path to the binary bytecode file.
     #[structopt(
         long = "binary",
+        parse(from_os_str),
         help = "Path to the binary data file",
-        default_value = "./build/main.znb"
+        default_value = zinc_const::path::BINARY,
     )]
     pub binary_path: PathBuf,
 
     /// The path to the proving key file.
     #[structopt(
         long = "proving-key",
+        parse(from_os_str),
         help = "Path to the proving key file",
-        default_value = "./data/proving_key"
+        default_value = zinc_const::path::PROVING_KEY,
     )]
     pub proving_key_path: PathBuf,
 
     /// The path to the verifying key file.
     #[structopt(
         long = "verifying-key",
+        parse(from_os_str),
         help = "Path to the verifying key file",
-        default_value = "./data/verifying_key.txt"
+        default_value = zinc_const::path::VERIFYING_KEY,
     )]
     pub verifying_key_path: PathBuf,
 }

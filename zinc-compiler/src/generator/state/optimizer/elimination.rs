@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use petgraph::algo::DfsSpace;
 use petgraph::graph::Graph;
 
-use zinc_bytecode::Instruction;
+use zinc_build::Instruction;
 
 ///
 /// The dead function code elimination optimization.
@@ -38,7 +38,7 @@ impl Optimizer {
     pub fn optimize(
         entry_id: usize,
         mut instructions: &mut Vec<Instruction>,
-        function_addresses: HashMap<usize, usize>,
+        function_addresses: &HashMap<usize, usize>,
     ) {
         let mut graph = Graph::new();
         let mut function_node_map = HashMap::with_capacity(function_addresses.len());
@@ -55,7 +55,7 @@ impl Optimizer {
 
             for address in *start_address.. {
                 match instructions.get(address) {
-                    Some(Instruction::Call(zinc_bytecode::Call {
+                    Some(Instruction::Call(zinc_build::Call {
                         address: callee_id, ..
                     })) => {
                         let callee_node = function_node_map
@@ -94,7 +94,7 @@ impl Optimizer {
                         _ => false,
                     };
 
-                    instructions[address] = Instruction::NoOperation(zinc_bytecode::NoOperation);
+                    instructions[address] = Instruction::NoOperation(zinc_build::NoOperation);
                     removed_count += 1;
 
                     if is_end {
@@ -129,7 +129,7 @@ impl Optimizer {
         function_addresses: &HashMap<usize, usize>,
     ) {
         for instruction in instructions.iter_mut() {
-            if let Instruction::Call(zinc_bytecode::Call {
+            if let Instruction::Call(zinc_build::Call {
                 address: ref mut type_id,
                 ..
             }) = instruction
@@ -152,7 +152,7 @@ impl Optimizer {
         function_address_shifts: &HashMap<usize, usize>,
     ) {
         for instruction in instructions.iter_mut() {
-            if let Instruction::Call(zinc_bytecode::Call {
+            if let Instruction::Call(zinc_build::Call {
                 address: ref mut type_id,
                 ..
             }) = instruction

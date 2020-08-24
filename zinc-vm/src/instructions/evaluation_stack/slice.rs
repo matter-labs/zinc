@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_bytecode::Slice;
+use zinc_build::Slice;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -49,14 +49,14 @@ mod tests {
     #[test]
     fn test_slice() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_bytecode::Push::new_field(1.into()))
-            .push(zinc_bytecode::Push::new_field(2.into()))
-            .push(zinc_bytecode::Push::new_field(3.into()))
-            .push(zinc_bytecode::Push::new_field(4.into()))
-            .push(zinc_bytecode::Push::new_field(5.into()))
-            .push(zinc_bytecode::Push::new_field(6.into()))
-            .push(zinc_bytecode::Push::new_field(2.into()))
-            .push(zinc_bytecode::Slice::new(2, 5))
+            .push(zinc_build::Push::new_field(1.into()))
+            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Push::new_field(3.into()))
+            .push(zinc_build::Push::new_field(4.into()))
+            .push(zinc_build::Push::new_field(5.into()))
+            .push(zinc_build::Push::new_field(6.into()))
+            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Slice::new(2, 5))
             .test(&[5, 4, 1])
     }
 }
