@@ -55,7 +55,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Div {
             }
             _ => {
                 return Err(RuntimeError::TypeError {
-                    expected: "integer or field".to_string(),
+                    expected: "integer or field".to_owned(),
                     found: scalar_type.to_string(),
                 })
             }
@@ -67,6 +67,8 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Div {
 
 #[cfg(test)]
 mod test {
+    use num_bigint::BigInt;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
@@ -75,17 +77,41 @@ mod test {
     #[test]
     fn test_div() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new((9).into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new((4).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(9),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(4),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Div)
-            .push(zinc_build::Push::new((9).into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new((-4).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(9),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(-4),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Div)
-            .push(zinc_build::Push::new((-9).into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new((4).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(-9),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(4),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Div)
-            .push(zinc_build::Push::new((-9).into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new((-4).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(-9),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(-4),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Div)
             .test(&[3, -3, -2, 2])
     }

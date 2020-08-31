@@ -2,7 +2,6 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::Assignment;
 
 use zinc_build::ScalarType;
-use zinc_utils::math;
 
 use crate::auto_const;
 use crate::error::RuntimeError;
@@ -52,8 +51,8 @@ where
         let denom_bi =
             gadgets::scalar::fr_bigint::fr_to_bigint::<E>(&denom, denominator.is_signed());
 
-        let (q, r) =
-            math::euclidean::div_rem(&nom_bi, &denom_bi).ok_or(RuntimeError::DivisionByZero)?;
+        let (q, r) = zinc_utils::euclidean_div_rem(&nom_bi, &denom_bi)
+            .ok_or(RuntimeError::DivisionByZero)?;
 
         quotient_value = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&q);
         remainder_value = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&r);

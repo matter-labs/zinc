@@ -12,7 +12,7 @@ mkdir --verbose "zinc-release-${VERSION_ZINC}"
 
 
 #######################################################################################################################
-### (DO NOT USE YET)                                    Windows                                                     ###
+### (DO NOT USE)                                    Windows                                                         ###
 #######################################################################################################################
 
 ## Preparation
@@ -32,9 +32,9 @@ mkdir --verbose "zinc-release-${VERSION_ZINC}"
 #mkdir --verbose "zinc-${VERSION_ZINC}-windows"
 #mv --verbose --force \
 #    "target/${TARGET_WINDOWS}/release/zargo.exe" \
-#    "target/${TARGET_WINDOWS}/release/zvm.exe" \
 #    "target/${TARGET_WINDOWS}/release/znc.exe" \
-#    "target/${TARGET_WINDOWS}/release/schnorr.exe" \
+#    "target/${TARGET_WINDOWS}/release/zvm.exe" \
+#    "target/${TARGET_WINDOWS}/release/zandbox.exe" \
 #    "zinc-${VERSION_ZINC}-windows"
 #zip --verbose -r \
 #    "zinc-release-${VERSION_ZINC}/zinc-${VERSION_ZINC}-windows.zip" \
@@ -69,9 +69,9 @@ cargo build --verbose --release --target "${TARGET_LINUX}"
 mkdir --verbose "zinc-${VERSION_ZINC}-linux"
 mv --verbose --force \
     "target/${TARGET_LINUX}/release/zargo" \
-    "target/${TARGET_LINUX}/release/zvm" \
     "target/${TARGET_LINUX}/release/znc" \
-    "target/${TARGET_LINUX}/release/schnorr" \
+    "target/${TARGET_LINUX}/release/zvm" \
+    "target/${TARGET_LINUX}/release/zandbox" \
     "zinc-${VERSION_ZINC}-linux"
 tar --verbose \
     --create --gzip --file "zinc-release-${VERSION_ZINC}/zinc-${VERSION_ZINC}-linux.tar.gz" \
@@ -118,9 +118,9 @@ cargo build --verbose --release --target "${TARGET_MACOS}"
 mkdir --verbose "zinc-${VERSION_ZINC}-macos"
 mv --verbose --force \
     "target/${TARGET_MACOS}/release/zargo" \
-    "target/${TARGET_MACOS}/release/zvm" \
     "target/${TARGET_MACOS}/release/znc" \
-    "target/${TARGET_MACOS}/release/schnorr" \
+    "target/${TARGET_MACOS}/release/zvm" \
+    "target/${TARGET_MACOS}/release/zandbox" \
     "zinc-${VERSION_ZINC}-macos"
 zip --verbose -r \
     "zinc-release-${VERSION_ZINC}/zinc-${VERSION_ZINC}-macos.zip" \

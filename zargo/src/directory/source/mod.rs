@@ -32,8 +32,8 @@ impl Directory {
     ///
     pub fn path(path: &PathBuf) -> PathBuf {
         let mut path = path.to_owned();
-        if path.is_dir() && !path.ends_with(zinc_const::zargo::SOURCE_DIRECTORY_SUBPATH) {
-            path.push(PathBuf::from(zinc_const::zargo::SOURCE_DIRECTORY_SUBPATH));
+        if path.is_dir() && !path.ends_with(zinc_const::directory::SOURCE) {
+            path.push(PathBuf::from(zinc_const::directory::SOURCE));
         }
         path
     }

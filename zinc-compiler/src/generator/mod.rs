@@ -20,5 +20,5 @@ pub trait IBytecodeWritable {
     ///
     /// Writes the item to the bytecode generator state object.
     ///
-    fn write_all(self, bytecode: Rc<RefCell<State>>);
+    fn write_all(self, state: Rc<RefCell<State>>);
 }

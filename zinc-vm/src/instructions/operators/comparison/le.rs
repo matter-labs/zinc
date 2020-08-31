@@ -26,6 +26,9 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Le {
 
 #[cfg(test)]
 mod test {
+    use num_bigint::BigInt;
+    use num_traits::One;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
@@ -36,20 +39,44 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
 
         TestRunner::new()
-            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new(1.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(2),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(BigInt::one(), IntegerType::I8.into()))
             .push(zinc_build::Le)
-            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(2),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(2),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Le)
-            .push(zinc_build::Push::new(1.into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(BigInt::one(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(2),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Le)
-            .push(zinc_build::Push::new((-2).into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(-2),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(2),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Le)
-            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new((-2).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(2),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(-2),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Le)
             .test(&[0, 1, 1, 1, 0])
     }

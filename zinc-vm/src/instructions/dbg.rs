@@ -54,12 +54,14 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigInt;
+
     use crate::tests::TestRunner;
 
     #[test]
     fn test() {
         TestRunner::new()
-            .push(zinc_build::Push::new_field(42.into()))
+            .push(zinc_build::Push::new_field(BigInt::from(42)))
             .push(zinc_build::Dbg::new("Value: {}".into(), vec![]))
             .test::<u32>(&[])
             .expect(zinc_const::panic::TEST_DATA_VALID);

@@ -1,19 +1,19 @@
 //# { "cases": [ {
 //#     "case": "first",
 //#     "input": {
-//#         "language": "0"
+//#         "language": "JABBERWOCKY"
 //#     },
 //#     "expect": "5"
 //# }, {
 //#     "case": "second",
 //#     "input": {
-//#         "language": "42"
+//#         "language": "ZINC"
 //#     },
 //#     "expect": "10"
 //# }, {
 //#     "case": "third",
 //#     "input": {
-//#         "language": "255"
+//#         "language": "RUST"
 //#     },
 //#     "expect": "15"
 //# } ] }

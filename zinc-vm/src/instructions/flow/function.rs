@@ -23,6 +23,8 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Return {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigInt;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
@@ -42,9 +44,9 @@ mod tests {
             .push(zinc_build::EndIf)
             .push(zinc_build::Return::new(1))
             // fn main
-            .push(zinc_build::Push::new_field(42.into()))
-            .push(zinc_build::Push::new_field(5.into()))
-            .push(zinc_build::Push::new_field(3.into()))
+            .push(zinc_build::Push::new_field(BigInt::from(42)))
+            .push(zinc_build::Push::new_field(BigInt::from(5)))
+            .push(zinc_build::Push::new_field(BigInt::from(3)))
             .push(zinc_build::Call::new(2, 2))
             .test(&[3, 42])
     }

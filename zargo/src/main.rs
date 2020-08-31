@@ -18,7 +18,7 @@ use self::arguments::Arguments;
 fn main() {
     let args = Arguments::new();
 
-    zinc_utils::logger::initialize(zinc_const::app_name::ZARGO, args.verbosity);
+    zinc_utils::initialize_logger(zinc_const::app_name::ZARGO, args.verbosity);
 
     process::exit(match args.command.execute() {
         Ok(()) => zinc_const::exit_code::SUCCESS,

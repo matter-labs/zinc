@@ -38,17 +38,17 @@ pub struct Place {
 }
 
 impl IBytecodeWritable for Place {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_all(self, state: Rc<RefCell<State>>) {
         if !self.elements.is_empty() {
             IntegerConstant::new(BigInt::zero(), false, zinc_const::bitlength::FIELD)
-                .write_all(bytecode.clone());
+                .write_all(state.clone());
         }
 
         for element in self.elements.into_iter() {
             match element {
                 SemanticPlaceElement::IndexConstant { constant, access } => {
-                    IntegerConstant::from_semantic(&constant).write_all(bytecode.clone());
-                    bytecode.borrow_mut().push_instruction(
+                    IntegerConstant::from_semantic(&constant).write_all(state.clone());
+                    state.borrow_mut().push_instruction(
                         Instruction::Cast(zinc_build::Cast::new(ScalarType::Field)),
                         Some(self.identifier.location),
                     );
@@ -57,19 +57,19 @@ impl IBytecodeWritable for Place {
                         false,
                         zinc_const::bitlength::FIELD,
                     )
-                    .write_all(bytecode.clone());
-                    bytecode.borrow_mut().push_instruction(
+                    .write_all(state.clone());
+                    state.borrow_mut().push_instruction(
                         Instruction::Mul(zinc_build::Mul),
                         Some(self.identifier.location),
                     );
-                    bytecode.borrow_mut().push_instruction(
+                    state.borrow_mut().push_instruction(
                         Instruction::Add(zinc_build::Add),
                         Some(self.identifier.location),
                     );
                 }
                 SemanticPlaceElement::IndexExpression { expression, access } => {
-                    expression.write_all(bytecode.clone());
-                    bytecode.borrow_mut().push_instruction(
+                    expression.write_all(state.clone());
+                    state.borrow_mut().push_instruction(
                         Instruction::Cast(zinc_build::Cast::new(ScalarType::Field)),
                         Some(self.identifier.location),
                     );
@@ -78,12 +78,12 @@ impl IBytecodeWritable for Place {
                         false,
                         zinc_const::bitlength::FIELD,
                     )
-                    .write_all(bytecode.clone());
-                    bytecode.borrow_mut().push_instruction(
+                    .write_all(state.clone());
+                    state.borrow_mut().push_instruction(
                         Instruction::Mul(zinc_build::Mul),
                         Some(self.identifier.location),
                     );
-                    bytecode.borrow_mut().push_instruction(
+                    state.borrow_mut().push_instruction(
                         Instruction::Add(zinc_build::Add),
                         Some(self.identifier.location),
                     );
@@ -94,8 +94,8 @@ impl IBytecodeWritable for Place {
                         false,
                         zinc_const::bitlength::FIELD,
                     )
-                    .write_all(bytecode.clone());
-                    bytecode.borrow_mut().push_instruction(
+                    .write_all(state.clone());
+                    state.borrow_mut().push_instruction(
                         Instruction::Add(zinc_build::Add),
                         Some(self.identifier.location),
                     );
@@ -106,8 +106,8 @@ impl IBytecodeWritable for Place {
                         false,
                         zinc_const::bitlength::FIELD,
                     )
-                    .write_all(bytecode.clone());
-                    bytecode.borrow_mut().push_instruction(
+                    .write_all(state.clone());
+                    state.borrow_mut().push_instruction(
                         Instruction::Add(zinc_build::Add),
                         Some(self.identifier.location),
                     );
@@ -118,8 +118,8 @@ impl IBytecodeWritable for Place {
                         false,
                         zinc_const::bitlength::FIELD,
                     )
-                    .write_all(bytecode.clone());
-                    bytecode.borrow_mut().push_instruction(
+                    .write_all(state.clone());
+                    state.borrow_mut().push_instruction(
                         Instruction::Add(zinc_build::Add),
                         Some(self.identifier.location),
                     );

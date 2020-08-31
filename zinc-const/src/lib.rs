@@ -11,7 +11,6 @@ pub mod extension;
 pub mod file_name;
 pub mod http;
 pub mod limit;
-pub mod mongodb;
 pub mod panic;
 pub mod path;
 pub mod postgresql;

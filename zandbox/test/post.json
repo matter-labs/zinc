@@ -1,0 +1,16 @@
+{
+    "source": {
+        "name": "src",
+        "path": "src/",
+        "modules": {
+            "main": {
+                "name": "main",
+                "path": "main.zn",
+                "code": "contract Test { value: u8; pub fn new(_value: u8) -> Self { Self { value: _value } } pub fn inc(mut self, _value: u8) { self.value += _value; } pub fn dec(mut self, _value: u8) { self.value -= _value; } }"
+            }
+        }        
+    },
+    "constructor_input": {
+        "_value": "42"
+    }
+}

@@ -32,8 +32,8 @@ impl Directory {
     ///
     pub fn path(path: &PathBuf) -> PathBuf {
         let mut path = path.to_owned();
-        if path.is_dir() && !path.ends_with(zinc_const::zargo::DATA_DIRECTORY_SUBPATH) {
-            path.push(PathBuf::from(zinc_const::zargo::DATA_DIRECTORY_SUBPATH));
+        if path.is_dir() && !path.ends_with(zinc_const::directory::DATA) {
+            path.push(PathBuf::from(zinc_const::directory::DATA));
         }
         path
     }
@@ -50,8 +50,8 @@ impl Directory {
     ///
     pub fn remove(path: &PathBuf) -> Result<(), Error> {
         let mut path = path.to_owned();
-        if path.is_dir() && !path.ends_with(zinc_const::zargo::DATA_DIRECTORY_SUBPATH) {
-            path.push(PathBuf::from(zinc_const::zargo::DATA_DIRECTORY_SUBPATH));
+        if path.is_dir() && !path.ends_with(zinc_const::directory::DATA) {
+            path.push(PathBuf::from(zinc_const::directory::DATA));
         }
 
         if path.exists() {

@@ -37,10 +37,10 @@ fn main() {
 fn main_inner() -> Result<(), Error> {
     let args = Arguments::new();
 
-    zinc_utils::logger::initialize(zinc_const::app_name::ZINC_COMPILER, args.verbosity);
+    zinc_utils::initialize_logger(zinc_const::app_name::ZINC_COMPILER, args.verbosity);
 
-    let bytecode = Source::try_from_entry(&args.source_path)?.compile(args.name)?;
-    let bytes = State::unwrap_rc(bytecode).into_bytes(args.optimize_dead_function_elimination);
+    let state = Source::try_from_entry(&args.source_directory_path)?.compile(args.name)?;
+    let bytes = State::unwrap_rc(state).into_bytes(args.optimize_dead_function_elimination);
 
     let mut build_directory_path = args.binary_path.clone();
     build_directory_path.pop();
@@ -48,14 +48,9 @@ fn main_inner() -> Result<(), Error> {
         Error::DirectoryCreating(build_directory_path.as_os_str().to_owned(), error)
     })?;
 
-    let mut witness_template_path = args.data_path.clone();
-    fs::create_dir_all(&witness_template_path).map_err(|error| {
-        Error::DirectoryCreating(witness_template_path.as_os_str().to_owned(), error)
-    })?;
-
-    let mut public_data_template_path = args.data_path;
-    fs::create_dir_all(&public_data_template_path).map_err(|error| {
-        Error::DirectoryCreating(public_data_template_path.as_os_str().to_owned(), error)
+    let data_directory_path = args.data_directory_path;
+    fs::create_dir_all(&data_directory_path).map_err(|error| {
+        Error::DirectoryCreating(data_directory_path.as_os_str().to_owned(), error)
     })?;
 
     match bytes {
@@ -64,10 +59,11 @@ fn main_inner() -> Result<(), Error> {
             input_template,
             output_template,
         } => {
+            let mut witness_template_path = data_directory_path.clone();
             witness_template_path.push(format!(
                 "{}.{}",
                 zinc_const::file_name::WITNESS,
-                zinc_const::extension::TEMPLATE
+                zinc_const::extension::JSON
             ));
             if !witness_template_path.exists() {
                 File::create(&witness_template_path)
@@ -94,10 +90,11 @@ fn main_inner() -> Result<(), Error> {
                 );
             }
 
+            let mut public_data_template_path = data_directory_path;
             public_data_template_path.push(format!(
                 "{}.{}",
                 zinc_const::file_name::PUBLIC_DATA,
-                zinc_const::extension::TEMPLATE
+                zinc_const::extension::JSON
             ));
             File::create(&public_data_template_path)
                 .map_err(OutputError::Creating)
@@ -140,16 +137,17 @@ fn main_inner() -> Result<(), Error> {
         }
         Bytes::Contract {
             bytecode,
+            storage,
             input_templates,
             output_templates,
         } => {
             for (name, bytes) in input_templates.into_iter() {
-                let mut witness_template_path = witness_template_path.clone();
+                let mut witness_template_path = data_directory_path.clone();
                 witness_template_path.push(format!(
                     "{}_{}.{}",
                     zinc_const::file_name::WITNESS,
                     name,
-                    zinc_const::extension::TEMPLATE
+                    zinc_const::extension::JSON
                 ));
 
                 if !witness_template_path.exists() {
@@ -172,19 +170,19 @@ fn main_inner() -> Result<(), Error> {
                     log::info!("Witness template written to {:?}", witness_template_path);
                 } else {
                     log::info!(
-                        "Witness template {:?} already exists. Skipping",
+                        "Witness template file {:?} already exists. Skipping",
                         witness_template_path
                     );
                 }
             }
 
             for (name, bytes) in output_templates.into_iter() {
-                let mut public_data_template_path = public_data_template_path.clone();
+                let mut public_data_template_path = data_directory_path.clone();
                 public_data_template_path.push(format!(
                     "{}_{}.{}",
                     zinc_const::file_name::PUBLIC_DATA,
                     name,
-                    zinc_const::extension::TEMPLATE
+                    zinc_const::extension::JSON
                 ));
 
                 File::create(&public_data_template_path)
@@ -207,6 +205,28 @@ fn main_inner() -> Result<(), Error> {
                     "Public data template written to {:?}",
                     public_data_template_path
                 );
+            }
+
+            let mut storage_path = data_directory_path;
+            storage_path.push(format!(
+                "{}.{}",
+                zinc_const::file_name::STORAGE,
+                zinc_const::extension::JSON,
+            ));
+            if !storage_path.exists() {
+                File::create(&storage_path)
+                    .map_err(OutputError::Creating)
+                    .map_err(|error| {
+                        Error::BytecodeOutput(storage_path.as_os_str().to_owned(), error)
+                    })?
+                    .write_all(storage.as_slice())
+                    .map_err(OutputError::Writing)
+                    .map_err(|error| {
+                        Error::StorageOutput(storage_path.as_os_str().to_owned(), error)
+                    })?;
+                log::info!("Storage written to {:?}", storage_path);
+            } else {
+                log::info!("Storage file {:?} already exists. Skipping", storage_path);
             }
 
             let binary_path = args.binary_path;

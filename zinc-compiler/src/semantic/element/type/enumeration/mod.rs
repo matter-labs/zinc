@@ -35,6 +35,8 @@ pub struct Enumeration {
     pub type_id: usize,
     /// The enumeration elements bitlength, enough to fit the largest variant.
     pub bitlength: usize,
+    /// The ordered list of the variant names.
+    pub names: Vec<String>,
     /// The ordered list of the variant values.
     pub values: Vec<BigInt>,
     /// The enumeration scope, where its methods and associated items are declared.
@@ -61,6 +63,10 @@ impl Enumeration {
             })?;
             variants_bigint.push((variant.identifier, value.value.clone()));
         }
+        let names: Vec<String> = variants_bigint
+            .iter()
+            .map(|(identifier, _value)| identifier.name.to_owned())
+            .collect();
         let mut bigints: Vec<BigInt> = variants_bigint
             .iter()
             .map(|(_identifier, value)| value.to_owned())
@@ -79,6 +85,7 @@ impl Enumeration {
             identifier,
             type_id,
             bitlength: minimal_bitlength,
+            names,
             values: bigints,
             scope: scope.clone(),
         };

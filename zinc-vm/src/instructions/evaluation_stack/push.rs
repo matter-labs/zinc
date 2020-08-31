@@ -20,6 +20,9 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Push {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigInt;
+    use num_traits::Zero;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
@@ -28,10 +31,13 @@ mod tests {
     #[test]
     fn test_push() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new_field(0.into()))
-            .push(zinc_build::Push::new_field(42.into()))
+            .push(zinc_build::Push::new_field(BigInt::zero()))
+            .push(zinc_build::Push::new_field(BigInt::from(42)))
             .push(zinc_build::Push::new_field(0xABCD.into()))
-            .push(zinc_build::Push::new((-1).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(-1),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Push::new(
                 (-1000).into(),
                 IntegerType::I16.into(),

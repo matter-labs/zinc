@@ -84,9 +84,9 @@ where
                 )?;
                 Scalar::from_boolean(cs.namespace(|| "from_boolean"), boolean)
             }
-            ScalarType::Boolean => Err(RuntimeError::TypeError {
+            r#type @ ScalarType::Boolean => Err(RuntimeError::TypeError {
                 expected: "field or integer type".into(),
-                found: "boolean".to_string(),
+                found: r#type.to_string(),
             }),
         }
     }

@@ -5,7 +5,6 @@
 pub mod directory;
 pub mod error;
 pub mod file;
-pub mod string;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -18,7 +17,6 @@ use crate::generator::state::State;
 use self::directory::Directory;
 use self::error::Error;
 use self::file::File;
-use self::string::String as SourceString;
 
 ///
 /// The file system source code representation.
@@ -35,10 +33,10 @@ impl Source {
     ///
     /// Initializes an application module from string data.
     ///
-    pub fn try_from_string(source: SourceString, is_entry: bool) -> Result<Self, Error> {
+    pub fn try_from_string(source: zinc_source::Source, is_entry: bool) -> Result<Self, Error> {
         Ok(match source {
-            SourceString::File(inner) => File::try_from_string(inner).map(Source::File)?,
-            SourceString::Directory(inner) => {
+            zinc_source::Source::File(inner) => File::try_from_string(inner).map(Source::File)?,
+            zinc_source::Source::Directory(inner) => {
                 Directory::try_from_string(inner, is_entry).map(Source::Directory)?
             }
         })

@@ -30,9 +30,9 @@ impl Expression {
 }
 
 impl IBytecodeWritable for Expression {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_all(self, state: Rc<RefCell<State>>) {
         for expression in self.expressions.into_iter() {
-            expression.write_all(bytecode.clone());
+            expression.write_all(state.clone());
         }
     }
 }

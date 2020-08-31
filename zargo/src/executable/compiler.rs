@@ -38,7 +38,7 @@ impl Compiler {
     ///
     pub fn build_debug(
         verbosity: usize,
-        name: String,
+        name: &str,
         data_path: &PathBuf,
         source_path: &PathBuf,
         binary_path: &PathBuf,
@@ -77,7 +77,7 @@ impl Compiler {
     ///
     pub fn build_release(
         verbosity: usize,
-        name: String,
+        name: &str,
         data_path: &PathBuf,
         source_path: &PathBuf,
         binary_path: &PathBuf,

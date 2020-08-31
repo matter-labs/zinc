@@ -50,21 +50,21 @@ impl Expression {
 }
 
 impl IBytecodeWritable for Expression {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
-        self.condition.write_all(bytecode.clone());
-        bytecode
+    fn write_all(self, state: Rc<RefCell<State>>) {
+        self.condition.write_all(state.clone());
+        state
             .borrow_mut()
             .push_instruction(Instruction::If(zinc_build::If), Some(self.location));
-        self.main_block.write_all(bytecode.clone());
+        self.main_block.write_all(state.clone());
 
         if let Some(else_block) = self.else_block {
-            bytecode
+            state
                 .borrow_mut()
                 .push_instruction(Instruction::Else(zinc_build::Else), Some(self.location));
-            else_block.write_all(bytecode.clone());
+            else_block.write_all(state.clone());
         }
 
-        bytecode
+        state
             .borrow_mut()
             .push_instruction(Instruction::EndIf(zinc_build::EndIf), Some(self.location));
     }

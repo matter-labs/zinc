@@ -1,7 +1,7 @@
 //# { "cases": [ {
 //#     "case": "bitcoin",
 //#     "input": {
-//#         "token_id": "0"
+//#         "token_id": "Bitcoin"
 //#     },
 //#     "expect": {
 //#         "id": "42",
@@ -11,7 +11,7 @@
 //# }, {
 //#     "case": "ethereum",
 //#     "input": {
-//#         "token_id": "1"
+//#         "token_id": "Ethereum"
 //#     },
 //#     "expect": {
 //#         "id": "42",
@@ -21,7 +21,7 @@
 //# }, {
 //#     "case": "litecoin",
 //#     "input": {
-//#         "token_id": "2"
+//#         "token_id": "Litecoin"
 //#     },
 //#     "expect": {
 //#         "id": "42",
@@ -31,7 +31,7 @@
 //# }, {
 //#     "case": "zcash",
 //#     "input": {
-//#         "token_id": "3"
+//#         "token_id": "Zcash"
 //#     },
 //#     "expect": {
 //#         "id": "42",

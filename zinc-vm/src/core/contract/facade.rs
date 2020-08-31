@@ -21,7 +21,6 @@ use zinc_const::UnitTestExitCode;
 
 use crate::constraint_systems::main::Main as MainCS;
 use crate::core::contract::storage::database::Storage as DatabaseStorage;
-use crate::core::contract::storage::dummy::Storage as DummyStorage;
 use crate::core::contract::storage::setup::Storage as SetupStorage;
 use crate::core::contract::synthesizer::Synthesizer as ContractSynthesizer;
 use crate::core::contract::State as ContractState;
@@ -73,7 +72,11 @@ impl Facade {
         let storage_values = match storage {
             BuildValue::Contract(fields) => fields
                 .into_iter()
-                .map(|(_name, value)| value.into_flat_values())
+                .map(|(_name, value)| {
+                    let mut values = value.into_flat_values();
+                    values.reverse();
+                    values
+                })
                 .collect::<Vec<Vec<BigInt>>>(),
             _ => return Err(RuntimeError::InvalidStorageValue),
         };
@@ -120,7 +123,9 @@ impl Facade {
                 .into_iter()
                 .zip(storage_names)
                 .enumerate()
-                .map(|(index, (value, name))| {
+                .map(|(index, (mut values, name))| {
+                    values.reverse();
+
                     (
                         name,
                         BuildValue::from_flat_values(
@@ -128,7 +133,7 @@ impl Facade {
                                 .get(index)
                                 .cloned()
                                 .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-                            value.as_slice(),
+                            values.as_slice(),
                         ),
                     )
                 })
@@ -167,7 +172,11 @@ impl Facade {
         let storage_values = match storage {
             BuildValue::Contract(fields) => fields
                 .into_iter()
-                .map(|(_name, value)| value.into_flat_values())
+                .map(|(_name, value)| {
+                    let mut values = value.into_flat_values();
+                    values.reverse();
+                    values
+                })
                 .collect::<Vec<Vec<BigInt>>>(),
             _ => return Err(RuntimeError::InvalidStorageValue),
         };
@@ -214,7 +223,9 @@ impl Facade {
                 .into_iter()
                 .zip(storage_names)
                 .enumerate()
-                .map(|(index, (value, name))| {
+                .map(|(index, (mut values, name))| {
+                    values.reverse();
+
                     (
                         name,
                         BuildValue::from_flat_values(
@@ -222,7 +233,7 @@ impl Facade {
                                 .get(index)
                                 .cloned()
                                 .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-                            value.as_slice(),
+                            values.as_slice(),
                         ),
                     )
                 })
@@ -323,6 +334,7 @@ impl Facade {
         self,
         params: Parameters<E>,
         input: BuildValue,
+        storage: BuildValue,
         method_name: String,
     ) -> Result<(BuildValue, Proof<E>), RuntimeError> {
         let method = self
@@ -340,13 +352,24 @@ impl Facade {
         let inputs_flat = input.into_flat_values();
         let output_type = method.output.into_contract_metadata();
 
-        let storage_fields = self
-            .inner
-            .storage
-            .iter()
-            .map(|(_name, r#type)| r#type.to_owned())
-            .collect();
-        let storage = DummyStorage::new(storage_fields);
+        let mut storage_names = Vec::with_capacity(self.inner.storage.len());
+        let mut storage_types = Vec::with_capacity(self.inner.storage.len());
+        for (name, r#type) in self.inner.storage.clone().into_iter() {
+            storage_names.push(name);
+            storage_types.push(r#type);
+        }
+        let storage_values = match storage {
+            BuildValue::Contract(fields) => fields
+                .into_iter()
+                .map(|(_name, value)| {
+                    let mut values = value.into_flat_values();
+                    values.reverse();
+                    values
+                })
+                .collect::<Vec<Vec<BigInt>>>(),
+            _ => return Err(RuntimeError::InvalidStorageValue),
+        };
+        let storage = DatabaseStorage::new(storage_types, storage_values);
 
         let synthesizable = ContractSynthesizer {
             inputs: Some(inputs_flat),

@@ -5,6 +5,7 @@
 use std::fs;
 use std::path::PathBuf;
 
+use serde_json::Value as JsonValue;
 use structopt::StructOpt;
 
 use franklin_crypto::bellman::groth16::Parameters;
@@ -42,6 +43,10 @@ pub struct Command {
     #[structopt(long = "public-data", help = "The public data JSON file")]
     pub public_data_path: PathBuf,
 
+    /// The path to the contract storage JSON file.
+    #[structopt(long = "storage", help = "The contract storage JSON file")]
+    pub storage: Option<PathBuf>,
+
     /// The method name to call, if the program is a contract.
     #[structopt(long = "method", help = "The method name")]
     pub method: Option<String>,
@@ -50,7 +55,7 @@ pub struct Command {
 impl IExecutable for Command {
     type Error = Error;
 
-    fn execute(self) -> Result<i32, Self::Error> {
+    fn execute(mut self) -> Result<i32, Self::Error> {
         // Read program
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
@@ -67,7 +72,7 @@ impl IExecutable for Command {
         let witness_path = self.witness_path;
         let input_template =
             fs::read_to_string(&witness_path).error_with_path(|| witness_path.to_string_lossy())?;
-        let input_json = serde_json::from_str(&input_template)?;
+        let input_json = serde_json::from_str(input_template.as_str())?;
 
         let (output, proof) = match program {
             BuildProgram::Circuit(circuit) => {
@@ -76,6 +81,28 @@ impl IExecutable for Command {
                 CircuitFacade::new(circuit).prove::<Bn256>(params, input_values)?
             }
             BuildProgram::Contract(contract) => {
+                let storage_path = match self.storage.take() {
+                    Some(path) => path,
+                    None => return Err(Error::ContractStoragePathMissing),
+                };
+
+                let storage_str = fs::read_to_string(&storage_path)
+                    .error_with_path(|| witness_path.to_string_lossy())?;
+                let storage_json = serde_json::from_str(storage_str.as_str())?;
+                let storage_values = match storage_json {
+                    JsonValue::Array(array) => {
+                        let mut storage_values = Vec::with_capacity(contract.storage.len());
+                        for ((name, r#type), value) in
+                            contract.storage.clone().into_iter().zip(array)
+                        {
+                            storage_values
+                                .push((name, BuildValue::try_from_typed_json(value, r#type)?));
+                        }
+                        storage_values
+                    }
+                    value => return Err(Error::InvalidContractStorageFormat { found: value }),
+                };
+
                 let method_name = self.method.ok_or(Error::MethodNameNotFound)?;
                 let method = contract.methods.get(method_name.as_str()).cloned().ok_or(
                     Error::MethodNotFound {
@@ -83,7 +110,12 @@ impl IExecutable for Command {
                     },
                 )?;
                 let input_values = BuildValue::try_from_typed_json(input_json, method.input)?;
-                ContractFacade::new(contract).prove::<Bn256>(params, input_values, method_name)?
+                ContractFacade::new(contract).prove::<Bn256>(
+                    params,
+                    input_values,
+                    BuildValue::Contract(storage_values),
+                    method_name,
+                )?
             }
         };
 

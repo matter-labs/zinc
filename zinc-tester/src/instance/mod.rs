@@ -32,7 +32,7 @@ pub struct Instance {
 
 impl Instance {
     ///
-    /// Creates a test instance instance.
+    /// Creates a test instance.
     ///
     pub fn new(
         name: String,
@@ -46,10 +46,10 @@ impl Instance {
             .map_err(|error| error.format())
             .map_err(Error::Compiler)?;
 
-        let bytecode = State::new(name).wrap();
-        IntermediateProgram::new(scope.borrow().get_intermediate()).write_all(bytecode.clone());
+        let state = State::new(name).wrap();
+        IntermediateProgram::new(scope.borrow().get_intermediate()).write_all(state.clone());
 
-        let program = State::unwrap_rc(bytecode).into_program(true);
+        let program = State::unwrap_rc(state).into_program(true);
 
         let input_type = match program {
             BuildProgram::Circuit(ref circuit) => circuit.input.to_owned(),

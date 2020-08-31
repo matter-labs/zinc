@@ -114,9 +114,9 @@ impl<E: IEngine> DataStack<E> {
     }
 
     fn revert(&mut self, delta: &DataStackDelta<E>) {
-        for (address, d) in delta.iter() {
+        for (address, delta) in delta.iter() {
             if let Some(cell) = self.memory.get_mut(*address) {
-                *cell = d.old.clone();
+                *cell = delta.old.clone();
             }
         }
     }

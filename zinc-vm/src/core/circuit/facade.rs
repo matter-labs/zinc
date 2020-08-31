@@ -37,7 +37,7 @@ impl Facade {
         let cs = MainCS::<Bn256>::new();
 
         let inputs_flat = input.into_flat_values();
-        let output_type = self.inner.output.to_owned();
+        let output_type = self.inner.output.clone();
 
         let mut state = CircuitState::new(cs, false);
 
@@ -78,7 +78,7 @@ impl Facade {
         let cs = TestConstraintSystem::<Bn256>::new();
 
         let inputs_flat = input.into_flat_values();
-        let output_type = self.inner.output.to_owned();
+        let output_type = self.inner.output.clone();
 
         let mut state = CircuitState::new(cs, true);
 
@@ -200,7 +200,7 @@ impl Facade {
         let rng = &mut rand::thread_rng();
 
         let inputs_flat = input.into_flat_values();
-        let output_type = self.inner.output.to_owned();
+        let output_type = self.inner.output.clone();
 
         let synthesizable = CircuitSynthesizer {
             inputs: Some(inputs_flat),

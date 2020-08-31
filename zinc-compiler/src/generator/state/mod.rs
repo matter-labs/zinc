@@ -10,6 +10,8 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use serde_json::Value as JsonValue;
+
 use zinc_build::Bytes;
 use zinc_build::ContractMethod;
 use zinc_build::Instruction;
@@ -337,11 +339,12 @@ impl State {
         match self.into_program(optimize_dead_function_elimination) {
             BuildProgram::Circuit(circuit) => {
                 let input_template =
-                    serde_json::to_vec(&BuildValue::new(circuit.input.clone()).into_json())
+                    serde_json::to_vec_pretty(&BuildValue::new(circuit.input.clone()).into_json())
                         .expect(zinc_const::panic::DATA_SERIALIZATION);
                 let output_template =
-                    serde_json::to_vec(&BuildValue::new(circuit.output.clone()).into_json())
+                    serde_json::to_vec_pretty(&BuildValue::new(circuit.output.clone()).into_json())
                         .expect(zinc_const::panic::DATA_SERIALIZATION);
+
                 let bytecode = BuildProgram::Circuit(circuit).into_bytes();
 
                 Bytes::new_circuit(bytecode, input_template, output_template)
@@ -352,18 +355,32 @@ impl State {
                 for (name, method) in contract.methods.iter() {
                     input_templates.insert(
                         name.to_owned(),
-                        serde_json::to_vec(&BuildValue::new(method.input.to_owned()).into_json())
-                            .expect(zinc_const::panic::DATA_SERIALIZATION),
+                        serde_json::to_vec_pretty(
+                            &BuildValue::new(method.input.to_owned()).into_json(),
+                        )
+                        .expect(zinc_const::panic::DATA_SERIALIZATION),
                     );
                     output_templates.insert(
                         name.to_owned(),
-                        serde_json::to_vec(&BuildValue::new(method.output.to_owned()).into_json())
-                            .expect(zinc_const::panic::DATA_SERIALIZATION),
+                        serde_json::to_vec_pretty(
+                            &BuildValue::new(method.output.to_owned()).into_json(),
+                        )
+                        .expect(zinc_const::panic::DATA_SERIALIZATION),
                     );
                 }
+
+                let fields: Vec<JsonValue> = contract
+                    .storage
+                    .clone()
+                    .into_iter()
+                    .map(|(_name, r#type)| BuildValue::new(r#type).into_json())
+                    .collect();
+                let storage = serde_json::to_vec_pretty(&JsonValue::Array(fields))
+                    .expect(zinc_const::panic::DATA_SERIALIZATION);
+
                 let bytecode = BuildProgram::Contract(contract).into_bytes();
 
-                Bytes::new_contract(bytecode, input_templates, output_templates)
+                Bytes::new_contract(bytecode, storage, input_templates, output_templates)
             }
         }
     }

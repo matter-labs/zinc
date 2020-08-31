@@ -182,6 +182,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigInt;
+    use num_traits::Zero;
     use rand::Rng;
     use rand::SeedableRng;
     use rand::XorShiftRng;
@@ -194,7 +196,7 @@ mod tests {
     use zinc_build::ScalarType;
     use zinc_build::Type as BuildType;
 
-    use crate::core::contract::storage::dummy::Storage as DummyStorage;
+    use crate::core::contract::storage::database::Storage as DatabaseStorage;
     use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
     use crate::gadgets::contract::storage::StorageGadget;
     use crate::gadgets::scalar::Scalar;
@@ -207,17 +209,14 @@ mod tests {
 
         let mut cs = TestConstraintSystem::<Bn256>::new();
 
-        let storage_test_dummy =
-            DummyStorage::<Bn256>::new(vec![
-                BuildType::Scalar(ScalarType::Field);
-                STORAGE_ELEMENT_COUNT
-            ]);
+        let storage = DatabaseStorage::<Bn256>::new(
+            vec![BuildType::Scalar(ScalarType::Field); STORAGE_ELEMENT_COUNT],
+            vec![vec![BigInt::zero()]; STORAGE_ELEMENT_COUNT],
+        );
 
-        let mut storage_gadget = StorageGadget::<_, _, Sha256Hasher>::new(
-            cs.namespace(|| "gadget creation"),
-            storage_test_dummy,
-        )
-        .expect(zinc_const::panic::TEST_DATA_VALID);
+        let mut storage_gadget =
+            StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "gadget creation"), storage)
+                .expect(zinc_const::panic::TEST_DATA_VALID);
 
         for i in 0..STORAGE_ELEMENT_COUNT {
             let scalar = Scalar::<Bn256>::from(

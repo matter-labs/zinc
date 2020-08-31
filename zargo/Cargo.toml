@@ -1,7 +1,9 @@
 [package]
 name = "zargo"
 version = "0.2.0"
-authors = ["Alex Z <a.zarudnyy@matterlabs.dev>"]
+authors = [
+    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
+]
 edition = "2018"
 description = "The Zinc project manager"
 
@@ -22,3 +24,4 @@ Inflector = "0.11"
 
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }
+zinc-source = { path = "../zinc-source" }

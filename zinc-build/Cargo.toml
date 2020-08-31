@@ -2,8 +2,8 @@
 name = "zinc-build"
 version = "0.2.0"
 authors = [
+    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
     "Alexander Movchan <am@matterlabs.dev>",
-    "Alex Z <a.zarudnyy@matterlabs.dev>",
 ]
 edition = "2018"
 description = "The Zinc build files data"
@@ -22,3 +22,4 @@ num-traits = "0.2"
 num-bigint = { version = "0.3", features = ["serde"] }
 
 zinc-const = { path = "../zinc-const" }
+zinc-utils = { path = "../zinc-utils" }

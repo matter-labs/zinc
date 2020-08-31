@@ -25,6 +25,10 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Not {
 
 #[cfg(test)]
 mod test {
+    use num_bigint::BigInt;
+    use num_traits::One;
+    use num_traits::Zero;
+
     use zinc_build::ScalarType;
 
     use crate::tests::TestRunner;
@@ -33,9 +37,9 @@ mod test {
     #[test]
     fn test_not() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
             .push(zinc_build::Not)
-            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
             .push(zinc_build::Not)
             .test(&[0, 1])
     }

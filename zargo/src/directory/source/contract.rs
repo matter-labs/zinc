@@ -49,8 +49,8 @@ impl Contract {
     pub fn exists_at(path: &PathBuf, name: &str) -> bool {
         let mut path = path.to_owned();
         if path.is_dir() {
-            if !path.ends_with(zinc_const::zargo::SOURCE_DIRECTORY_SUBPATH) {
-                path.push(PathBuf::from(zinc_const::zargo::SOURCE_DIRECTORY_SUBPATH));
+            if !path.ends_with(zinc_const::directory::SOURCE) {
+                path.push(PathBuf::from(zinc_const::directory::SOURCE));
             }
             let file_name = format!("{}.{}", name, zinc_const::extension::SOURCE);
             path.push(PathBuf::from(file_name));
@@ -64,8 +64,8 @@ impl Contract {
     pub fn write_to(self, path: &PathBuf) -> Result<(), Error> {
         let mut path = path.to_owned();
         if path.is_dir() {
-            if !path.ends_with(zinc_const::zargo::SOURCE_DIRECTORY_SUBPATH) {
-                path.push(PathBuf::from(zinc_const::zargo::SOURCE_DIRECTORY_SUBPATH));
+            if !path.ends_with(zinc_const::directory::SOURCE) {
+                path.push(PathBuf::from(zinc_const::directory::SOURCE));
             }
             let file_name = format!(
                 "{}.{}",

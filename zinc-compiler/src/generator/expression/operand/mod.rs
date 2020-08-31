@@ -58,15 +58,15 @@ pub enum Operand {
 }
 
 impl IBytecodeWritable for Operand {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_all(self, state: Rc<RefCell<State>>) {
         match self {
-            Self::Constant(inner) => inner.write_all(bytecode),
+            Self::Constant(inner) => inner.write_all(state),
             Self::Place(mut inner) => match inner.memory_type {
                 MemoryType::Stack => {
                     let location = inner.identifier.location;
                     let element_size = inner.element_size;
                     let total_size = inner.total_size;
-                    let address = bytecode
+                    let address = state
                         .borrow()
                         .get_variable_address(inner.identifier.name.as_str())
                         .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
@@ -74,8 +74,8 @@ impl IBytecodeWritable for Operand {
                     let is_indexed = !inner.elements.is_empty();
 
                     if is_indexed {
-                        inner.write_all(bytecode.clone());
-                        bytecode.borrow_mut().push_instruction(
+                        inner.write_all(state.clone());
+                        state.borrow_mut().push_instruction(
                             Instruction::LoadByIndex(zinc_build::LoadByIndex::new(
                                 address,
                                 element_size,
@@ -84,7 +84,7 @@ impl IBytecodeWritable for Operand {
                             Some(location),
                         );
                     } else {
-                        bytecode.borrow_mut().push_instruction(
+                        state.borrow_mut().push_instruction(
                             Instruction::Load(zinc_build::Load::new(address, total_size)),
                             Some(location),
                         );
@@ -109,8 +109,8 @@ impl IBytecodeWritable for Operand {
                             false,
                             zinc_const::bitlength::FIELD,
                         )
-                        .write_all(bytecode.clone());
-                        bytecode.borrow_mut().push_instruction(
+                        .write_all(state.clone());
+                        state.borrow_mut().push_instruction(
                             Instruction::StorageLoad(zinc_build::StorageLoad::new(*element_size)),
                             Some(inner.identifier.location),
                         );
@@ -121,20 +121,20 @@ impl IBytecodeWritable for Operand {
                     let is_indexed = !inner.elements.is_empty();
 
                     if is_indexed {
-                        inner.write_all(bytecode.clone());
-                        bytecode.borrow_mut().push_instruction(
+                        inner.write_all(state.clone());
+                        state.borrow_mut().push_instruction(
                             Instruction::Slice(zinc_build::Slice::new(element_size, total_size)),
                             Some(location),
                         );
                     }
                 }
             },
-            Self::Array(inner) => inner.write_all(bytecode),
-            Self::Group(inner) => inner.write_all(bytecode),
-            Self::List(inner) => inner.write_all(bytecode),
-            Self::Block(inner) => inner.write_all(bytecode),
-            Self::Conditional(inner) => inner.write_all(bytecode),
-            Self::Match(inner) => inner.write_all(bytecode),
+            Self::Array(inner) => inner.write_all(state),
+            Self::Group(inner) => inner.write_all(state),
+            Self::List(inner) => inner.write_all(state),
+            Self::Block(inner) => inner.write_all(state),
+            Self::Conditional(inner) => inner.write_all(state),
+            Self::Match(inner) => inner.write_all(state),
         }
     }
 }

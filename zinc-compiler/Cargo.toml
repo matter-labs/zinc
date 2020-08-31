@@ -2,7 +2,7 @@
 name = "zinc-compiler"
 version = "0.2.0"
 authors = [
-    "Alex Zarudnyy <hedgar2017@gmail.com>",
+    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
     "Alexander Movchan <am@matterlabs.dev>",
 ]
 edition = "2018"
@@ -28,4 +28,5 @@ num-bigint = "0.3"
 
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }
+zinc-source = { path = "../zinc-source" }
 zinc-build = { path = "../zinc-build" }

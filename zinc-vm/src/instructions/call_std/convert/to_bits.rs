@@ -72,7 +72,7 @@ where
         }) => bitlength,
         r#type => {
             return Err(RuntimeError::TypeError {
-                expected: "signed type".to_string(),
+                expected: "signed type".to_owned(),
                 found: r#type.to_string(),
             })
         }

@@ -6,6 +6,7 @@ use std::io;
 
 use failure::Fail;
 use hex::FromHexError;
+use serde_json::Value as JsonValue;
 
 use zinc_build::ValueError as BuildValueError;
 
@@ -65,6 +66,14 @@ pub enum Error {
     /// The method does not exist in the contract.
     #[fail(display = "method `{}` not found", _0)]
     MethodNotFound { name: String },
+
+    /// The contract storage is required for a contract application.
+    #[fail(display = "contract storage path missing")]
+    ContractStoragePathMissing,
+
+    /// The contract storage JSON file is invalid.
+    #[fail(display = "contract storage must be an array, but found `{}`", found)]
+    InvalidContractStorageFormat { found: JsonValue },
 }
 
 impl From<RuntimeError> for Error {

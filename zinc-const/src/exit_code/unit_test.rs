@@ -15,7 +15,7 @@ pub enum ExitCode {
     Invalid = 1,
     /// The test passed with an error or without an error if it is marked with the `should_panic` attribute.
     Failed = 2,
-    /// The test is marked with `ignore` attribute.
+    /// The test is marked with the `ignore` attribute.
     Ignored = 3,
 }
 

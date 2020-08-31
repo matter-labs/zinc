@@ -10,6 +10,7 @@ use crate::arguments::command::init::Error as InitCommandError;
 use crate::arguments::command::new::Error as NewCommandError;
 use crate::arguments::command::proof_check::Error as ProofCheckCommandError;
 use crate::arguments::command::prove::Error as ProveCommandError;
+use crate::arguments::command::publish::Error as PublishCommandError;
 use crate::arguments::command::run::Error as RunCommandError;
 use crate::arguments::command::setup::Error as SetupCommandError;
 use crate::arguments::command::test::Error as TestCommandError;
@@ -50,6 +51,9 @@ pub enum Error {
     /// The `proof-check` command error.
     #[fail(display = "{}", _0)]
     ProofCheck(ProofCheckCommandError),
+    /// The `publish` command error.
+    #[fail(display = "{}", _0)]
+    Publish(PublishCommandError),
 }
 
 impl From<NewCommandError> for Error {
@@ -109,5 +113,11 @@ impl From<VerifyCommandError> for Error {
 impl From<ProofCheckCommandError> for Error {
     fn from(inner: ProofCheckCommandError) -> Self {
         Self::ProofCheck(inner)
+    }
+}
+
+impl From<PublishCommandError> for Error {
+    fn from(inner: PublishCommandError) -> Self {
+        Self::Publish(inner)
     }
 }

@@ -4,9 +4,14 @@
 
 pub mod scalar;
 
+use std::collections::HashMap;
+use std::fmt;
+
+use num_bigint::BigInt;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
+use self::scalar::integer::Type as IntegerType;
 use self::scalar::Type as ScalarType;
 
 ///
@@ -21,8 +26,13 @@ pub enum Type {
     Unit,
     /// See the inner element description.
     Scalar(ScalarType),
-    /// The `enum` type, which is treated as `field` for now. // TODO: enum validation
-    Enumeration,
+    /// The `enum` type, which is specified in the input JSON file using variant name strings.
+    Enumeration {
+        /// The enumeration type bitlength.
+        bitlength: usize,
+        /// The variant list.
+        variants: HashMap<String, BigInt>,
+    },
 
     /// The array type.
     Array(Box<Type>, usize),
@@ -51,7 +61,9 @@ impl Type {
         match self {
             Self::Unit => vec![],
             Self::Scalar(scalar_type) => vec![scalar_type],
-            Self::Enumeration => vec![ScalarType::Field],
+            Self::Enumeration { bitlength, .. } => {
+                vec![ScalarType::Integer(IntegerType::new(false, bitlength))]
+            }
 
             Self::Array(r#type, size) => vec![Self::into_flat_scalar_types(*r#type); size]
                 .into_iter()
@@ -92,12 +104,59 @@ impl Type {
         match self {
             Self::Unit => 0,
             Self::Scalar(_) => 1,
-            Self::Enumeration => 1,
+            Self::Enumeration { .. } => 1,
 
             Self::Array(r#type, size) => r#type.size() * *size,
             Self::Tuple(fields) => fields.iter().map(Self::size).sum(),
             Self::Structure(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
             Self::Contract(_) => 0,
+        }
+    }
+}
+
+impl fmt::Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Unit => write!(f, "()"),
+            Self::Scalar(inner) => write!(f, "{}", inner),
+            Self::Enumeration { variants, .. } => write!(
+                f,
+                "enum {}",
+                variants
+                    .iter()
+                    .map(|(name, value)| format!("{} = {}", name, value))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
+
+            Self::Array(inner, size) => write!(f, "[{}; {}]", inner, size),
+            Self::Tuple(types) => write!(
+                f,
+                "({})",
+                types
+                    .iter()
+                    .map(|r#type| r#type.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
+            Self::Structure(fields) => write!(
+                f,
+                "{}",
+                fields
+                    .iter()
+                    .map(|(name, r#type)| format!("{}: {}", name, r#type))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
+            Self::Contract(fields) => write!(
+                f,
+                "{}",
+                fields
+                    .iter()
+                    .map(|(name, r#type)| format!("{}: {}", name, r#type))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
         }
     }
 }

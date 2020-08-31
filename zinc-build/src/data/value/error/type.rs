@@ -5,13 +5,15 @@
 use failure::Fail;
 use serde_json::Value as JsonValue;
 
+use zinc_utils::InferenceError;
+
 ///
 /// The inner type error variant.
 ///
 #[derive(Debug, Fail)]
 pub enum Type {
     /// The primitive value does not match the expected primitive type.
-    #[fail(display = "type mismatch: expected `{}`, got `{}`", expected, found)]
+    #[fail(display = "type mismatch: expected `{}`, found `{}`", expected, found)]
     TypeError {
         /// The expected type.
         expected: String,
@@ -26,6 +28,10 @@ pub enum Type {
     )]
     InvalidNumberFormat(String),
 
+    /// The number is too large for the type.
+    #[fail(display = "value inference: {}", inner)]
+    ValueOverflow { inner: InferenceError },
+
     /// The structure field is missing.
     #[fail(display = "value for field `{}` is missing", _0)]
     MissingField(String),
@@ -34,9 +40,13 @@ pub enum Type {
     #[fail(display = "unexpected field `{}`", _0)]
     UnexpectedField(String),
 
+    /// The variant could not be found in the enumeration type.
+    #[fail(display = "unexpected variant `{}`", _0)]
+    UnexpectedVariant(String),
+
     /// The data size does not match the type size.
     #[fail(
-        display = "expected array/tuple/structure of size {}, found {} elements",
+        display = "expected a data structure of size {}, but found {} values",
         expected, found
     )]
     UnexpectedSize {

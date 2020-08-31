@@ -116,7 +116,7 @@ where
         while self.state.instruction_counter < contract.instructions.len() {
             let namespace = format!("step={}, addr={}", step, self.state.instruction_counter);
             self.counter.cs.push_namespace(|| namespace);
-            let instruction = contract.instructions[self.state.instruction_counter].to_owned();
+            let instruction = contract.instructions[self.state.instruction_counter].clone();
 
             let log_message = format!(
                 "{}:{} > {}",

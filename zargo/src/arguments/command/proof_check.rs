@@ -46,52 +46,11 @@ pub struct Command {
     )]
     pub manifest_path: PathBuf,
 
-    /// The path to the binary bytecode file.
-    #[structopt(
-        long = "binary",
-        parse(from_os_str),
-        help = "Path to the bytecode file",
-        default_value = zinc_const::path::BINARY,
-    )]
-    pub binary_path: PathBuf,
+    /// The contract method to call. Only for contracts.
+    #[structopt(long = "method", help = "The contract method to call")]
+    pub method: Option<String>,
 
-    /// The path to the witness JSON file.
-    #[structopt(
-        long = "witness",
-        parse(from_os_str),
-        help = "Path to the witness JSON file",
-        default_value = zinc_const::path::WITNESS,
-    )]
-    pub witness_path: PathBuf,
-
-    /// The path to the public data JSON file.
-    #[structopt(
-        long = "public-data",
-        parse(from_os_str),
-        help = "Path to the public data JSON file",
-        default_value = zinc_const::path::PUBLIC_DATA,
-    )]
-    pub public_data_path: PathBuf,
-
-    /// The path to the proving key file.
-    #[structopt(
-        long = "proving-key",
-        parse(from_os_str),
-        help = "Path to the proving key file",
-        default_value = zinc_const::path::PROVING_KEY,
-    )]
-    pub proving_key_path: PathBuf,
-
-    /// The path to the verifying key file.
-    #[structopt(
-        long = "verifying-key",
-        parse(from_os_str),
-        help = "Path to the verifying key file",
-        default_value = zinc_const::path::VERIFYING_KEY,
-    )]
-    pub verifying_key_path: PathBuf,
-
-    /// Whether to run the release build.
+    /// Whether to run the release version.
     #[structopt(long = "release", help = "Run the release build")]
     pub is_release: bool,
 }
@@ -135,59 +94,144 @@ impl IExecutable for Command {
             manifest_path.pop();
         }
 
-        let data_directory_path = DataDirectory::path(&manifest_path);
         let source_directory_path = SourceDirectory::path(&manifest_path);
 
-        BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
         DataDirectory::create(&manifest_path).map_err(Error::DataDirectory)?;
+        let data_directory_path = DataDirectory::path(&manifest_path);
+        let mut witness_path = data_directory_path.clone();
+        let mut public_data_path = data_directory_path.clone();
+        if let Some(ref method) = self.method {
+            witness_path.push(format!(
+                "{}_{}.{}",
+                zinc_const::file_name::WITNESS,
+                method,
+                zinc_const::extension::JSON,
+            ));
+            public_data_path.push(format!(
+                "{}_{}.{}",
+                zinc_const::file_name::PUBLIC_DATA,
+                method,
+                zinc_const::extension::JSON,
+            ));
+        } else {
+            witness_path.push(format!(
+                "{}.{}",
+                zinc_const::file_name::WITNESS,
+                zinc_const::extension::JSON,
+            ));
+            public_data_path.push(format!(
+                "{}.{}",
+                zinc_const::file_name::PUBLIC_DATA,
+                zinc_const::extension::JSON,
+            ));
+        }
+        let mut storage_path = data_directory_path.clone();
+        storage_path.push(format!(
+            "{}.{}",
+            zinc_const::file_name::STORAGE,
+            zinc_const::extension::JSON
+        ));
+        let mut proving_key_path = data_directory_path.clone();
+        proving_key_path.push(zinc_const::file_name::PROVING_KEY);
+        let mut verifying_key_path = data_directory_path.clone();
+        verifying_key_path.push(format!(
+            "{}.{}",
+            zinc_const::file_name::VERIFYING_KEY,
+            zinc_const::extension::VERIFYING_KEY
+        ));
+
+        BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
+        let build_directory_path = BuildDirectory::path(&manifest_path);
+        let mut binary_path = build_directory_path;
+        binary_path.push(format!(
+            "{}.{}",
+            zinc_const::file_name::BINARY,
+            zinc_const::extension::BINARY
+        ));
 
         if self.is_release {
             Compiler::build_release(
                 self.verbosity,
-                manifest.project.name,
+                manifest.project.name.as_str(),
                 &data_directory_path,
                 &source_directory_path,
-                &self.binary_path,
+                &binary_path,
                 false,
             )
             .map_err(Error::Compiler)?;
         } else {
             Compiler::build_debug(
                 self.verbosity,
-                manifest.project.name,
+                manifest.project.name.as_str(),
                 &data_directory_path,
                 &source_directory_path,
-                &self.binary_path,
+                &binary_path,
                 false,
             )
             .map_err(Error::Compiler)?;
         }
 
-        VirtualMachine::run(
-            self.verbosity,
-            &self.binary_path,
-            &self.witness_path,
-            &self.public_data_path,
-        )
-        .map_err(Error::VirtualMachineRun)?;
+        match self.method {
+            Some(method) => {
+                VirtualMachine::run_contract(
+                    self.verbosity,
+                    &binary_path,
+                    &witness_path,
+                    &public_data_path,
+                    &storage_path,
+                    method.as_str(),
+                )
+                .map_err(Error::VirtualMachineRun)?;
 
-        VirtualMachine::setup(
-            self.verbosity,
-            &self.binary_path,
-            &self.proving_key_path,
-            &self.verifying_key_path,
-        )
-        .map_err(Error::VirtualMachineSetup)?;
+                VirtualMachine::setup_contract(
+                    self.verbosity,
+                    &binary_path,
+                    method.as_str(),
+                    &proving_key_path,
+                    &verifying_key_path,
+                )
+                .map_err(Error::VirtualMachineSetup)?;
 
-        VirtualMachine::prove_and_verify(
-            self.verbosity,
-            &self.binary_path,
-            &self.witness_path,
-            &self.public_data_path,
-            &self.proving_key_path,
-            &self.verifying_key_path,
-        )
-        .map_err(Error::VirtualMachineProveAndVerify)?;
+                VirtualMachine::prove_and_verify_contract(
+                    self.verbosity,
+                    &binary_path,
+                    &witness_path,
+                    &public_data_path,
+                    &storage_path,
+                    method.as_str(),
+                    &proving_key_path,
+                    &verifying_key_path,
+                )
+                .map_err(Error::VirtualMachineProveAndVerify)?;
+            }
+            None => {
+                VirtualMachine::run_circuit(
+                    self.verbosity,
+                    &binary_path,
+                    &witness_path,
+                    &public_data_path,
+                )
+                .map_err(Error::VirtualMachineRun)?;
+
+                VirtualMachine::setup_circuit(
+                    self.verbosity,
+                    &binary_path,
+                    &proving_key_path,
+                    &verifying_key_path,
+                )
+                .map_err(Error::VirtualMachineSetup)?;
+
+                VirtualMachine::prove_and_verify_circuit(
+                    self.verbosity,
+                    &binary_path,
+                    &witness_path,
+                    &public_data_path,
+                    &proving_key_path,
+                    &verifying_key_path,
+                )
+                .map_err(Error::VirtualMachineProveAndVerify)?;
+            }
+        }
 
         Ok(())
     }

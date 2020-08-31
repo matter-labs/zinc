@@ -27,14 +27,22 @@ pub struct Arguments {
     )]
     pub name: String,
 
+    /// The path to the source code directory.
+    #[structopt(
+        parse(from_os_str),
+        help = "The source file or `src` directory path",
+        default_value = zinc_const::path::SOURCE,
+    )]
+    pub source_directory_path: PathBuf,
+
     /// The path to the keys, template, and other auxiliary data directory.
     #[structopt(
         long = "data",
         parse(from_os_str),
         help = "The witness and public data directory path",
-        default_value = zinc_const::directory::DATA,
+        default_value = zinc_const::path::DATA,
     )]
-    pub data_path: PathBuf,
+    pub data_directory_path: PathBuf,
 
     /// The path to the bytecode file.
     #[structopt(
@@ -44,14 +52,6 @@ pub struct Arguments {
         default_value = zinc_const::path::BINARY,
     )]
     pub binary_path: PathBuf,
-
-    /// The path to the source code directory.
-    #[structopt(
-        parse(from_os_str),
-        help = "The source file or `src` directory path",
-        default_value = zinc_const::directory::SOURCE,
-    )]
-    pub source_path: PathBuf,
 
     /// If set, compiles only unit tests.
     #[structopt(long = "test-only", help = "Build the unit tests only")]

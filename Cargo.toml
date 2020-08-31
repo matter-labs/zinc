@@ -3,12 +3,13 @@ members = [
     "zargo",
 
     "zinc-compiler",
+    "zinc-tester",
+    "zinc-vm",
+    "zandbox",
+    "schnorr",
+
+    "zinc-source",
     "zinc-build",
     "zinc-utils",
     "zinc-const",
-    "zinc-vm",
-    "zinc-server",
-    "zinc-tester",
-
-    "schnorr",
 ]

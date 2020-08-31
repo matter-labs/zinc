@@ -26,6 +26,9 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Gt {
 
 #[cfg(test)]
 mod test {
+    use num_bigint::BigInt;
+    use num_traits::One;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
@@ -34,14 +37,26 @@ mod test {
     #[test]
     fn test_gt() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new(1.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(2),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(BigInt::one(), IntegerType::I8.into()))
             .push(zinc_build::Gt)
-            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(2),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(2),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Gt)
-            .push(zinc_build::Push::new(1.into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new(2.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(BigInt::one(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(2),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Gt)
             .test(&[0, 0, 1])
     }

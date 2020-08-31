@@ -31,6 +31,10 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Assert {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigInt;
+    use num_traits::One;
+    use num_traits::Zero;
+
     use crate::error::RuntimeError;
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
@@ -40,7 +44,7 @@ mod tests {
     #[test]
     fn test_assert_ok() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
             .push(zinc_build::Assert::new(None))
             .test::<i32>(&[])
     }
@@ -48,7 +52,7 @@ mod tests {
     #[test]
     fn test_assert_fail() {
         let res = TestRunner::new()
-            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
             .push(zinc_build::Assert::new(None))
             .test::<i32>(&[]);
 
@@ -61,9 +65,9 @@ mod tests {
     #[test]
     fn test_assert_in_condition() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
             .push(zinc_build::If)
-            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
             .push(zinc_build::Assert::new(None))
             .push(zinc_build::EndIf)
             .test::<i32>(&[])

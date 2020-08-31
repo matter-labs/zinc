@@ -4,6 +4,8 @@
 
 use num_bigint::BigInt;
 
+use zinc_utils::InferenceError;
+
 use crate::lexical::token::location::Location;
 
 ///
@@ -258,9 +260,7 @@ pub enum Error {
     IntegerTooLarge {
         /// The error location data.
         location: Location,
-        /// The value which is too large for some purposes, e.g. array indexing.
-        value: BigInt,
-        /// The maximum bitlength allowed at specific circumstances.
-        bitlength: usize,
+        /// The inner inference error.
+        inner: InferenceError,
     },
 }

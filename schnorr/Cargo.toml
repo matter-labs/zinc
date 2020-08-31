@@ -1,7 +1,10 @@
 [package]
 name = "schnorr"
 version = "0.2.0"
-authors = ["Alexander Movchan <am@matterlabs.dev>"]
+authors = [
+    "Alexander Movchan <am@matterlabs.dev>",
+    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
+]
 edition = "2018"
 description = "The Zinc Schnorr signature generator"
 

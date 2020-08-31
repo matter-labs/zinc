@@ -3,7 +3,6 @@
 //!
 
 pub mod error;
-pub mod string;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -19,10 +18,8 @@ use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 use crate::source::error::Error as SourceError;
 use crate::source::file::File;
 use crate::source::Source;
-use crate::source::SourceString;
 
 use self::error::Error;
-use self::string::String as DirectoryString;
 
 ///
 /// The Zinc source code directory, which consists of its path, root module (usually `mod.zn`),
@@ -45,24 +42,17 @@ impl Directory {
     /// Initializes an application directory from string data.
     ///
     pub fn try_from_string(
-        directory: DirectoryString,
+        directory: zinc_source::Directory,
         is_entry: bool,
     ) -> Result<Self, SourceError> {
         let path = PathBuf::from(directory.path);
-
-        let name = path
-            .file_stem()
-            .ok_or(Error::StemNotFound)
-            .map_err(SourceError::Directory)?
-            .to_string_lossy()
-            .to_string();
 
         let mut entry = None;
         let mut dependencies = HashMap::new();
 
         for (name, module) in directory.modules.into_iter() {
             match module {
-                SourceString::File(file) => {
+                zinc_source::Source::File(file) => {
                     if is_entry && file.is_module_entry() {
                         return Err(SourceError::Directory(Error::ModuleEntryInRoot));
                     }
@@ -79,8 +69,8 @@ impl Directory {
                         dependencies.insert(name, Source::File(file));
                     }
                 }
-                SourceString::Directory(directory) => {
-                    let directory = Directory::try_from_string(directory, false)?;
+                zinc_source::Source::Directory(directory) => {
+                    let directory = Self::try_from_string(directory, false)?;
 
                     dependencies.insert(name, Source::Directory(directory));
                 }
@@ -90,7 +80,7 @@ impl Directory {
         match entry {
             Some(entry) => Ok(Self {
                 path,
-                name,
+                name: directory.name,
                 entry,
                 dependencies,
             }),
@@ -169,10 +159,10 @@ impl Directory {
             .map_err(|error| error.format())
             .map_err(SourceError::Compiling)?;
 
-        let bytecode = State::new(name).wrap();
-        Module::new(scope.borrow().get_intermediate()).write_all(bytecode.clone());
+        let state = State::new(name).wrap();
+        Module::new(scope.borrow().get_intermediate()).write_all(state.clone());
 
-        Ok(bytecode)
+        Ok(state)
     }
 
     ///

@@ -1,0 +1,35 @@
+[package]
+name = "zandbox"
+version = "0.2.0"
+authors = [
+    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
+]
+edition = "2018"
+description = "The Zandbox server daemon"
+
+[[bin]]
+name = "zandbox"
+path = "src/zandbox/main.rs"
+
+[dependencies]
+log = "0.4"
+structopt = "0.3"
+failure = "0.1"
+
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+bson = "1.0"
+hex = "0.4"
+
+futures = "0.3"
+actix-rt = "1.1"
+actix-web = "2.0"
+sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-async-std", "macros", "postgres", "json" ] }
+
+zinc-const = { path = "../zinc-const" }
+zinc-utils = { path = "../zinc-utils" }
+zinc-compiler = { path = "../zinc-compiler" }
+zinc-build = { path = "../zinc-build" }
+zinc-source = { path = "../zinc-source" }
+zinc-vm = { path = "../zinc-vm" }

@@ -6,7 +6,6 @@ mod tests;
 
 pub mod error;
 
-use std::cmp;
 use std::fmt;
 use std::ops::Add;
 use std::ops::BitAnd;
@@ -77,7 +76,14 @@ impl Integer {
     /// Executes the `==` equals comparison operator.
     ///
     pub fn equals(mut self, mut other: Self) -> Result<GeneratorExpressionOperator, Error> {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchEquals {
@@ -87,8 +93,14 @@ impl Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::equals_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::equals_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -99,7 +111,14 @@ impl Integer {
     /// Executes the `!=` not-equals comparison operator.
     ///
     pub fn not_equals(mut self, mut other: Self) -> Result<GeneratorExpressionOperator, Error> {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchNotEquals {
@@ -109,8 +128,14 @@ impl Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::not_equals_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::not_equals_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -121,7 +146,14 @@ impl Integer {
     /// Executes the `>=` greater-equals comparison operator.
     ///
     pub fn greater_equals(mut self, mut other: Self) -> Result<GeneratorExpressionOperator, Error> {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreaterEquals {
@@ -131,8 +163,14 @@ impl Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::greater_equals_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::greater_equals_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -143,7 +181,14 @@ impl Integer {
     /// Executes the `<=` lesser-equals comparison operator.
     ///
     pub fn lesser_equals(mut self, mut other: Self) -> Result<GeneratorExpressionOperator, Error> {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchLesserEquals {
@@ -153,8 +198,14 @@ impl Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::lesser_equals_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::lesser_equals_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -165,7 +216,14 @@ impl Integer {
     /// Executes the `>` greater comparison operator.
     ///
     pub fn greater(mut self, mut other: Self) -> Result<GeneratorExpressionOperator, Error> {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreater {
@@ -175,8 +233,14 @@ impl Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::greater_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::greater_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -187,7 +251,14 @@ impl Integer {
     /// Executes the `<` lesser comparison operator.
     ///
     pub fn lesser(mut self, mut other: Self) -> Result<GeneratorExpressionOperator, Error> {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchLesser {
@@ -197,8 +268,14 @@ impl Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::lesser_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::lesser_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -210,7 +287,14 @@ impl BitOr for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn bitor(mut self, mut other: Self) -> Self::Output {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseOr {
@@ -232,8 +316,14 @@ impl BitOr for Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::bitwise_or_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::bitwise_or_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -245,7 +335,14 @@ impl BitXor for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn bitxor(mut self, mut other: Self) -> Self::Output {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseXor {
@@ -267,8 +364,14 @@ impl BitXor for Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::bitwise_xor_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::bitwise_xor_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -280,7 +383,14 @@ impl BitAnd for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn bitand(mut self, mut other: Self) -> Self::Output {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseAnd {
@@ -302,8 +412,14 @@ impl BitAnd for Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::bitwise_and_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::bitwise_and_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -385,7 +501,14 @@ impl Add for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn add(mut self, mut other: Self) -> Self::Output {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchAddition {
@@ -395,8 +518,14 @@ impl Add for Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::addition_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::addition_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -408,7 +537,14 @@ impl Sub for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn sub(mut self, mut other: Self) -> Self::Output {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchSubtraction {
@@ -418,8 +554,14 @@ impl Sub for Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::subtraction_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::subtraction_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -431,7 +573,14 @@ impl Mul for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn mul(mut self, mut other: Self) -> Self::Output {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchMultiplication {
@@ -441,8 +590,14 @@ impl Mul for Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::multiplication_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::multiplication_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -454,7 +609,14 @@ impl Div for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn div(mut self, mut other: Self) -> Self::Output {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchDivision {
@@ -470,8 +632,14 @@ impl Div for Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::division_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::division_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -483,7 +651,14 @@ impl Rem for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn rem(mut self, mut other: Self) -> Self::Output {
-        let (inferred_type_1, inferred_type_2) = Self::infer_literal_types(&mut self, &mut other);
+        let inference_result = zinc_utils::infer_literal_types(
+            self.is_literal,
+            &mut self.is_signed,
+            &mut self.bitlength,
+            other.is_literal,
+            &mut other.is_signed,
+            &mut other.bitlength,
+        );
 
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchRemainder {
@@ -499,8 +674,14 @@ impl Rem for Integer {
             });
         }
 
-        let operator =
-            GeneratorExpressionOperator::remainder_inferred(inferred_type_1, inferred_type_2);
+        let operator = GeneratorExpressionOperator::remainder_inferred(
+            inference_result
+                .first
+                .map(|r#type| Type::integer(self.location, r#type.is_signed, r#type.bitlength)),
+            inference_result
+                .second
+                .map(|r#type| Type::integer(other.location, r#type.is_signed, r#type.bitlength)),
+        );
 
         self.is_literal = false;
 
@@ -575,66 +756,6 @@ impl Neg for Integer {
         self.is_literal = false;
 
         Ok((self, operator))
-    }
-}
-
-impl Integer {
-    ///
-    /// Infers the integer literal types.
-    ///
-    /// If one of the operands is a literal, it inherits the other's operand type.
-    ///
-    /// If both of the operands are literals, the smallest type enough to fit them is inferred.
-    ///
-    pub fn infer_literal_types(
-        operand_1: &mut Self,
-        operand_2: &mut Self,
-    ) -> (Option<Type>, Option<Type>) {
-        if operand_1.is_literal && !operand_2.is_literal {
-            operand_1.is_signed = operand_2.is_signed;
-            operand_1.bitlength = operand_2.bitlength;
-
-            (
-                Some(Type::integer(
-                    operand_1.location,
-                    operand_1.is_signed,
-                    operand_1.bitlength,
-                )),
-                None,
-            )
-        } else if !operand_1.is_literal && operand_2.is_literal {
-            operand_2.is_signed = operand_1.is_signed;
-            operand_2.bitlength = operand_1.bitlength;
-
-            (
-                None,
-                Some(Type::integer(
-                    operand_2.location,
-                    operand_2.is_signed,
-                    operand_2.bitlength,
-                )),
-            )
-        } else if operand_1.is_literal && operand_2.is_literal {
-            operand_1.is_signed = operand_1.is_signed || operand_2.is_signed;
-
-            operand_1.bitlength = cmp::max(operand_1.bitlength, operand_2.bitlength);
-            operand_2.bitlength = operand_1.bitlength;
-
-            (
-                Some(Type::integer(
-                    operand_1.location,
-                    operand_1.is_signed,
-                    operand_1.bitlength,
-                )),
-                Some(Type::integer(
-                    operand_2.location,
-                    operand_2.is_signed,
-                    operand_2.bitlength,
-                )),
-            )
-        } else {
-            (None, None)
-        }
     }
 }
 

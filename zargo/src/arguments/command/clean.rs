@@ -67,8 +67,8 @@ impl IExecutable for Command {
             manifest_path.pop();
         }
 
-        BuildDirectory::remove(&manifest_path).map_err(Error::BuildDirectory)?;
         DataDirectory::remove(&manifest_path).map_err(Error::DataDirectory)?;
+        BuildDirectory::remove(&manifest_path).map_err(Error::BuildDirectory)?;
 
         Ok(())
     }

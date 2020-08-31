@@ -7,7 +7,6 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 
 use zinc_build::ScalarType;
-use zinc_utils::math;
 
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
@@ -41,10 +40,10 @@ where
     );
 
     // Skip unneeded upper bits, so we can always use the first bit for conditional select.
-    let extra_bits = index_bits_be.len() - math::log2ceil(array.len());
+    let extra_bits = index_bits_be.len() - zinc_utils::log2ceil(array.len());
     let index_bits_be = &index_bits_be[extra_bits..];
 
-    let half = math::floor_to_power_of_two(array.len() - 1);
+    let half = zinc_utils::floor_to_power_of_two(array.len() - 1);
     let left = recursive(
         cs.namespace(|| "left recursion"),
         &index_bits_be[1..],

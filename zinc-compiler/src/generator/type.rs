@@ -2,6 +2,10 @@
 //! The generator type.
 //!
 
+use std::collections::HashMap;
+
+use num_bigint::BigInt;
+
 use zinc_build::IntegerType;
 use zinc_build::ScalarType;
 use zinc_build::Type as BuildType;
@@ -33,6 +37,13 @@ pub enum Type {
     },
     /// The IR field type.
     Field,
+    /// The IR enumeration type.
+    Enumeration {
+        /// The enumeration type bitlength.
+        bitlength: usize,
+        /// The variant list.
+        variants: HashMap<String, BigInt>,
+    },
     /// The IR array type.
     Array {
         /// The array element type.
@@ -107,6 +118,16 @@ impl Type {
     ///
     /// A shortcut constructor.
     ///
+    pub fn enumeration(bitlength: usize, variants: HashMap<String, BigInt>) -> Self {
+        Self::Enumeration {
+            bitlength,
+            variants,
+        }
+    }
+
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn array(r#type: Self, size: usize) -> Self {
         Self::Array {
             r#type: Box::new(r#type),
@@ -145,6 +166,7 @@ impl Type {
             Self::IntegerUnsigned { .. } => 1,
             Self::IntegerSigned { .. } => 1,
             Self::Field => 1,
+            Self::Enumeration { .. } => 1,
             Self::Array { r#type, size } => r#type.size() * size,
             Self::Tuple { types } => types.iter().map(|r#type| r#type.size()).sum(),
             Self::Structure { fields } => fields.iter().map(|(_name, r#type)| r#type.size()).sum(),
@@ -193,7 +215,15 @@ impl Type {
                     _ => None,
                 }
             }
-            SemanticType::Enumeration(inner) => Some(Self::integer_unsigned(inner.bitlength)),
+            SemanticType::Enumeration(inner) => Some(Self::enumeration(
+                inner.bitlength,
+                inner
+                    .names
+                    .to_owned()
+                    .into_iter()
+                    .zip(inner.values.to_owned())
+                    .collect::<HashMap<String, BigInt>>(),
+            )),
             SemanticType::Contract(inner) => {
                 match inner
                     .fields
@@ -207,7 +237,10 @@ impl Type {
                     _ => None,
                 }
             }
-            _ => None,
+            SemanticType::String(_) => None,
+            SemanticType::Range(_) => None,
+            SemanticType::RangeInclusive(_) => None,
+            SemanticType::Function(_) => None,
         }
     }
 }
@@ -230,6 +263,13 @@ impl Into<BuildType> for Type {
                 }))
             }
             Self::Field => BuildType::Scalar(ScalarType::Field),
+            Self::Enumeration {
+                bitlength,
+                variants,
+            } => BuildType::Enumeration {
+                bitlength,
+                variants,
+            },
             Self::Array { r#type, size } => {
                 let element_type: BuildType = (*r#type).into();
                 BuildType::Array(Box::new(element_type), size)

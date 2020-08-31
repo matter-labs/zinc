@@ -23,6 +23,10 @@ impl<VM: IVirtualMachine> IExecutable<VM> for And {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigInt;
+    use num_traits::One;
+    use num_traits::Zero;
+
     use zinc_build::ScalarType;
 
     use crate::tests::TestRunner;
@@ -31,17 +35,17 @@ mod tests {
     #[test]
     fn test_and() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
             .push(zinc_build::And)
-            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
-            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
             .push(zinc_build::And)
-            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_build::Push::new(0.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
             .push(zinc_build::And)
-            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
-            .push(zinc_build::Push::new(1.into(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
             .push(zinc_build::And)
             .test(&[1, 0, 0, 0])
     }

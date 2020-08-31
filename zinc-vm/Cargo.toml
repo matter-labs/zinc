@@ -2,8 +2,8 @@
 name = "zinc-vm"
 version = "0.2.0"
 authors = [
+    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
     "Alexander Movchan <am@matterlabs.dev>",
-    "Alex Z <a.zarudnyy@matterlabs.dev>",
 ]
 edition = "2018"
 description = "The Zinc virtual machine"

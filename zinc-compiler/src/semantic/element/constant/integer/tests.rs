@@ -8,6 +8,8 @@ use std::str::FromStr;
 
 use num_bigint::BigInt;
 
+use zinc_utils::InferenceError;
+
 use crate::error::Error;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::error::Error as ConstantError;
@@ -16,465 +18,6 @@ use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
-
-#[test]
-fn ok_minimal_bitlength() {
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("0").unwrap_or_default(),
-            false,
-            Location::default()
-        ),
-        Ok(zinc_const::bitlength::BYTE * 1),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("255").unwrap_or_default(),
-            false,
-            Location::default()
-        ),
-        Ok(zinc_const::bitlength::BYTE * 1),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("256").unwrap_or_default(),
-            false,
-            Location::default()
-        ),
-        Ok(zinc_const::bitlength::BYTE * 2),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("65535").unwrap_or_default(),
-            false,
-            Location::default()
-        ),
-        Ok(zinc_const::bitlength::BYTE * 2),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("65536").unwrap_or_default(),
-            false,
-            Location::default()
-        ),
-        Ok(zinc_const::bitlength::BYTE * 3),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("4294967295").unwrap_or_default(),
-            false,
-            Location::default(),
-        ),
-        Ok(zinc_const::bitlength::BYTE * 4),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("4294967296").unwrap_or_default(),
-            false,
-            Location::default(),
-        ),
-        Ok(zinc_const::bitlength::BYTE * 5),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("18446744073709551615").unwrap_or_default(),
-            false,
-            Location::default(),
-        ),
-        Ok(zinc_const::bitlength::BYTE * 8),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("18446744073709551616").unwrap_or_default(),
-            false,
-            Location::default(),
-        ),
-        Ok(zinc_const::bitlength::BYTE * 9),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("-128").unwrap_or_default(),
-            true,
-            Location::default()
-        ),
-        Ok(zinc_const::bitlength::BYTE * 1),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("127").unwrap_or_default(),
-            true,
-            Location::default()
-        ),
-        Ok(zinc_const::bitlength::BYTE * 1),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("128").unwrap_or_default(),
-            true,
-            Location::default()
-        ),
-        Ok(zinc_const::bitlength::BYTE * 2),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("32767").unwrap_or_default(),
-            true,
-            Location::default()
-        ),
-        Ok(zinc_const::bitlength::BYTE * 2),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("32768").unwrap_or_default(),
-            true,
-            Location::default()
-        ),
-        Ok(zinc_const::bitlength::BYTE * 3),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("2147483647").unwrap_or_default(),
-            true,
-            Location::default(),
-        ),
-        Ok(zinc_const::bitlength::BYTE * 4),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("2147483648").unwrap_or_default(),
-            true,
-            Location::default(),
-        ),
-        Ok(zinc_const::bitlength::BYTE * 5),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("9223372036854775807").unwrap_or_default(),
-            true,
-            Location::default(),
-        ),
-        Ok(zinc_const::bitlength::BYTE * 8),
-    );
-    assert_eq!(
-        IntegerConstant::minimal_bitlength(
-            &BigInt::from_str("9223372036854775808").unwrap_or_default(),
-            true,
-            Location::default(),
-        ),
-        Ok(zinc_const::bitlength::BYTE * 9),
-    );
-}
-
-#[test]
-fn ok_literal_inference() {
-    // none of the operands are literals
-    assert_eq!(
-        IntegerConstant::infer_literal_types(
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(256),
-                false,
-                zinc_const::bitlength::BYTE * 2,
-                false,
-            ),
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(8),
-                false,
-                zinc_const::bitlength::BYTE,
-                false,
-            ),
-        ),
-        (None, None),
-    );
-    assert_eq!(
-        IntegerConstant::infer_literal_types(
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(65535),
-                false,
-                zinc_const::bitlength::BYTE * 2,
-                false,
-            ),
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(8),
-                false,
-                zinc_const::bitlength::BYTE,
-                false,
-            ),
-        ),
-        (None, None),
-    );
-    assert_eq!(
-        IntegerConstant::infer_literal_types(
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(8),
-                false,
-                zinc_const::bitlength::BYTE,
-                false,
-            ),
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(256),
-                false,
-                zinc_const::bitlength::BYTE * 2,
-                false,
-            ),
-        ),
-        (None, None),
-    );
-    assert_eq!(
-        IntegerConstant::infer_literal_types(
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(8),
-                false,
-                zinc_const::bitlength::BYTE,
-                false,
-            ),
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(65535),
-                false,
-                zinc_const::bitlength::BYTE * 2,
-                false,
-            ),
-        ),
-        (None, None),
-    );
-
-    // the first operand is a literal
-    assert_eq!(
-        IntegerConstant::infer_literal_types(
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(8),
-                false,
-                zinc_const::bitlength::BYTE,
-                true,
-            ),
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(256),
-                false,
-                zinc_const::bitlength::BYTE * 2,
-                false,
-            ),
-        ),
-        (
-            Some(Type::integer(
-                Some(Location::default()),
-                false,
-                zinc_const::bitlength::BYTE * 2
-            )),
-            None
-        ),
-    );
-    assert_eq!(
-        IntegerConstant::infer_literal_types(
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(8),
-                false,
-                zinc_const::bitlength::BYTE,
-                true,
-            ),
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(65535),
-                false,
-                zinc_const::bitlength::BYTE * 2,
-                false,
-            ),
-        ),
-        (
-            Some(Type::integer(
-                Some(Location::default()),
-                false,
-                zinc_const::bitlength::BYTE * 2
-            )),
-            None
-        ),
-    );
-
-    // the second operand is a literal
-    assert_eq!(
-        IntegerConstant::infer_literal_types(
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(256),
-                false,
-                zinc_const::bitlength::BYTE * 2,
-                false,
-            ),
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(8),
-                false,
-                zinc_const::bitlength::BYTE,
-                true,
-            ),
-        ),
-        (
-            None,
-            Some(Type::integer(
-                Some(Location::default()),
-                false,
-                zinc_const::bitlength::BYTE * 2
-            ))
-        ),
-    );
-    assert_eq!(
-        IntegerConstant::infer_literal_types(
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(65535),
-                false,
-                zinc_const::bitlength::BYTE * 2,
-                false,
-            ),
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(8),
-                false,
-                zinc_const::bitlength::BYTE,
-                true,
-            ),
-        ),
-        (
-            None,
-            Some(Type::integer(
-                Some(Location::default()),
-                false,
-                zinc_const::bitlength::BYTE * 2
-            ))
-        ),
-    );
-
-    // both operands are literals
-    assert_eq!(
-        IntegerConstant::infer_literal_types(
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(256),
-                false,
-                zinc_const::bitlength::BYTE * 2,
-                true,
-            ),
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(8),
-                false,
-                zinc_const::bitlength::BYTE,
-                true,
-            ),
-        ),
-        (
-            Some(Type::integer(
-                Some(Location::default()),
-                false,
-                zinc_const::bitlength::BYTE * 2
-            )),
-            Some(Type::integer(
-                Some(Location::default()),
-                false,
-                zinc_const::bitlength::BYTE * 2
-            )),
-        ),
-    );
-    assert_eq!(
-        IntegerConstant::infer_literal_types(
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(65535),
-                false,
-                zinc_const::bitlength::BYTE * 2,
-                true,
-            ),
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(8),
-                false,
-                zinc_const::bitlength::BYTE,
-                true,
-            ),
-        ),
-        (
-            Some(Type::integer(
-                Some(Location::default()),
-                false,
-                zinc_const::bitlength::BYTE * 2
-            )),
-            Some(Type::integer(
-                Some(Location::default()),
-                false,
-                zinc_const::bitlength::BYTE * 2
-            )),
-        ),
-    );
-    assert_eq!(
-        IntegerConstant::infer_literal_types(
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(8),
-                false,
-                zinc_const::bitlength::BYTE,
-                true,
-            ),
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(256),
-                false,
-                zinc_const::bitlength::BYTE * 2,
-                true,
-            ),
-        ),
-        (
-            Some(Type::integer(
-                Some(Location::default()),
-                false,
-                zinc_const::bitlength::BYTE * 2
-            )),
-            Some(Type::integer(
-                Some(Location::default()),
-                false,
-                zinc_const::bitlength::BYTE * 2
-            )),
-        ),
-    );
-    assert_eq!(
-        IntegerConstant::infer_literal_types(
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(8),
-                false,
-                zinc_const::bitlength::BYTE,
-                true,
-            ),
-            &mut IntegerConstant::new(
-                Location::default(),
-                BigInt::from(65535),
-                false,
-                zinc_const::bitlength::BYTE * 2,
-                true,
-            ),
-        ),
-        (
-            Some(Type::integer(
-                Some(Location::default()),
-                false,
-                zinc_const::bitlength::BYTE * 2
-            )),
-            Some(Type::integer(
-                Some(Location::default()),
-                false,
-                zinc_const::bitlength::BYTE * 2
-            )),
-        ),
-    );
-}
 
 #[test]
 fn error_integer_too_large_ordinar_constant() {
@@ -488,8 +31,11 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
                 location: Location::new(3, 19),
-                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
-                bitlength: zinc_const::bitlength::FIELD,
+                inner: InferenceError::Overflow {
+                    value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
+                    is_signed: false,
+                    bitlength: zinc_const::bitlength::FIELD,
+                }
             },
         )),
     )));
@@ -511,8 +57,11 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
                 location: Location::new(3, 17),
-                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
-                bitlength: zinc_const::bitlength::FIELD,
+                inner: InferenceError::Overflow {
+                    value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
+                    is_signed: false,
+                    bitlength: zinc_const::bitlength::FIELD,
+                }
             },
         )),
     )));
@@ -539,8 +88,11 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
                 location: Location::new(5, 9),
-                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
-                bitlength: zinc_const::bitlength::FIELD,
+                inner: InferenceError::Overflow {
+                    value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
+                    is_signed: false,
+                    bitlength: zinc_const::bitlength::FIELD,
+                }
             },
         )),
     )));

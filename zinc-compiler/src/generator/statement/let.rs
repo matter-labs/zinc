@@ -52,18 +52,18 @@ impl Statement {
 }
 
 impl IBytecodeWritable for Statement {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_all(self, state: Rc<RefCell<State>>) {
         let size = self.r#type.size();
-        let address = bytecode.borrow_mut().define_variable(Some(self.name), size);
+        let address = state.borrow_mut().define_variable(Some(self.name), size);
 
-        self.expression.write_all(bytecode.clone());
+        self.expression.write_all(state.clone());
 
         match self.r#type {
             Type::Contract { fields } => {
                 for (index, (_name, r#type)) in fields.into_iter().enumerate().rev() {
                     IntegerConstant::new(BigInt::from(index), false, zinc_const::bitlength::FIELD)
-                        .write_all(bytecode.clone());
-                    bytecode.borrow_mut().push_instruction(
+                        .write_all(state.clone());
+                    state.borrow_mut().push_instruction(
                         Instruction::StorageStore(zinc_build::StorageStore::new(r#type.size())),
                         Some(self.location),
                     );
@@ -71,12 +71,12 @@ impl IBytecodeWritable for Statement {
             }
             r#type => {
                 if let Some(scalar_type) = r#type.into() {
-                    bytecode.borrow_mut().push_instruction(
+                    state.borrow_mut().push_instruction(
                         Instruction::Cast(zinc_build::Cast::new(scalar_type)),
                         Some(self.location),
                     );
                 }
-                bytecode.borrow_mut().push_instruction(
+                state.borrow_mut().push_instruction(
                     Instruction::Store(zinc_build::Store::new(address, size)),
                     Some(self.location),
                 );

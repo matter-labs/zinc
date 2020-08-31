@@ -47,9 +47,9 @@ impl ITypeExpectation for ScalarType {
         if !is_signed {
             return Err(RuntimeError::TypeError {
                 expected: if is_signed {
-                    "signed integer".to_string()
+                    "signed integer".to_owned()
                 } else {
-                    "unsigned integer".to_string()
+                    "unsigned integer".to_owned()
                 },
                 found: self.to_string(),
             });

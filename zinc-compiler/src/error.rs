@@ -4,6 +4,8 @@
 
 use colored::Colorize;
 
+use zinc_utils::InferenceError;
+
 use crate::lexical::error::Error as LexicalError;
 use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::location::Location;
@@ -1545,8 +1547,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Integer(IntegerConstantError::IntegerTooLarge { location, value, bitlength })))) => {
-                Self::format_line( format!("`{}` is larger than `{}` bits", value, bitlength).as_str(),
+            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Integer(IntegerConstantError::IntegerTooLarge { location, inner: InferenceError::Overflow { value, is_signed, bitlength } })))) => {
+                Self::format_line( format!("`{}` is larger than `{}` bits with sign `{}`", value, bitlength, is_signed).as_str(),
                     location,
                     None,
                 )

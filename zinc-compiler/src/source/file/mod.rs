@@ -4,7 +4,6 @@
 
 pub mod error;
 pub mod index;
-pub mod string;
 
 use std::cell::RefCell;
 use std::fs;
@@ -25,7 +24,6 @@ use crate::syntax::tree::module::Module as SyntaxModule;
 use self::error::Error;
 use self::index::Data;
 use self::index::INDEX;
-use self::string::String as FileString;
 
 ///
 /// The Zinc source code file, which consists of its path and parsed syntax tree.
@@ -46,33 +44,30 @@ impl File {
     ///
     /// `path` is used to set the virtual module path within a project.
     ///
-    pub fn try_from_string(file: FileString) -> Result<Self, SourceError> {
+    pub fn try_from_string(file: zinc_source::File) -> Result<Self, SourceError> {
         let path = PathBuf::from(file.path);
 
-        let source_file_extension = path
-            .extension()
-            .ok_or(Error::ExtensionNotFound)
-            .map_err(SourceError::File)?;
-        if source_file_extension != zinc_const::extension::SOURCE {
-            return Err(SourceError::File(Error::ExtensionInvalid(
-                source_file_extension.to_owned(),
-            )));
-        }
-
-        let name = path
-            .file_stem()
-            .ok_or(Error::StemNotFound)
-            .map_err(SourceError::File)?
-            .to_string_lossy()
-            .to_string();
-
-        let next_file_id = INDEX.next(&path, file.code.clone());
+        let next_file_id = INDEX.next(&path, file.code);
         let tree = Parser::default()
-            .parse(&file.code, Some(next_file_id))
+            .parse(
+                INDEX
+                    .inner
+                    .read()
+                    .expect(zinc_const::panic::MUTEX_SYNC)
+                    .get(&next_file_id)
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+                    .code
+                    .as_str(),
+                Some(next_file_id),
+            )
             .map_err(|error| error.format())
             .map_err(SourceError::Compiling)?;
 
-        Ok(Self { path, name, tree })
+        Ok(Self {
+            path,
+            name: file.name,
+            tree,
+        })
     }
 
     ///
@@ -111,9 +106,19 @@ impl File {
             .to_string_lossy()
             .to_string();
 
-        let next_file_id = INDEX.next(path, code.clone());
+        let next_file_id = INDEX.next(path, code);
         let tree = Parser::default()
-            .parse(&code, Some(next_file_id))
+            .parse(
+                INDEX
+                    .inner
+                    .read()
+                    .expect(zinc_const::panic::MUTEX_SYNC)
+                    .get(&next_file_id)
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+                    .code
+                    .as_str(),
+                Some(next_file_id),
+            )
             .map_err(|error| error.format())
             .map_err(SourceError::Compiling)?;
 
@@ -134,10 +139,10 @@ impl File {
             .map_err(|error| error.format())
             .map_err(SourceError::Compiling)?;
 
-        let bytecode = State::new(name).wrap();
-        Module::new(scope.borrow().get_intermediate()).write_all(bytecode.clone());
+        let state = State::new(name).wrap();
+        Module::new(scope.borrow().get_intermediate()).write_all(state.clone());
 
-        Ok(bytecode)
+        Ok(state)
     }
 
     ///

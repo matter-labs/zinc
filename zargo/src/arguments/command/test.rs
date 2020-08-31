@@ -42,15 +42,6 @@ pub struct Command {
         default_value = zinc_const::path::MANIFEST,
     )]
     pub manifest_path: PathBuf,
-
-    /// The path to the binary bytecode file.
-    #[structopt(
-        long = "binary",
-        parse(from_os_str),
-        help = "Path to the bytecode file",
-        default_value = zinc_const::path::BINARY,
-    )]
-    pub binary_path: PathBuf,
 }
 
 ///
@@ -94,22 +85,30 @@ impl IExecutable for Command {
             manifest_path.pop();
         }
 
-        let data_directory_path = DataDirectory::path(&manifest_path);
         let source_directory_path = SourceDirectory::path(&manifest_path);
 
+        let data_directory_path = DataDirectory::path(&manifest_path);
+
         BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
+        let build_directory_path = BuildDirectory::path(&manifest_path);
+        let mut binary_path = build_directory_path;
+        binary_path.push(format!(
+            "{}.{}",
+            zinc_const::file_name::BINARY,
+            zinc_const::extension::BINARY
+        ));
 
         Compiler::build_release(
             self.verbosity,
-            manifest.project.name,
+            manifest.project.name.as_str(),
             &data_directory_path,
             &source_directory_path,
-            &self.binary_path,
+            &binary_path,
             true,
         )
         .map_err(Error::Compiler)?;
 
-        VirtualMachine::test(self.verbosity, &self.binary_path).map_err(Error::VirtualMachine)?;
+        VirtualMachine::test(self.verbosity, &binary_path).map_err(Error::VirtualMachine)?;
 
         Ok(())
     }

@@ -43,6 +43,8 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Rem {
 
 #[cfg(test)]
 mod test {
+    use num_bigint::BigInt;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
@@ -53,17 +55,41 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
 
         TestRunner::new()
-            .push(zinc_build::Push::new(9.into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new(4.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(9),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(4),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Rem)
-            .push(zinc_build::Push::new(9.into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new((-4).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(9),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(-4),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Rem)
-            .push(zinc_build::Push::new((-9).into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new(4.into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(-9),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(4),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Rem)
-            .push(zinc_build::Push::new((-9).into(), IntegerType::I8.into()))
-            .push(zinc_build::Push::new((-4).into(), IntegerType::I8.into()))
+            .push(zinc_build::Push::new(
+                BigInt::from(-9),
+                IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(-4),
+                IntegerType::I8.into(),
+            ))
             .push(zinc_build::Rem)
             .test(&[3, 3, 1, 1])
     }

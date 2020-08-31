@@ -36,7 +36,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Neg {
                 vm.push(Cell::Value(neg))
             }
             scalar_type => Err(RuntimeError::TypeError {
-                expected: "integer type".to_string(),
+                expected: "integer type".to_owned(),
                 found: scalar_type.to_string(),
             }),
         }
@@ -45,16 +45,19 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Neg {
 
 #[cfg(test)]
 mod test {
-    use crate::tests::TestRunner;
-    use crate::tests::TestingError;
+    use num_bigint::BigInt;
+
     use zinc_build::IntegerType;
     use zinc_build::Neg;
     use zinc_build::Push;
 
+    use crate::tests::TestRunner;
+    use crate::tests::TestingError;
+
     #[test]
     fn test_neg() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(Push::new(127.into(), IntegerType::U8.into()))
+            .push(Push::new(BigInt::from(127), IntegerType::U8.into()))
             .push(Neg)
             .test(&[-127])
     }

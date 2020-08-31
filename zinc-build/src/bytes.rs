@@ -23,6 +23,8 @@ pub enum Bytes {
     Contract {
         /// The bytecode file with metadata as a byte array.
         bytecode: Vec<u8>,
+        /// The storage file with data as a JSON array.
+        storage: Vec<u8>,
         /// The witness JSON template files as byte arrays.
         input_templates: HashMap<String, Vec<u8>>,
         /// The public data JSON template files as byte arrays.
@@ -51,11 +53,13 @@ impl Bytes {
     ///
     pub fn new_contract(
         bytecode: Vec<u8>,
+        storage: Vec<u8>,
         input_templates: HashMap<String, Vec<u8>>,
         output_templates: HashMap<String, Vec<u8>>,
     ) -> Self {
         Self::Contract {
             bytecode,
+            storage,
             input_templates,
             output_templates,
         }

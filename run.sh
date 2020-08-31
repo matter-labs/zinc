@@ -35,7 +35,7 @@ case "${2}" in
         export TARGET_DIRECTORY="debug"
         ;;
     release)
-        export RELEASE_MODE_FLAG="--release"
+        export RELEASE_FLAG="--release"
         export TARGET_DIRECTORY="release"
         ;;
     *)
@@ -44,34 +44,35 @@ case "${2}" in
 esac
 
 export PROJECT_NAME="${3}"
-export PROJECT_ENTRY="${4}"
+export PROJECT_METHOD="${4}"
 
-export PROJECT_DIRECTORY="./zinc-examples/${PROJECT_NAME}/"
-export PROJECT_BUILD_DIRECTORY="${PROJECT_DIRECTORY}/build/"
-export PROJECT_DATA_DIRECTORY="${PROJECT_DIRECTORY}/data/"
-export PROJECT_SOURCE_DIRECTORY="${PROJECT_DIRECTORY}/src/"
+# 'proof-check'?
+case "${5}" in
+    proof-check)
+        export PROOF_CHECK="--proof-check"
+        ;;
+    *)
+        export PROOF_CHECK=""
+        ;;
+esac
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
+export ZINC_TESTER_NAME='zinc-tester'
+export ZANDBOX_NAME='zandbox'
+
+export PROJECT_DIRECTORY="./zinc-examples/${PROJECT_NAME}/"
+export MANIFEST_PATH="${PROJECT_DIRECTORY}/Zargo.toml"
 
 cargo fmt --all
 cargo clippy
-cargo build ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG}
-#cargo test
-#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL} --proof-check
-#
-#"${ZARGO_PATH}" clean ${LOG_LEVEL} \
-#    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
-#
-#"${ZARGO_PATH}" proof-check ${LOG_LEVEL} ${RELEASE_MODE_FLAG} \
-#    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
-#    --binary "${PROJECT_BUILD_DIRECTORY}/${PROJECT_ENTRY}.znb" \
-#    --witness "${PROJECT_DATA_DIRECTORY}/witness_${PROJECT_ENTRY}.json" \
-#    --public-data "${PROJECT_DATA_DIRECTORY}/public_data_${PROJECT_ENTRY}.json" \
-#    --proving-key "${PROJECT_DATA_DIRECTORY}/proving_key" \
-#    --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying_key.txt"
-#
-#"${ZARGO_PATH}" test ${LOG_LEVEL} \
-#    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
-#    --binary "${PROJECT_BUILD_DIRECTORY}/${PROJECT_ENTRY}.znb"
+cargo build ${CARGO_LOG_LEVEL} ${RELEASE_FLAG}
+cargo test
+cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin ${ZINC_TESTER_NAME} -- ${LOG_LEVEL} ${PROOF_CHECK}
 
-cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-server' -- ${LOG_LEVEL}
+"${ZARGO_PATH}" clean ${LOG_LEVEL} --manifest-path "${MANIFEST_PATH}"
+"${ZARGO_PATH}" test ${LOG_LEVEL} --manifest-path "${MANIFEST_PATH}"
+
+"${ZARGO_PATH}" proof-check ${LOG_LEVEL} ${RELEASE_FLAG} --manifest-path "${MANIFEST_PATH}"
+#"${ZARGO_PATH}" proof-check ${LOG_LEVEL} ${RELEASE_FLAG} --manifest-path "${MANIFEST_PATH}" --method "${PROJECT_METHOD}"
+
+cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin ${ZANDBOX_NAME} -- ${LOG_LEVEL}

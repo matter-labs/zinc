@@ -80,13 +80,13 @@ impl Constant {
 }
 
 impl IBytecodeWritable for Constant {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_all(self, state: Rc<RefCell<State>>) {
         match self {
-            Self::Boolean(inner) => inner.write_all(bytecode),
-            Self::Integer(inner) => inner.write_all(bytecode),
+            Self::Boolean(inner) => inner.write_all(state),
+            Self::Integer(inner) => inner.write_all(state),
             Self::Group(inner) => {
                 for constant in inner.into_iter() {
-                    constant.write_all(bytecode.clone());
+                    constant.write_all(state.clone());
                 }
             }
         }

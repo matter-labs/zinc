@@ -1,4 +1,4 @@
-FROM rust:1.45.2 as zinc-builder
+FROM rust:1.46 as zinc-builder
 COPY . zinc-dev/
 
 WORKDIR /zinc-dev/
@@ -16,4 +16,4 @@ RUN apt-get install --yes \
 RUN dos2unix 'docker/build.sh'
 
 # Main build script, requires the Zinc and Rust versions
-RUN /bin/bash 'docker/build.sh' '0.2.0' '1.45.2'
+RUN /bin/bash 'docker/build.sh' '0.2.0' '1.46'

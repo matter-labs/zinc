@@ -23,6 +23,10 @@ impl<VM: IVirtualMachine> IExecutable<VM> for LoopEnd {
 
 #[cfg(test)]
 mod test {
+    use num_bigint::BigInt;
+    use num_traits::One;
+    use num_traits::Zero;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
@@ -31,13 +35,13 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
 
         TestRunner::new()
-            .push(zinc_build::Push::new_field(0.into()))
+            .push(zinc_build::Push::new_field(BigInt::zero()))
             .push(zinc_build::Store::new(0, 1))
-            .push(zinc_build::Push::new_field(0.into()))
+            .push(zinc_build::Push::new_field(BigInt::zero()))
             .push(zinc_build::Store::new(1, 1))
             .push(zinc_build::LoopBegin::new(10))
             .push(zinc_build::Load::new(0, 1))
-            .push(zinc_build::Push::new_field(1.into()))
+            .push(zinc_build::Push::new_field(BigInt::one()))
             .push(zinc_build::Add)
             .push(zinc_build::Store::new(0, 1))
             .push(zinc_build::Load::new(0, 1))

@@ -5,21 +5,25 @@
 pub mod error;
 pub mod scalar;
 
+use std::collections::HashMap;
 use std::collections::HashSet;
 
 use bson::Bson;
 use bson::Document as BsonDocument;
 use num_bigint::BigInt;
 use num_traits::Num;
+use num_traits::Signed;
 use num_traits::Zero;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
 
+use zinc_utils::InferenceError;
+
 use crate::data::r#type::scalar::integer::Type as IntegerType;
 use crate::data::r#type::scalar::Type as ScalarType;
-use crate::data::r#type::Type as BuildType;
+use crate::data::r#type::Type;
 
 use self::error::context::IContext as IErrorContext;
 use self::error::r#type::Type as ErrorType;
@@ -50,25 +54,33 @@ impl Value {
     ///
     /// Creates a value of `r#type`.
     ///
-    pub fn new(r#type: BuildType) -> Self {
+    pub fn new(r#type: Type) -> Self {
         match r#type {
-            BuildType::Unit => Self::Unit,
-            BuildType::Scalar(scalar_type) => match scalar_type {
+            Type::Unit => Self::Unit,
+            Type::Scalar(scalar_type) => match scalar_type {
                 ScalarType::Boolean => Self::Scalar(ScalarValue::Boolean(false)),
-                ScalarType::Integer(inner) => Self::Scalar(ScalarValue::Integer(0.into(), inner)),
-                ScalarType::Field => Self::Scalar(ScalarValue::Field(0.into())),
+                ScalarType::Integer(inner) => {
+                    Self::Scalar(ScalarValue::Integer(BigInt::zero(), inner))
+                }
+                ScalarType::Field => Self::Scalar(ScalarValue::Field(BigInt::zero())),
             },
-            BuildType::Enumeration => Self::Scalar(ScalarValue::Field(0.into())),
+            Type::Enumeration { bitlength, .. } => match bitlength {
+                zinc_const::bitlength::FIELD => Self::Scalar(ScalarValue::Field(BigInt::zero())),
+                bitlength => Self::Scalar(ScalarValue::Integer(
+                    BigInt::zero(),
+                    IntegerType::new(false, bitlength),
+                )),
+            },
 
-            BuildType::Array(r#type, size) => Self::Array(vec![Self::new(*r#type); size]),
-            BuildType::Tuple(fields) => Self::Array(fields.into_iter().map(Self::new).collect()),
-            BuildType::Structure(fields) => Self::Structure(
+            Type::Array(r#type, size) => Self::Array(vec![Self::new(*r#type); size]),
+            Type::Tuple(fields) => Self::Array(fields.into_iter().map(Self::new).collect()),
+            Type::Structure(fields) => Self::Structure(
                 fields
                     .into_iter()
                     .map(|(name, r#type)| (name, Self::new(r#type)))
                     .collect(),
             ),
-            BuildType::Contract(fields) => Self::Contract(
+            Type::Contract(fields) => Self::Contract(
                 fields
                     .into_iter()
                     .map(|(name, r#type)| (name, Self::new(r#type)))
@@ -80,26 +92,29 @@ impl Value {
     ///
     /// Creates a value of `r#type` from the JSON `value`.
     ///
-    pub fn try_from_typed_json(value: JsonValue, r#type: BuildType) -> Result<Self, Error> {
+    pub fn try_from_typed_json(value: JsonValue, r#type: Type) -> Result<Self, Error> {
         match r#type {
-            BuildType::Unit => Self::unit_from_json(value),
-            BuildType::Scalar(inner) => Self::scalar_from_json(value, inner),
-            BuildType::Enumeration => Self::field_from_json(value),
+            Type::Unit => Self::unit_from_json(value),
+            Type::Scalar(inner) => Self::scalar_from_json(value, inner),
+            Type::Enumeration {
+                bitlength,
+                variants,
+            } => Self::enumeration_from_json(value, bitlength, variants),
 
-            BuildType::Array(inner, size) => Self::array_from_json(value, *inner, size),
-            BuildType::Tuple(inner) => Self::tuple_from_json(value, inner),
-            BuildType::Structure(fields) => Self::structure_from_json(value, fields),
-            BuildType::Contract(fields) => Self::contract_from_json(value, fields),
+            Type::Array(inner, size) => Self::array_from_json(value, *inner, size),
+            Type::Tuple(inner) => Self::tuple_from_json(value, inner),
+            Type::Structure(fields) => Self::structure_from_json(value, fields),
+            Type::Contract(fields) => Self::contract_from_json(value, fields),
         }
     }
 
     ///
     /// Creates a value from a flat array `flat_values` and data `r#type`.
     ///
-    pub fn from_flat_values(r#type: BuildType, flat_values: &[BigInt]) -> Self {
+    pub fn from_flat_values(r#type: Type, flat_values: &[BigInt]) -> Self {
         match r#type {
-            BuildType::Unit => Self::Unit,
-            BuildType::Scalar(r#type) => match r#type {
+            Type::Unit => Self::Unit,
+            Type::Scalar(r#type) => match r#type {
                 ScalarType::Boolean => flat_values
                     .first()
                     .cloned()
@@ -118,13 +133,16 @@ impl Value {
                     .map(Self::Scalar),
             }
             .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-            BuildType::Enumeration => flat_values
+            Type::Enumeration { bitlength, .. } => flat_values
                 .first()
                 .cloned()
-                .map(ScalarValue::Field)
+                .map(|value| match bitlength {
+                    zinc_const::bitlength::FIELD => ScalarValue::Field(value),
+                    bitlength => ScalarValue::Integer(value, IntegerType::new(false, bitlength)),
+                })
                 .map(Self::Scalar)
                 .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-            BuildType::Array(r#type, size) => {
+            Type::Array(r#type, size) => {
                 let mut offset = 0;
                 let mut result = Vec::with_capacity(size);
                 for _ in 0..size {
@@ -134,7 +152,7 @@ impl Value {
                 }
                 Self::Array(result)
             }
-            BuildType::Tuple(types) => {
+            Type::Tuple(types) => {
                 let mut offset = 0;
                 let mut result = Vec::with_capacity(types.len());
                 for r#type in types.into_iter() {
@@ -144,7 +162,7 @@ impl Value {
                 }
                 Self::Array(result)
             }
-            BuildType::Structure(fields) => {
+            Type::Structure(fields) => {
                 let mut offset = 0;
                 let mut result = Vec::with_capacity(fields.len());
                 for (name, r#type) in fields.into_iter() {
@@ -154,7 +172,7 @@ impl Value {
                 }
                 Self::Structure(result)
             }
-            BuildType::Contract(fields) => {
+            Type::Contract(fields) => {
                 let mut offset = 0;
                 let mut result = Vec::with_capacity(fields.len());
                 for (name, r#type) in fields.into_iter() {
@@ -311,7 +329,7 @@ impl Value {
         }
 
         Err(ErrorType::TypeError {
-            expected: "()".into(),
+            expected: "null".to_owned(),
             found: value.to_string(),
         }
         .into())
@@ -322,7 +340,7 @@ impl Value {
     ///
     fn boolean_from_json(value: JsonValue) -> Result<Self, Error> {
         let value_bool = value.as_bool().ok_or_else(|| ErrorType::TypeError {
-            expected: "boolean (true or false)".into(),
+            expected: "true | false".to_owned(),
             found: value.to_string(),
         })?;
 
@@ -334,7 +352,7 @@ impl Value {
     ///
     fn integer_from_json(value: JsonValue, r#type: IntegerType) -> Result<Self, Error> {
         let value_string = value.as_str().ok_or_else(|| ErrorType::TypeError {
-            expected: "integer (number string)".into(),
+            expected: "numeric string: 0b[0-1]+ | 0o[0-7]+ | [0-9]+ | 0x[0-9A-Fa-f]+".into(),
             found: value.to_string(),
         })?;
 
@@ -350,10 +368,65 @@ impl Value {
 
         let bigint =
             bigint_result.map_err(|_| ErrorType::InvalidNumberFormat(value_string.into()))?;
+        if bigint.is_negative() && !r#type.is_signed {
+            return Err(Error::from(ErrorType::ValueOverflow {
+                inner: InferenceError::Overflow {
+                    value: bigint,
+                    is_signed: r#type.is_signed,
+                    bitlength: r#type.bitlength,
+                },
+            }));
+        }
 
-        // TODO: overflow check
+        let bitlength = zinc_utils::infer_minimal_bitlength(&bigint, r#type.is_signed)
+            .map_err(|error| Error::from(ErrorType::ValueOverflow { inner: error }))?;
+        if bitlength > r#type.bitlength {
+            return Err(Error::from(ErrorType::ValueOverflow {
+                inner: InferenceError::Overflow {
+                    value: bigint,
+                    is_signed: r#type.is_signed,
+                    bitlength: r#type.bitlength,
+                },
+            }));
+        }
 
         Ok(Self::Scalar(ScalarValue::Integer(bigint, r#type)))
+    }
+
+    ///
+    /// Creates an enumeration value from the JSON `value`.
+    ///
+    fn enumeration_from_json(
+        value: JsonValue,
+        bitlength: usize,
+        mut variants: HashMap<String, BigInt>,
+    ) -> Result<Self, Error> {
+        let expected = variants
+            .iter()
+            .map(|(name, _value)| name.to_owned())
+            .collect::<Vec<String>>()
+            .join(" | ");
+        let value_string = value.as_str().ok_or_else(|| ErrorType::TypeError {
+            expected,
+            found: value.to_string(),
+        })?;
+
+        let bigint = match variants.remove(value_string) {
+            Some(bigint) => bigint,
+            None => {
+                return Err(Error::from(ErrorType::UnexpectedVariant(
+                    value_string.to_owned(),
+                )))
+            }
+        };
+
+        match bitlength {
+            zinc_const::bitlength::FIELD => Ok(Self::Scalar(ScalarValue::Field(bigint))),
+            bitlength => Ok(Self::Scalar(ScalarValue::Integer(
+                bigint,
+                IntegerType::new(false, bitlength),
+            ))),
+        }
     }
 
     ///
@@ -361,7 +434,7 @@ impl Value {
     ///
     fn field_from_json(value: JsonValue) -> Result<Self, Error> {
         let value_string = value.as_str().ok_or_else(|| ErrorType::TypeError {
-            expected: "field (number string)".into(),
+            expected: "numeric string: 0b[0-1]+ | 0o[0-7]+ | [0-9]+ | 0x[0-9A-Fa-f]+".into(),
             found: value.to_string(),
         })?;
 
@@ -377,8 +450,27 @@ impl Value {
 
         let bigint =
             bigint_result.map_err(|_| ErrorType::InvalidNumberFormat(value_string.into()))?;
+        if bigint.is_negative() {
+            return Err(Error::from(ErrorType::ValueOverflow {
+                inner: InferenceError::Overflow {
+                    value: bigint,
+                    is_signed: false,
+                    bitlength: zinc_const::bitlength::FIELD,
+                },
+            }));
+        }
 
-        // TODO: overflow check
+        let bitlength = zinc_utils::infer_minimal_bitlength(&bigint, false)
+            .map_err(|error| Error::from(ErrorType::ValueOverflow { inner: error }))?;
+        if bitlength > zinc_const::bitlength::FIELD {
+            return Err(Error::from(ErrorType::ValueOverflow {
+                inner: InferenceError::Overflow {
+                    value: bigint,
+                    is_signed: false,
+                    bitlength: zinc_const::bitlength::FIELD,
+                },
+            }));
+        }
 
         Ok(Self::Scalar(ScalarValue::Field(bigint)))
     }
@@ -397,11 +489,11 @@ impl Value {
     ///
     /// Creates an array value from the JSON `value`.
     ///
-    fn array_from_json(value: JsonValue, r#type: BuildType, size: usize) -> Result<Self, Error> {
+    fn array_from_json(value: JsonValue, r#type: Type, size: usize) -> Result<Self, Error> {
         let array = value
             .as_array()
             .cloned()
-            .ok_or_else(|| ErrorType::type_error("array".into(), value))?;
+            .ok_or_else(|| ErrorType::type_error("JSON array".to_owned(), value))?;
 
         if array.len() != size {
             return Err(ErrorType::UnexpectedSize {
@@ -424,11 +516,11 @@ impl Value {
     ///
     /// Creates a tuple value from the JSON `value`.
     ///
-    fn tuple_from_json(value: JsonValue, types: Vec<BuildType>) -> Result<Self, Error> {
+    fn tuple_from_json(value: JsonValue, types: Vec<Type>) -> Result<Self, Error> {
         let array = value
             .as_array()
             .cloned()
-            .ok_or_else(|| ErrorType::type_error("tuple (json array)".into(), value))?;
+            .ok_or_else(|| ErrorType::type_error("JSON array".to_owned(), value))?;
 
         if array.len() != types.len() {
             return Err(ErrorType::UnexpectedSize {
@@ -452,12 +544,12 @@ impl Value {
     ///
     fn structure_from_json(
         value: JsonValue,
-        field_types: Vec<(String, BuildType)>,
+        field_types: Vec<(String, Type)>,
     ) -> Result<Self, Error> {
         let mut object = value
             .as_object()
             .cloned()
-            .ok_or_else(|| ErrorType::type_error("structure".into(), value))?;
+            .ok_or_else(|| ErrorType::type_error("JSON object".to_owned(), value))?;
 
         let mut used_fields = HashSet::with_capacity(field_types.len());
         let mut field_values = Vec::with_capacity(field_types.len());
@@ -488,12 +580,12 @@ impl Value {
     ///
     fn contract_from_json(
         value: JsonValue,
-        field_types: Vec<(String, BuildType)>,
+        field_types: Vec<(String, Type)>,
     ) -> Result<Self, Error> {
         let mut object = value
             .as_object()
             .cloned()
-            .ok_or_else(|| ErrorType::type_error("contract".into(), value))?;
+            .ok_or_else(|| ErrorType::type_error("JSON object".to_owned(), value))?;
 
         let mut used_fields = HashSet::with_capacity(field_types.len());
         let mut field_values = Vec::with_capacity(field_types.len());

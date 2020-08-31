@@ -20,6 +20,8 @@ pub enum Error {
     WitnessTemplateOutput(OsString, OutputError),
     /// The public data template JSON file writing error.
     PublicDataTemplateOutput(OsString, OutputError),
+    /// The storage JSON file writing error.
+    StorageOutput(OsString, OutputError),
     /// The bytecode binary file writing error.
     BytecodeOutput(OsString, OutputError),
 }
@@ -45,6 +47,9 @@ impl fmt::Display for Error {
                 "public data template file `{:?}` output: {}",
                 path, inner
             ),
+            Self::StorageOutput(path, inner) => {
+                write!(f, "storage file `{:?}` output: {}", path, inner)
+            }
             Self::BytecodeOutput(path, inner) => {
                 write!(f, "bytecode file `{:?}` output: {}", path, inner)
             }

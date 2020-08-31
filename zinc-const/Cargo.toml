@@ -2,7 +2,7 @@
 name = "zinc-const"
 version = "0.2.0"
 authors = [
-    "Alex Z <a.zarudnyy@matterlabs.dev>",
+    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
     "Alexander Movchan <am@matterlabs.dev>",
 ]
 edition = "2018"

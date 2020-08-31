@@ -41,7 +41,7 @@ impl Statement {
 }
 
 impl IBytecodeWritable for Statement {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
-        bytecode.borrow_mut().set_contract_storage(self.fields)
+    fn write_all(self, state: Rc<RefCell<State>>) {
+        state.borrow_mut().set_contract_storage(self.fields)
     }
 }

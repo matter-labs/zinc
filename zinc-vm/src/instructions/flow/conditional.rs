@@ -32,6 +32,10 @@ impl<VM: IVirtualMachine> IExecutable<VM> for EndIf {
 mod tests {
     use std::cmp;
 
+    use num_bigint::BigInt;
+    use num_traits::One;
+    use num_traits::Zero;
+
     use zinc_build::IntegerType;
     use zinc_build::ScalarType;
 
@@ -91,17 +95,20 @@ mod tests {
 
         for (c, r) in data.iter() {
             TestRunner::new()
-                .push(zinc_build::Push::new(0.into(), IntegerType::I8.into()))
+                .push(zinc_build::Push::new(
+                    BigInt::zero(),
+                    IntegerType::I8.into(),
+                ))
                 .push(zinc_build::Store::new(0, 1))
                 .push(zinc_build::Push::new((*c).into(), ScalarType::Boolean))
                 .push(zinc_build::If)
-                .push(zinc_build::Push::new(1.into(), IntegerType::I8.into()))
+                .push(zinc_build::Push::new(BigInt::one(), IntegerType::I8.into()))
                 .push(zinc_build::Load::new(0, 1))
                 .push(zinc_build::Add)
                 .push(zinc_build::Store::new(0, 1))
                 .push(zinc_build::Else)
                 .push(zinc_build::Load::new(0, 1))
-                .push(zinc_build::Push::new(1.into(), IntegerType::I8.into()))
+                .push(zinc_build::Push::new(BigInt::one(), IntegerType::I8.into()))
                 .push(zinc_build::Sub)
                 .push(zinc_build::Store::new(0, 1))
                 .push(zinc_build::EndIf)

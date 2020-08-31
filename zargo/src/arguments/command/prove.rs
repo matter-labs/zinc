@@ -8,6 +8,8 @@ use failure::Fail;
 use structopt::StructOpt;
 
 use crate::arguments::command::IExecutable;
+use crate::directory::build::Directory as BuildDirectory;
+use crate::directory::data::Directory as DataDirectory;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
 
@@ -25,41 +27,17 @@ pub struct Command {
     )]
     pub verbosity: usize,
 
-    /// The path to the binary bytecode file.
+    /// The path to the Zargo project manifest file.
     #[structopt(
-        long = "binary",
-        parse(from_os_str),
-        help = "Path to the bytecode file",
-        default_value = zinc_const::path::BINARY,
+        long = "manifest-path",
+        help = "Path to Zargo.toml",
+        default_value = zinc_const::path::MANIFEST,
     )]
-    pub binary_path: PathBuf,
+    pub manifest_path: PathBuf,
 
-    /// The path to the witness JSON file.
-    #[structopt(
-        long = "witness",
-        parse(from_os_str),
-        help = "Path to the witness JSON file",
-        default_value = zinc_const::path::WITNESS,
-    )]
-    pub witness_path: PathBuf,
-
-    /// The path to the public data JSON file.
-    #[structopt(
-        long = "public-data",
-        parse(from_os_str),
-        help = "Path to the public data JSON file",
-        default_value = zinc_const::path::PUBLIC_DATA,
-    )]
-    pub public_data_path: PathBuf,
-
-    /// The path to the proving key file.
-    #[structopt(
-        long = "proving-key",
-        parse(from_os_str),
-        help = "Path to the proving key file",
-        default_value = zinc_const::path::PROVING_KEY,
-    )]
-    pub proving_key: PathBuf,
+    /// The contract method to call. Only for contracts.
+    #[structopt(long = "method", help = "The contract method to call")]
+    pub method: Option<String>,
 }
 
 ///
@@ -76,13 +54,74 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        VirtualMachine::prove(
-            self.verbosity,
-            &self.binary_path,
-            &self.proving_key,
-            &self.witness_path,
-            &self.public_data_path,
-        )
+        let mut manifest_path = self.manifest_path.clone();
+        if manifest_path.is_file() {
+            manifest_path.pop();
+        }
+
+        let data_directory_path = DataDirectory::path(&manifest_path);
+        let mut witness_path = data_directory_path.clone();
+        let mut public_data_path = data_directory_path.clone();
+        if let Some(ref method) = self.method {
+            witness_path.push(format!(
+                "{}_{}.{}",
+                zinc_const::file_name::WITNESS,
+                method,
+                zinc_const::extension::JSON,
+            ));
+            public_data_path.push(format!(
+                "{}_{}.{}",
+                zinc_const::file_name::PUBLIC_DATA,
+                method,
+                zinc_const::extension::JSON,
+            ));
+        } else {
+            witness_path.push(format!(
+                "{}.{}",
+                zinc_const::file_name::WITNESS,
+                zinc_const::extension::JSON,
+            ));
+            public_data_path.push(format!(
+                "{}.{}",
+                zinc_const::file_name::PUBLIC_DATA,
+                zinc_const::extension::JSON,
+            ));
+        }
+        let mut storage_path = data_directory_path.clone();
+        storage_path.push(format!(
+            "{}.{}",
+            zinc_const::file_name::STORAGE,
+            zinc_const::extension::JSON
+        ));
+        let mut proving_key_path = data_directory_path;
+        proving_key_path.push(zinc_const::file_name::PROVING_KEY);
+
+        let build_directory_path = BuildDirectory::path(&manifest_path);
+        let mut binary_path = build_directory_path;
+        binary_path.push(format!(
+            "{}.{}",
+            zinc_const::file_name::BINARY,
+            zinc_const::extension::BINARY
+        ));
+
+        match self.method {
+            Some(method) => VirtualMachine::prove_contract(
+                self.verbosity,
+                &binary_path,
+                &proving_key_path,
+                &witness_path,
+                &public_data_path,
+                &storage_path,
+                method.as_str(),
+            ),
+            None => VirtualMachine::prove_circuit(
+                self.verbosity,
+                &binary_path,
+                &proving_key_path,
+                &witness_path,
+                &public_data_path,
+            ),
+        }
         .map_err(Error::VirtualMachine)?;
 
         Ok(())

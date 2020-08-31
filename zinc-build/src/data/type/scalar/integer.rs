@@ -5,6 +5,7 @@
 use std::fmt;
 
 use num_bigint::BigInt;
+use num_traits::Zero;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
@@ -51,13 +52,23 @@ impl Type {
     };
 
     ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(is_signed: bool, bitlength: usize) -> Self {
+        Self {
+            is_signed,
+            bitlength,
+        }
+    }
+
+    ///
     /// Returns the minimum value of the type.
     ///
     pub fn min(&self) -> BigInt {
         if self.is_signed {
             -(BigInt::from(1) << self.bitlength) / 2
         } else {
-            0.into()
+            BigInt::zero()
         }
     }
 

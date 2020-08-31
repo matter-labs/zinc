@@ -2,6 +2,9 @@
 //! The `Slice` instruction.
 //!
 
+use num_bigint::ToBigInt;
+use num_traits::ToPrimitive;
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_build::Slice;
@@ -23,7 +26,18 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Slice {
         }
         array.reverse();
 
-        // TODO: check the array bounds
+        let offset_usize = offset
+            .to_bigint()
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+            .to_usize()
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
+        if offset_usize + self.slice_size > self.total_size {
+            return Err(RuntimeError::IndexOutOfBounds {
+                lower_bound: 0,
+                upper_bound: self.total_size,
+                found: offset_usize + self.slice_size,
+            });
+        }
 
         for i in 0..self.slice_size {
             let condition = vm.condition_top()?;
@@ -43,19 +57,22 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Slice {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigInt;
+    use num_traits::One;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
     #[test]
     fn test_slice() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new_field(1.into()))
-            .push(zinc_build::Push::new_field(2.into()))
-            .push(zinc_build::Push::new_field(3.into()))
-            .push(zinc_build::Push::new_field(4.into()))
-            .push(zinc_build::Push::new_field(5.into()))
-            .push(zinc_build::Push::new_field(6.into()))
-            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Push::new_field(BigInt::one()))
+            .push(zinc_build::Push::new_field(BigInt::from(2)))
+            .push(zinc_build::Push::new_field(BigInt::from(3)))
+            .push(zinc_build::Push::new_field(BigInt::from(4)))
+            .push(zinc_build::Push::new_field(BigInt::from(5)))
+            .push(zinc_build::Push::new_field(BigInt::from(6)))
+            .push(zinc_build::Push::new_field(BigInt::from(2)))
             .push(zinc_build::Slice::new(2, 5))
             .test(&[5, 4, 1])
     }

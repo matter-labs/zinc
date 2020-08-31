@@ -2,23 +2,26 @@
 //! The Zinc source file names.
 //!
 
-/// The Zinc project manifest file name.
+/// The project manifest file name.
 pub static MANIFEST: &str = "Zargo";
 
-/// The Zinc source code entry file name.
+/// The source code entry file name.
 pub static APPLICATION_ENTRY: &str = "main";
 
-/// The Zinc source code complex module default name.
+/// The source code complex module default name.
 pub static MODULE_ENTRY: &str = "mod";
 
 /// The binary file default name.
 pub static BINARY: &str = "main";
 
 /// The witness template file default name.
-pub static WITNESS: &str = "witness_main";
+pub static WITNESS: &str = "witness";
 
 /// The public data template file default name.
-pub static PUBLIC_DATA: &str = "public_data_main";
+pub static PUBLIC_DATA: &str = "public_data";
+
+/// The storage file default name.
+pub static STORAGE: &str = "storage";
 
 /// The proving key file default name.
 pub static PROVING_KEY: &str = "proving_key";

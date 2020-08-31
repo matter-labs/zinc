@@ -1,6 +1,6 @@
 [book]
 title = "Zinc v0.1.5"
-authors = ["Alex Z <a.zarudnyy@matterlabs.dev>"]
+authors = ["Alex Zarudnyy <a.zarudnyy@matterlabs.dev>"]
 description = "The official Zinc book"
 language = "en"
 multilingual = false

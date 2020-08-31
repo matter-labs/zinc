@@ -40,14 +40,16 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Mul {
 
 #[cfg(test)]
 mod test {
+    use num_bigint::BigInt;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
     #[test]
     fn test_mul() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new_field(3.into()))
-            .push(zinc_build::Push::new_field(4.into()))
+            .push(zinc_build::Push::new_field(BigInt::from(3)))
+            .push(zinc_build::Push::new_field(BigInt::from(4)))
             .push(zinc_build::Mul)
             .test(&[12])
     }

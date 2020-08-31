@@ -12,6 +12,8 @@ use std::rc::Rc;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
 
+use zinc_utils::InferenceError;
+
 use crate::generator::statement::r#for::Statement as GeneratorForLoopStatement;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
@@ -125,8 +127,11 @@ impl Analyzer {
                 .ok_or(Error::Element(ElementError::Constant(
                     ConstantError::Integer(IntegerConstantError::IntegerTooLarge {
                         location: bounds_expression_location,
-                        value: iterations_count,
-                        bitlength: index_bitlength,
+                        inner: InferenceError::Overflow {
+                            value: iterations_count,
+                            is_signed: false,
+                            bitlength: index_bitlength,
+                        },
                     }),
                 )))?;
         if is_inclusive {

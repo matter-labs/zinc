@@ -18,9 +18,9 @@ use self::r#type::Type as ErrorType;
 #[derive(Debug, Fail)]
 pub struct Error {
     /// The path to the invalid value.
-    path: Vec<String>,
+    pub path: Vec<String>,
     /// The error variant.
-    error: ErrorType,
+    pub error: ErrorType,
 }
 
 impl<T> IErrorContext for Result<T, Error> {
@@ -61,7 +61,7 @@ impl fmt::Display for Error {
         } else {
             write!(
                 f,
-                "{} at {}",
+                "{} at `{}`",
                 self.error,
                 self.path
                     .clone()

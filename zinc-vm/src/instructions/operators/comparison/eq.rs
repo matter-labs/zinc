@@ -26,20 +26,23 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Eq {
 
 #[cfg(test)]
 mod test {
+    use num_bigint::BigInt;
+    use num_traits::One;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
     #[test]
     fn test_eq() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new_field(1.into()))
-            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Push::new_field(BigInt::one()))
+            .push(zinc_build::Push::new_field(BigInt::from(2)))
             .push(zinc_build::Eq)
-            .push(zinc_build::Push::new_field(2.into()))
-            .push(zinc_build::Push::new_field(2.into()))
+            .push(zinc_build::Push::new_field(BigInt::from(2)))
+            .push(zinc_build::Push::new_field(BigInt::from(2)))
             .push(zinc_build::Eq)
-            .push(zinc_build::Push::new_field(2.into()))
-            .push(zinc_build::Push::new_field(1.into()))
+            .push(zinc_build::Push::new_field(BigInt::from(2)))
+            .push(zinc_build::Push::new_field(BigInt::one()))
             .push(zinc_build::Eq)
             .test(&[0, 1, 0])
     }

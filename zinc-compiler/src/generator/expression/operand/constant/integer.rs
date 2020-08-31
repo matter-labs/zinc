@@ -88,7 +88,7 @@ impl Integer {
 }
 
 impl IBytecodeWritable for Integer {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_all(self, state: Rc<RefCell<State>>) {
         let scalar_type = match (self.is_signed, self.bitlength) {
             (false, zinc_const::bitlength::FIELD) => ScalarType::Field,
             (is_signed, bitlength) => ScalarType::Integer(IntegerType {
@@ -97,7 +97,7 @@ impl IBytecodeWritable for Integer {
             }),
         };
 
-        bytecode
+        state
             .borrow_mut()
             .push_instruction(Instruction::Push(Push::new(self.value, scalar_type)), None);
     }

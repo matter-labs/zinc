@@ -43,14 +43,14 @@ impl Boolean {
 }
 
 impl IBytecodeWritable for Boolean {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_all(self, state: Rc<RefCell<State>>) {
         let value = if self.inner {
             BigInt::one()
         } else {
             BigInt::zero()
         };
 
-        bytecode.borrow_mut().push_instruction(
+        state.borrow_mut().push_instruction(
             Instruction::Push(Push::new(value, ScalarType::Boolean)),
             None,
         );

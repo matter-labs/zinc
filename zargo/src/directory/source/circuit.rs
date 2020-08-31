@@ -48,8 +48,8 @@ impl Circuit {
     pub fn exists_at(path: &PathBuf) -> bool {
         let mut path = path.to_owned();
         if path.is_dir() {
-            if !path.ends_with(zinc_const::zargo::SOURCE_DIRECTORY_SUBPATH) {
-                path.push(PathBuf::from(zinc_const::zargo::SOURCE_DIRECTORY_SUBPATH));
+            if !path.ends_with(zinc_const::directory::SOURCE) {
+                path.push(PathBuf::from(zinc_const::directory::SOURCE));
             }
             let file_name = format!(
                 "{}.{}",
@@ -67,8 +67,8 @@ impl Circuit {
     pub fn write_to(self, path: &PathBuf) -> Result<(), Error> {
         let mut path = path.to_owned();
         if path.is_dir() {
-            if !path.ends_with(zinc_const::zargo::SOURCE_DIRECTORY_SUBPATH) {
-                path.push(PathBuf::from(zinc_const::zargo::SOURCE_DIRECTORY_SUBPATH));
+            if !path.ends_with(zinc_const::directory::SOURCE) {
+                path.push(PathBuf::from(zinc_const::directory::SOURCE));
             }
             let file_name = format!(
                 "{}.{}",

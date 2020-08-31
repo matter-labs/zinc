@@ -4,23 +4,30 @@
 
 #### Language
 
+*Project layout*
+- implemented Rust-like nested modules with the access to the root and parent modules
+- allowed to declare constants, types, functions, and modules in arbitrary order
+- implemented the Rust-like unit-testing functionality
+
+*Object-oriented*
 - added methods with the by-value `self` instance parameter
 - added the syntax sugar for calling methods via the dot `.` operator
-- allowed the bitwise operations on non-constant and witness values
+
+*Expressions*
 - extended constant expressions with arrays, tuples, structures, blocks, conditionals, and matches
 - implemented primitive constant functions
+- allowed the bitwise operations on non-constant and witness values
 - forbidden the bitwise operations on signed integers and fields
-- allowed to declare constants, types, functions, and modules in arbitrary order
-- implemented the smallest possible type inference for integer literals in expressions
-- implemented Rust-like nested modules with the access to the root and parent modules
+- implemented the type inference for integer literals in expressions
+
+*Interfaces*
+- added the overflow checking and `enum` validation for witness and storage input JSON files
 - added the `unconstrained` block modifier to prevent creating unnecessary constraints
-- added the attribute syntax, which supports only unit test markers for now
-- implemented the Rust-like unit-testing functionality
 
 #### Compiler
 
 - fixed the bug where namespace items where resolved from outside the namespace
-- fixed the bug where the type of a match enum variant path pattern was unchecked
+- fixed the bug where the type of a `match` enumeration variant path pattern was unchecked
 - fixed the bug where a structure could be initialized without fields
 - implemented the per-entry dead code elimination for unreachable functions
 - improved some error messages
@@ -29,16 +36,17 @@
 
 - generalized for managing both circuit and smart contract projects
 - improved some commands and default values to decrease redundancy
+- added some commands for publishing and managing smart contracts
 
 #### Source code
 
 - added doc comments for the entire project using `missing_docs_*` lints
-- moved some shared utilities and constants to common crates `zinc_utils` and `zinc_const`
+- moved some shared data to crates `zinc_utils`, `zinc_const`, `zinc_build`, and `zinc_source`
 
 #### Overall
 
 - implemented basic smart contracts
-- created the Zinc server application for publishing and running smart contracts
+- created the Zandbox application for publishing and running smart contracts
 
 ## Version 0.1.5 (2020-04-07)
 

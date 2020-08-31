@@ -85,11 +85,11 @@ impl Statement {
 }
 
 impl IBytecodeWritable for Statement {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_all(self, state: Rc<RefCell<State>>) {
         let output_size = self.output_type.size();
 
         if self.is_main || self.is_contract_entry {
-            bytecode.borrow_mut().start_entry_function(
+            state.borrow_mut().start_entry_function(
                 self.location,
                 self.type_id,
                 self.identifier,
@@ -98,7 +98,7 @@ impl IBytecodeWritable for Statement {
                 self.output_type,
             );
         } else if self.attributes.contains(&Attribute::Test) {
-            bytecode.borrow_mut().start_unit_test_function(
+            state.borrow_mut().start_unit_test_function(
                 self.location,
                 self.type_id,
                 self.identifier,
@@ -106,7 +106,7 @@ impl IBytecodeWritable for Statement {
                 self.attributes.contains(&Attribute::Ignore),
             );
         } else {
-            bytecode
+            state
                 .borrow_mut()
                 .start_function(self.location, self.type_id, self.identifier);
         }
@@ -115,22 +115,22 @@ impl IBytecodeWritable for Statement {
             match argument_type {
                 Type::Contract { .. } => {}
                 argument_type => {
-                    bytecode
+                    state
                         .borrow_mut()
                         .define_variable(Some(argument_name), argument_type.size());
                 }
             }
         }
 
-        self.body.write_all(bytecode.clone());
+        self.body.write_all(state.clone());
 
         if self.is_main || self.is_contract_entry {
-            bytecode.borrow_mut().push_instruction(
+            state.borrow_mut().push_instruction(
                 Instruction::Exit(zinc_build::Exit::new(output_size)),
                 Some(self.location),
             );
         } else {
-            bytecode.borrow_mut().push_instruction(
+            state.borrow_mut().push_instruction(
                 Instruction::Return(zinc_build::Return::new(output_size)),
                 Some(self.location),
             );

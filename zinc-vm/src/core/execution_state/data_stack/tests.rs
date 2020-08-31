@@ -34,7 +34,7 @@ fn test_get_set() {
 
     assert_cell_eq(
         ds.get(4).expect(zinc_const::panic::TEST_DATA_VALID),
-        42.into(),
+        BigInt::from(42),
     );
 }
 
@@ -50,7 +50,7 @@ fn test_fork_merge_true() {
 
     assert_cell_eq(
         ds.get(4).expect(zinc_const::panic::TEST_DATA_VALID),
-        42.into(),
+        BigInt::from(42),
     );
 
     let value2 = Scalar::new_constant_usize(13, ScalarType::Field);
@@ -58,7 +58,7 @@ fn test_fork_merge_true() {
         .expect(zinc_const::panic::TEST_DATA_VALID);
     assert_cell_eq(
         ds.get(4).expect(zinc_const::panic::TEST_DATA_VALID),
-        13.into(),
+        BigInt::from(13),
     );
 
     let condition = Scalar::new_constant_bool(true);
@@ -66,7 +66,7 @@ fn test_fork_merge_true() {
         .expect(zinc_const::panic::TEST_DATA_VALID);
     assert_cell_eq(
         ds.get(4).expect(zinc_const::panic::TEST_DATA_VALID),
-        13.into(),
+        BigInt::from(13),
     );
 }
 
@@ -82,7 +82,7 @@ fn test_fork_merge_false() {
 
     assert_cell_eq(
         ds.get(4).expect(zinc_const::panic::TEST_DATA_VALID),
-        42.into(),
+        BigInt::from(42),
     );
 
     let value2 = Scalar::new_constant_usize(13, ScalarType::Field);
@@ -90,7 +90,7 @@ fn test_fork_merge_false() {
         .expect(zinc_const::panic::TEST_DATA_VALID);
     assert_cell_eq(
         ds.get(4).expect(zinc_const::panic::TEST_DATA_VALID),
-        13.into(),
+        BigInt::from(13),
     );
 
     let condition = Scalar::new_constant_bool(false);
@@ -98,6 +98,6 @@ fn test_fork_merge_false() {
         .expect(zinc_const::panic::TEST_DATA_VALID);
     assert_cell_eq(
         ds.get(4).expect(zinc_const::panic::TEST_DATA_VALID),
-        42.into(),
+        BigInt::from(42),
     );
 }
