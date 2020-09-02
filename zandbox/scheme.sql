@@ -1,22 +1,19 @@
 CREATE SCHEMA IF NOT EXISTS sandbox;
 
 CREATE TABLE IF NOT EXISTS sandbox.contracts (
-    account_id         INTEGER,
+    contract_id        INTEGER,
 
     name               TEXT NOT NULL,
     version            TEXT NOT NULL,
 
     source_code        JSON NOT NULL,
-    bytecode           BYTEA NOT NULL,
     storage_type       JSON NOT NULL,
-    verifying_key      BYTEA NOT NULL,
+    verifying_key      TEXT NOT NULL,
     eth_address        BYTEA NOT NULL,
 
     created_at         TIMESTAMP NOT NULL,
 
-    PRIMARY KEY        (account_id),
-    CONSTRAINT unq_name_version
-        UNIQUE (name, version)
+    PRIMARY KEY        (contract_id)
 );
 
 CREATE TABLE IF NOT EXISTS sandbox.methods (
@@ -30,7 +27,7 @@ CREATE TABLE IF NOT EXISTS sandbox.methods (
     PRIMARY KEY        (contract_id, name),
     CONSTRAINT fk_contract_id
         FOREIGN KEY (contract_id)
-            REFERENCES sandbox.contracts(account_id)
+            REFERENCES sandbox.contracts(contract_id)
 );
 
 CREATE TABLE IF NOT EXISTS sandbox.fields (
@@ -43,5 +40,5 @@ CREATE TABLE IF NOT EXISTS sandbox.fields (
     PRIMARY KEY        (contract_id, index),
     CONSTRAINT fk_contract_id
         FOREIGN KEY (contract_id)
-            REFERENCES sandbox.contracts(account_id)
+            REFERENCES sandbox.contracts(contract_id)
 );

@@ -2,6 +2,7 @@
 //! The Zargo project manager `setup` subcommand.
 //!
 
+use std::convert::TryFrom;
 use std::path::PathBuf;
 
 use failure::Fail;
@@ -12,6 +13,9 @@ use crate::directory::build::Directory as BuildDirectory;
 use crate::directory::data::Directory as DataDirectory;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
+use crate::manifest::project_type::ProjectType;
+use crate::manifest::Error as ManifestError;
+use crate::manifest::Manifest;
 
 ///
 /// The Zargo project manager `setup` subcommand.
@@ -45,6 +49,12 @@ pub struct Command {
 ///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The manifest file error.
+    #[fail(display = "manifest file {}", _0)]
+    ManifestFile(ManifestError),
+    /// The contract method to call is missing.
+    #[fail(display = "contract method to call must be specified")]
+    MethodMissing,
     /// The virtual machine process error.
     #[fail(display = "virtual machine {}", _0)]
     VirtualMachine(VirtualMachineError),
@@ -54,6 +64,13 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
+        let manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
+
+        match manifest.project.r#type {
+            ProjectType::Contract if self.method.is_none() => return Err(Error::MethodMissing),
+            _ => {}
+        }
+
         let mut manifest_path = self.manifest_path.clone();
         if manifest_path.is_file() {
             manifest_path.pop();

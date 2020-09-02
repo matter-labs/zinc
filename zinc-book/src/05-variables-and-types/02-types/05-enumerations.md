@@ -1,8 +1,7 @@
 # Enumerations
 
-Enums allow you to define a type by enumerating its possible values. Only simple
-C-like enums are supported for now, which are groups of constants, following
-the Rust syntax:
+These allow you to define a type by enumerating its possible values. Only simple
+C-like enums are supported for now, which are groups of constants:
 
 ```rust,no_run,noplaypen
 enum Order {
@@ -22,8 +21,8 @@ let result = match value {
 };
 ```
 
-The enum values can be implicitly casted to unsigned integers of enough
-bitlength using `let` statements or explicitly using the `as` operator:
+The enum values can be implicitly casted to integers using `let` statements or
+explicitly via the `as` operator:
 
 ```rust,no_run,noplaypen
 let x = Order::FIRST; // the type is Order (inference)

@@ -30,8 +30,8 @@ impl fmt::Display for Error {
             Self::FileMetadata(inner) => write!(f, "file metadata: `{}`", inner),
             Self::FileTypeUnknown => write!(f, "file type is neither file nor directory"),
 
-            Self::File(inner) => write!(f, "file {}", inner),
-            Self::Directory(inner) => write!(f, "directory {}", inner),
+            Self::File(inner) => write!(f, "file: {}", inner),
+            Self::Directory(inner) => write!(f, "directory: {}", inner),
         }
     }
 }

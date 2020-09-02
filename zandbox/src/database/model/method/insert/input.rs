@@ -8,7 +8,7 @@ use serde_json::Value as JsonValue;
 /// The database template method INSERT input model.
 ///
 pub struct Input {
-    /// The contract account ID referencing `contracts.account_id`.
+    /// The contract account ID referencing `contracts.contract_id`.
     pub contract_id: i64,
     /// The method name.
     pub name: String,

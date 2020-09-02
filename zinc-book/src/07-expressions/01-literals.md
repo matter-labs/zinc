@@ -8,7 +8,7 @@ Simple literal operands are the basic elements of an expression:
 - `u128` - type (in casting clauses like `42 as u128`)
 
 There are several complex operands worth mentioning. As you will see from the
-examples, you can nest these constructions as much as you need, but do not abuse
+examples, you can nest these constructions as deep as you need, but do not abuse
 this ability too much.
 
 ## Array
@@ -42,7 +42,9 @@ struct Data {
     value: field,
 }
 
-let data = Data {
-    value: 0,
-};
+fn main() {
+    let data = Data {
+        value: 0,
+    };
+}
 ```

@@ -3,7 +3,7 @@
 `=` is a binary operator.
 
 **Accepts**
-1. Place expression (a descriptor of a memory place, e.g. a variable or array element)
+1. Place expression (a descriptor of a memory place, e.g. a variable, array element, etc.)
 2. Expression of the operand 1 type
 
 **Returns** `()`.

@@ -5,6 +5,7 @@
 pub mod directory;
 pub mod error;
 pub mod file;
+pub mod requests;
 
 use std::fs;
 use std::path::PathBuf;
@@ -38,11 +39,11 @@ impl Source {
     ///
     /// Initializes a virtual application module representation from the file system.
     ///
-    pub fn try_from_path(path: &PathBuf) -> Result<Self, Error> {
+    pub fn try_from_path(path: &PathBuf, is_entry: bool) -> Result<Self, Error> {
         let file_type = fs::metadata(path).map_err(Error::FileMetadata)?.file_type();
 
         if file_type.is_dir() {
-            return Directory::try_from_path(path, false).map(Self::Directory);
+            return Directory::try_from_path(path, is_entry).map(Self::Directory);
         }
 
         if file_type.is_file() {

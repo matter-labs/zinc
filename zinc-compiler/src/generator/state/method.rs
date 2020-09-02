@@ -9,6 +9,8 @@ use crate::generator::r#type::Type;
 ///
 #[derive(Debug, PartialEq)]
 pub struct Method {
+    /// The method function type unique ID.
+    pub type_id: usize,
     /// The method name.
     pub name: String,
     /// If the method can mutate the contract storage state.
@@ -24,12 +26,14 @@ impl Method {
     /// A shortcut constructor.
     ///
     pub fn new(
+        type_id: usize,
         name: String,
         is_mutable: bool,
         input_fields: Vec<(String, Type)>,
         output_type: Type,
     ) -> Self {
         Self {
+            type_id,
             name,
             is_mutable,
             input_fields,

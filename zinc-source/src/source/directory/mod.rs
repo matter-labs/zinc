@@ -53,7 +53,7 @@ impl Directory {
                 .map_err(Error::DirectoryEntry)
                 .map_err(SourceError::Directory)?;
             let path = directory_entry.path();
-            let module = Source::try_from_path(&path)?;
+            let module = Source::try_from_path(&path, false)?;
             let name = module.name().to_owned();
 
             match module {
@@ -78,16 +78,14 @@ impl Directory {
             }
         }
 
-        if is_entry {
-            if entry_exists {
-                Ok(Self {
-                    name,
-                    path: path.to_string_lossy().to_string(),
-                    modules,
-                })
-            } else {
-                Err(SourceError::Directory(Error::ApplicationEntryNotFound))
-            }
+        if entry_exists {
+            Ok(Self {
+                name,
+                path: path.to_string_lossy().to_string(),
+                modules,
+            })
+        } else if is_entry {
+            Err(SourceError::Directory(Error::ApplicationEntryNotFound))
         } else {
             Err(SourceError::Directory(Error::ModuleEntryNotFound))
         }

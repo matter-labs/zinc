@@ -92,18 +92,19 @@ way as in Rust.
 ## `contract` declaration
 
 The `contract` statement declares a smart contract. Contracts are described
-[here](../03-circuits/04-smart-contracts.md).
+[here](../04-smart-contracts/00-overview.md).
 The statement is a merged `struct` and `impl` statements, but it can be only
 declared in the entry point file.
 
 ```rust,no_run,noplaypen
+type Currency = u248;
+type PairToken = u8;
 
-contract UniswapPairMarket {
-    // The contract storage fields 
-    
-    total1: Currency,
-    total2: Currency,    
-    rate: u248,
+contract Uniswap {
+    // The contract storage fields     
+    total1: Currency;
+    total2: Currency;    
+    rate: u248;
     
     // Public entries available from outside   
     

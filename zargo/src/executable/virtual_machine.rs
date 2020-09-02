@@ -9,6 +9,7 @@ use std::process;
 use std::process::ExitStatus;
 use std::process::Stdio;
 
+use colored::Colorize;
 use failure::Fail;
 
 ///
@@ -48,6 +49,17 @@ impl VirtualMachine {
         witness_path: &PathBuf,
         public_data_path: &PathBuf,
     ) -> Result<(), Error> {
+        eprintln!(
+            "     {} `{}` {}",
+            "Running".bright_green(),
+            binary_path.to_string_lossy(),
+            if verbosity > 0 {
+                format!("-{}", "v".repeat(verbosity))
+            } else {
+                String::new()
+            },
+        );
+
         let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("run")
@@ -80,6 +92,17 @@ impl VirtualMachine {
         storage_path: &PathBuf,
         method: &str,
     ) -> Result<(), Error> {
+        eprintln!(
+            "     {} `{}` {}",
+            "Running".bright_green(),
+            binary_path.to_string_lossy(),
+            if verbosity > 0 {
+                format!("-{}", "v".repeat(verbosity))
+            } else {
+                String::new()
+            },
+        );
+
         let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("run")
@@ -199,6 +222,13 @@ impl VirtualMachine {
         proving_key_path: &PathBuf,
         verifying_key_path: &PathBuf,
     ) -> Result<(), Error> {
+        eprintln!(
+            "  {} key pair `{}` and `{}`",
+            "Setting up".bright_green(),
+            proving_key_path.to_string_lossy(),
+            verifying_key_path.to_string_lossy(),
+        );
+
         let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("setup")
@@ -230,6 +260,13 @@ impl VirtualMachine {
         proving_key_path: &PathBuf,
         verifying_key_path: &PathBuf,
     ) -> Result<(), Error> {
+        eprintln!(
+            "  {} key pair `{}` and `{}`",
+            "Setting up".bright_green(),
+            proving_key_path.to_string_lossy(),
+            verifying_key_path.to_string_lossy(),
+        );
+
         let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("setup")
@@ -263,6 +300,13 @@ impl VirtualMachine {
         witness_path: &PathBuf,
         public_data_path: &PathBuf,
     ) -> Result<(), Error> {
+        eprintln!(
+            "     {} `{}` with `{}`",
+            "Proving".bright_green(),
+            binary_path.to_string_lossy(),
+            proving_key_path.to_string_lossy(),
+        );
+
         let mut child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("prove")
@@ -298,6 +342,13 @@ impl VirtualMachine {
         storage_path: &PathBuf,
         method: &str,
     ) -> Result<(), Error> {
+        eprintln!(
+            "     {} `{}` with `{}`",
+            "Proving".bright_green(),
+            binary_path.to_string_lossy(),
+            proving_key_path.to_string_lossy(),
+        );
+
         let mut child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("prove")
@@ -334,6 +385,13 @@ impl VirtualMachine {
         verifying_key_path: &PathBuf,
         public_data_path: &PathBuf,
     ) -> Result<(), Error> {
+        eprintln!(
+            "   {} `{}` with `{}`",
+            "Verifying".bright_green(),
+            binary_path.to_string_lossy(),
+            verifying_key_path.to_string_lossy(),
+        );
+
         let mut child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("verify")
@@ -365,6 +423,13 @@ impl VirtualMachine {
         public_data_path: &PathBuf,
         method: &str,
     ) -> Result<(), Error> {
+        eprintln!(
+            "   {} `{}` with `{}`",
+            "Verifying".bright_green(),
+            binary_path.to_string_lossy(),
+            verifying_key_path.to_string_lossy(),
+        );
+
         let mut child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("verify")
@@ -401,6 +466,13 @@ impl VirtualMachine {
         proving_key_path: &PathBuf,
         verifying_key_path: &PathBuf,
     ) -> Result<(), Error> {
+        eprintln!(
+            "     {} `{}` with `{}`",
+            "Proving".bright_green(),
+            binary_path.to_string_lossy(),
+            proving_key_path.to_string_lossy(),
+        );
+
         let prover_output = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("prove")
@@ -414,6 +486,13 @@ impl VirtualMachine {
             .arg(public_data_path)
             .output()
             .map_err(Error::Spawning)?;
+
+        eprintln!(
+            "   {} `{}` with `{}`",
+            "Verifying".bright_green(),
+            binary_path.to_string_lossy(),
+            verifying_key_path.to_string_lossy(),
+        );
 
         let mut verifier_child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
@@ -458,6 +537,13 @@ impl VirtualMachine {
         proving_key_path: &PathBuf,
         verifying_key_path: &PathBuf,
     ) -> Result<(), Error> {
+        eprintln!(
+            "     {} `{}` with `{}`",
+            "Proving".bright_green(),
+            binary_path.to_string_lossy(),
+            proving_key_path.to_string_lossy(),
+        );
+
         let prover_output = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("prove")
@@ -475,6 +561,13 @@ impl VirtualMachine {
             .arg(method)
             .output()
             .map_err(Error::Spawning)?;
+
+        eprintln!(
+            "   {} `{}` with `{}`",
+            "Verifying".bright_green(),
+            binary_path.to_string_lossy(),
+            verifying_key_path.to_string_lossy(),
+        );
 
         let mut verifier_child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])

@@ -9,7 +9,7 @@ like a variable, array element, or structure field.
 `|` and `|=` are binary operators.
 
 **Accepts**
-1. Integer expression (any type except `field`)
+1. Unsigned integer expression (excluding `field`)
 2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
@@ -19,7 +19,7 @@ like a variable, array element, or structure field.
 `^` and `^=` are binary operators.
 
 **Accepts**
-1. Integer expression (any type except `field`)
+1. Unsigned integer expression (excluding `field`)
 2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
@@ -29,7 +29,7 @@ like a variable, array element, or structure field.
 `&` and `&=` are binary operators.
 
 **Accepts**
-1. Integer expression (any type except `field`)
+1. Unsigned integer expression (excluding `field`)
 2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
@@ -39,8 +39,8 @@ like a variable, array element, or structure field.
 `<<` and `<<=` are binary operators.
 
 **Accepts**
-1. Integer expression (any type except `field`)
-2. Constant integer expression
+1. Unsigned integer expression (excluding `field`)
+2. Constant unsigned integer expression
 
 **Returns** an integer result of the operand 1 type.
 
@@ -49,8 +49,8 @@ like a variable, array element, or structure field.
 `>>` and `>>=` are binary operators.
 
 **Accepts**
-1. Integer expression (any type except `field`)
-2. Constant integer expression
+1. Unsigned integer expression (excluding `field`)
+2. Constant unsigned integer expression
 
 **Returns** an integer result of the operand 1 type.
 
@@ -59,6 +59,6 @@ like a variable, array element, or structure field.
 `~` is an unary operator.
 
 **Accepts**
-1. Integer expression (any type except `field`)
+1. Unsigned integer expression (excluding `field`)
 
 **Returns** an integer result.

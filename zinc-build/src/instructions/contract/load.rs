@@ -12,7 +12,7 @@ use crate::instructions::Instruction;
 ///
 /// The `contract storage load` instruction.
 ///
-/// Loads value from contract's storage onto stack.
+/// Loads the value of `size` from the contract storage and loads it onto the evaluation stack.
 ///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct StorageLoad {

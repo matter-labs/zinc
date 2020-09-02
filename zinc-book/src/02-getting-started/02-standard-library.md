@@ -9,7 +9,7 @@ The library contains the following modules:
 - `array` - array processing functions
 - `ff` - finite field functions
 
-All the function signatures are listed in [Appendix E](../appendix/E-standard-library.md).
+All the standard library contents are listed in [Appendix E](../appendix/E-standard-library.md).
 
 Standard library items can be used directly or imported with `use`:
 
@@ -17,7 +17,7 @@ Standard library items can be used directly or imported with `use`:
 use std::crypto::sha256;
 
 fn main(preimage: [bool; 256]) -> ([bool; 256], (field, field)) {
-    let input_sha256 = sha256(preimage); // through import
+    let input_sha256 = sha256(preimage); // imported
     dbg!(input_sha256);
 
     let input_pedersen = std::crypto::pedersen(preimage); // directly

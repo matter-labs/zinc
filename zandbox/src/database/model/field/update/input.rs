@@ -10,7 +10,7 @@ use serde_json::Value as JsonValue;
 pub struct Input {
     /// The field index in the contract storage.
     pub index: i16,
-    /// The contract account ID referencing `contracts.account_id`.
+    /// The contract account ID referencing `contracts.contract_id`.
     pub contract_id: i64,
     /// The field value in JSON representation.
     pub value: JsonValue,

@@ -6,6 +6,7 @@ mod arguments;
 mod error;
 
 use actix_web::middleware;
+use actix_web::web;
 use actix_web::App;
 use actix_web::HttpServer;
 
@@ -38,9 +39,10 @@ async fn main() -> Result<(), Error> {
 
     HttpServer::new(move || {
         App::new()
-            .data(data.clone())
             .wrap(middleware::DefaultHeaders::new().content_type())
             .wrap(middleware::Logger::default())
+            .app_data(web::JsonConfig::default().limit(zinc_const::zandbox::JSON_PAYLOAD_LIMIT))
+            .data(data.clone())
             .configure(zandbox::configure)
     })
     .bind(format!(

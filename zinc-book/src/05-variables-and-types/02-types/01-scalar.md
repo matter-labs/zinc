@@ -4,11 +4,10 @@ Scalar types are also called primitive types and contain a single value.
 
 ## Unit
 
-The unit type and value are described with empty round parenthesis `()` and
-have no differences from the same type in Rust. Values of that type are
-implicitly returned from functions, blocks, and other expressions which do not
-return a value explicitly. Also, this type can be used as a placeholder for
-input, witness and output types of the `main` function.
+The unit type and value are described with empty round parenthesis `()`.
+Values of that type are implicitly returned from functions, blocks, and other
+expressions which do not return a value explicitly. Also, this type can be used
+as a placeholder for input, witness and output types of the `main` function.
 
 `()` is the literal for both unit type and value. The unit type values cannot be
 used by any operators or casted back and forth.
@@ -35,8 +34,6 @@ let y = check(true); // y is ()
 
 Boolean value is represented as `field` with value set to either `0` or `1`.
 To ensure type safety casting between boolean and integer types is not allowed.
-In general, its behavior is indistinguishable from the same type from Rust or other
-C-like languages.
 
 ### Literals
 
@@ -55,8 +52,7 @@ if a && !b {
 
 ## Integer
 
-Integer types are somewhat different from those of Rust since they are
-extended to be able to use any size between 1 and 32 bytes. This feature was
+Integer types can be of any size between 1 and 32 bytes. This feature was
 borrowed from Solidity and it helps to reduce the number of constraints and
 smart contract size. Internal integer representation uses the BN256 field of
 different bitlength.
@@ -83,14 +79,14 @@ constraint system.
 - decimal: `0`, `1`, `122`, `574839572494237242`
 - hexadecimal: `0x0`, `0xfa`, `0x0001`, `0x1fffDEADffffffffffBEEFffff`
 
-Following the Rust rules, only unsigned integer literals can be expressed, since
-the unary minus is not a part of the literal but a standalone operator. Thus,
-unsigned values can be implicitly casted to signed ones using the unary minus.
+Only unsigned integer literals can be expressed, since the unary minus
+is not a part of the literal but a standalone operator. Thus, unsigned values
+can be implicitly casted to signed ones using the unary minus.
 
 ### Casting
 
-Casting is possible only to a type with greater bitlength. Probably, this
-behavior will become less strict in the future.
+Casting can be done only between integer and `field` types. If the value does
+not fit into the target type, it is truncated.
 
 ### Inference
 

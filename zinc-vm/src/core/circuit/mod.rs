@@ -103,9 +103,9 @@ where
                 step, self.state.instruction_counter, instruction,
             );
             if instruction.is_debug() {
-                log::debug!("{}", log_message);
+                log::trace!("{}", log_message);
             } else {
-                log::info!("{}", log_message);
+                log::debug!("{}", log_message);
             }
 
             self.state.instruction_counter += 1;

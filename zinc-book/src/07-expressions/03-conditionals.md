@@ -22,12 +22,19 @@ The match expression is a syntactic sugar for nested conditional
 expressions. Each branch block starts a new scope of visibility.
 
 ```rust,no_run,noplaypen
-let value = MyEnum::ValueOne;
+enum MyEnum {
+    ValueOne = 1,
+    // ...
+    ValueTen = 10,
+}
 
-match value {
-    MyEnum::ValueOne => { ... }
-    MyEnum::ValueTen => { ... }
-    _ => { ... }
+fn main() {
+    let value = MyEnum::ValueOne;
+
+    match value {
+        MyEnum::ValueOne => { /* ... */ },
+        MyEnum::ValueTen => { /* ... */ },
+    }
 }
 ```
 
@@ -38,4 +45,4 @@ For now, only the following match patterns are supported:
 - wildcard (`_`)
 
 > Only simple types can be used as the `match` scrutinee for now,
-> this is, you cannot match an array, tuple or structure.
+> that is, you cannot match an array, tuple, or structure.

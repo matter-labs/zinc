@@ -19,16 +19,19 @@ Please discuss here: https://gitter.im/matter-labs/zinc
 Download the Shell script for your OS and run it with `bash <name>.sh` to install
 all the binaries and generate a local folder with examples ready for hacking.
 
+[macos.sh](./install/macos.sh)
+
 [linux.sh](./install/linux.sh)
 
-[macos.sh](./install/macos.sh)
+On Windows, you must install the binaries manually.
 
 ## Example
 
-At first, you should install the following binaries into your `PATH`:
-- `zargo` - the circuit management tool
+At first, you should install the following binaries to be available through your `PATH`:
+- `zargo` - the project management tool
 - `znc` - the Zinc compiler
 - `zvm` - the Zinc virtual machine
+- `zandbox` - the Zinc smart contract Zandbox server (only for smart contracts)
 - `schnorr` - the Schnorr signature tool (optional)
 
 Then, follow the example to create and use your first circuit:
@@ -43,7 +46,7 @@ cd zircuit/
 # build the circuit
 zargo build
 
-# fill the witness input JSON usually located at ./data/witness.json with values
+# fill the witness input JSON located at ./data/witness.json with values
 
 # runs the circuit to check it without input data
 zargo run
@@ -70,21 +73,21 @@ cd zircuit/
 # build & run & setup & prove & verify
 zargo proof-check
 
-# fill the witness input JSON usually located at ./data/witness.json with values
+# fill the witness input JSON located at ./data/witness.json with values
 
 # repeat the sequence
 zargo proof-check
 ```
 
-## Design background
+# Design background
 
-The goal of Zinc is to make writing safe zero-knowledge programs and ZKP-based
+The goal of Zinc is to make writing safe zero-knowledge circuits and ZKP-based
 smart contracts easy. It has been designed with the following principles in mind:
 
 - **Security**. It should be easy to write deterministic and secure programs.
 Conversely, it should be hard to write code to exploit some possible
 vulnerabilities found in other programming languages.
-- **Safety**. The language must enforce the most strict semantics available,
+- **Safety**. The language must enforce the strictest semantics available,
 such as a strong static explicit type system.
 - **Efficiency**. The code should compile to the most efficient circuit possible.
 - **Cost-exposition**. Performance costs that cannot be optimized efficiently
@@ -105,7 +108,7 @@ also makes formal verifiability about the call and stack safety easier and
 eliminates the gas computation problem inherent to Turing-complete smart
 contract platforms, such as EVM.
 
-## Key features
+# Key features
 
 - Type safety
 - Type inference
@@ -117,12 +120,12 @@ contract platforms, such as EVM.
 - Turing incompleteness: no recursion or unbounded looping
 - Flat learning curve for Rust/JS/Solidity/C++ developers
 
-## Comparison to Rust
+# Comparison to Rust
 
 Zinc is designed specifically for ZK-circuits and ZKP-based smart contract
 development, so some differences from Rust are inevitable.
 
-#### Type system
+## Type system
 
 We need to adapt the type system to be efficiently representable in
 finite fields, which are the basic building block of R1CS. The current type
@@ -130,16 +133,16 @@ system mostly follows Rust, but some aspects are borrowed from smart contract
 languages. For example, Zinc provides integer types with 1-byte step sizes,
 like those in Solidity.
 
-#### Ownership and borrowing
+## Ownership and borrowing
 
-Memory management is very different in R1CS
-circuits compared to the von Neumann architecture. Also, since R1CS does not
-imply parallel programming patterns, a lot of elements of the Rust design would
-be unnecessary and redundant. Zinc has no ownership mechanism found in Rust
-because all variables will be passed by value. The borrowing mechanism is still
-being designed, but probably, only immutable references will be allowed shortly.
+Memory management is very different in R1CS circuits compared to the
+von Neumann architecture. Also, since R1CS does not imply parallel programming
+patterns, a lot of elements of the Rust design would be unnecessary and redundant.
+Zinc has no ownership mechanism found in Rust because all variables will be
+passed by value. The borrowing mechanism is still being designed, but probably,
+only immutable references will be allowed in the future.
 
-#### Loops and recursion
+## Loops and recursion
 
 Zinc is a Turing-incomplete language, as it does not allow recursion and
 variable loop indexes. Every loop range must be bounded with constant literals

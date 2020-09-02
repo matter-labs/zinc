@@ -58,7 +58,10 @@ pub struct Arguments {
     pub test_only: bool,
 
     /// Whether to apply the dead function elimination optimization.
-    #[structopt(long = "opt-dfe", help = "Eliminate the dead function code")]
+    #[structopt(
+        long = "opt-dfe",
+        help = "Enable the dead function code elimination optimization"
+    )]
     pub optimize_dead_function_elimination: bool,
 }
 

@@ -36,9 +36,9 @@ impl Optimizer {
     /// 5. Replace the function type IDs in `Call` instructions with their shifted addresses.
     ///
     pub fn optimize(
-        entry_id: usize,
+        entry_ids: Vec<usize>,
         mut instructions: &mut Vec<Instruction>,
-        function_addresses: &HashMap<usize, usize>,
+        mut function_addresses: &mut HashMap<usize, usize>,
     ) {
         let mut graph = Graph::new();
         let mut function_node_map = HashMap::with_capacity(function_addresses.len());
@@ -53,7 +53,7 @@ impl Optimizer {
                 .copied()
                 .expect(zinc_const::panic::VALIDATED_DURING_TARGET_CODE_GENERATION);
 
-            for address in *start_address.. {
+            for address in *start_address..instructions.len() {
                 match instructions.get(address) {
                     Some(Instruction::Call(zinc_build::Call {
                         address: callee_id, ..
@@ -66,6 +66,7 @@ impl Optimizer {
                         graph.update_edge(caller_node, callee_node, 1);
                     }
                     Some(Instruction::Return(_)) => break,
+                    Some(Instruction::Exit(_)) => break,
                     _ => {}
                 }
             }
@@ -74,23 +75,32 @@ impl Optimizer {
         let mut graph_workspace = DfsSpace::new(&graph);
         let mut function_address_shifts =
             HashMap::<usize, usize>::with_capacity(function_addresses.len());
-        for (unique_id, start_address) in function_addresses.iter() {
-            if !petgraph::algo::has_path_connecting(
-                &graph,
-                function_node_map
-                    .get(&entry_id)
-                    .copied()
-                    .expect(zinc_const::panic::VALIDATED_DURING_TARGET_CODE_GENERATION),
-                function_node_map
-                    .get(unique_id)
-                    .copied()
-                    .expect(zinc_const::panic::VALIDATED_DURING_TARGET_CODE_GENERATION),
-                Some(&mut graph_workspace),
-            ) {
+        for (type_id, start_address) in function_addresses.iter() {
+            let mut is_isolated = true;
+            for entry_id in entry_ids.iter() {
+                if petgraph::algo::has_path_connecting(
+                    &graph,
+                    function_node_map
+                        .get(entry_id)
+                        .copied()
+                        .expect(zinc_const::panic::VALIDATED_DURING_TARGET_CODE_GENERATION),
+                    function_node_map
+                        .get(type_id)
+                        .copied()
+                        .expect(zinc_const::panic::VALIDATED_DURING_TARGET_CODE_GENERATION),
+                    Some(&mut graph_workspace),
+                ) {
+                    is_isolated = false;
+                    break;
+                }
+            }
+
+            if is_isolated {
                 let mut removed_count = 0;
-                for address in *start_address.. {
+                for address in *start_address..instructions.len() {
                     let is_end = match instructions.get(address) {
                         Some(Instruction::Return(_)) => true,
+                        Some(Instruction::Exit(_)) => true,
                         _ => false,
                     };
 
@@ -102,10 +112,10 @@ impl Optimizer {
                     }
                 }
 
-                for (unique_id, shifted_address) in function_addresses.iter() {
+                for (type_id, shifted_address) in function_addresses.iter() {
                     if shifted_address > start_address {
                         function_address_shifts
-                            .entry(*unique_id)
+                            .entry(*type_id)
                             .and_modify(|value| *value += removed_count)
                             .or_insert(removed_count);
                     }
@@ -114,20 +124,28 @@ impl Optimizer {
         }
 
         instructions.retain(|instruction| !matches!(instruction, Instruction::NoOperation(_)));
-        Self::set_shifted_addresses(
+        Self::set_shifted_call_addresses(
             &mut instructions,
-            &function_addresses,
+            &mut function_addresses,
             &function_address_shifts,
         );
     }
 
     ///
-    /// Replaces the function type IDs in `Call` instructions with their addresses.
+    /// Replaces the function type IDs in `Call` instructions with their addresses,
+    /// shifted after the dead function code elimination.
     ///
-    pub fn set_addresses(
+    fn set_shifted_call_addresses(
         instructions: &mut Vec<Instruction>,
-        function_addresses: &HashMap<usize, usize>,
+        function_addresses: &mut HashMap<usize, usize>,
+        function_address_shifts: &HashMap<usize, usize>,
     ) {
+        for (type_id, address) in function_addresses.iter_mut() {
+            if let Some(shift) = function_address_shifts.get(type_id) {
+                *address -= shift;
+            }
+        }
+
         for instruction in instructions.iter_mut() {
             if let Instruction::Call(zinc_build::Call {
                 address: ref mut type_id,
@@ -138,35 +156,6 @@ impl Optimizer {
                     .get(&type_id)
                     .copied()
                     .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
-            }
-        }
-    }
-
-    ///
-    /// Replaces the function type IDs in `Call` instructions with their addresses,
-    /// shifted after the dead function code elimination.
-    ///
-    fn set_shifted_addresses(
-        instructions: &mut Vec<Instruction>,
-        function_addresses: &HashMap<usize, usize>,
-        function_address_shifts: &HashMap<usize, usize>,
-    ) {
-        for instruction in instructions.iter_mut() {
-            if let Instruction::Call(zinc_build::Call {
-                address: ref mut type_id,
-                ..
-            }) = instruction
-            {
-                let shift = function_address_shifts
-                    .get(type_id)
-                    .copied()
-                    .unwrap_or_default();
-
-                *type_id = function_addresses
-                    .get(&type_id)
-                    .copied()
-                    .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
-                    - shift;
             }
         }
     }

@@ -35,15 +35,14 @@ let negative = -positive; // i8
 ```
 
 [This chapter](../../06-operators/01-arithmetic.md) describes the negation operator
-with more detail.
+in more detail.
 
 ## Inference
 
 For now, Zinc infers types in two cases: integer literals and `let` bindings.
 
 Integer literals are always inferred as values of the minimal possible size.
-That is, `255` is a `u8` value, whereas `256` is a `u16` value. Signed integers
-must be implicitly cast using the negation operator.
+That is, `255` is a `u8` value, whereas `256` is a `u16` value.
 
 The `let` statement can infer types in case its type is not specified.
 

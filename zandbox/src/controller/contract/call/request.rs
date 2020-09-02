@@ -21,6 +21,6 @@ pub struct Query {
 ///
 #[derive(Debug, Deserialize)]
 pub struct Body {
-    /// The method input.
-    pub input: JsonValue,
+    /// The method input arguments.
+    pub arguments: JsonValue,
 }

@@ -8,14 +8,14 @@ To start using the Zinc framework, do the following:
 2. Add the folder with the binaries to `PATH`
 3. Use the binaries via your favorite terminal
 
-The Zinc framework consists of three tools:
+The minimal Zinc framework consists of three tools:
 
 - `zargo` circuit manager
 - `znc` Zinc compiler
 - `zvm` Zinc virtual machine
 
 `zargo` can use the compiler and virtual machine through its interface,
-so you will only need `zargo` to work with your circuits.
+so you will only need `zargo` to work with your projects.
 
 For more information on `zargo`, check out this [chapter](../10-zargo-circuit-manager/00-overview.md).
 
@@ -84,7 +84,7 @@ the project root. There is also a file called `witness.json` in the
 Before you run the circuit, open the `data/witness.json` file with
 your favorite editor and fill it with some meaningful values.
 
-Now, execute `zargo run > data/public-data.json` to run the circuit and
+Now, execute `zargo run > data/public_data.json` to run the circuit and
 write the resulting public data to a file.
 
 > There is a useful tool called `jq`. You may use it together with `zargo run`
@@ -113,17 +113,13 @@ the following command:
 zargo prove > proof.txt
 ```
 
-This will also write the program's output to `data/public-data.json` which is later
-used by the verifier.
-
 ### Verifying a proof
 
 Before verifying a proof, make sure the prover and verifier use the same
 version of the Zinc framework.
-Some versions may be compatible, but it is to be decided yet.
 
 To verify a proof, pass it to the Zinc VM with the same public data you used to
-generated it, and the verification key:
+generate it and the verification key:
 
 ```bash
 zargo verify < proof.txt

@@ -18,6 +18,7 @@ use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
+use crate::manifest::project_type::ProjectType;
 use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
 
@@ -63,6 +64,9 @@ pub enum Error {
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
     ManifestFile(ManifestError),
+    /// The contract method to call is missing.
+    #[fail(display = "contract method to call must be specified")]
+    MethodMissing,
     /// The project binary build directory error.
     #[fail(display = "build directory {}", _0)]
     BuildDirectory(BuildDirectoryError),
@@ -88,6 +92,11 @@ impl IExecutable for Command {
 
     fn execute(self) -> Result<(), Self::Error> {
         let manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
+
+        match manifest.project.r#type {
+            ProjectType::Contract if self.method.is_none() => return Err(Error::MethodMissing),
+            _ => {}
+        }
 
         let mut manifest_path = self.manifest_path.clone();
         if manifest_path.is_file() {
@@ -153,6 +162,7 @@ impl IExecutable for Command {
             Compiler::build_release(
                 self.verbosity,
                 manifest.project.name.as_str(),
+                manifest.project.version.as_str(),
                 &data_directory_path,
                 &source_directory_path,
                 &binary_path,
@@ -163,6 +173,7 @@ impl IExecutable for Command {
             Compiler::build_debug(
                 self.verbosity,
                 manifest.project.name.as_str(),
+                manifest.project.version.as_str(),
                 &data_directory_path,
                 &source_directory_path,
                 &binary_path,

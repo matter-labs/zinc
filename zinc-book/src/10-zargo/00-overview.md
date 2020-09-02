@@ -1,7 +1,7 @@
-# Zargo circuit manager
+# Zargo project manager
 
-`Zargo` is a circuit managing tool, which can create, build, and use circuits
-to generate and verify proofs.
+`Zargo` is a project managing tool, which can create and build projects,
+generate and verify proofs, publish and call smart contracts.
 
 ## Commands overview
 

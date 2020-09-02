@@ -101,6 +101,7 @@ impl IExecutable for Command {
         Compiler::build_release(
             self.verbosity,
             manifest.project.name.as_str(),
+            manifest.project.version.as_str(),
             &data_directory_path,
             &source_directory_path,
             &binary_path,

@@ -30,10 +30,10 @@ use self::index::INDEX;
 ///
 #[derive(Debug, Clone)]
 pub struct File {
-    /// The full file path.
-    pub path: PathBuf,
     /// The file name without the extension.
     pub name: String,
+    /// The full file path.
+    pub path: PathBuf,
     /// The source code syntax tree.
     pub tree: SyntaxModule,
 }

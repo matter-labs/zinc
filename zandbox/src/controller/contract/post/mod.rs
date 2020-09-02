@@ -30,8 +30,6 @@ use self::error::Error;
 use self::request::Body;
 use self::request::Query;
 
-static CONSTRUCTOR_NAME: &str = "new";
-
 ///
 /// The HTTP request handler.
 ///
@@ -69,7 +67,11 @@ pub async fn handle(
         .contracts
         .insert(query.contract_id, contract.clone());
 
-    let constructor = match contract.methods.get(CONSTRUCTOR_NAME).cloned() {
+    let constructor = match contract
+        .methods
+        .get(zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME)
+        .cloned()
+    {
         Some(constructor) => constructor,
         None => return Response::error(Error::ConstructorNotFound),
     };
@@ -88,23 +90,23 @@ pub async fn handle(
         })
         .collect();
 
-    let input_value =
-        match BuildValue::try_from_typed_json(body.constructor_input, constructor.input) {
-            Ok(input_value) => input_value,
-            Err(error) => return Response::error(Error::InvalidInput(error)),
-        };
+    let input_value = match BuildValue::try_from_typed_json(body.arguments, constructor.input) {
+        Ok(input_value) => input_value,
+        Err(error) => return Response::error(Error::InvalidInput(error)),
+    };
 
     let storage = contract.storage.clone();
     let storage_value = BuildValue::new(BuildType::Contract(contract.storage.clone()));
     let output = match zinc_vm::ContractFacade::new(contract).run::<Bn256>(
         input_value,
         storage_value,
-        CONSTRUCTOR_NAME.to_owned(),
+        zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME.to_owned(),
     ) {
         Ok((output, _storage)) => output,
         Err(error) => return Response::error(Error::RuntimeError(error)),
     };
 
+    // TODO: implement ETH address generation
     let eth_address = match <[u8; 20]>::from_hex("0000000000000000000000000000000000000000") {
         Ok(eth_address) => eth_address.to_vec(),
         Err(error) => return Response::error(Error::InvalidAddress(error)),
@@ -138,10 +140,9 @@ pub async fn handle(
             query.name,
             query.version,
             serde_json::to_value(body.source).expect(zinc_const::panic::DATA_SERIALIZATION),
-            vec![],
             serde_json::to_value(BuildType::Contract(storage))
                 .expect(zinc_const::panic::DATA_SERIALIZATION),
-            vec![],
+            body.verifying_key,
             eth_address,
         ))
         .await

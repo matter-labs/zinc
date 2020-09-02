@@ -11,6 +11,7 @@ use std::sync::RwLock;
 use actix_web::http::StatusCode;
 use actix_web::web;
 use actix_web::Responder;
+use serde_json::Value as JsonValue;
 
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
@@ -55,7 +56,7 @@ pub async fn handle(
         return Response::error(Error::MethodIsImmutable);
     }
 
-    let input_value = match BuildValue::try_from_typed_json(body.input, method.input) {
+    let input_value = match BuildValue::try_from_typed_json(body.arguments, method.input) {
         Ok(input_value) => input_value,
         Err(error) => return Response::error(Error::InvalidInput(error)),
     };
@@ -90,12 +91,12 @@ pub async fn handle(
         Err(error) => return Response::error(Error::Database(error)),
     };
 
-    let storage = match zinc_vm::ContractFacade::new(contract).run::<Bn256>(
+    let (output, storage) = match zinc_vm::ContractFacade::new(contract).run::<Bn256>(
         input_value,
         storage_value,
         query.method,
     ) {
-        Ok((_output, storage)) => storage,
+        Ok((output, storage)) => (output, storage),
         Err(error) => return Response::error(Error::RuntimeError(error)),
     };
 
@@ -124,5 +125,5 @@ pub async fn handle(
         return Response::error(Error::Database(error));
     }
 
-    Response::<(), Error>::success(StatusCode::OK)
+    Response::<JsonValue, Error>::success_with_data(StatusCode::OK, output.into_json())
 }

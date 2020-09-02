@@ -15,6 +15,7 @@ pub mod panic;
 pub mod path;
 pub mod postgresql;
 pub mod source;
+pub mod zandbox;
 pub mod zargo;
 
 pub use self::exit_code::unit_test::ExitCode as UnitTestExitCode;

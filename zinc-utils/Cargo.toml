@@ -12,7 +12,7 @@ description = "The Zinc common utilities"
 log = "0.4"
 failure = "0.1"
 env_logger = "0.7"
-colored = "1.9"
+colored = "2.0"
 
 num-bigint = "0.3"
 num-traits = "0.2"

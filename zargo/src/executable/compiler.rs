@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use std::process;
 use std::process::ExitStatus;
 
+use colored::Colorize;
 use failure::Fail;
 
 ///
@@ -39,11 +40,14 @@ impl Compiler {
     pub fn build_debug(
         verbosity: usize,
         name: &str,
+        version: &str,
         data_path: &PathBuf,
         source_path: &PathBuf,
         binary_path: &PathBuf,
         is_test_only: bool,
     ) -> Result<(), Error> {
+        eprintln!("   {} {} v{}", "Compiling".bright_green(), name, version);
+
         let mut child = process::Command::new(zinc_const::app_name::ZINC_COMPILER)
             .args(vec!["-v"; verbosity])
             .arg("--name")
@@ -67,6 +71,8 @@ impl Compiler {
             return Err(Error::Failure(status));
         }
 
+        eprintln!("    {} dev [unoptimized] target", "Finished".bright_green(),);
+
         Ok(())
     }
 
@@ -78,11 +84,14 @@ impl Compiler {
     pub fn build_release(
         verbosity: usize,
         name: &str,
+        version: &str,
         data_path: &PathBuf,
         source_path: &PathBuf,
         binary_path: &PathBuf,
         is_test_only: bool,
     ) -> Result<(), Error> {
+        eprintln!("   {} {} v{}", "Compiling".bright_green(), name, version);
+
         let mut child = process::Command::new(zinc_const::app_name::ZINC_COMPILER)
             .args(vec!["-v"; verbosity])
             .arg("--name")
@@ -106,6 +115,11 @@ impl Compiler {
         if !status.success() {
             return Err(Error::Failure(status));
         }
+
+        eprintln!(
+            "    {} release [optimized] target",
+            "Finished".bright_green(),
+        );
 
         Ok(())
     }

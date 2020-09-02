@@ -27,10 +27,10 @@ use self::error::Error;
 ///
 #[derive(Debug, Clone)]
 pub struct Directory {
-    /// The full directory path.
-    pub path: PathBuf,
     /// The directory name.
     pub name: String,
+    /// The full directory path.
+    pub path: PathBuf,
     /// The directory entry file, that is, a module, library, or application entry.
     pub entry: File,
     /// The module dependencies.

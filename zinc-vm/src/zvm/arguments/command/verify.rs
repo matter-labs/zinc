@@ -91,10 +91,10 @@ impl IExecutable for Command {
         let verified = Facade::verify::<Bn256>(key, proof, output_value)?;
 
         Ok(if verified {
-            println!("{}", "✔  Verified".bold().green());
+            println!("{}", " ✔ Verified".bold().green());
             zinc_const::exit_code::SUCCESS as i32
         } else {
-            println!("{}", "✘  Failed".bold().red());
+            println!("{}", " ✘   Failed".bold().red());
             zinc_const::exit_code::FAILURE as i32
         })
     }

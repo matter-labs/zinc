@@ -12,7 +12,7 @@ use crate::instructions::Instruction;
 ///
 /// The `contract storage store` instruction.
 ///
-/// Stores value from stack into contract's storage.
+/// Stores the value of `size` from the evaluation stack in the contract storage.
 ///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct StorageStore {

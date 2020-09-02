@@ -58,11 +58,10 @@ impl Client {
     pub async fn insert_contract(&self, input: ContractInsertInput) -> Result<(), sqlx::Error> {
         const STATEMENT: &str = r#"
         INSERT INTO sandbox.contracts (
-            account_id,
+            contract_id,
             name,
             version,
             source_code,
-            bytecode,
             storage_type,
             verifying_key,
             eth_address,
@@ -75,17 +74,15 @@ impl Client {
             $5,
             $6,
             $7,
-            $8,
             NOW()
         );
         "#;
 
         sqlx::query(STATEMENT)
-            .bind(input.account_id)
+            .bind(input.contract_id)
             .bind(input.name)
             .bind(input.version)
             .bind(input.source_code)
-            .bind(input.bytecode)
             .bind(input.storage_type)
             .bind(input.verifying_key)
             .bind(input.eth_address)
@@ -142,7 +139,7 @@ impl Client {
             methods.output_type,
             contracts.storage_type
         FROM sandbox.methods
-        LEFT JOIN sandbox.contracts ON methods.contract_id = contracts.account_id
+        LEFT JOIN sandbox.contracts ON methods.contract_id = contracts.contract_id
         WHERE
             methods.contract_id = $1 AND methods.name = $2;
         "#;
@@ -172,7 +169,7 @@ impl Client {
         "#;
 
         Ok(sqlx::query_as(STATEMENT)
-            .bind(input.account_id)
+            .bind(input.contract_id)
             .fetch_all(&self.pool)
             .await?)
     }

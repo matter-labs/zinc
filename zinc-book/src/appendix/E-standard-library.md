@@ -50,7 +50,7 @@ Returns: elliptic curve point coordinates `(field, field)`
 
 The elliptic curve point.
 
-```rust
+```rust,no_run,noplaypen
 struct Point {
     x: field,
     y: field,
@@ -61,7 +61,7 @@ struct Point {
 
 The Schnorr EDDSA signature structure.
 
-```rust
+```rust,no_run,noplaypen
 struct Signature {
     r: std::crypto::ecc::Point,
     s: field,

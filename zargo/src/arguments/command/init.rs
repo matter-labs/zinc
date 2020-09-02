@@ -6,6 +6,7 @@ use std::ffi::OsString;
 use std::path::PathBuf;
 use std::str::FromStr;
 
+use colored::Colorize;
 use failure::Fail;
 use structopt::StructOpt;
 
@@ -144,11 +145,13 @@ impl IExecutable for Command {
             }
         }
 
-        log::info!(
-            "     Created project `{}` at {}",
+        eprintln!(
+            "     {} {} `{}`",
+            "Created".bright_green(),
+            project_type,
             project_name,
-            self.path.to_string_lossy(),
         );
+
         Ok(())
     }
 }

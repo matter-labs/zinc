@@ -1,6 +1,6 @@
 # Structures
 
-The structure is a custom data type that lets you name and package together
+The structure is a custom data type which lets you name and package together
 multiple related values that make up a meaningful group. Structures allow you
 to easily build complex data types and pass them around your code with as little
 verbosity as possible.

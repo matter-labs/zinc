@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configure version of Zinc to install from releases https://github.com/matter-labs/zinc/releases
-VERSION="0.1.5"
+VERSION="0.2.0"
 
 # Configure path to install the Zinc binaries (i.e. typically on macOS use "/usr/local/bin")
 ZINC_BINARIES_PATH=/tmp/zinc-${VERSION}-macos/bin

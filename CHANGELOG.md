@@ -30,13 +30,14 @@
 - fixed the bug where the type of a `match` enumeration variant path pattern was unchecked
 - fixed the bug where a structure could be initialized without fields
 - implemented the per-entry dead code elimination for unreachable functions
-- improved some error messages
+- improved some error messages 
 
 #### Zargo
 
 - generalized for managing both circuit and smart contract projects
 - improved some commands and default values to decrease redundancy
 - added some commands for publishing and managing smart contracts
+- taught Zargo to mimic Cargo more persuasively
 
 #### Source code
 

@@ -54,12 +54,12 @@ like those in Solidity.
 
 ## Ownership and borrowing
 
-Memory management is very different in R1CS
-circuits compared to the von Neumann architecture. Also, since R1CS does not
-imply parallel programming patterns, a lot of elements of the Rust design would
-be unnecessary and redundant. Zinc has no ownership mechanism found in Rust
-because all variables will be passed by value. The borrowing mechanism is still
-being designed, but probably, only immutable references will be allowed shortly.
+Memory management is very different in R1CS circuits compared to the
+von Neumann architecture. Also, since R1CS does not imply parallel programming
+patterns, a lot of elements of the Rust design would be unnecessary and redundant.
+Zinc has no ownership mechanism found in Rust because all variables will be
+passed by value. The borrowing mechanism is still being designed, but probably,
+only immutable references will be allowed in the future.
 
 ## Loops and recursion
 

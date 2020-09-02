@@ -159,7 +159,13 @@ impl State {
         input_arguments: Vec<(String, Type)>,
         output_type: Type,
     ) {
-        let method = Method::new(identifier.clone(), is_mutable, input_arguments, output_type);
+        let method = Method::new(
+            type_id,
+            identifier.clone(),
+            is_mutable,
+            input_arguments,
+            output_type,
+        );
         self.methods.insert(type_id, method);
 
         self.start_function(location, type_id, identifier);
@@ -238,15 +244,13 @@ impl State {
     /// written to the Zinc project build files.
     ///
     pub fn into_program(mut self, _optimize_dead_function_elimination: bool) -> BuildProgram {
-        Self::print_instructions(self.instructions.as_slice());
-
         match self.contract_storage.take() {
             Some(storage) => {
                 let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
-                for (unique_id, unit_test) in self.unit_tests.into_iter() {
+                for (type_id, unit_test) in self.unit_tests.into_iter() {
                     let address = self
                         .function_addresses
-                        .get(&unique_id)
+                        .get(&type_id)
                         .cloned()
                         .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
                     unit_tests.insert(
@@ -255,30 +259,38 @@ impl State {
                     );
                 }
 
+                let storage = storage
+                    .into_iter()
+                    .map(|(name, r#type)| (name, r#type.into()))
+                    .collect();
+
+                let entry_ids: Vec<usize> = self
+                    .methods
+                    .iter()
+                    .map(|(_name, method)| method.type_id)
+                    .collect();
+                EliminationOptimizer::optimize(
+                    entry_ids,
+                    &mut self.instructions,
+                    &mut self.function_addresses,
+                );
+
                 let mut methods = HashMap::with_capacity(self.methods.len());
-                for (unique_id, method) in self.methods.into_iter() {
+                for (type_id, method) in self.methods.into_iter() {
                     let address = self
                         .function_addresses
-                        .get(&unique_id)
+                        .get(&type_id)
                         .cloned()
                         .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
                     let input = method.input_fields_as_struct().into();
                     let output = method.output_type.into();
                     methods.insert(
                         method.name,
-                        ContractMethod::new(address, method.is_mutable, input, output),
+                        ContractMethod::new(type_id, address, method.is_mutable, input, output),
                     );
                 }
 
-                let storage = storage
-                    .into_iter()
-                    .map(|(name, r#type)| (name, r#type.into()))
-                    .collect();
-
-                EliminationOptimizer::set_addresses(
-                    &mut self.instructions,
-                    &self.function_addresses,
-                );
+                Self::print_instructions(self.instructions.as_slice());
 
                 BuildProgram::new_contract(
                     self.name,
@@ -290,10 +302,10 @@ impl State {
             }
             None => {
                 let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
-                for (unique_id, unit_test) in self.unit_tests.into_iter() {
+                for (type_id, unit_test) in self.unit_tests.into_iter() {
                     let address = self
                         .function_addresses
-                        .get(&unique_id)
+                        .get(&type_id)
                         .cloned()
                         .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
                     unit_tests.insert(
@@ -309,15 +321,19 @@ impl State {
                     .remove(0);
                 let input = entry.input_fields_as_struct().into();
                 let output = entry.output_type.into();
-                EliminationOptimizer::set_addresses(
+                EliminationOptimizer::optimize(
+                    vec![entry_id],
                     &mut self.instructions,
-                    &self.function_addresses,
+                    &mut self.function_addresses,
                 );
+
                 let address = self
                     .function_addresses
                     .get(&entry_id)
                     .cloned()
                     .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
+
+                Self::print_instructions(self.instructions.as_slice());
 
                 BuildProgram::new_circuit(
                     self.name,

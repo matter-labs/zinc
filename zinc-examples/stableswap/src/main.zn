@@ -45,27 +45,38 @@ contract Stableswap {
     /// _A: Amplification coefficient multiplied by n * (n - 1)
     /// _fee: Fee to charge for exchanges
     ///
-    pub fn initialize(
-        mut self,
+    pub fn new(
+        self,
         tx: Transaction,
 
         _coins: [Address; N_COINS],
         _pool_token: Address,
         _A: Integer,
         _fee: Integer,
-    ) {
-        for i in 0..N_COINS {
-            assert!(_coins[i] != constants::ZERO_ADDRESS, "Coin address cannot be zero");
-            self.balances[i] = ZERO;
+    ) -> Self {
+        Self {
+            coins: _coins,
+            balances: [ZERO, ZERO],
+            fee: _fee,
+            admin_fee: 0 as Integer,
+
+            owner: tx.from,
+            token: _pool_token,
+
+            initial_A: _A,
+            future_A: _A,
+            initial_A_time: 0 as Timestamp,
+            future_A_time: 0 as Timestamp,
+
+            admin_actions_deadline: 0 as Timestamp,
+            transfer_ownership_deadline: 0 as Timestamp,
+            future_fee: 0 as Integer,
+            future_admin_fee: 0 as Integer,
+            future_owner: 0 as Address,
+
+            kill_deadline: tx.block.timestamp + constants::KILL_DEADLINE_DT,
+            is_killed: false,
         }
-        self.coins = _coins;
-        self.initial_A = _A;
-        self.future_A = _A;
-        self.fee = _fee;
-        self.owner = tx.from;
-        self.kill_deadline = tx.block.timestamp + constants::KILL_DEADLINE_DT;
-        self.is_killed = false;
-        self.token = _pool_token;
     }
 
     pub fn get_A(self, tx: Transaction) -> Integer {

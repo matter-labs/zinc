@@ -11,10 +11,9 @@ for {identifier} in {range} [while {expression}] {
 }
 ```
 
-The `for` loop statement behaves just like in Rust, but it is merged with the
-`while` loop, so the optional `while` condition is checked before each iteration
-of the loop. The `while` condition expression has access to the inner scope and
-can use its variables and the loop iterator.
+The `for` loop statement can be modified with the `while` condition, which will
+be checked before each iteration of the loop. The `while` condition expression
+has access to the inner scope and can use its variables and the loop iterator.
 
 ```rust,no_run,noplaypen
 for i in 0..10 while i % x != 8 {
@@ -38,7 +37,7 @@ The [conditional and match](../07-expressions/03-conditionals.md) expressions
 can act as control statements, ignoring the returned value. To use them in such
 a role, just terminate the expression with a semicolon:
 
-```rust
+```rust,no_run,noplaypen
 fn unknown(value: u8) -> u8 {
     match value {
         1 => dbg!("One!"),
@@ -46,5 +45,5 @@ fn unknown(value: u8) -> u8 {
         _ => dbg!("Perhaps, three!"),
     };
     42
-}}
+}
 ```

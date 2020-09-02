@@ -3,6 +3,7 @@
 //!
 
 pub mod build;
+pub mod call;
 pub mod clean;
 pub mod error;
 pub mod init;
@@ -10,6 +11,7 @@ pub mod new;
 pub mod proof_check;
 pub mod prove;
 pub mod publish;
+pub mod query;
 pub mod run;
 pub mod setup;
 pub mod test;
@@ -18,6 +20,7 @@ pub mod verify;
 use structopt::StructOpt;
 
 use self::build::Command as BuildCommand;
+use self::call::Command as CallCommand;
 use self::clean::Command as CleanCommand;
 use self::error::Error;
 use self::init::Command as InitCommand;
@@ -25,6 +28,7 @@ use self::new::Command as NewCommand;
 use self::proof_check::Command as ProofCheckCommand;
 use self::prove::Command as ProveCommand;
 use self::publish::Command as PublishCommand;
+use self::query::Command as QueryCommand;
 use self::run::Command as RunCommand;
 use self::setup::Command as SetupCommand;
 use self::test::Command as TestCommand;
@@ -70,6 +74,10 @@ pub enum Command {
     ProofCheck(ProofCheckCommand),
     /// The `publish` subcommand.
     Publish(PublishCommand),
+    /// The `query` subcommand.
+    Query(QueryCommand),
+    /// The `call` subcommand.
+    Call(CallCommand),
 }
 
 impl IExecutable for Command {
@@ -88,6 +96,8 @@ impl IExecutable for Command {
             Self::Verify(inner) => inner.execute()?,
             Self::ProofCheck(inner) => inner.execute()?,
             Self::Publish(inner) => inner.execute()?,
+            Self::Query(inner) => inner.execute()?,
+            Self::Call(inner) => inner.execute()?,
         }
 
         Ok(())

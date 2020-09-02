@@ -26,7 +26,8 @@ From `stdin`:
 schnorr sign --key 'private_key.txt' --message -
 ```
 
-The JSON output can be used as witness data if you want to pass the signature to a circuit.
+The JSON output can be used as witness data if you want to pass
+the signature to a circuit.
 
 ### Extracting the public key
 

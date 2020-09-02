@@ -20,15 +20,6 @@ pub enum ProjectType {
     Contract,
 }
 
-impl fmt::Display for ProjectType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Circuit => write!(f, "circuit"),
-            Self::Contract => write!(f, "contract"),
-        }
-    }
-}
-
 impl FromStr for ProjectType {
     type Err = String;
 
@@ -37,6 +28,15 @@ impl FromStr for ProjectType {
             "circuit" => Ok(Self::Circuit),
             "contract" => Ok(Self::Contract),
             another => Err(another.to_owned()),
+        }
+    }
+}
+
+impl fmt::Display for ProjectType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Circuit => write!(f, "circuit"),
+            Self::Contract => write!(f, "contract"),
         }
     }
 }

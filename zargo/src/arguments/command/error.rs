@@ -5,12 +5,14 @@
 use failure::Fail;
 
 use crate::arguments::command::build::Error as BuildCommandError;
+use crate::arguments::command::call::Error as CallCommandError;
 use crate::arguments::command::clean::Error as CleanCommandError;
 use crate::arguments::command::init::Error as InitCommandError;
 use crate::arguments::command::new::Error as NewCommandError;
 use crate::arguments::command::proof_check::Error as ProofCheckCommandError;
 use crate::arguments::command::prove::Error as ProveCommandError;
 use crate::arguments::command::publish::Error as PublishCommandError;
+use crate::arguments::command::query::Error as QueryCommandError;
 use crate::arguments::command::run::Error as RunCommandError;
 use crate::arguments::command::setup::Error as SetupCommandError;
 use crate::arguments::command::test::Error as TestCommandError;
@@ -54,6 +56,12 @@ pub enum Error {
     /// The `publish` command error.
     #[fail(display = "{}", _0)]
     Publish(PublishCommandError),
+    /// The `query` command error.
+    #[fail(display = "{}", _0)]
+    Query(QueryCommandError),
+    /// The `call` command error.
+    #[fail(display = "{}", _0)]
+    Call(CallCommandError),
 }
 
 impl From<NewCommandError> for Error {
@@ -119,5 +127,17 @@ impl From<ProofCheckCommandError> for Error {
 impl From<PublishCommandError> for Error {
     fn from(inner: PublishCommandError) -> Self {
         Self::Publish(inner)
+    }
+}
+
+impl From<QueryCommandError> for Error {
+    fn from(inner: QueryCommandError) -> Self {
+        Self::Query(inner)
+    }
+}
+
+impl From<CallCommandError> for Error {
+    fn from(inner: CallCommandError) -> Self {
+        Self::Call(inner)
     }
 }
