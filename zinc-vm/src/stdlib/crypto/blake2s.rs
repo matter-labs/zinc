@@ -5,6 +5,8 @@ use crate::{Engine, MalformedBytecode, Result};
 use bellman::ConstraintSystem;
 use franklin_crypto::circuit::blake2s::blake2s;
 
+const BYTE_LENGTH: usize = 8;
+
 pub struct Blake2s {
     message_length: usize,
 }
@@ -29,6 +31,14 @@ impl<E: Engine> NativeFunction<E> for Blake2s {
         mut cs: CS,
         stack: &mut EvaluationStack<E>,
     ) -> Result {
+        //reverse the bits of each byte of the input
+        //for compatibility with Bouncy Castle
+        fn reverse_byte_bits<T>(bits: &mut Vec<T>) {
+            for bytes in bits.chunks_mut(BYTE_LENGTH) {
+                bytes.reverse();
+            }
+        }
+
         let mut bits = Vec::new();
         for i in 0..self.message_length {
             let bit = stack
@@ -40,7 +50,13 @@ impl<E: Engine> NativeFunction<E> for Blake2s {
         }
         bits.reverse();
 
-        let digest_bits = blake2s(cs.namespace(|| "blake2s"), &bits, b"12345678")?;
+        //reverse preimage
+        reverse_byte_bits(&mut bits);
+
+        let mut digest_bits = blake2s(cs.namespace(|| "blake2s"), &bits, b"12345678")?;
+
+        //reverse digest
+        reverse_byte_bits(&mut digest_bits);
 
         assert_eq!(digest_bits.len(), 256);
 
