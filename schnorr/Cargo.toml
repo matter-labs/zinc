@@ -1,6 +1,6 @@
 [package]
 name = "schnorr"
-version = "0.1.5-ING-3"
+version = "0.1.5-ING-4"
 authors = ["Alexander Movchan <am@matterlabs.dev>"]
 edition = "2018"
 description = "The Zinc Schnorr signature generator"
