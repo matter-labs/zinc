@@ -1,6 +1,6 @@
 [package]
 name = "zinc-vm"
-version = "0.1.5-ING-2"
+version = "0.1.5-ING-3"
 authors = [
     "Alexander Movchan <am@matterlabs.dev>",
     "hedgar2017 <hedgar2017@gmail.com>",
@@ -26,7 +26,7 @@ failure = "0.1"
 
 pairing = { package = "pairing_ce", version = "0.17.0" }
 bellman = { package = "bellman_ce", version = "0.3.0" }
-franklin_crypto = { package = "franklin-crypto", git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc"}
+franklin_crypto = { package = "franklin-crypto", git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc" }
 ff = { package = "ff_ce", version = "0.6.0", features = ["derive"] }
 
 num-bigint = "0.2.3"

@@ -1,6 +1,6 @@
 [package]
 name = "zinc-tester"
-version = "0.1.5-ING-2"
+version = "0.1.5-ING-3"
 authors = ["hedgar2017 <hedgar2017@gmail.com>"]
 edition = "2018"
 description = "The Zinc integration tests runner"
