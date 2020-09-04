@@ -1,0 +1,42 @@
+//!
+//! The 'blake_bit_endian_test' main module.
+//!
+
+use std::crypto::blake2s; 
+
+const PREIMAGE_BYTES: u8 = 4; 
+const DIGEST_BYTES: u8 = 32;
+const BYTE_SIZE: u8 = 8; 
+
+fn main(preimage: u32) {
+    
+    let preimage_bits = std::convert::to_bits(preimage);
+
+    let mut preimage_bytes = [0; PREIMAGE_BYTES]; 
+
+    for i in 0..PREIMAGE_BYTES {
+        let mut bits = [false; BYTE_SIZE];
+        for j in 0..BYTE_SIZE {
+            bits[j] = preimage_bits[BYTE_SIZE * i + j]; 
+        }
+        preimage_bytes[i] = std::convert::from_bits_unsigned(bits); 
+    }
+
+    //Preimage bytes
+    dbg!("Preimage bytes: {}", preimage_bytes ); 
+
+    let digest_bits = blake2s(preimage_bits);
+
+    let mut digest_bytes = [0; DIGEST_BYTES]; 
+    for i in 0..DIGEST_BYTES {
+        let mut bits = [false; BYTE_SIZE];
+        for j in 0..BYTE_SIZE {
+            bits[j] = digest_bits[BYTE_SIZE * i + j]; 
+        }
+        digest_bytes[i] = std::convert::from_bits_unsigned(bits); 
+    }
+    
+    //Digest bytes
+    dbg!("Computed digest bytes: {}", digest_bytes );
+      
+}

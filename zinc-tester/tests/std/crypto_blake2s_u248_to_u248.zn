@@ -3,7 +3,7 @@
 //#     "input": {
 //#         "preimage": "42"
 //#     },
-//#     "expect": "0x6c06d59746757b9869e14d3ff163ded9c89934e64666be4204f68086cbb063"
+//#     "expect": "0xe22effe20573f1610ee1577504e9e9144cd7a5d7eaa8689d366c7bfc8a882a"
 //# } ] }
 
 use std::convert;
