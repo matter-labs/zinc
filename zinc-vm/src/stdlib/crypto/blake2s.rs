@@ -25,6 +25,22 @@ impl Blake2s {
     }
 }
 
+// Implementation of Blake2s gadget for Zinc. 
+// It uses blake2s implementation of the franklin_crypto library.
+
+// IMPORTANT NOTE ABOUT THE GADGET: 
+// In its original format, the hash digest of the franklin_crypto library does 
+// not match with the original blake2 specification and with the BouncyCastle library. 
+// Both the original spec and the BouncyCastle requires a little-endian representation 
+// of **bytes** within the hash computation. And the same is for the franklin_crypto.
+// However, on top of that, franklin_crypto also requires little-endian ordering of 
+// **bits within each byte** due to the UInt32 object type used in the implementation.
+// UInt32 is a representation of 32 Boolean objects as an unsigned integer, where the
+// least significant bit is located in the first place. 
+
+// To overcome the mismatch between the franklin_crypto and the original spec, we added 
+// a function in our gadget, reverse_byte_bits(), which reverses the bit order within 
+// every byte before and after hashing operation.   
 impl<E: Engine> NativeFunction<E> for Blake2s {
     fn execute<CS: ConstraintSystem<E>>(
         &self,
@@ -34,8 +50,8 @@ impl<E: Engine> NativeFunction<E> for Blake2s {
         //reverse the bits of each byte of the input
         //for compatibility with Bouncy Castle
         fn reverse_byte_bits<T>(bits: &mut Vec<T>) {
-            for bytes in bits.chunks_mut(BYTE_LENGTH) {
-                bytes.reverse();
+            for byte_bits in bits.chunks_mut(BYTE_LENGTH) {
+                byte_bits.reverse();
             }
         }
 
@@ -50,12 +66,12 @@ impl<E: Engine> NativeFunction<E> for Blake2s {
         }
         bits.reverse();
 
-        //reverse preimage
+        //reverse preimage for compatibility with the original spec 
         reverse_byte_bits(&mut bits);
 
         let mut digest_bits = blake2s(cs.namespace(|| "blake2s"), &bits, b"12345678")?;
 
-        //reverse digest
+        //reverse digest for compatibility with the original spec
         reverse_byte_bits(&mut digest_bits);
 
         assert_eq!(digest_bits.len(), 256);
