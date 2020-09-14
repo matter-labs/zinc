@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "witness": "8"
-//#     },
-//#     "expect": "48"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "witness": "8"
+//!     },
+//!     "output": "24"
+//! } ] }
 
 enum List {
     DEFAULT = 0,
@@ -18,24 +18,23 @@ impl List {
         Self::DEFAULT
     }
 
-    pub fn add_first(self) -> Self {
-        self + Self::FIRST
+    pub fn into_first(self) -> Self {
+        Self::FIRST
     }
 
-    pub fn add_second(self) -> Self {
-        self + Self::SECOND
+    pub fn into_second(self) -> Self {
+        Self::SECOND
     }
 
-    pub fn add_third(self) -> Self {
-        self + Self::THIRD
+    pub fn into_third(self) -> Self {
+        Self::THIRD
     }
 }
 
-fn main(witness: u8) -> u8 {
-    let chained = List::new()
-        .add_first()
-        .add_second()
-        .add_third();
-
-    (chained as u8) * witness
+fn main(witness: field) -> field {
+    List::new()
+        .into_first()
+        .into_second()
+        .into_third()
+        as field * witness
 }

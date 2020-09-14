@@ -1,34 +1,34 @@
-//# { "cases": [ {
-//#     "case": "min",
-//#     "input": {
-//#         "value": [
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false
-//#         ]
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "max",
-//#     "input": {
-//#         "value": [
-//#             true, true, true, true, true, true, true, true,
-//#             true, true, true, true, true, true, true, true,
-//#             true, true, true, true, true, true, true, true,
-//#             true, true, true, true, true, true, true, true,
-//#             true, true, true, true, true, true, true, true,
-//#             true, true, true, true, true, true, true, true,
-//#             true, true, true, true, true, true, true, true,
-//#             true, true, true, true, true, true, true, true
-//#         ]
-//#     },
-//#     "expect": "18446744073709551615"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "min",
+//!     "input": {
+//!         "value": [
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false
+//!         ]
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "max",
+//!     "input": {
+//!         "value": [
+//!             true, true, true, true, true, true, true, true,
+//!             true, true, true, true, true, true, true, true,
+//!             true, true, true, true, true, true, true, true,
+//!             true, true, true, true, true, true, true, true,
+//!             true, true, true, true, true, true, true, true,
+//!             true, true, true, true, true, true, true, true,
+//!             true, true, true, true, true, true, true, true,
+//!             true, true, true, true, true, true, true, true
+//!         ]
+//!     },
+//!     "output": "18446744073709551615"
+//! } ] }
 
 fn main(value: [bool; 64]) -> u64 {
     std::convert::from_bits_unsigned(value)

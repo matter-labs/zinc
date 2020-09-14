@@ -1584,7 +1584,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Scope(ScopeError::ItemNotNamespace { location, name })) => {
+            Self::Semantic(SemanticError::Scope(ScopeError::ItemIsNotANamespace { location, name })) => {
                 Self::format_line( format!(
                         "item `{}` is not a namespace",
                         name
@@ -1592,6 +1592,16 @@ impl Error {
                         .as_str(),
                     location,
                     Some("only modules, structures, enumerations, and contracts can contain items within their namespaces"),
+                )
+            }
+            Self::Semantic(SemanticError::Scope(ScopeError::AssociatedItemWithoutOwner { location, name })) => {
+                Self::format_line( format!(
+                    "associated item `{}` is accessed without specifying its namespace or entity",
+                    name,
+                )
+                       .as_str(),
+                   location,
+                   Some("consider adding the namespace or entity prefix to the item"),
                 )
             }
             Self::Semantic(SemanticError::Scope(ScopeError::ContractRedeclared { location, reference })) => {
@@ -2010,7 +2020,7 @@ impl Error {
         let index = FILE_INDEX
             .inner
             .read()
-            .expect(zinc_const::panic::MUTEX_SYNC);
+            .expect(zinc_const::panic::MULTI_THREADING);
         let context = index
             .get(&location.file_index)
             .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
@@ -2066,7 +2076,7 @@ impl Error {
         let index = FILE_INDEX
             .inner
             .read()
-            .expect(zinc_const::panic::MUTEX_SYNC);
+            .expect(zinc_const::panic::MULTI_THREADING);
         let context = index
             .get(&location.file_index)
             .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
@@ -2150,7 +2160,7 @@ impl Error {
         let index = FILE_INDEX
             .inner
             .read()
-            .expect(zinc_const::panic::MUTEX_SYNC);
+            .expect(zinc_const::panic::MULTI_THREADING);
         let context = index
             .get(&start.file_index)
             .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)

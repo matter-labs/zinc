@@ -181,3 +181,18 @@ Arguments:
 - value: `field`
 
 Returns: `field`
+
+## `std::assets` module
+
+### `std::assets::Token::transfer`
+
+Executes a transfer which is sent to zkSync if the transaction was successful.
+
+Arguments:
+- from: `u160`
+- to: `u160`
+- token_id: `u{N}`
+- amount: `u248`
+- fee: `u248`
+
+Returns: `()`

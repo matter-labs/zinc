@@ -1,5 +1,5 @@
 //!
-//! The project directories.
+//! The Zinc project directories.
 //!
 
 pub mod build;

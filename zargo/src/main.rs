@@ -5,7 +5,7 @@
 mod arguments;
 mod directory;
 mod executable;
-mod manifest;
+mod file;
 
 use std::process;
 

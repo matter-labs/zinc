@@ -3,10 +3,12 @@
 //!
 
 pub mod constant;
+pub mod field;
 pub mod index;
 pub mod module;
 pub mod r#type;
 pub mod variable;
+pub mod variant;
 
 use std::cell::RefCell;
 use std::fmt;
@@ -17,9 +19,11 @@ use crate::lexical::token::location::Location;
 use crate::semantic::error::Error;
 
 use self::constant::Constant;
+use self::field::Field;
 use self::module::Module;
 use self::r#type::Type;
 use self::variable::Variable;
+use self::variant::Variant;
 
 ///
 /// An item declared within a scope.
@@ -55,8 +59,12 @@ use self::variable::Variable;
 pub enum Item {
     /// The variable item. See the inner element description.
     Variable(Variable),
+    /// The contract field item. See the inner element description.
+    Field(Field),
     /// The constant item. See the inner element description.
     Constant(Constant),
+    /// The enumeration variant item. See the inner element description.
+    Variant(Variant),
     /// The type item. See the inner element description.
     Type(Type),
     /// The module item. See the inner element description.
@@ -79,9 +87,11 @@ impl Item {
     pub fn define(&self) -> Result<(), Error> {
         match self {
             Self::Variable(_) => {}
+            Self::Field(_) => {}
             Self::Constant(inner) => {
                 inner.define()?;
             }
+            Self::Variant(_) => {}
             Self::Type(inner) => {
                 inner.define()?;
             }
@@ -94,12 +104,45 @@ impl Item {
     }
 
     ///
+    /// Removes the associated flag from the item, which is useful for imports, after which the
+    /// item must not be accessed with its namespace anymore.
+    ///
+    pub fn set_not_associated(&mut self) {
+        match self {
+            Self::Constant(inner) => inner.is_associated = false,
+            Self::Variant(inner) => inner.is_associated = false,
+            Self::Type(inner) => inner.is_associated = false,
+            _ => {}
+        }
+    }
+
+    ///
+    /// Whether the item is associated with some data entity, like structure, enumeration,
+    /// contract, and so on.
+    ///
+    /// This flag helps to identify items, which can only be accessed via their namespace, e.g.
+    /// `Data::Item` or `Self::Item`.
+    ///
+    pub fn is_associated(&self) -> bool {
+        match self {
+            Self::Variable(_) => false,
+            Self::Field(_) => true,
+            Self::Constant(inner) => inner.is_associated,
+            Self::Variant(inner) => inner.is_associated,
+            Self::Type(inner) => inner.is_associated,
+            Self::Module(_) => false,
+        }
+    }
+
+    ///
     /// The location where the item has been declared.
     ///
     pub fn location(&self) -> Option<Location> {
         match self {
             Self::Variable(inner) => Some(inner.location),
+            Self::Field(inner) => Some(inner.location),
             Self::Constant(inner) => Some(inner.location),
+            Self::Variant(inner) => Some(inner.location),
             Self::Type(inner) => inner.location,
             Self::Module(inner) => inner.location,
         }
@@ -111,7 +154,9 @@ impl Item {
     pub fn item_id(&self) -> usize {
         match self {
             Self::Variable(inner) => inner.item_id,
+            Self::Field(inner) => inner.item_id,
             Self::Constant(inner) => inner.item_id,
+            Self::Variant(inner) => inner.item_id,
             Self::Type(inner) => inner.item_id,
             Self::Module(inner) => inner.item_id,
         }
@@ -123,7 +168,9 @@ impl Item {
     pub fn get_intermediate(&self) -> Vec<GeneratorStatement> {
         match self {
             Self::Variable(_) => vec![],
+            Self::Field(_) => vec![],
             Self::Constant(_) => vec![],
+            Self::Variant(_) => vec![],
             Self::Type(inner) => inner.get_intermediate(),
             Self::Module(inner) => inner.get_intermediate(),
         }
@@ -134,7 +181,9 @@ impl fmt::Display for Item {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Variable(inner) => write!(f, "variable {}", inner),
+            Self::Field(inner) => write!(f, "field {}", inner),
             Self::Constant(inner) => write!(f, "constant {}", inner),
+            Self::Variant(inner) => write!(f, "variant {}", inner),
             Self::Type(inner) => write!(f, "type {}", inner),
             Self::Module(inner) => write!(f, "module {}", inner),
         }

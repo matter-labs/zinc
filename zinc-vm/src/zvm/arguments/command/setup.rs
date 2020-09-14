@@ -67,14 +67,10 @@ impl IExecutable for Command {
             .write(pkey_file)
             .error_with_path(|| proving_key_path.to_string_lossy())?;
 
-        let vk_hex = {
-            let mut vk_bytes = Vec::new();
-            params.vk.write(&mut vk_bytes).expect("writing to vec");
-            hex::encode(vk_bytes) + "\n"
-        };
-
+        let mut verifying_key = Vec::new();
+        params.vk.write(&mut verifying_key).expect("writing to vec");
         let verifying_key_path = self.verifying_key_path;
-        fs::write(&verifying_key_path, vk_hex)
+        fs::write(&verifying_key_path, verifying_key)
             .error_with_path(|| verifying_key_path.to_string_lossy())?;
 
         Ok(zinc_const::exit_code::SUCCESS as i32)

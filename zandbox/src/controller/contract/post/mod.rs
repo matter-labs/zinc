@@ -12,6 +12,8 @@ use actix_web::http::StatusCode;
 use actix_web::web;
 use actix_web::Responder;
 use hex::FromHex;
+use wallet_gen::coin::Coin;
+use wallet_gen::wallet::Wallet;
 
 use zinc_build::Program as BuildProgram;
 use zinc_build::Type as BuildType;
@@ -63,7 +65,7 @@ pub async fn handle(
 
     app_data
         .write()
-        .expect(zinc_const::panic::MUTEX_SYNC)
+        .expect(zinc_const::panic::MULTI_THREADING)
         .contracts
         .insert(query.contract_id, contract.clone());
 
@@ -102,18 +104,16 @@ pub async fn handle(
         storage_value,
         zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME.to_owned(),
     ) {
-        Ok((output, _storage)) => output,
+        Ok(output) => output,
         Err(error) => return Response::error(Error::RuntimeError(error)),
     };
 
-    // TODO: implement ETH address generation
-    let eth_address = match <[u8; 20]>::from_hex("0000000000000000000000000000000000000000") {
-        Ok(eth_address) => eth_address.to_vec(),
-        Err(error) => return Response::error(Error::InvalidAddress(error)),
-    };
+    let wallet = Wallet::generate(Coin::Ethereum).expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
+    let eth_address = <[u8; zinc_const::size::ETH_ADDRESS]>::from_hex(&wallet.address[2..])
+        .expect(zinc_const::panic::DATA_SERIALIZATION);
 
     let mut fields = Vec::with_capacity(storage.len());
-    match output {
+    match output.result {
         BuildValue::Structure(mut storage_fields) => match storage_fields.remove(0).1 {
             BuildValue::Contract(storage_fields) => {
                 for (index, (name, value)) in storage_fields.into_iter().enumerate() {
@@ -133,7 +133,7 @@ pub async fn handle(
 
     if let Err(error) = app_data
         .read()
-        .expect(zinc_const::panic::MUTEX_SYNC)
+        .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
         .insert_contract(ContractInsertInput::new(
             query.contract_id,
@@ -152,7 +152,7 @@ pub async fn handle(
 
     if let Err(error) = app_data
         .read()
-        .expect(zinc_const::panic::MUTEX_SYNC)
+        .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
         .insert_methods(methods)
         .await
@@ -162,7 +162,7 @@ pub async fn handle(
 
     if let Err(error) = app_data
         .read()
-        .expect(zinc_const::panic::MUTEX_SYNC)
+        .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
         .insert_fields(fields)
         .await

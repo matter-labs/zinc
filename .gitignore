@@ -14,7 +14,3 @@
 # Zinc build
 /zinc-examples/*/build/
 /zinc-examples/*/data/
-
-# Other
-*.tar.gz
-.DS_Store

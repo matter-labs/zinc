@@ -1,22 +1,22 @@
-//# { "cases": [ {
-//#     "case": "min",
-//#     "input": {
-//#         "value": [
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false
-//#         ]
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "max",
-//#     "input": {
-//#         "value": [
-//#             true, true, true, true, true, true, true, true,
-//#             true, true, true, true, true, true, true, true
-//#         ]
-//#     },
-//#     "expect": "65535"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "min",
+//!     "input": {
+//!         "value": [
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false
+//!         ]
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "max",
+//!     "input": {
+//!         "value": [
+//!             true, true, true, true, true, true, true, true,
+//!             true, true, true, true, true, true, true, true
+//!         ]
+//!     },
+//!     "output": "65535"
+//! } ] }
 
 fn main(value: [bool; 16]) -> u16 {
     std::convert::from_bits_unsigned(value)

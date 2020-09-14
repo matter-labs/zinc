@@ -96,7 +96,7 @@ impl Analyzer {
         for hoisted_statement in statement.statements.into_iter() {
             match hoisted_statement {
                 ImplementationLocalStatement::Const(statement) => {
-                    Scope::declare_constant(scope.clone(), statement)?;
+                    Scope::declare_constant(scope.clone(), statement, true)?;
                 }
                 ImplementationLocalStatement::Fn(statement) => {
                     Scope::declare_type(
@@ -105,6 +105,7 @@ impl Analyzer {
                             statement,
                             FnStatementAnalyzerContext::Implementation,
                         ),
+                        true,
                     )?;
                 }
                 ImplementationLocalStatement::Empty(_location) => {}

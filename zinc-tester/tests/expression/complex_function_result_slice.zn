@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "witness": "16"
-//#     },
-//#     "expect": "64"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "witness": "16"
+//!     },
+//!     "output": "64"
+//! } ] }
 
 struct Data {
     a: (bool, [u8; 2]),

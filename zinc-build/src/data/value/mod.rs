@@ -5,11 +5,8 @@
 pub mod error;
 pub mod scalar;
 
-use std::collections::HashMap;
 use std::collections::HashSet;
 
-use bson::Bson;
-use bson::Document as BsonDocument;
 use num_bigint::BigInt;
 use num_traits::Num;
 use num_traits::Signed;
@@ -42,6 +39,13 @@ pub enum Value {
     Unit,
     /// See the inner element description.
     Scalar(ScalarValue),
+    /// An enumeration scalar value, represented with its variant name string.
+    Enumeration {
+        /// The enumeration variant name.
+        name: String,
+        /// The enumeration variant value.
+        value: ScalarValue,
+    },
     /// Represented with JSON array.
     Array(Vec<Value>),
     /// Represented with JSON object.
@@ -64,13 +68,23 @@ impl Value {
                 }
                 ScalarType::Field => Self::Scalar(ScalarValue::Field(BigInt::zero())),
             },
-            Type::Enumeration { bitlength, .. } => match bitlength {
-                zinc_const::bitlength::FIELD => Self::Scalar(ScalarValue::Field(BigInt::zero())),
-                bitlength => Self::Scalar(ScalarValue::Integer(
-                    BigInt::zero(),
-                    IntegerType::new(false, bitlength),
-                )),
-            },
+            Type::Enumeration {
+                bitlength,
+                mut variants,
+            } => {
+                let (name, value) = variants.remove(0);
+
+                match bitlength {
+                    zinc_const::bitlength::FIELD => Self::Enumeration {
+                        name,
+                        value: ScalarValue::Field(value),
+                    },
+                    bitlength => Self::Enumeration {
+                        name,
+                        value: ScalarValue::Integer(value, IntegerType::new(false, bitlength)),
+                    },
+                }
+            }
 
             Type::Array(r#type, size) => Self::Array(vec![Self::new(*r#type); size]),
             Type::Tuple(fields) => Self::Array(fields.into_iter().map(Self::new).collect()),
@@ -194,6 +208,7 @@ impl Value {
         match self {
             Self::Unit => vec![],
             Self::Scalar(value) => vec![value.to_bigint()],
+            Self::Enumeration { name: _, value } => vec![value.to_bigint()],
             Self::Array(values) => values
                 .into_iter()
                 .map(Self::into_flat_values)
@@ -247,6 +262,7 @@ impl Value {
                 }
                 ScalarValue::Boolean(value) => JsonValue::Bool(value),
             },
+            Self::Enumeration { name, value: _ } => JsonValue::String(name),
             Self::Array(values) => {
                 JsonValue::Array(values.into_iter().map(Self::into_json).collect())
             }
@@ -263,59 +279,6 @@ impl Value {
                     object.insert(name, Self::into_json(value));
                 }
                 JsonValue::Object(object)
-            }
-        }
-    }
-
-    ///
-    /// Converts the value to a BSON value.
-    ///
-    /// Is used to write the value to the MongoDB.
-    ///
-    pub fn into_bson(self) -> Bson {
-        match self {
-            Self::Unit => Bson::Null,
-            Self::Scalar(scalar) => match scalar {
-                ScalarValue::Field(value) => {
-                    if value <= BigInt::from(std::u64::MAX) {
-                        Bson::String(value.to_str_radix(zinc_const::base::DECIMAL as u32))
-                    } else {
-                        Bson::String(
-                            String::from("0x")
-                                + value
-                                    .to_str_radix(zinc_const::base::HEXADECIMAL as u32)
-                                    .as_str(),
-                        )
-                    }
-                }
-                ScalarValue::Integer(value, r#type) => {
-                    if value <= BigInt::from(std::u64::MAX) || r#type.is_signed {
-                        Bson::String(value.to_str_radix(zinc_const::base::DECIMAL as u32))
-                    } else {
-                        Bson::String(
-                            String::from("0x")
-                                + value
-                                    .to_str_radix(zinc_const::base::HEXADECIMAL as u32)
-                                    .as_str(),
-                        )
-                    }
-                }
-                ScalarValue::Boolean(value) => Bson::Boolean(value),
-            },
-            Self::Array(values) => Bson::Array(values.into_iter().map(Self::into_bson).collect()),
-            Self::Structure(fields) => {
-                let mut object = BsonDocument::new();
-                for (name, value) in fields.into_iter() {
-                    object.insert(name, Self::into_bson(value));
-                }
-                Bson::Document(object)
-            }
-            Self::Contract(fields) => {
-                let mut object = BsonDocument::new();
-                for (name, value) in fields.into_iter() {
-                    object.insert(name, Self::into_bson(value));
-                }
-                Bson::Document(object)
             }
         }
     }
@@ -399,7 +362,7 @@ impl Value {
     fn enumeration_from_json(
         value: JsonValue,
         bitlength: usize,
-        mut variants: HashMap<String, BigInt>,
+        variants: Vec<(String, BigInt)>,
     ) -> Result<Self, Error> {
         let expected = variants
             .iter()
@@ -411,8 +374,11 @@ impl Value {
             found: value.to_string(),
         })?;
 
-        let bigint = match variants.remove(value_string) {
-            Some(bigint) => bigint,
+        let bigint = match variants
+            .into_iter()
+            .find(|(name, _value)| name == value_string)
+        {
+            Some((_name, bigint)) => bigint,
             None => {
                 return Err(Error::from(ErrorType::UnexpectedVariant(
                     value_string.to_owned(),

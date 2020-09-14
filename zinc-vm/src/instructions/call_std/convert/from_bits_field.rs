@@ -8,7 +8,7 @@ use franklin_crypto::circuit::num::AllocatedNum;
 
 use zinc_build::ScalarType;
 
-use crate::core::execution_state::evaluation_stack::EvaluationStack;
+use crate::core::execution_state::ExecutionState;
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_std::INativeCallable;
@@ -20,11 +20,11 @@ impl<E: IEngine> INativeCallable<E> for FromBitsField {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
-        stack: &mut EvaluationStack<E>,
+        state: &mut ExecutionState<E>,
     ) -> Result<(), RuntimeError> {
         let mut bits = Vec::with_capacity(E::Fr::NUM_BITS as usize);
         for i in 0..E::Fr::NUM_BITS {
-            let bit = stack.pop()?.try_into_value()?;
+            let bit = state.evaluation_stack.pop()?.try_into_value()?;
             let boolean = bit.to_boolean(cs.namespace(|| format!("to_boolean {}", i)))?;
             bits.push(boolean);
         }
@@ -32,7 +32,7 @@ impl<E: IEngine> INativeCallable<E> for FromBitsField {
         let num =
             AllocatedNum::pack_bits_to_element(cs.namespace(|| "pack_bits_to_element"), &bits)?;
 
-        stack.push(
+        state.evaluation_stack.push(
             Scalar::new_unchecked_variable(num.get_value(), num.get_variable(), ScalarType::Field)
                 .into(),
         )?;

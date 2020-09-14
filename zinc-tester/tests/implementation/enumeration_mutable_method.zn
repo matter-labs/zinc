@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "witness": "8"
-//#     },
-//#     "expect": "48"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "witness": "8"
+//!     },
+//!     "output": "48"
+//! } ] }
 
 enum List {
     FIRST = 1,

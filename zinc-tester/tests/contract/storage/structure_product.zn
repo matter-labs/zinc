@@ -1,0 +1,34 @@
+//! { "cases": [ {
+//!     "case": "default",
+//!     "method": "main",
+//!     "input": {},
+//!     "output": {
+//!         "$result": "15000",
+//!         "$root_hash": "0xa547197df009a38e161508bfeba8a8b256f269600e79b1eedeeb454d49c58f"
+//!     }
+//! } ] }
+
+struct Data {
+    a: u16,
+    b: u16,
+    c: u16,
+    d: u16,
+}
+
+contract Test {
+    data: Data;
+
+    pub fn main(mut self) -> u16 {
+        self.data.a = 20 as u16;
+        self.data.b = 15 as u16;
+        self.data.c = 10 as u16;
+        self.data.d = 5 as u16;
+
+        let mut product: u16 = 1;
+        product *= self.data.a;
+        product *= self.data.b;
+        product *= self.data.c;
+        product *= self.data.d;
+        product
+    }
+}

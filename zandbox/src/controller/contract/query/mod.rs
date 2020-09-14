@@ -18,7 +18,6 @@ use zinc_vm::Bn256;
 
 use crate::database::model::field::select::input::Input as FieldSelectInput;
 use crate::database::model::field::select::output::Output as FieldSelectOutput;
-use crate::database::model::field::update::input::Input as FieldUpdateInput;
 use crate::response::Response;
 use crate::shared_data::SharedData;
 
@@ -39,7 +38,7 @@ pub async fn handle(
 
     let contract = match app_data
         .read()
-        .expect(zinc_const::panic::MUTEX_SYNC)
+        .expect(zinc_const::panic::MULTI_THREADING)
         .contracts
         .get(&query.contract_id)
         .cloned()
@@ -48,23 +47,9 @@ pub async fn handle(
         None => return Response::error(Error::ContractNotFound),
     };
 
-    let method = match contract.methods.get(query.method.as_str()).cloned() {
-        Some(method) => method,
-        None => return Response::error(Error::MethodNotFound),
-    };
-    if method.is_mutable {
-        return Response::error(Error::MethodIsMutable);
-    }
-
-    let input_value = match BuildValue::try_from_typed_json(body.arguments, method.input) {
-        Ok(input_value) => input_value,
-        Err(error) => return Response::error(Error::InvalidInput(error)),
-    };
-
-    let storage_fields_count = contract.storage.len();
     let storage_value = match app_data
         .read()
-        .expect(zinc_const::panic::MUTEX_SYNC)
+        .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
         .select_fields(FieldSelectInput::new(query.contract_id))
         .await
@@ -91,39 +76,46 @@ pub async fn handle(
         Err(error) => return Response::error(Error::Database(error)),
     };
 
-    let (output, storage) = match zinc_vm::ContractFacade::new(contract).run::<Bn256>(
-        input_value,
-        storage_value,
-        query.method,
-    ) {
-        Ok((output, storage)) => (output, storage),
-        Err(error) => return Response::error(Error::RuntimeError(error)),
-    };
+    match query.method {
+        Some(method_name) => {
+            let method = match contract.methods.get(method_name.as_str()).cloned() {
+                Some(method) => method,
+                None => return Response::error(Error::MethodNotFound),
+            };
 
-    let mut storage_fields = Vec::with_capacity(storage_fields_count);
-    match storage {
-        BuildValue::Contract(fields) => {
-            for (index, (_name, value)) in fields.into_iter().enumerate() {
-                let value = value.into_json();
-                storage_fields.push(FieldUpdateInput::new(
-                    index as i16,
-                    query.contract_id,
-                    value,
-                ));
+            let arguments = match body.arguments {
+                Some(arguments) => arguments,
+                None => return Response::error(Error::MethodArgumentsNotFound),
+            };
+
+            let input_value = match BuildValue::try_from_typed_json(arguments, method.input) {
+                Ok(input_value) => input_value,
+                Err(error) => return Response::error(Error::InvalidInput(error)),
+            };
+
+            if method.is_mutable {
+                return Response::error(Error::MethodIsMutable);
             }
+
+            let output = match zinc_vm::ContractFacade::new(contract).run::<Bn256>(
+                input_value,
+                storage_value,
+                method_name,
+            ) {
+                Ok(output) => output,
+                Err(error) => return Response::error(Error::RuntimeError(error)),
+            };
+
+            dbg!(output.transfers);
+
+            Response::<JsonValue, Error>::success_with_data(
+                StatusCode::OK,
+                output.result.into_json(),
+            )
         }
-        _ => panic!(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION),
+        None => Response::<JsonValue, Error>::success_with_data(
+            StatusCode::OK,
+            storage_value.into_json(),
+        ),
     }
-
-    if let Err(error) = app_data
-        .read()
-        .expect(zinc_const::panic::MUTEX_SYNC)
-        .postgresql_client
-        .update_fields(storage_fields)
-        .await
-    {
-        return Response::error(Error::Database(error));
-    }
-
-    Response::<JsonValue, Error>::success_with_data(StatusCode::OK, output.into_json())
 }

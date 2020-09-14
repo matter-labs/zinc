@@ -11,11 +11,11 @@ use crate::semantic::element::Element;
 ///
 #[derive(Debug)]
 pub enum Type {
-    /// Normal function call without any extra behavior
-    Normal,
-    /// Built-in function like `dbg!` or `assert!` where the `!` specifier is required
+    /// Default function call without any extra behavior.
+    Default,
+    /// Built-in function like `dbg!` or `assert!` where the `!` specifier is required.
     BuiltIn,
-    /// Object method call where the first `self` argument must be temporarily stored
+    /// Object method call where the first `self` argument must be temporarily stored.
     Method {
         /// The `self` instance, for which the method is called.
         instance: Box<Element>,
@@ -24,7 +24,7 @@ pub enum Type {
 
 impl Default for Type {
     fn default() -> Self {
-        Self::Normal
+        Self::Default
     }
 }
 

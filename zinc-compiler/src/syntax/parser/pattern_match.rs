@@ -7,6 +7,7 @@ use std::rc::Rc;
 
 use crate::error::Error;
 use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::lexeme::literal::Literal as LexicalLiteral;
 use crate::lexical::token::lexeme::symbol::Symbol;
 use crate::lexical::token::lexeme::Lexeme;
@@ -99,6 +100,27 @@ impl Parser {
                             self.state = State::PathOperatorOrEnd;
                         }
                         Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::Crate),
+                            location,
+                        }
+                        | Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::Super),
+                            location,
+                        }
+                        | Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::SelfLowercase),
+                            location,
+                        }
+                        | Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::SelfUppercase),
+                            location,
+                        } => {
+                            self.builder.set_location(location);
+                            self.builder
+                                .set_binding(Identifier::new(location, keyword.to_string()));
+                            self.state = State::PathOperatorOrEnd;
+                        }
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Underscore),
                             location,
                         } => {
@@ -142,6 +164,7 @@ impl Parser {
 mod tests {
     use super::Parser;
     use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::keyword::Keyword;
     use crate::lexical::token::lexeme::literal::boolean::Boolean as LexicalBooleanLiteral;
     use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
     use crate::lexical::token::lexeme::Lexeme;
@@ -219,7 +242,7 @@ mod tests {
 
     #[test]
     fn ok_path() {
-        let input = r#"data::Inner::VALUE"#;
+        let input = r#"data::Inner::Value"#;
 
         let expected = Ok((
             MatchPattern::new(
@@ -246,12 +269,47 @@ mod tests {
                     Some(ExpressionTree::new(
                         Location::new(1, 14),
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                            Identifier::new(Location::new(1, 14), "VALUE".to_owned()),
+                            Identifier::new(Location::new(1, 14), "Value".to_owned()),
                         )),
                     )),
                 )),
             ),
             Some(Token::new(Lexeme::Eof, Location::new(1, 19))),
+        ));
+
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_path_alias() {
+        let input = r#"Self::Value"#;
+
+        let expected = Ok((
+            MatchPattern::new(
+                Location::new(1, 1),
+                MatchPatternVariant::Path(ExpressionTree::new_with_leaves(
+                    Location::new(1, 5),
+                    ExpressionTreeNode::operator(ExpressionOperator::Path),
+                    Some(ExpressionTree::new(
+                        Location::new(1, 1),
+                        ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                            Identifier::new(
+                                Location::new(1, 1),
+                                Keyword::SelfUppercase.to_string(),
+                            ),
+                        )),
+                    )),
+                    Some(ExpressionTree::new(
+                        Location::new(1, 7),
+                        ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                            Identifier::new(Location::new(1, 7), "Value".to_owned()),
+                        )),
+                    )),
+                )),
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 12))),
         ));
 
         let result = Parser::default().parse(TokenStream::new(input).wrap(), None);

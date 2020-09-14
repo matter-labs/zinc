@@ -1,39 +1,39 @@
-//# { "cases": [ {
-//#     "case": "zero_by_zero", "should_panic": true,
-//#     "input": {
-//#         "a": "0",
-//#         "b": "0"
-//#     },
-//#     "expect": null
-//# }, {
-//#     "case": "ordinar_by_zero", "should_panic": true,
-//#     "input": {
-//#         "a": "42",
-//#         "b": "0"
-//#     },
-//#     "expect": null
-//# }, {
-//#     "case": "zero_by_random",
-//#     "input": {
-//#         "a": "0",
-//#         "b": "42"
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "zero_remainder",
-//#     "input": {
-//#         "a": "48",
-//#         "b": "8"
-//#     },
-//#     "expect": "6"
-//# }, {
-//#     "case": "with_remainder",
-//#     "input": {
-//#         "a": "13",
-//#         "b": "5"
-//#     },
-//#     "expect": "0x9ada94a2d09ecd524dcdabe19e6ab45d4d72e74e525168373f9fdea63333336"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "zero_by_zero", "should_panic": true,
+//!     "input": {
+//!         "a": "0",
+//!         "b": "0"
+//!     },
+//!     "output": null
+//! }, {
+//!     "case": "ordinar_by_zero", "should_panic": true,
+//!     "input": {
+//!         "a": "42",
+//!         "b": "0"
+//!     },
+//!     "output": null
+//! }, {
+//!     "case": "zero_by_random",
+//!     "input": {
+//!         "a": "0",
+//!         "b": "42"
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "zero_remainder",
+//!     "input": {
+//!         "a": "48",
+//!         "b": "8"
+//!     },
+//!     "output": "6"
+//! }, {
+//!     "case": "with_remainder",
+//!     "input": {
+//!         "a": "13",
+//!         "b": "5"
+//!     },
+//!     "output": "0x9ada94a2d09ecd524dcdabe19e6ab45d4d72e74e525168373f9fdea63333336"
+//! } ] }
 
 fn main(a: field, b: field) -> field {
     a * std::ff::invert(b)

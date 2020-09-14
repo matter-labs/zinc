@@ -31,6 +31,8 @@ pub enum BuiltInTypeId {
     StdCryptoEccPoint = 0,
     /// The `std::crypto::schnorr::Signature` structure type ID.
     StdCryptoSchnorrSignature = 1,
+    /// The `std::assets::Token` structure type ID.
+    StdAssetsToken = 2,
 }
 
 impl BuiltInScope {
@@ -76,6 +78,15 @@ impl BuiltInScope {
             ))
             .wrap(),
         );
+        Scope::insert_item(
+            std_scope.clone(),
+            "assets".to_owned(),
+            ScopeItem::Module(ScopeModuleItem::new_built_in(
+                "assets".to_owned(),
+                Self::module_assets(),
+            ))
+            .wrap(),
+        );
 
         let root_scope = Scope::new_built_in("root").wrap();
 
@@ -83,9 +94,10 @@ impl BuiltInScope {
         Scope::insert_item(
             root_scope.clone(),
             builtin_function_dbg.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
-                builtin_function_dbg,
-            )))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(builtin_function_dbg),
+                false,
+            ))
             .wrap(),
         );
 
@@ -93,9 +105,10 @@ impl BuiltInScope {
         Scope::insert_item(
             root_scope.clone(),
             builtin_function_assert.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
-                builtin_function_assert,
-            )))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(builtin_function_assert),
+                false,
+            ))
             .wrap(),
         );
 
@@ -124,9 +137,10 @@ impl BuiltInScope {
         Scope::insert_item(
             std_crypto_schnorr_signature_scope.clone(),
             std_crypto_schnorr_verify.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
-                std_crypto_schnorr_verify,
-            )))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(std_crypto_schnorr_verify),
+                true,
+            ))
             .wrap(),
         );
         let std_crypto_ecc_point = StructureType::new(
@@ -141,7 +155,7 @@ impl BuiltInScope {
         );
         let std_crypto_schnorr_signature = StructureType::new(
             None,
-            "Signature".to_owned(),
+            std_crypto_schnorr_signature_scope.borrow().name(),
             BuiltInTypeId::StdCryptoSchnorrSignature as usize,
             vec![
                 (
@@ -154,58 +168,62 @@ impl BuiltInScope {
                     Type::Structure(std_crypto_ecc_point.clone()),
                 ),
             ],
-            Some(std_crypto_schnorr_signature_scope),
+            Some(std_crypto_schnorr_signature_scope.clone()),
         );
         Scope::insert_item(
             std_crypto_schnorr_scope.clone(),
-            "Signature".to_owned(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Structure(
-                std_crypto_schnorr_signature,
-            )))
+            std_crypto_schnorr_signature_scope.borrow().name(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Structure(std_crypto_schnorr_signature),
+                false,
+            ))
             .wrap(),
         );
 
         let std_crypto_ecc_scope = Scope::new_built_in("ecc").wrap();
         Scope::insert_item(
             std_crypto_ecc_scope.clone(),
-            "Point".to_owned(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Structure(
-                std_crypto_ecc_point,
-            )))
+            std_crypto_ecc_point.identifier.clone(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Structure(std_crypto_ecc_point),
+                false,
+            ))
             .wrap(),
         );
 
         Scope::insert_item(
             std_crypto_scope.clone(),
             std_crypto_sha256.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
-                std_crypto_sha256,
-            )))
-            .wrap(),
-        );
-        Scope::insert_item(
-            std_crypto_scope.clone(),
-            std_crypto_pedersen.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
-                std_crypto_pedersen,
-            )))
-            .wrap(),
-        );
-        Scope::insert_item(
-            std_crypto_scope.clone(),
-            "ecc".to_owned(),
-            ScopeItem::Module(ScopeModuleItem::new_built_in(
-                "ecc".to_owned(),
-                std_crypto_ecc_scope,
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(std_crypto_sha256),
+                false,
             ))
             .wrap(),
         );
         Scope::insert_item(
             std_crypto_scope.clone(),
-            "schnorr".to_owned(),
+            std_crypto_pedersen.identifier(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(std_crypto_pedersen),
+                false,
+            ))
+            .wrap(),
+        );
+        Scope::insert_item(
+            std_crypto_scope.clone(),
+            std_crypto_ecc_scope.borrow().name(),
             ScopeItem::Module(ScopeModuleItem::new_built_in(
-                "schnorr".to_owned(),
-                std_crypto_schnorr_scope,
+                std_crypto_ecc_scope.borrow().name(),
+                std_crypto_ecc_scope.clone(),
+            ))
+            .wrap(),
+        );
+        Scope::insert_item(
+            std_crypto_scope.clone(),
+            std_crypto_schnorr_scope.borrow().name(),
+            ScopeItem::Module(ScopeModuleItem::new_built_in(
+                std_crypto_schnorr_scope.borrow().name(),
+                std_crypto_schnorr_scope.clone(),
             ))
             .wrap(),
         );
@@ -230,33 +248,37 @@ impl BuiltInScope {
         Scope::insert_item(
             std_convert_scope.clone(),
             std_convert_to_bits.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
-                std_convert_to_bits,
-            )))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(std_convert_to_bits),
+                false,
+            ))
             .wrap(),
         );
         Scope::insert_item(
             std_convert_scope.clone(),
             std_convert_from_bits_unsigned.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
-                std_convert_from_bits_unsigned,
-            )))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(std_convert_from_bits_unsigned),
+                false,
+            ))
             .wrap(),
         );
         Scope::insert_item(
             std_convert_scope.clone(),
             std_convert_from_bits_signed.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
-                std_convert_from_bits_signed,
-            )))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(std_convert_from_bits_signed),
+                false,
+            ))
             .wrap(),
         );
         Scope::insert_item(
             std_convert_scope.clone(),
             std_convert_from_bits_field.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
-                std_convert_from_bits_field,
-            )))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(std_convert_from_bits_field),
+                false,
+            ))
             .wrap(),
         );
 
@@ -276,23 +298,29 @@ impl BuiltInScope {
         Scope::insert_item(
             std_array_scope.clone(),
             std_array_reverse.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
-                std_array_reverse,
-            )))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(std_array_reverse),
+                false,
+            ))
             .wrap(),
         );
         Scope::insert_item(
             std_array_scope.clone(),
             std_array_truncate.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
-                std_array_truncate,
-            )))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(std_array_truncate),
+                false,
+            ))
             .wrap(),
         );
         Scope::insert_item(
             std_array_scope.clone(),
             std_array_pad.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(std_array_pad))).wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(std_array_pad),
+                false,
+            ))
+            .wrap(),
         );
 
         std_array_scope
@@ -309,9 +337,51 @@ impl BuiltInScope {
         Scope::insert_item(
             std_ff_scope.clone(),
             std_ff_invert.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(std_ff_invert))).wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(std_ff_invert),
+                false,
+            ))
+            .wrap(),
         );
 
         std_ff_scope
+    }
+
+    ///
+    /// Initializes the `std::assets` module scope.
+    ///
+    fn module_assets() -> Rc<RefCell<Scope>> {
+        let std_assets_scope = Scope::new_built_in("assets").wrap();
+
+        let std_assets_token_scope = Scope::new_built_in("Token").wrap();
+        let std_assets_token_transfer =
+            FunctionType::new_std(FunctionIdentifier::AssetsTokenTransfer);
+        Scope::insert_item(
+            std_assets_token_scope.clone(),
+            std_assets_token_transfer.identifier(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(std_assets_token_transfer),
+                true,
+            ))
+            .wrap(),
+        );
+        let std_assets_token = StructureType::new(
+            None,
+            std_assets_token_scope.borrow().name(),
+            BuiltInTypeId::StdAssetsToken as usize,
+            vec![],
+            Some(std_assets_token_scope.clone()),
+        );
+        Scope::insert_item(
+            std_assets_scope.clone(),
+            std_assets_token_scope.borrow().name(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Structure(std_assets_token),
+                false,
+            ))
+            .wrap(),
+        );
+
+        std_assets_scope
     }
 }

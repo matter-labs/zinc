@@ -1,32 +1,32 @@
-//# { "cases": [ {
-//#     "case": "one",
-//#     "input": {
-//#         "gates": [true, false, false],
-//#         "mutated": "5"
-//#     },
-//#     "expect": "25"
-//# }, {
-//#     "case": "two",
-//#     "input": {
-//#         "gates": [false, true, true],
-//#         "mutated": "5"
-//#     },
-//#     "expect": "50"
-//# }, {
-//#     "case": "three",
-//#     "input": {
-//#         "gates": [false, true, false],
-//#         "mutated": "5"
-//#     },
-//#     "expect": "75"
-//# }, {
-//#     "case": "four",
-//#     "input": {
-//#         "gates": [false, false, false],
-//#         "mutated": "5"
-//#     },
-//#     "expect": "100"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "one",
+//!     "input": {
+//!         "gates": [true, false, false],
+//!         "mutated": "5"
+//!     },
+//!     "output": "25"
+//! }, {
+//!     "case": "two",
+//!     "input": {
+//!         "gates": [false, true, true],
+//!         "mutated": "5"
+//!     },
+//!     "output": "50"
+//! }, {
+//!     "case": "three",
+//!     "input": {
+//!         "gates": [false, true, false],
+//!         "mutated": "5"
+//!     },
+//!     "output": "75"
+//! }, {
+//!     "case": "four",
+//!     "input": {
+//!         "gates": [false, false, false],
+//!         "mutated": "5"
+//!     },
+//!     "output": "100"
+//! } ] }
 
 fn main(gates: [bool; 3], mut mutated: u8) -> u8 {
     if gates[0] {

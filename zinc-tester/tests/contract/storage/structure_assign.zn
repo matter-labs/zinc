@@ -1,0 +1,27 @@
+//! { "cases": [ {
+//!     "case": "default",
+//!     "method": "main",
+//!     "input": {
+//!         "arg": "42"
+//!     },
+//!     "output": {
+//!         "$result": "126",
+//!         "$root_hash": "0xbbae19413c2a34f457f3577c8e3607c7d65ff53c368e1aa0e8d37566a45ef5"
+//!     }
+//! } ] }
+
+struct Data {
+    value: u8,
+}
+
+contract Test {
+    data: Data;
+
+    const TEST: u8 = 42;
+
+    pub fn main(mut self, arg: u8) -> u8 {
+        self.data.value = arg;
+
+        arg + Self::TEST + self.data.value
+    }
+}

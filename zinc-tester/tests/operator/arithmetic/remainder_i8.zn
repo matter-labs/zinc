@@ -1,130 +1,130 @@
-//# { "cases": [ {
-//#     "case": "zero_by_zero", "should_panic": true,
-//#     "input": {
-//#         "a": "0",
-//#         "b": "0"
-//#     },
-//#     "expect": null
-//# }, {
-//#     "case": "ordinar_by_zero", "should_panic": true,
-//#     "input": {
-//#         "a": "42",
-//#         "b": "0"
-//#     },
-//#     "expect": null
-//# }, {
-//#     "case": "min_by_zero", "should_panic": true,
-//#     "input": {
-//#         "a": "-128",
-//#         "b": "0"
-//#     },
-//#     "expect": null
-//# }, {
-//#     "case": "max_by_zero", "should_panic": true,
-//#     "input": {
-//#         "a": "127",
-//#         "b": "0"
-//#     },
-//#     "expect": null
-//# }, {
-//#     "case": "zero_positive",
-//#     "input": {
-//#         "a": "42",
-//#         "b": "7"
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "zero_negative_divided",
-//#     "input": {
-//#         "a": "-42",
-//#         "b": "7"
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "zero_negative_divider",
-//#     "input": {
-//#         "a": "42",
-//#         "b": "-7"
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "zero_negative_both",
-//#     "input": {
-//#         "a": "-42",
-//#         "b": "-7"
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "ordinar_remainder_positive",
-//#     "input": {
-//#         "a": "45",
-//#         "b": "7"
-//#     },
-//#     "expect": "3"
-//# }, {
-//#     "case": "ordinar_remainder_negative_divided",
-//#     "input": {
-//#         "a": "-45",
-//#         "b": "7"
-//#     },
-//#     "expect": "4"
-//# }, {
-//#     "case": "ordinar_remainder_negative_divider",
-//#     "input": {
-//#         "a": "45",
-//#         "b": "-7"
-//#     },
-//#     "expect": "3"
-//# }, {
-//#     "case": "ordinar_remainder_negative_both",
-//#     "input": {
-//#         "a": "-45",
-//#         "b": "-7"
-//#     },
-//#     "expect": "4"
-//# }, {
-//#     "case": "ordinar_remainder_max",
-//#     "input": {
-//#         "a": "48",
-//#         "b": "7"
-//#     },
-//#     "expect": "6"
-//# }, {
-//#     "case": "ordinar_next",
-//#     "input": {
-//#         "a": "49",
-//#         "b": "7"
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "min_to_min",
-//#     "input": {
-//#         "a": "-128",
-//#         "b": "-128"
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "max_to_min",
-//#     "input": {
-//#         "a": "127",
-//#         "b": "127"
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "max_to_max",
-//#     "input": {
-//#         "a": "127",
-//#         "b": "64"
-//#     },
-//#     "expect": "63"
-//# }, {
-//#     "case": "min_to_max",
-//#     "input": {
-//#         "a": "-128",
-//#         "b": "63"
-//#     },
-//#     "expect": "61"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "zero_by_zero", "should_panic": true,
+//!     "input": {
+//!         "a": "0",
+//!         "b": "0"
+//!     },
+//!     "output": null
+//! }, {
+//!     "case": "ordinar_by_zero", "should_panic": true,
+//!     "input": {
+//!         "a": "42",
+//!         "b": "0"
+//!     },
+//!     "output": null
+//! }, {
+//!     "case": "min_by_zero", "should_panic": true,
+//!     "input": {
+//!         "a": "-128",
+//!         "b": "0"
+//!     },
+//!     "output": null
+//! }, {
+//!     "case": "max_by_zero", "should_panic": true,
+//!     "input": {
+//!         "a": "127",
+//!         "b": "0"
+//!     },
+//!     "output": null
+//! }, {
+//!     "case": "zero_positive",
+//!     "input": {
+//!         "a": "42",
+//!         "b": "7"
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "zero_negative_divided",
+//!     "input": {
+//!         "a": "-42",
+//!         "b": "7"
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "zero_negative_divider",
+//!     "input": {
+//!         "a": "42",
+//!         "b": "-7"
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "zero_negative_both",
+//!     "input": {
+//!         "a": "-42",
+//!         "b": "-7"
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "ordinar_remainder_positive",
+//!     "input": {
+//!         "a": "45",
+//!         "b": "7"
+//!     },
+//!     "output": "3"
+//! }, {
+//!     "case": "ordinar_remainder_negative_divided",
+//!     "input": {
+//!         "a": "-45",
+//!         "b": "7"
+//!     },
+//!     "output": "4"
+//! }, {
+//!     "case": "ordinar_remainder_negative_divider",
+//!     "input": {
+//!         "a": "45",
+//!         "b": "-7"
+//!     },
+//!     "output": "3"
+//! }, {
+//!     "case": "ordinar_remainder_negative_both",
+//!     "input": {
+//!         "a": "-45",
+//!         "b": "-7"
+//!     },
+//!     "output": "4"
+//! }, {
+//!     "case": "ordinar_remainder_max",
+//!     "input": {
+//!         "a": "48",
+//!         "b": "7"
+//!     },
+//!     "output": "6"
+//! }, {
+//!     "case": "ordinar_next",
+//!     "input": {
+//!         "a": "49",
+//!         "b": "7"
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "min_to_min",
+//!     "input": {
+//!         "a": "-128",
+//!         "b": "-128"
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "max_to_min",
+//!     "input": {
+//!         "a": "127",
+//!         "b": "127"
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "max_to_max",
+//!     "input": {
+//!         "a": "127",
+//!         "b": "64"
+//!     },
+//!     "output": "63"
+//! }, {
+//!     "case": "min_to_max",
+//!     "input": {
+//!         "a": "-128",
+//!         "b": "63"
+//!     },
+//!     "output": "61"
+//! } ] }
 
 fn main(a: i8, b: i8) -> i8 {
     a % b

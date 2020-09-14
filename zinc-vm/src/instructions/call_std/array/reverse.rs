@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use crate::core::execution_state::evaluation_stack::EvaluationStack;
+use crate::core::execution_state::ExecutionState;
 use crate::error::RuntimeError;
 use crate::instructions::call_std::INativeCallable;
 use crate::IEngine;
@@ -25,17 +25,17 @@ impl<E: IEngine> INativeCallable<E> for Reverse {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         _cs: CS,
-        stack: &mut EvaluationStack<E>,
+        state: &mut ExecutionState<E>,
     ) -> Result<(), RuntimeError> {
         let mut array = Vec::with_capacity(self.array_length);
 
         for _ in 0..self.array_length {
-            let value = stack.pop()?;
+            let value = state.evaluation_stack.pop()?;
             array.push(value);
         }
 
         for value in array {
-            stack.push(value)?;
+            state.evaluation_stack.push(value)?;
         }
 
         Ok(())

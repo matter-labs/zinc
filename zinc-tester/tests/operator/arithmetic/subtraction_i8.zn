@@ -1,46 +1,46 @@
-//# { "cases": [ {
-//#     "case": "zero_zero",
-//#     "input": {
-//#         "a": "0",
-//#         "b": "0"
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "ordinar",
-//#     "input": {
-//#         "a": "42",
-//#         "b": "64"
-//#     },
-//#     "expect": "-22"
-//# }, {
-//#     "case": "to_min",
-//#     "input": {
-//#         "a": "-1",
-//#         "b": "127"
-//#     },
-//#     "expect": "-128"
-//# }, {
-//#     "case": "to_max",
-//#     "input": {
-//#         "a": "127",
-//#         "b": "0"
-//#     },
-//#     "expect": "127"
-//# }, {
-//#     "case": "overflow", "should_panic": true,
-//#     "input": {
-//#         "a": "-50",
-//#         "b": "100"
-//#     },
-//#     "expect": null
-//# }, {
-//#     "case": "overflow_minimal", "should_panic": true,
-//#     "input": {
-//#         "a": "-128",
-//#         "b": "1"
-//#     },
-//#     "expect": null
-//# } ] }
+//! { "cases": [ {
+//!     "case": "zero_zero",
+//!     "input": {
+//!         "a": "0",
+//!         "b": "0"
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "ordinar",
+//!     "input": {
+//!         "a": "42",
+//!         "b": "64"
+//!     },
+//!     "output": "-22"
+//! }, {
+//!     "case": "to_min",
+//!     "input": {
+//!         "a": "-1",
+//!         "b": "127"
+//!     },
+//!     "output": "-128"
+//! }, {
+//!     "case": "to_max",
+//!     "input": {
+//!         "a": "127",
+//!         "b": "0"
+//!     },
+//!     "output": "127"
+//! }, {
+//!     "case": "overflow", "should_panic": true,
+//!     "input": {
+//!         "a": "-50",
+//!         "b": "100"
+//!     },
+//!     "output": null
+//! }, {
+//!     "case": "overflow_minimal", "should_panic": true,
+//!     "input": {
+//!         "a": "-128",
+//!         "b": "1"
+//!     },
+//!     "output": null
+//! } ] }
 
 fn main(a: i8, b: i8) -> i8 {
     a - b

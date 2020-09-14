@@ -3,6 +3,7 @@
 //!
 
 pub mod facade;
+pub mod output;
 pub mod synthesizer;
 
 use colored::Colorize;
@@ -38,7 +39,7 @@ where
     CS: ConstraintSystem<E>,
 {
     counter: NamespaceCounter<E, CS>,
-    state: ExecutionState<E>,
+    execution_state: ExecutionState<E>,
     outputs: Vec<Scalar<E>>,
 
     pub(crate) debugging: bool,
@@ -53,7 +54,7 @@ where
     pub fn new(cs: CS, debugging: bool) -> Self {
         Self {
             counter: NamespaceCounter::new(cs),
-            state: ExecutionState::new(),
+            execution_state: ExecutionState::new(),
             outputs: vec![],
 
             debugging,
@@ -82,7 +83,9 @@ where
         self.condition_push(one)?;
 
         let input_size = circuit.input.size();
-        self.state.frames_stack.push(Frame::new(0, std::usize::MAX));
+        self.execution_state
+            .frames_stack
+            .push(Frame::new(0, std::usize::MAX));
         self.init_root_frame(circuit.input, inputs)?;
         if let Err(error) = zinc_build::Call::new(circuit.address, input_size)
             .execute(self)
@@ -93,14 +96,18 @@ where
         }
 
         let mut step = 0;
-        while self.state.instruction_counter < circuit.instructions.len() {
-            let namespace = format!("step={}, addr={}", step, self.state.instruction_counter);
+        while self.execution_state.instruction_counter < circuit.instructions.len() {
+            let namespace = format!(
+                "step={}, addr={}",
+                step, self.execution_state.instruction_counter
+            );
             self.counter.cs.push_namespace(|| namespace);
-            let instruction = circuit.instructions[self.state.instruction_counter].clone();
+            let instruction =
+                circuit.instructions[self.execution_state.instruction_counter].clone();
 
             let log_message = format!(
                 "{}:{} > {}",
-                step, self.state.instruction_counter, instruction,
+                step, self.execution_state.instruction_counter, instruction,
             );
             if instruction.is_debug() {
                 log::trace!("{}", log_message);
@@ -108,13 +115,13 @@ where
                 log::debug!("{}", log_message);
             }
 
-            self.state.instruction_counter += 1;
+            self.execution_state.instruction_counter += 1;
             if let Err(error) = instruction.execute(self).and(check_cs(&self.counter.cs)) {
                 log::error!("{}\nat {}", error, self.location.to_string().blue());
                 return Err(error);
             }
 
-            log::trace!("{}", self.state);
+            log::trace!("{}", self.execution_state);
             instruction_callback(&self.counter.cs);
             self.counter.cs.pop_namespace();
             step += 1;
@@ -157,19 +164,19 @@ where
     }
 
     pub fn condition_push(&mut self, element: Scalar<E>) -> Result<(), RuntimeError> {
-        self.state.conditions_stack.push(element);
+        self.execution_state.conditions_stack.push(element);
         Ok(())
     }
 
     pub fn condition_pop(&mut self) -> Result<Scalar<E>, RuntimeError> {
-        self.state
+        self.execution_state
             .conditions_stack
             .pop()
             .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 
     fn top_frame(&mut self) -> Result<&mut Frame<E>, RuntimeError> {
-        self.state
+        self.execution_state
             .frames_stack
             .last_mut()
             .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
@@ -185,16 +192,16 @@ where
     type CS = CS;
 
     fn push(&mut self, cell: Cell<E>) -> Result<(), RuntimeError> {
-        self.state.evaluation_stack.push(cell)
+        self.execution_state.evaluation_stack.push(cell)
     }
 
     fn pop(&mut self) -> Result<Cell<E>, RuntimeError> {
-        self.state.evaluation_stack.pop()
+        self.execution_state.evaluation_stack.pop()
     }
 
     fn load(&mut self, address: usize) -> Result<Cell<E>, RuntimeError> {
         let frame_start = self.top_frame()?.stack_frame_start;
-        self.state.data_stack.get(frame_start + address)
+        self.execution_state.data_stack.get(frame_start + address)
     }
 
     fn store(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError> {
@@ -204,7 +211,9 @@ where
 
         let frame_start = frame.stack_frame_start;
 
-        self.state.data_stack.set(frame_start + address, cell)
+        self.execution_state
+            .data_stack
+            .set(frame_start + address, cell)
     }
 
     fn storage_load(
@@ -225,13 +234,13 @@ where
 
     fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
         let frame = self
-            .state
+            .execution_state
             .frames_stack
             .last_mut()
             .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
 
         frame.blocks.push(Block::Loop(Loop {
-            first_instruction_index: self.state.instruction_counter,
+            first_instruction_index: self.execution_state.instruction_counter,
             iterations_left: iterations - 1,
         }));
 
@@ -240,7 +249,7 @@ where
 
     fn loop_end(&mut self) -> Result<(), RuntimeError> {
         let frame = self
-            .state
+            .execution_state
             .frames_stack
             .last_mut()
             .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
@@ -249,7 +258,7 @@ where
             Some(Block::Loop(mut loop_block)) => {
                 if loop_block.iterations_left != 0 {
                     loop_block.iterations_left -= 1;
-                    self.state.instruction_counter = loop_block.first_instruction_index;
+                    self.execution_state.instruction_counter = loop_block.first_instruction_index;
                     frame.blocks.push(Block::Loop(loop_block));
                 }
                 Ok(())
@@ -260,16 +269,16 @@ where
 
     fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError> {
         let offset = self.top_frame()?.stack_frame_end;
-        self.state
+        self.execution_state
             .frames_stack
-            .push(Frame::new(offset, self.state.instruction_counter));
+            .push(Frame::new(offset, self.execution_state.instruction_counter));
 
         for i in 0..inputs_count {
             let arg = self.pop()?;
             self.store(inputs_count - i - 1, arg)?;
         }
 
-        self.state.instruction_counter = address;
+        self.execution_state.instruction_counter = address;
         Ok(())
     }
 
@@ -281,12 +290,12 @@ where
         }
 
         let frame = self
-            .state
+            .execution_state
             .frames_stack
             .pop()
             .ok_or(MalformedBytecode::StackUnderflow)?;
 
-        self.state.instruction_counter = frame.return_address;
+        self.execution_state.instruction_counter = frame.return_address;
 
         for p in outputs.into_iter().rev() {
             self.push(p)?;
@@ -302,7 +311,7 @@ where
 
         let cs = self.constraint_system();
         let next = gadgets::logical::and::and(cs.namespace(|| "branch"), &condition, &prev)?;
-        self.state.conditions_stack.push(next);
+        self.execution_state.conditions_stack.push(next);
 
         let branch = Branch {
             condition,
@@ -311,15 +320,15 @@ where
 
         self.top_frame()?.blocks.push(Block::Branch(branch));
 
-        self.state.evaluation_stack.fork();
-        self.state.data_stack.fork();
+        self.execution_state.evaluation_stack.fork();
+        self.execution_state.data_stack.fork();
 
         Ok(())
     }
 
     fn branch_else(&mut self) -> Result<(), RuntimeError> {
         let frame = self
-            .state
+            .execution_state
             .frames_stack
             .last_mut()
             .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
@@ -348,8 +357,8 @@ where
         let next = gadgets::logical::and::and(cs.namespace(|| "and"), &prev, &not_cond)?;
         self.condition_push(next)?;
 
-        self.state.data_stack.switch_branch()?;
-        self.state.evaluation_stack.fork();
+        self.execution_state.data_stack.switch_branch()?;
+        self.execution_state.evaluation_stack.fork();
 
         Ok(())
     }
@@ -358,7 +367,7 @@ where
         self.condition_pop()?;
 
         let frame = self
-            .state
+            .execution_state
             .frames_stack
             .last_mut()
             .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
@@ -369,14 +378,14 @@ where
         }?;
 
         if branch.is_else {
-            self.state
+            self.execution_state
                 .evaluation_stack
                 .merge(self.counter.next(), &branch.condition)?;
         } else {
-            self.state.evaluation_stack.revert()?;
+            self.execution_state.evaluation_stack.revert()?;
         }
 
-        self.state
+        self.execution_state
             .data_stack
             .merge(self.counter.next(), branch.condition)?;
 
@@ -390,19 +399,19 @@ where
         }
         self.outputs.reverse();
 
-        self.state.instruction_counter = std::usize::MAX;
+        self.execution_state.instruction_counter = std::usize::MAX;
         Ok(())
     }
 
     fn call_native<F: INativeCallable<E>>(&mut self, function: F) -> Result<(), RuntimeError> {
-        let stack = &mut self.state.evaluation_stack;
+        let state = &mut self.execution_state;
         let cs = &mut self.counter.cs;
 
-        function.call(cs.namespace(|| "native function"), stack)
+        function.call(cs.namespace(|| "native function"), state)
     }
 
     fn condition_top(&mut self) -> Result<Scalar<E>, RuntimeError> {
-        self.state
+        self.execution_state
             .conditions_stack
             .last()
             .map(|e| (*e).clone())

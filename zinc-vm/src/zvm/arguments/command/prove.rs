@@ -78,7 +78,9 @@ impl IExecutable for Command {
             BuildProgram::Circuit(circuit) => {
                 let input_type = circuit.input.clone();
                 let input_values = BuildValue::try_from_typed_json(input_json, input_type)?;
-                CircuitFacade::new(circuit).prove::<Bn256>(params, input_values)?
+                CircuitFacade::new(circuit)
+                    .prove::<Bn256>(params, input_values)
+                    .map(|(result, proof)| (result, proof))?
             }
             BuildProgram::Contract(contract) => {
                 let storage_path = match self.storage.take() {
@@ -110,12 +112,14 @@ impl IExecutable for Command {
                     },
                 )?;
                 let input_values = BuildValue::try_from_typed_json(input_json, method.input)?;
-                ContractFacade::new(contract).prove::<Bn256>(
-                    params,
-                    input_values,
-                    BuildValue::Contract(storage_values),
-                    method_name,
-                )?
+                ContractFacade::new(contract)
+                    .prove::<Bn256>(
+                        params,
+                        input_values,
+                        BuildValue::Contract(storage_values),
+                        method_name,
+                    )
+                    .map(|(result, proof)| (result, proof))?
             }
         };
 
@@ -128,7 +132,6 @@ impl IExecutable for Command {
         // Write proof to stdout
         let mut proof_bytes = Vec::new();
         proof.write(&mut proof_bytes).expect("writing to vec");
-
         let proof_hex = hex::encode(proof_bytes);
         println!("{}", proof_hex);
 

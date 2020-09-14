@@ -9,6 +9,7 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::process;
+use std::thread;
 
 use zinc_build::Bytes;
 use zinc_compiler::Source;
@@ -39,8 +40,20 @@ fn main_inner() -> Result<(), Error> {
 
     zinc_utils::initialize_logger(zinc_const::app_name::ZINC_COMPILER, args.verbosity);
 
-    let state = Source::try_from_entry(&args.source_directory_path)?.compile(args.name)?;
-    let bytes = State::unwrap_rc(state).into_bytes(args.optimize_dead_function_elimination);
+    let source_directory_path = args.source_directory_path;
+    let project_name = args.name;
+    let optimize_dead_function_elimination = args.optimize_dead_function_elimination;
+    let bytes = thread::Builder::new()
+        .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
+        .spawn(move || -> Result<Bytes, Error> {
+            let source = Source::try_from_entry(&source_directory_path)?;
+            let state = source.compile(project_name)?;
+            let bytes = State::unwrap_rc(state).into_bytes(optimize_dead_function_elimination);
+            Ok(bytes)
+        })
+        .expect(zinc_const::panic::MULTI_THREADING)
+        .join()
+        .expect(zinc_const::panic::MULTI_THREADING)?;
 
     let mut build_directory_path = args.binary_path.clone();
     build_directory_path.pop();

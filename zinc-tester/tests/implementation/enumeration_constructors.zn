@@ -1,22 +1,22 @@
-//# { "cases": [ {
-//#     "case": "first",
-//#     "input": {
-//#         "witness": "5"
-//#     },
-//#     "expect": "30"
-//# }, {
-//#     "case": "second",
-//#     "input": {
-//#         "witness": "100"
-//#     },
-//#     "expect": "600"
-//# }, {
-//#     "case": "third",
-//#     "input": {
-//#         "witness": "0x139370108f4b5e5b5316e1"
-//#     },
-//#     "expect": "0x7574a0635bc43623f28946"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "first",
+//!     "input": {
+//!         "witness": "5"
+//!     },
+//!     "output": "30"
+//! }, {
+//!     "case": "second",
+//!     "input": {
+//!         "witness": "100"
+//!     },
+//!     "output": "600"
+//! }, {
+//!     "case": "third",
+//!     "input": {
+//!         "witness": "0x139370108f4b5e5b5316e1"
+//!     },
+//!     "output": "0x7574a0635bc43623f28946"
+//! } ] }
 
 enum List {
     FIRST = 1,
@@ -39,5 +39,5 @@ impl List {
 }
 
 fn main(witness: field) -> field {
-    (List::first() + List::second() + List::third()) as field * witness
+    (List::first() as field + List::second() as field + List::third() as field) * witness
 }

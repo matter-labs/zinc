@@ -44,6 +44,10 @@ impl Index {
             "structure std::crypto::schnorr::Signature".to_owned(),
             BuiltInTypeId::StdCryptoSchnorrSignature as usize,
         );
+        index.next_with_id(
+            "structure std::assets::Token".to_owned(),
+            BuiltInTypeId::StdAssetsToken as usize,
+        );
         index
     }
 
@@ -54,7 +58,7 @@ impl Index {
         let type_id = self
             .inner
             .write()
-            .expect(zinc_const::panic::MUTEX_SYNC)
+            .expect(zinc_const::panic::MULTI_THREADING)
             .len();
 
         self.next_with_id(title, type_id)
@@ -64,7 +68,10 @@ impl Index {
     /// Add the item `title` to the index with the specified `type_id` key.
     ///
     fn next_with_id(&self, title: String, type_id: usize) -> usize {
-        let mut index = self.inner.write().expect(zinc_const::panic::MUTEX_SYNC);
+        let mut index = self
+            .inner
+            .write()
+            .expect(zinc_const::panic::MULTI_THREADING);
 
         log::debug!("Type ID {:06} for {}", type_id, title);
 

@@ -13,6 +13,3 @@ pub static BINARY: &str = "znb";
 
 /// The JSON data file extension.
 pub static JSON: &str = "json";
-
-/// The verifying_key file extension.
-pub static VERIFYING_KEY: &str = "txt";

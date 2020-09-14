@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "witness": "25"
-//#     },
-//#     "expect": "33"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "witness": "25"
+//!     },
+//!     "output": "33"
+//! } ] }
 
 struct Data {
     value: u8,

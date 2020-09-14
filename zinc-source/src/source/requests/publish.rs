@@ -55,14 +55,14 @@ pub struct Body {
     /// The JSON constructor input.
     pub arguments: JsonValue,
     /// The verifying key.
-    pub verifying_key: String,
+    pub verifying_key: Vec<u8>,
 }
 
 impl Body {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(source: Source, arguments: JsonValue, verifying_key: String) -> Self {
+    pub fn new(source: Source, arguments: JsonValue, verifying_key: Vec<u8>) -> Self {
         Self {
             source,
             arguments,

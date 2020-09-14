@@ -1,39 +1,39 @@
-//# { "cases": [ {
-//#     "case": "zero_zero",
-//#     "input": {
-//#         "a": "0",
-//#         "b": "0"
-//#     },
-//#     "expect": true
-//# }, {
-//#     "case": "ordinar_false_lesser",
-//#     "input": {
-//#         "a": "25",
-//#         "b": "45"
-//#     },
-//#     "expect": false
-//# }, {
-//#     "case": "ordinar_true_bigger",
-//#     "input": {
-//#         "a": "42",
-//#         "b": "25"
-//#     },
-//#     "expect": true
-//# }, {
-//#     "case": "ordinar_true",
-//#     "input": {
-//#         "a": "42",
-//#         "b": "42"
-//#     },
-//#     "expect": true
-//# }, {
-//#     "case": "max_max",
-//#     "input": {
-//#         "a": "255",
-//#         "b": "255"
-//#     },
-//#     "expect": true
-//# } ] }
+//! { "cases": [ {
+//!     "case": "zero_zero",
+//!     "input": {
+//!         "a": "0",
+//!         "b": "0"
+//!     },
+//!     "output": true
+//! }, {
+//!     "case": "ordinar_false_lesser",
+//!     "input": {
+//!         "a": "25",
+//!         "b": "45"
+//!     },
+//!     "output": false
+//! }, {
+//!     "case": "ordinar_true_bigger",
+//!     "input": {
+//!         "a": "42",
+//!         "b": "25"
+//!     },
+//!     "output": true
+//! }, {
+//!     "case": "ordinar_true",
+//!     "input": {
+//!         "a": "42",
+//!         "b": "42"
+//!     },
+//!     "output": true
+//! }, {
+//!     "case": "max_max",
+//!     "input": {
+//!         "a": "255",
+//!         "b": "255"
+//!     },
+//!     "output": true
+//! } ] }
 
 fn main(a: u8, b: u8) -> bool {
     a >= b

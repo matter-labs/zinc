@@ -56,7 +56,7 @@ impl Analyzer {
                 FunctionLocalStatement::Const(statement) => {
                     let identifier = statement.identifier.clone();
                     let constant = ConstStatementAnalyzer::define(scope_stack.top(), statement)?;
-                    Scope::define_constant(scope_stack.top(), identifier, constant)?;
+                    Scope::define_constant(scope_stack.top(), identifier, constant, false)?;
                     None
                 }
                 FunctionLocalStatement::For(statement) => Some(GeneratorStatement::For(

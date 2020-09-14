@@ -1,28 +1,28 @@
-//# { "cases": [ {
-//#     "case": "first",
-//#     "input": {
-//#         "witness": "1"
-//#     },
-//#     "expect": "10"
-//# }, {
-//#     "case": "second",
-//#     "input": {
-//#         "witness": "2"
-//#     },
-//#     "expect": "20"
-//# }, {
-//#     "case": "third",
-//#     "input": {
-//#         "witness": "255"
-//#     },
-//#     "expect": "64"
-//# }, {
-//#     "case": "another",
-//#     "input": {
-//#         "witness": "0"
-//#     },
-//#     "expect": "42"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "first",
+//!     "input": {
+//!         "witness": "1"
+//!     },
+//!     "output": "10"
+//! }, {
+//!     "case": "second",
+//!     "input": {
+//!         "witness": "2"
+//!     },
+//!     "output": "20"
+//! }, {
+//!     "case": "third",
+//!     "input": {
+//!         "witness": "255"
+//!     },
+//!     "output": "64"
+//! }, {
+//!     "case": "another",
+//!     "input": {
+//!         "witness": "0"
+//!     },
+//!     "output": "42"
+//! } ] }
 
 fn main(witness: u8) -> u8 {
     match witness {

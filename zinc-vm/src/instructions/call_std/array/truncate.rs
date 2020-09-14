@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use crate::core::execution_state::evaluation_stack::EvaluationStack;
+use crate::core::execution_state::ExecutionState;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
 use crate::instructions::call_std::INativeCallable;
@@ -32,9 +32,13 @@ impl<E: IEngine> INativeCallable<E> for Truncate {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         _cs: CS,
-        stack: &mut EvaluationStack<E>,
+        state: &mut ExecutionState<E>,
     ) -> Result<(), RuntimeError> {
-        let new_length = stack.pop()?.try_into_value()?.get_constant_usize()?;
+        let new_length = state
+            .evaluation_stack
+            .pop()?
+            .try_into_value()?
+            .get_constant_usize()?;
 
         if new_length > self.array_length {
             return Err(MalformedBytecode::InvalidArguments(
@@ -44,7 +48,7 @@ impl<E: IEngine> INativeCallable<E> for Truncate {
         }
 
         for _ in 0..(self.array_length - new_length) {
-            stack.pop()?;
+            state.evaluation_stack.pop()?;
         }
 
         Ok(())

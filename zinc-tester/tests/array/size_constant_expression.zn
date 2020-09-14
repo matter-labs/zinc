@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "value": "42"
-//#     },
-//#     "expect": "50"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "value": "42"
+//!     },
+//!     "output": "50"
+//! } ] }
 
 const SIZE_HALVED: u8 = 2;
 

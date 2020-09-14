@@ -1,22 +1,22 @@
-//# { "cases": [ {
-//#     "case": "first",
-//#     "input": {
-//#         "witness": "42"
-//#     },
-//#     "expect": "1008"
-//# }, {
-//#     "case": "second",
-//#     "input": {
-//#         "witness": "64"
-//#     },
-//#     "expect": "1536"
-//# }, {
-//#     "case": "third",
-//#     "input": {
-//#         "witness": "1000000"
-//#     },
-//#     "expect": "24000000"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "first",
+//!     "input": {
+//!         "witness": "42"
+//!     },
+//!     "output": "1008"
+//! }, {
+//!     "case": "second",
+//!     "input": {
+//!         "witness": "64"
+//!     },
+//!     "output": "1536"
+//! }, {
+//!     "case": "third",
+//!     "input": {
+//!         "witness": "1000000"
+//!     },
+//!     "output": "24000000"
+//! } ] }
 
 struct Data {
     a: field,

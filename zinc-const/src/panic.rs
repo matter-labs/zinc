@@ -2,8 +2,11 @@
 //! The Zinc panic constant messages.
 //!
 
-/// The mutex locking panic message.
-pub static MUTEX_SYNC: &str = "Mutexes never panic";
+/// The threading bug panic message.
+pub static MULTI_THREADING: &str = "Multi-threading behavior is always valid";
+
+/// The `rayon` thread pool initialization panic. Should always be successful.
+pub static RAYON_POOL_INITIALIZATION: &str = "The thread pool is initialized only once";
 
 /// The serialization is always valid, as all the types are known at compile-time.
 pub static DATA_SERIALIZATION: &str = "JSON serialization never panicks: ";
@@ -38,3 +41,6 @@ pub static VALIDATED_DURING_TARGET_CODE_GENERATION: &str =
 
 /// The virtual machine runtime execution responsibility.
 pub static VALIDATED_DURING_RUNTIME_EXECUTION: &str = "Validated during runtime execution";
+
+/// The Zandbox database integrity responsibility.
+pub static VALIDATED_DURING_DATABASE_POPULATION: &str = "Validated during database population";

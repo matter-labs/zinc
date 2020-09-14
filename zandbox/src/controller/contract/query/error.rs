@@ -17,6 +17,7 @@ use zinc_vm::RuntimeError;
 pub enum Error {
     ContractNotFound,
     MethodNotFound,
+    MethodArgumentsNotFound,
     MethodIsMutable,
     InvalidInput(BuildValueError),
     InvalidStorage(BuildValueError),
@@ -30,6 +31,7 @@ impl ResponseError for Error {
         match self {
             Self::ContractNotFound => StatusCode::NOT_FOUND,
             Self::MethodNotFound => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::MethodArgumentsNotFound => StatusCode::UNPROCESSABLE_ENTITY,
             Self::MethodIsMutable => StatusCode::BAD_REQUEST,
             Self::InvalidInput(_) => StatusCode::BAD_REQUEST,
             Self::InvalidStorage(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -54,6 +56,7 @@ impl fmt::Display for Error {
         match self {
             Self::ContractNotFound => write!(f, "Contract not found"),
             Self::MethodNotFound => write!(f, "Method not found"),
+            Self::MethodArgumentsNotFound => write!(f, "Method input arguments not found"),
             Self::MethodIsMutable => write!(f, "Method is mutable: use 'call' instead"),
             Self::InvalidInput(inner) => write!(f, "Input: {}", inner),
             Self::InvalidStorage(inner) => write!(f, "Contract storage is invalid: {}", inner),

@@ -1,22 +1,22 @@
-//# { "cases": [ {
-//#     "case": "min",
-//#     "input": {
-//#         "value": "-32768"
-//#     },
-//#     "expect": [
-//#         true, false, false, false, false, false, false, false,
-//#         false, false, false, false, false, false, false, false 
-//#     ]
-//# }, {
-//#     "case": "max",
-//#     "input": {
-//#         "value": "32767"
-//#     },
-//#     "expect": [
-//#         false, true, true, true, true, true, true, true,
-//#         true, true, true, true, true, true, true, true
-//#     ]
-//# } ] }
+//! { "cases": [ {
+//!     "case": "min",
+//!     "input": {
+//!         "value": "-32768"
+//!     },
+//!     "output": [
+//!         true, false, false, false, false, false, false, false,
+//!         false, false, false, false, false, false, false, false
+//!     ]
+//! }, {
+//!     "case": "max",
+//!     "input": {
+//!         "value": "32767"
+//!     },
+//!     "output": [
+//!         false, true, true, true, true, true, true, true,
+//!         true, true, true, true, true, true, true, true
+//!     ]
+//! } ] }
 
 fn main(value: i16) -> [bool; 16] {
     std::convert::to_bits(value)

@@ -3,6 +3,7 @@
 //!
 
 pub mod array;
+pub mod assets;
 pub mod convert;
 pub mod crypto;
 pub mod ff;
@@ -12,7 +13,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use zinc_build::CallStd;
 use zinc_build::FunctionIdentifier;
 
-use crate::core::execution_state::evaluation_stack::EvaluationStack;
+use crate::core::execution_state::ExecutionState;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::instructions::IExecutable;
@@ -21,20 +22,21 @@ use crate::IEngine;
 use self::array::pad::Pad as ArrayPad;
 use self::array::reverse::Reverse as ArrayReverse;
 use self::array::truncate::Truncate as ArrayTruncate;
+use self::assets::token_transfer::Transfer as AssetsTokenTransfer;
 use self::convert::from_bits_field::FromBitsField as ConvertFromBitsField;
 use self::convert::from_bits_signed::FromBitsSigned as ConvertFromBitsSigned;
 use self::convert::from_bits_unsigned::FromBitsUnsigned as ConvertFromBitsUnsigned;
 use self::convert::to_bits::ToBits as ConvertToBits;
 use self::crypto::pedersen::Pedersen as CryptoPedersen;
-use self::crypto::schnorr::SchnorrSignatureVerify as CryptoSchnorrSignatureVerify;
+use self::crypto::schnorr_verify::SchnorrSignatureVerify as CryptoSchnorrSignatureVerify;
 use self::crypto::sha256::Sha256 as CryptoSha256;
-use self::ff::inverse::Inverse as FfInverse;
+use self::ff::invert::Inverse as FfInverse;
 
 pub trait INativeCallable<E: IEngine> {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         cs: CS,
-        stack: &mut EvaluationStack<E>,
+        state: &mut ExecutionState<E>,
     ) -> Result<(), RuntimeError>;
 }
 
@@ -65,6 +67,8 @@ impl<VM: IVirtualMachine> IExecutable<VM> for CallStd {
             FunctionIdentifier::ArrayPad => vm.call_native(ArrayPad::new(self.input_size)?),
 
             FunctionIdentifier::FieldInverse => vm.call_native(FfInverse),
+
+            FunctionIdentifier::AssetsTokenTransfer => vm.call_native(AssetsTokenTransfer),
         }
     }
 }

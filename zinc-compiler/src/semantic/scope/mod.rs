@@ -7,6 +7,7 @@ mod tests;
 pub mod builtin;
 pub mod error;
 pub mod item;
+pub mod memory_type;
 pub mod stack;
 
 use std::cell::RefCell;
@@ -29,12 +30,14 @@ use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 use self::builtin::BuiltInScope;
 use self::error::Error;
 use self::item::constant::Constant as ConstantItem;
+use self::item::field::Field as FieldItem;
 use self::item::module::Module as ModuleItem;
 use self::item::r#type::statement::Statement as TypeStatementVariant;
 use self::item::r#type::Type as TypeItem;
-use self::item::variable::memory_type::MemoryType;
 use self::item::variable::Variable as VariableItem;
+use self::item::variant::Variant as VariantItem;
 use self::item::Item;
+use self::memory_type::MemoryType;
 
 ///
 /// A scope consists of a hashmap of the declared items and a reference to its parent.
@@ -202,12 +205,46 @@ impl Scope {
     }
 
     ///
+    /// Defines a contract field.
+    ///
+    pub fn define_field(
+        scope: Rc<RefCell<Scope>>,
+        identifier: Identifier,
+        r#type: Type,
+        index: usize,
+    ) -> Result<(), SemanticError> {
+        if let Ok(item) = scope
+            .borrow()
+            .resolve_item(&identifier, !identifier.is_self())
+        {
+            return Err(SemanticError::Scope(Error::ItemRedeclared {
+                location: identifier.location,
+                name: identifier.name.clone(),
+                reference: item.borrow().location(),
+            }));
+        }
+
+        let name = identifier.name.clone();
+        let item = Item::Field(FieldItem::new(
+            identifier.location,
+            identifier.name,
+            r#type,
+            index,
+        ));
+
+        scope.borrow().items.borrow_mut().insert(name, item.wrap());
+
+        Ok(())
+    }
+
+    ///
     /// Declares a constant, saving the `const` statement to define itself later during the second
     /// pass or referencing for the first time.
     ///
     pub fn declare_constant(
         scope: Rc<RefCell<Scope>>,
         statement: ConstStatement,
+        is_associated: bool,
     ) -> Result<(), SemanticError> {
         if let Ok(item) = scope.borrow().resolve_item(&statement.identifier, true) {
             return Err(SemanticError::Scope(Error::ItemRedeclared {
@@ -222,6 +259,7 @@ impl Scope {
             statement.identifier.location,
             statement,
             scope.clone(),
+            is_associated,
         ));
 
         scope.borrow().items.borrow_mut().insert(name, item.wrap());
@@ -236,6 +274,7 @@ impl Scope {
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
         constant: Constant,
+        is_associated: bool,
     ) -> Result<(), SemanticError> {
         if let Ok(item) = scope.borrow().resolve_item(&identifier, true) {
             return Err(SemanticError::Scope(Error::ItemRedeclared {
@@ -246,7 +285,39 @@ impl Scope {
         }
 
         let name = identifier.name;
-        let item = Item::Constant(ConstantItem::new_defined(identifier.location, constant));
+        let item = Item::Constant(ConstantItem::new_defined(
+            identifier.location,
+            constant,
+            is_associated,
+        ));
+
+        scope.borrow().items.borrow_mut().insert(name, item.wrap());
+
+        Ok(())
+    }
+
+    ///
+    /// Defines an enumeration variant, which has been instantly evaluated.
+    ///
+    pub fn define_variant(
+        scope: Rc<RefCell<Scope>>,
+        identifier: Identifier,
+        constant: Constant,
+    ) -> Result<(), SemanticError> {
+        if let Ok(item) = scope.borrow().resolve_item(&identifier, false) {
+            return Err(SemanticError::Scope(Error::ItemRedeclared {
+                location: identifier.location,
+                name: identifier.name.clone(),
+                reference: item.borrow().location(),
+            }));
+        }
+
+        let name = identifier.name;
+        let item = Item::Variant(VariantItem::new(
+            identifier.location,
+            name.clone(),
+            constant,
+        ));
 
         scope.borrow().items.borrow_mut().insert(name, item.wrap());
 
@@ -260,6 +331,7 @@ impl Scope {
     pub fn declare_type(
         scope: Rc<RefCell<Scope>>,
         statement: TypeStatementVariant,
+        is_associated: bool,
     ) -> Result<(), SemanticError> {
         if let Ok(item) = scope.borrow().resolve_item(&statement.identifier(), true) {
             return Err(SemanticError::Scope(Error::ItemRedeclared {
@@ -274,6 +346,7 @@ impl Scope {
             Some(statement.location()),
             statement,
             scope.clone(),
+            is_associated,
         )?);
 
         scope.borrow().items.borrow_mut().insert(name, item.wrap());
@@ -288,6 +361,7 @@ impl Scope {
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
         r#type: Type,
+        is_associated: bool,
         intermediate: Option<GeneratorStatement>,
     ) -> Result<(), SemanticError> {
         if let Ok(item) = scope.borrow().resolve_item(&identifier, true) {
@@ -303,6 +377,7 @@ impl Scope {
             Some(identifier.location),
             r#type,
             false,
+            is_associated,
             intermediate,
         ));
 
@@ -325,7 +400,7 @@ impl Scope {
             }));
         }
 
-        Scope::declare_type(scope, TypeStatementVariant::Contract(statement))
+        Scope::declare_type(scope, TypeStatementVariant::Contract(statement), false)
     }
 
     ///
@@ -387,6 +462,18 @@ impl Scope {
     ///
     /// Resolves an item at the specified path by looking through modules and type scopes.
     ///
+    /// If the `path` consists of only one element, the path is resolved recursively, that is,
+    /// looking through the whole scope hierarchy up to the module level and global built-in scope.
+    ///
+    /// If the `path` consists if more than one element, the elements starting from the 2nd are
+    /// resolved non-recursively, that is, looking only at the first-level scope of the path element.
+    ///
+    /// Associated items are declared not in the namespace itself, but in the `Self` alias of it.
+    /// So, if a path element's position is greater than 1 and the element is a namespace,
+    /// the algorithm looks for the item in the `Self`-alias scope. It prevents the situation, when
+    /// an item can be accessed from within other implementation items (e.g. methods) without
+    /// specifying the `Self::` prefix.
+    ///
     pub fn resolve_path(
         scope: Rc<RefCell<Scope>>,
         path: &Path,
@@ -401,6 +488,13 @@ impl Scope {
                 .borrow()
                 .resolve_item(identifier, is_element_first)?;
 
+            if path.elements.len() == 1 && item.borrow().is_associated() {
+                return Err(SemanticError::Scope(Error::AssociatedItemWithoutOwner {
+                    location: path.location,
+                    name: path.to_string(),
+                }));
+            }
+
             if is_element_last {
                 return Ok(item);
             }
@@ -414,7 +508,7 @@ impl Scope {
                         Type::Structure(ref inner) => inner.scope.to_owned(),
                         Type::Contract(ref inner) => inner.scope.to_owned(),
                         _ => {
-                            return Err(SemanticError::Scope(Error::ItemNotNamespace {
+                            return Err(SemanticError::Scope(Error::ItemIsNotANamespace {
                                 location: identifier.location,
                                 name: identifier.name.to_owned(),
                             }))
@@ -422,7 +516,7 @@ impl Scope {
                     }
                 }
                 _ => {
-                    return Err(SemanticError::Scope(Error::ItemNotNamespace {
+                    return Err(SemanticError::Scope(Error::ItemIsNotANamespace {
                         location: identifier.location,
                         name: identifier.name.to_owned(),
                     }))
@@ -499,6 +593,13 @@ impl Scope {
             })
             .flatten()
             .collect()
+    }
+
+    ///
+    /// Returns the scope name.
+    ///
+    pub fn name(&self) -> String {
+        self.name.to_owned()
     }
 
     ///

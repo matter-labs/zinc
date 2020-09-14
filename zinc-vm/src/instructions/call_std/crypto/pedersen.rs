@@ -6,7 +6,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::pedersen_hash;
 use franklin_crypto::circuit::pedersen_hash::Personalization;
 
-use crate::core::execution_state::evaluation_stack::EvaluationStack;
+use crate::core::execution_state::ExecutionState;
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_std::INativeCallable;
@@ -26,11 +26,12 @@ impl<E: IEngine> INativeCallable<E> for Pedersen {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
-        stack: &mut EvaluationStack<E>,
+        state: &mut ExecutionState<E>,
     ) -> Result<(), RuntimeError> {
         let mut bits = Vec::new();
         for i in 0..self.message_length {
-            let bit = stack
+            let bit = state
+                .evaluation_stack
                 .pop()?
                 .try_into_value()?
                 .to_boolean(cs.namespace(|| format!("bit {}", i)))?;
@@ -46,8 +47,12 @@ impl<E: IEngine> INativeCallable<E> for Pedersen {
             E::jubjub_params(),
         )?;
 
-        stack.push(Scalar::from(digest.get_x()).into())?;
-        stack.push(Scalar::from(digest.get_y()).into())?;
+        state
+            .evaluation_stack
+            .push(Scalar::from(digest.get_x()).into())?;
+        state
+            .evaluation_stack
+            .push(Scalar::from(digest.get_y()).into())?;
 
         Ok(())
     }

@@ -1,37 +1,37 @@
-//# { "cases": [ {
-//#     "case": "min",
-//#     "input": {
-//#         "value": [
-//#             true, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false
-//#         ]
-//#     },
-//#     "expect": "-2147483648"
-//# }, {
-//#     "case": "zero",
-//#     "input": {
-//#         "value": [
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false,
-//#             false, false, false, false, false, false, false, false
-//#         ]
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "max",
-//#     "input": {
-//#         "value": [
-//#             false, true, true, true, true, true, true, true,
-//#             true, true, true, true, true, true, true, true,
-//#             true, true, true, true, true, true, true, true,
-//#             true, true, true, true, true, true, true, true
-//#         ]
-//#     },
-//#     "expect": "2147483647"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "min",
+//!     "input": {
+//!         "value": [
+//!             true, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false
+//!         ]
+//!     },
+//!     "output": "-2147483648"
+//! }, {
+//!     "case": "zero",
+//!     "input": {
+//!         "value": [
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false,
+//!             false, false, false, false, false, false, false, false
+//!         ]
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "max",
+//!     "input": {
+//!         "value": [
+//!             false, true, true, true, true, true, true, true,
+//!             true, true, true, true, true, true, true, true,
+//!             true, true, true, true, true, true, true, true,
+//!             true, true, true, true, true, true, true, true
+//!         ]
+//!     },
+//!     "output": "2147483647"
+//! } ] }
 
 fn main(value: [bool; 32]) -> i32 {
     std::convert::from_bits_signed(value)

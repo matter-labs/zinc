@@ -1,26 +1,26 @@
-//# { "cases": [ {
-//#     "case": "min",
-//#     "input": {
-//#         "value": "-2147483648"
-//#     },
-//#     "expect": [
-//#         true, false, false, false, false, false, false, false,
-//#         false, false, false, false, false, false, false, false,
-//#         false, false, false, false, false, false, false, false,
-//#         false, false, false, false, false, false, false, false
-//#     ]
-//# }, {
-//#     "case": "max",
-//#     "input": {
-//#         "value": "2147483647"
-//#     },
-//#     "expect": [
-//#         false, true, true, true, true, true, true, true,
-//#         true, true, true, true, true, true, true, true,
-//#         true, true, true, true, true, true, true, true,
-//#         true, true, true, true, true, true, true, true
-//#     ]
-//# } ] }
+//! { "cases": [ {
+//!     "case": "min",
+//!     "input": {
+//!         "value": "-2147483648"
+//!     },
+//!     "output": [
+//!         true, false, false, false, false, false, false, false,
+//!         false, false, false, false, false, false, false, false,
+//!         false, false, false, false, false, false, false, false,
+//!         false, false, false, false, false, false, false, false
+//!     ]
+//! }, {
+//!     "case": "max",
+//!     "input": {
+//!         "value": "2147483647"
+//!     },
+//!     "output": [
+//!         false, true, true, true, true, true, true, true,
+//!         true, true, true, true, true, true, true, true,
+//!         true, true, true, true, true, true, true, true,
+//!         true, true, true, true, true, true, true, true
+//!     ]
+//! } ] }
 
 fn main(value: i32) -> [bool; 32] {
     std::convert::to_bits(value)

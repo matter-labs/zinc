@@ -79,7 +79,7 @@ zargo proof-check
 zargo proof-check
 ```
 
-# Design background
+## Design background
 
 The goal of Zinc is to make writing safe zero-knowledge circuits and ZKP-based
 smart contracts easy. It has been designed with the following principles in mind:
@@ -108,7 +108,7 @@ also makes formal verifiability about the call and stack safety easier and
 eliminates the gas computation problem inherent to Turing-complete smart
 contract platforms, such as EVM.
 
-# Key features
+## Key features
 
 - Type safety
 - Type inference
@@ -120,12 +120,12 @@ contract platforms, such as EVM.
 - Turing incompleteness: no recursion or unbounded looping
 - Flat learning curve for Rust/JS/Solidity/C++ developers
 
-# Comparison to Rust
+## Comparison to Rust
 
 Zinc is designed specifically for ZK-circuits and ZKP-based smart contract
 development, so some differences from Rust are inevitable.
 
-## Type system
+### Type system
 
 We need to adapt the type system to be efficiently representable in
 finite fields, which are the basic building block of R1CS. The current type
@@ -133,7 +133,7 @@ system mostly follows Rust, but some aspects are borrowed from smart contract
 languages. For example, Zinc provides integer types with 1-byte step sizes,
 like those in Solidity.
 
-## Ownership and borrowing
+### Ownership and borrowing
 
 Memory management is very different in R1CS circuits compared to the
 von Neumann architecture. Also, since R1CS does not imply parallel programming
@@ -142,7 +142,7 @@ Zinc has no ownership mechanism found in Rust because all variables will be
 passed by value. The borrowing mechanism is still being designed, but probably,
 only immutable references will be allowed in the future.
 
-## Loops and recursion
+### Loops and recursion
 
 Zinc is a Turing-incomplete language, as it does not allow recursion and
 variable loop indexes. Every loop range must be bounded with constant literals

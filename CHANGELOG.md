@@ -5,39 +5,40 @@
 #### Language
 
 *Project layout*
-- implemented Rust-like nested modules with the access to the root and parent modules
+- implemented the module system with access to the root and parent modules
 - allowed to declare constants, types, functions, and modules in arbitrary order
-- implemented the Rust-like unit-testing functionality
+- implemented unit-testing functionality
 
 *Object-oriented*
-- added methods with the by-value `self` instance parameter
+- added methods with by-value `self` instance parameter
 - added the syntax sugar for calling methods via the dot `.` operator
 
 *Expressions*
 - extended constant expressions with arrays, tuples, structures, blocks, conditionals, and matches
 - implemented primitive constant functions
-- allowed the bitwise operations on non-constant and witness values
-- forbidden the bitwise operations on signed integers and fields
+- allowed bitwise operations on non-constant and witness values
+- forbidden bitwise operations on signed integers and fields
 - implemented the type inference for integer literals in expressions
+- fixed the issue where operations on enums could result into an invalid variant
 
 *Interfaces*
-- added the overflow checking and `enum` validation for witness and storage input JSON files
-- added the `unconstrained` block modifier to prevent creating unnecessary constraints
+- added the overflow checking and `enum` validation for input JSON files
+- added the `unconstrained` block modifier to control constraint creation
 
 #### Compiler
 
 - fixed the bug where namespace items where resolved from outside the namespace
 - fixed the bug where the type of a `match` enumeration variant path pattern was unchecked
 - fixed the bug where a structure could be initialized without fields
-- implemented the per-entry dead code elimination for unreachable functions
-- improved some error messages 
+- implemented the per-entry dead code elimination optimization for unreachable functions
+- improved some error messages
 
 #### Zargo
 
 - generalized for managing both circuit and smart contract projects
 - improved some commands and default values to decrease redundancy
 - added some commands for publishing and managing smart contracts
-- taught Zargo to mimic Cargo more persuasively
+- taught Zargo to mimic Cargo more precisely
 
 #### Source code
 
@@ -47,7 +48,7 @@
 #### Overall
 
 - implemented basic smart contracts
-- created the Zandbox application for publishing and running smart contracts
+- developed the Zandbox application for publishing and running smart contracts
 
 ## Version 0.1.5 (2020-04-07)
 

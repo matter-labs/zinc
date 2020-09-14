@@ -3,9 +3,6 @@
 //!
 
 use std::convert::TryFrom;
-use std::fs;
-use std::io;
-use std::io::Read;
 use std::path::PathBuf;
 
 use colored::Colorize;
@@ -13,7 +10,6 @@ use failure::Fail;
 use reqwest::Client as HttpClient;
 use reqwest::Method;
 use reqwest::Url;
-use serde_json::Value as JsonValue;
 use structopt::StructOpt;
 
 use zinc_source::PublishRequestBody;
@@ -29,9 +25,13 @@ use crate::directory::data::Error as DataDirectoryError;
 use crate::directory::source::Directory as SourceDirectory;
 use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
-use crate::manifest::project_type::ProjectType;
-use crate::manifest::Error as ManifestError;
-use crate::manifest::Manifest;
+use crate::executable::virtual_machine::Error as VirtualMachineError;
+use crate::executable::virtual_machine::VirtualMachine;
+use crate::file::arguments::Arguments as ArgumentsFile;
+use crate::file::error::Error as FileError;
+use crate::file::manifest::project_type::ProjectType;
+use crate::file::manifest::Manifest as ManifestFile;
+use crate::file::verifying_key::VerifyingKey as VerifyingKeyFile;
 
 ///
 /// The Zargo project manager `publish` subcommand.
@@ -67,7 +67,7 @@ pub struct Command {
 pub enum Error {
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
-    ManifestFile(ManifestError),
+    ManifestFile(FileError<toml::de::Error>),
     /// The project is not a contract.
     #[fail(display = "not a contract")]
     NotAContract,
@@ -83,12 +83,15 @@ pub enum Error {
     /// The compiler process error.
     #[fail(display = "compiler {}", _0)]
     Compiler(CompilerError),
+    /// The virtual machine process error.
+    #[fail(display = "virtual machine {}", _0)]
+    VirtualMachine(VirtualMachineError),
     /// The contract constructor input file error.
     #[fail(display = "constructor input file {}", _0)]
-    ArgumentsFile(FileError),
+    ArgumentsFile(FileError<serde_json::Error>),
     /// The verifying key file error.
     #[fail(display = "verifying key file {}", _0)]
-    VerifyingKey(FileError),
+    VerifyingKeyFile(FileError),
     /// The publish HTTP request error.
     #[fail(display = "HTTP request: {}", _0)]
     HttpRequest(reqwest::Error),
@@ -97,30 +100,11 @@ pub enum Error {
     ActionFailed(String),
 }
 
-///
-/// The arguments file error. TODO: move to a single file and add the path
-///
-#[derive(Debug, Fail)]
-pub enum FileError {
-    /// File opening error.
-    #[fail(display = "opening: {}", _0)]
-    Opening(io::Error),
-    /// File metadata getting error.
-    #[fail(display = "metadata: {}", _0)]
-    Metadata(io::Error),
-    /// File reading error.
-    #[fail(display = "reading: {}", _0)]
-    Reading(io::Error),
-    /// File contents parsing error.
-    #[fail(display = "parsing: {}", _0)]
-    Parsing(serde_json::Error),
-}
-
 impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        let manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
+        let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         match manifest.project.r#type {
             ProjectType::Contract => {}
@@ -144,12 +128,10 @@ impl IExecutable for Command {
             zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME,
             zinc_const::extension::JSON,
         ));
+        let mut proving_key_path = data_directory_path.clone();
+        proving_key_path.push(zinc_const::file_name::PROVING_KEY);
         let mut verifying_key_path = data_directory_path.clone();
-        verifying_key_path.push(format!(
-            "{}.{}",
-            zinc_const::file_name::VERIFYING_KEY,
-            zinc_const::extension::VERIFYING_KEY
-        ));
+        verifying_key_path.push(zinc_const::file_name::VERIFYING_KEY.to_owned());
 
         BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
         let build_directory_path = BuildDirectory::path(&manifest_path);
@@ -171,36 +153,25 @@ impl IExecutable for Command {
         )
         .map_err(Error::Compiler)?;
 
-        let mut arguments_file = fs::File::open(arguments_path)
-            .map_err(FileError::Opening)
-            .map_err(Error::ArgumentsFile)?;
-        let arguments_file_size = arguments_file
-            .metadata()
-            .map_err(FileError::Metadata)
-            .map_err(Error::ArgumentsFile)?
-            .len() as usize;
-        let mut arguments_file_str = String::with_capacity(arguments_file_size);
-        arguments_file
-            .read_to_string(&mut arguments_file_str)
-            .map_err(FileError::Reading)
-            .map_err(Error::ArgumentsFile)?;
-        let arguments: JsonValue = serde_json::from_str(arguments_file_str.as_str())
-            .map_err(FileError::Parsing)
-            .map_err(Error::ArgumentsFile)?;
+        let arguments = ArgumentsFile::try_from_path(
+            &arguments_path,
+            zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME,
+        )
+        .map_err(Error::ArgumentsFile)?;
 
-        let mut verifying_key_file = fs::File::open(verifying_key_path)
-            .map_err(FileError::Opening)
-            .map_err(Error::VerifyingKey)?;
-        let verifying_key_file_size = verifying_key_file
-            .metadata()
-            .map_err(FileError::Metadata)
-            .map_err(Error::VerifyingKey)?
-            .len() as usize;
-        let mut verifying_key = String::with_capacity(verifying_key_file_size);
-        verifying_key_file
-            .read_to_string(&mut verifying_key)
-            .map_err(FileError::Reading)
-            .map_err(Error::VerifyingKey)?;
+        if !verifying_key_path.exists() {
+            VirtualMachine::setup_contract(
+                self.verbosity,
+                &binary_path,
+                zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME,
+                &proving_key_path,
+                &verifying_key_path,
+            )
+            .map_err(Error::VirtualMachine)?;
+        }
+
+        let verifying_key =
+            VerifyingKeyFile::try_from(&verifying_key_path).map_err(Error::VerifyingKeyFile)?;
 
         eprintln!(
             "   {} {} v{} with ID {}",
@@ -226,7 +197,11 @@ impl IExecutable for Command {
                         )
                         .expect(zinc_const::panic::DATA_SERIALIZATION),
                     )
-                    .json(&PublishRequestBody::new(source, arguments, verifying_key))
+                    .json(&PublishRequestBody::new(
+                        source,
+                        arguments.inner,
+                        verifying_key.inner,
+                    ))
                     .build()
                     .expect(zinc_const::panic::DATA_SERIALIZATION),
             )

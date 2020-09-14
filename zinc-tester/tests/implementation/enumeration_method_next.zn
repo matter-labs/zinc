@@ -1,0 +1,29 @@
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "witness": "FIRST"
+//!     },
+//!     "output": "2"
+//! } ] }
+
+enum List {
+    DEFAULT = 0,
+    FIRST = 1,
+    SECOND = 2,
+    THIRD = 3,
+}
+
+impl List {
+    pub fn next(self) -> Self {
+        match self {
+            Self::DEFAULT => Self::FIRST,
+            Self::FIRST => Self::SECOND,
+            Self::SECOND => Self::THIRD,
+            Self::THIRD => Self::DEFAULT,
+        }
+    }
+}
+
+fn main(witness: List) -> List {
+    witness.next()
+}

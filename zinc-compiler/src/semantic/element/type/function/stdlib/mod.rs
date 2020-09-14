@@ -7,6 +7,7 @@ mod tests;
 pub mod array_pad;
 pub mod array_reverse;
 pub mod array_truncate;
+pub mod assets_token_transfer;
 pub mod convert_from_bits_field;
 pub mod convert_from_bits_signed;
 pub mod convert_from_bits_unsigned;
@@ -29,6 +30,7 @@ use crate::semantic::element::r#type::Type;
 use self::array_pad::Function as ArrayPadFunction;
 use self::array_reverse::Function as ArrayReverseFunction;
 use self::array_truncate::Function as ArrayTruncateFunction;
+use self::assets_token_transfer::Function as AssetsTokenTransferFunction;
 use self::convert_from_bits_field::Function as FromBitsFieldFunction;
 use self::convert_from_bits_signed::Function as FromBitsSignedFunction;
 use self::convert_from_bits_unsigned::Function as FromBitsUnsignedFunction;
@@ -68,6 +70,9 @@ pub enum Function {
 
     /// The `std::ff::invert` function variant.
     FfInvert(FfInvertFunction),
+
+    /// The `std::assets::Token::transfer` function variant.
+    AssetsTokenTransfer(AssetsTokenTransferFunction),
 }
 
 impl Function {
@@ -106,6 +111,10 @@ impl Function {
             FunctionIdentifier::ArrayPad => Self::ArrayPad(ArrayPadFunction::new(identifier)),
 
             FunctionIdentifier::FieldInverse => Self::FfInvert(FfInvertFunction::new(identifier)),
+
+            FunctionIdentifier::AssetsTokenTransfer => {
+                Self::AssetsTokenTransfer(AssetsTokenTransferFunction::new(identifier))
+            }
         }
     }
 
@@ -132,6 +141,8 @@ impl Function {
             Self::ArrayPad(inner) => inner.call(location, argument_list),
 
             Self::FfInvert(inner) => inner.call(location, argument_list),
+
+            Self::AssetsTokenTransfer(inner) => inner.call(location, argument_list),
         }
     }
 
@@ -154,6 +165,8 @@ impl Function {
             Self::ArrayPad(inner) => inner.identifier,
 
             Self::FfInvert(inner) => inner.identifier,
+
+            Self::AssetsTokenTransfer(inner) => inner.identifier,
         }
     }
 
@@ -176,6 +189,8 @@ impl Function {
             Self::ArrayPad(inner) => inner.stdlib_identifier,
 
             Self::FfInvert(inner) => inner.stdlib_identifier,
+
+            Self::AssetsTokenTransfer(inner) => inner.stdlib_identifier,
         }
     }
 
@@ -198,6 +213,8 @@ impl Function {
             Self::ArrayPad(inner) => inner.location = Some(location),
 
             Self::FfInvert(inner) => inner.location = Some(location),
+
+            Self::AssetsTokenTransfer(inner) => inner.location = Some(location),
         }
     }
 
@@ -220,6 +237,8 @@ impl Function {
             Self::ArrayPad(inner) => inner.location,
 
             Self::FfInvert(inner) => inner.location,
+
+            Self::AssetsTokenTransfer(inner) => inner.location,
         }
     }
 }
@@ -241,6 +260,8 @@ impl fmt::Display for Function {
             Self::ArrayPad(inner) => write!(f, "{}", inner),
 
             Self::FfInvert(inner) => write!(f, "{}", inner),
+
+            Self::AssetsTokenTransfer(inner) => write!(f, "{}", inner),
         }
     }
 }

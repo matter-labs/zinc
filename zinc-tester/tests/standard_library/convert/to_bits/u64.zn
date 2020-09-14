@@ -1,34 +1,34 @@
-//# { "cases": [ {
-//#     "case": "min",
-//#     "input": {
-//#         "value": "0"
-//#     },
-//#     "expect": [
-//#         false, false, false, false, false, false, false, false,
-//#         false, false, false, false, false, false, false, false,
-//#         false, false, false, false, false, false, false, false,
-//#         false, false, false, false, false, false, false, false,
-//#         false, false, false, false, false, false, false, false,
-//#         false, false, false, false, false, false, false, false,
-//#         false, false, false, false, false, false, false, false,
-//#         false, false, false, false, false, false, false, false
-//#     ]
-//# }, {
-//#     "case": "max",
-//#     "input": {
-//#         "value": "18446744073709551615"
-//#     },
-//#     "expect": [
-//#         true, true, true, true, true, true, true, true,
-//#         true, true, true, true, true, true, true, true,
-//#         true, true, true, true, true, true, true, true,
-//#         true, true, true, true, true, true, true, true,
-//#         true, true, true, true, true, true, true, true,
-//#         true, true, true, true, true, true, true, true,
-//#         true, true, true, true, true, true, true, true,
-//#         true, true, true, true, true, true, true, true
-//#     ]
-//# } ] }
+//! { "cases": [ {
+//!     "case": "min",
+//!     "input": {
+//!         "value": "0"
+//!     },
+//!     "output": [
+//!         false, false, false, false, false, false, false, false,
+//!         false, false, false, false, false, false, false, false,
+//!         false, false, false, false, false, false, false, false,
+//!         false, false, false, false, false, false, false, false,
+//!         false, false, false, false, false, false, false, false,
+//!         false, false, false, false, false, false, false, false,
+//!         false, false, false, false, false, false, false, false,
+//!         false, false, false, false, false, false, false, false
+//!     ]
+//! }, {
+//!     "case": "max",
+//!     "input": {
+//!         "value": "18446744073709551615"
+//!     },
+//!     "output": [
+//!         true, true, true, true, true, true, true, true,
+//!         true, true, true, true, true, true, true, true,
+//!         true, true, true, true, true, true, true, true,
+//!         true, true, true, true, true, true, true, true,
+//!         true, true, true, true, true, true, true, true,
+//!         true, true, true, true, true, true, true, true,
+//!         true, true, true, true, true, true, true, true,
+//!         true, true, true, true, true, true, true, true
+//!     ]
+//! } ] }
 
 fn main(value: u64) -> [bool; 64] {
     std::convert::to_bits(value)

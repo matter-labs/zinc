@@ -1,11 +1,11 @@
 //!
-//! The database contract instance INSERT input model.
+//! The database contract INSERT input model.
 //!
 
 use serde_json::Value as JsonValue;
 
 ///
-/// The database contract instance INSERT input model.
+/// The database contract INSERT input model.
 ///
 pub struct Input {
     /// The contract account ID.
@@ -19,9 +19,9 @@ pub struct Input {
     /// The contract storage type JSON representation.
     pub storage_type: JsonValue,
     /// The contract verifying key as a byte array.
-    pub verifying_key: String,
+    pub verifying_key: Vec<u8>,
     /// The contract owner ETH address.
-    pub eth_address: Vec<u8>,
+    pub eth_address: [u8; zinc_const::size::ETH_ADDRESS],
 }
 
 impl Input {
@@ -35,8 +35,8 @@ impl Input {
         version: String,
         source_code: JsonValue,
         storage_type: JsonValue,
-        verifying_key: String,
-        eth_address: Vec<u8>,
+        verifying_key: Vec<u8>,
+        eth_address: [u8; zinc_const::size::ETH_ADDRESS],
     ) -> Self {
         Self {
             contract_id,

@@ -138,12 +138,8 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
 
     fn root_hash(&self) -> E::Fr {
         let mut hash_buffer = self.hash_tree[1].to_owned();
-        hash_buffer
-            .truncate(zinc_const::bitlength::SHA256_HASH_TRUNCATED / zinc_const::bitlength::BYTE);
-        hash_buffer.resize(
-            zinc_const::bitlength::SHA256_HASH / zinc_const::bitlength::BYTE,
-            0,
-        );
+        hash_buffer.truncate(zinc_const::size::SHA256_HASH - 1);
+        hash_buffer.resize(zinc_const::size::SHA256_HASH, 0);
 
         let mut hash_le = Vec::with_capacity(hash_buffer.len());
         for i in hash_buffer.iter() {

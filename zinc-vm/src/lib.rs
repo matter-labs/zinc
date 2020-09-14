@@ -16,7 +16,9 @@ pub(crate) mod instructions;
 pub use franklin_crypto::bellman::pairing::bn256::Bn256;
 
 pub use self::core::circuit::facade::Facade as CircuitFacade;
+pub use self::core::circuit::output::Output as CircuitOutput;
 pub use self::core::contract::facade::Facade as ContractFacade;
+pub use self::core::contract::output::Output as ContractOutput;
 pub use self::core::facade::Facade;
 pub use self::error::RuntimeError;
 pub use self::error::VerificationError;

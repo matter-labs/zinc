@@ -1,25 +1,25 @@
-//# { "cases": [ {
-//#     "case": "min",
-//#     "input": {
-//#         "signed": "-128",
-//#         "unsigned": "0"
-//#     },
-//#     "expect": ["-128", "0"]
-//# }, {
-//#     "case": "max",
-//#     "input": {
-//#         "signed": "127",
-//#         "unsigned": "255"
-//#     },
-//#     "expect": ["127", "255"]
-//# }, {
-//#     "case": "rand",
-//#     "input": {
-//#         "signed": "-42",
-//#         "unsigned": "64"
-//#     },
-//#     "expect": ["-42", "64"]
-//# } ] }
+//! { "cases": [ {
+//!     "case": "min",
+//!     "input": {
+//!         "signed": "-128",
+//!         "unsigned": "0"
+//!     },
+//!     "output": ["-128", "0"]
+//! }, {
+//!     "case": "max",
+//!     "input": {
+//!         "signed": "127",
+//!         "unsigned": "255"
+//!     },
+//!     "output": ["127", "255"]
+//! }, {
+//!     "case": "rand",
+//!     "input": {
+//!         "signed": "-42",
+//!         "unsigned": "64"
+//!     },
+//!     "output": ["-42", "64"]
+//! } ] }
 
 use std::convert::to_bits;
 use std::convert::from_bits_signed;

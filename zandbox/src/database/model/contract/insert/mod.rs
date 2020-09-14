@@ -1,5 +1,5 @@
 //!
-//! The database contract instance INSERT model.
+//! The database contract INSERT model.
 //!
 
 pub mod input;

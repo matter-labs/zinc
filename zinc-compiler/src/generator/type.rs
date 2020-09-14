@@ -2,8 +2,6 @@
 //! The generator type.
 //!
 
-use std::collections::HashMap;
-
 use num_bigint::BigInt;
 
 use zinc_build::IntegerType;
@@ -41,8 +39,8 @@ pub enum Type {
     Enumeration {
         /// The enumeration type bitlength.
         bitlength: usize,
-        /// The variant list.
-        variants: HashMap<String, BigInt>,
+        /// The enumeration variant list.
+        variants: Vec<(String, BigInt)>,
     },
     /// The IR array type.
     Array {
@@ -118,7 +116,7 @@ impl Type {
     ///
     /// A shortcut constructor.
     ///
-    pub fn enumeration(bitlength: usize, variants: HashMap<String, BigInt>) -> Self {
+    pub fn enumeration(bitlength: usize, variants: Vec<(String, BigInt)>) -> Self {
         Self::Enumeration {
             bitlength,
             variants,
@@ -222,7 +220,7 @@ impl Type {
                     .to_owned()
                     .into_iter()
                     .zip(inner.values.to_owned())
-                    .collect::<HashMap<String, BigInt>>(),
+                    .collect::<Vec<(String, BigInt)>>(),
             )),
             SemanticType::Contract(inner) => {
                 match inner

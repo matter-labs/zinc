@@ -90,10 +90,12 @@ impl Contract {
 //!
 
 contract {} {{
-    pub fn default(value: u8) -> u8 {{
-        dbg!("Zello, World!");
+    balance: u248;
 
-        value
+    pub fn new(_balance: u248) -> Self {{
+        Self {{
+            balance: _balance,
+        }}
     }}
 }}
 "#,

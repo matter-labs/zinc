@@ -98,7 +98,7 @@ impl Enumeration {
 
             constant.set_enumeration(enumeration.clone());
 
-            Scope::define_constant(scope.clone(), identifier, Constant::Integer(constant))?;
+            Scope::define_variant(scope.clone(), identifier, Constant::Integer(constant))?;
         }
 
         enumeration.values.sort();

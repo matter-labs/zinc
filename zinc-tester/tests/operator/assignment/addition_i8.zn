@@ -1,39 +1,39 @@
-//# { "cases": [ {
-//#     "case": "zero_zero",
-//#     "input": {
-//#         "a": "0",
-//#         "b": "0"
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "ordinar",
-//#     "input": {
-//#         "a": "-42",
-//#         "b": "25"
-//#     },
-//#     "expect": "-17"
-//# }, {
-//#     "case": "to_max",
-//#     "input": {
-//#         "a": "42",
-//#         "b": "85"
-//#     },
-//#     "expect": "127"
-//# }, {
-//#     "case": "overflow", "should_panic": true,
-//#     "input": {
-//#         "a": "100",
-//#         "b": "50"
-//#     },
-//#     "expect": null
-//# }, {
-//#     "case": "overflow_minimal", "should_panic": true,
-//#     "input": {
-//#         "a": "100",
-//#         "b": "28"
-//#     },
-//#     "expect": null
-//# } ] }
+//! { "cases": [ {
+//!     "case": "zero_zero",
+//!     "input": {
+//!         "a": "0",
+//!         "b": "0"
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "ordinar",
+//!     "input": {
+//!         "a": "-42",
+//!         "b": "25"
+//!     },
+//!     "output": "-17"
+//! }, {
+//!     "case": "to_max",
+//!     "input": {
+//!         "a": "42",
+//!         "b": "85"
+//!     },
+//!     "output": "127"
+//! }, {
+//!     "case": "overflow", "should_panic": true,
+//!     "input": {
+//!         "a": "100",
+//!         "b": "50"
+//!     },
+//!     "output": null
+//! }, {
+//!     "case": "overflow_minimal", "should_panic": true,
+//!     "input": {
+//!         "a": "100",
+//!         "b": "28"
+//!     },
+//!     "output": null
+//! } ] }
 
 fn main(a: i8, b: i8) -> i8 {
     let mut c = a;

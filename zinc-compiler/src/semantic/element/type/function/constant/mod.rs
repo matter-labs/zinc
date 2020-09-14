@@ -178,6 +178,7 @@ impl Function {
                 ScopeItem::Constant(ScopeConstantItem::new_defined(
                     constant.location(),
                     constant,
+                    false,
                 ))
                 .wrap(),
             );

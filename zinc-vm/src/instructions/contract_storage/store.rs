@@ -2,6 +2,9 @@
 //! The `StorageStore` instruction.
 //!
 
+use num_bigint::ToBigInt;
+use num_traits::Signed;
+
 use zinc_build::StorageStore;
 
 use crate::core::virtual_machine::IVirtualMachine;
@@ -17,7 +20,11 @@ impl<VM: IVirtualMachine> IExecutable<VM> for StorageStore {
             values.push(vm.pop()?.try_into_value()?);
         }
 
-        vm.storage_store(address, values)?;
+        if let Some(condition) = vm.condition_top()?.to_bigint() {
+            if condition.is_positive() {
+                vm.storage_store(address, values)?;
+            }
+        }
 
         Ok(())
     }

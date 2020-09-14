@@ -38,7 +38,10 @@ impl Index {
     /// Generate the next item sequence ID and add the ID with the item `title` to the index.
     ///
     pub fn next(&self, title: String) -> usize {
-        let mut index = self.inner.write().expect(zinc_const::panic::MUTEX_SYNC);
+        let mut index = self
+            .inner
+            .write()
+            .expect(zinc_const::panic::MULTI_THREADING);
         let item_id = index.len();
 
         log::debug!("Item ID {:06} for {}", item_id, title);

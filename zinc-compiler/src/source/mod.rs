@@ -77,7 +77,7 @@ impl Source {
     }
 
     ///
-    /// Gets all the intermediate represenation scattered around the application scope tree and
+    /// Gets all the intermediate representation scattered around the application scope tree and
     /// writes it to the bytecode.
     ///
     pub fn compile(self, name: String) -> Result<Rc<RefCell<State>>, Error> {

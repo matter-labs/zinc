@@ -1,16 +1,16 @@
-//# { "cases": [ {
-//#     "case": "condition_true", "should_panic": true,
-//#     "input": {
-//#         "condition": true
-//#     },
-//#     "expect": null
-//# }, {
-//#     "case": "condition_false",
-//#     "input": {
-//#         "condition": false
-//#     },
-//#     "expect": "5"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "condition_true", "should_panic": true,
+//!     "input": {
+//!         "condition": true
+//!     },
+//!     "output": null
+//! }, {
+//!     "case": "condition_false",
+//!     "input": {
+//!         "condition": false
+//!     },
+//!     "output": "5"
+//! } ] }
 
 fn main(condition: bool) -> u8 {
     let mut result = 5;

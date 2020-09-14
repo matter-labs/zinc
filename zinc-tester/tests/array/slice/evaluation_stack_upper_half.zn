@@ -1,8 +1,8 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {},
-//#     "expect": ["6", "7", "8", "9", "10"]
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {},
+//!     "output": ["6", "7", "8", "9", "10"]
+//! } ] }
 
 const LENGTH_INPUT: u8 = 10;
 const LENGTH_OUTPUT: u8 = 5;

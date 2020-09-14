@@ -30,8 +30,8 @@ impl FromStr for Metadata {
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         let json = string
             .lines()
-            .filter(|line| line.starts_with(crate::TEST_LINE_PREFIX))
-            .map(|line| &line[crate::TEST_LINE_PREFIX.len()..])
+            .filter(|line| line.starts_with(zinc_const::tester::METADATA_LINE_PREFIX))
+            .map(|line| &line[zinc_const::tester::METADATA_LINE_PREFIX.len()..])
             .collect::<Vec<&str>>()
             .join("");
 

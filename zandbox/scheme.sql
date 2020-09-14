@@ -1,14 +1,14 @@
-CREATE SCHEMA IF NOT EXISTS sandbox;
+CREATE SCHEMA IF NOT EXISTS zandbox;
 
-CREATE TABLE IF NOT EXISTS sandbox.contracts (
-    contract_id        INTEGER,
+CREATE TABLE IF NOT EXISTS zandbox.contracts (
+    contract_id        BIGINT,
 
     name               TEXT NOT NULL,
     version            TEXT NOT NULL,
 
     source_code        JSON NOT NULL,
     storage_type       JSON NOT NULL,
-    verifying_key      TEXT NOT NULL,
+    verifying_key      BYTEA NOT NULL,
     eth_address        BYTEA NOT NULL,
 
     created_at         TIMESTAMP NOT NULL,
@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS sandbox.contracts (
     PRIMARY KEY        (contract_id)
 );
 
-CREATE TABLE IF NOT EXISTS sandbox.methods (
-    contract_id        INTEGER,
+CREATE TABLE IF NOT EXISTS zandbox.methods (
+    contract_id        BIGINT,
     name               TEXT,
 
     is_mutable         BOOLEAN NOT NULL,
@@ -27,12 +27,12 @@ CREATE TABLE IF NOT EXISTS sandbox.methods (
     PRIMARY KEY        (contract_id, name),
     CONSTRAINT fk_contract_id
         FOREIGN KEY (contract_id)
-            REFERENCES sandbox.contracts(contract_id)
+            REFERENCES zandbox.contracts(contract_id)
 );
 
-CREATE TABLE IF NOT EXISTS sandbox.fields (
-    contract_id        INTEGER,
-    index              INTEGER,
+CREATE TABLE IF NOT EXISTS zandbox.fields (
+    contract_id        BIGINT,
+    index              SMALLINT,
 
     name               TEXT NOT NULL,
     value              JSON NOT NULL,
@@ -40,5 +40,5 @@ CREATE TABLE IF NOT EXISTS sandbox.fields (
     PRIMARY KEY        (contract_id, index),
     CONSTRAINT fk_contract_id
         FOREIGN KEY (contract_id)
-            REFERENCES sandbox.contracts(contract_id)
+            REFERENCES zandbox.contracts(contract_id)
 );

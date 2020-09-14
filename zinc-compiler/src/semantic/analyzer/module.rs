@@ -51,16 +51,28 @@ impl Analyzer {
         for hoisted_statement in module.statements.into_iter() {
             match hoisted_statement {
                 ModuleLocalStatement::Const(statement) => {
-                    Scope::declare_constant(scope.clone(), statement)?;
+                    Scope::declare_constant(scope.clone(), statement, false)?;
                 }
                 ModuleLocalStatement::Type(statement) => {
-                    Scope::declare_type(scope.clone(), TypeStatementVariant::Type(statement))?;
+                    Scope::declare_type(
+                        scope.clone(),
+                        TypeStatementVariant::Type(statement),
+                        false,
+                    )?;
                 }
                 ModuleLocalStatement::Struct(statement) => {
-                    Scope::declare_type(scope.clone(), TypeStatementVariant::Struct(statement))?;
+                    Scope::declare_type(
+                        scope.clone(),
+                        TypeStatementVariant::Struct(statement),
+                        false,
+                    )?;
                 }
                 ModuleLocalStatement::Enum(statement) => {
-                    Scope::declare_type(scope.clone(), TypeStatementVariant::Enum(statement))?;
+                    Scope::declare_type(
+                        scope.clone(),
+                        TypeStatementVariant::Enum(statement),
+                        false,
+                    )?;
                 }
                 ModuleLocalStatement::Fn(statement) => {
                     if !is_entry
@@ -85,6 +97,7 @@ impl Analyzer {
                     Scope::declare_type(
                         scope.clone(),
                         TypeStatementVariant::Fn(statement, FnStatementAnalyzerContext::Module),
+                        false,
                     )?;
                 }
                 ModuleLocalStatement::Mod(statement) => {

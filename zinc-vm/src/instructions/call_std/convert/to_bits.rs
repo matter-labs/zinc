@@ -10,7 +10,7 @@ use franklin_crypto::circuit::boolean::Boolean;
 use zinc_build::IntegerType;
 use zinc_build::ScalarType;
 
-use crate::core::execution_state::evaluation_stack::EvaluationStack;
+use crate::core::execution_state::ExecutionState;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::scalar::Scalar;
@@ -23,9 +23,9 @@ impl<E: IEngine> INativeCallable<E> for ToBits {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
-        stack: &mut EvaluationStack<E>,
+        state: &mut ExecutionState<E>,
     ) -> Result<(), RuntimeError> {
-        let scalar = stack.pop()?.try_into_value()?;
+        let scalar = state.evaluation_stack.pop()?.try_into_value()?;
         let expr = scalar.to_expression::<CS>();
 
         let mut bits = match scalar.get_type() {
@@ -53,7 +53,7 @@ impl<E: IEngine> INativeCallable<E> for ToBits {
                     .get_variable(),
                 ScalarType::Boolean,
             );
-            stack.push(scalar.into())?;
+            state.evaluation_stack.push(scalar.into())?;
         }
 
         Ok(())

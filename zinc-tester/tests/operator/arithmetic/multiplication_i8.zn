@@ -1,67 +1,67 @@
-//# { "cases": [ {
-//#     "case": "zero_zero",
-//#     "input": {
-//#         "a": "0",
-//#         "b": "0"
-//#     },
-//#     "expect": "0"
-//# }, {
-//#     "case": "ordinar_positive",
-//#     "input": {
-//#         "a": "42",
-//#         "b": "3"
-//#     },
-//#     "expect": "126"
-//# }, {
-//#     "case": "ordinar_negative_first",
-//#     "input": {
-//#         "a": "-42",
-//#         "b": "3"
-//#     },
-//#     "expect": "-126"
-//# }, {
-//#     "case": "ordinar_negative_second",
-//#     "input": {
-//#         "a": "42",
-//#         "b": "-3"
-//#     },
-//#     "expect": "-126"
-//# }, {
-//#     "case": "ordinar_negative_both",
-//#     "input": {
-//#         "a": "-42",
-//#         "b": "-3"
-//#     },
-//#     "expect": "126"
-//# }, {
-//#     "case": "to_max",
-//#     "input": {
-//#         "a": "127",
-//#         "b": "1"
-//#     },
-//#     "expect": "127"
-//# }, {
-//#     "case": "overflow_negative", "should_panic": true,
-//#     "input": {
-//#         "a": "-100",
-//#         "b": "2"
-//#     },
-//#     "expect": null
-//# }, {
-//#     "case": "overflow_positive", "should_panic": true,
-//#     "input": {
-//#         "a": "100",
-//#         "b": "2"
-//#     },
-//#     "expect": null
-//# }, {
-//#     "case": "overflow_minimal", "should_panic": true,
-//#     "input": {
-//#         "a": "16",
-//#         "b": "8"
-//#     },
-//#     "expect": null
-//# } ] }
+//! { "cases": [ {
+//!     "case": "zero_zero",
+//!     "input": {
+//!         "a": "0",
+//!         "b": "0"
+//!     },
+//!     "output": "0"
+//! }, {
+//!     "case": "ordinar_positive",
+//!     "input": {
+//!         "a": "42",
+//!         "b": "3"
+//!     },
+//!     "output": "126"
+//! }, {
+//!     "case": "ordinar_negative_first",
+//!     "input": {
+//!         "a": "-42",
+//!         "b": "3"
+//!     },
+//!     "output": "-126"
+//! }, {
+//!     "case": "ordinar_negative_second",
+//!     "input": {
+//!         "a": "42",
+//!         "b": "-3"
+//!     },
+//!     "output": "-126"
+//! }, {
+//!     "case": "ordinar_negative_both",
+//!     "input": {
+//!         "a": "-42",
+//!         "b": "-3"
+//!     },
+//!     "output": "126"
+//! }, {
+//!     "case": "to_max",
+//!     "input": {
+//!         "a": "127",
+//!         "b": "1"
+//!     },
+//!     "output": "127"
+//! }, {
+//!     "case": "overflow_negative", "should_panic": true,
+//!     "input": {
+//!         "a": "-100",
+//!         "b": "2"
+//!     },
+//!     "output": null
+//! }, {
+//!     "case": "overflow_positive", "should_panic": true,
+//!     "input": {
+//!         "a": "100",
+//!         "b": "2"
+//!     },
+//!     "output": null
+//! }, {
+//!     "case": "overflow_minimal", "should_panic": true,
+//!     "input": {
+//!         "a": "16",
+//!         "b": "8"
+//!     },
+//!     "output": null
+//! } ] }
 
 fn main(a: i8, b: i8) -> i8 {
     a * b

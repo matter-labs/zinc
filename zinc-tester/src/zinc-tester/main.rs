@@ -27,7 +27,7 @@ fn main() {
         ThreadPoolBuilder::new()
             .num_threads(1)
             .build_global()
-            .expect(self::panic::RAYON_POOL_INITIALIZATION);
+            .expect(zinc_const::panic::RAYON_POOL_INITIALIZATION);
     }
     println!(
         "[INTEGRATION] Started with {} worker threads",
@@ -35,11 +35,11 @@ fn main() {
     );
 
     let result = if args.proof_check {
-        Directory::new(&PathBuf::from(zinc_tester::TEST_DEFAULT_DIRECTORY))
+        Directory::new(&PathBuf::from(zinc_const::tester::DEFAULT_DIRECTORY))
             .expect(self::panic::TEST_DIRECTORY_INVALID)
             .run(ProofCheckRunner::new(args.verbosity, args.filter))
     } else {
-        Directory::new(&PathBuf::from(zinc_tester::TEST_DEFAULT_DIRECTORY))
+        Directory::new(&PathBuf::from(zinc_const::tester::DEFAULT_DIRECTORY))
             .expect(self::panic::TEST_DIRECTORY_INVALID)
             .run(EvaluationRunner::new(args.verbosity, args.filter))
     };

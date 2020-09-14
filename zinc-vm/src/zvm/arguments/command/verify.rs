@@ -3,6 +3,7 @@
 //!
 
 use std::fs;
+use std::io::Read;
 use std::path::PathBuf;
 
 use colored::Colorize;
@@ -49,9 +50,15 @@ impl IExecutable for Command {
 
     fn execute(self) -> Result<i32, Self::Error> {
         // Read proof
-        let proof_bytes = read_hex(std::io::stdin(), "<stdin>", "proof")?;
-        let proof =
-            Proof::<Bn256>::read(proof_bytes.as_slice()).error_with_path(|| "<proof data>")?;
+        let mut proof = String::new();
+        std::io::stdin()
+            .read_to_string(&mut proof)
+            .error_with_path(|| "<stdin>")?;
+        let proof = hex::decode(proof.trim()).map_err(|error| Error::HexDecoding {
+            context: "proof".to_owned(),
+            error,
+        })?;
+        let proof = Proof::<Bn256>::read(proof.as_slice()).error_with_path(|| "<proof data>")?;
 
         // Read program
         let bytes =
@@ -59,14 +66,13 @@ impl IExecutable for Command {
         let program = BuildProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         // Read verification key
-        let key_file = fs::File::open(&self.verifying_key_path)
+        let mut verifying_key_file = fs::File::open(&self.verifying_key_path)
             .error_with_path(|| self.verifying_key_path.to_string_lossy())?;
-        let key_bytes = read_hex(
-            key_file,
-            &self.verifying_key_path.to_string_lossy(),
-            "verification key",
-        )?;
-        let key = VerifyingKey::<Bn256>::read(key_bytes.as_slice())
+        let mut verifying_key = Vec::new();
+        verifying_key_file
+            .read_to_end(&mut verifying_key)
+            .error_with_path(|| self.verifying_key_path.to_string_lossy())?;
+        let verifying_key = VerifyingKey::<Bn256>::read(verifying_key.as_slice())
             .error_with_path(|| self.verifying_key_path.to_string_lossy())?;
 
         // Read public input
@@ -88,7 +94,7 @@ impl IExecutable for Command {
         let output_value = BuildValue::try_from_typed_json(output_json, output_type)?;
 
         // Verify
-        let verified = Facade::verify::<Bn256>(key, proof, output_value)?;
+        let verified = Facade::verify::<Bn256>(verifying_key, proof, output_value)?;
 
         Ok(if verified {
             println!("{}", " ✔ Verified".bold().green());
@@ -98,25 +104,4 @@ impl IExecutable for Command {
             zinc_const::exit_code::FAILURE as i32
         })
     }
-}
-
-///
-/// Reads hex data from the `reader`. Used mainly for reading proofs and keys.
-///
-fn read_hex<R: std::io::Read>(
-    mut reader: R,
-    path_hint: &str,
-    context_hint: &str,
-) -> Result<Vec<u8>, Error> {
-    let mut hex = String::new();
-    reader
-        .read_to_string(&mut hex)
-        .error_with_path(|| path_hint)?;
-
-    let bytes = hex::decode(hex.trim()).map_err(|error| Error::HexDecoding {
-        context: context_hint.into(),
-        error,
-    })?;
-
-    Ok(bytes)
 }

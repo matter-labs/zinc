@@ -45,7 +45,7 @@ impl Runner {
 
 impl IRunnable for Runner {
     fn run(self, path: PathBuf, file: File, metadata: Metadata, summary: Arc<Mutex<Summary>>) {
-        let path = match path.strip_prefix(crate::TEST_DEFAULT_DIRECTORY) {
+        let path = match path.strip_prefix(zinc_const::tester::DEFAULT_DIRECTORY) {
             Ok(path) => path,
             Err(_error) => &path,
         };
@@ -59,7 +59,10 @@ impl IRunnable for Runner {
             }
 
             if metadata.ignore || case.ignore {
-                summary.lock().expect(zinc_const::panic::MUTEX_SYNC).ignored += 1;
+                summary
+                    .lock()
+                    .expect(zinc_const::panic::MULTI_THREADING)
+                    .ignored += 1;
                 println!("[INTEGRATION] {} {}", "IGNORE".yellow(), case_name);
                 continue;
             }
@@ -73,7 +76,10 @@ impl IRunnable for Runner {
             ) {
                 Ok(program) => program,
                 Err(error) => {
-                    summary.lock().expect(zinc_const::panic::MUTEX_SYNC).invalid += 1;
+                    summary
+                        .lock()
+                        .expect(zinc_const::panic::MULTI_THREADING)
+                        .invalid += 1;
                     println!(
                         "[INTEGRATION] {} {} ({})",
                         "INVALID".red(),
@@ -92,7 +98,10 @@ impl IRunnable for Runner {
             } {
                 Ok(params) => params,
                 Err(error) => {
-                    summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
+                    summary
+                        .lock()
+                        .expect(zinc_const::panic::MULTI_THREADING)
+                        .failed += 1;
                     println!(
                         "[INTEGRATION] {} {} (setup: {})",
                         "FAILED".bright_red(),
@@ -103,9 +112,58 @@ impl IRunnable for Runner {
                 }
             };
 
-            let (output, proof) = match match instance.program.clone() {
+            let (output, proof) = match instance.program.clone() {
                 BuildProgram::Circuit(circuit) => {
-                    CircuitFacade::new(circuit).prove::<Bn256>(params.clone(), instance.witness)
+                    let result = CircuitFacade::new(circuit)
+                        .prove::<Bn256>(params.clone(), instance.witness);
+
+                    match result {
+                        Ok((result, proof)) => {
+                            let result_json = result.clone().into_json();
+
+                            if case.output != result_json {
+                                summary
+                                    .lock()
+                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .failed += 1;
+                                println!(
+                                    "[INTEGRATION] {} {} (expected {}, but got {})",
+                                    "FAILED".bright_red(),
+                                    case_name,
+                                    case.output,
+                                    result_json
+                                );
+                            }
+                            (result, proof)
+                        }
+                        Err(error) => {
+                            if case.should_panic {
+                                summary
+                                    .lock()
+                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .passed += 1;
+                                if self.verbosity > 0 {
+                                    println!(
+                                        "[INTEGRATION] {} {} (panicked)",
+                                        "PASSED".green(),
+                                        case_name
+                                    );
+                                }
+                            } else {
+                                summary
+                                    .lock()
+                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .failed += 1;
+                                println!(
+                                    "[INTEGRATION] {} {} (prove: {})",
+                                    "FAILED".bright_red(),
+                                    case_name,
+                                    error
+                                );
+                            }
+                            continue;
+                        }
+                    }
                 }
                 BuildProgram::Contract(contract) => {
                     let storage: Vec<(String, BuildValue)> = contract
@@ -115,61 +173,78 @@ impl IRunnable for Runner {
                         .map(|(name, r#type)| (name, BuildValue::new(r#type)))
                         .collect();
 
-                    ContractFacade::new(contract).prove::<Bn256>(
+                    let result = ContractFacade::new(contract).prove::<Bn256>(
                         params.clone(),
                         instance.witness,
                         BuildValue::Contract(storage),
                         case.method,
-                    )
-                }
-            } {
-                Ok((output, proof)) => {
-                    let output_json = output.clone().into_json();
+                    );
 
-                    if case.expect != output_json {
-                        summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
-                        println!(
-                            "[INTEGRATION] {} {} (expected {}, but got {})",
-                            "FAILED".bright_red(),
-                            case_name,
-                            case.expect,
-                            output_json
-                        );
-                    }
-                    (output, proof)
-                }
-                Err(error) => {
-                    if case.should_panic {
-                        summary.lock().expect(zinc_const::panic::MUTEX_SYNC).passed += 1;
-                        if self.verbosity > 0 {
-                            println!(
-                                "[INTEGRATION] {} {} (panicked)",
-                                "PASSED".green(),
-                                case_name
-                            );
+                    match result {
+                        Ok((result, proof)) => {
+                            let result_json = result.clone().into_json();
+
+                            if case.output != result_json {
+                                summary
+                                    .lock()
+                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .failed += 1;
+                                println!(
+                                    "[INTEGRATION] {} {} (expected {}, but got {})",
+                                    "FAILED".bright_red(),
+                                    case_name,
+                                    case.output,
+                                    result_json
+                                );
+                            }
+                            (result, proof)
                         }
-                    } else {
-                        summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
-                        println!(
-                            "[INTEGRATION] {} {} (prove: {})",
-                            "FAILED".bright_red(),
-                            case_name,
-                            error
-                        );
+                        Err(error) => {
+                            if case.should_panic {
+                                summary
+                                    .lock()
+                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .passed += 1;
+                                if self.verbosity > 0 {
+                                    println!(
+                                        "[INTEGRATION] {} {} (panicked)",
+                                        "PASSED".green(),
+                                        case_name
+                                    );
+                                }
+                            } else {
+                                summary
+                                    .lock()
+                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .failed += 1;
+                                println!(
+                                    "[INTEGRATION] {} {} (prove: {})",
+                                    "FAILED".bright_red(),
+                                    case_name,
+                                    error
+                                );
+                            }
+                            continue;
+                        }
                     }
-                    continue;
                 }
             };
 
             match Facade::verify(params.vk, proof, output) {
                 Ok(success) => {
                     if success {
-                        summary.lock().expect(zinc_const::panic::MUTEX_SYNC).passed += 1;
+                        summary
+                            .lock()
+                            .expect(zinc_const::panic::MULTI_THREADING)
+                            .passed += 1;
                         if self.verbosity > 0 {
                             println!("[INTEGRATION] {} {}", "PASSED".green(), case_name);
                         }
                     } else {
-                        summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
+                        summary
+                            .lock()
+                            .expect(zinc_const::panic::MULTI_THREADING)
+                            .failed += 1;
                         println!(
                             "[INTEGRATION] {} {} (verification failed)",
                             "FAILED".bright_red(),
@@ -178,7 +253,10 @@ impl IRunnable for Runner {
                     }
                 }
                 Err(error) => {
-                    summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
+                    summary
+                        .lock()
+                        .expect(zinc_const::panic::MULTI_THREADING)
+                        .failed += 1;
                     println!(
                         "[INTEGRATION] {} {} (verify: {})",
                         "FAILED".bright_red(),

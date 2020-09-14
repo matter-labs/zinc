@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "witness": "3"
-//#     },
-//#     "expect": "64"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "witness": "3"
+//!     },
+//!     "output": "64"
+//! } ] }
 
 struct Test {
     x: u8,

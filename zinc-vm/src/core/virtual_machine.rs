@@ -32,12 +32,12 @@ pub trait IVirtualMachine {
 
     fn storage_load(
         &mut self,
-        address: Scalar<Self::E>,
+        index: Scalar<Self::E>,
         size: usize,
     ) -> Result<Vec<Scalar<Self::E>>, RuntimeError>;
     fn storage_store(
         &mut self,
-        address: Scalar<Self::E>,
+        index: Scalar<Self::E>,
         values: Vec<Scalar<Self::E>>,
     ) -> Result<(), RuntimeError>;
 

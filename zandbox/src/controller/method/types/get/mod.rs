@@ -32,7 +32,7 @@ pub async fn handle(
 
     let body: Body = match app_data
         .read()
-        .expect(zinc_const::panic::MUTEX_SYNC)
+        .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
         .select_method_types(MethodSelectTypesInput::new(query.contract_id, query.name))
         .await

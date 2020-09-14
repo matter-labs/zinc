@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "witness": "42"
-//#     },
-//#     "expect": "158"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "witness": "42"
+//!     },
+//!     "output": "158"
+//! } ] }
 
 const SCRUTINEE: u8 = 42;
 

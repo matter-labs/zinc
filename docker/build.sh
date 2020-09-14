@@ -1,9 +1,7 @@
 #!/bin/bash -Cerx
 
 export VERSION_ZINC="${1}"
-export VERSION_RUST="${2}"
 
-export TARGET_WINDOWS='x86_64-pc-windows-gnu'
 export TARGET_LINUX='x86_64-unknown-linux-musl'
 export TARGET_MACOS='x86_64-apple-darwin'
 
@@ -62,10 +60,28 @@ apt-get install --yes \
     'musl-tools'
 rustup target add "${TARGET_LINUX}"
 
+# Building OpenSSL
+wget --verbose \
+  --output-document 'openssl-1.1.1g.tar.gz' \
+  'https://www.openssl.org/source/openssl-1.1.1g.tar.gz'
+tar --verbose --extract --file 'openssl-1.1.1g.tar.gz'
+cd 'openssl-1.1.1g/'
+./config \
+  --prefix='/zinc-dev/openssl-1.1.1g/build/' \
+  --openssldir='/zinc-dev/openssl-1.1.1g/build/' \
+  'shared' \
+  'zlib'
+make -j"$(nproc)" && make install
+cd -
+export OPENSSL_DIR='/zinc-dev/openssl-1.1.1g/build/'
+
 # Building
 cargo build --verbose --release --target "${TARGET_LINUX}"
 
-# Archiving
+# Cleanup
+unset OPENSSL_DIR
+
+# Bundling
 mkdir --verbose "zinc-${VERSION_ZINC}-linux"
 mv --verbose --force \
     "target/${TARGET_LINUX}/release/zargo" \
@@ -94,6 +110,8 @@ apt-get install --yes \
     'libmpfr-dev' \
     'libgmp-dev'
 rustup target add "${TARGET_MACOS}"
+
+# Building cross-compiling tools
 git clone \
     'https://github.com/tpoechtrager/osxcross' \
     'osxcross/'
@@ -101,20 +119,38 @@ wget --verbose \
     --output-document 'osxcross/tarballs/MacOSX10.10.sdk.tar.xz' \
     'https://s3.dockerproject.org/darwin/v2/MacOSX10.10.sdk.tar.xz'
 UNATTENDED='yes' OSX_VERSION_MIN='10.7' bash 'osxcross/build.sh'
-export PATH="/zinc-dev/osxcross/target/bin:${PATH}"
+export PATH="${PATH}:/zinc-dev/osxcross/target/bin/"
 export CC='o64-clang'
 export CXX='o64-clang++'
 
+# Downloading OpenSSL
+wget --verbose \
+  --output-document 'openssl-1.1.1g.tar.gz' \
+  'https://homebrew.bintray.com/bottles/openssl%401.1-1.1.1g.catalina.bottle.tar.gz'
+tar --verbose --extract --file 'openssl-1.1.1g.tar.gz'
+export OPENSSL_DIR='/zinc-dev/openssl@1.1/1.1.1g/'
+
+# Configuring
 cat <<EOT >> '.cargo/config'
 [target.x86_64-apple-darwin]
 linker = "x86_64-apple-darwin14-clang"
 ar = "x86_64-apple-darwin14-ar"
 EOT
+cat <<EOT >> './zandbox/Cargo.toml'
+[dependencies.openssl]
+version = "0.10"
+features = [ "vendored" ]
+EOT
 
 # Building
 cargo build --verbose --release --target "${TARGET_MACOS}"
 
-# Archiving
+# Cleanup
+unset CC
+unset CXX
+unset OPENSSL_DIR
+
+# Bundling
 mkdir --verbose "zinc-${VERSION_ZINC}-macos"
 mv --verbose --force \
     "target/${TARGET_MACOS}/release/zargo" \

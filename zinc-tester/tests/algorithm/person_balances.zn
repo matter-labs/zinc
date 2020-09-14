@@ -1,44 +1,44 @@
-//# { "cases": [ {
-//#     "case": "bitcoin",
-//#     "input": {
-//#         "token_id": "Bitcoin"
-//#     },
-//#     "expect": {
-//#         "id": "42",
-//#         "sum": "1",
-//#         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
-//#     }
-//# }, {
-//#     "case": "ethereum",
-//#     "input": {
-//#         "token_id": "Ethereum"
-//#     },
-//#     "expect": {
-//#         "id": "42",
-//#         "sum": "10",
-//#         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
-//#     }
-//# }, {
-//#     "case": "litecoin",
-//#     "input": {
-//#         "token_id": "Litecoin"
-//#     },
-//#     "expect": {
-//#         "id": "42",
-//#         "sum": "50",
-//#         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
-//#     }
-//# }, {
-//#     "case": "zcash",
-//#     "input": {
-//#         "token_id": "Zcash"
-//#     },
-//#     "expect": {
-//#         "id": "42",
-//#         "sum": "100",
-//#         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
-//#     }
-//# } ] }
+//! { "cases": [ {
+//!     "case": "bitcoin",
+//!     "input": {
+//!         "token_id": "Bitcoin"
+//!     },
+//!     "output": {
+//!         "id": "42",
+//!         "sum": "1",
+//!         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
+//!     }
+//! }, {
+//!     "case": "ethereum",
+//!     "input": {
+//!         "token_id": "Ethereum"
+//!     },
+//!     "output": {
+//!         "id": "42",
+//!         "sum": "10",
+//!         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
+//!     }
+//! }, {
+//!     "case": "litecoin",
+//!     "input": {
+//!         "token_id": "Litecoin"
+//!     },
+//!     "output": {
+//!         "id": "42",
+//!         "sum": "50",
+//!         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
+//!     }
+//! }, {
+//!     "case": "zcash",
+//!     "input": {
+//!         "token_id": "Zcash"
+//!     },
+//!     "output": {
+//!         "id": "42",
+//!         "sum": "100",
+//!         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
+//!     }
+//! } ] }
 
 enum Month {
     January = 1,

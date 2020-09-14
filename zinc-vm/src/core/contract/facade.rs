@@ -20,6 +20,7 @@ use zinc_build::Value as BuildValue;
 use zinc_const::UnitTestExitCode;
 
 use crate::constraint_systems::main::Main as MainCS;
+use crate::core::contract::output::Output as ContractOutput;
 use crate::core::contract::storage::database::Storage as DatabaseStorage;
 use crate::core::contract::storage::setup::Storage as SetupStorage;
 use crate::core::contract::synthesizer::Synthesizer as ContractSynthesizer;
@@ -48,7 +49,7 @@ impl Facade {
         input: BuildValue,
         storage: BuildValue,
         method_name: String,
-    ) -> Result<(BuildValue, BuildValue), RuntimeError> {
+    ) -> Result<ContractOutput, RuntimeError> {
         let mut cs = MainCS::<Bn256>::new();
 
         let method = self
@@ -110,15 +111,13 @@ impl Facade {
             return Err(RuntimeError::UnsatisfiedConstraint);
         }
 
-        let output_value = result
-            .into_iter()
-            .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
-            .collect::<Vec<_>>();
+        let output_value: Vec<BigInt> = result.into_iter().filter_map(|value| value).collect();
         let output_value = BuildValue::from_flat_values(output_type, &output_value);
 
         let storage_value = BuildValue::Contract(
             state
-                .into_storage()
+                .storage
+                .into_inner()
                 .into_values()
                 .into_iter()
                 .zip(storage_names)
@@ -140,7 +139,9 @@ impl Facade {
                 .collect::<Vec<(String, BuildValue)>>(),
         );
 
-        Ok((output_value, storage_value))
+        let transfers = state.execution_state.transfers;
+
+        Ok(ContractOutput::new(output_value, storage_value, transfers))
     }
 
     pub fn debug<E: IEngine>(
@@ -148,7 +149,7 @@ impl Facade {
         input: BuildValue,
         storage: BuildValue,
         method_name: String,
-    ) -> Result<(BuildValue, BuildValue), RuntimeError> {
+    ) -> Result<ContractOutput, RuntimeError> {
         let mut cs = TestConstraintSystem::<Bn256>::new();
 
         let method = self
@@ -210,15 +211,13 @@ impl Facade {
             return Err(RuntimeError::UnsatisfiedConstraint);
         }
 
-        let output_value = result
-            .into_iter()
-            .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
-            .collect::<Vec<_>>();
+        let output_value: Vec<BigInt> = result.into_iter().filter_map(|value| value).collect();
         let output_value = BuildValue::from_flat_values(output_type, &output_value);
 
         let storage_value = BuildValue::Contract(
             state
-                .into_storage()
+                .storage
+                .into_inner()
                 .into_values()
                 .into_iter()
                 .zip(storage_names)
@@ -240,7 +239,9 @@ impl Facade {
                 .collect::<Vec<(String, BuildValue)>>(),
         );
 
-        Ok((output_value, storage_value))
+        let transfers = state.execution_state.transfers;
+
+        Ok(ContractOutput::new(output_value, storage_value, transfers))
     }
 
     pub fn test<E: IEngine>(self) -> Result<UnitTestExitCode, RuntimeError> {
@@ -389,15 +390,12 @@ impl Facade {
                 "contract hasn't generate outputs".into(),
             )),
             Some(result) => match result {
-                Ok(values) => {
-                    let output_flat: Vec<BigInt> = values
-                        .into_iter()
-                        .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
-                        .collect();
+                Ok(result) => {
+                    let output_flat: Vec<BigInt> =
+                        result.into_iter().filter_map(|value| value).collect();
+                    let output_value = BuildValue::from_flat_values(output_type, &output_flat);
 
-                    let value = BuildValue::from_flat_values(output_type, &output_flat);
-
-                    Ok((value, proof))
+                    Ok((output_value, proof))
                 }
                 Err(error) => Err(error),
             },

@@ -29,7 +29,7 @@ use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variable::memory_type::MemoryType;
+use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
@@ -576,6 +576,7 @@ impl Analyzer {
                         scope_stack.top(),
                         identifier.clone(),
                         scrutinee_result.clone(),
+                        false,
                     )?;
                     let expression_location = expression.location;
                     let (result, _) =

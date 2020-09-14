@@ -1,32 +1,32 @@
-//# { "cases": [ {
-//#     "case": "false_false",
-//#     "input": {
-//#         "a": false,
-//#         "b": false
-//#     },
-//#     "expect": false
-//# }, {
-//#     "case": "false_true",
-//#     "input": {
-//#         "a": false,
-//#         "b": true
-//#     },
-//#     "expect": false
-//# }, {
-//#     "case": "true_false",
-//#     "input": {
-//#         "a": true,
-//#         "b": false
-//#     },
-//#     "expect": false
-//# }, {
-//#     "case": "true_true",
-//#     "input": {
-//#         "a": true,
-//#         "b": true
-//#     },
-//#     "expect": true
-//# } ] }
+//! { "cases": [ {
+//!     "case": "false_false",
+//!     "input": {
+//!         "a": false,
+//!         "b": false
+//!     },
+//!     "output": false
+//! }, {
+//!     "case": "false_true",
+//!     "input": {
+//!         "a": false,
+//!         "b": true
+//!     },
+//!     "output": false
+//! }, {
+//!     "case": "true_false",
+//!     "input": {
+//!         "a": true,
+//!         "b": false
+//!     },
+//!     "output": false
+//! }, {
+//!     "case": "true_true",
+//!     "input": {
+//!         "a": true,
+//!         "b": true
+//!     },
+//!     "output": true
+//! } ] }
 
 fn main(a: bool, b: bool) -> bool {
     a && b

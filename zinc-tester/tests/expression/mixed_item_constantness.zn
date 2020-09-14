@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "witness": "25"
-//#     },
-//#     "expect": "131"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "witness": "25"
+//!     },
+//!     "output": "131"
+//! } ] }
 
 const CONST: field = 42;
 

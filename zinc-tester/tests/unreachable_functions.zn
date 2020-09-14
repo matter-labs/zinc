@@ -1,0 +1,43 @@
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "a": "4"
+//!     },
+//!     "output": "16"
+//! } ] }
+
+fn f1(a: u8) -> u8 {
+    a * 1
+}
+
+fn f2(a: u8) -> u8 {
+    a * 2
+}
+
+fn f3(a: u8) -> u8 {
+    a * 3
+}
+
+fn f4(a: u8) -> u8 {
+    a * 4
+}
+
+fn f5(a: u8) -> u8 {
+    a * 5
+}
+
+fn f6(a: u8) -> u8 {
+    a * 6
+}
+
+fn f7(a: u8) -> u8 {
+    a * 7
+}
+
+fn f8(a: u8) -> u8 {
+    a * 8
+}
+
+fn main(a: u8) -> u8 {
+    f4(a)
+}

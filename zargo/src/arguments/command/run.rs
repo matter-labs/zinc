@@ -18,9 +18,9 @@ use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
-use crate::manifest::project_type::ProjectType;
-use crate::manifest::Error as ManifestError;
-use crate::manifest::Manifest;
+use crate::file::error::Error as FileError;
+use crate::file::manifest::project_type::ProjectType;
+use crate::file::manifest::Manifest as ManifestFile;
 
 ///
 /// The Zargo project manager `run` subcommand.
@@ -61,7 +61,7 @@ pub struct Command {
 pub enum Error {
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
-    ManifestFile(ManifestError),
+    ManifestFile(FileError<toml::de::Error>),
     /// The contract method to call is missing.
     #[fail(display = "contract method to call must be specified")]
     MethodMissing,
@@ -83,7 +83,7 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        let manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
+        let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         match manifest.project.r#type {
             ProjectType::Contract if self.method.is_none() => return Err(Error::MethodMissing),

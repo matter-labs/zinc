@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "witness": "3"
-//#     },
-//#     "expect": "93"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "witness": "3"
+//!     },
+//!     "output": "93"
+//! } ] }
 
 type Tuple = (u8, u8);
 

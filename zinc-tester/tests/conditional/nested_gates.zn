@@ -1,28 +1,28 @@
-//# { "cases": [ {
-//#     "case": "one",
-//#     "input": {
-//#         "gates": [true, false, false]
-//#     },
-//#     "expect": "1"
-//# }, {
-//#     "case": "two",
-//#     "input": {
-//#         "gates": [false, true, true]
-//#     },
-//#     "expect": "2"
-//# }, {
-//#     "case": "three",
-//#     "input": {
-//#         "gates": [false, true, false]
-//#     },
-//#     "expect": "3"
-//# }, {
-//#     "case": "four",
-//#     "input": {
-//#         "gates": [false, false, false]
-//#     },
-//#     "expect": "4"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "one",
+//!     "input": {
+//!         "gates": [true, false, false]
+//!     },
+//!     "output": "1"
+//! }, {
+//!     "case": "two",
+//!     "input": {
+//!         "gates": [false, true, true]
+//!     },
+//!     "output": "2"
+//! }, {
+//!     "case": "three",
+//!     "input": {
+//!         "gates": [false, true, false]
+//!     },
+//!     "output": "3"
+//! }, {
+//!     "case": "four",
+//!     "input": {
+//!         "gates": [false, false, false]
+//!     },
+//!     "output": "4"
+//! } ] }
 
 fn main(gates: [bool; 3]) -> u8 {
     if gates[0] {

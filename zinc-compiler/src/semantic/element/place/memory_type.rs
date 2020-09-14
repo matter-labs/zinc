@@ -2,7 +2,7 @@
 //! The semantic analyzer place memory type.
 //!
 
-use crate::semantic::scope::item::variable::memory_type::MemoryType as VariableItemMemoryType;
+use crate::semantic::scope::memory_type::MemoryType as VariableItemMemoryType;
 
 ///
 /// The virtual machine memory type descriptor.

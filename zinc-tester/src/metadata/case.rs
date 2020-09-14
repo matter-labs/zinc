@@ -12,13 +12,13 @@ use serde_json::Value as JsonValue;
 pub struct Case {
     /// The case name.
     pub case: String,
-    /// The entry which must be run for the case.
-    #[serde(default = "crate::default_entry")]
+    /// The entry or method which must be run for the case.
+    #[serde(default = "zinc_const::tester::default_method")]
     pub method: String,
-    /// The entry input data.
+    /// The entry or method input data.
     pub input: JsonValue,
-    /// The entry expected output data.
-    pub expect: JsonValue,
+    /// The entry or method expected output data.
+    pub output: JsonValue,
     /// If the test case must return an error to be successful.
     #[serde(default)]
     pub should_panic: bool,

@@ -1,11 +1,11 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "data": { "inner": { "value": "168" } },
-//#         "divider": "4"
-//#     },
-//#     "expect": { "inner": { "value": "42" } }
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "data": { "inner": { "value": "168" } },
+//!         "divider": "4"
+//!     },
+//!     "output": { "inner": { "value": "42" } }
+//! } ] }
 
 struct Inner {
     value: u8

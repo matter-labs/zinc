@@ -25,7 +25,7 @@ use crate::lexical::token::location::Location;
 use crate::source::file::index::INDEX as FILE_INDEX;
 
 use self::method::Method;
-use self::optimizer::elimination::Optimizer as EliminationOptimizer;
+use self::optimizer::dead_function_code_elimination::Optimizer as DeadFunctionCodeEliminationOptimizer;
 use self::unit_test::UnitTest;
 
 ///
@@ -134,13 +134,12 @@ impl State {
         self.function_addresses.insert(type_id, address);
         self.data_stack_pointer = 0;
 
-        let file_path = FILE_INDEX
-            .get_path(location.file_index)
-            .to_string_lossy()
-            .to_string();
         self.instructions
             .push(Instruction::FileMarker(zinc_build::FileMarker::new(
-                file_path,
+                FILE_INDEX
+                    .get_path(location.file_index)
+                    .to_string_lossy()
+                    .to_string(),
             )));
         self.instructions.push(Instruction::FunctionMarker(
             zinc_build::FunctionMarker::new(identifier),
@@ -207,6 +206,17 @@ impl State {
     pub fn push_instruction(&mut self, instruction: Instruction, location: Option<Location>) {
         if let Some(location) = location {
             if self.current_location != location {
+                if self.instructions.is_empty()
+                    || self.current_location.file_index != location.file_index
+                {
+                    self.instructions
+                        .push(Instruction::FileMarker(zinc_build::FileMarker::new(
+                            FILE_INDEX
+                                .get_path(location.file_index)
+                                .to_string_lossy()
+                                .to_string(),
+                        )));
+                }
                 if self.current_location.line != location.line {
                     self.instructions
                         .push(Instruction::LineMarker(zinc_build::LineMarker::new(
@@ -243,7 +253,7 @@ impl State {
     /// Converts the compiled application state into a set of byte arrays, which are ready to be
     /// written to the Zinc project build files.
     ///
-    pub fn into_program(mut self, _optimize_dead_function_elimination: bool) -> BuildProgram {
+    pub fn into_program(mut self, optimize_dead_function_elimination: bool) -> BuildProgram {
         match self.contract_storage.take() {
             Some(storage) => {
                 let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
@@ -264,16 +274,23 @@ impl State {
                     .map(|(name, r#type)| (name, r#type.into()))
                     .collect();
 
-                let entry_ids: Vec<usize> = self
-                    .methods
-                    .iter()
-                    .map(|(_name, method)| method.type_id)
-                    .collect();
-                EliminationOptimizer::optimize(
-                    entry_ids,
-                    &mut self.instructions,
-                    &mut self.function_addresses,
-                );
+                if optimize_dead_function_elimination {
+                    let entry_ids: Vec<usize> = self
+                        .methods
+                        .iter()
+                        .map(|(_name, method)| method.type_id)
+                        .collect();
+                    DeadFunctionCodeEliminationOptimizer::optimize(
+                        entry_ids,
+                        &mut self.instructions,
+                        &mut self.function_addresses,
+                    );
+                } else {
+                    DeadFunctionCodeEliminationOptimizer::set_addresses(
+                        &mut self.instructions,
+                        &self.function_addresses,
+                    )
+                }
 
                 let mut methods = HashMap::with_capacity(self.methods.len());
                 for (type_id, method) in self.methods.into_iter() {
@@ -282,7 +299,8 @@ impl State {
                         .get(&type_id)
                         .cloned()
                         .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
-                    let input = method.input_fields_as_struct().into();
+                    let mut input: BuildType = method.input_fields_as_struct().into();
+                    input.remove_contract_instance();
                     let output = method.output_type.into();
                     methods.insert(
                         method.name,
@@ -321,11 +339,19 @@ impl State {
                     .remove(0);
                 let input = entry.input_fields_as_struct().into();
                 let output = entry.output_type.into();
-                EliminationOptimizer::optimize(
-                    vec![entry_id],
-                    &mut self.instructions,
-                    &mut self.function_addresses,
-                );
+
+                if optimize_dead_function_elimination {
+                    DeadFunctionCodeEliminationOptimizer::optimize(
+                        vec![entry_id],
+                        &mut self.instructions,
+                        &mut self.function_addresses,
+                    );
+                } else {
+                    DeadFunctionCodeEliminationOptimizer::set_addresses(
+                        &mut self.instructions,
+                        &self.function_addresses,
+                    )
+                }
 
                 let address = self
                     .function_addresses

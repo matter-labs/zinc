@@ -123,28 +123,6 @@ fn main() -> u8 { first() }
 }
 
 #[test]
-fn error_item_is_not_namespace() {
-    let input = r#"
-const NOT_NAMESPACE: u8 = 42;
-
-fn main() {
-    let result = NOT_NAMESPACE::UNDEFINED;
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemNotNamespace {
-            location: Location::new(5, 18),
-            name: "NOT_NAMESPACE".to_owned(),
-        },
-    )));
-
-    let result = crate::semantic::tests::compile_entry(input);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
 fn error_item_redeclared() {
     let input = r#"
 fn main() {
@@ -160,6 +138,57 @@ fn main() {
             location: Location::new(5, 13),
             name: "result".to_owned(),
             reference: Some(Location::new(3, 9)),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_item_redeclared_use() {
+    let input = r#"
+type X = u8;
+
+use X;
+
+fn main() -> X {
+    42
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ItemRedeclared {
+            location: Location::new(4, 5),
+            name: "X".to_owned(),
+            reference: Some(Location::new(2, 1)),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_item_redeclared_use_with_alias() {
+    let input = r#"
+type X = u8;
+type Y = u8;
+
+use X as Y;
+
+fn main() -> Y {
+    42
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ItemRedeclared {
+            location: Location::new(5, 10),
+            name: "Y".to_owned(),
+            reference: Some(Location::new(3, 1)),
         },
     )));
 
@@ -299,6 +328,226 @@ fn main() {
         ScopeError::ItemUndeclared {
             location: Location::new(2, 22),
             name: Keyword::SelfUppercase.to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_item_undeclared_without_self() {
+    let input = r#"
+struct Data {
+    a: u8,
+    b: u8,
+}
+
+impl Data {
+    pub fn sum(self) -> u8 {
+        a + b
+    }
+}
+
+fn main() {}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ItemUndeclared {
+            location: Location::new(9, 9),
+            name: "a".to_owned(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_item_is_not_a_namespace() {
+    let input = r#"
+const NOT_NAMESPACE: u8 = 42;
+
+fn main() {
+    let result = NOT_NAMESPACE::UNDEFINED;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ItemIsNotANamespace {
+            location: Location::new(5, 18),
+            name: "NOT_NAMESPACE".to_owned(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_associated_item_without_owner_constant() {
+    let input = r#"
+enum Data {
+    A = 1,
+    B = 2,
+}
+
+impl Data {
+    const C: u8 = 3;
+
+    pub fn sum() -> Self {
+        Self::A + Self::B + C
+    }
+}
+
+fn main() {}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::AssociatedItemWithoutOwner {
+            location: Location::new(11, 29),
+            name: "C".to_owned(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_associated_item_without_owner_variant() {
+    let input = r#"
+enum Data {
+    A = 1,
+    B = 2,
+}
+
+impl Data {
+    pub fn sum() -> Self {
+        Self::A + B
+    }
+}
+
+fn main() {}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::AssociatedItemWithoutOwner {
+            location: Location::new(9, 19),
+            name: "B".to_owned(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_associated_item_without_owner_method() {
+    let input = r#"
+struct Data {
+    a: u8,
+    b: u8,
+}
+
+impl Data {
+    pub fn get_a(self) -> u8 { self.a }
+
+    pub fn get_b(self) -> u8 { self.b }
+
+    pub fn sum(self) -> u8 {
+        self.get_a() + get_b()
+    }
+}
+
+fn main() {}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::AssociatedItemWithoutOwner {
+            location: Location::new(13, 24),
+            name: "get_b".to_owned(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_associated_item_without_owner_contract_constant() {
+    let input = r#"
+contract Test {
+    const A: u8 = 42;
+
+    pub fn default(self) -> u8 {
+        A
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::AssociatedItemWithoutOwner {
+            location: Location::new(6, 9),
+            name: "A".to_owned(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_associated_item_without_owner_contract_method() {
+    let input = r#"
+contract Test {
+    a: u8;
+
+    pub fn default(self) -> u8 {
+        get_a()
+    }
+
+    fn get_a(self) -> u8 {
+        self.a
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::AssociatedItemWithoutOwner {
+            location: Location::new(6, 9),
+            name: "get_a".to_owned(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_associated_item_without_owner_contract_field() {
+    let input = r#"
+contract Test {
+    a: u8;
+
+    pub fn default(self) -> u8 {
+        a
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::AssociatedItemWithoutOwner {
+            location: Location::new(6, 9),
+            name: "a".to_owned(),
         },
     )));
 

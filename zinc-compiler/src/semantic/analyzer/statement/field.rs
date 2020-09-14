@@ -7,7 +7,6 @@ use std::rc::Rc;
 
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variable::memory_type::MemoryType;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::field::Statement as FieldStatement;
 
@@ -27,13 +26,7 @@ impl Analyzer {
     ) -> Result<(), Error> {
         let r#type = Type::try_from_syntax(statement.r#type, scope.clone())?;
 
-        Scope::define_variable(
-            scope,
-            statement.identifier,
-            false,
-            r#type,
-            MemoryType::ContractStorage { index },
-        )?;
+        Scope::define_field(scope, statement.identifier, r#type, index)?;
 
         Ok(())
     }

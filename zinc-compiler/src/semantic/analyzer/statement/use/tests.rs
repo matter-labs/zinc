@@ -16,6 +16,70 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
+fn ok_associated_constant() {
+    let input = r#"
+struct Data {
+    a: u8,
+    b: u8,
+}
+
+impl Data {
+    const C: u8 = 42;
+}
+
+use Data::C;
+
+fn main() -> u8 {
+    C
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_associated_variant() {
+    let input = r#"
+enum Data {
+    A = 1,
+    B = 2,
+}
+
+use Data::B;
+
+fn main() -> u8 {
+    (Data::A + B) as u8
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_associated_method() {
+    let input = r#"
+struct Data {
+    a: i8,
+    b: i8,
+}
+
+impl Data {
+    pub fn method() -> u8 {
+        42
+    }
+}
+
+use Data::method;
+
+fn main() -> u8 {
+    method()
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
 fn error_expected_path() {
     let input = r#"
 use 5;

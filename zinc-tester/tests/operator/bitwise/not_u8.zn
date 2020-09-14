@@ -1,22 +1,22 @@
-//# { "cases": [ {
-//#     "case": "ordinar",
-//#     "input": {
-//#         "a": "42"
-//#     },
-//#     "expect": "213"
-//# }, {
-//#     "case": "min_to_max",
-//#     "input": {
-//#         "a": "0"
-//#     },
-//#     "expect": "255"
-//# }, {
-//#     "case": "max_to_min",
-//#     "input": {
-//#         "a": "255"
-//#     },
-//#     "expect": "0"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "ordinar",
+//!     "input": {
+//!         "a": "42"
+//!     },
+//!     "output": "213"
+//! }, {
+//!     "case": "min_to_max",
+//!     "input": {
+//!         "a": "0"
+//!     },
+//!     "output": "255"
+//! }, {
+//!     "case": "max_to_min",
+//!     "input": {
+//!         "a": "255"
+//!     },
+//!     "output": "0"
+//! } ] }
 
 fn main(a: u8) -> u8 {
     ~a

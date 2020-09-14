@@ -9,22 +9,26 @@ A typical contract consists of several groups of entities:
 
 ## Storage fields
 
-The storage fields are declared in the same way as in structures.
+The storage fields are declared in the same way as in structure, but with
+a semicolon in the end.
 
 ```rust,no_run,noplaypen
 contract Example {
-    data: [u8; 1000],
-    tokens: (u8, u64),
-    address: u160,
+    data: [u8; 1000];
+    tokens: (u8, u64);
+    address: u160;
 
     //...
 }
 ```
 
-## Public entry functions
+Each smart contract instance gets its own storage, which is written to the
+database by the Zinc Zandbox server.
 
-The contract declaration contains several public functions, which serve as the
-entry points of the contract. The contract must have at least one public function.
+## Public methods
+
+The contract declaration contains several public functions, which serve as
+contract methods. The contract must have at least one public function.
 
 ```rust,no_run,noplaypen
 contract Example {
@@ -34,11 +38,11 @@ contract Example {
 }
 ```
 
-## Private functions
+## Private methods
 
-The private functions are declared without the `pub` keyword and they have no
+The private functions are declared without the `pub` keyword and have no
 special meaning. Such functions are simply associated with the contract and
-can be called from within the public ones.
+can be called from within the public methods.
 
 ```rust,no_run,noplaypen
 contract Example {

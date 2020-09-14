@@ -1,0 +1,41 @@
+//! { "cases": [ {
+//!     "case": "default",
+//!     "method": "default",
+//!     "input": {
+//!         "value": "42"
+//!     },
+//!     "output": {
+//!         "$result": "148",
+//!         "$root_hash": "0x9befed35c22a1850fb7ff624b551ba939e58cc4653113a9c78548a931314ac"
+//!     }
+//! } ] }
+
+struct Data {
+    c: u248,
+    d: u248,
+}
+
+const SOMETHING: u248 = 42;
+
+contract Test {
+    const SOMETHING_ELSE: u248 = 88;
+
+    a: u248;
+    b: u248;
+
+    pub fn default(mut self, value: u248) -> u248 {
+        let data = Data {
+            c: 10 as u248,
+            d: 20 as u248,
+        };
+
+        self.a += 5 as u248;
+        self.b += 7 as u248;
+
+        self.inner(data, value, 42)
+    }
+
+    fn inner(self, data: Data, value: u248, literal: u8) -> u248 {
+        ((self.a + data.c + self.b + data.d + value) * (literal as u248) * SOMETHING - Self::SOMETHING_ELSE) / 1000
+    }
+}

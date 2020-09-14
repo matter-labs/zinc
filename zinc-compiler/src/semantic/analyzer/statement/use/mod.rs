@@ -45,7 +45,12 @@ impl Analyzer {
         };
 
         let item = Scope::resolve_path(scope.clone(), &path)?;
-        Scope::define_item(scope, path.last().to_owned(), item)?;
+        item.borrow_mut().set_not_associated();
+        let identifier = match statement.alias_identifier {
+            Some(alias_identifier) => alias_identifier,
+            None => path.last().to_owned(),
+        };
+        Scope::define_item(scope, identifier, item)?;
 
         Ok(())
     }

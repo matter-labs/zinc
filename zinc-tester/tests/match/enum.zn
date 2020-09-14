@@ -1,22 +1,22 @@
-//# { "cases": [ {
-//#     "case": "first",
-//#     "input": {
-//#         "language": "JABBERWOCKY"
-//#     },
-//#     "expect": "5"
-//# }, {
-//#     "case": "second",
-//#     "input": {
-//#         "language": "ZINC"
-//#     },
-//#     "expect": "10"
-//# }, {
-//#     "case": "third",
-//#     "input": {
-//#         "language": "RUST"
-//#     },
-//#     "expect": "15"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "first",
+//!     "input": {
+//!         "language": "JABBERWOCKY"
+//!     },
+//!     "output": "5"
+//! }, {
+//!     "case": "second",
+//!     "input": {
+//!         "language": "ZINC"
+//!     },
+//!     "output": "10"
+//! }, {
+//!     "case": "third",
+//!     "input": {
+//!         "language": "RUST"
+//!     },
+//!     "output": "15"
+//! } ] }
 
 enum Language {
     JABBERWOCKY = 0,

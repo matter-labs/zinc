@@ -16,7 +16,7 @@ use crate::database::client::Client as DatabaseClient;
 pub struct SharedData {
     /// The PostgreSQL asynchronous client.
     pub postgresql_client: DatabaseClient,
-    /// The precompiled contract templates.
+    /// The precompiled contracts written at application startup.
     pub contracts: HashMap<i64, BuildContract>,
 }
 
@@ -24,10 +24,10 @@ impl SharedData {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(postgresql_client: DatabaseClient) -> Self {
+    pub fn new(postgresql_client: DatabaseClient, contracts: HashMap<i64, BuildContract>) -> Self {
         Self {
             postgresql_client,
-            contracts: HashMap::new(),
+            contracts,
         }
     }
 

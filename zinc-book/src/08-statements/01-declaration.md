@@ -70,7 +70,7 @@ struct Data {
 }
 
 impl Data {
-    fn print(data: Self) {
+    fn print(self) {
         dbg!("{}", data.value);
     }
 }
@@ -102,8 +102,8 @@ type PairToken = u8;
 
 contract Uniswap {
     // The contract storage fields     
-    total1: Currency;
-    total2: Currency;    
+    balance_1: Currency;
+    balance_2: Currency;    
     rate: u248;
     
     // Public entries available from outside   

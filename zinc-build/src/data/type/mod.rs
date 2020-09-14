@@ -4,7 +4,6 @@
 
 pub mod scalar;
 
-use std::collections::HashMap;
 use std::fmt;
 
 use num_bigint::BigInt;
@@ -31,7 +30,7 @@ pub enum Type {
         /// The enumeration type bitlength.
         bitlength: usize,
         /// The variant list.
-        variants: HashMap<String, BigInt>,
+        variants: Vec<(String, BigInt)>,
     },
 
     /// The array type.
@@ -40,9 +39,7 @@ pub enum Type {
     Tuple(Vec<Type>),
     /// The structure type.
     Structure(Vec<(String, Type)>),
-    /// The contract type, which behaves almost like a structure, but its size is zero.
-    /// The zero size prevents the `self` contract alias to be considered as a part of contract
-    /// method input, since `self` is used to address the contract storage, but not the data stack.
+    /// The contract type.
     Contract(Vec<(String, Type)>),
 }
 
@@ -55,7 +52,8 @@ impl Type {
     }
 
     ///
-    /// Skips the contract values since they are not supposed to be passed as the metadata.
+    /// Converts a complex type into an array of primitive scalar types, which is useful for
+    /// reading an application input values.
     ///
     pub fn into_flat_scalar_types(self) -> Vec<ScalarType> {
         match self {
@@ -79,7 +77,11 @@ impl Type {
                 .map(|(_name, r#type)| Self::into_flat_scalar_types(r#type))
                 .flatten()
                 .collect(),
-            Self::Contract(_) => vec![],
+            Self::Contract(types) => types
+                .into_iter()
+                .map(|(_name, r#type)| Self::into_flat_scalar_types(r#type))
+                .flatten()
+                .collect(),
         }
     }
 
@@ -97,9 +99,6 @@ impl Type {
     ///
     /// Returns the type size.
     ///
-    /// Skips the contract values since they are not supposed to be passed from the input file,
-    /// but instead are read from the contract storage.
-    ///
     pub fn size(&self) -> usize {
         match self {
             Self::Unit => 0,
@@ -109,7 +108,22 @@ impl Type {
             Self::Array(r#type, size) => r#type.size() * *size,
             Self::Tuple(fields) => fields.iter().map(Self::size).sum(),
             Self::Structure(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
-            Self::Contract(_) => 0,
+            Self::Contract(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
+        }
+    }
+
+    ///
+    /// Removes the first structure field, if the field is a contract instance.
+    ///
+    /// Is used before passing through the input arguments of a contract method, where the first
+    /// arguments is a contract instance, which is stored not in the data stack, but in the
+    /// contract storage, and should not be taken into account when calculating the input size.
+    ///
+    pub fn remove_contract_instance(&mut self) {
+        if let Self::Structure(fields) = self {
+            if matches!(fields.first(), Some((_name, Self::Contract(_)))) {
+                fields.remove(0);
+            }
         }
     }
 }

@@ -1,16 +1,16 @@
-//# { "cases": [ {
-//#     "case": "one",
-//#     "input": {
-//#         "witness": "42"
-//#     },
-//#     "expect": "58"
-//# }, {
-//#     "case": "two",
-//#     "input": {
-//#         "witness": "100"
-//#     },
-//#     "expect": "0"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "one",
+//!     "input": {
+//!         "witness": "42"
+//!     },
+//!     "output": "58"
+//! }, {
+//!     "case": "two",
+//!     "input": {
+//!         "witness": "100"
+//!     },
+//!     "output": "0"
+//! } ] }
 
 const SCRUTINEE: u8 = 42;
 

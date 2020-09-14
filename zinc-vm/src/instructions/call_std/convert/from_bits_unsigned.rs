@@ -8,7 +8,7 @@ use franklin_crypto::circuit::num::AllocatedNum;
 
 use zinc_build::IntegerType;
 
-use crate::core::execution_state::evaluation_stack::EvaluationStack;
+use crate::core::execution_state::ExecutionState;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
@@ -31,7 +31,7 @@ impl<E: IEngine> INativeCallable<E> for FromBitsUnsigned {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
-        stack: &mut EvaluationStack<E>,
+        state: &mut ExecutionState<E>,
     ) -> Result<(), RuntimeError> {
         if self.bitlength > E::Fr::CAPACITY as usize {
             return Err(MalformedBytecode::InvalidArguments(format!(
@@ -43,7 +43,7 @@ impl<E: IEngine> INativeCallable<E> for FromBitsUnsigned {
 
         let mut bits = Vec::with_capacity(self.bitlength);
         for i in 0..self.bitlength {
-            let bit = stack.pop()?.try_into_value()?;
+            let bit = state.evaluation_stack.pop()?.try_into_value()?;
             let boolean = bit.to_boolean(cs.namespace(|| format!("to_boolean {}", i)))?;
             bits.push(boolean);
         }
@@ -59,7 +59,7 @@ impl<E: IEngine> INativeCallable<E> for FromBitsUnsigned {
         let scalar =
             Scalar::new_unchecked_variable(num.get_value(), num.get_variable(), int_type.into());
 
-        stack.push(scalar.into())?;
+        state.evaluation_stack.push(scalar.into())?;
 
         Ok(())
     }

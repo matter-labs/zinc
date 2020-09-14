@@ -6,7 +6,6 @@ use std::fmt;
 
 use actix_web::http::StatusCode;
 use actix_web::ResponseError;
-use hex::FromHexError;
 
 use zinc_build::ValueError as BuildValueError;
 use zinc_vm::RuntimeError;
@@ -21,7 +20,6 @@ pub enum Error {
     ConstructorNotFound,
     InvalidInput(BuildValueError),
     RuntimeError(RuntimeError),
-    InvalidAddress(FromHexError),
     Database(sqlx::Error),
     InvalidStorage,
 }
@@ -34,7 +32,6 @@ impl ResponseError for Error {
             Self::ConstructorNotFound => StatusCode::UNPROCESSABLE_ENTITY,
             Self::InvalidInput(_) => StatusCode::BAD_REQUEST,
             Self::RuntimeError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::InvalidAddress(_) => StatusCode::BAD_REQUEST,
             Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::InvalidStorage => StatusCode::INTERNAL_SERVER_ERROR,
         }
@@ -58,7 +55,6 @@ impl fmt::Display for Error {
             Self::ConstructorNotFound => write!(f, "Constructor not found"),
             Self::InvalidInput(inner) => write!(f, "Input: {}", inner),
             Self::RuntimeError(inner) => write!(f, "Runtime: {:?}", inner),
-            Self::InvalidAddress(inner) => write!(f, "Invalid address: {}", inner),
             Self::Database(inner) => write!(f, "Database: {:?}", inner),
             Self::InvalidStorage => write!(f, "Contract storage is broken"),
         }

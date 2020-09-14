@@ -171,10 +171,10 @@ impl Integer {
 
         let operator = GeneratorExpressionOperator::equals_inferred(
             inference_result.first.map(|r#type| {
-                Type::integer(Some(self.location), r#type.is_signed, r#type.bitlength)
+                Type::scalar(Some(self.location), r#type.is_signed, r#type.bitlength)
             }),
             inference_result.second.map(|r#type| {
-                Type::integer(Some(other.location), r#type.is_signed, r#type.bitlength)
+                Type::scalar(Some(other.location), r#type.is_signed, r#type.bitlength)
             }),
         );
 
@@ -209,10 +209,10 @@ impl Integer {
 
         let operator = GeneratorExpressionOperator::not_equals_inferred(
             inference_result.first.map(|r#type| {
-                Type::integer(Some(self.location), r#type.is_signed, r#type.bitlength)
+                Type::scalar(Some(self.location), r#type.is_signed, r#type.bitlength)
             }),
             inference_result.second.map(|r#type| {
-                Type::integer(Some(other.location), r#type.is_signed, r#type.bitlength)
+                Type::scalar(Some(other.location), r#type.is_signed, r#type.bitlength)
             }),
         );
 
@@ -247,10 +247,10 @@ impl Integer {
 
         let operator = GeneratorExpressionOperator::greater_equals_inferred(
             inference_result.first.map(|r#type| {
-                Type::integer(Some(self.location), r#type.is_signed, r#type.bitlength)
+                Type::scalar(Some(self.location), r#type.is_signed, r#type.bitlength)
             }),
             inference_result.second.map(|r#type| {
-                Type::integer(Some(other.location), r#type.is_signed, r#type.bitlength)
+                Type::scalar(Some(other.location), r#type.is_signed, r#type.bitlength)
             }),
         );
 
@@ -285,10 +285,10 @@ impl Integer {
 
         let operator = GeneratorExpressionOperator::lesser_equals_inferred(
             inference_result.first.map(|r#type| {
-                Type::integer(Some(self.location), r#type.is_signed, r#type.bitlength)
+                Type::scalar(Some(self.location), r#type.is_signed, r#type.bitlength)
             }),
             inference_result.second.map(|r#type| {
-                Type::integer(Some(other.location), r#type.is_signed, r#type.bitlength)
+                Type::scalar(Some(other.location), r#type.is_signed, r#type.bitlength)
             }),
         );
 
@@ -323,10 +323,10 @@ impl Integer {
 
         let operator = GeneratorExpressionOperator::greater_inferred(
             inference_result.first.map(|r#type| {
-                Type::integer(Some(self.location), r#type.is_signed, r#type.bitlength)
+                Type::scalar(Some(self.location), r#type.is_signed, r#type.bitlength)
             }),
             inference_result.second.map(|r#type| {
-                Type::integer(Some(other.location), r#type.is_signed, r#type.bitlength)
+                Type::scalar(Some(other.location), r#type.is_signed, r#type.bitlength)
             }),
         );
 
@@ -361,10 +361,10 @@ impl Integer {
 
         let operator = GeneratorExpressionOperator::lesser_inferred(
             inference_result.first.map(|r#type| {
-                Type::integer(Some(self.location), r#type.is_signed, r#type.bitlength)
+                Type::scalar(Some(self.location), r#type.is_signed, r#type.bitlength)
             }),
             inference_result.second.map(|r#type| {
-                Type::integer(Some(other.location), r#type.is_signed, r#type.bitlength)
+                Type::scalar(Some(other.location), r#type.is_signed, r#type.bitlength)
             }),
         );
 
@@ -413,17 +413,17 @@ impl BitOr for Integer {
             value: self.value | &other.value,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration,
+            enumeration: None,
             is_literal: self.is_literal && other.is_literal,
         };
 
         let operator = GeneratorExpressionOperator::bitwise_or_inferred(
             inference_result
                 .first
-                .map(|r#type| Type::integer(Some(location_1), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_1), r#type.is_signed, r#type.bitlength)),
             inference_result
                 .second
-                .map(|r#type| Type::integer(Some(location_2), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_2), r#type.is_signed, r#type.bitlength)),
         );
 
         Ok((result, operator))
@@ -471,17 +471,17 @@ impl BitXor for Integer {
             value: self.value ^ &other.value,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration,
+            enumeration: None,
             is_literal: self.is_literal && other.is_literal,
         };
 
         let operator = GeneratorExpressionOperator::bitwise_xor_inferred(
             inference_result
                 .first
-                .map(|r#type| Type::integer(Some(location_1), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_1), r#type.is_signed, r#type.bitlength)),
             inference_result
                 .second
-                .map(|r#type| Type::integer(Some(location_2), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_2), r#type.is_signed, r#type.bitlength)),
         );
 
         Ok((result, operator))
@@ -529,17 +529,17 @@ impl BitAnd for Integer {
             value: self.value & &other.value,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration,
+            enumeration: None,
             is_literal: self.is_literal && other.is_literal,
         };
 
         let operator = GeneratorExpressionOperator::bitwise_and_inferred(
             inference_result
                 .first
-                .map(|r#type| Type::integer(Some(location_1), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_1), r#type.is_signed, r#type.bitlength)),
             inference_result
                 .second
-                .map(|r#type| Type::integer(Some(location_2), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_2), r#type.is_signed, r#type.bitlength)),
         );
 
         Ok((result, operator))
@@ -588,7 +588,7 @@ impl Shl<Self> for Integer {
             value: self.value << other,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration,
+            enumeration: None,
             is_literal: self.is_literal,
         };
 
@@ -640,7 +640,7 @@ impl Shr<Self> for Integer {
             value: self.value >> other,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration,
+            enumeration: None,
             is_literal: self.is_literal,
         };
 
@@ -679,7 +679,7 @@ impl Add for Integer {
             return Err(Error::OverflowAddition {
                 location: location_1,
                 value: result,
-                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
                     .to_string(),
             });
         }
@@ -695,7 +695,7 @@ impl Add for Integer {
             return Err(Error::OverflowAddition {
                 location: location_1,
                 value: result,
-                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
                     .to_string(),
             });
         }
@@ -707,17 +707,17 @@ impl Add for Integer {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration,
+            enumeration: None,
             is_literal,
         };
 
         let operator = GeneratorExpressionOperator::addition_inferred(
             inference_result
                 .first
-                .map(|r#type| Type::integer(Some(location_1), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_1), r#type.is_signed, r#type.bitlength)),
             inference_result
                 .second
-                .map(|r#type| Type::integer(Some(location_2), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_2), r#type.is_signed, r#type.bitlength)),
         );
 
         Ok((result, operator))
@@ -753,7 +753,7 @@ impl Sub for Integer {
             return Err(Error::OverflowSubtraction {
                 location: location_1,
                 value: result,
-                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
                     .to_string(),
             });
         }
@@ -769,7 +769,7 @@ impl Sub for Integer {
             return Err(Error::OverflowSubtraction {
                 location: location_1,
                 value: result,
-                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
                     .to_string(),
             });
         }
@@ -781,17 +781,17 @@ impl Sub for Integer {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration,
+            enumeration: None,
             is_literal,
         };
 
         let operator = GeneratorExpressionOperator::subtraction_inferred(
             inference_result
                 .first
-                .map(|r#type| Type::integer(Some(location_1), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_1), r#type.is_signed, r#type.bitlength)),
             inference_result
                 .second
-                .map(|r#type| Type::integer(Some(location_2), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_2), r#type.is_signed, r#type.bitlength)),
         );
 
         Ok((result, operator))
@@ -827,7 +827,7 @@ impl Mul for Integer {
             return Err(Error::OverflowMultiplication {
                 location: location_1,
                 value: result,
-                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
                     .to_string(),
             });
         }
@@ -843,7 +843,7 @@ impl Mul for Integer {
             return Err(Error::OverflowMultiplication {
                 location: location_1,
                 value: result,
-                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
                     .to_string(),
             });
         }
@@ -855,17 +855,17 @@ impl Mul for Integer {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration,
+            enumeration: None,
             is_literal,
         };
 
         let operator = GeneratorExpressionOperator::multiplication_inferred(
             inference_result
                 .first
-                .map(|r#type| Type::integer(Some(location_1), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_1), r#type.is_signed, r#type.bitlength)),
             inference_result
                 .second
-                .map(|r#type| Type::integer(Some(location_2), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_2), r#type.is_signed, r#type.bitlength)),
         );
 
         Ok((result, operator))
@@ -911,7 +911,7 @@ impl Div for Integer {
             return Err(Error::OverflowDivision {
                 location: self.location,
                 value: result,
-                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
                     .to_string(),
             });
         }
@@ -927,7 +927,7 @@ impl Div for Integer {
             return Err(Error::OverflowDivision {
                 location: self.location,
                 value: result,
-                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
                     .to_string(),
             });
         }
@@ -939,17 +939,17 @@ impl Div for Integer {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration,
+            enumeration: None,
             is_literal,
         };
 
         let operator = GeneratorExpressionOperator::division_inferred(
             inference_result
                 .first
-                .map(|r#type| Type::integer(Some(location_1), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_1), r#type.is_signed, r#type.bitlength)),
             inference_result
                 .second
-                .map(|r#type| Type::integer(Some(location_2), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_2), r#type.is_signed, r#type.bitlength)),
         );
 
         Ok((result, operator))
@@ -995,7 +995,7 @@ impl Rem for Integer {
             return Err(Error::OverflowRemainder {
                 location: self.location,
                 value: result,
-                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
                     .to_string(),
             });
         }
@@ -1011,27 +1011,29 @@ impl Rem for Integer {
             return Err(Error::OverflowRemainder {
                 location: self.location,
                 value: result,
-                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
                     .to_string(),
             });
         }
 
+        #[allow(clippy::suspicious_arithmetic_impl)]
+        let is_literal = self.is_literal && other.is_literal;
         let result = Self {
             location: self.location,
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration,
-            is_literal: self.is_literal && other.is_literal,
+            enumeration: None,
+            is_literal,
         };
 
         let operator = GeneratorExpressionOperator::remainder_inferred(
             inference_result
                 .first
-                .map(|r#type| Type::integer(Some(location_1), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_1), r#type.is_signed, r#type.bitlength)),
             inference_result
                 .second
-                .map(|r#type| Type::integer(Some(location_2), r#type.is_signed, r#type.bitlength)),
+                .map(|r#type| Type::scalar(Some(location_2), r#type.is_signed, r#type.bitlength)),
         );
 
         Ok((result, operator))
@@ -1051,7 +1053,7 @@ impl Integer {
             return Err(Error::OverflowCasting {
                 location: self.location,
                 value: self.value,
-                r#type: Type::integer(Some(self.location), is_signed, bitlength).to_string(),
+                r#type: Type::scalar(Some(self.location), is_signed, bitlength).to_string(),
             });
         }
 
@@ -1064,7 +1066,7 @@ impl Integer {
             return Err(Error::OverflowCasting {
                 location: self.location,
                 value: self.value,
-                r#type: Type::integer(Some(self.location), is_signed, bitlength).to_string(),
+                r#type: Type::scalar(Some(self.location), is_signed, bitlength).to_string(),
             });
         }
 
@@ -1111,7 +1113,7 @@ impl Integer {
             value: !self.value,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration,
+            enumeration: None,
             is_literal: self.is_literal,
         };
 
@@ -1147,7 +1149,7 @@ impl Neg for Integer {
             return Err(Error::OverflowNegation {
                 location,
                 value: result,
-                r#type: Type::integer(Some(self.location), is_signed, self.bitlength).to_string(),
+                r#type: Type::scalar(Some(self.location), is_signed, self.bitlength).to_string(),
             });
         }
 
@@ -1156,7 +1158,7 @@ impl Neg for Integer {
             value: result,
             is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration,
+            enumeration: None,
             is_literal: self.is_literal,
         };
 

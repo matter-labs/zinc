@@ -2,4 +2,4 @@
 //! The bytecode optimizers.
 //!
 
-pub mod elimination;
+pub mod dead_function_code_elimination;

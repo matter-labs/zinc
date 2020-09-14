@@ -18,7 +18,7 @@ use self::error::Error;
 use self::file::File;
 
 ///
-/// The string source code representation.
+/// The Zinc source code JSON representation.
 ///
 /// This representation is used for the Zandbox server requests, where the project source code must
 /// be bundled into JSON to be passed via a single request.

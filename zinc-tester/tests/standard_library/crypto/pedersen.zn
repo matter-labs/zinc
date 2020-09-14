@@ -1,13 +1,13 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "preimage": "42"
-//#     },
-//#     "expect": [
-//#     	"0xd799568a2faaebce79310bbb84e454bf934e61f1879c8095ac7c0a45905d2d3",
-//#     	"0x40d2992106b2c6e8c2f0b38e5238fbd9b46ef042d91011a5566044f2943ac65"
-//#     ]
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "preimage": "42"
+//!     },
+//!     "output": [
+//!     	"0xd799568a2faaebce79310bbb84e454bf934e61f1879c8095ac7c0a45905d2d3",
+//!     	"0x40d2992106b2c6e8c2f0b38e5238fbd9b46ef042d91011a5566044f2943ac65"
+//!     ]
+//! } ] }
 
 fn main(preimage: field) -> (field, field) {
     let preimage_bits = std::convert::to_bits(preimage);

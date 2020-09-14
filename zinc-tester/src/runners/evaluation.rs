@@ -44,7 +44,7 @@ impl Runner {
 
 impl IRunnable for Runner {
     fn run(self, path: PathBuf, file: File, metadata: Metadata, summary: Arc<Mutex<Summary>>) {
-        let path = match path.strip_prefix(crate::TEST_DEFAULT_DIRECTORY) {
+        let path = match path.strip_prefix(zinc_const::tester::DEFAULT_DIRECTORY) {
             Ok(path) => path,
             Err(_error) => &path,
         };
@@ -58,7 +58,10 @@ impl IRunnable for Runner {
             }
 
             if metadata.ignore || case.ignore {
-                summary.lock().expect(zinc_const::panic::MUTEX_SYNC).ignored += 1;
+                summary
+                    .lock()
+                    .expect(zinc_const::panic::MULTI_THREADING)
+                    .ignored += 1;
                 println!("[INTEGRATION] {} {}", "IGNORE".yellow(), case_name);
                 continue;
             }
@@ -72,7 +75,10 @@ impl IRunnable for Runner {
             ) {
                 Ok(program) => program,
                 Err(error) => {
-                    summary.lock().expect(zinc_const::panic::MUTEX_SYNC).invalid += 1;
+                    summary
+                        .lock()
+                        .expect(zinc_const::panic::MULTI_THREADING)
+                        .invalid += 1;
                     println!(
                         "[INTEGRATION] {} {} ({})",
                         "INVALID".red(),
@@ -83,9 +89,79 @@ impl IRunnable for Runner {
                 }
             };
 
-            let result = match instance.program {
+            match instance.program {
                 BuildProgram::Circuit(circuit) => {
-                    CircuitFacade::new(circuit).run::<Bn256>(instance.witness)
+                    let output = CircuitFacade::new(circuit).run::<Bn256>(instance.witness);
+
+                    match output {
+                        Ok(output) => {
+                            let result_json = output.result.into_json();
+
+                            if case.output == result_json {
+                                if !case.should_panic {
+                                    summary
+                                        .lock()
+                                        .expect(zinc_const::panic::MULTI_THREADING)
+                                        .passed += 1;
+                                    if self.verbosity > 0 {
+                                        println!(
+                                            "[INTEGRATION] {} {}",
+                                            "PASSED".green(),
+                                            case_name
+                                        );
+                                    }
+                                } else {
+                                    summary
+                                        .lock()
+                                        .expect(zinc_const::panic::MULTI_THREADING)
+                                        .failed += 1;
+                                    println!(
+                                        "[INTEGRATION] {} {} (should have panicked)",
+                                        "FAILED".bright_red(),
+                                        case_name
+                                    );
+                                }
+                            } else {
+                                summary
+                                    .lock()
+                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .failed += 1;
+                                println!(
+                                    "[INTEGRATION] {} {} (expected {}, but got {})",
+                                    "FAILED".bright_red(),
+                                    case_name,
+                                    case.output,
+                                    result_json
+                                );
+                            }
+                        }
+                        Err(error) => {
+                            if case.should_panic {
+                                summary
+                                    .lock()
+                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .passed += 1;
+                                if self.verbosity > 0 {
+                                    println!(
+                                        "[INTEGRATION] {} {} (panicked)",
+                                        "PASSED".green(),
+                                        case_name
+                                    );
+                                }
+                            } else {
+                                summary
+                                    .lock()
+                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .failed += 1;
+                                println!(
+                                    "[INTEGRATION] {} {} ({})",
+                                    "FAILED".bright_red(),
+                                    case_name,
+                                    error
+                                );
+                            }
+                        }
+                    }
                 }
                 BuildProgram::Contract(contract) => {
                     let storage: Vec<(String, BuildValue)> = contract
@@ -95,59 +171,80 @@ impl IRunnable for Runner {
                         .map(|(name, r#type)| (name, BuildValue::new(r#type)))
                         .collect();
 
-                    ContractFacade::new(contract)
-                        .run::<Bn256>(instance.witness, BuildValue::Contract(storage), case.method)
-                        .map(|(output, _storage)| output)
-                }
-            };
+                    let output = ContractFacade::new(contract).run::<Bn256>(
+                        instance.witness,
+                        BuildValue::Contract(storage),
+                        case.method,
+                    );
 
-            match result {
-                Ok(output) => {
-                    let output_json = output.into_json();
+                    match output {
+                        Ok(output) => {
+                            let result_json = output.result.into_json();
 
-                    if case.expect == output_json {
-                        if !case.should_panic {
-                            summary.lock().expect(zinc_const::panic::MUTEX_SYNC).passed += 1;
-                            if self.verbosity > 0 {
-                                println!("[INTEGRATION] {} {}", "PASSED".green(), case_name);
+                            if case.output == result_json {
+                                if !case.should_panic {
+                                    summary
+                                        .lock()
+                                        .expect(zinc_const::panic::MULTI_THREADING)
+                                        .passed += 1;
+                                    if self.verbosity > 0 {
+                                        println!(
+                                            "[INTEGRATION] {} {}",
+                                            "PASSED".green(),
+                                            case_name
+                                        );
+                                    }
+                                } else {
+                                    summary
+                                        .lock()
+                                        .expect(zinc_const::panic::MULTI_THREADING)
+                                        .failed += 1;
+                                    println!(
+                                        "[INTEGRATION] {} {} (should have panicked)",
+                                        "FAILED".bright_red(),
+                                        case_name
+                                    );
+                                }
+                            } else {
+                                summary
+                                    .lock()
+                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .failed += 1;
+                                println!(
+                                    "[INTEGRATION] {} {} (expected {}, but got {})",
+                                    "FAILED".bright_red(),
+                                    case_name,
+                                    case.output,
+                                    result_json
+                                );
                             }
-                        } else {
-                            summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
-                            println!(
-                                "[INTEGRATION] {} {} (should have panicked)",
-                                "FAILED".bright_red(),
-                                case_name
-                            );
                         }
-                    } else {
-                        summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
-                        println!(
-                            "[INTEGRATION] {} {} (expected {}, but got {})",
-                            "FAILED".bright_red(),
-                            case_name,
-                            case.expect,
-                            output_json
-                        );
-                    }
-                }
-                Err(error) => {
-                    if case.should_panic {
-                        summary.lock().expect(zinc_const::panic::MUTEX_SYNC).passed += 1;
-                        if self.verbosity > 0 {
-                            println!(
-                                "[INTEGRATION] {} {} (panicked)",
-                                "PASSED".green(),
-                                case_name
-                            );
+                        Err(error) => {
+                            if case.should_panic {
+                                summary
+                                    .lock()
+                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .passed += 1;
+                                if self.verbosity > 0 {
+                                    println!(
+                                        "[INTEGRATION] {} {} (panicked)",
+                                        "PASSED".green(),
+                                        case_name
+                                    );
+                                }
+                            } else {
+                                summary
+                                    .lock()
+                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .failed += 1;
+                                println!(
+                                    "[INTEGRATION] {} {} ({})",
+                                    "FAILED".bright_red(),
+                                    case_name,
+                                    error
+                                );
+                            }
                         }
-                    } else {
-                        summary.lock().expect(zinc_const::panic::MUTEX_SYNC).failed += 1;
-                        println!(
-                            "[INTEGRATION] {} {} ({})",
-                            "FAILED".bright_red(),
-                            case_name,
-                            error
-                        );
                     }
                 }
             }

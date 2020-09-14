@@ -26,10 +26,17 @@ pub enum Error {
         reference: Option<Location>,
     },
     /// The item is not a namespace, and cannot be a part of a path expression.
-    ItemNotNamespace {
+    ItemIsNotANamespace {
         /// The error location data.
         location: Location,
         /// The non-namespace item name.
+        name: String,
+    },
+    /// The associated item is accessed without specifying its namespace.
+    AssociatedItemWithoutOwner {
+        /// The error location data.
+        location: Location,
+        /// The associated item name.
         name: String,
     },
     /// Another contract is already declared within the scope stack.

@@ -26,6 +26,40 @@ fn main() {
 }
 ```
 
+## Methods
+
+Methods are functions declared in a structure or enumeration implementation,
+or in a smart contract definition. Such functions accept the object instance as
+the first argument and can be called via the dot operator.
+
+```rust,no_run,noplaypen
+struct Data {
+    a: u8,
+    b: u8,
+    c: u8,
+    d: u8,
+}
+
+impl Data {
+    pub fn sum(self) -> u8 {
+        self.a + self.b + self.c + self.d
+    }
+}
+
+fn main() {
+    let data = Data { a: 1, b: 2, c: 3, d: 4 };
+    
+    dbg!("Data sum is: {}", data.sum());
+}
+```
+
+Methods can be called like ordinary functions using the type namespace they
+are declared in. In some languages it is called a static form:
+
+```rust,no_run,noplaypen
+dbg!("Data sum is: {}", Data::sum(data));
+```
+
 ## Constant functions
 
 Constant functions are called at compile-time, thus they may only accept and

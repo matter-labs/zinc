@@ -109,7 +109,7 @@ impl Analyzer {
             evaluation_stack: EvaluationStack::new(),
             intermediate: GeneratorExpression::new(),
             rule,
-            next_call_type: CallType::Normal,
+            next_call_type: CallType::Default,
         }
     }
 
@@ -330,26 +330,26 @@ impl Analyzer {
 
                 ExpressionOperator::Or => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(Element::or, tree.location, intermediate_1, intermediate_2)?;
                 }
                 ExpressionOperator::Xor => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(Element::xor, tree.location, intermediate_1, intermediate_2)?;
                 }
                 ExpressionOperator::And => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(Element::and, tree.location, intermediate_1, intermediate_2)?;
                 }
 
                 ExpressionOperator::Equals => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(
                         Element::equals,
@@ -360,7 +360,7 @@ impl Analyzer {
                 }
                 ExpressionOperator::NotEquals => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(
                         Element::not_equals,
@@ -371,7 +371,7 @@ impl Analyzer {
                 }
                 ExpressionOperator::GreaterEquals => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(
                         Element::greater_equals,
@@ -382,7 +382,7 @@ impl Analyzer {
                 }
                 ExpressionOperator::LesserEquals => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(
                         Element::lesser_equals,
@@ -393,7 +393,7 @@ impl Analyzer {
                 }
                 ExpressionOperator::Greater => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(
                         Element::greater,
@@ -404,7 +404,7 @@ impl Analyzer {
                 }
                 ExpressionOperator::Lesser => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(
                         Element::lesser,
@@ -416,7 +416,7 @@ impl Analyzer {
 
                 ExpressionOperator::BitwiseOr => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(
                         Element::bitor,
@@ -427,7 +427,7 @@ impl Analyzer {
                 }
                 ExpressionOperator::BitwiseXor => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(
                         Element::bitxor,
@@ -438,7 +438,7 @@ impl Analyzer {
                 }
                 ExpressionOperator::BitwiseAnd => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(
                         Element::bitand,
@@ -449,44 +449,44 @@ impl Analyzer {
                 }
                 ExpressionOperator::BitwiseShiftLeft => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(Element::shl, tree.location, intermediate_1, intermediate_2)?;
                 }
                 ExpressionOperator::BitwiseShiftRight => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(Element::shr, tree.location, intermediate_1, intermediate_2)?;
                 }
 
                 ExpressionOperator::Addition => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(Element::add, tree.location, intermediate_1, intermediate_2)?;
                 }
                 ExpressionOperator::Subtraction => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(Element::sub, tree.location, intermediate_1, intermediate_2)?;
                 }
                 ExpressionOperator::Multiplication => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(Element::mul, tree.location, intermediate_1, intermediate_2)?;
                 }
                 ExpressionOperator::Division => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(Element::div, tree.location, intermediate_1, intermediate_2)?;
                 }
                 ExpressionOperator::Remainder => {
                     let intermediate_1 = self.left_separate(tree.left, operator, rule)?;
-                    let intermediate_2 = self.left_separate(tree.right, operator, rule)?;
+                    let intermediate_2 = self.right_separate(tree.right, operator, rule)?;
 
                     self.binary(Element::rem, tree.location, intermediate_1, intermediate_2)?;
                 }
@@ -664,7 +664,7 @@ impl Analyzer {
     ) -> Result<GeneratorExpression, Error> {
         let rule = TranslationRule::second(operator, rule);
         let (element, intermediate) = match right {
-            Some(left) => Self::new(self.scope_stack.top(), rule).analyze(*left)?,
+            Some(right) => Self::new(self.scope_stack.top(), rule).analyze(*right)?,
             None => panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
         self.evaluation_stack.push(StackElement::Evaluated(element));
@@ -972,11 +972,14 @@ impl Analyzer {
             },
             DotAccess::Method { instance } => {
                 let instance = if let Element::Place(instance) = *instance {
-                    let (instance, _intermedidate) = Self::evaluate(
+                    let (instance, intermedidate) = Self::evaluate(
                         self.scope_stack.top(),
                         StackElement::Evaluated(Element::Place(instance)),
                         TranslationRule::Value,
                     )?;
+                    if let Some(intermediate) = intermedidate {
+                        self.intermediate.push_operand(intermediate);
+                    }
 
                     instance
                 } else {

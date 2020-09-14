@@ -53,7 +53,7 @@ impl File {
                 INDEX
                     .inner
                     .read()
-                    .expect(zinc_const::panic::MUTEX_SYNC)
+                    .expect(zinc_const::panic::MULTI_THREADING)
                     .get(&next_file_id)
                     .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
                     .code
@@ -112,7 +112,7 @@ impl File {
                 INDEX
                     .inner
                     .read()
-                    .expect(zinc_const::panic::MUTEX_SYNC)
+                    .expect(zinc_const::panic::MULTI_THREADING)
                     .get(&next_file_id)
                     .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
                     .code
@@ -130,7 +130,7 @@ impl File {
     }
 
     ///
-    /// Gets all the intermediate represenation scattered around the application scope tree and
+    /// Gets all the intermediate representation scattered around the application scope tree and
     /// writes it to the bytecode.
     ///
     pub fn compile(self, name: String) -> Result<Rc<RefCell<State>>, SourceError> {
@@ -173,7 +173,7 @@ impl File {
         INDEX
             .inner
             .write()
-            .expect(zinc_const::panic::MUTEX_SYNC)
+            .expect(zinc_const::panic::MULTI_THREADING)
             .insert(
                 file_index,
                 Data {

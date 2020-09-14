@@ -1,0 +1,23 @@
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "value": "10"
+//!     },
+//!     "output": "240"
+//! } ] }
+
+fn double(value: field) -> field {
+    value * 2
+}
+
+fn triple(value: field) -> field {
+    value * 3
+}
+
+fn quadruple(value: field) -> field {
+    value * 4
+}
+
+fn main(value: field) -> field {
+    double(triple(quadruple(value)))
+}

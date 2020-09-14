@@ -14,7 +14,9 @@ pub mod limit;
 pub mod panic;
 pub mod path;
 pub mod postgresql;
+pub mod size;
 pub mod source;
+pub mod tester;
 pub mod zandbox;
 pub mod zargo;
 

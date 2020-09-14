@@ -5,7 +5,7 @@
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::sha256;
 
-use crate::core::execution_state::evaluation_stack::EvaluationStack;
+use crate::core::execution_state::ExecutionState;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
@@ -34,11 +34,12 @@ impl<E: IEngine> INativeCallable<E> for Sha256 {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
-        stack: &mut EvaluationStack<E>,
+        state: &mut ExecutionState<E>,
     ) -> Result<(), RuntimeError> {
         let mut bits = Vec::new();
         for i in 0..self.message_length {
-            let bit = stack
+            let bit = state
+                .evaluation_stack
                 .pop()?
                 .try_into_value()?
                 .to_boolean(cs.namespace(|| format!("bit {}", i)))?;
@@ -53,7 +54,7 @@ impl<E: IEngine> INativeCallable<E> for Sha256 {
 
         for bit in digest_bits {
             let scalar = Scalar::from_boolean(cs.namespace(|| "from_boolean"), bit)?;
-            stack.push(scalar.into())?;
+            state.evaluation_stack.push(scalar.into())?;
         }
 
         Ok(())

@@ -1,8 +1,8 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {},
-//#     "expect": "10"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {},
+//!     "output": "10"
+//! } ] }
 
 fn main() -> u64 {
     let mut sum: u64 = 0;

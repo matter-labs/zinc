@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "f": "0",
-//#         "byte": "0"
-//#     },
-//#     "expect": null
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "f": "0",
+//!         "byte": "0"
+//!     },
+//!     "output": null
+//! } ] }
 
 fn main(f: field, byte: u8) {}

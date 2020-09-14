@@ -13,9 +13,9 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::element::Error as ElementError;
 use crate::semantic::error::Error as SemanticError;
-use crate::semantic::scope::item::variable::memory_type::MemoryType as ScopeVariableItemMemoryType;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::memory_type::MemoryType as ScopeVariableItemMemoryType;
 
 #[test]
 fn error_argument_count_lesser() {

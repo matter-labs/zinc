@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "witness": "8"
-//#     },
-//#     "expect": "48"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "witness": "8"
+//!     },
+//!     "output": "48"
+//! } ] }
 
 enum List {
     FIRST = 1,
@@ -13,11 +13,11 @@ enum List {
 }
 
 impl List {
-    pub fn multiply_by_all(self) -> Self {
-        self * Self::FIRST * Self::SECOND * Self::THIRD
+    pub fn multiply_by_all(self) -> field {
+        self as field * Self::FIRST as field * Self::SECOND as field * Self::THIRD as field
     }
 }
 
-fn main(witness: u8) -> u8 {
-    (List::FIRST.multiply_by_all() as u8) * witness
+fn main(witness: field) -> field {
+    List::FIRST.multiply_by_all() * witness
 }

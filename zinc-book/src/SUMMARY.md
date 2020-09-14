@@ -11,7 +11,7 @@
     - [Input and output](03-circuits/01-input-output.md)
 - [Smart contracts](04-smart-contracts/00-overview.md)
     - [Data and functions](04-smart-contracts/01-data-and-functions.md)
-    - [Uniswap example](04-smart-contracts/02-uniswap-example.md)
+    - [Uniswap example](04-smart-contracts/02-minimal-example.md)
 - [Variables and types](05-variables-and-types/00-overview.md)
     - [Variables](05-variables-and-types/01-variables.md)
     - [Types](05-variables-and-types/02-types/00-overview.md)

@@ -65,6 +65,7 @@ impl Contract {
                 location,
                 Type::Contract(contract.clone()),
                 true,
+                false,
                 None,
             ))
             .wrap(),

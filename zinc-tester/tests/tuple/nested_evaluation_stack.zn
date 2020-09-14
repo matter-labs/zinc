@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "witness": "3"
-//#     },
-//#     "expect": "23"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "witness": "3"
+//!     },
+//!     "output": "23"
+//! } ] }
 
 const FIRST: ((u8, u8), (u8, u8)) = ((42, 2), (3, 111));
 const SECOND: ((u8, u8), (u8, u8)) = ((42, 2), (3, 111));

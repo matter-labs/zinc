@@ -50,7 +50,7 @@ fn_statement = [ 'pub' ], [ 'const' ], 'fn', identifier, '(', pattern_binding_li
 
 mod_statement = [ 'pub' ], 'mod', identifier, ';' ;
 
-use_statement = [ 'pub' ], 'use', path_expression, ';' ;
+use_statement = [ 'pub' ], 'use', path_expression, [ 'as', identifier ], ';' ;
 
 impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}' ;
 

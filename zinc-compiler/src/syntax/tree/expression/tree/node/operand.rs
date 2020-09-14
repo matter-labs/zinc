@@ -22,32 +22,32 @@ use crate::syntax::tree::tuple_index::TupleIndex;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operand {
-    /// a unit value `()`
+    /// A unit value `()`.
     LiteralUnit(Location),
-    /// `true` or `false`
+    /// `true` or `false`.
     LiteralBoolean(BooleanLiteral),
     /// `42`, `0x101010`, etc.
     LiteralInteger(IntegerLiteral),
-    /// "Zinc is the best language for ZKP"
+    /// "Zinc is the best language for ZKP".
     LiteralString(StringLiteral),
-    /// a tuple field identifier
+    /// A tuple field identifier.
     TupleIndex(TupleIndex),
-    /// an item identifier
+    /// An item identifier.
     Identifier(Identifier),
-    /// a syntax type, e.g. a keyword, array, tuple, etc.
+    /// A syntax type, e.g. a keyword, array, tuple, etc.
     Type(Type),
-    /// an array literal expression
+    /// An array literal expression.
     Array(ArrayExpression),
-    /// a tuple literal expression
+    /// A tuple literal expression.
     Tuple(TupleExpression),
-    /// a structure literal expression
+    /// A structure literal expression.
     Structure(StructureExpression),
-    /// a function argument list expression
+    /// A function argument list expression.
     List(ListExpression),
-    /// a block expression `{ ... }`
+    /// A block expression `{ ... }`.
     Block(BlockExpression),
-    /// a conditional expression `if x { ... } else { ... }`
+    /// A conditional expression `if x { ... } else { ... }`.
     Conditional(ConditionalExpression),
-    /// a match expression `match value { 1 => 10, _ => 42 }`
+    /// A match expression `match value { 1 => 10, _ => 42 }`.
     Match(MatchExpression),
 }

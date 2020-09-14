@@ -6,6 +6,7 @@ pub mod error;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::thread;
 
 use serde_json::Value as JsonValue;
 
@@ -41,15 +42,24 @@ impl Instance {
         method: String,
         witness: JsonValue,
     ) -> Result<Self, Error> {
-        let scope = EntryAnalyzer::define(Source::test(code, path, 0, HashMap::new()))
-            .map_err(CompilerError::Semantic)
-            .map_err(|error| error.format())
-            .map_err(Error::Compiler)?;
+        let source = Source::test(code, path, 0, HashMap::new());
+        let program = thread::Builder::new()
+            .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
+            .spawn(|| {
+                let scope = EntryAnalyzer::define(source)
+                    .map_err(CompilerError::Semantic)
+                    .map_err(|error| error.format())
+                    .map_err(Error::Compiler)?;
 
-        let state = State::new(name).wrap();
-        IntermediateProgram::new(scope.borrow().get_intermediate()).write_all(state.clone());
+                let state = State::new(name).wrap();
+                IntermediateProgram::new(scope.borrow().get_intermediate())
+                    .write_all(state.clone());
 
-        let program = State::unwrap_rc(state).into_program(true);
+                Ok(State::unwrap_rc(state).into_program(true))
+            })
+            .expect(zinc_const::panic::MULTI_THREADING)
+            .join()
+            .expect(zinc_const::panic::MULTI_THREADING)?;
 
         let input_type = match program {
             BuildProgram::Circuit(ref circuit) => circuit.input.to_owned(),

@@ -64,7 +64,9 @@ impl IExecutable for Command {
             BuildProgram::Circuit(circuit) => {
                 let input_type = circuit.input.clone();
                 let input_values = BuildValue::try_from_typed_json(input_json, input_type)?;
-                CircuitFacade::new(circuit).run::<Bn256>(input_values)?
+                CircuitFacade::new(circuit)
+                    .run::<Bn256>(input_values)?
+                    .result
             }
             BuildProgram::Contract(contract) => {
                 let storage_path = match self.storage.take() {
@@ -97,14 +99,14 @@ impl IExecutable for Command {
                     },
                 )?;
                 let input_values = BuildValue::try_from_typed_json(input_json, method.input)?;
-                let (output, storage) = ContractFacade::new(contract).run::<Bn256>(
+                let output = ContractFacade::new(contract).run::<Bn256>(
                     input_values,
                     BuildValue::Contract(storage_values),
                     method_name,
                 )?;
 
                 let mut storage_values = Vec::with_capacity(storage_size);
-                match storage {
+                match output.storage {
                     BuildValue::Contract(fields) => {
                         for (_name, value) in fields.into_iter() {
                             storage_values.push(value.into_json());
@@ -121,7 +123,7 @@ impl IExecutable for Command {
                 fs::write(&storage_path, storage_str)
                     .error_with_path(|| storage_path.to_string_lossy())?;
 
-                output
+                output.result
             }
         };
 

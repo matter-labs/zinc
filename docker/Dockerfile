@@ -15,5 +15,5 @@ RUN apt-get install --yes \
 # Fixing the Windows '\r\n' line endings
 RUN dos2unix 'docker/build.sh'
 
-# Main build script, requires the Zinc and Rust versions
-RUN /bin/bash 'docker/build.sh' '0.2.0' '1.46'
+# Main build script, expects the Zinc version
+RUN /bin/bash 'docker/build.sh' '0.2.0'

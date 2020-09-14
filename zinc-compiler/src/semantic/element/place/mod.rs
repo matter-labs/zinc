@@ -24,7 +24,6 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
-use crate::semantic::scope::item::variable::memory_type::MemoryType as VariableItemMemoryType;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::syntax::tree::identifier::Identifier;
 
@@ -316,21 +315,17 @@ impl Place {
                 let item = contract.scope.borrow().resolve_item(&identifier, false);
 
                 if let Ok(item) = item {
-                    if let ScopeItem::Variable(ref variable) = *item.borrow() {
-                        let position = match variable.memory_type {
-                            VariableItemMemoryType::ContractStorage { index } => index,
-                            _ => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
-                        };
-                        let element_size = variable.r#type.size();
+                    if let ScopeItem::Field(ref field) = *item.borrow() {
+                        let element_size = field.r#type.size();
                         let access = DotAccessVariant::ContractField(ContractFieldAccess::new(
                             identifier.name,
-                            position,
+                            field.index,
                             offset,
                             element_size,
                             total_size,
                         ));
 
-                        self.r#type = variable.r#type.to_owned();
+                        self.r#type = field.r#type.to_owned();
                         self.total_size = self.r#type.size();
 
                         return Ok((self, access));

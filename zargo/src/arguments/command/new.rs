@@ -19,9 +19,9 @@ use crate::directory::source::contract::Contract as ContractFile;
 use crate::directory::source::contract::Error as ContractFileError;
 use crate::directory::source::Directory as SourceDirectory;
 use crate::directory::source::Error as SourceDirectoryError;
-use crate::manifest::project_type::ProjectType;
-use crate::manifest::Error as ManifestError;
-use crate::manifest::Manifest;
+use crate::file::error::Error as FileError;
+use crate::file::manifest::project_type::ProjectType;
+use crate::file::manifest::Manifest as ManifestFile;
 
 ///
 /// The Zargo project manager `new` subcommand.
@@ -84,7 +84,7 @@ pub enum Error {
     CreatingRootDirectory(OsString, io::Error),
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
-    ManifestFile(ManifestError),
+    ManifestFile(FileError<toml::de::Error>),
     /// The project source code directory error.
     #[fail(display = "source directory {}", _0)]
     SourceDirectory(SourceDirectoryError),
@@ -120,7 +120,7 @@ impl IExecutable for Command {
             Error::CreatingRootDirectory(self.path.as_os_str().to_owned(), error)
         })?;
 
-        Manifest::new(&project_name, project_type)
+        ManifestFile::new(&project_name, project_type)
             .write_to(&self.path)
             .map_err(Error::ManifestFile)?;
 

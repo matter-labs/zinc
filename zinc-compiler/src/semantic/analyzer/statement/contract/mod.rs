@@ -36,12 +36,13 @@ impl Analyzer {
         for hoisted_statement in statement.statements.into_iter() {
             match hoisted_statement {
                 ContractLocalStatement::Const(statement) => {
-                    Scope::declare_constant(scope.clone(), statement)?;
+                    Scope::declare_constant(scope.clone(), statement, true)?;
                 }
                 ContractLocalStatement::Fn(statement) => {
                     Scope::declare_type(
                         scope.clone(),
                         TypeStatementVariant::Fn(statement, FnStatementAnalyzerContext::Contract),
+                        true,
                     )?;
                 }
                 ContractLocalStatement::Empty(_location) => {}

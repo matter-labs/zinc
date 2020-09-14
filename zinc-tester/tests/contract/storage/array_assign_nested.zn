@@ -1,0 +1,23 @@
+//! { "cases": [ {
+//!     "case": "default",
+//!     "method": "main",
+//!     "input": {
+//!         "arg": "42"
+//!     },
+//!     "output": {
+//!         "$result": "126",
+//!         "$root_hash": "0x3bef38c65d7d0661232a8fbad2944cb97c11aa25d96674036be8efc5862a80"
+//!     }
+//! } ] }
+
+contract Test {
+    data: [[u8; 4]; 4];
+
+    const TEST: u8 = 42;
+
+    pub fn main(mut self, arg: u8) -> u8 {
+        self.data[3][3] = arg;
+
+        arg + Self::TEST + self.data[3][3]
+    }
+}

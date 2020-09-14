@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "preimage": "42"
-//#     },
-//#     "expect": "0x24ef4f01b129cde88a501b3fbd739cc2e1534134ab930c52ec2bd7523f02de"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "preimage": "42"
+//!     },
+//!     "output": "0x24ef4f01b129cde88a501b3fbd739cc2e1534134ab930c52ec2bd7523f02de"
+//! } ] }
 
 use std::convert;
 use std::array::truncate;

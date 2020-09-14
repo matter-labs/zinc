@@ -3,5 +3,5 @@
 //!
 
 pub mod pedersen;
-pub mod schnorr;
+pub mod schnorr_verify;
 pub mod sha256;

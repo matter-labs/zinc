@@ -38,11 +38,13 @@ pub struct Type {
     pub item_id: usize,
     /// The definition state, which is either `declared` or `defined`.
     pub state: RefCell<Option<State>>,
+    /// Whether the type is associated with some implementation or smart contract definition.
+    pub is_associated: bool,
 }
 
 impl Type {
     ///
-    /// Creates an declared type, which must be defined during the second pass or when
+    /// Creates a declared type, which must be defined during the second pass or when
     /// the item is referenced for the first time.
     ///
     /// Is used during module items hoisting.
@@ -53,6 +55,7 @@ impl Type {
         location: Option<Location>,
         inner: TypeStatementVariant,
         scope: Rc<RefCell<Scope>>,
+        is_associated: bool,
     ) -> Result<Self, Error> {
         let item_id = ITEM_INDEX.next(format!("type {}", inner.identifier().name));
 
@@ -77,6 +80,7 @@ impl Type {
             location,
             item_id,
             state: RefCell::new(Some(State::Declared { inner, scope })),
+            is_associated,
         })
     }
 
@@ -89,6 +93,7 @@ impl Type {
         location: Option<Location>,
         inner: TypeElement,
         is_alias: bool,
+        is_associated: bool,
         intermediate: Option<GeneratorStatement>,
     ) -> Self {
         let title = format!(
@@ -109,13 +114,14 @@ impl Type {
                 inner,
                 intermediate,
             })),
+            is_associated,
         }
     }
 
     ///
-    /// Useful method to declare a built-in type without a `location` or `intermediate` represenation.
+    /// Useful method to declare a built-in type without a `location` or `intermediate` representation.
     ///
-    pub fn new_built_in(inner: TypeElement) -> Self {
+    pub fn new_built_in(inner: TypeElement, is_associated: bool) -> Self {
         let item_id = ITEM_INDEX.next(inner.to_string());
 
         Self {
@@ -125,6 +131,7 @@ impl Type {
                 inner,
                 intermediate: None,
             })),
+            is_associated,
         }
     }
 

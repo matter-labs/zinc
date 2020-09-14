@@ -365,6 +365,18 @@ impl Type {
     }
 
     ///
+    /// Checks if the type is an unsigned integer one (unsigned integers, fields and enumeration values).
+    ///
+    pub fn is_integer_unsigned(&self) -> bool {
+        match self {
+            Self::IntegerUnsigned { .. } => true,
+            Self::Field(_) => true,
+            Self::Enumeration { .. } => true,
+            _ => false,
+        }
+    }
+
+    ///
     /// Checks if the type is a boolean (bit) array.
     ///
     pub fn is_bit_array(&self) -> bool {

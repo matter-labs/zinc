@@ -10,6 +10,7 @@ pub mod function_frame;
 
 use std::fmt;
 
+use crate::core::contract::output::transfer::Transfer;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -24,11 +25,13 @@ pub struct ExecutionState<E: IEngine> {
     pub data_stack: DataStack<E>,
     pub conditions_stack: Vec<Scalar<E>>,
     pub frames_stack: Vec<Frame<E>>,
+    pub transfers: Vec<Transfer>,
 }
 
 impl<E: IEngine> ExecutionState<E> {
     const CONDITIONS_INITIAL_CAPACITY: usize = 16;
     const FRAMES_INITIAL_CAPACITY: usize = 16;
+    const TRANSFERS_INITIAL_CAPACITY: usize = 4;
 
     pub fn new() -> Self {
         Self {
@@ -37,6 +40,7 @@ impl<E: IEngine> ExecutionState<E> {
             data_stack: DataStack::new(),
             conditions_stack: Vec::with_capacity(Self::CONDITIONS_INITIAL_CAPACITY),
             frames_stack: Vec::with_capacity(Self::FRAMES_INITIAL_CAPACITY),
+            transfers: Vec::with_capacity(Self::TRANSFERS_INITIAL_CAPACITY),
         }
     }
 }

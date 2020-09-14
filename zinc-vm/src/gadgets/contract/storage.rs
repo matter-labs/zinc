@@ -175,7 +175,7 @@ where
         Ok(self.root_hash.clone())
     }
 
-    pub fn into_storage(self) -> S {
+    pub fn into_inner(self) -> S {
         self.storage
     }
 }

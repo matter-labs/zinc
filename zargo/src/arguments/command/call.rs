@@ -3,9 +3,6 @@
 //!
 
 use std::convert::TryFrom;
-use std::fs;
-use std::io;
-use std::io::Read;
 use std::path::PathBuf;
 
 use colored::Colorize;
@@ -21,9 +18,10 @@ use zinc_source::CallRequestQuery;
 
 use crate::arguments::command::IExecutable;
 use crate::directory::data::Directory as DataDirectory;
-use crate::manifest::project_type::ProjectType;
-use crate::manifest::Error as ManifestError;
-use crate::manifest::Manifest;
+use crate::file::arguments::Arguments as ArgumentsFile;
+use crate::file::error::Error as FileError;
+use crate::file::manifest::project_type::ProjectType;
+use crate::file::manifest::Manifest as ManifestFile;
 
 ///
 /// The Zargo project manager `call` subcommand.
@@ -63,13 +61,13 @@ pub struct Command {
 pub enum Error {
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
-    ManifestFile(ManifestError),
+    ManifestFile(FileError<toml::de::Error>),
     /// The project is not a contract.
     #[fail(display = "not a contract")]
     NotAContract,
     /// The contract method arguments file error.
     #[fail(display = "arguments file {}", _0)]
-    ArgumentsFile(FileError),
+    ArgumentsFile(FileError<serde_json::Error>),
     /// The publish HTTP request error.
     #[fail(display = "HTTP request: {}", _0)]
     HttpRequest(reqwest::Error),
@@ -78,30 +76,11 @@ pub enum Error {
     ActionFailed(String),
 }
 
-///
-/// The arguments file error. TODO: move to a single file and add the path
-///
-#[derive(Debug, Fail)]
-pub enum FileError {
-    /// File opening error.
-    #[fail(display = "opening: {}", _0)]
-    Opening(io::Error),
-    /// File metadata getting error.
-    #[fail(display = "metadata: {}", _0)]
-    Metadata(io::Error),
-    /// File reading error.
-    #[fail(display = "reading: {}", _0)]
-    Reading(io::Error),
-    /// File contents parsing error.
-    #[fail(display = "parsing: {}", _0)]
-    Parsing(serde_json::Error),
-}
-
 impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        let manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
+        let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         match manifest.project.r#type {
             ProjectType::Contract => {}
@@ -122,21 +101,7 @@ impl IExecutable for Command {
             zinc_const::extension::JSON,
         ));
 
-        let mut arguments_file = fs::File::open(arguments_path)
-            .map_err(FileError::Opening)
-            .map_err(Error::ArgumentsFile)?;
-        let arguments_file_size = arguments_file
-            .metadata()
-            .map_err(FileError::Metadata)
-            .map_err(Error::ArgumentsFile)?
-            .len() as usize;
-        let mut arguments_file_str = String::with_capacity(arguments_file_size);
-        arguments_file
-            .read_to_string(&mut arguments_file_str)
-            .map_err(FileError::Reading)
-            .map_err(Error::ArgumentsFile)?;
-        let arguments: JsonValue = serde_json::from_str(arguments_file_str.as_str())
-            .map_err(FileError::Parsing)
+        let arguments = ArgumentsFile::try_from_path(&arguments_path, self.method.as_str())
             .map_err(Error::ArgumentsFile)?;
 
         eprintln!(
@@ -159,7 +124,7 @@ impl IExecutable for Command {
                         )
                         .expect(zinc_const::panic::DATA_SERIALIZATION),
                     )
-                    .json(&CallRequestBody::new(arguments))
+                    .json(&CallRequestBody::new(arguments.inner))
                     .build()
                     .expect(zinc_const::panic::DATA_SERIALIZATION),
             )
@@ -177,9 +142,12 @@ impl IExecutable for Command {
 
         println!(
             "{}",
-            http_response
-                .json::<JsonValue>()
-                .expect(zinc_const::panic::DATA_SERIALIZATION)
+            serde_json::to_string_pretty(
+                &http_response
+                    .json::<JsonValue>()
+                    .expect(zinc_const::panic::DATA_SERIALIZATION)
+            )
+            .expect(zinc_const::panic::DATA_SERIALIZATION)
         );
 
         Ok(())

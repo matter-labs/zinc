@@ -121,7 +121,7 @@ impl<E: IEngine> AllocatedLeaf<E> {
 
         let mut root_hash_bits = current_hash;
 
-        root_hash_bits.truncate(zinc_const::bitlength::SHA256_HASH_TRUNCATED);
+        root_hash_bits.truncate(zinc_const::bitlength::SHA256_HASH - zinc_const::bitlength::BYTE);
 
         Ok(Scalar::<E>::from(AllocatedNum::<E>::pack_bits_to_element(
             cs.namespace(|| "pack root hash bits into AllocatedNum"),

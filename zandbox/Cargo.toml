@@ -14,18 +14,20 @@ path = "src/zandbox/main.rs"
 [dependencies]
 log = "0.4"
 structopt = "0.3"
+colored = "2.0"
 failure = "0.1"
 
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
-bson = "1.1"
 hex = "0.4"
 
+rayon = "1.4"
 futures = "0.3"
 actix-rt = "1.1"
 actix-web = "2.0"
 sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-async-std", "macros", "postgres", "json" ] }
+wallet-gen = "0.4"
 
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }

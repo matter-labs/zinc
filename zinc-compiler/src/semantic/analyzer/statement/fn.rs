@@ -17,7 +17,7 @@ use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variable::memory_type::MemoryType;
+use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;

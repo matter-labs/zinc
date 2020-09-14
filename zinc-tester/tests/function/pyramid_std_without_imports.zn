@@ -1,0 +1,17 @@
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "preimage": "42"
+//!     },
+//!     "output": "0x24ef4f01b129cde88a501b3fbd739cc2e1534134ab930c52ec2bd7523f02de"
+//! } ] }
+
+fn main(preimage: u248) -> u248 {
+    std::convert::from_bits_unsigned(
+        std::array::truncate(
+            std::crypto::sha256(
+                std::convert::to_bits(preimage)
+            ), 248
+        )
+    )
+}

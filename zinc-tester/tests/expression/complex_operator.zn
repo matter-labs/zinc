@@ -1,10 +1,10 @@
-//# { "cases": [ {
-//#     "case": "default",
-//#     "input": {
-//#         "witness": "16"
-//#     },
-//#     "expect": "81"
-//# } ] }
+//! { "cases": [ {
+//!     "case": "default",
+//!     "input": {
+//!         "witness": "16"
+//!     },
+//!     "output": "81"
+//! } ] }
 
 fn main(witness: u8) -> u8 {
     let local_1 = 3;

@@ -17,8 +17,8 @@ use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
-use crate::manifest::Error as ManifestError;
-use crate::manifest::Manifest;
+use crate::file::error::Error as FileError;
+use crate::file::manifest::Manifest as ManifestFile;
 
 ///
 /// The Zargo project manager `test` subcommand.
@@ -51,7 +51,7 @@ pub struct Command {
 pub enum Error {
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
-    ManifestFile(ManifestError),
+    ManifestFile(FileError<toml::de::Error>),
     /// The project binary build directory error.
     #[fail(display = "build directory {}", _0)]
     BuildDirectory(BuildDirectoryError),
@@ -78,7 +78,7 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        let manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
+        let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         let mut manifest_path = self.manifest_path.clone();
         if manifest_path.is_file() {

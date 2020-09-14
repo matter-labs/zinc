@@ -39,7 +39,7 @@ pub async fn handle(
 
     let contract = match app_data
         .read()
-        .expect(zinc_const::panic::MUTEX_SYNC)
+        .expect(zinc_const::panic::MULTI_THREADING)
         .contracts
         .get(&query.contract_id)
         .cloned()
@@ -64,7 +64,7 @@ pub async fn handle(
     let storage_fields_count = contract.storage.len();
     let storage_value = match app_data
         .read()
-        .expect(zinc_const::panic::MUTEX_SYNC)
+        .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
         .select_fields(FieldSelectInput::new(query.contract_id))
         .await
@@ -91,17 +91,17 @@ pub async fn handle(
         Err(error) => return Response::error(Error::Database(error)),
     };
 
-    let (output, storage) = match zinc_vm::ContractFacade::new(contract).run::<Bn256>(
+    let output = match zinc_vm::ContractFacade::new(contract).run::<Bn256>(
         input_value,
         storage_value,
         query.method,
     ) {
-        Ok((output, storage)) => (output, storage),
+        Ok(output) => output,
         Err(error) => return Response::error(Error::RuntimeError(error)),
     };
 
     let mut storage_fields = Vec::with_capacity(storage_fields_count);
-    match storage {
+    match output.storage {
         BuildValue::Contract(fields) => {
             for (index, (_name, value)) in fields.into_iter().enumerate() {
                 let value = value.into_json();
@@ -117,7 +117,7 @@ pub async fn handle(
 
     if let Err(error) = app_data
         .read()
-        .expect(zinc_const::panic::MUTEX_SYNC)
+        .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
         .update_fields(storage_fields)
         .await
@@ -125,5 +125,7 @@ pub async fn handle(
         return Response::error(Error::Database(error));
     }
 
-    Response::<JsonValue, Error>::success_with_data(StatusCode::OK, output.into_json())
+    dbg!(output.transfers);
+
+    Response::<JsonValue, Error>::success_with_data(StatusCode::OK, output.result.into_json())
 }

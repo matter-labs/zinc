@@ -33,6 +33,9 @@ pub enum FunctionIdentifier {
     /// The `std::array::pad` function identifier.
     ArrayPad,
 
-    /// The `std::ff::inverse` function identifier.
+    /// The `std::ff::invert` function identifier.
     FieldInverse,
+
+    /// The `std::assets::Token::transfer` function identifier.
+    AssetsTokenTransfer,
 }

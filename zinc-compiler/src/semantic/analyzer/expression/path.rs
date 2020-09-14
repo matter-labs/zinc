@@ -22,6 +22,7 @@ use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::Scope;
 
 ///
@@ -52,8 +53,28 @@ impl Translator {
                     )),
                     None,
                 )),
+                ScopeItem::Field(ref field) => Ok((
+                    Element::Place(Place::new(
+                        path_last_identifier,
+                        field.r#type.to_owned(),
+                        false,
+                        MemoryType::ContractStorage { index: field.index }.into(),
+                    )),
+                    None,
+                )),
                 ScopeItem::Constant(ref constant) => {
                     let mut constant = constant.define()?;
+                    constant.set_location(location);
+
+                    let intermediate = GeneratorConstant::try_from_semantic(&constant);
+
+                    Ok((
+                        Element::Constant(constant),
+                        intermediate.map(GeneratorExpressionOperand::Constant),
+                    ))
+                }
+                ScopeItem::Variant(ref variant) => {
+                    let mut constant = variant.constant.to_owned();
                     constant.set_location(location);
 
                     let intermediate = GeneratorConstant::try_from_semantic(&constant);
@@ -93,8 +114,39 @@ impl Translator {
 
                     Ok((element, intermediate))
                 }
+                ScopeItem::Field(ref field) => {
+                    let value = Value::try_from_type(&field.r#type, false, Some(location))
+                        .map_err(ElementError::Value)
+                        .map_err(Error::Element)?;
+                    let r#type = value.r#type();
+                    let element = Element::Value(value);
+
+                    let intermediate = GeneratorType::try_from_semantic(&r#type)
+                        .map(|_| {
+                            Place::new(
+                                path_last_identifier,
+                                r#type,
+                                false,
+                                MemoryType::ContractStorage { index: field.index }.into(),
+                            )
+                            .into()
+                        })
+                        .map(GeneratorExpressionOperand::Place);
+
+                    Ok((element, intermediate))
+                }
                 ScopeItem::Constant(ref constant) => {
                     let mut constant = constant.define()?;
+                    constant.set_location(location);
+
+                    let intermediate = GeneratorConstant::try_from_semantic(&constant)
+                        .map(GeneratorExpressionOperand::Constant);
+
+                    let element = Element::Constant(constant);
+                    Ok((element, intermediate))
+                }
+                ScopeItem::Variant(ref variant) => {
+                    let mut constant = variant.constant.to_owned();
                     constant.set_location(location);
 
                     let intermediate = GeneratorConstant::try_from_semantic(&constant)

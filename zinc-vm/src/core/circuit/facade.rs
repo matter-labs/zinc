@@ -18,6 +18,7 @@ use zinc_build::Value as BuildValue;
 use zinc_const::UnitTestExitCode;
 
 use crate::constraint_systems::main::Main as MainCS;
+use crate::core::circuit::output::Output as CircuitOutput;
 use crate::core::circuit::synthesizer::Synthesizer as CircuitSynthesizer;
 use crate::core::circuit::State as CircuitState;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -33,7 +34,7 @@ impl Facade {
         Self { inner }
     }
 
-    pub fn run<E: IEngine>(self, input: BuildValue) -> Result<BuildValue, RuntimeError> {
+    pub fn run<E: IEngine>(self, input: BuildValue) -> Result<CircuitOutput, RuntimeError> {
         let cs = MainCS::<Bn256>::new();
 
         let inputs_flat = input.into_flat_values();
@@ -64,17 +65,13 @@ impl Facade {
             return Err(RuntimeError::UnsatisfiedConstraint);
         }
 
-        let output_flat = result
-            .into_iter()
-            .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
-            .collect::<Vec<_>>();
+        let output_flat: Vec<BigInt> = result.into_iter().filter_map(|value| value).collect();
+        let output_value = BuildValue::from_flat_values(output_type, &output_flat);
 
-        let value = BuildValue::from_flat_values(output_type, &output_flat);
-
-        Ok(value)
+        Ok(CircuitOutput::new(output_value))
     }
 
-    pub fn debug<E: IEngine>(self, input: BuildValue) -> Result<BuildValue, RuntimeError> {
+    pub fn debug<E: IEngine>(self, input: BuildValue) -> Result<CircuitOutput, RuntimeError> {
         let cs = TestConstraintSystem::<Bn256>::new();
 
         let inputs_flat = input.into_flat_values();
@@ -121,14 +118,10 @@ impl Facade {
             ));
         }
 
-        let output_flat = result
-            .into_iter()
-            .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
-            .collect::<Vec<_>>();
+        let output_flat: Vec<BigInt> = result.into_iter().filter_map(|value| value).collect();
+        let output_value = BuildValue::from_flat_values(output_type, &output_flat);
 
-        let value = BuildValue::from_flat_values(output_type, &output_flat);
-
-        Ok(value)
+        Ok(CircuitOutput::new(output_value))
     }
 
     pub fn test<E: IEngine>(self) -> Result<UnitTestExitCode, RuntimeError> {
@@ -218,15 +211,12 @@ impl Facade {
                 "circuit hasn't generate outputs".into(),
             )),
             Some(result) => match result {
-                Ok(values) => {
-                    let output_flat: Vec<BigInt> = values
-                        .into_iter()
-                        .map(|v| v.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS))
-                        .collect();
+                Ok(result) => {
+                    let output_flat: Vec<BigInt> =
+                        result.into_iter().filter_map(|value| value).collect();
+                    let output_value = BuildValue::from_flat_values(output_type, &output_flat);
 
-                    let value = BuildValue::from_flat_values(output_type, &output_flat);
-
-                    Ok((value, proof))
+                    Ok((output_value, proof))
                 }
                 Err(err) => Err(err),
             },

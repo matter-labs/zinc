@@ -1,5 +1,5 @@
 //!
-//! The Zinc source code.
+//! The Zinc source code JSON representation.
 //!
 
 pub(crate) mod source;

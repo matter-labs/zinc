@@ -9,9 +9,9 @@ use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
-use crate::semantic::scope::item::variable::memory_type::MemoryType;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::memory_type::MemoryType;
 
 #[test]
 fn ok_constant_element_simple() {

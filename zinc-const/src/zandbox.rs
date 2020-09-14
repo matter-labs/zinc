@@ -2,9 +2,6 @@
 //! The Zinc Zandbox constants.
 //!
 
-/// The JSON payload limit to fit large contract source code.
-pub static JSON_PAYLOAD_LIMIT: usize = 16 * 1024 * 1024;
-
 /// The default contract constructor name.
 pub static CONTRACT_CONSTRUCTOR_NAME: &str = "new";
 
