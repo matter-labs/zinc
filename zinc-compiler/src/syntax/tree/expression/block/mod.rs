@@ -15,8 +15,6 @@ use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatemen
 pub struct Expression {
     /// The location of the syntax construction.
     pub location: Location,
-    /// If the block is unconstrained.
-    pub is_unconstrained: bool,
     /// The function block statements.
     pub statements: Vec<FunctionLocalStatement>,
     /// The optional last statement, which is the result of the block.
@@ -29,13 +27,11 @@ impl Expression {
     ///
     pub fn new(
         location: Location,
-        is_unconstrained: bool,
         statements: Vec<FunctionLocalStatement>,
         expression: Option<ExpressionTree>,
     ) -> Self {
         Self {
             location,
-            is_unconstrained,
             statements,
             expression: expression.map(Box::new),
         }

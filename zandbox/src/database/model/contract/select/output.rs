@@ -2,8 +2,6 @@
 //! The database contract SELECT output model.
 //!
 
-use serde_json::Value as JsonValue;
-
 ///
 /// The database contract SELECT output model.
 ///
@@ -15,20 +13,33 @@ pub struct Output {
     pub name: String,
     /// The contract version.
     pub version: String,
-    /// The contract source code tree JSON representation.
-    pub source_code: JsonValue,
+    /// The contract bytecode.
+    pub bytecode: Vec<u8>,
+    /// The contract ETH address.
+    pub eth_address: Vec<u8>,
+    /// The contract private key.
+    pub private_key: Vec<u8>,
 }
 
 impl Output {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(contract_id: i64, name: String, version: String, source_code: JsonValue) -> Self {
+    pub fn new(
+        contract_id: i64,
+        name: String,
+        version: String,
+        bytecode: Vec<u8>,
+        eth_address: Vec<u8>,
+        private_key: Vec<u8>,
+    ) -> Self {
         Self {
             contract_id,
             name,
             version,
-            source_code,
+            bytecode,
+            eth_address,
+            private_key,
         }
     }
 }

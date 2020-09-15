@@ -42,7 +42,7 @@ impl Directory {
     /// Initializes an application directory from string data.
     ///
     pub fn try_from_string(
-        directory: zinc_source::Directory,
+        directory: zinc_data::Directory,
         is_entry: bool,
     ) -> Result<Self, SourceError> {
         let path = PathBuf::from(directory.path);
@@ -52,7 +52,7 @@ impl Directory {
 
         for (name, module) in directory.modules.into_iter() {
             match module {
-                zinc_source::Source::File(file) => {
+                zinc_data::Source::File(file) => {
                     if is_entry && file.is_module_entry() {
                         return Err(SourceError::Directory(Error::ModuleEntryInRoot));
                     }
@@ -69,7 +69,7 @@ impl Directory {
                         dependencies.insert(name, Source::File(file));
                     }
                 }
-                zinc_source::Source::Directory(directory) => {
+                zinc_data::Source::Directory(directory) => {
                     let directory = Self::try_from_string(directory, false)?;
 
                     dependencies.insert(name, Source::Directory(directory));

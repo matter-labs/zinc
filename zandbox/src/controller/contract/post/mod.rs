@@ -4,6 +4,7 @@
 
 pub mod error;
 pub mod request;
+pub mod response;
 
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -18,58 +19,42 @@ use wallet_gen::wallet::Wallet;
 use zinc_build::Program as BuildProgram;
 use zinc_build::Type as BuildType;
 use zinc_build::Value as BuildValue;
-use zinc_compiler::Source;
-use zinc_compiler::State;
 use zinc_vm::Bn256;
 
 use crate::database::model::contract::insert::input::Input as ContractInsertInput;
 use crate::database::model::field::insert::input::Input as FieldInsertInput;
 use crate::database::model::method::insert::input::Input as MethodInsertInput;
 use crate::response::Response;
+use crate::shared_data::contract::Contract as SharedDataContract;
 use crate::shared_data::SharedData;
 
 use self::error::Error;
-use self::request::Body;
-use self::request::Query;
+use self::request::Body as RequestBody;
+use self::request::Query as RequestQuery;
+use self::response::Body as ResponseBody;
 
 ///
 /// The HTTP request handler.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
-    query: web::Query<Query>,
-    body: web::Json<Body>,
+    query: web::Query<RequestQuery>,
+    body: web::Json<RequestBody>,
 ) -> impl Responder {
     let query = query.into_inner();
     let body = body.into_inner();
 
-    let source = match Source::try_from_string(body.source.clone(), true)
-        .map_err(|error| error.to_string())
-    {
-        Ok(source) => source,
-        Err(error) => return Response::error(Error::Compiler(error)),
+    let program = match BuildProgram::try_from_slice(body.bytecode.as_slice()) {
+        Ok(program) => program,
+        Err(error) => return Response::error(Error::InvalidBytecode(error)),
     };
 
-    let state = match source
-        .compile(query.name.clone())
-        .map_err(|error| error.to_string())
-    {
-        Ok(state) => State::unwrap_rc(state),
-        Err(error) => return Response::error(Error::Compiler(error)),
-    };
-
-    let contract = match state.into_program(true) {
+    let build = match program.clone() {
         BuildProgram::Circuit(_circuit) => return Response::error(Error::NotAContract),
         BuildProgram::Contract(contract) => contract,
     };
 
-    app_data
-        .write()
-        .expect(zinc_const::panic::MULTI_THREADING)
-        .contracts
-        .insert(query.contract_id, contract.clone());
-
-    let constructor = match contract
+    let constructor = match build
         .methods
         .get(zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME)
         .cloned()
@@ -78,7 +63,7 @@ pub async fn handle(
         None => return Response::error(Error::ConstructorNotFound),
     };
 
-    let methods: Vec<MethodInsertInput> = contract
+    let methods: Vec<MethodInsertInput> = build
         .methods
         .iter()
         .map(|(name, method)| {
@@ -86,8 +71,8 @@ pub async fn handle(
                 query.contract_id,
                 name.to_owned(),
                 false,
-                serde_json::to_value(&method.input).expect(zinc_const::panic::DATA_SERIALIZATION),
-                serde_json::to_value(&method.output).expect(zinc_const::panic::DATA_SERIALIZATION),
+                serde_json::to_value(&method.input).expect(zinc_const::panic::DATA_VALID),
+                serde_json::to_value(&method.output).expect(zinc_const::panic::DATA_VALID),
             )
         })
         .collect();
@@ -97,20 +82,39 @@ pub async fn handle(
         Err(error) => return Response::error(Error::InvalidInput(error)),
     };
 
-    let storage = contract.storage.clone();
-    let storage_value = BuildValue::new(BuildType::Contract(contract.storage.clone()));
-    let output = match zinc_vm::ContractFacade::new(contract).run::<Bn256>(
-        input_value,
-        storage_value,
-        zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME.to_owned(),
-    ) {
+    let storage = build.storage.clone();
+    let storage_value = BuildValue::new(BuildType::Contract(build.storage.clone()));
+    let build_to_run = build.clone();
+    let output = match async_std::task::spawn_blocking(move || {
+        zinc_vm::ContractFacade::new(build_to_run).run::<Bn256>(
+            input_value,
+            storage_value,
+            zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME.to_owned(),
+        )
+    })
+    .await
+    {
         Ok(output) => output,
         Err(error) => return Response::error(Error::RuntimeError(error)),
     };
 
     let wallet = Wallet::generate(Coin::Ethereum).expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
     let eth_address = <[u8; zinc_const::size::ETH_ADDRESS]>::from_hex(&wallet.address[2..])
-        .expect(zinc_const::panic::DATA_SERIALIZATION);
+        .expect(zinc_const::panic::DATA_VALID);
+    let public_key = <[u8; zinc_const::size::ETH_PUBLIC_KEY]>::from_hex(wallet.public_key.as_str())
+        .expect(zinc_const::panic::DATA_VALID);
+    let private_key =
+        <[u8; zinc_const::size::ETH_PRIVATE_KEY]>::from_hex(wallet.private_key.as_str())
+            .expect(zinc_const::panic::DATA_VALID);
+
+    app_data
+        .write()
+        .expect(zinc_const::panic::MULTI_THREADING)
+        .contracts
+        .insert(
+            query.contract_id,
+            SharedDataContract::new(build, eth_address, private_key),
+        );
 
     let mut fields = Vec::with_capacity(storage.len());
     match output.result {
@@ -139,11 +143,13 @@ pub async fn handle(
             query.contract_id,
             query.name,
             query.version,
-            serde_json::to_value(body.source).expect(zinc_const::panic::DATA_SERIALIZATION),
-            serde_json::to_value(BuildType::Contract(storage))
-                .expect(zinc_const::panic::DATA_SERIALIZATION),
+            env!("CARGO_PKG_VERSION").to_owned(),
+            serde_json::to_value(body.source).expect(zinc_const::panic::DATA_VALID),
+            body.bytecode,
             body.verifying_key,
             eth_address,
+            public_key,
+            private_key,
         ))
         .await
     {
@@ -170,5 +176,7 @@ pub async fn handle(
         return Response::error(Error::Database(error));
     }
 
-    Response::<(), Error>::success(StatusCode::CREATED)
+    let response = ResponseBody::new(wallet.address);
+
+    Response::success_with_data(StatusCode::CREATED, response)
 }

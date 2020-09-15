@@ -36,8 +36,6 @@ pub enum Keyword {
     Contract,
     /// The `pub` declaration keyword.
     Pub,
-    /// The `unconstrained` declaration keyword.
-    Unconstrained,
 
     /// The `for` control keyword.
     For,
@@ -174,7 +172,6 @@ impl TryFrom<&str> for Keyword {
             "impl" => return Ok(Self::Impl),
             "contract" => return Ok(Self::Contract),
             "pub" => return Ok(Self::Pub),
-            "unconstrained" => return Ok(Self::Unconstrained),
 
             "for" => return Ok(Self::For),
             "in" => return Ok(Self::In),
@@ -273,7 +270,6 @@ impl fmt::Display for Keyword {
             Self::Impl => write!(f, "impl"),
             Self::Contract => write!(f, "contract"),
             Self::Pub => write!(f, "pub"),
-            Self::Unconstrained => write!(f, "unconstrained"),
 
             Self::For => write!(f, "for"),
             Self::In => write!(f, "in"),

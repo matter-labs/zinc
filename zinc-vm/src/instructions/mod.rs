@@ -12,7 +12,6 @@ pub mod flow;
 pub mod markers;
 pub mod noop;
 pub mod operators;
-pub mod state;
 
 use zinc_build::Instruction;
 
@@ -80,9 +79,6 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Instruction {
             Self::CallStd(inner) => inner.execute(vm),
             Self::Assert(inner) => inner.execute(vm),
             Self::Dbg(inner) => inner.execute(vm),
-
-            Self::SetUnconstrained(inner) => inner.execute(vm),
-            Self::UnsetUnconstrained(inner) => inner.execute(vm),
 
             Self::FileMarker(inner) => inner.execute(vm),
             Self::FunctionMarker(inner) => inner.execute(vm),

@@ -98,7 +98,7 @@ operand_terminal =
 
 expression_list = [ expression, { ',', expression } | ',' ] ;
 
-block_expression = [ 'unconstrained' ], '{', { function_local_statement }, [ expression ], '}' ;
+block_expression = '{', { function_local_statement }, [ expression ], '}' ;
 
 conditional_expression = 'if', expression, block_expression, [ 'else', conditional_expression | block_expression ] ;
 

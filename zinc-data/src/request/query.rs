@@ -6,6 +6,8 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use serde_json::Value as JsonValue;
 
+use crate::Network;
+
 ///
 /// The contract resource query PUT request query.
 ///
@@ -15,16 +17,19 @@ pub struct Query {
     pub contract_id: i64,
     /// The name of the queried method. If not specified, the storage is returned.
     pub method: Option<String>,
+    /// The network where the contract resides.
+    pub network: Network,
 }
 
 impl Query {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(contract_id: i64, method: Option<String>) -> Self {
+    pub fn new(contract_id: i64, method: Option<String>, network: Network) -> Self {
         Self {
             contract_id,
             method,
+            network,
         }
     }
 
@@ -32,11 +37,12 @@ impl Query {
     /// Converts the query into an iterable list of arguments.
     ///
     pub fn into_vec(self) -> Vec<(&'static str, String)> {
-        let mut result = Vec::with_capacity(2);
+        let mut result = Vec::with_capacity(3);
         result.push(("contract_id", self.contract_id.to_string()));
         if let Some(method) = self.method {
             result.push(("method", method));
         }
+        result.push(("network", self.network.to_string()));
         result
     }
 }

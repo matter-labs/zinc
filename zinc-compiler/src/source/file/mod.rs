@@ -44,7 +44,7 @@ impl File {
     ///
     /// `path` is used to set the virtual module path within a project.
     ///
-    pub fn try_from_string(file: zinc_source::File) -> Result<Self, SourceError> {
+    pub fn try_from_string(file: zinc_data::File) -> Result<Self, SourceError> {
         let path = PathBuf::from(file.path);
 
         let next_file_id = INDEX.next(&path, file.code);

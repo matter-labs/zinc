@@ -4,6 +4,7 @@
 
 use std::convert::TryFrom;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use colored::Colorize;
 use failure::Fail;
@@ -13,8 +14,9 @@ use reqwest::Url;
 use serde_json::Value as JsonValue;
 use structopt::StructOpt;
 
-use zinc_source::QueryRequestBody;
-use zinc_source::QueryRequestQuery;
+use zinc_data::Network;
+use zinc_data::QueryRequestBody;
+use zinc_data::QueryRequestQuery;
 
 use crate::arguments::command::IExecutable;
 use crate::directory::data::Directory as DataDirectory;
@@ -45,6 +47,13 @@ pub struct Command {
     )]
     pub manifest_path: PathBuf,
 
+    /// The network identifier, where the contract resides.
+    #[structopt(
+        long = "network",
+        help = "Sets the network, which is either 'rinkeby', 'ropsten', or 'localhost'"
+    )]
+    pub network: String,
+
     /// The ID of the published contract.
     #[structopt(long = "id", help = "The ID of the published contract")]
     pub contract_id: i64,
@@ -62,6 +71,12 @@ pub struct Command {
 ///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The invalid network error.
+    #[fail(
+        display = "network must be either `rinkeby`, `ropsten`, or `localhost`, but found `{}`",
+        _0
+    )]
+    NetworkInvalid(String),
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
     ManifestFile(FileError<toml::de::Error>),
@@ -83,6 +98,8 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
+        let network = Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
+
         let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         match manifest.project.r#type {
@@ -94,6 +111,12 @@ impl IExecutable for Command {
         if manifest_path.is_file() {
             manifest_path.pop();
         }
+
+        let endpoint_url = format!(
+            "http://{}{}",
+            network.to_address(),
+            zinc_const::zandbox::CONTRACT_QUERY_URL
+        );
 
         let arguments = match self.method {
             Some(ref method) => {
@@ -140,14 +163,15 @@ impl IExecutable for Command {
                     .request(
                         Method::PUT,
                         Url::parse_with_params(
-                            zinc_const::zandbox::CONTRACT_QUERY_URL,
-                            QueryRequestQuery::new(self.contract_id, self.method).into_vec(),
+                            endpoint_url.as_str(),
+                            QueryRequestQuery::new(self.contract_id, self.method, network)
+                                .into_vec(),
                         )
-                        .expect(zinc_const::panic::DATA_SERIALIZATION),
+                        .expect(zinc_const::panic::DATA_VALID),
                     )
                     .json(&QueryRequestBody::new(arguments))
                     .build()
-                    .expect(zinc_const::panic::DATA_SERIALIZATION),
+                    .expect(zinc_const::panic::DATA_VALID),
             )
             .map_err(Error::HttpRequest)?;
 
@@ -155,9 +179,7 @@ impl IExecutable for Command {
             return Err(Error::ActionFailed(format!(
                 "HTTP error ({}) {}",
                 http_response.status(),
-                http_response
-                    .text()
-                    .expect(zinc_const::panic::DATA_SERIALIZATION),
+                http_response.text().expect(zinc_const::panic::DATA_VALID),
             )));
         }
 
@@ -166,9 +188,9 @@ impl IExecutable for Command {
             serde_json::to_string_pretty(
                 &http_response
                     .json::<JsonValue>()
-                    .expect(zinc_const::panic::DATA_SERIALIZATION)
+                    .expect(zinc_const::panic::DATA_VALID)
             )
-            .expect(zinc_const::panic::DATA_SERIALIZATION)
+            .expect(zinc_const::panic::DATA_VALID)
         );
 
         Ok(())

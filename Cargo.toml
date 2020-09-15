@@ -8,7 +8,7 @@ members = [
     "zandbox",
     "schnorr",
 
-    "zinc-source",
+    "zinc-data",
     "zinc-build",
     "zinc-utils",
     "zinc-const",

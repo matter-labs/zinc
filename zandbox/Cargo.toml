@@ -24,14 +24,16 @@ hex = "0.4"
 
 rayon = "1.4"
 futures = "0.3"
+async-std = "1.6"
 actix-rt = "1.1"
 actix-web = "2.0"
 sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-async-std", "macros", "postgres", "json" ] }
 wallet-gen = "0.4"
 
+zksync = { path = "../../zksync-dev/core/sdk" }
+
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }
-zinc-compiler = { path = "../zinc-compiler" }
 zinc-build = { path = "../zinc-build" }
-zinc-source = { path = "../zinc-source" }
+zinc-data = { path = "../zinc-data" }
 zinc-vm = { path = "../zinc-vm" }

@@ -62,7 +62,9 @@ impl Client {
             contract_id,
             name,
             version,
-            source_code
+            bytecode,
+            eth_address,
+            private_key
         FROM zandbox.contracts
         ORDER BY contract_id;
         "#;
@@ -77,12 +79,18 @@ impl Client {
         const STATEMENT: &str = r#"
         INSERT INTO zandbox.contracts (
             contract_id,
+
             name,
             version,
+
+            zinc_version,
             source_code,
-            storage_type,
+            bytecode,
+
             verifying_key,
             eth_address,
+            public_key,
+            private_key,
             created_at
         ) VALUES (
             $1,
@@ -92,6 +100,9 @@ impl Client {
             $5,
             $6,
             $7,
+            $8,
+            $9,
+            $10,
             NOW()
         );
         "#;
@@ -100,10 +111,13 @@ impl Client {
             .bind(input.contract_id)
             .bind(input.name)
             .bind(input.version)
+            .bind(input.zinc_version)
             .bind(input.source_code)
-            .bind(input.storage_type)
+            .bind(input.bytecode)
             .bind(input.verifying_key)
             .bind(input.eth_address.to_vec())
+            .bind(input.public_key.to_vec())
+            .bind(input.private_key.to_vec())
             .execute(&self.pool)
             .await?;
 

@@ -8,8 +8,8 @@ pub static MULTI_THREADING: &str = "Multi-threading behavior is always valid";
 /// The `rayon` thread pool initialization panic. Should always be successful.
 pub static RAYON_POOL_INITIALIZATION: &str = "The thread pool is initialized only once";
 
-/// The serialization is always valid, as all the types are known at compile-time.
-pub static DATA_SERIALIZATION: &str = "JSON serialization never panicks: ";
+/// The data is always valid.
+pub static DATA_VALID: &str = "The data is always valid: ";
 
 /// The shared reference unwrapping panic message.
 pub static LAST_SHARED_REFERENCE: &str = "There are no other references at this point";

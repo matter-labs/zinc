@@ -23,6 +23,7 @@ pub enum Error {
     InvalidStorageSize { expected: usize, found: usize },
     RuntimeError(RuntimeError),
     Database(sqlx::Error),
+    ZkSync(zksync::error::ClientError),
 }
 
 impl ResponseError for Error {
@@ -36,6 +37,7 @@ impl ResponseError for Error {
             Self::InvalidStorageSize { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             Self::RuntimeError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::ZkSync(_) => StatusCode::SERVICE_UNAVAILABLE,
         }
     }
 }
@@ -64,6 +66,7 @@ impl fmt::Display for Error {
             ),
             Self::RuntimeError(inner) => write!(f, "Runtime: {:?}", inner),
             Self::Database(inner) => write!(f, "Database: {:?}", inner),
+            Self::ZkSync(inner) => write!(f, "ZkSync: {:?}", inner),
         }
     }
 }

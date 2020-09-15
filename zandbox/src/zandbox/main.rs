@@ -15,11 +15,11 @@ use rayon::iter::ParallelIterator;
 use rayon::ThreadPoolBuilder;
 
 use zinc_build::Program as BuildProgram;
-use zinc_compiler::State;
 
 use zandbox::ContractSelectOutput;
 use zandbox::DatabaseClient;
 use zandbox::SharedData;
+use zandbox::SharedDataContract;
 
 use self::arguments::Arguments;
 use self::error::Error;
@@ -56,33 +56,38 @@ async fn main() -> Result<(), Error> {
                  contract_id,
                  name,
                  version,
-                 source_code,
+                 bytecode,
+                 eth_address,
+                 private_key,
              }| {
                 log::info!(
-                    "{} {} v{} (ID {})",
-                    "Compiling".bright_green(),
+                    "{} {} v{} with ID {}",
+                    "Loading".bright_green(),
                     name,
                     version,
                     contract_id
                 );
 
-                let source: zinc_source::Source = serde_json::from_value(source_code)
-                    .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
-                let source = zinc_compiler::Source::try_from_string(source, true)
+                let program = BuildProgram::try_from_slice(bytecode.as_slice())
                     .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
 
-                let state = State::unwrap_rc(
-                    source
-                        .compile(name)
-                        .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION),
-                );
-
-                let contract = match state.into_program(true) {
+                let build = match program {
                     BuildProgram::Circuit(_circuit) => {
                         panic!(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION)
                     }
                     BuildProgram::Contract(contract) => contract,
                 };
+
+                let mut eth_address_array = [0; zinc_const::size::ETH_ADDRESS];
+                for (index, byte) in eth_address.into_iter().enumerate() {
+                    eth_address_array[index] = byte;
+                }
+                let mut private_key_array = [0; zinc_const::size::ETH_PRIVATE_KEY];
+                for (index, byte) in private_key.into_iter().enumerate() {
+                    private_key_array[index] = byte;
+                }
+
+                let contract = SharedDataContract::new(build, eth_address_array, private_key_array);
 
                 (contract_id, contract)
             },

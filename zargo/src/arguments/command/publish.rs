@@ -4,18 +4,21 @@
 
 use std::convert::TryFrom;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use colored::Colorize;
 use failure::Fail;
 use reqwest::Client as HttpClient;
 use reqwest::Method;
 use reqwest::Url;
+use serde_json::Value as JsonValue;
 use structopt::StructOpt;
 
-use zinc_source::PublishRequestBody;
-use zinc_source::PublishRequestQuery;
-use zinc_source::Source;
-use zinc_source::SourceError;
+use zinc_data::Network;
+use zinc_data::PublishRequestBody;
+use zinc_data::PublishRequestQuery;
+use zinc_data::Source;
+use zinc_data::SourceError;
 
 use crate::arguments::command::IExecutable;
 use crate::directory::build::Directory as BuildDirectory;
@@ -28,6 +31,7 @@ use crate::executable::compiler::Error as CompilerError;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
 use crate::file::arguments::Arguments as ArgumentsFile;
+use crate::file::bytecode::Bytecode as BytecodeFile;
 use crate::file::error::Error as FileError;
 use crate::file::manifest::project_type::ProjectType;
 use crate::file::manifest::Manifest as ManifestFile;
@@ -55,6 +59,13 @@ pub struct Command {
     )]
     pub manifest_path: PathBuf,
 
+    /// The network identifier, where the contract must be published to.
+    #[structopt(
+        long = "network",
+        help = "Sets the network, which is either 'rinkeby', 'ropsten', or 'localhost'"
+    )]
+    pub network: String,
+
     /// The ID of the published contract.
     #[structopt(long = "id", help = "The ID of the published contract")]
     pub contract_id: i64,
@@ -65,6 +76,12 @@ pub struct Command {
 ///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The invalid network error.
+    #[fail(
+        display = "network must be either `rinkeby`, `ropsten`, or `localhost`, but found `{}`",
+        _0
+    )]
+    NetworkInvalid(String),
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
     ManifestFile(FileError<toml::de::Error>),
@@ -86,6 +103,9 @@ pub enum Error {
     /// The virtual machine process error.
     #[fail(display = "virtual machine {}", _0)]
     VirtualMachine(VirtualMachineError),
+    /// The contract bytecode binary file error.
+    #[fail(display = "bytecode binary file {}", _0)]
+    BinaryFile(FileError),
     /// The contract constructor input file error.
     #[fail(display = "constructor input file {}", _0)]
     ArgumentsFile(FileError<serde_json::Error>),
@@ -104,6 +124,8 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
+        let network = Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
+
         let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         match manifest.project.r#type {
@@ -153,6 +175,8 @@ impl IExecutable for Command {
         )
         .map_err(Error::Compiler)?;
 
+        let bytecode = BytecodeFile::try_from(&binary_path).map_err(Error::BinaryFile)?;
+
         let arguments = ArgumentsFile::try_from_path(
             &arguments_path,
             zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME,
@@ -173,12 +197,19 @@ impl IExecutable for Command {
         let verifying_key =
             VerifyingKeyFile::try_from(&verifying_key_path).map_err(Error::VerifyingKeyFile)?;
 
+        let endpoint_url = format!(
+            "http://{}{}",
+            network.to_address(),
+            zinc_const::zandbox::CONTRACT_PUBLISH_URL
+        );
+
         eprintln!(
-            "   {} {} v{} with ID {}",
+            "   {} {} v{} with ID {} to {}",
             "Uploading".bright_green(),
             manifest.project.name,
             manifest.project.version,
             self.contract_id,
+            network,
         );
         let http_client = HttpClient::new();
         let mut http_response = http_client
@@ -187,23 +218,25 @@ impl IExecutable for Command {
                     .request(
                         Method::POST,
                         Url::parse_with_params(
-                            zinc_const::zandbox::CONTRACT_PUBLISH_URL,
+                            endpoint_url.as_str(),
                             PublishRequestQuery::new(
                                 self.contract_id,
                                 manifest.project.name,
                                 manifest.project.version,
+                                network,
                             )
                             .into_vec(),
                         )
-                        .expect(zinc_const::panic::DATA_SERIALIZATION),
+                        .expect(zinc_const::panic::DATA_VALID),
                     )
                     .json(&PublishRequestBody::new(
                         source,
+                        bytecode.inner,
                         arguments.inner,
                         verifying_key.inner,
                     ))
                     .build()
-                    .expect(zinc_const::panic::DATA_SERIALIZATION),
+                    .expect(zinc_const::panic::DATA_VALID),
             )
             .map_err(Error::HttpRequest)?;
 
@@ -211,11 +244,19 @@ impl IExecutable for Command {
             return Err(Error::ActionFailed(format!(
                 "HTTP error ({}) {}",
                 http_response.status(),
-                http_response
-                    .text()
-                    .expect(zinc_const::panic::DATA_SERIALIZATION),
+                http_response.text().expect(zinc_const::panic::DATA_VALID),
             )));
         }
+
+        println!(
+            "{}",
+            serde_json::to_string_pretty(
+                &http_response
+                    .json::<JsonValue>()
+                    .expect(zinc_const::panic::DATA_VALID)
+            )
+            .expect(zinc_const::panic::DATA_VALID)
+        );
 
         Ok(())
     }

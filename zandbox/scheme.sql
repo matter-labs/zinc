@@ -6,10 +6,14 @@ CREATE TABLE IF NOT EXISTS zandbox.contracts (
     name               TEXT NOT NULL,
     version            TEXT NOT NULL,
 
+    zinc_version       TEXT NOT NULL,
     source_code        JSON NOT NULL,
-    storage_type       JSON NOT NULL,
+    bytecode           BYTEA NOT NULL,
+
     verifying_key      BYTEA NOT NULL,
     eth_address        BYTEA NOT NULL,
+    public_key         BYTEA NOT NULL,
+    private_key        BYTEA NOT NULL,
 
     created_at         TIMESTAMP NOT NULL,
 

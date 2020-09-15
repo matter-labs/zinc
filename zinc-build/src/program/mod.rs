@@ -10,8 +10,11 @@ use std::collections::HashMap;
 
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
+use serde_json::Value as JsonValue;
 
-use crate::data::r#type::Type as BuildType;
+use crate::bytes::Bytes;
+use crate::data::r#type::Type;
+use crate::data::value::Value;
 use crate::instructions::Instruction;
 use crate::program::unit_test::UnitTest;
 
@@ -37,8 +40,8 @@ impl Program {
     pub fn new_circuit(
         name: String,
         address: usize,
-        input: BuildType,
-        output: BuildType,
+        input: Type,
+        output: Type,
         unit_tests: HashMap<String, UnitTest>,
         instructions: Vec<Instruction>,
     ) -> Self {
@@ -57,7 +60,7 @@ impl Program {
     ///
     pub fn new_contract(
         name: String,
-        storage: Vec<(String, BuildType)>,
+        storage: Vec<(String, Type)>,
         methods: HashMap<String, ContractMethod>,
         unit_tests: HashMap<String, UnitTest>,
         instructions: Vec<Instruction>,
@@ -82,16 +85,68 @@ impl Program {
     }
 
     ///
+    /// Converts the compiled application state into a set of byte arrays, which are ready to be
+    /// written to the Zinc project build files.
+    ///
+    pub fn into_bytes(self) -> Bytes {
+        match self {
+            Program::Circuit(circuit) => {
+                let input_template =
+                    serde_json::to_vec_pretty(&Value::new(circuit.input.clone()).into_json())
+                        .expect(zinc_const::panic::DATA_VALID);
+                let output_template =
+                    serde_json::to_vec_pretty(&Value::new(circuit.output.clone()).into_json())
+                        .expect(zinc_const::panic::DATA_VALID);
+
+                let bytecode = Program::Circuit(circuit).into_vec();
+
+                Bytes::new_circuit(bytecode, input_template, output_template)
+            }
+            Program::Contract(contract) => {
+                let mut input_templates = HashMap::with_capacity(contract.methods.len());
+                let mut output_templates = HashMap::with_capacity(contract.methods.len());
+                for (name, method) in contract.methods.iter() {
+                    input_templates.insert(
+                        name.to_owned(),
+                        serde_json::to_vec_pretty(&Value::new(method.input.to_owned()).into_json())
+                            .expect(zinc_const::panic::DATA_VALID),
+                    );
+                    output_templates.insert(
+                        name.to_owned(),
+                        serde_json::to_vec_pretty(
+                            &Value::new(method.output.to_owned()).into_json(),
+                        )
+                        .expect(zinc_const::panic::DATA_VALID),
+                    );
+                }
+
+                let fields: Vec<JsonValue> = contract
+                    .storage
+                    .clone()
+                    .into_iter()
+                    .map(|(_name, r#type)| Value::new(r#type).into_json())
+                    .collect();
+                let storage = serde_json::to_vec_pretty(&JsonValue::Array(fields))
+                    .expect(zinc_const::panic::DATA_VALID);
+
+                let bytecode = Program::Contract(contract).into_vec();
+
+                Bytes::new_contract(bytecode, storage, input_templates, output_templates)
+            }
+        }
+    }
+
+    ///
     /// Deserializes a program from `bytes`.
     ///
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
-        bincode::deserialize(bytes).map_err(|e| format!("{:?}", e))
+    pub fn try_from_slice(slice: &[u8]) -> Result<Self, String> {
+        bincode::deserialize(slice).map_err(|error| format!("{:?}", error))
     }
 
     ///
     /// Serializes the program into bytes.
     ///
-    pub fn into_bytes(self) -> Vec<u8> {
-        bincode::serialize(&self).expect(zinc_const::panic::DATA_SERIALIZATION)
+    pub fn into_vec(self) -> Vec<u8> {
+        bincode::serialize(&self).expect(zinc_const::panic::DATA_VALID)
     }
 }

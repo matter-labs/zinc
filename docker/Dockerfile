@@ -1,7 +1,7 @@
 FROM rust:1.46 as zinc-builder
-COPY . zinc-dev/
+COPY . matter-labs/
 
-WORKDIR /zinc-dev/
+WORKDIR /matter-labs/
 
 RUN apt-get update --yes
 
@@ -13,7 +13,7 @@ RUN apt-get install --yes \
     'zip'
 
 # Fixing the Windows '\r\n' line endings
-RUN dos2unix 'docker/build.sh'
+RUN dos2unix './zinc-dev/docker/build.sh'
 
 # Main build script, expects the Zinc version
-RUN /bin/bash 'docker/build.sh' '0.2.0'
+RUN /bin/bash './zinc-dev/docker/build.sh' '0.2.0'

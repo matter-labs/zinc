@@ -59,7 +59,8 @@ impl IExecutable for Command {
         // Read program
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let program = BuildProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
+        let program =
+            BuildProgram::try_from_slice(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         // Read verifying key
         let proving_key_path = self.proving_key_path;

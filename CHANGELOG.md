@@ -23,7 +23,6 @@
 
 *Interfaces*
 - added the overflow checking and `enum` validation for input JSON files
-- added the `unconstrained` block modifier to control constraint creation
 
 #### Compiler
 
@@ -43,7 +42,7 @@
 #### Source code
 
 - added doc comments for the entire project using `missing_docs_*` lints
-- moved some shared data to crates `zinc_utils`, `zinc_const`, `zinc_build`, and `zinc_source`
+- moved some shared data to crates `zinc_utils`, `zinc_const`, `zinc_build`, and `zinc_data`
 
 #### Overall
 

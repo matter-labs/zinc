@@ -12,7 +12,6 @@ pub mod flow;
 pub mod marker;
 pub mod noop;
 pub mod operator;
-pub mod state;
 
 use std::fmt;
 
@@ -67,8 +66,6 @@ use self::operator::logical::and::And;
 use self::operator::logical::not::Not;
 use self::operator::logical::or::Or;
 use self::operator::logical::xor::Xor;
-use self::state::set_unconstrained::SetUnconstrained;
-use self::state::unset_unconstrained::UnsetUnconstrained;
 
 ///
 /// The Zinc VM bytecode instruction.
@@ -174,11 +171,6 @@ pub enum Instruction {
     /// A built-in function call instruction.
     Dbg(Dbg),
 
-    /// A state modifying instruction.
-    SetUnconstrained(SetUnconstrained),
-    /// A state modifying instruction.
-    UnsetUnconstrained(UnsetUnconstrained),
-
     /// A debug location marker instruction.
     FileMarker(FileMarker),
     /// A debug location marker instruction.
@@ -250,9 +242,6 @@ impl Instruction {
             Self::Assert(inner) => inner.is_debug(),
             Self::Dbg(inner) => inner.is_debug(),
 
-            Self::SetUnconstrained(inner) => inner.is_debug(),
-            Self::UnsetUnconstrained(inner) => inner.is_debug(),
-
             Self::FileMarker(inner) => inner.is_debug(),
             Self::FunctionMarker(inner) => inner.is_debug(),
             Self::LineMarker(inner) => inner.is_debug(),
@@ -318,9 +307,6 @@ impl fmt::Display for Instruction {
             Self::CallStd(inner) => write!(f, "{}", inner),
             Self::Assert(inner) => write!(f, "{}", inner),
             Self::Dbg(inner) => write!(f, "{}", inner),
-
-            Self::SetUnconstrained(inner) => write!(f, "{}", inner),
-            Self::UnsetUnconstrained(inner) => write!(f, "{}", inner),
 
             Self::FileMarker(inner) => write!(f, "{}", inner),
             Self::FunctionMarker(inner) => write!(f, "{}", inner),

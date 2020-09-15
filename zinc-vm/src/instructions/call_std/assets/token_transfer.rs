@@ -27,31 +27,31 @@ impl<E: IEngine> INativeCallable<E> for Transfer {
 
         let token_id = token_id
             .to_bigint()
-            .expect(zinc_const::panic::DATA_SERIALIZATION)
+            .expect(zinc_const::panic::DATA_VALID)
             .to_biguint()
-            .expect(zinc_const::panic::DATA_SERIALIZATION);
+            .expect(zinc_const::panic::DATA_VALID);
 
         let (_sign, from) = from
             .to_bigint()
-            .expect(zinc_const::panic::DATA_SERIALIZATION)
+            .expect(zinc_const::panic::DATA_VALID)
             .to_bytes_be();
 
         let (_sign, to) = to
             .to_bigint()
-            .expect(zinc_const::panic::DATA_SERIALIZATION)
+            .expect(zinc_const::panic::DATA_VALID)
             .to_bytes_be();
 
         let amount = amount
             .to_bigint()
-            .expect(zinc_const::panic::DATA_SERIALIZATION)
+            .expect(zinc_const::panic::DATA_VALID)
             .to_biguint()
-            .expect(zinc_const::panic::DATA_SERIALIZATION);
+            .expect(zinc_const::panic::DATA_VALID);
 
         let fee = fee
             .to_bigint()
-            .expect(zinc_const::panic::DATA_SERIALIZATION)
+            .expect(zinc_const::panic::DATA_VALID)
             .to_biguint()
-            .expect(zinc_const::panic::DATA_SERIALIZATION);
+            .expect(zinc_const::panic::DATA_VALID);
 
         state
             .transfers

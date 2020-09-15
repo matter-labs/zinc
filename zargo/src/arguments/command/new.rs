@@ -69,7 +69,7 @@ pub enum Error {
     ProjectNameInvalid(OsString),
     /// The invalid project type error.
     #[fail(
-        display = "project type must be either `circuit` or `contract`, found `{}`",
+        display = "project type must be either `circuit` or `contract`, but found `{}`",
         _0
     )]
     ProjectTypeInvalid(String),

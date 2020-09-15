@@ -58,10 +58,6 @@ pub trait IVirtualMachine {
 
     fn condition_top(&mut self) -> Result<Scalar<Self::E>, RuntimeError>;
 
-    fn set_unconstrained(&mut self);
-    fn unset_unconstrained(&mut self);
-    fn is_unconstrained(&self) -> bool;
-
     fn constraint_system(&mut self) -> &mut Self::CS;
 
     fn is_debugging(&self) -> bool;

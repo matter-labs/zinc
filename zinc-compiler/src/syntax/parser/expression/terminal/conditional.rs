@@ -132,7 +132,6 @@ impl Parser {
                             let (expression, next) = Self::default().parse(stream, Some(token))?;
                             let block = BlockExpression::new(
                                 expression.location,
-                                false,
                                 vec![],
                                 Some(ExpressionTree::new(
                                     expression.location,

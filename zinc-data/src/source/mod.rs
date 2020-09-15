@@ -5,7 +5,6 @@
 pub mod directory;
 pub mod error;
 pub mod file;
-pub mod requests;
 
 use std::fs;
 use std::path::PathBuf;
@@ -24,7 +23,7 @@ use self::file::File;
 /// be bundled into JSON to be passed via a single request.
 ///
 /// The compiler understands this format as well. Source code may be passed to the compiler either
-/// in this representation, or just by the path to the source code folder, usually `/src`.
+/// in this representation, or just by the path to the source code folder, which is usually `/src`.
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]

@@ -6,6 +6,8 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use serde_json::Value as JsonValue;
 
+use crate::Network;
+
 ///
 /// The contract resource call POST request query.
 ///
@@ -15,16 +17,19 @@ pub struct Query {
     pub contract_id: i64,
     /// The name of the queried method.
     pub method: String,
+    /// The network where the contract resides.
+    pub network: Network,
 }
 
 impl Query {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(contract_id: i64, method: String) -> Self {
+    pub fn new(contract_id: i64, method: String, network: Network) -> Self {
         Self {
             contract_id,
             method,
+            network,
         }
     }
 
@@ -35,6 +40,7 @@ impl Query {
         vec![
             ("contract_id", self.contract_id.to_string()),
             ("method", self.method),
+            ("network", self.network.to_string()),
         ]
     }
 }

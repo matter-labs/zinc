@@ -11,8 +11,6 @@ use crate::generator::statement::Statement;
 ///
 #[derive(Debug, Default, Clone)]
 pub struct Builder {
-    /// Whether the block is marked as `unconstrained`.
-    is_unconstrained: bool,
     /// The block statements.
     statements: Vec<Statement>,
     /// The optional block expressions, whose type is defaulted to `()` if unset.
@@ -20,13 +18,6 @@ pub struct Builder {
 }
 
 impl Builder {
-    ///
-    /// Sets the corresponding builder value.
-    ///
-    pub fn set_unconstrained(&mut self) {
-        self.is_unconstrained = true;
-    }
-
     ///
     /// Pushes a block statement.
     ///
@@ -45,6 +36,6 @@ impl Builder {
     /// Finilizes the builder and returns the built item.
     ///
     pub fn finish(self) -> BlockExpression {
-        BlockExpression::new(self.is_unconstrained, self.statements, self.expression)
+        BlockExpression::new(self.statements, self.expression)
     }
 }

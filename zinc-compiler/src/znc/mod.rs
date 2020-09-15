@@ -48,8 +48,8 @@ fn main_inner() -> Result<(), Error> {
         .spawn(move || -> Result<Bytes, Error> {
             let source = Source::try_from_entry(&source_directory_path)?;
             let state = source.compile(project_name)?;
-            let bytes = State::unwrap_rc(state).into_bytes(optimize_dead_function_elimination);
-            Ok(bytes)
+            let program = State::unwrap_rc(state).into_program(optimize_dead_function_elimination);
+            Ok(program.into_bytes())
         })
         .expect(zinc_const::panic::MULTI_THREADING)
         .join()

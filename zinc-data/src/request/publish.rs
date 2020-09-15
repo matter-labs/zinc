@@ -6,6 +6,7 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use serde_json::Value as JsonValue;
 
+use crate::network::Network;
 use crate::source::Source;
 
 ///
@@ -19,17 +20,20 @@ pub struct Query {
     pub name: String,
     /// The version of the uploaded contract.
     pub version: String,
+    /// The network where the contract must be uploaded to.
+    pub network: Network,
 }
 
 impl Query {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(contract_id: i64, name: String, version: String) -> Self {
+    pub fn new(contract_id: i64, name: String, version: String, network: Network) -> Self {
         Self {
             contract_id,
             name,
             version,
+            network,
         }
     }
 
@@ -41,6 +45,7 @@ impl Query {
             ("contract_id", self.contract_id.to_string()),
             ("name", self.name),
             ("version", self.version),
+            ("network", self.network.to_string()),
         ]
     }
 }
@@ -52,6 +57,8 @@ impl Query {
 pub struct Body {
     /// The JSON source code tree.
     pub source: Source,
+    /// The contract bytecode.
+    pub bytecode: Vec<u8>,
     /// The JSON constructor input.
     pub arguments: JsonValue,
     /// The verifying key.
@@ -62,9 +69,15 @@ impl Body {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(source: Source, arguments: JsonValue, verifying_key: Vec<u8>) -> Self {
+    pub fn new(
+        source: Source,
+        bytecode: Vec<u8>,
+        arguments: JsonValue,
+        verifying_key: Vec<u8>,
+    ) -> Self {
         Self {
             source,
+            bytecode,
             arguments,
             verifying_key,
         }

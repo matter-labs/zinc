@@ -2,8 +2,8 @@
 //! The Zinc virtual machine library.
 //!
 
-#![allow(missing_docs)]
-#![allow(clippy::missing_docs_in_private_items)]
+//#![warn(missing_docs)]
+//#![warn(clippy::missing_docs_in_private_items)]
 
 mod tests;
 

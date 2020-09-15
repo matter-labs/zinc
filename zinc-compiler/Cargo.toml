@@ -28,5 +28,5 @@ num-bigint = "0.3"
 
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }
-zinc-source = { path = "../zinc-source" }
+zinc-data = { path = "../zinc-data" }
 zinc-build = { path = "../zinc-build" }

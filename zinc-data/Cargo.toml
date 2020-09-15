@@ -1,11 +1,11 @@
 [package]
-name = "zinc-source"
+name = "zinc-data"
 version = "0.2.0"
 authors = [
     "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
 ]
 edition = "2018"
-description = "The Zinc source code JSON representation"
+description = "The Zinc common data structures"
 
 [dependencies]
 serde = "1.0"

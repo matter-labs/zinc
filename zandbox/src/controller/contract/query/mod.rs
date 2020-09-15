@@ -55,16 +55,16 @@ pub async fn handle(
         .await
     {
         Ok(output) => {
-            if output.len() != contract.storage.len() {
+            if output.len() != contract.build.storage.len() {
                 return Response::error(Error::InvalidStorageSize {
-                    expected: contract.storage.len(),
+                    expected: contract.build.storage.len(),
                     found: output.len(),
                 });
             }
 
             let mut fields = Vec::with_capacity(output.len());
             for (index, FieldSelectOutput { name, value }) in output.into_iter().enumerate() {
-                let r#type = contract.storage[index].1.clone();
+                let r#type = contract.build.storage[index].1.clone();
                 let value = match BuildValue::try_from_typed_json(value, r#type) {
                     Ok(value) => value,
                     Err(error) => return Response::error(Error::InvalidStorage(error)),
@@ -78,7 +78,7 @@ pub async fn handle(
 
     match query.method {
         Some(method_name) => {
-            let method = match contract.methods.get(method_name.as_str()).cloned() {
+            let method = match contract.build.methods.get(method_name.as_str()).cloned() {
                 Some(method) => method,
                 None => return Response::error(Error::MethodNotFound),
             };
@@ -97,11 +97,15 @@ pub async fn handle(
                 return Response::error(Error::MethodIsMutable);
             }
 
-            let output = match zinc_vm::ContractFacade::new(contract).run::<Bn256>(
-                input_value,
-                storage_value,
-                method_name,
-            ) {
+            let output = match async_std::task::spawn_blocking(move || {
+                zinc_vm::ContractFacade::new(contract.build).run::<Bn256>(
+                    input_value,
+                    storage_value,
+                    method_name,
+                )
+            })
+            .await
+            {
                 Ok(output) => output,
                 Err(error) => return Response::error(Error::RuntimeError(error)),
             };

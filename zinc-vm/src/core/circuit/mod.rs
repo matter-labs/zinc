@@ -418,18 +418,6 @@ where
             .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 
-    fn set_unconstrained(&mut self) {
-        //        *self.unconstrained.borrow_mut() = true;
-    }
-
-    fn unset_unconstrained(&mut self) {
-        //        *self.unconstrained.borrow_mut() = false;
-    }
-
-    fn is_unconstrained(&self) -> bool {
-        false
-    }
-
     fn constraint_system(&mut self) -> &mut CS {
         &mut self.counter.cs
     }

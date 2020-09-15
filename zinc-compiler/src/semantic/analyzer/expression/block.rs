@@ -40,10 +40,6 @@ impl Analyzer {
     ) -> Result<(Element, GeneratorBlockExpression), Error> {
         let mut builder = GeneratorBlockExpressionBuilder::default();
 
-        if block.is_unconstrained {
-            builder.set_unconstrained();
-        }
-
         let mut scope_stack = ScopeStack::new(scope);
         scope_stack.push(None);
 

@@ -57,7 +57,7 @@ impl IExecutable for Command {
             .error_with_path(|| self.witness_path.to_string_lossy())?;
 
         let program =
-            BuildProgram::from_bytes(bytecode.as_slice()).map_err(Error::ProgramDecoding)?;
+            BuildProgram::try_from_slice(bytecode.as_slice()).map_err(Error::ProgramDecoding)?;
         let input_json = serde_json::from_str(input_template.as_str())?;
 
         let output = match program {
@@ -119,7 +119,7 @@ impl IExecutable for Command {
                     }
                 }
                 let storage_str = serde_json::to_string_pretty(&JsonValue::Array(storage_values))
-                    .expect(zinc_const::panic::DATA_SERIALIZATION);
+                    .expect(zinc_const::panic::DATA_VALID);
                 fs::write(&storage_path, storage_str)
                     .error_with_path(|| storage_path.to_string_lossy())?;
 

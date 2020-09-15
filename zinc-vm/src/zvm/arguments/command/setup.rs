@@ -50,7 +50,8 @@ impl IExecutable for Command {
     fn execute(self) -> Result<i32, Self::Error> {
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let program = BuildProgram::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
+        let program =
+            BuildProgram::try_from_slice(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         let params = match program {
             BuildProgram::Circuit(circuit) => CircuitFacade::new(circuit).setup::<Bn256>()?,

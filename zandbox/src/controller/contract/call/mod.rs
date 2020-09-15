@@ -48,7 +48,7 @@ pub async fn handle(
         None => return Response::error(Error::ContractNotFound),
     };
 
-    let method = match contract.methods.get(query.method.as_str()).cloned() {
+    let method = match contract.build.methods.get(query.method.as_str()).cloned() {
         Some(method) => method,
         None => return Response::error(Error::MethodNotFound),
     };
@@ -61,7 +61,7 @@ pub async fn handle(
         Err(error) => return Response::error(Error::InvalidInput(error)),
     };
 
-    let storage_fields_count = contract.storage.len();
+    let storage_fields_count = contract.build.storage.len();
     let storage_value = match app_data
         .read()
         .expect(zinc_const::panic::MULTI_THREADING)
@@ -70,16 +70,16 @@ pub async fn handle(
         .await
     {
         Ok(output) => {
-            if output.len() != contract.storage.len() {
+            if output.len() != contract.build.storage.len() {
                 return Response::error(Error::InvalidStorageSize {
-                    expected: contract.storage.len(),
+                    expected: contract.build.storage.len(),
                     found: output.len(),
                 });
             }
 
             let mut fields = Vec::with_capacity(output.len());
             for (index, FieldSelectOutput { name, value }) in output.into_iter().enumerate() {
-                let r#type = contract.storage[index].1.clone();
+                let r#type = contract.build.storage[index].1.clone();
                 let value = match BuildValue::try_from_typed_json(value, r#type) {
                     Ok(value) => value,
                     Err(error) => return Response::error(Error::InvalidStorage(error)),
@@ -91,11 +91,13 @@ pub async fn handle(
         Err(error) => return Response::error(Error::Database(error)),
     };
 
-    let output = match zinc_vm::ContractFacade::new(contract).run::<Bn256>(
-        input_value,
-        storage_value,
-        query.method,
-    ) {
+    let build = contract.build;
+    let method = query.method;
+    let output = match async_std::task::spawn_blocking(move || {
+        zinc_vm::ContractFacade::new(build).run::<Bn256>(input_value, storage_value, method)
+    })
+    .await
+    {
         Ok(output) => output,
         Err(error) => return Response::error(Error::RuntimeError(error)),
     };
@@ -124,6 +126,26 @@ pub async fn handle(
     {
         return Response::error(Error::Database(error));
     }
+
+    let wallet_credentials = match zksync::WalletCredentials::from_eth_pk(
+        contract.eth_address.into(),
+        contract.private_key.into(),
+    ) {
+        Ok(wallet_credentials) => wallet_credentials,
+        Err(error) => return Response::error(Error::ZkSync(error)),
+    };
+
+    let network = match query.network {
+        zinc_data::Network::Localhost => zksync::Network::Localhost,
+        zinc_data::Network::Rinkeby => zksync::Network::Rinkeby,
+        zinc_data::Network::Ropsten => zksync::Network::Ropsten,
+    };
+    let provider = zksync::Provider::new(network);
+
+    let wallet = match zksync::Wallet::new(provider, wallet_credentials).await {
+        Ok(wallet) => wallet,
+        Err(error) => return Response::error(Error::ZkSync(error)),
+    };
 
     dbg!(output.transfers);
 

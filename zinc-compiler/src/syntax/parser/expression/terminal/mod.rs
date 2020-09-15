@@ -74,12 +74,6 @@ impl Parser {
                 Token {
                     lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                     ..
-                }
-                | token
-                @
-                Token {
-                    lexeme: Lexeme::Keyword(Keyword::Unconstrained),
-                    ..
                 } => {
                     let location = token.location;
                     BlockExpressionParser::default()

@@ -1,9 +1,9 @@
 [build]
 rustflags = [
-    "-D", "missing_docs",
+#    "-W", "missing_docs",
 ]
 
 [tools.clippy]
-deny = [
-    "missing_docs_in_private_items",
+warn = [
+#    "missing_docs_in_private_items",
 ]

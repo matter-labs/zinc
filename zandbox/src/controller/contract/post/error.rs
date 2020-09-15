@@ -15,7 +15,7 @@ use zinc_vm::RuntimeError;
 ///
 #[derive(Debug)]
 pub enum Error {
-    Compiler(String),
+    InvalidBytecode(String),
     NotAContract,
     ConstructorNotFound,
     InvalidInput(BuildValueError),
@@ -27,7 +27,7 @@ pub enum Error {
 impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
-            Self::Compiler(_) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::InvalidBytecode(_) => StatusCode::BAD_REQUEST,
             Self::NotAContract => StatusCode::INTERNAL_SERVER_ERROR,
             Self::ConstructorNotFound => StatusCode::UNPROCESSABLE_ENTITY,
             Self::InvalidInput(_) => StatusCode::BAD_REQUEST,
@@ -50,7 +50,7 @@ impl serde::Serialize for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Compiler(inner) => write!(f, "{}", inner),
+            Self::InvalidBytecode(inner) => write!(f, "Invalid bytecode: {}", inner),
             Self::NotAContract => write!(f, "Not a contract"),
             Self::ConstructorNotFound => write!(f, "Constructor not found"),
             Self::InvalidInput(inner) => write!(f, "Input: {}", inner),
