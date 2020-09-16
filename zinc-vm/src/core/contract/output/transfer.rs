@@ -17,8 +17,6 @@ pub struct Transfer {
     pub to: [u8; zinc_const::size::ETH_ADDRESS],
     /// The amount of the tokens being sent.
     pub amount: BigUint,
-    /// The transaction fee.
-    pub fee: BigUint,
 }
 
 impl Transfer {
@@ -30,14 +28,12 @@ impl Transfer {
         from: [u8; zinc_const::size::ETH_ADDRESS],
         to: [u8; zinc_const::size::ETH_ADDRESS],
         amount: BigUint,
-        fee: BigUint,
     ) -> Self {
         Self {
             token_id,
             from,
             to,
             amount,
-            fee,
         }
     }
 }

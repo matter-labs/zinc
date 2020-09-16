@@ -1,0 +1,39 @@
+//! { "cases": [ {
+//!     "case": "valid",
+//!     "input": {
+//!         "witness": true
+//!     },
+//!     "output": true
+//! }, {
+//!     "case": "invalid", "should_panic": true,
+//!     "input": {
+//!         "witness": false
+//!     },
+//!     "output": null
+//! } ] }
+
+fn f1() -> bool {
+    false
+}
+
+fn f2() -> bool {
+    false
+}
+
+fn f3() -> bool {
+    false
+}
+
+fn f4() -> bool {
+    assert!(false, "Is sometimes unreachable");
+    false
+}
+
+fn f5() -> bool {
+    assert!(false, "Is sometimes unreachable");
+    false
+}
+
+fn main(witness: bool) -> bool {
+    f1() || f2() || f3() || witness || f4() || f5()
+}

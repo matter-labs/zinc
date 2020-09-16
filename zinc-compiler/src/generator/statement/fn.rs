@@ -27,7 +27,7 @@ pub struct Statement {
     /// Whether the function can mutate its arguments.
     pub is_mutable: bool,
     /// The function arguments, where the compile time only ones like `()` are already filtered out.
-    pub input_arguments: Vec<(String, Type)>,
+    pub input_arguments: Vec<(String, bool, Type)>,
     /// The function body.
     pub body: Expression,
     /// The function result type, which defaults to `()` if not specified.
@@ -51,7 +51,7 @@ impl Statement {
         location: Location,
         identifier: String,
         is_mutable: bool,
-        input_arguments: Vec<(String, SemanticType)>,
+        input_arguments: Vec<(String, bool, SemanticType)>,
         body: Expression,
         output_type: SemanticType,
         type_id: usize,
@@ -61,10 +61,12 @@ impl Statement {
     ) -> Self {
         let input_arguments = input_arguments
             .into_iter()
-            .filter_map(|(name, r#type)| match Type::try_from_semantic(&r#type) {
-                Some(r#type) => Some((name, r#type)),
-                None => None,
-            })
+            .filter_map(
+                |(name, is_mutable, r#type)| match Type::try_from_semantic(&r#type) {
+                    Some(r#type) => Some((name, is_mutable, r#type)),
+                    None => None,
+                },
+            )
             .collect();
 
         let output_type = Type::try_from_semantic(&output_type).unwrap_or_else(Type::unit);
@@ -111,13 +113,13 @@ impl IBytecodeWritable for Statement {
                 .start_function(self.location, self.type_id, self.identifier);
         }
 
-        for (argument_name, argument_type) in self.input_arguments.into_iter() {
-            match argument_type {
+        for (name, _is_mutable, r#type) in self.input_arguments.into_iter() {
+            match r#type {
                 Type::Contract { .. } => {}
                 argument_type => {
                     state
                         .borrow_mut()
-                        .define_variable(Some(argument_name), argument_type.size());
+                        .define_variable(Some(name), argument_type.size());
                 }
             }
         }

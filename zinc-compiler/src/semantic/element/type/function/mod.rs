@@ -74,7 +74,7 @@ impl Function {
         location: Location,
         identifier: String,
         type_id: usize,
-        arguments: Vec<(String, Type)>,
+        arguments: Vec<(String, bool, Type)>,
         return_type: Type,
     ) -> Self {
         Self::Runtime(RuntimeFunction::new(

@@ -91,17 +91,15 @@ impl Analyzer {
 
         let mut scope_stack = ScopeStack::new(scope);
 
-        let mut is_mutable = false;
-
         let mut arguments = Vec::with_capacity(statement.argument_bindings.len());
         for (index, argument_binding) in statement.argument_bindings.iter().enumerate() {
-            let identifier = match argument_binding.variant {
-                BindingPatternVariant::Binding { ref identifier, .. } => identifier.name.to_owned(),
+            let (identifier, is_mutable) = match argument_binding.variant {
+                BindingPatternVariant::Binding {
+                    ref identifier,
+                    is_mutable,
+                } => (identifier.name.to_owned(), is_mutable),
                 BindingPatternVariant::Wildcard => continue,
-                BindingPatternVariant::SelfAlias {
-                    is_mutable: _is_mutable,
-                    ..
-                } => {
+                BindingPatternVariant::SelfAlias { is_mutable, .. } => {
                     if index != 0 {
                         return Err(Error::Element(ElementError::Type(TypeError::Function(
                             FunctionError::FunctionMethodSelfNotFirst {
@@ -113,14 +111,13 @@ impl Analyzer {
                         ))));
                     }
 
-                    is_mutable = _is_mutable;
-
-                    Keyword::SelfLowercase.to_string()
+                    (Keyword::SelfLowercase.to_string(), is_mutable)
                 }
             };
 
             arguments.push((
                 identifier,
+                is_mutable,
                 Type::try_from_syntax(argument_binding.r#type.to_owned(), scope_stack.top())?,
             ));
         }
@@ -220,6 +217,11 @@ impl Analyzer {
                 false,
             )
         };
+
+        let is_mutable = arguments
+            .get(0)
+            .map(|argument| argument.1)
+            .unwrap_or_default();
 
         let (r#type, type_id) = Type::runtime_function(
             statement.location,

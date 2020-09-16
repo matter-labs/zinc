@@ -1,18 +1,20 @@
-fn f1() -> bool {
-    dbg!("f1");
-    false
+struct Data {
+    a: u8,
+    b: u8,
 }
 
-fn f2() -> bool {
-    dbg!("f2");
-    true
+impl Data {
+    pub fn double(mut self) -> Self {
+        self.a *= 2;
+        self.b *= 2;
+        self
+    }
 }
 
-fn f3() -> bool {
-    dbg!("f3");
-    true
-}
+fn main() {
+    let mut data = Data { a: 2, b: 1 };
+    dbg!("Data x1 is: {}", data);
 
-fn main() -> bool {
-    f1() && f2() && f3()
+    let data_x2 = data.double();
+    dbg!("Data x2 is: {}", data_x2);
 }

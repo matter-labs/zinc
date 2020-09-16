@@ -31,14 +31,14 @@ impl<VM: IVirtualMachine> IExecutable<VM> for StoreByIndex {
         let index = vm.pop()?.try_into_value()?;
 
         for (i, value) in values.into_iter().enumerate() {
-            let cs = vm.constraint_system();
+            let mut cs = vm.constraint_system();
             let offset = Scalar::new_constant_usize(i, index.get_type());
             let address = gadgets::arithmetic::add::add(
                 cs.namespace(|| format!("address {}", i)),
                 &index,
                 &offset,
             )?;
-            array = gadgets::array::set(array.as_slice(), address, value)?;
+            array = gadgets::array::set(&mut cs, array.as_slice(), address, value)?;
         }
 
         for (i, value) in array.into_iter().enumerate() {

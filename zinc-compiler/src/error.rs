@@ -1692,6 +1692,16 @@ impl Error {
                     Some(format!("consider moving the `{}` binding to the first place", Keyword::SelfLowercase.to_string()).as_str()),
                 )
             }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::CallingMutableFromImmutable { location, function })))) => {
+                Self::format_line(format!(
+                    "the mutable method `{}` was called with an immutable instance",
+                    function,
+                )
+                                                     .as_str(),
+                                                 location,
+                                                 Some("consider making the instance mutable"),
+                )
+            }
             Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::BuiltIn(BuiltInFunctionError::Unknown { location, function }))))) => {
                 Self::format_line( format!(
                         "attempt to call a non-builtin function `{}` with `!` specifier",

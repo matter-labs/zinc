@@ -151,7 +151,7 @@ impl State {
         type_id: usize,
         identifier: String,
         is_mutable: bool,
-        input_arguments: Vec<(String, Type)>,
+        input_arguments: Vec<(String, bool, Type)>,
         output_type: Type,
     ) {
         let method = Method::new(

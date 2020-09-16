@@ -126,20 +126,18 @@ pub async fn handle(
     };
     let provider = zksync::Provider::new(network);
 
-    let mut wallet = zksync::Wallet::new(provider, wallet_credentials)
+    let wallet = zksync::Wallet::new(provider, wallet_credentials)
         .await
         .map_err(Error::ZkSync)?;
 
     for transfer in output.transfers.into_iter() {
-        dbg!(&transfer);
-
         wallet
             .start_transfer()
             .to(transfer.to.into())
             .token("ETH")
             .map_err(Error::ZkSync)?
             .amount(num_old::BigUint::from_bytes_be(
-                transfer.amount.to_bytes_be().as_slice(),
+                transfer.amount.to_bytes_be().as_slice(), // TODO: remove when the SDK is updated
             ))
             .send()
             .await

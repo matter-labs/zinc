@@ -232,7 +232,7 @@ impl Type {
     pub fn runtime_function(
         location: Location,
         identifier: String,
-        arguments: Vec<(String, Self)>,
+        arguments: Vec<(String, bool, Self)>,
         return_type: Self,
     ) -> (Self, usize) {
         let type_id = TYPE_INDEX.next(format!("function {}", identifier));

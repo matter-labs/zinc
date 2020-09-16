@@ -706,7 +706,7 @@ impl Analyzer {
             return Err(Error::Element(ElementError::Place(
                 PlaceError::MutatingImmutableMemory {
                     location: place.identifier.location,
-                    name: place.to_string(),
+                    name: place.identifier.name,
                     reference: item_location,
                 },
             )));
@@ -992,7 +992,9 @@ impl Analyzer {
                 }
             },
             DotAccess::Method { instance } => {
-                let instance = if let Element::Place(instance) = *instance {
+                let (instance, is_mutable) = if let Element::Place(instance) = *instance {
+                    let is_mutable = instance.is_mutable;
+
                     let (instance, intermedidate) = Self::evaluate(
                         self.scope_stack.top(),
                         StackElement::Evaluated(Element::Place(instance)),
@@ -1002,13 +1004,13 @@ impl Analyzer {
                         self.intermediate.push_operand(intermediate);
                     }
 
-                    instance
+                    (instance, is_mutable)
                 } else {
-                    *instance
+                    (*instance, true)
                 };
 
                 self.evaluation_stack.push(StackElement::Evaluated(result));
-                self.next_call_type = CallType::new_method(instance);
+                self.next_call_type = CallType::new_method(instance, is_mutable);
 
                 Ok(None)
             }

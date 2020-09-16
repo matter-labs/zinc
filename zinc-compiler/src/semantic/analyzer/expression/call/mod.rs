@@ -43,7 +43,7 @@ impl Analyzer {
         scope: Rc<RefCell<Scope>>,
         operand_1: Element,
         operand_2: Element,
-        mut call_type: CallType,
+        call_type: CallType,
         location: Location,
     ) -> Result<(Element, GeneratorExpressionElement), Error> {
         let function_location = operand_1.location();
@@ -90,9 +90,8 @@ impl Analyzer {
             _ => panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
 
-        match call_type.take() {
-            CallType::Method { instance } => argument_list.arguments.insert(0, *instance),
-            another => call_type = another,
+        if let CallType::Method { ref instance, .. } = call_type {
+            argument_list.arguments.insert(0, *instance.to_owned());
         }
 
         let mut input_size = 0;
@@ -213,6 +212,27 @@ impl Analyzer {
                             function: function.identifier,
                         }),
                     ))));
+                }
+
+                if let CallType::Method {
+                    instance: _,
+                    is_mutable: is_instance_mutable,
+                } = call_type
+                {
+                    let is_first_argument_mutable = function
+                        .formal_params
+                        .get(0)
+                        .map(|instance| instance.1)
+                        .unwrap_or_default();
+
+                    if !is_instance_mutable && is_first_argument_mutable {
+                        return Err(Error::Element(ElementError::Type(TypeError::Function(
+                            FunctionError::CallingMutableFromImmutable {
+                                location,
+                                function: function.identifier,
+                            },
+                        ))));
+                    }
                 }
 
                 let location = function.location;

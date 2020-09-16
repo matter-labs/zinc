@@ -108,9 +108,6 @@ pub enum RuntimeError {
         scalar_type: ScalarType,
     },
 
-    #[fail(display = "using witness as array index is not yet supported")]
-    WitnessArrayIndex,
-
     #[fail(display = "the unit test data is missing")]
     UnitTestDataMissing,
 

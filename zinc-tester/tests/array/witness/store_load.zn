@@ -1,0 +1,35 @@
+//! { "cases": [ {
+//!     "case": "element_1",
+//!     "input": {
+//!         "array": ["1", "2", "3", "4"],
+//!         "index": "0"
+//!     },
+//!     "output": "1"
+//! }, {
+//!     "case": "element_2",
+//!     "input": {
+//!         "array": ["1", "2", "3", "4"],
+//!         "index": "1"
+//!     },
+//!     "output": "2"
+//! }, {
+//!     "case": "element_3",
+//!     "input": {
+//!         "array": ["1", "2", "3", "4"],
+//!         "index": "2"
+//!     },
+//!     "output": "3"
+//! }, {
+//!     "case": "element_4",
+//!     "input": {
+//!         "array": ["1", "2", "3", "4"],
+//!         "index": "3"
+//!     },
+//!     "output": "4"
+//! } ] }
+
+const SIZE: u8 = 4;
+
+fn main(array: [u8; SIZE], index: u8) -> u8 {
+    array[index]
+}

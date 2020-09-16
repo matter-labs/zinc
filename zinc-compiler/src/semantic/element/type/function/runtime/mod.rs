@@ -25,7 +25,7 @@ pub struct Function {
     /// The unique function type ID.
     pub type_id: usize,
     /// The function formal parameters list.
-    pub formal_params: Vec<(String, Type)>,
+    pub formal_params: Vec<(String, bool, Type)>,
     /// The function return type.
     pub return_type: Box<Type>,
 }
@@ -38,7 +38,7 @@ impl Function {
         location: Location,
         identifier: String,
         type_id: usize,
-        arguments: Vec<(String, Type)>,
+        arguments: Vec<(String, bool, Type)>,
         return_type: Type,
     ) -> Self {
         Self {
@@ -56,7 +56,7 @@ impl Function {
     pub fn input_size(&self) -> usize {
         self.formal_params
             .iter()
-            .map(|(_name, r#type)| r#type.size())
+            .map(|(_name, _is_mutable, r#type)| r#type.size())
             .sum()
     }
 
@@ -102,7 +102,7 @@ impl Function {
         }
 
         let formal_params_length = self.formal_params.len();
-        for (index, (name, r#type)) in self.formal_params.into_iter().enumerate() {
+        for (index, (name, _is_mutable, r#type)) in self.formal_params.into_iter().enumerate() {
             match actual_params.get(index) {
                 Some((actual_type, _location)) if actual_type == &r#type => {}
                 Some((actual_type, location)) => {
@@ -139,7 +139,12 @@ impl fmt::Display for Function {
             self.identifier,
             self.formal_params
                 .iter()
-                .map(|(name, r#type)| format!("{}: {}", name, r#type))
+                .map(|(name, is_mutable, r#type)| format!(
+                    "{}{}: {}",
+                    if *is_mutable { "mut " } else { "" },
+                    name,
+                    r#type
+                ))
                 .collect::<Vec<String>>()
                 .join(", "),
             self.return_type,

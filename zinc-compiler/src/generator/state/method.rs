@@ -16,7 +16,7 @@ pub struct Method {
     /// If the method can mutate the contract storage state.
     pub is_mutable: bool,
     /// The entry function input arguments.
-    pub input_fields: Vec<(String, Type)>,
+    pub input_fields: Vec<(String, bool, Type)>,
     /// The entry function result type.
     pub output_type: Type,
 }
@@ -29,7 +29,7 @@ impl Method {
         type_id: usize,
         name: String,
         is_mutable: bool,
-        input_fields: Vec<(String, Type)>,
+        input_fields: Vec<(String, bool, Type)>,
         output_type: Type,
     ) -> Self {
         Self {
@@ -48,7 +48,7 @@ impl Method {
         Type::structure(
             self.input_fields
                 .iter()
-                .filter_map(|(name, r#type)| match r#type {
+                .filter_map(|(name, _is_mutable, r#type)| match r#type {
                     Type::Contract { .. } => None,
                     r#type => Some((name.to_owned(), r#type.to_owned())),
                 })

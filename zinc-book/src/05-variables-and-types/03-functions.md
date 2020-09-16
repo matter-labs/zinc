@@ -60,6 +60,33 @@ are declared in. In some languages it is called a static form:
 dbg!("Data sum is: {}", Data::sum(data));
 ```
 
+If the first argument of a method is mutable, the method is considered mutable and
+it can alter the instance field values. Also, a mutable method can only be called
+from another mutable method, providing some extra data safety.
+
+```rust,no_run,noplaypen
+struct Data {
+    a: u8,
+    b: u8,
+}
+
+impl Data {
+    pub fn double(mut self) -> Self {
+        self.a *= 2;
+        self.b *= 2;
+        self
+    }
+}
+
+fn main() {
+    let mut data = Data { a: 2, b: 1 };
+    dbg!("Data x1 is: {}", data);
+
+    let data_x2 = data.double();
+    dbg!("Data x2 is: {}", data_x2);
+}
+```
+
 ## Constant functions
 
 Constant functions are called at compile-time, thus they may only accept and

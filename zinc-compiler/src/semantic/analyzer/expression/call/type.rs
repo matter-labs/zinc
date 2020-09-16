@@ -19,6 +19,8 @@ pub enum Type {
     Method {
         /// The `self` instance, for which the method is called.
         instance: Box<Element>,
+        /// Whether the instance, for which the method is called, is mutable.
+        is_mutable: bool,
     },
 }
 
@@ -32,9 +34,10 @@ impl Type {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_method(instance: Element) -> Self {
+    pub fn new_method(instance: Element, is_mutable: bool) -> Self {
         Self::Method {
             instance: Box::new(instance),
+            is_mutable,
         }
     }
 }

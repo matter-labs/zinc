@@ -95,6 +95,13 @@ pub enum Error {
         /// The invalid argument location.
         reference: Location,
     },
+    /// A mutable method was called with an immutable instance.
+    CallingMutableFromImmutable {
+        /// The function location.
+        location: Location,
+        /// The function identifier.
+        function: String,
+    },
 
     /// The built-in function error. See the inner element description.
     BuiltIn(BuiltInFunctionError),

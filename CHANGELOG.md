@@ -34,6 +34,11 @@
 - implemented the short-circuit boolean expressions evaluation
 - improved some error messages
 
+#### Virtual machine
+
+- allowed witness array indexes without constraints
+- improved some error messages
+
 #### Zargo
 
 - generalized for managing both circuit and smart contract projects

@@ -39,11 +39,8 @@ impl Function {
     /// The position of the `amount` argument in the function argument list.
     pub const ARGUMENT_INDEX_AMOUNT: usize = 3;
 
-    /// The position of the `fee` argument in the function argument list.
-    pub const ARGUMENT_INDEX_FEE: usize = 4;
-
     /// The expected number of the function arguments.
-    pub const ARGUMENT_COUNT: usize = 5;
+    pub const ARGUMENT_COUNT: usize = 4;
 
     ///
     /// A shortcut constructor.
@@ -191,30 +188,6 @@ impl Function {
             }
         }
 
-        match actual_params.get(Self::ARGUMENT_INDEX_FEE) {
-            Some((r#type, _location)) if r#type.is_integer_unsigned() => {}
-            Some((r#type, location)) => {
-                return Err(Error::ArgumentType {
-                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-                    function: self.identifier.to_owned(),
-                    name: "fee".to_owned(),
-                    position: Self::ARGUMENT_INDEX_FEE + 1,
-                    expected: Type::integer_unsigned(None, zinc_const::bitlength::INTEGER_MAX)
-                        .to_string(),
-                    found: r#type.to_string(),
-                })
-            }
-            None => {
-                return Err(Error::ArgumentCount {
-                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-                    function: self.identifier.to_owned(),
-                    expected: Self::ARGUMENT_COUNT,
-                    found: actual_params.len(),
-                    reference: None,
-                })
-            }
-        }
-
         if actual_params.len() > Self::ARGUMENT_COUNT {
             return Err(Error::ArgumentCount {
                 location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
@@ -233,7 +206,7 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "assets::Token::{}(from: u160, to: u160, token_id: u{{N}}, amount: u248, fee: u248)",
+            "assets::Token::{}(from: u160, to: u160, token_id: u{{N}}, amount: u248)",
             self.identifier
         )
     }

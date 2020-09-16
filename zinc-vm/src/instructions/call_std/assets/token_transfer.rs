@@ -19,7 +19,6 @@ impl<E: IEngine> INativeCallable<E> for Transfer {
     where
         CS: ConstraintSystem<E>,
     {
-        let fee = state.evaluation_stack.pop()?.try_into_value()?;
         let amount = state.evaluation_stack.pop()?.try_into_value()?;
         let token_id = state.evaluation_stack.pop()?.try_into_value()?;
         let to = state.evaluation_stack.pop()?.try_into_value()?;
@@ -55,15 +54,9 @@ impl<E: IEngine> INativeCallable<E> for Transfer {
             .to_biguint()
             .expect(zinc_const::panic::DATA_VALID);
 
-        let fee = fee
-            .to_bigint()
-            .expect(zinc_const::panic::DATA_VALID)
-            .to_biguint()
-            .expect(zinc_const::panic::DATA_VALID);
-
-        state.transfers.push(TransferOutput::new(
-            token_id, from_array, to_array, amount, fee,
-        ));
+        state
+            .transfers
+            .push(TransferOutput::new(token_id, from_array, to_array, amount));
 
         Ok(())
     }

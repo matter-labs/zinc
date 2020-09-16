@@ -233,3 +233,109 @@ fn main() {
 
     assert_eq!(result, expected);
 }
+
+#[test]
+fn ok_calling_mutable_from_immutable_structure() {
+    let input = r#"
+struct Data {
+    value: u8,
+}
+
+impl Data {
+    pub fn not_immutable(mut self) -> u8 {
+        self.mutable()
+    }
+
+    pub fn mutable(mut self) -> u8 {
+        self.value = 0;
+        self.value
+    }
+}
+
+fn main() {}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn error_calling_mutable_from_immutable_structure() {
+    let input = r#"
+struct Data {
+    value: u8,
+}
+
+impl Data {
+    pub fn immutable(self) -> u8 {
+        self.mutable()
+    }
+
+    pub fn mutable(mut self) -> u8 {
+        self.value = 0;
+        self.value
+    }
+}
+
+fn main() {}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::CallingMutableFromImmutable {
+            location: Location::new(8, 21),
+            function: "mutable".to_owned(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn ok_calling_mutable_from_immutable_contract() {
+    let input = r#"
+contract Data {
+    value: u8;
+
+    pub fn not_immutable(mut self) -> u8 {
+        self.mutable()
+    }
+
+    pub fn mutable(mut self) -> u8 {
+        self.value = 0;
+        self.value
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn error_calling_mutable_from_immutable_contract() {
+    let input = r#"
+contract Data {
+    value: u8;
+
+    pub fn immutable(self) -> u8 {
+        self.mutable()
+    }
+
+    pub fn mutable(mut self) -> u8 {
+        self.value = 0;
+        self.value
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::CallingMutableFromImmutable {
+            location: Location::new(6, 21),
+            function: "mutable".to_owned(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
