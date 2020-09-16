@@ -66,21 +66,21 @@ export ZANDBOX_NAME='zandbox'
 cargo fmt --all
 cargo clippy
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_FLAG}
-#cargo test
-#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin ${ZINC_TESTER_NAME} -- ${LOG_LEVEL} ${PROOF_CHECK}
+cargo test
+cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin ${ZINC_TESTER_NAME} -- ${LOG_LEVEL} ${PROOF_CHECK}
 
-#if [[ -n "${PROJECT_NAME}" ]]; then
-#  export PROJECT_DIRECTORY="./zinc-examples/${PROJECT_NAME}/"
-#  export MANIFEST_PATH="${PROJECT_DIRECTORY}/Zargo.toml"
-#
-#  "${ZARGO_PATH}" clean ${LOG_LEVEL} --manifest-path "${MANIFEST_PATH}"
-#  "${ZARGO_PATH}" test ${LOG_LEVEL} --manifest-path "${MANIFEST_PATH}"
-#
-#  if [[ -n "${PROJECT_METHOD}" ]]; then
-#    "${ZARGO_PATH}" proof-check ${LOG_LEVEL} ${RELEASE_FLAG} --manifest-path "${MANIFEST_PATH}" --method "${PROJECT_METHOD}"
-#  else
-#    "${ZARGO_PATH}" proof-check ${LOG_LEVEL} ${RELEASE_FLAG} --manifest-path "${MANIFEST_PATH}"
-#  fi
-#fi
+if [[ -n "${PROJECT_NAME}" ]]; then
+  export PROJECT_DIRECTORY="./zinc-examples/${PROJECT_NAME}/"
+  export MANIFEST_PATH="${PROJECT_DIRECTORY}/Zargo.toml"
 
-cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin ${ZANDBOX_NAME} -- ${LOG_LEVEL}
+  "${ZARGO_PATH}" clean ${LOG_LEVEL} --manifest-path "${MANIFEST_PATH}"
+  "${ZARGO_PATH}" test ${LOG_LEVEL} --manifest-path "${MANIFEST_PATH}"
+
+  if [[ -n "${PROJECT_METHOD}" ]]; then
+    "${ZARGO_PATH}" proof-check ${LOG_LEVEL} ${RELEASE_FLAG} --manifest-path "${MANIFEST_PATH}" --method "${PROJECT_METHOD}"
+  else
+    "${ZARGO_PATH}" proof-check ${LOG_LEVEL} ${RELEASE_FLAG} --manifest-path "${MANIFEST_PATH}"
+  fi
+fi
+
+#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin ${ZANDBOX_NAME} -- ${LOG_LEVEL}

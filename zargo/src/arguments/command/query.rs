@@ -113,7 +113,7 @@ impl IExecutable for Command {
         }
 
         let endpoint_url = format!(
-            "http://{}{}",
+            "{}{}",
             network.to_address(),
             zinc_const::zandbox::CONTRACT_QUERY_URL
         );

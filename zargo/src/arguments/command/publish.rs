@@ -198,7 +198,7 @@ impl IExecutable for Command {
             VerifyingKeyFile::try_from(&verifying_key_path).map_err(Error::VerifyingKeyFile)?;
 
         let endpoint_url = format!(
-            "http://{}{}",
+            "{}{}",
             network.to_address(),
             zinc_const::zandbox::CONTRACT_PUBLISH_URL
         );

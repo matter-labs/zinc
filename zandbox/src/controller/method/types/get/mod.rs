@@ -11,35 +11,32 @@ use std::sync::RwLock;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
-use actix_web::Responder;
 
 use crate::database::model::method::select::types::Input as MethodSelectTypesInput;
 use crate::response::Response;
 use crate::shared_data::SharedData;
 
 use self::error::Error;
-use self::request::Query;
-use self::response::Body;
+use self::request::Query as RequestQuery;
+use self::response::Body as ResponseBody;
 
 ///
 /// The HTTP request handler.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
-    query: web::Query<Query>,
-) -> impl Responder {
+    query: web::Query<RequestQuery>,
+) -> crate::Result<ResponseBody, Error> {
     let query = query.into_inner();
 
-    let body: Body = match app_data
+    let body: ResponseBody = app_data
         .read()
         .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
         .select_method_types(MethodSelectTypesInput::new(query.contract_id, query.name))
         .await
-    {
-        Ok(output) => output.into(),
-        Err(error) => return Response::error(Error::Database(error)),
-    };
+        .map_err(Error::Database)?
+        .into();
 
-    Response::success_with_data(StatusCode::OK, body)
+    Response::new_with_data(StatusCode::OK, body).into()
 }

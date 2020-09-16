@@ -4878,6 +4878,7 @@ dependencies = [
  "futures 0.3.5",
  "hex 0.4.2",
  "log 0.4.11",
+ "num",
  "rayon",
  "serde",
  "serde_derive",

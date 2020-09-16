@@ -35,11 +35,19 @@ impl<E: IEngine> INativeCallable<E> for Transfer {
             .to_bigint()
             .expect(zinc_const::panic::DATA_VALID)
             .to_bytes_be();
+        let mut from_array = [0; zinc_const::size::ETH_ADDRESS];
+        for (index, byte) in from.into_iter().enumerate() {
+            from_array[index] = byte;
+        }
 
         let (_sign, to) = to
             .to_bigint()
             .expect(zinc_const::panic::DATA_VALID)
             .to_bytes_be();
+        let mut to_array = [0; zinc_const::size::ETH_ADDRESS];
+        for (index, byte) in to.into_iter().enumerate() {
+            to_array[index] = byte;
+        }
 
         let amount = amount
             .to_bigint()
@@ -53,9 +61,9 @@ impl<E: IEngine> INativeCallable<E> for Transfer {
             .to_biguint()
             .expect(zinc_const::panic::DATA_VALID);
 
-        state
-            .transfers
-            .push(TransferOutput::new(token_id, from, to, amount, fee));
+        state.transfers.push(TransferOutput::new(
+            token_id, from_array, to_array, amount, fee,
+        ));
 
         Ok(())
     }

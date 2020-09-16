@@ -119,10 +119,18 @@ pub enum Operator {
 
     /// The binary `||` OR operator.
     Or,
+    /// The binary `||` OR operator short-circuit evaluation start marker.
+    OrShortCircuitStart,
+    /// The binary `||` OR operator short-circuit evaluation end marker.
+    OrShortCircuitEnd,
     /// The binary `^^` XOR operator.
     Xor,
     /// The binary `&&` AND operator.
     And,
+    /// The binary `&&` AND operator short-circuit evaluation start marker.
+    AndShortCircuitStart,
+    /// The binary `&&` AND operator short-circuit evaluation end marker.
+    AndShortCircuitEnd,
 
     /// The binary `==` comparison operator.
     Equals {

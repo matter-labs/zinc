@@ -122,7 +122,7 @@ impl IExecutable for Command {
             .map_err(Error::ArgumentsFile)?;
 
         let endpoint_url = format!(
-            "http://{}{}",
+            "{}{}",
             network.to_address(),
             zinc_const::zandbox::CONTRACT_CALL_URL
         );

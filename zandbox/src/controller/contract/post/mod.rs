@@ -11,7 +11,6 @@ use std::sync::RwLock;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
-use actix_web::Responder;
 use hex::FromHex;
 use wallet_gen::coin::Coin;
 use wallet_gen::wallet::Wallet;
@@ -40,28 +39,23 @@ pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
     query: web::Query<RequestQuery>,
     body: web::Json<RequestBody>,
-) -> impl Responder {
+) -> crate::Result<ResponseBody, Error> {
     let query = query.into_inner();
     let body = body.into_inner();
 
-    let program = match BuildProgram::try_from_slice(body.bytecode.as_slice()) {
-        Ok(program) => program,
-        Err(error) => return Response::error(Error::InvalidBytecode(error)),
-    };
+    let program =
+        BuildProgram::try_from_slice(body.bytecode.as_slice()).map_err(Error::InvalidBytecode)?;
 
     let build = match program.clone() {
-        BuildProgram::Circuit(_circuit) => return Response::error(Error::NotAContract),
+        BuildProgram::Circuit(_circuit) => return Err(Error::NotAContract),
         BuildProgram::Contract(contract) => contract,
     };
 
-    let constructor = match build
+    let constructor = build
         .methods
         .get(zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME)
         .cloned()
-    {
-        Some(constructor) => constructor,
-        None => return Response::error(Error::ConstructorNotFound),
-    };
+        .ok_or(Error::ConstructorNotFound)?;
 
     let methods: Vec<MethodInsertInput> = build
         .methods
@@ -77,15 +71,13 @@ pub async fn handle(
         })
         .collect();
 
-    let input_value = match BuildValue::try_from_typed_json(body.arguments, constructor.input) {
-        Ok(input_value) => input_value,
-        Err(error) => return Response::error(Error::InvalidInput(error)),
-    };
+    let input_value = BuildValue::try_from_typed_json(body.arguments, constructor.input)
+        .map_err(Error::InvalidInput)?;
 
     let storage = build.storage.clone();
     let storage_value = BuildValue::new(BuildType::Contract(build.storage.clone()));
     let build_to_run = build.clone();
-    let output = match async_std::task::spawn_blocking(move || {
+    let output = async_std::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new(build_to_run).run::<Bn256>(
             input_value,
             storage_value,
@@ -93,10 +85,26 @@ pub async fn handle(
         )
     })
     .await
-    {
-        Ok(output) => output,
-        Err(error) => return Response::error(Error::RuntimeError(error)),
-    };
+    .map_err(Error::RuntimeError)?;
+
+    let mut fields = Vec::with_capacity(storage.len());
+    match output.result {
+        BuildValue::Structure(mut storage_fields) => match storage_fields.remove(0).1 {
+            BuildValue::Contract(storage_fields) => {
+                for (index, (name, value)) in storage_fields.into_iter().enumerate() {
+                    let value = value.into_json();
+                    fields.push(FieldInsertInput::new(
+                        query.contract_id,
+                        index as i16,
+                        name,
+                        value,
+                    ));
+                }
+            }
+            _ => return Err(Error::InvalidStorage),
+        },
+        _ => return Err(Error::InvalidStorage),
+    }
 
     let wallet = Wallet::generate(Coin::Ethereum).expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
     let eth_address = <[u8; zinc_const::size::ETH_ADDRESS]>::from_hex(&wallet.address[2..])
@@ -116,26 +124,7 @@ pub async fn handle(
             SharedDataContract::new(build, eth_address, private_key),
         );
 
-    let mut fields = Vec::with_capacity(storage.len());
-    match output.result {
-        BuildValue::Structure(mut storage_fields) => match storage_fields.remove(0).1 {
-            BuildValue::Contract(storage_fields) => {
-                for (index, (name, value)) in storage_fields.into_iter().enumerate() {
-                    let value = value.into_json();
-                    fields.push(FieldInsertInput::new(
-                        query.contract_id,
-                        index as i16,
-                        name,
-                        value,
-                    ));
-                }
-            }
-            _ => return Response::error(Error::InvalidStorage),
-        },
-        _ => return Response::error(Error::InvalidStorage),
-    }
-
-    if let Err(error) = app_data
+    app_data
         .read()
         .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
@@ -152,31 +141,25 @@ pub async fn handle(
             private_key,
         ))
         .await
-    {
-        return Response::error(Error::Database(error));
-    }
+        .map_err(Error::Database)?;
 
-    if let Err(error) = app_data
+    app_data
         .read()
         .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
         .insert_methods(methods)
         .await
-    {
-        return Response::error(Error::Database(error));
-    }
+        .map_err(Error::Database)?;
 
-    if let Err(error) = app_data
+    app_data
         .read()
         .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
         .insert_fields(fields)
         .await
-    {
-        return Response::error(Error::Database(error));
-    }
+        .map_err(Error::Database)?;
 
     let response = ResponseBody::new(wallet.address);
 
-    Response::success_with_data(StatusCode::CREATED, response)
+    Response::new_with_data(StatusCode::CREATED, response).into()
 }

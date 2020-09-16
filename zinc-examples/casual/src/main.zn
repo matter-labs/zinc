@@ -1,3 +1,18 @@
-fn main() -> u8 {
-    42
+fn f1() -> bool {
+    dbg!("f1");
+    false
+}
+
+fn f2() -> bool {
+    dbg!("f2");
+    true
+}
+
+fn f3() -> bool {
+    dbg!("f3");
+    true
+}
+
+fn main() -> bool {
+    f1() && f2() && f3()
 }

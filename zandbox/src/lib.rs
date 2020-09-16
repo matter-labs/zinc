@@ -12,3 +12,5 @@ pub use self::database::client::Client as DatabaseClient;
 pub use self::database::model::contract::select::output::Output as ContractSelectOutput;
 pub use self::shared_data::contract::Contract as SharedDataContract;
 pub use self::shared_data::SharedData;
+
+pub(crate) type Result<T, E> = ::std::result::Result<self::response::Response<T, E>, E>;

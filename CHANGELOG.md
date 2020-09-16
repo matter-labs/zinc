@@ -20,6 +20,7 @@
 - forbidden bitwise operations on signed integers and fields
 - implemented the type inference for integer literals in expressions
 - fixed the issue where operations on enums could result into an invalid variant
+- added aliases to the `use` import statement
 
 *Interfaces*
 - added the overflow checking and `enum` validation for input JSON files
@@ -30,6 +31,7 @@
 - fixed the bug where the type of a `match` enumeration variant path pattern was unchecked
 - fixed the bug where a structure could be initialized without fields
 - implemented the per-entry dead code elimination optimization for unreachable functions
+- implemented the short-circuit boolean expressions evaluation
 - improved some error messages
 
 #### Zargo

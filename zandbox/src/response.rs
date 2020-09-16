@@ -2,6 +2,8 @@
 //! The Zandbox server daemon response.
 //!
 
+use std::marker::PhantomData;
+
 use actix_web::http::StatusCode;
 use actix_web::HttpRequest;
 use actix_web::HttpResponse;
@@ -13,21 +15,19 @@ use serde_derive::Serialize;
 /// The Zandbox server daemon response.
 ///
 #[derive(Debug, Serialize)]
-#[serde(untagged)]
-pub enum Response<T, E>
+pub struct Response<T, E>
 where
     T: serde::Serialize,
     E: serde::Serialize + actix_web::ResponseError,
 {
-    /// The success data variant.
-    Success {
-        #[serde(skip_serializing)]
-        code: StatusCode,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        data: Option<T>,
-    },
-    /// The error data variant.
-    Error(E),
+    /// The HTTP status code.
+    #[serde(skip_serializing)]
+    code: StatusCode,
+    /// The optional data payload.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    data: Option<T>,
+    /// The unused error type parameter marker.
+    _pd: PhantomData<E>,
 }
 
 impl<T, E> Default for Response<T, E>
@@ -36,7 +36,7 @@ where
     E: serde::Serialize + actix_web::ResponseError,
 {
     fn default() -> Self {
-        Self::success(StatusCode::OK)
+        Self::new(StatusCode::OK)
     }
 }
 
@@ -48,25 +48,33 @@ where
     ///
     /// A shortcut constructor.
     ///
-    pub fn success(code: StatusCode) -> Self {
-        Self::Success { code, data: None }
-    }
-
-    ///
-    /// A shortcut constructor.
-    ///
-    pub fn success_with_data(code: StatusCode, data: T) -> Self {
-        Self::Success {
+    pub fn new(code: StatusCode) -> Self {
+        Self {
             code,
-            data: Some(data),
+            data: None,
+            _pd: PhantomData::default(),
         }
     }
 
     ///
     /// A shortcut constructor.
     ///
-    pub fn error(error: E) -> Self {
-        Self::Error(error)
+    pub fn new_with_data(code: StatusCode, data: T) -> Self {
+        Self {
+            code,
+            data: Some(data),
+            _pd: PhantomData::default(),
+        }
+    }
+}
+
+impl<T, E> Into<Result<Response<T, E>, E>> for Response<T, E>
+where
+    T: serde::Serialize,
+    E: serde::Serialize + actix_web::ResponseError,
+{
+    fn into(self) -> Result<Response<T, E>, E> {
+        Ok(self)
     }
 }
 
@@ -79,12 +87,9 @@ where
     type Future = future::Ready<Result<HttpResponse, E>>;
 
     fn respond_to(self, _: &HttpRequest) -> Self::Future {
-        match self {
-            Self::Success { code, data } => match data {
-                Some(data) => future::ok(HttpResponse::build(code).json(data)),
-                None => future::ok(HttpResponse::new(code)),
-            },
-            Self::Error(error) => future::err(error),
+        match self.data {
+            Some(data) => future::ok(HttpResponse::build(self.code).json(data)),
+            None => future::ok(HttpResponse::new(self.code)),
         }
     }
 }

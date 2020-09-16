@@ -10,6 +10,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use num_bigint::BigInt;
+use num_traits::One;
+use num_traits::Zero;
 
 use zinc_build::FunctionIdentifier;
 use zinc_build::Instruction;
@@ -554,13 +556,56 @@ impl IBytecodeWritable for Expression {
                     ),
 
                     Operator::Or => {
-                        Self::binary(state.clone(), Instruction::Or(zinc_build::Or), location)
+                        //                        Self::binary(state.clone(), Instruction::Or(zinc_build::Or), location)
+                    }
+                    Operator::OrShortCircuitStart => {
+                        state
+                            .borrow_mut()
+                            .push_instruction(Instruction::Not(zinc_build::Not), None);
+                        state
+                            .borrow_mut()
+                            .push_instruction(Instruction::If(zinc_build::If), None);
+                    }
+                    Operator::OrShortCircuitEnd => {
+                        state
+                            .borrow_mut()
+                            .push_instruction(Instruction::Else(zinc_build::Else), None);
+                        state.borrow_mut().push_instruction(
+                            Instruction::Push(zinc_build::Push::new(
+                                BigInt::one(),
+                                ScalarType::Boolean,
+                            )),
+                            None,
+                        );
+                        state
+                            .borrow_mut()
+                            .push_instruction(Instruction::EndIf(zinc_build::EndIf), None);
                     }
                     Operator::Xor => {
                         Self::binary(state.clone(), Instruction::Xor(zinc_build::Xor), location)
                     }
                     Operator::And => {
-                        Self::binary(state.clone(), Instruction::And(zinc_build::And), location)
+                        //                        Self::binary(state.clone(), Instruction::And(zinc_build::And), location)
+                    }
+                    Operator::AndShortCircuitStart => {
+                        state
+                            .borrow_mut()
+                            .push_instruction(Instruction::If(zinc_build::If), None);
+                    }
+                    Operator::AndShortCircuitEnd => {
+                        state
+                            .borrow_mut()
+                            .push_instruction(Instruction::Else(zinc_build::Else), None);
+                        state.borrow_mut().push_instruction(
+                            Instruction::Push(zinc_build::Push::new(
+                                BigInt::zero(),
+                                ScalarType::Boolean,
+                            )),
+                            None,
+                        );
+                        state
+                            .borrow_mut()
+                            .push_instruction(Instruction::EndIf(zinc_build::EndIf), None);
                     }
 
                     Operator::Equals { .. } => {

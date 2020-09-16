@@ -199,7 +199,6 @@ mod tests {
                 ),
                 BlockExpression::new(
                     Location::new(1, 9),
-                    false,
                     vec![],
                     Some(ExpressionTree::new(
                         Location::new(1, 11),
@@ -213,7 +212,6 @@ mod tests {
                 ),
                 Some(BlockExpression::new(
                     Location::new(1, 20),
-                    false,
                     vec![],
                     Some(ExpressionTree::new(
                         Location::new(1, 20),
@@ -231,7 +229,6 @@ mod tests {
                                 ),
                                 BlockExpression::new(
                                     Location::new(1, 29),
-                                    false,
                                     vec![],
                                     Some(ExpressionTree::new(
                                         Location::new(1, 31),
@@ -245,7 +242,6 @@ mod tests {
                                 ),
                                 Some(BlockExpression::new(
                                     Location::new(1, 40),
-                                    false,
                                     vec![],
                                     Some(ExpressionTree::new(
                                         Location::new(1, 42),

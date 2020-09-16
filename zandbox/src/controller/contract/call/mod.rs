@@ -10,7 +10,6 @@ use std::sync::RwLock;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
-use actix_web::Responder;
 use serde_json::Value as JsonValue;
 
 use zinc_build::Value as BuildValue;
@@ -23,84 +22,73 @@ use crate::response::Response;
 use crate::shared_data::SharedData;
 
 use self::error::Error;
-use self::request::Body;
-use self::request::Query;
+use self::request::Body as RequestBody;
+use self::request::Query as RequestQuery;
 
 ///
 /// The HTTP request handler.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
-    query: web::Query<Query>,
-    body: web::Json<Body>,
-) -> impl Responder {
+    query: web::Query<RequestQuery>,
+    body: web::Json<RequestBody>,
+) -> crate::Result<JsonValue, Error> {
     let query = query.into_inner();
     let body = body.into_inner();
 
-    let contract = match app_data
+    let contract = app_data
         .read()
         .expect(zinc_const::panic::MULTI_THREADING)
         .contracts
         .get(&query.contract_id)
         .cloned()
-    {
-        Some(contract) => contract,
-        None => return Response::error(Error::ContractNotFound),
-    };
+        .ok_or(Error::ContractNotFound)?;
 
-    let method = match contract.build.methods.get(query.method.as_str()).cloned() {
-        Some(method) => method,
-        None => return Response::error(Error::MethodNotFound),
-    };
+    let method = contract
+        .build
+        .methods
+        .get(query.method.as_str())
+        .cloned()
+        .ok_or(Error::MethodNotFound)?;
     if !method.is_mutable {
-        return Response::error(Error::MethodIsImmutable);
+        return Err(Error::MethodIsImmutable);
     }
 
-    let input_value = match BuildValue::try_from_typed_json(body.arguments, method.input) {
-        Ok(input_value) => input_value,
-        Err(error) => return Response::error(Error::InvalidInput(error)),
-    };
+    let input_value = BuildValue::try_from_typed_json(body.arguments, method.input)
+        .map_err(Error::InvalidInput)?;
 
-    let storage_fields_count = contract.build.storage.len();
-    let storage_value = match app_data
+    let storage_value = app_data
         .read()
         .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
         .select_fields(FieldSelectInput::new(query.contract_id))
         .await
-    {
-        Ok(output) => {
-            if output.len() != contract.build.storage.len() {
-                return Response::error(Error::InvalidStorageSize {
-                    expected: contract.build.storage.len(),
-                    found: output.len(),
-                });
-            }
-
-            let mut fields = Vec::with_capacity(output.len());
-            for (index, FieldSelectOutput { name, value }) in output.into_iter().enumerate() {
-                let r#type = contract.build.storage[index].1.clone();
-                let value = match BuildValue::try_from_typed_json(value, r#type) {
-                    Ok(value) => value,
-                    Err(error) => return Response::error(Error::InvalidStorage(error)),
-                };
-                fields.push((name, value))
-            }
-            BuildValue::Contract(fields)
-        }
-        Err(error) => return Response::error(Error::Database(error)),
-    };
+        .map_err(Error::Database)?;
+    let storage_fields_count = storage_value.len();
+    if storage_value.len() != contract.build.storage.len() {
+        return Err(Error::InvalidStorageSize {
+            expected: contract.build.storage.len(),
+            found: storage_value.len(),
+        });
+    }
+    let mut fields = Vec::with_capacity(storage_value.len());
+    for (index, FieldSelectOutput { name, value }) in storage_value.into_iter().enumerate() {
+        let r#type = contract.build.storage[index].1.clone();
+        let value = match BuildValue::try_from_typed_json(value, r#type) {
+            Ok(value) => value,
+            Err(error) => return Err(Error::InvalidStorage(error)),
+        };
+        fields.push((name, value))
+    }
+    let storage_value = BuildValue::Contract(fields);
 
     let build = contract.build;
     let method = query.method;
-    let output = match async_std::task::spawn_blocking(move || {
+    let output = async_std::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new(build).run::<Bn256>(input_value, storage_value, method)
     })
     .await
-    {
-        Ok(output) => output,
-        Err(error) => return Response::error(Error::RuntimeError(error)),
-    };
+    .map_err(Error::RuntimeError)?;
 
     let mut storage_fields = Vec::with_capacity(storage_fields_count);
     match output.storage {
@@ -117,23 +105,19 @@ pub async fn handle(
         _ => panic!(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION),
     }
 
-    if let Err(error) = app_data
+    app_data
         .read()
         .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
         .update_fields(storage_fields)
         .await
-    {
-        return Response::error(Error::Database(error));
-    }
+        .map_err(Error::Database)?;
 
-    let wallet_credentials = match zksync::WalletCredentials::from_eth_pk(
+    let wallet_credentials = zksync::WalletCredentials::from_eth_pk(
         contract.eth_address.into(),
         contract.private_key.into(),
-    ) {
-        Ok(wallet_credentials) => wallet_credentials,
-        Err(error) => return Response::error(Error::ZkSync(error)),
-    };
+    )
+    .map_err(Error::ZkSync)?;
 
     let network = match query.network {
         zinc_data::Network::Localhost => zksync::Network::Localhost,
@@ -142,12 +126,30 @@ pub async fn handle(
     };
     let provider = zksync::Provider::new(network);
 
-    let wallet = match zksync::Wallet::new(provider, wallet_credentials).await {
-        Ok(wallet) => wallet,
-        Err(error) => return Response::error(Error::ZkSync(error)),
-    };
+    let mut wallet = zksync::Wallet::new(provider, wallet_credentials)
+        .await
+        .map_err(Error::ZkSync)?;
 
-    dbg!(output.transfers);
+    for transfer in output.transfers.into_iter() {
+        dbg!(&transfer);
 
-    Response::<JsonValue, Error>::success_with_data(StatusCode::OK, output.result.into_json())
+        wallet
+            .start_transfer()
+            .to(transfer.to.into())
+            .token("ETH")
+            .map_err(Error::ZkSync)?
+            .amount(num_old::BigUint::from_bytes_be(
+                transfer.amount.to_bytes_be().as_slice(),
+            ))
+            .send()
+            .await
+            .map_err(Error::ZkSync)?
+            .wait_for_commit()
+            .await
+            .map_err(Error::ZkSync)?;
+    }
+
+    let response = output.result.into_json();
+
+    Response::new_with_data(StatusCode::OK, response).into()
 }

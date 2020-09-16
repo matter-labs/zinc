@@ -156,7 +156,7 @@ mod tests {
         let input = r#"{}"#;
 
         let expected = Ok((
-            BlockExpression::new(Location::new(1, 1), false, vec![], None),
+            BlockExpression::new(Location::new(1, 1), vec![], None),
             None,
         ));
 
@@ -172,7 +172,6 @@ mod tests {
         let expected = Ok((
             BlockExpression::new(
                 Location::new(1, 1),
-                false,
                 vec![],
                 Some(ExpressionTree::new_with_leaves(
                     Location::new(1, 5),

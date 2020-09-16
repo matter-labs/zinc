@@ -10,15 +10,15 @@ use num_bigint::BigUint;
 #[derive(Debug)]
 pub struct Transfer {
     /// The ID of the token being transferred.
-    token_id: BigUint,
+    pub token_id: BigUint,
     /// The sender address.
-    from: Vec<u8>,
+    pub from: [u8; zinc_const::size::ETH_ADDRESS],
     /// The recepient address.
-    to: Vec<u8>,
+    pub to: [u8; zinc_const::size::ETH_ADDRESS],
     /// The amount of the tokens being sent.
-    amount: BigUint,
+    pub amount: BigUint,
     /// The transaction fee.
-    fee: BigUint,
+    pub fee: BigUint,
 }
 
 impl Transfer {
@@ -27,8 +27,8 @@ impl Transfer {
     ///
     pub fn new(
         token_id: BigUint,
-        from: Vec<u8>,
-        to: Vec<u8>,
+        from: [u8; zinc_const::size::ETH_ADDRESS],
+        to: [u8; zinc_const::size::ETH_ADDRESS],
         amount: BigUint,
         fee: BigUint,
     ) -> Self {

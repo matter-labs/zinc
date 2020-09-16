@@ -761,12 +761,33 @@ impl Analyzer {
             self.intermediate
                 .push_operator(location, GeneratorExpressionOperator::casting(r#type));
         }
+        match operator {
+            GeneratorExpressionOperator::Or => {
+                self.intermediate
+                    .push_operator(location, GeneratorExpressionOperator::OrShortCircuitStart);
+            }
+            GeneratorExpressionOperator::And => {
+                self.intermediate
+                    .push_operator(location, GeneratorExpressionOperator::AndShortCircuitStart);
+            }
+            _ => {}
+        }
         self.intermediate.append_expression(intermediate_2);
         if let Some(r#type) = operator.operand_2_inferred_type() {
             self.intermediate
                 .push_operator(location, GeneratorExpressionOperator::casting(r#type));
         }
-        self.intermediate.push_operator(location, operator);
+        match operator {
+            GeneratorExpressionOperator::Or => {
+                self.intermediate
+                    .push_operator(location, GeneratorExpressionOperator::OrShortCircuitEnd);
+            }
+            GeneratorExpressionOperator::And => {
+                self.intermediate
+                    .push_operator(location, GeneratorExpressionOperator::AndShortCircuitEnd);
+            }
+            _ => self.intermediate.push_operator(location, operator),
+        }
 
         Ok(())
     }

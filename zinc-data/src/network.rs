@@ -25,9 +25,11 @@ pub enum Network {
 
 impl Network {
     pub fn to_address(&self) -> String {
+        // TODO: replace with the real URLs
         match self {
-            Self::Localhost => "localhost",
-            _ => todo!(),
+            Self::Localhost => "http://127.0.0.1",
+            Self::Rinkeby => "http://127.0.0.1",
+            Self::Ropsten => "http://127.0.0.1",
         }
         .to_owned()
     }
