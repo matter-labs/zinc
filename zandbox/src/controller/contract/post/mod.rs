@@ -17,10 +17,10 @@ use zinc_build::Type as BuildType;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 
-use zksync::zksync_models::node::tx::PackedEthSignature;
 use zksync::web3::types::H160;
 use zksync::web3::types::H256;
 use zksync::web3::types::U256;
+use zksync::zksync_models::node::tx::PackedEthSignature;
 
 use crate::database::model::contract::insert::input::Input as ContractInsertInput;
 use crate::database::model::field::insert::input::Input as FieldInsertInput;
@@ -44,7 +44,11 @@ pub async fn handle(
     let query = query.into_inner();
     let body = body.into_inner();
 
-    log::debug!("Publishing an instance of the contract `{} {}`", query.name, query.version);
+    log::debug!(
+        "Publishing an instance of the contract `{} {}`",
+        query.name,
+        query.version
+    );
 
     let program =
         BuildProgram::try_from_slice(body.bytecode.as_slice()).map_err(Error::InvalidBytecode)?;
@@ -89,14 +93,22 @@ pub async fn handle(
     log::debug!("Generating ETH private key");
     let mut contract_private_key = H256::default();
     contract_private_key.randomize();
-    let contract_eth_address: H160 = PackedEthSignature::address_from_private_key(&contract_private_key).unwrap();
-    log::debug!("The contract ETH address is {}", contract_eth_address.to_string());
+    let contract_eth_address: H160 =
+        PackedEthSignature::address_from_private_key(&contract_private_key).unwrap();
+    log::debug!(
+        "The contract ETH address is {}",
+        contract_eth_address.to_string()
+    );
 
-    let source_address: H160 = body.transfer.source_address[2..].parse().map_err(Error::InvalidSourceAddress)?;
-    let source_private_key: H256 = body.transfer.source_private_key[2..].parse().map_err(Error::InvalidSourcePrivateKey)?;
+    let source_address: H160 = body.transfer.source_address[2..]
+        .parse()
+        .map_err(Error::InvalidSourceAddress)?;
+    let source_private_key: H256 = body.transfer.source_private_key[2..]
+        .parse()
+        .map_err(Error::InvalidSourcePrivateKey)?;
 
     let owner_wallet_credentials =
-        zksync::WalletCredentials::from_eth_pk(source_address.into(), source_private_key.into())
+        zksync::WalletCredentials::from_eth_pk(source_address, source_private_key)
             .map_err(Error::ZkSync)?;
     let owner_wallet = zksync::Wallet::new(provider.clone(), owner_wallet_credentials)
         .await
@@ -110,7 +122,7 @@ pub async fn handle(
     let amount = U256::from(body.transfer.amount.to_bytes_be().as_slice())
         .pow(zinc_const::zandbox::ETH_BALANCE_EXPONENT.into());
     let eth_deposit_tx_hash = ethereum
-        .deposit("ETH", amount, contract_eth_address.into())
+        .deposit("ETH", amount, contract_eth_address)
         .await
         .map_err(Error::ZkSync)?;
     crate::wait::eth_tx(&ethereum, eth_deposit_tx_hash).await;
@@ -122,8 +134,14 @@ pub async fn handle(
     let mut contract_wallet = zksync::Wallet::new(provider, contract_wallet_credentials)
         .await
         .map_err(Error::ZkSync)?;
-    let contract_account_id = crate::wait::account_id(&mut contract_wallet).await.map_err(Error::ZkSync)?;
-    contract_wallet.start_change_pubkey().send().await.map_err(Error::ZkSync)?;
+    let contract_account_id = crate::wait::account_id(&mut contract_wallet)
+        .await
+        .map_err(Error::ZkSync)?;
+    contract_wallet
+        .start_change_pubkey()
+        .send()
+        .await
+        .map_err(Error::ZkSync)?;
 
     let mut fields = Vec::with_capacity(storage.len());
     match output.result {
@@ -151,11 +169,7 @@ pub async fn handle(
         .contracts
         .insert(
             contract_account_id,
-            SharedDataContract::new(
-                build,
-                contract_eth_address.into(),
-                contract_private_key.into(),
-            ),
+            SharedDataContract::new(build, contract_eth_address, contract_private_key),
         );
 
     log::debug!("Writing the contract to the persistent PostgreSQL database");

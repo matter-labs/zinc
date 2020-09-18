@@ -2,13 +2,13 @@
 //! The contract resource POST call error.
 //!
 
-use std::fmt;
 use std::collections::HashMap;
+use std::fmt;
 
 use actix_web::http::StatusCode;
 use actix_web::ResponseError;
-use serde_json::Value as JsonValue;
 use serde_json::Map as JsonMap;
+use serde_json::Value as JsonValue;
 
 use zksync::zksync_models::node::tx::TxHash;
 
@@ -36,9 +36,7 @@ pub enum Error {
     /// The ZkSync server error.
     ZkSync(zksync::error::ClientError),
     /// The ZkSync transfer errors.
-    TransferFailure {
-        reasons: HashMap<TxHash, String>,
-    },
+    TransferFailure { reasons: HashMap<TxHash, String> },
 }
 
 impl ResponseError for Error {
@@ -78,15 +76,19 @@ impl fmt::Display for Error {
             Self::Database(inner) => write!(f, "Database: {:?}", inner),
             Self::ZkSync(inner) => write!(f, "ZkSync: {:?}", inner),
             Self::TransferFailure { reasons } => {
-                let reasons: JsonMap<String, JsonValue> = reasons.into_iter().map(|(hash, reason)| {
-                    let mut hash = hash.to_string();
-                    hash.drain(.."sync-tx:".len());
-                    (hash, JsonValue::String(reason.to_owned()))
-                }).collect();
-                let reasons = serde_json::to_string_pretty(&reasons).expect(zinc_const::panic::DATA_VALID);
+                let reasons: JsonMap<String, JsonValue> = reasons
+                    .iter()
+                    .map(|(hash, reason)| {
+                        let mut hash = hash.to_string();
+                        hash.drain(.."sync-tx:".len());
+                        (hash, JsonValue::String(reason.to_owned()))
+                    })
+                    .collect();
+                let reasons =
+                    serde_json::to_string_pretty(&reasons).expect(zinc_const::panic::DATA_VALID);
 
                 write!(f, "Transfer failures: {}", reasons)
-            },
+            }
         }
     }
 }

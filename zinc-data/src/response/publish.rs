@@ -4,8 +4,8 @@
 
 use serde_derive::Serialize;
 
-use zksync::zksync_models::node::AccountId;
 use zksync::web3::types::H160;
+use zksync::zksync_models::node::AccountId;
 
 ///
 /// The contract resource POST response body.

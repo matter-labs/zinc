@@ -127,7 +127,9 @@ where
 
             log::trace!(
                 "{}:{} > {}",
-                step, self.execution_state.instruction_counter, instruction,
+                step,
+                self.execution_state.instruction_counter,
+                instruction,
             );
 
             self.execution_state.instruction_counter += 1;

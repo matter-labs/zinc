@@ -13,3 +13,7 @@ members = [
     "zinc-utils",
     "zinc-const",
 ]
+
+exclude = [
+    "zksync"
+]

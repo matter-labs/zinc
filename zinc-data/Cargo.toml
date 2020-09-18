@@ -13,6 +13,6 @@ serde_derive = "1.0"
 serde_json = "1.0"
 num-bigint = "0.3"
 
-zksync = { git = "https://github.com/matter-labs/zksync-dev", branch = "dev" }
+zksync = { path = "../zksync/sdk/zksync-rs" }
 
 zinc-const = { path = "../zinc-const" }

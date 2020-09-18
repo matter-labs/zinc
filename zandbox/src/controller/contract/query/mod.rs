@@ -70,15 +70,19 @@ pub async fn handle(
 
     let method_name = match query.method {
         Some(method_name) => {
-            log::debug!("Querying method `{}` of the contract #{}", method_name, query.account_id);
+            log::debug!(
+                "Querying method `{}` of the contract #{}",
+                method_name,
+                query.account_id
+            );
             method_name
-        },
+        }
         None => {
             log::debug!("Querying the storage of the contract #{}", query.account_id);
             return Ok(Response::new_with_data(
                 StatusCode::OK,
                 storage_value.into_json(),
-            ))
+            ));
         }
     };
 

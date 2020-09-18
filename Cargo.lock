@@ -1174,7 +1174,6 @@ dependencies = [
 [[package]]
 name = "crypto_exports"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/zksync-dev?branch=dev#ce1cd77414ee4286048cd6094c9e6ca4364d7fca"
 dependencies = [
  "franklin-crypto 0.0.5 (git+https://github.com/matter-labs/franklin-crypto.git?branch=check-franklin-circuit-transpile)",
  "rand 0.4.6",
@@ -1292,7 +1291,6 @@ dependencies = [
 [[package]]
 name = "eth_client"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/zksync-dev?branch=dev#ce1cd77414ee4286048cd6094c9e6ca4364d7fca"
 dependencies = [
  "ethabi",
  "failure",
@@ -2379,7 +2377,6 @@ dependencies = [
 [[package]]
 name = "models"
 version = "0.0.1"
-source = "git+https://github.com/matter-labs/zksync-dev?branch=dev#ce1cd77414ee4286048cd6094c9e6ca4364d7fca"
 dependencies = [
  "backoff",
  "bigdecimal",
@@ -4943,7 +4940,6 @@ dependencies = [
 [[package]]
 name = "zksync"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/zksync-dev?branch=dev#ce1cd77414ee4286048cd6094c9e6ca4364d7fca"
 dependencies = [
  "anyhow",
  "bellman_ce 0.3.2",

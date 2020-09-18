@@ -29,7 +29,7 @@ actix-rt = "1.1"
 actix-web = "2.0"
 sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-async-std", "macros", "postgres", "json" ] }
 
-zksync = { git = "https://github.com/matter-labs/zksync-dev", branch = "dev" }
+zksync = { path = "../zksync/sdk/zksync-rs" }
 num_old = { package = "num", version = "0.2.1" }
 
 zinc-const = { path = "../zinc-const" }

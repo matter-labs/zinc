@@ -180,7 +180,9 @@ pub async fn handle(
         if !tx_info.success.unwrap_or_default() {
             reasons.insert(
                 handle.hash(),
-                tx_info.fail_reason.unwrap_or("Unknown reason".to_owned()),
+                tx_info
+                    .fail_reason
+                    .unwrap_or_else(|| "Unknown reason".to_owned()),
             );
         }
     }
