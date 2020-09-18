@@ -105,15 +105,10 @@ where
             let instruction =
                 circuit.instructions[self.execution_state.instruction_counter].clone();
 
-            let log_message = format!(
+            log::trace!(
                 "{}:{} > {}",
                 step, self.execution_state.instruction_counter, instruction,
             );
-            if instruction.is_debug() {
-                log::trace!("{}", log_message);
-            } else {
-                log::debug!("{}", log_message);
-            }
 
             self.execution_state.instruction_counter += 1;
             if let Err(error) = instruction.execute(self).and(check_cs(&self.counter.cs)) {

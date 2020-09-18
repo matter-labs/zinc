@@ -14,6 +14,8 @@ use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 use rayon::ThreadPoolBuilder;
 
+use zksync::zksync_models::node::AccountId;
+
 use zinc_build::Program as BuildProgram;
 
 use zandbox::ContractSelectOutput;
@@ -53,19 +55,19 @@ async fn main() -> Result<(), Error> {
         .into_par_iter()
         .map(
             |ContractSelectOutput {
-                 contract_id,
+                 account_id,
                  name,
                  version,
                  bytecode,
                  eth_address,
-                 private_key,
+                 eth_private_key,
              }| {
                 log::info!(
                     "{} {} v{} with ID {}",
                     "Loading".bright_green(),
                     name,
                     version,
-                    contract_id
+                    account_id
                 );
 
                 let program = BuildProgram::try_from_slice(bytecode.as_slice())
@@ -78,18 +80,13 @@ async fn main() -> Result<(), Error> {
                     BuildProgram::Contract(contract) => contract,
                 };
 
-                let mut eth_address_array = [0; zinc_const::size::ETH_ADDRESS];
-                for (index, byte) in eth_address.into_iter().enumerate() {
-                    eth_address_array[index] = byte;
-                }
-                let mut private_key_array = [0; zinc_const::size::ETH_PRIVATE_KEY];
-                for (index, byte) in private_key.into_iter().enumerate() {
-                    private_key_array[index] = byte;
-                }
+                let contract = SharedDataContract::new(
+                    build,
+                    zinc_data::eth_address_from_vec(eth_address),
+                    zinc_data::eth_private_key_from_vec(eth_private_key),
+                );
 
-                let contract = SharedDataContract::new(build, eth_address_array, private_key_array);
-
-                (contract_id, contract)
+                (account_id as AccountId, contract)
             },
         )
         .collect();
@@ -106,8 +103,8 @@ async fn main() -> Result<(), Error> {
     })
     .bind(format!(
         "{}:{}",
-        zinc_const::http::HOST,
-        args.http_port.unwrap_or(zinc_const::http::PORT)
+        zinc_const::zandbox::HOST,
+        args.http_port.unwrap_or(zinc_const::zandbox::PORT)
     ))
     .map_err(Error::ServerBinding)?
     .run()

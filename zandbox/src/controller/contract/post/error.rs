@@ -22,6 +22,9 @@ pub enum Error {
     RuntimeError(RuntimeError),
     Database(sqlx::Error),
     InvalidStorage,
+    InvalidSourceAddress(rustc_hex::FromHexError),
+    InvalidSourcePrivateKey(rustc_hex::FromHexError),
+    ZkSync(zksync::error::ClientError),
 }
 
 impl ResponseError for Error {
@@ -34,6 +37,9 @@ impl ResponseError for Error {
             Self::RuntimeError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::InvalidStorage => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::InvalidSourceAddress(_) => StatusCode::BAD_REQUEST,
+            Self::InvalidSourcePrivateKey(_) => StatusCode::BAD_REQUEST,
+            Self::ZkSync(_) => StatusCode::SERVICE_UNAVAILABLE,
         }
     }
 }
@@ -57,6 +63,17 @@ impl fmt::Display for Error {
             Self::RuntimeError(inner) => write!(f, "Runtime: {:?}", inner),
             Self::Database(inner) => write!(f, "Database: {:?}", inner),
             Self::InvalidStorage => write!(f, "Contract storage is broken"),
+            Self::InvalidSourceAddress(inner) => write!(
+                f,
+                "Invalid source ETH address ({}), expected `0x[0-9A-Fa-f]{{40}}`",
+                inner
+            ),
+            Self::InvalidSourcePrivateKey(inner) => write!(
+                f,
+                "Invalid source ETH private key ({}), expected `0x[0-9A-Fa-f]{{64}}`",
+                inner
+            ),
+            Self::ZkSync(inner) => write!(f, "ZkSync: {:?}", inner),
         }
     }
 }

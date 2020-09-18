@@ -2,6 +2,12 @@
 //! The Zinc Zandbox constants.
 //!
 
+/// The default server binding host.
+pub static HOST: &str = "0.0.0.0";
+
+/// The default server binding port.
+pub const PORT: u16 = 4001;
+
 /// The default contract constructor name.
 pub static CONTRACT_CONSTRUCTOR_NAME: &str = "new";
 
@@ -13,3 +19,6 @@ pub static CONTRACT_QUERY_URL: &str = "/api/v1/contract/query";
 
 /// The contract call URL.
 pub static CONTRACT_CALL_URL: &str = "/api/v1/contract/call";
+
+/// The ETH balance value exponent.
+pub const ETH_BALANCE_EXPONENT: usize = 18;

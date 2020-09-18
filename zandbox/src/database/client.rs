@@ -8,13 +8,12 @@ use sqlx::Postgres;
 
 use crate::database::model::contract::insert::input::Input as ContractInsertInput;
 use crate::database::model::contract::select::output::Output as ContractSelectOutput;
+use crate::database::model::contract::select::private_key::input::Input as ContractSelectPrivateKeyInput;
+use crate::database::model::contract::select::private_key::output::Output as ContractSelectPrivateKeyOutput;
 use crate::database::model::field::insert::input::Input as FieldInsertInput;
 use crate::database::model::field::select::input::Input as FieldSelectInput;
 use crate::database::model::field::select::output::Output as FieldSelectOutput;
 use crate::database::model::field::update::input::Input as FieldUpdateInput;
-use crate::database::model::method::insert::input::Input as MethodInsertInput;
-use crate::database::model::method::select::types::Input as MethodSelectTypesInput;
-use crate::database::model::method::select::types::Output as MethodSelectTypesOutput;
 
 ///
 /// The database asynchronous client adapter.
@@ -59,17 +58,38 @@ impl Client {
     pub async fn select_contracts(&self) -> Result<Vec<ContractSelectOutput>, sqlx::Error> {
         const STATEMENT: &str = r#"
         SELECT
-            contract_id,
+            account_id,
             name,
             version,
             bytecode,
             eth_address,
-            private_key
+            eth_private_key
         FROM zandbox.contracts
-        ORDER BY contract_id;
+        ORDER BY account_id;
         "#;
 
         Ok(sqlx::query_as(STATEMENT).fetch_all(&self.pool).await?)
+    }
+
+    ///
+    /// Select the contracts from the `contracts` table.
+    ///
+    pub async fn select_contract_private_key(
+        &self,
+        input: ContractSelectPrivateKeyInput,
+    ) -> Result<ContractSelectPrivateKeyOutput, sqlx::Error> {
+        const STATEMENT: &str = r#"
+        SELECT
+            eth_private_key
+        FROM zandbox.contracts
+        WHERE
+            eth_address = $1;
+        "#;
+
+        Ok(sqlx::query_as(STATEMENT)
+            .bind(input.eth_address.to_vec())
+            .fetch_one(&self.pool)
+            .await?)
     }
 
     ///
@@ -78,7 +98,7 @@ impl Client {
     pub async fn insert_contract(&self, input: ContractInsertInput) -> Result<(), sqlx::Error> {
         const STATEMENT: &str = r#"
         INSERT INTO zandbox.contracts (
-            contract_id,
+            account_id,
 
             name,
             version,
@@ -86,11 +106,11 @@ impl Client {
             zinc_version,
             source_code,
             bytecode,
-
             verifying_key,
+
             eth_address,
-            public_key,
-            private_key,
+            eth_private_key,
+
             created_at
         ) VALUES (
             $1,
@@ -102,13 +122,12 @@ impl Client {
             $7,
             $8,
             $9,
-            $10,
             NOW()
         );
         "#;
 
         sqlx::query(STATEMENT)
-            .bind(input.contract_id)
+            .bind(input.account_id)
             .bind(input.name)
             .bind(input.version)
             .bind(input.zinc_version)
@@ -116,74 +135,11 @@ impl Client {
             .bind(input.bytecode)
             .bind(input.verifying_key)
             .bind(input.eth_address.to_vec())
-            .bind(input.public_key.to_vec())
-            .bind(input.private_key.to_vec())
+            .bind(input.eth_private_key.to_vec())
             .execute(&self.pool)
             .await?;
 
         Ok(())
-    }
-
-    ///
-    /// Inserts the template methods into the `methods` table.
-    ///
-    pub async fn insert_methods(&self, input: Vec<MethodInsertInput>) -> Result<(), sqlx::Error> {
-        let mut statement = String::with_capacity(input.len() * 256);
-        statement.push_str(
-            r#"
-        INSERT INTO zandbox.methods (
-            contract_id,
-            name,
-
-            is_mutable,
-            input_type,
-            output_type
-        ) VALUES "#,
-        );
-        let method_count = input.len();
-        for (index, method) in input.into_iter().enumerate() {
-            statement.push_str(
-                format!(
-                    "({},'{}','{}','{}','{}'){}",
-                    method.contract_id,
-                    method.name,
-                    if method.is_mutable { 't' } else { 'f' },
-                    method.input_type,
-                    method.output_type,
-                    if index == method_count - 1 { ";" } else { "," }
-                )
-                .as_str(),
-            );
-        }
-
-        sqlx::query(statement.as_str()).execute(&self.pool).await?;
-
-        Ok(())
-    }
-
-    ///
-    /// Select the method types from the `methods` table.
-    ///
-    pub async fn select_method_types(
-        &self,
-        input: MethodSelectTypesInput,
-    ) -> Result<MethodSelectTypesOutput, sqlx::Error> {
-        const STATEMENT: &str = r#"
-        SELECT
-            methods.input_type,
-            methods.output_type,
-            contracts.storage_type
-        FROM zandbox.methods
-        LEFT JOIN zandbox.contracts ON methods.contract_id = contracts.contract_id
-        WHERE
-            methods.contract_id = $1 AND methods.name = $2;
-        "#;
-
-        Ok(sqlx::query_as(STATEMENT)
-            .bind(&input.contract_id)
-            .bind(&input.name)
-            .fetch_one(&self.pool)
-            .await?)
     }
 
     ///
@@ -199,12 +155,12 @@ impl Client {
             value
         FROM zandbox.fields
         WHERE
-            contract_id = $1
+            account_id = $1
         ORDER BY index;
         "#;
 
         Ok(sqlx::query_as(STATEMENT)
-            .bind(input.contract_id)
+            .bind(input.account_id)
             .fetch_all(&self.pool)
             .await?)
     }
@@ -217,7 +173,7 @@ impl Client {
         statement.push_str(
             r#"
         INSERT INTO zandbox.fields (
-            contract_id,
+            account_id,
             index,
 
             name,
@@ -229,7 +185,7 @@ impl Client {
             statement.push_str(
                 format!(
                     "({},{},'{}','{}'){}",
-                    field.contract_id,
+                    field.account_id,
                     field.index,
                     field.name,
                     field.value,
@@ -254,13 +210,13 @@ impl Client {
             value = $3
         WHERE
             index = $1
-        AND contract_id = $2;
+        AND account_id = $2;
         "#;
 
         for field in input.into_iter() {
             sqlx::query(STATEMENT)
                 .bind(field.index)
-                .bind(field.contract_id)
+                .bind(field.account_id)
                 .bind(field.value)
                 .execute(&self.pool)
                 .await?;

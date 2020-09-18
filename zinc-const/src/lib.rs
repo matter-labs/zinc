@@ -9,7 +9,6 @@ pub mod directory;
 pub mod exit_code;
 pub mod extension;
 pub mod file_name;
-pub mod http;
 pub mod limit;
 pub mod panic;
 pub mod path;

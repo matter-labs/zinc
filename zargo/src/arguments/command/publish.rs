@@ -8,6 +8,7 @@ use std::str::FromStr;
 
 use colored::Colorize;
 use failure::Fail;
+use num::BigUint;
 use reqwest::Client as HttpClient;
 use reqwest::Method;
 use reqwest::Url;
@@ -16,6 +17,7 @@ use structopt::StructOpt;
 
 use zinc_data::Network;
 use zinc_data::PublishRequestBody;
+use zinc_data::PublishRequestBodyTransfer;
 use zinc_data::PublishRequestQuery;
 use zinc_data::Source;
 use zinc_data::SourceError;
@@ -65,10 +67,6 @@ pub struct Command {
         help = "Sets the network, which is either 'rinkeby', 'ropsten', or 'localhost'"
     )]
     pub network: String,
-
-    /// The ID of the published contract.
-    #[structopt(long = "id", help = "The ID of the published contract")]
-    pub contract_id: i64,
 }
 
 ///
@@ -204,11 +202,10 @@ impl IExecutable for Command {
         );
 
         eprintln!(
-            "   {} {} v{} with ID {} to {}",
+            "   {} {} v{} to {}",
             "Uploading".bright_green(),
             manifest.project.name,
             manifest.project.version,
-            self.contract_id,
             network,
         );
         let http_client = HttpClient::new();
@@ -220,12 +217,10 @@ impl IExecutable for Command {
                         Url::parse_with_params(
                             endpoint_url.as_str(),
                             PublishRequestQuery::new(
-                                self.contract_id,
                                 manifest.project.name,
                                 manifest.project.version,
                                 network,
-                            )
-                            .into_vec(),
+                            ),
                         )
                         .expect(zinc_const::panic::DATA_VALID),
                     )
@@ -234,6 +229,12 @@ impl IExecutable for Command {
                         bytecode.inner,
                         arguments.inner,
                         verifying_key.inner,
+                        PublishRequestBodyTransfer::new(
+                            "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049".to_owned(),
+                            "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110"
+                                .to_owned(),
+                            BigUint::from(1 as u64),
+                        ),
                     ))
                     .build()
                     .expect(zinc_const::panic::DATA_VALID),

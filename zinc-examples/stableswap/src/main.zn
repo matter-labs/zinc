@@ -42,12 +42,11 @@ contract Stableswap {
     /// The contract constructor.
     ///
     pub fn new(
-        _address: Address,
         _A: u64,
     ) -> Self {
         Self {
-            address: _address,
-            balances: [ZERO; N],
+            address: 0x50091390a04d44130191661da17aa2c647b28eb9 as Address,
+            balances: [1000 as Balance; N],
             A: _A,
         }
     }
@@ -90,8 +89,8 @@ contract Stableswap {
         self.set_deposit(tx.token_id, new_x);
         self.set_withdraw(tx.token_id, new_y);
 
-        std::assets::Token::transfer(tx.from, self.address, tx.token_id, tx.amount, 1 as Balance);
-        std::assets::Token::transfer(self.address, tx.to, tx.token_id.opposite(), withdrawn, 1 as Balance);
+        std::assets::Token::transfer(tx.from, self.address, tx.token_id, tx.amount);
+        std::assets::Token::transfer(self.address, tx.to, tx.token_id.opposite(), withdrawn);
     }
 
     ///

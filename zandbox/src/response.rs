@@ -68,16 +68,6 @@ where
     }
 }
 
-impl<T, E> Into<Result<Response<T, E>, E>> for Response<T, E>
-where
-    T: serde::Serialize,
-    E: serde::Serialize + actix_web::ResponseError,
-{
-    fn into(self) -> Result<Response<T, E>, E> {
-        Ok(self)
-    }
-}
-
 impl<T, E> Responder for Response<T, E>
 where
     T: serde::Serialize,
@@ -87,9 +77,9 @@ where
     type Future = future::Ready<Result<HttpResponse, E>>;
 
     fn respond_to(self, _: &HttpRequest) -> Self::Future {
-        match self.data {
-            Some(data) => future::ok(HttpResponse::build(self.code).json(data)),
-            None => future::ok(HttpResponse::new(self.code)),
-        }
+        future::ok(match self.data {
+            Some(data) => HttpResponse::build(self.code).json(data),
+            None => HttpResponse::new(self.code),
+        })
     }
 }

@@ -2,9 +2,13 @@
 //! The contract resource call POST request.
 //!
 
+use std::iter::IntoIterator;
+
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use serde_json::Value as JsonValue;
+
+use zksync::zksync_models::node::AccountId;
 
 use crate::Network;
 
@@ -14,7 +18,7 @@ use crate::Network;
 #[derive(Debug, Deserialize)]
 pub struct Query {
     /// The contract account ID.
-    pub contract_id: i64,
+    pub account_id: AccountId,
     /// The name of the queried method.
     pub method: String,
     /// The network where the contract resides.
@@ -25,23 +29,27 @@ impl Query {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(contract_id: i64, method: String, network: Network) -> Self {
+    pub fn new(account_id: AccountId, method: String, network: Network) -> Self {
         Self {
-            contract_id,
+            account_id,
             method,
             network,
         }
     }
+}
 
-    ///
-    /// Converts the query into an iterable list of arguments.
-    ///
-    pub fn into_vec(self) -> Vec<(&'static str, String)> {
+impl IntoIterator for Query {
+    type Item = (&'static str, String);
+
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
         vec![
-            ("contract_id", self.contract_id.to_string()),
+            ("account_id", self.account_id.to_string()),
             ("method", self.method),
             ("network", self.network.to_string()),
         ]
+        .into_iter()
     }
 }
 

@@ -49,7 +49,7 @@ impl Facade {
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
                 num_constraints += num;
-                log::debug!("Constraints: {}", num);
+                log::trace!("Constraints: {}", num);
             },
             |cs| {
                 if !cs.is_satisfied() {
@@ -86,7 +86,7 @@ impl Facade {
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
                 num_constraints += num;
-                log::debug!("Constraints: {}", num);
+                log::trace!("Constraints: {}", num);
             },
             |cs| {
                 if !cs.is_satisfied() {
@@ -98,10 +98,8 @@ impl Facade {
         )?;
 
         let cs = state.constraint_system();
-
-        log::debug!("{}", cs.pretty_print());
-
         if !cs.is_satisfied() {
+            log::trace!("{}", cs.pretty_print());
             log::error!(
                 "Unsatisfied: {}",
                 cs.which_is_unsatisfied()

@@ -7,7 +7,7 @@ use serde_json::Value as JsonValue;
 ///
 /// The database contract storage field SELECT output model.
 ///
-#[derive(sqlx::FromRow)]
+#[derive(Debug, sqlx::FromRow)]
 pub struct Output {
     /// The field name.
     pub name: String,

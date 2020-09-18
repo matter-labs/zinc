@@ -2,6 +2,9 @@
 //! The cached contract data.
 //!
 
+use zksync::web3::types::H160;
+use zksync::web3::types::H256;
+
 use zinc_build::Contract as BuildContract;
 
 ///
@@ -12,24 +15,20 @@ pub struct Contract {
     /// The pre-built contract ready to be called.
     pub build: BuildContract,
     /// The contract address.
-    pub eth_address: [u8; zinc_const::size::ETH_ADDRESS],
+    pub eth_address: H160,
     /// The contract private key.
-    pub private_key: [u8; zinc_const::size::ETH_PRIVATE_KEY],
+    pub eth_private_key: H256,
 }
 
 impl Contract {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(
-        build: BuildContract,
-        eth_address: [u8; zinc_const::size::ETH_ADDRESS],
-        private_key: [u8; zinc_const::size::ETH_PRIVATE_KEY],
-    ) -> Self {
+    pub fn new(build: BuildContract, eth_address: H160, eth_private_key: H256) -> Self {
         Self {
             build,
             eth_address,
-            private_key,
+            eth_private_key,
         }
     }
 }

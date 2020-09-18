@@ -24,14 +24,16 @@ pub enum Network {
 }
 
 impl Network {
+    ///
+    /// The address where the Zandbox server resides.
+    ///
     pub fn to_address(&self) -> String {
         // TODO: replace with the real URLs
         match self {
-            Self::Localhost => "http://127.0.0.1",
-            Self::Rinkeby => "http://127.0.0.1",
-            Self::Ropsten => "http://127.0.0.1",
+            Self::Localhost => format!("http://localhost:{}", zinc_const::zandbox::PORT),
+            Self::Rinkeby => format!("http://localhost:{}", zinc_const::zandbox::PORT),
+            Self::Ropsten => format!("http://localhost:{}", zinc_const::zandbox::PORT),
         }
-        .to_owned()
     }
 }
 

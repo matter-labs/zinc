@@ -95,7 +95,7 @@ impl Facade {
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
                 num_constraints += num;
-                log::debug!("Constraints: {}", num);
+                log::trace!("Constraints: {}", num);
             },
             |cs| {
                 if !cs.is_satisfied() {
@@ -195,7 +195,7 @@ impl Facade {
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
                 num_constraints += num;
-                log::debug!("Constraints: {}", num);
+                log::trace!("Constraints: {}", num);
             },
             |cs| {
                 if !cs.is_satisfied() {
@@ -208,6 +208,12 @@ impl Facade {
 
         let cs = state.constraint_system();
         if !cs.is_satisfied() {
+            log::trace!("{}", cs.pretty_print());
+            log::error!(
+                "Unsatisfied: {}",
+                cs.which_is_unsatisfied()
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+            );
             return Err(RuntimeError::UnsatisfiedConstraint);
         }
 

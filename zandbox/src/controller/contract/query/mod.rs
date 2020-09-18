@@ -39,15 +39,16 @@ pub async fn handle(
         .read()
         .expect(zinc_const::panic::MULTI_THREADING)
         .contracts
-        .get(&query.contract_id)
+        .get(&query.account_id)
         .cloned()
         .ok_or(Error::ContractNotFound)?;
 
+    log::debug!("Loading the contract storage");
     let storage_value = app_data
         .read()
         .expect(zinc_const::panic::MULTI_THREADING)
         .postgresql_client
-        .select_fields(FieldSelectInput::new(query.contract_id))
+        .select_fields(FieldSelectInput::new(query.account_id as i64))
         .await
         .map_err(Error::Database)?;
     if storage_value.len() != contract.build.storage.len() {
@@ -68,8 +69,17 @@ pub async fn handle(
     let storage_value = BuildValue::Contract(fields);
 
     let method_name = match query.method {
-        Some(method_name) => method_name,
-        None => return Response::new_with_data(StatusCode::OK, storage_value.into_json()).into(),
+        Some(method_name) => {
+            log::debug!("Querying method `{}` of the contract #{}", method_name, query.account_id);
+            method_name
+        },
+        None => {
+            log::debug!("Querying the storage of the contract #{}", query.account_id);
+            return Ok(Response::new_with_data(
+                StatusCode::OK,
+                storage_value.into_json(),
+            ))
+        }
     };
 
     let method = contract
@@ -85,6 +95,7 @@ pub async fn handle(
         return Err(Error::MethodIsMutable);
     }
 
+    log::debug!("Running the contract method on the virtual machine");
     let output = async_std::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new(contract.build).run::<Bn256>(
             input_value,
@@ -95,5 +106,8 @@ pub async fn handle(
     .await
     .map_err(Error::RuntimeError)?;
 
-    Response::new_with_data(StatusCode::OK, output.result.into_json()).into()
+    let response = output.result.into_json();
+
+    log::debug!("The sequence has been successfully executed");
+    Ok(Response::new_with_data(StatusCode::OK, response))
 }

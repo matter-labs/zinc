@@ -56,7 +56,7 @@ pub struct Command {
 
     /// The ID of the published contract.
     #[structopt(long = "id", help = "The ID of the published contract")]
-    pub contract_id: i64,
+    pub contract_id: u32,
 
     /// The contract method to call.
     #[structopt(long = "method", help = "The contract method to call")]
@@ -143,8 +143,7 @@ impl IExecutable for Command {
                         Method::POST,
                         Url::parse_with_params(
                             endpoint_url.as_str(),
-                            CallRequestQuery::new(self.contract_id, self.method, network)
-                                .into_vec(),
+                            CallRequestQuery::new(self.contract_id, self.method, network),
                         )
                         .expect(zinc_const::panic::DATA_VALID),
                     )

@@ -5,6 +5,7 @@
 use std::io::Write;
 
 use log::Level;
+use log::LevelFilter;
 
 use colored::ColoredString;
 use colored::Colorize;
@@ -25,11 +26,19 @@ const LEVEL_NAME_LENGTH: usize = 10;
 ///
 pub fn initialize(app_name: &'static str, verbosity: usize) {
     env_logger::builder()
+        .filter_module("actix", LevelFilter::Info)
+        .filter_module("actix_web", LevelFilter::Info)
+        .filter_module("tokio", LevelFilter::Info)
+        .filter_module("tokio_core", LevelFilter::Info)
+        .filter_module("tokio_reactor", LevelFilter::Info)
+        .filter_module("reqwest", LevelFilter::Info)
+        .filter_module("hyper", LevelFilter::Info)
+        .filter_module("mio", LevelFilter::Info)
         .filter_level(match verbosity {
-            0 => log::LevelFilter::Warn,
-            1 => log::LevelFilter::Info,
-            2 => log::LevelFilter::Debug,
-            _ => log::LevelFilter::Trace,
+            0 => LevelFilter::Warn,
+            1 => LevelFilter::Info,
+            2 => LevelFilter::Debug,
+            _ => LevelFilter::Trace,
         })
         .format(move |buffer, record| {
             if let Level::Debug | Level::Trace = record.level() {
@@ -60,12 +69,12 @@ pub fn initialize(app_name: &'static str, verbosity: usize) {
 ///
 /// The log level string printed to the terminal.
 ///
-fn level_string(level: log::Level) -> ColoredString {
+fn level_string(level: Level) -> ColoredString {
     match level {
-        log::Level::Error => "ERROR".bold().red(),
-        log::Level::Warn => "WARN".bold().yellow(),
-        log::Level::Info => "INFO".bold().blue(),
-        log::Level::Debug => "DEBUG".bold().magenta(),
-        log::Level::Trace => "TRACE".bold(),
+        Level::Error => "ERROR".bold().red(),
+        Level::Warn => "WARN".bold().yellow(),
+        Level::Info => "INFO".bold().blue(),
+        Level::Debug => "DEBUG".bold().magenta(),
+        Level::Trace => "TRACE".bold(),
     }
 }

@@ -5,10 +5,10 @@
 ///
 /// The database contract SELECT output model.
 ///
-#[derive(sqlx::FromRow)]
+#[derive(Debug, sqlx::FromRow)]
 pub struct Output {
     /// The contract account ID.
-    pub contract_id: i64,
+    pub account_id: i64,
     /// The contract name.
     pub name: String,
     /// The contract version.
@@ -18,7 +18,7 @@ pub struct Output {
     /// The contract ETH address.
     pub eth_address: Vec<u8>,
     /// The contract private key.
-    pub private_key: Vec<u8>,
+    pub eth_private_key: Vec<u8>,
 }
 
 impl Output {
@@ -26,20 +26,20 @@ impl Output {
     /// A shortcut constructor.
     ///
     pub fn new(
-        contract_id: i64,
+        account_id: i64,
         name: String,
         version: String,
         bytecode: Vec<u8>,
         eth_address: Vec<u8>,
-        private_key: Vec<u8>,
+        eth_private_key: Vec<u8>,
     ) -> Self {
         Self {
-            contract_id,
+            account_id,
             name,
             version,
             bytecode,
             eth_address,
-            private_key,
+            eth_private_key,
         }
     }
 }

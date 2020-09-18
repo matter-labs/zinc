@@ -3,9 +3,14 @@
 //!
 
 use std::fmt;
+use std::collections::HashMap;
 
 use actix_web::http::StatusCode;
 use actix_web::ResponseError;
+use serde_json::Value as JsonValue;
+use serde_json::Map as JsonMap;
+
+use zksync::zksync_models::node::tx::TxHash;
 
 use zinc_build::ValueError as BuildValueError;
 use zinc_vm::RuntimeError;
@@ -15,15 +20,25 @@ use zinc_vm::RuntimeError;
 ///
 #[derive(Debug)]
 pub enum Error {
+    /// The contract with the specified ID is not found in the server cache.
     ContractNotFound,
+    /// The specified method does not exist in the contract.
     MethodNotFound,
+    /// The immutable method must be used via the `query` endpoint.
     MethodIsImmutable,
+    /// Invalid contract method arguments.
     InvalidInput(BuildValueError),
-    InvalidStorage(BuildValueError),
-    InvalidStorageSize { expected: usize, found: usize },
+
+    /// The virtual machine contract method runtime error.
     RuntimeError(RuntimeError),
+    /// The PostgreSQL database error.
     Database(sqlx::Error),
+    /// The ZkSync server error.
     ZkSync(zksync::error::ClientError),
+    /// The ZkSync transfer errors.
+    TransferFailure {
+        reasons: HashMap<TxHash, String>,
+    },
 }
 
 impl ResponseError for Error {
@@ -33,11 +48,11 @@ impl ResponseError for Error {
             Self::MethodNotFound => StatusCode::UNPROCESSABLE_ENTITY,
             Self::MethodIsImmutable => StatusCode::BAD_REQUEST,
             Self::InvalidInput(_) => StatusCode::BAD_REQUEST,
-            Self::InvalidStorage(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::InvalidStorageSize { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+
             Self::RuntimeError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::ZkSync(_) => StatusCode::SERVICE_UNAVAILABLE,
+            Self::TransferFailure { .. } => StatusCode::UNPROCESSABLE_ENTITY,
         }
     }
 }
@@ -58,15 +73,20 @@ impl fmt::Display for Error {
             Self::MethodNotFound => write!(f, "Method not found"),
             Self::MethodIsImmutable => write!(f, "Method is immutable: use 'query' instead"),
             Self::InvalidInput(inner) => write!(f, "Input: {}", inner),
-            Self::InvalidStorage(inner) => write!(f, "Contract storage is invalid: {}", inner),
-            Self::InvalidStorageSize { expected, found } => write!(
-                f,
-                "Contract storage size invalid: expected {}, found {}",
-                expected, found
-            ),
+
             Self::RuntimeError(inner) => write!(f, "Runtime: {:?}", inner),
             Self::Database(inner) => write!(f, "Database: {:?}", inner),
             Self::ZkSync(inner) => write!(f, "ZkSync: {:?}", inner),
+            Self::TransferFailure { reasons } => {
+                let reasons: JsonMap<String, JsonValue> = reasons.into_iter().map(|(hash, reason)| {
+                    let mut hash = hash.to_string();
+                    hash.drain(.."sync-tx:".len());
+                    (hash, JsonValue::String(reason.to_owned()))
+                }).collect();
+                let reasons = serde_json::to_string_pretty(&reasons).expect(zinc_const::panic::DATA_VALID);
+
+                write!(f, "Transfer failures: {}", reasons)
+            },
         }
     }
 }
