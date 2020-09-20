@@ -323,6 +323,7 @@ impl Place {
                             offset,
                             element_size,
                             total_size,
+                            field.is_external,
                         ));
 
                         self.r#type = field.r#type.to_owned();
@@ -350,6 +351,21 @@ impl Place {
     ///
     pub fn push_element(&mut self, element: PlaceElement) {
         self.elements.push(element);
+    }
+
+    ///
+    /// Whether the place path contains an external contract storage field.
+    ///
+    pub fn check_external_field(&self) -> Option<String> {
+        for element in self.elements.iter() {
+            match element {
+                PlaceElement::ContractField { access } if access.is_external => {
+                    return Some(access.name.to_owned())
+                }
+                _ => {}
+            }
+        }
+        None
     }
 }
 

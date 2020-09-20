@@ -19,7 +19,7 @@ pub struct Variant {
     pub item_id: usize,
     /// The semantic constant element.
     pub constant: ConstantElement,
-    /// Whether the constant is associated with some implementation or smart contract definition.
+    /// Whether the variant is a part of its enumeration type, and not imported outwards with a `use` statement.
     pub is_associated: bool,
 }
 

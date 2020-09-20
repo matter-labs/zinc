@@ -720,6 +720,14 @@ impl Analyzer {
                 },
             )));
         }
+        if let Some(name) = place.check_external_field() {
+            return Err(Error::Element(ElementError::Place(
+                PlaceError::MutatingExternalContractField {
+                    location: place.identifier.location,
+                    name,
+                },
+            )));
+        }
 
         self.evaluation_stack
             .push(StackElement::Evaluated(Element::Value(Value::Unit(

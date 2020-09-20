@@ -10,7 +10,7 @@ pub(crate) mod wait;
 
 pub use self::controller::configure;
 pub use self::database::client::Client as DatabaseClient;
-pub use self::database::model::contract::select::output::Output as ContractSelectOutput;
+pub use self::database::model::contract::select::all::output::Output as ContractSelectAllOutput;
 pub use self::shared_data::contract::Contract as SharedDataContract;
 pub use self::shared_data::SharedData;
 

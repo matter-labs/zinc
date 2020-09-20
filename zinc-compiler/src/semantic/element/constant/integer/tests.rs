@@ -30,7 +30,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
-                location: Location::new(3, 19),
+                location: Location::test(3, 19),
                 inner: InferenceError::Overflow {
                     value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
                     is_signed: false,
@@ -56,7 +56,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 inner: InferenceError::Overflow {
                     value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
                     is_signed: false,
@@ -87,7 +87,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
-                location: Location::new(5, 9),
+                location: Location::test(5, 9),
                 inner: InferenceError::Overflow {
                     value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
                     is_signed: false,
@@ -113,7 +113,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreaterEquals {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
@@ -140,7 +140,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreaterEquals {
-                location: Location::new(7, 17),
+                location: Location::test(7, 17),
                 first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
@@ -171,7 +171,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreaterEquals {
-                location: Location::new(11, 17),
+                location: Location::test(11, 17),
                 first: "enumeration One".to_owned(),
                 second: "enumeration Two".to_owned(),
             },
@@ -194,7 +194,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesserEquals {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
@@ -221,7 +221,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesserEquals {
-                location: Location::new(7, 17),
+                location: Location::test(7, 17),
                 first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
@@ -252,7 +252,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesserEquals {
-                location: Location::new(11, 17),
+                location: Location::test(11, 17),
                 first: "enumeration One".to_owned(),
                 second: "enumeration Two".to_owned(),
             },
@@ -275,7 +275,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreater {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
@@ -302,7 +302,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreater {
-                location: Location::new(7, 17),
+                location: Location::test(7, 17),
                 first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
@@ -333,7 +333,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreater {
-                location: Location::new(11, 17),
+                location: Location::test(11, 17),
                 first: "enumeration One".to_owned(),
                 second: "enumeration Two".to_owned(),
             },
@@ -356,7 +356,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesser {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
@@ -383,7 +383,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesser {
-                location: Location::new(7, 17),
+                location: Location::test(7, 17),
                 first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
@@ -414,7 +414,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesser {
-                location: Location::new(11, 17),
+                location: Location::test(11, 17),
                 first: "enumeration One".to_owned(),
                 second: "enumeration Two".to_owned(),
             },
@@ -437,7 +437,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseOr {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
@@ -464,7 +464,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseOr {
-                location: Location::new(7, 17),
+                location: Location::test(7, 17),
                 first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
@@ -495,7 +495,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseOr {
-                location: Location::new(11, 17),
+                location: Location::test(11, 17),
                 first: "enumeration One".to_owned(),
                 second: "enumeration Two".to_owned(),
             },
@@ -518,7 +518,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseXor {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
@@ -545,7 +545,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseXor {
-                location: Location::new(7, 17),
+                location: Location::test(7, 17),
                 first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
@@ -576,7 +576,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseXor {
-                location: Location::new(11, 17),
+                location: Location::test(11, 17),
                 first: "enumeration One".to_owned(),
                 second: "enumeration Two".to_owned(),
             },
@@ -599,7 +599,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseAnd {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
@@ -626,7 +626,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseAnd {
-                location: Location::new(7, 17),
+                location: Location::test(7, 17),
                 first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
@@ -657,7 +657,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseAnd {
-                location: Location::new(11, 17),
+                location: Location::test(11, 17),
                 first: "enumeration One".to_owned(),
                 second: "enumeration Two".to_owned(),
             },
@@ -680,7 +680,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchAddition {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
@@ -707,7 +707,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchAddition {
-                location: Location::new(7, 17),
+                location: Location::test(7, 17),
                 first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
@@ -738,7 +738,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchAddition {
-                location: Location::new(11, 17),
+                location: Location::test(11, 17),
                 first: "enumeration One".to_owned(),
                 second: "enumeration Two".to_owned(),
             },
@@ -761,7 +761,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchSubtraction {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
@@ -788,7 +788,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchSubtraction {
-                location: Location::new(7, 17),
+                location: Location::test(7, 17),
                 first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
@@ -819,7 +819,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchSubtraction {
-                location: Location::new(11, 17),
+                location: Location::test(11, 17),
                 first: "enumeration One".to_owned(),
                 second: "enumeration Two".to_owned(),
             },
@@ -842,7 +842,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchMultiplication {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
@@ -869,7 +869,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchMultiplication {
-                location: Location::new(7, 17),
+                location: Location::test(7, 17),
                 first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
@@ -900,7 +900,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchMultiplication {
-                location: Location::new(11, 17),
+                location: Location::test(11, 17),
                 first: "enumeration One".to_owned(),
                 second: "enumeration Two".to_owned(),
             },
@@ -923,7 +923,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchDivision {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
@@ -950,7 +950,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchDivision {
-                location: Location::new(7, 17),
+                location: Location::test(7, 17),
                 first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
@@ -981,7 +981,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchDivision {
-                location: Location::new(11, 17),
+                location: Location::test(11, 17),
                 first: "enumeration One".to_owned(),
                 second: "enumeration Two".to_owned(),
             },
@@ -1004,7 +1004,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchRemainder {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 first: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 8).to_string(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE * 16).to_string(),
             },
@@ -1031,7 +1031,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchRemainder {
-                location: Location::new(7, 17),
+                location: Location::test(7, 17),
                 first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
@@ -1062,7 +1062,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchRemainder {
-                location: Location::new(11, 17),
+                location: Location::test(11, 17),
                 first: "enumeration One".to_owned(),
                 second: "enumeration Two".to_owned(),
             },
@@ -1085,9 +1085,9 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OperatorBitwiseShiftLeftSecondOperatorExpectedUnsigned {
-                location: Location::new(3, 25),
+                location: Location::test(3, 25),
                 found: IntegerConstant::new(
-                    Location::new(3, 25),
+                    Location::test(3, 25),
                     BigInt::from(-2),
                     true,
                     zinc_const::bitlength::BYTE,
@@ -1114,9 +1114,9 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned {
-                location: Location::new(3, 24),
+                location: Location::test(3, 24),
                 found: IntegerConstant::new(
-                    Location::new(3, 24),
+                    Location::test(3, 24),
                     BigInt::from(-2),
                     true,
                     zinc_const::bitlength::BYTE,
@@ -1143,7 +1143,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowAddition {
-                location: Location::new(3, 18),
+                location: Location::test(3, 18),
                 value: BigInt::from(-170),
                 r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
                     .to_string(),
@@ -1167,7 +1167,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowAddition {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 value: BigInt::from(142),
                 r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
                     .to_string(),
@@ -1191,7 +1191,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowAddition {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 value: BigInt::from(297),
                 r#type: Type::integer(
                     Some(Location::default()),
@@ -1219,7 +1219,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowSubtraction {
-                location: Location::new(3, 18),
+                location: Location::test(3, 18),
                 value: BigInt::from(-142),
                 r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
                     .to_string(),
@@ -1243,7 +1243,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowSubtraction {
-                location: Location::new(3, 18),
+                location: Location::test(3, 18),
                 value: BigInt::from(150),
                 r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
                     .to_string(),
@@ -1267,7 +1267,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowSubtraction {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 value: BigInt::from(-213),
                 r#type: Type::integer(
                     Some(Location::default()),
@@ -1295,7 +1295,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowMultiplication {
-                location: Location::new(3, 18),
+                location: Location::test(3, 18),
                 value: BigInt::from(-200),
                 r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
                     .to_string(),
@@ -1319,7 +1319,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowMultiplication {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 value: BigInt::from(200),
                 r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
                     .to_string(),
@@ -1343,7 +1343,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowMultiplication {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 value: BigInt::from(420),
                 r#type: Type::integer(
                     Some(Location::default()),
@@ -1371,7 +1371,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowDivision {
-                location: Location::new(3, 18),
+                location: Location::test(3, 18),
                 value: BigInt::from(128),
                 r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
                     .to_string(),
@@ -1395,7 +1395,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowCasting {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
                 value: BigInt::from(200),
                 r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
                     .to_string(),
@@ -1419,7 +1419,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowCasting {
-                location: Location::new(3, 19),
+                location: Location::test(3, 19),
                 value: BigInt::from(-100),
                 r#type: Type::integer(
                     Some(Location::default()),
@@ -1447,7 +1447,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowNegation {
-                location: Location::new(3, 19),
+                location: Location::test(3, 19),
                 value: BigInt::from(128),
                 r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
                     .to_string(),
@@ -1471,7 +1471,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::OverflowNegation {
-                location: Location::new(3, 18),
+                location: Location::test(3, 18),
                 value: BigInt::from(-200),
                 r#type: Type::integer(Some(Location::default()), true, zinc_const::bitlength::BYTE)
                     .to_string(),
@@ -1495,7 +1495,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenFieldDivision {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
             },
         )),
     )));
@@ -1516,7 +1516,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenFieldRemainder {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
             },
         )),
     )));
@@ -1537,7 +1537,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenSignedBitwise {
-                location: Location::new(3, 18),
+                location: Location::test(3, 18),
             },
         )),
     )));
@@ -1558,7 +1558,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenFieldBitwise {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
             },
         )),
     )));
@@ -1579,7 +1579,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenSignedBitwise {
-                location: Location::new(3, 18),
+                location: Location::test(3, 18),
             },
         )),
     )));
@@ -1600,7 +1600,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenFieldBitwise {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
             },
         )),
     )));
@@ -1621,7 +1621,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenSignedBitwise {
-                location: Location::new(3, 18),
+                location: Location::test(3, 18),
             },
         )),
     )));
@@ -1642,7 +1642,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenFieldBitwise {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
             },
         )),
     )));
@@ -1663,7 +1663,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenSignedBitwise {
-                location: Location::new(3, 18),
+                location: Location::test(3, 18),
             },
         )),
     )));
@@ -1684,7 +1684,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenFieldBitwise {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
             },
         )),
     )));
@@ -1705,7 +1705,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenSignedBitwise {
-                location: Location::new(3, 18),
+                location: Location::test(3, 18),
             },
         )),
     )));
@@ -1726,7 +1726,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenFieldBitwise {
-                location: Location::new(3, 17),
+                location: Location::test(3, 17),
             },
         )),
     )));
@@ -1747,7 +1747,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenSignedBitwise {
-                location: Location::new(3, 19),
+                location: Location::test(3, 19),
             },
         )),
     )));
@@ -1768,7 +1768,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenFieldBitwise {
-                location: Location::new(3, 19),
+                location: Location::test(3, 19),
             },
         )),
     )));
@@ -1789,7 +1789,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenFieldNegation {
-                location: Location::new(3, 19),
+                location: Location::test(3, 19),
             },
         )),
     )));
@@ -1809,7 +1809,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(IntegerConstantError::ZeroDivision {
-            location: Location::new(3, 22),
+            location: Location::test(3, 22),
         })),
     )));
 
@@ -1829,7 +1829,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ZeroRemainder {
-                location: Location::new(3, 22),
+                location: Location::test(3, 22),
             },
         )),
     )));

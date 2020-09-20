@@ -3,7 +3,7 @@
 //!     "input": {
 //!         "witness": "8"
 //!     },
-//!     "output": "48"
+//!     "output": "0x30"
 //! } ] }
 
 enum List {

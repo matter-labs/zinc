@@ -27,11 +27,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
-            location: Location::new(2, 1),
+            location: Location::test(2, 1),
             function: "another".to_owned(),
             expected: 1,
             found: 0,
-            reference: Some(Location::new(7, 24)),
+            reference: Some(Location::test(7, 24)),
         }),
     ))));
 
@@ -54,11 +54,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
-            location: Location::new(2, 1),
+            location: Location::test(2, 1),
             function: "another".to_owned(),
             expected: 1,
             found: 2,
-            reference: Some(Location::new(7, 24)),
+            reference: Some(Location::test(7, 24)),
         }),
     ))));
 
@@ -81,7 +81,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::new(7, 25),
+            location: Location::test(7, 25),
             function: "another".to_owned(),
             name: "x".to_owned(),
             position: 1,
@@ -107,7 +107,7 @@ fn main() -> [u8; 2] {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentConstantness {
-            location: Location::new(5, 33),
+            location: Location::test(5, 33),
             function: "truncate".to_owned(),
             name: "new_length".to_owned(),
             position: 2,
@@ -136,7 +136,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentNotEvaluable {
-            location: Location::new(9, 25),
+            location: Location::test(9, 25),
             function: "another".to_owned(),
             position: 1,
             found: Element::Type(Type::integer_unsigned(None, zinc_const::bitlength::BYTE))
@@ -163,11 +163,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ReturnType {
-            location: Location::new(3, 5),
+            location: Location::test(3, 5),
             function: "another".to_owned(),
             expected: Type::boolean(None).to_string(),
             found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
-            reference: Location::new(2, 17),
+            reference: Location::test(2, 17),
         }),
     ))));
 
@@ -188,9 +188,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::NonCallable {
-            location: Location::new(5, 17),
+            location: Location::test(5, 17),
             name: Element::Type(Type::tuple(
-                Some(Location::new(5, 17)),
+                Some(Location::test(5, 17)),
                 vec![Type::integer_unsigned(None, zinc_const::bitlength::BYTE); 2],
             ))
             .to_string(),
@@ -222,10 +222,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::FunctionMethodSelfNotFirst {
-            location: Location::new(7, 8),
+            location: Location::test(7, 8),
             function: "method".to_owned(),
             position: 2,
-            reference: Location::new(7, 26),
+            reference: Location::test(7, 26),
         }),
     ))));
 
@@ -281,7 +281,7 @@ fn main() {}
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::CallingMutableFromImmutable {
-            location: Location::new(8, 21),
+            location: Location::test(8, 21),
             function: "mutable".to_owned(),
         }),
     ))));
@@ -330,7 +330,7 @@ contract Data {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::CallingMutableFromImmutable {
-            location: Location::new(6, 21),
+            location: Location::test(6, 21),
             function: "mutable".to_owned(),
         }),
     ))));

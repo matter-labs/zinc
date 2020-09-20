@@ -149,16 +149,17 @@ mod tests {
 
         let expected = Ok((
             FieldStatement::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 false,
-                Identifier::new(Location::new(1, 1), "data".to_owned()),
-                Type::new(Location::new(1, 7), TypeVariant::integer_unsigned(64)),
+                false,
+                Identifier::new(Location::test(1, 1), "data".to_owned()),
+                Type::new(Location::test(1, 7), TypeVariant::integer_unsigned(64)),
             ),
             None,
         ));
 
         let result = Parser::default()
-            .parse(TokenStream::new(input).wrap(), None)
+            .parse(TokenStream::test(input).wrap(), None)
             .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);
@@ -169,13 +170,13 @@ mod tests {
         let input = r#"data;"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
-            Location::new(1, 5),
+            Location::test(1, 5),
             Lexeme::Symbol(Symbol::Semicolon),
             Some(super::HINT_EXPECTED_TYPE),
         )));
 
         let result = Parser::default()
-            .parse(TokenStream::new(input).wrap(), None)
+            .parse(TokenStream::test(input).wrap(), None)
             .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);
@@ -186,14 +187,14 @@ mod tests {
         let input = r#"a: u64"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 7),
+            Location::test(1, 7),
             vec![";"],
             Lexeme::Eof,
             None,
         )));
 
         let result = Parser::default()
-            .parse(TokenStream::new(input).wrap(), None)
+            .parse(TokenStream::test(input).wrap(), None)
             .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);

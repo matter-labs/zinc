@@ -2,26 +2,25 @@
 //! The Zinc panic constant messages.
 //!
 
-/// The threading bug panic message.
-pub static MULTI_THREADING: &str = "Multi-threading behavior is always valid";
+/// The thread synchronization is always successful.
+pub static SYNCHRONIZATION: &str = "Thread synchronization is always successful";
 
-/// The `rayon` thread pool initialization panic. Should always be successful.
-pub static RAYON_POOL_INITIALIZATION: &str = "The thread pool is initialized only once";
+/// The thread pool initialization is always successful.
+pub static THREAD_POOL: &str = "Thread pool initialization is always successful";
 
-/// The data is always valid.
-pub static DATA_VALID: &str = "The data is always valid: ";
+/// The data conversion is always valid.
+pub static DATA_CONVERSION: &str = "Data conversion is always successful: ";
 
-/// The shared reference unwrapping panic message.
-pub static LAST_SHARED_REFERENCE: &str = "There are no other references at this point";
+/// The last shared reference unwrapping is always successful.
+pub static LAST_SHARED_REFERENCE: &str = "There must be no other references at this point";
+
+/// The builder pattern entity must be provided with the specified value.
+pub static BUILDER_REQUIRES_VALUE: &str = "The builder requires a value: ";
 
 /// The unit test data validity is checked by the test authors.
 pub static TEST_DATA_VALID: &str = "Test data is always valid";
 
-/// The `Result` or `Option` value is always set. Should be eliminated where possible.
-pub static VALUE_ALWAYS_EXISTS: &str = "Value always exists";
-
-/// The builder pattern entity must be provided with the specified value, unless it is not a bug.
-pub static BUILDER_REQUIRES_VALUE: &str = "The builder requires a value: ";
+// TODO: most of such panics may be removed through refactoring
 
 /// The source code mapping compiler phase responsibility.
 pub static VALIDATED_DURING_SOURCE_CODE_MAPPING: &str = "Validated during source code mapping";
@@ -44,3 +43,6 @@ pub static VALIDATED_DURING_RUNTIME_EXECUTION: &str = "Validated during runtime 
 
 /// The Zandbox database integrity responsibility.
 pub static VALIDATED_DURING_DATABASE_POPULATION: &str = "Validated during database population";
+
+/// The `Result` or `Option` value is always set. Should be eliminated where possible.
+pub static VALUE_ALWAYS_EXISTS: &str = "Value always exists";

@@ -89,9 +89,9 @@ fn main() {}
 
     let expected = Err(Error::Semantic(SemanticError::Statement(
         StatementError::Use(UseStatementError::ExpectedPath {
-            location: Location::new(2, 5),
+            location: Location::test(2, 5),
             found: Element::Constant(Constant::Integer(IntegerConstant::new(
-                Location::new(2, 5),
+                Location::test(2, 5),
                 BigInt::from(5),
                 false,
                 zinc_const::bitlength::BYTE,

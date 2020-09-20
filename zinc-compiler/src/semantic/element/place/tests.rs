@@ -177,9 +177,33 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Place(PlaceError::MutatingImmutableMemory {
-            location: Location::new(4, 5),
+            location: Location::test(4, 5),
             name: "result".to_string(),
-            reference: Some(Location::new(3, 9)),
+            reference: Some(Location::test(3, 9)),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_mutating_contract_external_field() {
+    let input = r#"
+contract Test {
+    extern value: u8;
+    
+    pub fn mutator(mut self) {
+        self.value = 42;
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Place(PlaceError::MutatingExternalContractField {
+            location: Location::test(6, 9),
+            name: "value".to_string(),
         }),
     )));
 
@@ -199,7 +223,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Place(PlaceError::MutatingWithDifferentType {
-            location: Location::new(4, 5),
+            location: Location::test(4, 5),
             expected: Type::boolean(None).to_string(),
             found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
@@ -221,8 +245,8 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Place(PlaceError::OperatorIndexFirstOperandExpectedArray {
-            location: Location::new(4, 17),
-            found: Type::tuple(Some(Location::new(4, 17)), vec![Type::boolean(None); 3])
+            location: Location::test(4, 17),
+            found: Type::tuple(Some(Location::test(4, 17)), vec![Type::boolean(None); 3])
                 .to_string(),
         }),
     )));
@@ -244,9 +268,9 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Place(
             PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange {
-                location: Location::new(4, 23),
+                location: Location::test(4, 23),
                 found: Element::Constant(Constant::Boolean(BooleanConstant::new(
-                    Location::new(4, 23),
+                    Location::test(4, 23),
                     true,
                 )))
                 .to_string(),
@@ -276,9 +300,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Place(PlaceError::OperatorDotFirstOperandExpectedTuple {
-            location: Location::new(10, 17),
+            location: Location::test(10, 17),
             found: Type::structure(
-                Some(Location::new(2, 1)),
+                Some(Location::test(2, 1)),
                 "Data".to_owned(),
                 vec![(
                     "a".to_owned(),
@@ -306,8 +330,8 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Place(PlaceError::OperatorDotFirstOperandExpectedInstance {
-            location: Location::new(4, 17),
-            found: Type::tuple(Some(Location::new(4, 17)), vec![Type::boolean(None); 3])
+            location: Location::test(4, 17),
+            found: Type::tuple(Some(Location::test(4, 17)), vec![Type::boolean(None); 3])
                 .to_string(),
         }),
     )));
@@ -328,7 +352,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Place(PlaceError::ArraySliceStartOutOfRange {
-            location: Location::new(4, 25),
+            location: Location::test(4, 25),
             start: BigInt::from(-1).to_string(),
         }),
     )));
@@ -349,7 +373,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Place(PlaceError::ArraySliceEndOutOfRange {
-            location: Location::new(4, 23),
+            location: Location::test(4, 23),
             end: BigInt::from(6).to_string(),
             size: 5,
         }),
@@ -371,7 +395,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Place(PlaceError::ArraySliceEndLesserThanStart {
-            location: Location::new(4, 23),
+            location: Location::test(4, 23),
             start: BigInt::from(2).to_string(),
             end: BigInt::from(1).to_string(),
         }),
@@ -393,9 +417,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Place(PlaceError::TupleFieldOutOfRange {
-            location: Location::new(4, 24),
+            location: Location::test(4, 24),
             type_identifier: Type::tuple(
-                Some(Location::new(4, 24)),
+                Some(Location::test(4, 24)),
                 vec![Type::integer_unsigned(None, zinc_const::bitlength::BYTE); 3],
             )
             .to_string(),
@@ -425,7 +449,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Place(PlaceError::StructureFieldDoesNotExist {
-            location: Location::new(10, 22),
+            location: Location::test(10, 22),
             type_identifier: "Data".to_owned(),
             field_name: "b".to_owned(),
         }),
@@ -450,7 +474,7 @@ contract Test {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Place(PlaceError::ContractFieldDoesNotExist {
-            location: Location::new(6, 14),
+            location: Location::test(6, 14),
             type_identifier: "Test".to_owned(),
             field_name: "b".to_owned(),
         }),

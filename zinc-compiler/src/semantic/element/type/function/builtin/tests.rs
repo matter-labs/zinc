@@ -26,7 +26,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::BuiltIn(
             BuiltInFunctionError::SpecifierMissing {
-                location: Location::new(3, 5),
+                location: Location::test(3, 5),
                 function: "assert",
             },
         )),
@@ -49,7 +49,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::BuiltIn(BuiltInFunctionError::Unknown {
-            location: Location::new(5, 13),
+            location: Location::test(5, 13),
             function: "unknown".to_owned(),
         })),
     ))));
@@ -70,7 +70,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::BuiltIn(
             BuiltInFunctionError::DebugArgumentCount {
-                location: Location::new(3, 5),
+                location: Location::test(3, 5),
                 expected: 3,
                 found: 2,
             },
@@ -93,7 +93,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::BuiltIn(
             BuiltInFunctionError::DebugArgumentCount {
-                location: Location::new(3, 5),
+                location: Location::test(3, 5),
                 expected: 2,
                 found: 3,
             },
@@ -115,7 +115,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::new(3, 10),
+            location: Location::test(3, 10),
             function: "dbg".to_owned(),
             name: "format".to_owned(),
             position: BuiltInDebugFunction::ARGUMENT_INDEX_FORMAT + 1,
@@ -139,7 +139,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
-            location: Location::new(3, 5),
+            location: Location::test(3, 5),
             function: "assert".to_owned(),
             expected: BuiltInAssertFunction::ARGUMENT_COUNT_MANDATORY,
             found: BuiltInAssertFunction::ARGUMENT_COUNT_MANDATORY - 1,
@@ -162,7 +162,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
-            location: Location::new(3, 5),
+            location: Location::test(3, 5),
             function: "assert".to_owned(),
             expected: BuiltInAssertFunction::ARGUMENT_COUNT_OPTIONAL,
             found: BuiltInAssertFunction::ARGUMENT_COUNT_OPTIONAL + 1,
@@ -185,7 +185,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::new(3, 13),
+            location: Location::test(3, 13),
             function: "assert".to_owned(),
             name: "condition".to_owned(),
             position: BuiltInAssertFunction::ARGUMENT_INDEX_CONDITION + 1,
@@ -209,7 +209,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::new(3, 19),
+            location: Location::test(3, 19),
             function: "assert".to_owned(),
             name: "message".to_owned(),
             position: BuiltInAssertFunction::ARGUMENT_INDEX_MESSAGE + 1,

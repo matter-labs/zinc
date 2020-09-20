@@ -226,9 +226,12 @@ mod tests {
     fn ok_empty() {
         let input = r#"[]"#;
 
-        let expected = Ok((ArrayExpression::new_list(Location::new(1, 1), vec![]), None));
+        let expected = Ok((
+            ArrayExpression::new_list(Location::test(1, 1), vec![]),
+            None,
+        ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -239,12 +242,12 @@ mod tests {
 
         let expected = Ok((
             ArrayExpression::new_list(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 vec![ExpressionTree::new(
-                    Location::new(1, 2),
+                    Location::test(1, 2),
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
-                            Location::new(1, 2),
+                            Location::test(1, 2),
                             LexicalIntegerLiteral::new_decimal("1".to_owned()),
                         ),
                     )),
@@ -253,7 +256,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -264,31 +267,31 @@ mod tests {
 
         let expected = Ok((
             ArrayExpression::new_list(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 vec![
                     ExpressionTree::new(
-                        Location::new(1, 2),
+                        Location::test(1, 2),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
-                                Location::new(1, 2),
+                                Location::test(1, 2),
                                 LexicalIntegerLiteral::new_decimal("1".to_owned()),
                             ),
                         )),
                     ),
                     ExpressionTree::new(
-                        Location::new(1, 5),
+                        Location::test(1, 5),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
-                                Location::new(1, 5),
+                                Location::test(1, 5),
                                 LexicalIntegerLiteral::new_decimal("2".to_owned()),
                             ),
                         )),
                     ),
                     ExpressionTree::new(
-                        Location::new(1, 8),
+                        Location::test(1, 8),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
-                                Location::new(1, 8),
+                                Location::test(1, 8),
                                 LexicalIntegerLiteral::new_decimal("3".to_owned()),
                             ),
                         )),
@@ -298,7 +301,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -309,21 +312,21 @@ mod tests {
 
         let expected = Ok((
             ArrayExpression::new_repeated(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 ExpressionTree::new(
-                    Location::new(1, 2),
+                    Location::test(1, 2),
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
-                            Location::new(1, 2),
+                            Location::test(1, 2),
                             LexicalIntegerLiteral::new_decimal("1".to_owned()),
                         ),
                     )),
                 ),
                 ExpressionTree::new(
-                    Location::new(1, 5),
+                    Location::test(1, 5),
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
-                            Location::new(1, 5),
+                            Location::test(1, 5),
                             LexicalIntegerLiteral::new_decimal("10".to_owned()),
                         ),
                     )),
@@ -332,7 +335,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -342,13 +345,13 @@ mod tests {
         let input = r#"[42)"#;
 
         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 4),
+            Location::test(1, 4),
             vec![",", ";", "]"],
             Lexeme::Symbol(Symbol::ParenthesisRight),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -358,13 +361,13 @@ mod tests {
         let input = r#"[42, 64)"#;
 
         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 8),
+            Location::test(1, 8),
             vec![",", "]"],
             Lexeme::Symbol(Symbol::ParenthesisRight),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -374,13 +377,13 @@ mod tests {
         let input = r#"[42; 8)"#;
 
         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 7),
+            Location::test(1, 7),
             vec!["]"],
             Lexeme::Symbol(Symbol::ParenthesisRight),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

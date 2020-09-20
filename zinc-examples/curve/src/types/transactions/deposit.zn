@@ -1,0 +1,13 @@
+//!
+//! The Curve Stableswap contract deposit transaction.
+//!
+
+use crate::types::token_id::TokenId;
+use crate::types::Address;
+use crate::types::Balance;
+
+pub struct Deposit {
+    from: Address,
+    token_id: TokenId,
+    amount: Balance,
+}

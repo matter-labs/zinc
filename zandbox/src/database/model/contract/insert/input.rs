@@ -12,10 +12,12 @@ pub struct Input {
     /// The contract account ID.
     pub account_id: i64,
 
-    /// The contract name.
+    /// The contract project name.
     pub name: String,
     /// The contract version.
     pub version: String,
+    /// The contract instance name.
+    pub instance: String,
 
     /// The Zinc compiler version.
     pub zinc_version: String,
@@ -42,6 +44,7 @@ impl Input {
 
         name: String,
         version: String,
+        instance: String,
 
         zinc_version: String,
         source_code: JsonValue,
@@ -56,6 +59,7 @@ impl Input {
 
             name,
             version,
+            instance,
 
             zinc_version,
             source_code,

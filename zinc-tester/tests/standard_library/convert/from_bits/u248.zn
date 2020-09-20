@@ -73,7 +73,7 @@
 //!             true, true, true, true, true, true, true, true
 //!         ]
 //!     },
-//!     "output": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+//!     "output": "452312848583266388373324160190187140051835877600158453279131187530910662655"
 //! } ] }
 
 fn main(value: [bool; 248]) -> u248 {

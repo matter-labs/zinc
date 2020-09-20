@@ -79,7 +79,7 @@ impl Parser {
                             location,
                         } => {
                             self.builder.set_location(location);
-                            self.builder.set_is_mutable();
+                            self.builder.set_mutable();
                             self.state = State::Binding;
                         }
                         token => {
@@ -103,7 +103,7 @@ impl Parser {
                             lexeme: Lexeme::Symbol(Symbol::Underscore),
                             ..
                         } => {
-                            self.builder.set_is_wildcard();
+                            self.builder.set_wildcard();
                             self.state = State::Colon;
                         }
                         Token {
@@ -111,7 +111,7 @@ impl Parser {
                             location,
                         } => {
                             self.builder.set_self_location(location);
-                            self.builder.set_is_self_alias();
+                            self.builder.set_self_alias();
                             return Ok((self.builder.finish(), None));
                         }
                         Token { lexeme, location } => {
@@ -170,17 +170,17 @@ mod tests {
 
         let expected = Ok((
             BindingPattern::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 BindingPatternVariant::new_binding(
-                    Identifier::new(Location::new(1, 1), "value".to_owned()),
+                    Identifier::new(Location::test(1, 1), "value".to_owned()),
                     false,
                 ),
-                Type::new(Location::new(1, 8), TypeVariant::integer_unsigned(8)),
+                Type::new(Location::test(1, 8), TypeVariant::integer_unsigned(8)),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -191,17 +191,17 @@ mod tests {
 
         let expected = Ok((
             BindingPattern::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 BindingPatternVariant::new_binding(
-                    Identifier::new(Location::new(1, 5), "value".to_owned()),
+                    Identifier::new(Location::test(1, 5), "value".to_owned()),
                     true,
                 ),
-                Type::new(Location::new(1, 12), TypeVariant::integer_unsigned(8)),
+                Type::new(Location::test(1, 12), TypeVariant::integer_unsigned(8)),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -212,14 +212,14 @@ mod tests {
 
         let expected = Ok((
             BindingPattern::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 BindingPatternVariant::new_wildcard(),
-                Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(8)),
+                Type::new(Location::test(1, 4), TypeVariant::integer_unsigned(8)),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -230,15 +230,15 @@ mod tests {
 
         let expected = Ok((
             BindingPattern::new(
-                Location::new(1, 1),
-                BindingPatternVariant::new_self_alias(Location::new(1, 1), false),
+                Location::test(1, 1),
+                BindingPatternVariant::new_self_alias(Location::test(1, 1), false),
                 Type::new(
-                    Location::new(1, 1),
+                    Location::test(1, 1),
                     TypeVariant::alias(ExpressionTree::new(
-                        Location::new(1, 1),
+                        Location::test(1, 1),
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                             Identifier::new(
-                                Location::new(1, 1),
+                                Location::test(1, 1),
                                 Keyword::SelfUppercase.to_string(),
                             ),
                         )),
@@ -248,7 +248,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -259,15 +259,15 @@ mod tests {
 
         let expected = Ok((
             BindingPattern::new(
-                Location::new(1, 1),
-                BindingPatternVariant::new_self_alias(Location::new(1, 5), true),
+                Location::test(1, 1),
+                BindingPatternVariant::new_self_alias(Location::test(1, 5), true),
                 Type::new(
-                    Location::new(1, 5),
+                    Location::test(1, 5),
                     TypeVariant::alias(ExpressionTree::new(
-                        Location::new(1, 5),
+                        Location::test(1, 5),
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                             Identifier::new(
-                                Location::new(1, 5),
+                                Location::test(1, 5),
                                 Keyword::SelfUppercase.to_string(),
                             ),
                         )),
@@ -277,7 +277,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -287,11 +287,11 @@ mod tests {
         let input = r#"mut bool: bool"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_binding_pattern(
-            Location::new(1, 5),
+            Location::test(1, 5),
             Lexeme::Keyword(Keyword::Bool),
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -301,12 +301,12 @@ mod tests {
         let input = r#"mut value"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
-            Location::new(1, 10),
+            Location::test(1, 10),
             Lexeme::Eof,
             Some(super::HINT_EXPECTED_TYPE),
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

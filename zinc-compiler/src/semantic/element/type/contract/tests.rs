@@ -17,17 +17,13 @@ contract Contract {
     b: u8;
     b: field;
 }
-
-fn main() -> u8 {
-    42
-}
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemRedeclared {
-            location: Location::new(5, 5),
+            location: Location::test(5, 5),
             name: "b".to_owned(),
-            reference: Some(Location::new(4, 5)),
+            reference: Some(Location::test(4, 5)),
         },
     )));
 

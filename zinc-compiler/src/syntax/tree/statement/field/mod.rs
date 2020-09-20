@@ -17,6 +17,8 @@ pub struct Statement {
     pub location: Location,
     /// If the contract storage field is public.
     pub is_public: bool,
+    /// If the contract storage field is external.
+    pub is_external: bool,
     /// The contract storage field identifier.
     pub identifier: Identifier,
     /// The contract storage field type.
@@ -27,10 +29,17 @@ impl Statement {
     ///
     /// Creates a contract storage `field` statement.
     ///
-    pub fn new(location: Location, is_public: bool, identifier: Identifier, r#type: Type) -> Self {
+    pub fn new(
+        location: Location,
+        is_public: bool,
+        is_external: bool,
+        identifier: Identifier,
+        r#type: Type,
+    ) -> Self {
         Self {
             location,
             is_public,
+            is_external,
             identifier,
             r#type,
         }

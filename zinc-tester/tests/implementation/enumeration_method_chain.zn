@@ -31,10 +31,6 @@ impl List {
     }
 }
 
-fn main(witness: field) -> field {
-    List::new()
-        .into_first()
-        .into_second()
-        .into_third()
-        as field * witness
+fn main(witness: u64) -> u64 {
+    List::new().into_first().into_second().into_third() as u64 * witness
 }

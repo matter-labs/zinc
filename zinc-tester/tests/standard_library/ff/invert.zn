@@ -18,14 +18,14 @@
 //!         "a": "0",
 //!         "b": "42"
 //!     },
-//!     "output": "0"
+//!     "output": "0x0"
 //! }, {
 //!     "case": "zero_remainder",
 //!     "input": {
 //!         "a": "48",
 //!         "b": "8"
 //!     },
-//!     "output": "6"
+//!     "output": "0x6"
 //! }, {
 //!     "case": "with_remainder",
 //!     "input": {

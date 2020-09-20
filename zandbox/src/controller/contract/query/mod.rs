@@ -1,5 +1,5 @@
 //!
-//! The contract resource PUT query method module.
+//! The contract resource PUT method `query` module.
 //!
 
 pub mod error;
@@ -12,6 +12,7 @@ use actix_web::http::StatusCode;
 use actix_web::web;
 use serde_json::Value as JsonValue;
 
+use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 
@@ -37,7 +38,7 @@ pub async fn handle(
 
     let contract = app_data
         .read()
-        .expect(zinc_const::panic::MULTI_THREADING)
+        .expect(zinc_const::panic::SYNCHRONIZATION)
         .contracts
         .get(&query.account_id)
         .cloned()
@@ -46,7 +47,7 @@ pub async fn handle(
     log::debug!("Loading the contract storage");
     let storage_value = app_data
         .read()
-        .expect(zinc_const::panic::MULTI_THREADING)
+        .expect(zinc_const::panic::SYNCHRONIZATION)
         .postgresql_client
         .select_fields(FieldSelectInput::new(query.account_id as i64))
         .await
@@ -57,16 +58,20 @@ pub async fn handle(
             found: storage_value.len(),
         });
     }
-    let mut fields = Vec::with_capacity(storage_value.len());
+    let mut contract_fields = Vec::with_capacity(storage_value.len());
     for (index, FieldSelectOutput { name, value }) in storage_value.into_iter().enumerate() {
-        let r#type = contract.build.storage[index].1.clone();
+        let r#type = contract.build.storage[index].r#type.clone();
         let value = match BuildValue::try_from_typed_json(value, r#type) {
             Ok(value) => value,
             Err(error) => return Err(Error::InvalidStorage(error)),
         };
-        fields.push((name, value))
+        contract_fields.push(BuildContractFieldValue::new(
+            name,
+            value,
+            contract.build.storage[index].is_public,
+            contract.build.storage[index].is_external,
+        ));
     }
-    let storage_value = BuildValue::Contract(fields);
 
     let method_name = match query.method {
         Some(method_name) => {
@@ -81,7 +86,13 @@ pub async fn handle(
             log::debug!("Querying the storage of the contract #{}", query.account_id);
             return Ok(Response::new_with_data(
                 StatusCode::OK,
-                storage_value.into_json(),
+                BuildValue::Contract(
+                    contract_fields
+                        .into_iter()
+                        .filter(|field| field.is_public)
+                        .collect(),
+                )
+                .into_json(),
             ));
         }
     };
@@ -103,7 +114,7 @@ pub async fn handle(
     let output = async_std::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new(contract.build).run::<Bn256>(
             input_value,
-            storage_value,
+            BuildValue::Contract(contract_fields),
             method_name,
         )
     })

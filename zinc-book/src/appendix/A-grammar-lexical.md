@@ -25,6 +25,7 @@ keyword =
   | 'impl'
   | 'contract'
   | 'pub'
+  | 'extern'
 
   | 'for'
   | 'in'

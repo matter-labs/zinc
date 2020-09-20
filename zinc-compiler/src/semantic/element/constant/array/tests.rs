@@ -25,7 +25,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Array(
             ArrayConstantError::PushingInvalidType {
-                location: Location::new(3, 32),
+                location: Location::test(3, 32),
                 expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 found: Type::boolean(None).to_string(),
             },
@@ -47,7 +47,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Array(ArrayConstantError::IndexOutOfRange {
-            location: Location::new(3, 39),
+            location: Location::test(3, 39),
             index: BigInt::from(5).to_string(),
             size: 5,
         })),
@@ -69,7 +69,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Array(
             ArrayConstantError::SliceStartOutOfRange {
-                location: Location::new(3, 45),
+                location: Location::test(3, 45),
                 start: BigInt::from(-1).to_string(),
             },
         )),
@@ -91,7 +91,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Array(
             ArrayConstantError::SliceEndOutOfRange {
-                location: Location::new(3, 44),
+                location: Location::test(3, 44),
                 end: BigInt::from(6).to_string(),
                 size: 5,
             },
@@ -114,7 +114,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Array(
             ArrayConstantError::SliceEndLesserThanStart {
-                location: Location::new(3, 44),
+                location: Location::test(3, 44),
                 start: BigInt::from(2).to_string(),
                 end: BigInt::from(1).to_string(),
             },

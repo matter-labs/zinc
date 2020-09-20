@@ -170,14 +170,14 @@ mod tests {
 
         let expected = Ok((
             EnumStatement::new(
-                Location::new(2, 5),
-                Identifier::new(Location::new(2, 10), "Test".to_owned()),
+                Location::test(2, 5),
+                Identifier::new(Location::test(2, 10), "Test".to_owned()),
                 vec![],
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -190,17 +190,17 @@ mod tests {
 
         let expected = Ok((
             EnumStatement::new(
-                Location::new(2, 5),
-                Identifier::new(Location::new(2, 10), "Test".to_owned()),
+                Location::test(2, 5),
+                Identifier::new(Location::test(2, 10), "Test".to_owned()),
                 vec![],
             ),
             Some(Token::new(
                 Lexeme::Symbol(Symbol::Semicolon),
-                Location::new(2, 14),
+                Location::test(2, 14),
             )),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -215,13 +215,13 @@ mod tests {
 
         let expected = Ok((
             EnumStatement::new(
-                Location::new(2, 5),
-                Identifier::new(Location::new(2, 10), "Test".to_owned()),
+                Location::test(2, 5),
+                Identifier::new(Location::test(2, 10), "Test".to_owned()),
                 vec![Variant::new(
-                    Location::new(3, 9),
-                    Identifier::new(Location::new(3, 9), "A".to_owned()),
+                    Location::test(3, 9),
+                    Identifier::new(Location::test(3, 9), "A".to_owned()),
                     IntegerLiteral::new(
-                        Location::new(3, 13),
+                        Location::test(3, 13),
                         LexicalIntegerLiteral::new_decimal("1".to_owned()),
                     ),
                 )],
@@ -229,7 +229,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -246,30 +246,30 @@ mod tests {
 
         let expected = Ok((
             EnumStatement::new(
-                Location::new(2, 5),
-                Identifier::new(Location::new(2, 10), "Test".to_owned()),
+                Location::test(2, 5),
+                Identifier::new(Location::test(2, 10), "Test".to_owned()),
                 vec![
                     Variant::new(
-                        Location::new(3, 9),
-                        Identifier::new(Location::new(3, 9), "A".to_owned()),
+                        Location::test(3, 9),
+                        Identifier::new(Location::test(3, 9), "A".to_owned()),
                         IntegerLiteral::new(
-                            Location::new(3, 13),
+                            Location::test(3, 13),
                             LexicalIntegerLiteral::new_decimal("1".to_owned()),
                         ),
                     ),
                     Variant::new(
-                        Location::new(4, 9),
-                        Identifier::new(Location::new(4, 9), "B".to_owned()),
+                        Location::test(4, 9),
+                        Identifier::new(Location::test(4, 9), "B".to_owned()),
                         IntegerLiteral::new(
-                            Location::new(4, 13),
+                            Location::test(4, 13),
                             LexicalIntegerLiteral::new_decimal("2".to_owned()),
                         ),
                     ),
                     Variant::new(
-                        Location::new(5, 9),
-                        Identifier::new(Location::new(5, 9), "C".to_owned()),
+                        Location::test(5, 9),
+                        Identifier::new(Location::test(5, 9), "C".to_owned()),
                         IntegerLiteral::new(
-                            Location::new(5, 13),
+                            Location::test(5, 13),
                             LexicalIntegerLiteral::new_decimal("3".to_owned()),
                         ),
                     ),
@@ -278,7 +278,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -288,12 +288,12 @@ mod tests {
         let input = r#"enum { A = 1 };"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
-            Location::new(1, 6),
+            Location::test(1, 6),
             Lexeme::Symbol(Symbol::BracketCurlyLeft),
             Some(super::HINT_EXPECTED_IDENTIFIER),
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -303,13 +303,13 @@ mod tests {
         let input = r#"enum List { A = 1 );"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 19),
+            Location::test(1, 19),
             vec!["}"],
             Lexeme::Symbol(Symbol::ParenthesisRight),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

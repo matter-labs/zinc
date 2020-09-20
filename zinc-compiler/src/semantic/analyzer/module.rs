@@ -148,8 +148,8 @@ impl Analyzer {
 
     ///
     /// 1. Defines the module aliases.
-    /// 2. Resolves the implementation scopes forcibly.
-    /// 3. Defines the instant statements.
+    /// 2. Defines the instant statements.
+    /// 3. Resolves the implementation scopes forcibly.
     /// 4. Resolves the hoisted items forcibly.
     ///
     pub fn define(

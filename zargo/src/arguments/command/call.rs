@@ -145,11 +145,11 @@ impl IExecutable for Command {
                             endpoint_url.as_str(),
                             CallRequestQuery::new(self.contract_id, self.method, network),
                         )
-                        .expect(zinc_const::panic::DATA_VALID),
+                        .expect(zinc_const::panic::DATA_CONVERSION),
                     )
                     .json(&CallRequestBody::new(arguments.inner))
                     .build()
-                    .expect(zinc_const::panic::DATA_VALID),
+                    .expect(zinc_const::panic::DATA_CONVERSION),
             )
             .map_err(Error::HttpRequest)?;
 
@@ -157,7 +157,9 @@ impl IExecutable for Command {
             return Err(Error::ActionFailed(format!(
                 "HTTP error ({}) {}",
                 http_response.status(),
-                http_response.text().expect(zinc_const::panic::DATA_VALID),
+                http_response
+                    .text()
+                    .expect(zinc_const::panic::DATA_CONVERSION),
             )));
         }
 
@@ -166,9 +168,9 @@ impl IExecutable for Command {
             serde_json::to_string_pretty(
                 &http_response
                     .json::<JsonValue>()
-                    .expect(zinc_const::panic::DATA_VALID)
+                    .expect(zinc_const::panic::DATA_CONVERSION)
             )
-            .expect(zinc_const::panic::DATA_VALID)
+            .expect(zinc_const::panic::DATA_CONVERSION)
         );
 
         Ok(())

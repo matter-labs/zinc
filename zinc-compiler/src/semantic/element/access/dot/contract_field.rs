@@ -10,16 +10,18 @@
 ///
 #[derive(Debug, Clone)]
 pub struct ContractField {
-    /// The name of the tuple or structure element
+    /// The name of the tuple or structure element.
     pub name: String,
-    /// The position of the element in the contract storage
+    /// The position of the element in the contract storage.
     pub position: usize,
-    /// The offset of the element in the tuple or structure
+    /// The offset of the element in the tuple or structure.
     pub offset: usize,
-    /// The size of the contract storage field
+    /// The size of the contract storage field.
     pub element_size: usize,
-    /// The total size of the contract storage
+    /// The total size of the contract storage.
     pub total_size: usize,
+    /// Whether the field is declared as external.
+    pub is_external: bool,
 }
 
 impl ContractField {
@@ -32,6 +34,7 @@ impl ContractField {
         offset: usize,
         element_size: usize,
         total_size: usize,
+        is_external: bool,
     ) -> Self {
         Self {
             name,
@@ -39,6 +42,7 @@ impl ContractField {
             position,
             element_size,
             total_size,
+            is_external,
         }
     }
 }

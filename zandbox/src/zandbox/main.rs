@@ -18,7 +18,7 @@ use zksync::zksync_models::node::AccountId;
 
 use zinc_build::Program as BuildProgram;
 
-use zandbox::ContractSelectOutput;
+use zandbox::ContractSelectAllOutput;
 use zandbox::DatabaseClient;
 use zandbox::SharedData;
 use zandbox::SharedDataContract;
@@ -35,6 +35,9 @@ async fn main() -> Result<(), Error> {
 
     zinc_utils::initialize_logger(zinc_const::app_name::ZANDBOX, args.verbosity);
 
+    log::info!("Zandbox server started");
+
+    log::info!("Initializing the PostgreSQL client");
     let database_client = DatabaseClient::new(
         args.postgresql_host,
         args.postgresql_port.unwrap_or(zinc_const::postgresql::PORT),
@@ -44,32 +47,27 @@ async fn main() -> Result<(), Error> {
     )
     .await?;
 
+    log::info!("Initializing the contract deserializing thread pool");
     ThreadPoolBuilder::new()
         .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
         .build_global()
-        .expect(zinc_const::panic::RAYON_POOL_INITIALIZATION);
+        .expect(zinc_const::panic::THREAD_POOL);
 
+    log::info!("Loading the compiled contracts from the database");
     let contracts = database_client
         .select_contracts()
         .await?
         .into_par_iter()
         .map(
-            |ContractSelectOutput {
+            |ContractSelectAllOutput {
                  account_id,
                  name,
                  version,
+                 instance,
                  bytecode,
                  eth_address,
                  eth_private_key,
              }| {
-                log::info!(
-                    "{} {} v{} with ID {}",
-                    "Loading".bright_green(),
-                    name,
-                    version,
-                    account_id
-                );
-
                 let program = BuildProgram::try_from_slice(bytecode.as_slice())
                     .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
 
@@ -82,8 +80,17 @@ async fn main() -> Result<(), Error> {
 
                 let contract = SharedDataContract::new(
                     build,
-                    zinc_data::eth_address_from_vec(eth_address),
-                    zinc_data::eth_private_key_from_vec(eth_private_key),
+                    zinc_utils::eth_address_from_vec(eth_address),
+                    zinc_utils::eth_private_key_from_vec(eth_private_key),
+                );
+
+                log::info!(
+                    "{} [ID {:6}] instance `{}` of the contract `{} v{}`",
+                    "Loaded".bright_green(),
+                    account_id,
+                    instance,
+                    name,
+                    version,
                 );
 
                 (account_id as AccountId, contract)
@@ -109,5 +116,8 @@ async fn main() -> Result<(), Error> {
     .map_err(Error::ServerBinding)?
     .run()
     .await
-    .map_err(Error::ServerRuntime)
+    .map_err(Error::ServerRuntime)?;
+
+    log::info!("Zandbox server finished");
+    Ok(())
 }

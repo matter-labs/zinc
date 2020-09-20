@@ -133,12 +133,12 @@ contract Exchange {
     /// User specifies exact input (tx.value).
     /// User cannot specify minimum output or deadline.
     ///
-    pub fn default(self, tx: Transaction) -> Balance {
+    pub fn default(mut self, tx: Transaction) -> Balance {
         self.eth_to_token_input(tx, tx.value, 1 as Balance, tx.block.timestamp, tx.from, tx.from)
     }
 
     fn eth_to_token_input(
-        self,
+        mut self,
         tx: Transaction,
         eth_sold: Balance,
         min_tokens: Balance,
@@ -169,7 +169,7 @@ contract Exchange {
     /// Amount of Tokens bought.
     ///
     pub fn eth_to_token_swap_input(
-        self,
+        mut self,
         tx: Transaction,
         min_tokens: Balance,
         deadline: Timestamp,
@@ -191,7 +191,7 @@ contract Exchange {
     /// Amount of Tokens bought.
     ///
     pub fn eth_to_token_transfer_input(
-        self,
+        mut self,
         tx: Transaction,
         min_tokens: Balance,
         deadline: Timestamp,
@@ -202,7 +202,7 @@ contract Exchange {
     }
 
     fn eth_to_token_output(
-        self,
+        mut self,
         tx: Transaction,
         tokens_bought: Balance,
         max_eth: Balance,
@@ -237,7 +237,7 @@ contract Exchange {
     /// Amount of ETH sold.
     ///
     pub fn eth_to_token_swap_output(
-        self,
+        mut self,
         tx: Transaction,
         tokens_bought: Balance,
         deadline: Timestamp,
@@ -258,7 +258,7 @@ contract Exchange {
     /// Amount of ETH sold.
     ///
     pub fn eth_to_token_transfer_output(
-        self,
+        mut self,
         tx: Transaction,
         tokens_bought: Balance,
         deadline: Timestamp,
@@ -269,7 +269,7 @@ contract Exchange {
     }
 
     fn token_to_eth_input(
-        self,
+        mut self,
         tx: Transaction,
         tokens_sold: Balance,
         min_eth: Balance,
@@ -304,7 +304,7 @@ contract Exchange {
     /// Amount of ETH bought.
     ///
     pub fn token_to_eth_swap_input(
-        self,
+        mut self,
         tx: Transaction,
         min_eth: Balance,
         deadline: Timestamp,
@@ -327,7 +327,7 @@ contract Exchange {
     /// Amount of ETH bought.
     ///
     pub fn token_to_eth_transfer_input(
-        self,
+        mut self,
         tx: Transaction,
         min_eth: Balance,
         deadline: Timestamp,
@@ -338,7 +338,7 @@ contract Exchange {
     }
 
     fn token_to_eth_output(
-        self,
+        mut self,
         tx: Transaction,
         eth_bought: Balance,
         max_tokens: Balance,
@@ -373,7 +373,7 @@ contract Exchange {
     /// Amount of Tokens sold.
     ///
     pub fn token_to_eth_swap_output(
-        self,
+        mut self,
         tx: Transaction,
         eth_bought: Balance,
         max_tokens: Balance,
@@ -397,7 +397,7 @@ contract Exchange {
     /// Amount of Tokens sold.
     ///
     pub fn token_to_eth_transfer_output(
-        self,
+        mut self,
         tx: Transaction,
         eth_bought: Balance,
         max_tokens: Balance,
@@ -409,7 +409,7 @@ contract Exchange {
     }
 
     fn token_to_token_input(
-        self,
+        mut self,
         tx: Transaction,
         tokens_sold: Balance,
         min_tokens_bought: Balance,
@@ -448,7 +448,7 @@ contract Exchange {
     /// Amount of Tokens (token_addr) bought.
     ///
     pub fn token_to_token_swap_input(
-        self,
+        mut self,
         tx: Transaction,
         tokens_sold: Balance,
         min_tokens_bought: Balance,
@@ -478,7 +478,7 @@ contract Exchange {
     /// Amount of Tokens (token_addr) bought.
     ///
     pub fn token_to_token_transfer_input(
-        self,
+        mut self,
         tx: Transaction,
         tokens_sold: Balance,
         min_tokens_bought: Balance,
@@ -492,7 +492,7 @@ contract Exchange {
     }
 
     fn token_to_token_output(
-        self,
+        mut self,
         tx: Transaction,
         tokens_bought: Balance,
         max_tokens_sold: Balance,
@@ -531,7 +531,7 @@ contract Exchange {
     /// Amount of Tokens (self.token) sold.
     ///
     pub fn token_to_token_swap_output(
-        self,
+        mut self,
         tx: Transaction,
         tokens_bought: Balance,
         max_tokens_sold: Balance,
@@ -561,7 +561,7 @@ contract Exchange {
     /// Amount of Tokens sold (self.token_address).
     ///
     pub fn token_to_token_transfer_output(
-        self,
+        mut self,
         tx: Transaction,
         tokens_bought: Balance,
         max_tokens_sold: Balance,
@@ -591,7 +591,7 @@ contract Exchange {
     /// Amount of Tokens (exchange_addr.token) bought.
     ///
     pub fn token_to_exchange_swap_input(
-        self,
+        mut self,
         tx: Transaction,
         tokens_sold: Balance,
         min_tokens_bought: Balance,
@@ -620,7 +620,7 @@ contract Exchange {
     /// Amount of Tokens (exchange_addr.token) bought.
     ///
     pub fn token_to_exchange_transfer_input(
-        self,
+        mut self,
         tx: Transaction,
         tokens_sold: Balance,
         min_tokens_bought: Balance,
@@ -650,7 +650,7 @@ contract Exchange {
     /// Amount of Tokens (self.token) sold.
     ///
     pub fn token_to_exchange_swap_output(
-        self,
+        mut self,
         tx: Transaction,
         tokens_bought: Balance,
         max_tokens_sold: Balance,
@@ -679,7 +679,7 @@ contract Exchange {
     /// Amount of Tokens (self.token) sold.
     ///
     pub fn token_to_exchange_transfer_output(
-        self,
+        mut self,
         tx: Transaction,
         tokens_bought: Balance,
         max_tokens_sold: Balance,

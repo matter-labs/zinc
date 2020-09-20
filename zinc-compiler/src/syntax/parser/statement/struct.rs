@@ -171,14 +171,14 @@ mod tests {
 
         let expected = Ok((
             StructStatement::new(
-                Location::new(2, 5),
-                Identifier::new(Location::new(2, 12), "Test".to_owned()),
+                Location::test(2, 5),
+                Identifier::new(Location::test(2, 12), "Test".to_owned()),
                 vec![],
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -191,17 +191,17 @@ mod tests {
 
         let expected = Ok((
             StructStatement::new(
-                Location::new(2, 5),
-                Identifier::new(Location::new(2, 12), "Test".to_owned()),
+                Location::test(2, 5),
+                Identifier::new(Location::test(2, 12), "Test".to_owned()),
                 vec![],
             ),
             Some(Token::new(
                 Lexeme::Symbol(Symbol::Semicolon),
-                Location::new(2, 16),
+                Location::test(2, 16),
             )),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -216,18 +216,18 @@ mod tests {
 
         let expected = Ok((
             StructStatement::new(
-                Location::new(2, 5),
-                Identifier::new(Location::new(2, 12), "Test".to_owned()),
+                Location::test(2, 5),
+                Identifier::new(Location::test(2, 12), "Test".to_owned()),
                 vec![Field::new(
-                    Location::new(3, 9),
-                    Identifier::new(Location::new(3, 9), "a".to_owned()),
-                    Type::new(Location::new(3, 12), TypeVariant::integer_unsigned(232)),
+                    Location::test(3, 9),
+                    Identifier::new(Location::test(3, 9), "a".to_owned()),
+                    Type::new(Location::test(3, 12), TypeVariant::integer_unsigned(232)),
                 )],
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -244,30 +244,30 @@ mod tests {
 
         let expected = Ok((
             StructStatement::new(
-                Location::new(2, 5),
-                Identifier::new(Location::new(2, 12), "Test".to_owned()),
+                Location::test(2, 5),
+                Identifier::new(Location::test(2, 12), "Test".to_owned()),
                 vec![
                     Field::new(
-                        Location::new(3, 9),
-                        Identifier::new(Location::new(3, 9), "a".to_owned()),
-                        Type::new(Location::new(3, 12), TypeVariant::integer_unsigned(232)),
+                        Location::test(3, 9),
+                        Identifier::new(Location::test(3, 9), "a".to_owned()),
+                        Type::new(Location::test(3, 12), TypeVariant::integer_unsigned(232)),
                     ),
                     Field::new(
-                        Location::new(4, 9),
-                        Identifier::new(Location::new(4, 9), "b".to_owned()),
-                        Type::new(Location::new(4, 12), TypeVariant::integer_unsigned(232)),
+                        Location::test(4, 9),
+                        Identifier::new(Location::test(4, 9), "b".to_owned()),
+                        Type::new(Location::test(4, 12), TypeVariant::integer_unsigned(232)),
                     ),
                     Field::new(
-                        Location::new(5, 9),
-                        Identifier::new(Location::new(5, 9), "c".to_owned()),
-                        Type::new(Location::new(5, 12), TypeVariant::integer_unsigned(232)),
+                        Location::test(5, 9),
+                        Identifier::new(Location::test(5, 9), "c".to_owned()),
+                        Type::new(Location::test(5, 12), TypeVariant::integer_unsigned(232)),
                     ),
                 ],
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -277,12 +277,12 @@ mod tests {
         let input = r#"struct { a: u8 };"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
-            Location::new(1, 8),
+            Location::test(1, 8),
             Lexeme::Symbol(Symbol::BracketCurlyLeft),
             Some(super::HINT_EXPECTED_IDENTIFIER),
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -292,13 +292,13 @@ mod tests {
         let input = r#"struct Data { a: u8 );"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 21),
+            Location::test(1, 21),
             vec!["}"],
             Lexeme::Symbol(Symbol::ParenthesisRight),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

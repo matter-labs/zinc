@@ -38,7 +38,7 @@ contract_local_statement =
   | empty_statement
 ;
 
-field_statement = [ 'pub' ], [ 'const' ], identifier, ':', type, ';' ;
+field_statement = [ 'pub' ], [ 'extern' ], identifier, ':', type, ';' ;
 
 type_statement = [ 'pub' ], 'type', identifier, '=', type, ';' ;
 

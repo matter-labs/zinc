@@ -80,7 +80,7 @@ impl Builder {
     ///
     /// Sets the corresponding builder value.
     ///
-    pub fn set_is_wildcard(&mut self) {
+    pub fn set_wildcard(&mut self) {
         self.is_wildcard = true;
     }
 

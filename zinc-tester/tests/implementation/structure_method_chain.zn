@@ -3,19 +3,19 @@
 //!     "input": {
 //!         "witness": "42"
 //!     },
-//!     "output": "1008"
+//!     "output": "0x3f0"
 //! }, {
 //!     "case": "second",
 //!     "input": {
 //!         "witness": "64"
 //!     },
-//!     "output": "1536"
+//!     "output": "0x600"
 //! }, {
 //!     "case": "third",
 //!     "input": {
 //!         "witness": "1000000"
 //!     },
-//!     "output": "24000000"
+//!     "output": "0x16e3600"
 //! } ] }
 
 struct Data {
@@ -24,21 +24,25 @@ struct Data {
 
 impl Data {
     pub fn new(a: field) -> Self {
-        Self {
-            a: a,
-        }
+        Self { a: a }
     }
 
     pub fn double(self) -> Self {
-        Self { a: self.a * 2 as field }
+        Self {
+            a: self.a * 2 as field,
+        }
     }
 
     pub fn triple(self) -> Self {
-        Self { a: self.a * 3 as field }
+        Self {
+            a: self.a * 3 as field,
+        }
     }
 
     pub fn quadruple(self) -> Self {
-        Self { a: self.a * 4 as field }
+        Self {
+            a: self.a * 4 as field,
+        }
     }
 
     pub fn into_inner(self) -> field {

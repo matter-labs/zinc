@@ -1,0 +1,5 @@
+//!
+//! The Curve Stableswap contract transactions.
+//!
+
+pub mod deposit;

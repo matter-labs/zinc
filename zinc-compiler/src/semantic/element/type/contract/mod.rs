@@ -5,6 +5,7 @@
 mod tests;
 
 pub mod error;
+pub mod field;
 
 use std::cell::RefCell;
 use std::fmt;
@@ -16,6 +17,8 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
+
+use self::field::Field;
 
 ///
 /// Describes a contract type.
@@ -32,7 +35,7 @@ pub struct Contract {
     /// The unique contract type ID.
     pub type_id: usize,
     /// The ordered contract storage fields array.
-    pub fields: Vec<(String, Type)>,
+    pub fields: Vec<Field>,
     /// The contract scope, where its methods and associated items are declared.
     pub scope: Rc<RefCell<Scope>>,
 }
@@ -45,7 +48,7 @@ impl Contract {
         location: Option<Location>,
         identifier: String,
         type_id: usize,
-        fields: Vec<(String, Type)>,
+        fields: Vec<Field>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
         let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());

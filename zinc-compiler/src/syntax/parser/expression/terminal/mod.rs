@@ -221,15 +221,15 @@ mod tests {
 
         let expected = Ok((
             ExpressionTree::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 ExpressionTreeNode::Operand(ExpressionOperand::LiteralBoolean(
-                    BooleanLiteral::new(Location::new(1, 1), LexicalBooleanLiteral::r#true()),
+                    BooleanLiteral::new(Location::test(1, 1), LexicalBooleanLiteral::r#true()),
                 )),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -240,10 +240,10 @@ mod tests {
 
         let expected = Ok((
             ExpressionTree::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 ExpressionTreeNode::Operand(ExpressionOperand::LiteralInteger(
                     IntegerLiteral::new(
-                        Location::new(1, 1),
+                        Location::test(1, 1),
                         LexicalIntegerLiteral::new_decimal("42".to_owned()),
                     ),
                 )),
@@ -251,7 +251,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -262,16 +262,16 @@ mod tests {
 
         let expected = Ok((
             ExpressionTree::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 ExpressionTreeNode::Operand(ExpressionOperand::LiteralString(StringLiteral::new(
-                    Location::new(1, 1),
+                    Location::test(1, 1),
                     LexicalStringLiteral::new("description".to_owned()),
                 ))),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -282,22 +282,22 @@ mod tests {
 
         let expected = Ok((
             ExpressionTree::new_with_leaves(
-                Location::new(1, 4),
+                Location::test(1, 4),
                 ExpressionTreeNode::operator(ExpressionOperator::Addition),
                 Some(ExpressionTree::new(
-                    Location::new(1, 2),
+                    Location::test(1, 2),
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
-                            Location::new(1, 2),
+                            Location::test(1, 2),
                             LexicalIntegerLiteral::new_decimal("2".to_owned()),
                         ),
                     )),
                 )),
                 Some(ExpressionTree::new(
-                    Location::new(1, 6),
+                    Location::test(1, 6),
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
-                            Location::new(1, 6),
+                            Location::test(1, 6),
                             LexicalIntegerLiteral::new_decimal("2".to_owned()),
                         ),
                     )),
@@ -306,7 +306,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -317,11 +317,11 @@ mod tests {
 
         let expected: Result<_, Error> =
             Err(Error::Syntax(SyntaxError::expected_expression_or_operand(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 Lexeme::Symbol(Symbol::Asterisk),
             )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

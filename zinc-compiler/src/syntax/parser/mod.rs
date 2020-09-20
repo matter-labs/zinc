@@ -37,12 +37,8 @@ impl Parser {
     ///
     /// Parses a list of module level statements.
     ///
-    pub fn parse(mut self, input: &str, file: Option<usize>) -> Result<Module, Error> {
-        let stream = match file {
-            Some(file) => TokenStream::new_with_file(input, file),
-            None => TokenStream::new(input),
-        }
-        .wrap();
+    pub fn parse(mut self, input: &str, file: usize) -> Result<Module, Error> {
+        let stream = TokenStream::new(input, file).wrap();
 
         let mut statements = Vec::new();
         loop {

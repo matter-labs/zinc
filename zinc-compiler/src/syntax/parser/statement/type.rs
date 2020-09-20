@@ -168,14 +168,14 @@ mod tests {
 
         let expected = Ok((
             TypeStatement::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 6), "X".to_owned()),
-                Type::new(Location::new(1, 10), TypeVariant::Field),
+                Location::test(1, 1),
+                Identifier::new(Location::test(1, 6), "X".to_owned()),
+                Type::new(Location::test(1, 10), TypeVariant::Field),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -185,12 +185,12 @@ mod tests {
         let input = r#"type = field;"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
-            Location::new(1, 6),
+            Location::test(1, 6),
             Lexeme::Symbol(Symbol::Equals),
             Some(super::HINT_EXPECTED_IDENTIFIER),
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -200,12 +200,12 @@ mod tests {
         let input = r#"type Data;"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
-            Location::new(1, 10),
+            Location::test(1, 10),
             Lexeme::Symbol(Symbol::Semicolon),
             Some(super::HINT_EXPECTED_TYPE),
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -215,13 +215,13 @@ mod tests {
         let input = r#"type Data = field"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 18),
+            Location::test(1, 18),
             vec![";"],
             Lexeme::Eof,
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

@@ -3,13 +3,13 @@
 //!     "input": {
 //!         "witness": "5"
 //!     },
-//!     "output": "30"
+//!     "output": "0x1e"
 //! }, {
 //!     "case": "second",
 //!     "input": {
 //!         "witness": "100"
 //!     },
-//!     "output": "600"
+//!     "output": "0x258"
 //! }, {
 //!     "case": "third",
 //!     "input": {

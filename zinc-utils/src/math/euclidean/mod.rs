@@ -6,10 +6,10 @@ mod tests;
 
 use std::ops::Div;
 
-use num_bigint::BigInt;
-use num_traits::One;
-use num_traits::Signed;
-use num_traits::Zero;
+use num::BigInt;
+use num::One;
+use num::Signed;
+use num::Zero;
 
 ///
 /// Euclidean division of BigInt.
@@ -40,7 +40,7 @@ pub fn div_rem(nominator: &BigInt, denominator: &BigInt) -> Option<(BigInt, BigI
 
 #[cfg(test)]
 mod test {
-    use num_bigint::BigInt;
+    use num::BigInt;
 
     use crate::math::euclidean;
 

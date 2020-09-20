@@ -76,10 +76,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Conditional(ConditionalExpressionError::BranchTypesMismatch {
-            location: Location::new(3, 15),
+            location: Location::test(3, 15),
             expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             found: Type::boolean(None).to_string(),
-            reference: Location::new(3, 27),
+            reference: Location::test(3, 27),
         }),
     )));
 
@@ -98,7 +98,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Conditional(ConditionalExpressionError::ExpectedBooleanCondition {
-            location: Location::new(3, 8),
+            location: Location::test(3, 8),
             found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));

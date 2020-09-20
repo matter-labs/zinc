@@ -13,6 +13,7 @@ use serde_derive::Serialize;
 use serde_json::Value as JsonValue;
 
 use crate::bytes::Bytes;
+use crate::data::r#type::contract_field::ContractField as ContractFieldType;
 use crate::data::r#type::Type;
 use crate::data::value::Value;
 use crate::instructions::Instruction;
@@ -60,7 +61,7 @@ impl Program {
     ///
     pub fn new_contract(
         name: String,
-        storage: Vec<(String, Type)>,
+        storage: Vec<ContractFieldType>,
         methods: HashMap<String, ContractMethod>,
         unit_tests: HashMap<String, UnitTest>,
         instructions: Vec<Instruction>,
@@ -93,10 +94,10 @@ impl Program {
             Program::Circuit(circuit) => {
                 let input_template =
                     serde_json::to_vec_pretty(&Value::new(circuit.input.clone()).into_json())
-                        .expect(zinc_const::panic::DATA_VALID);
+                        .expect(zinc_const::panic::DATA_CONVERSION);
                 let output_template =
                     serde_json::to_vec_pretty(&Value::new(circuit.output.clone()).into_json())
-                        .expect(zinc_const::panic::DATA_VALID);
+                        .expect(zinc_const::panic::DATA_CONVERSION);
 
                 let bytecode = Program::Circuit(circuit).into_vec();
 
@@ -109,14 +110,14 @@ impl Program {
                     input_templates.insert(
                         name.to_owned(),
                         serde_json::to_vec_pretty(&Value::new(method.input.to_owned()).into_json())
-                            .expect(zinc_const::panic::DATA_VALID),
+                            .expect(zinc_const::panic::DATA_CONVERSION),
                     );
                     output_templates.insert(
                         name.to_owned(),
                         serde_json::to_vec_pretty(
                             &Value::new(method.output.to_owned()).into_json(),
                         )
-                        .expect(zinc_const::panic::DATA_VALID),
+                        .expect(zinc_const::panic::DATA_CONVERSION),
                     );
                 }
 
@@ -124,10 +125,10 @@ impl Program {
                     .storage
                     .clone()
                     .into_iter()
-                    .map(|(_name, r#type)| Value::new(r#type).into_json())
+                    .map(|field| Value::new(field.r#type).into_json())
                     .collect();
                 let storage = serde_json::to_vec_pretty(&JsonValue::Array(fields))
-                    .expect(zinc_const::panic::DATA_VALID);
+                    .expect(zinc_const::panic::DATA_CONVERSION);
 
                 let bytecode = Program::Contract(contract).into_vec();
 
@@ -147,6 +148,6 @@ impl Program {
     /// Serializes the program into bytes.
     ///
     pub fn into_vec(self) -> Vec<u8> {
-        bincode::serialize(&self).expect(zinc_const::panic::DATA_VALID)
+        bincode::serialize(&self).expect(zinc_const::panic::DATA_CONVERSION)
     }
 }

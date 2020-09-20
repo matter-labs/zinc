@@ -1,0 +1,148 @@
+//!
+//! The Curve Stableswap contract.
+//!
+//! Rewritten from [Vyper implementation](https://github.com/curvefi/curve-contract/blob/2b8ff42f5ce648be749c721d23c28ec8483df493/vyper/stableswap.vy)
+//!
+//! The [Curve Stableswap paper](https://www.curve.fi/stableswap-paper.pdf)
+//!
+
+mod types;
+mod invariant;
+mod constants;
+mod exchange;
+
+use std::assets::Token;
+
+use self::constants::ZERO;
+use self::constants::N;
+use self::constants::PRECISION;
+use self::types::Address;
+use self::types::Balance;
+use self::types::token_id::TokenId;
+use self::types::transactions::deposit::Deposit as DepositTransaction;
+
+///
+/// The Curve Stableswap contract.
+///
+contract Stableswap {
+    /// The contract owner address.
+    pub extern owner: Address;
+    /// The contract address.
+    pub extern address: Address;
+
+    /// The contract balances.
+    pub balances: [Balance; N];
+
+    /// The Curve amplifier.
+    amplifier: u64;
+
+    ///
+    /// The contract constructor.
+    ///
+    pub fn new(
+        _amplifier: u64,
+    ) -> Self {
+        Self {
+            owner: 0x0 as Address,
+            address: 0x0 as Address,
+
+            balances: [ZERO; N],
+            amplifier: _amplifier,
+        }
+    }
+
+    ///
+    /// Adds liquidity to the contract balances.
+    ///
+    pub fn deposit(
+        mut self,
+        deposits: [DepositTransaction; N],
+    ) {
+        // Invariant before change
+        let D0: Balance = invariant::calculate(self.amplifier, self.balances);
+
+        for i in 0..N {
+            self.balances[deposits[i].token_id] += deposits[i].amount;
+
+            Token::transfer(deposits[i].from, self.address, deposits[i].token_id, deposits[i].amount);
+        }
+
+        // Invariant after change
+        let D1 = invariant::calculate(self.amplifier, self.balances);
+        assert!(D1 > D0, "Nothing has been deposited");
+    }
+
+    ///
+    /// Exchanges the tokens, consuming some of the `deposit_token_id` and returning some of the
+    /// `withdraw_token_id` to the client.
+    ///
+    pub fn swap(
+        mut self,
+        from: Address,
+        to: Address,
+        to_deposit: Balance,
+        deposit_token_id: TokenId,
+        withdraw_token_id: TokenId,
+        min_withdraw: Balance,
+    ) {
+        let old_y = self.balances[withdraw_token_id];
+
+        let new_x = self.balances[deposit_token_id] + to_deposit;
+        let new_y = exchange::after(
+            self.amplifier,
+            self.balances,
+            deposit_token_id,
+            withdraw_token_id,
+            new_x
+        );
+
+        assert!(old_y >= min_withdraw + new_y, "Exchange resulted in fewer coins than expected");
+        let to_withdraw = old_y - new_y;
+
+        self.balances[deposit_token_id] = new_x;
+        self.balances[withdraw_token_id] = new_y;
+
+        std::assets::Token::transfer(from, self.address, deposit_token_id, to_deposit);
+        std::assets::Token::transfer(self.address, to, withdraw_token_id, to_withdraw);
+    }
+
+    ///
+    /// Given the amount to withdraw, returns the amount that must be deposited.
+    ///
+    pub fn get_dx(
+        self,
+        deposit_token_id: TokenId,
+        withdraw_token_id: TokenId,
+        to_withdraw: Balance,
+    ) -> Balance {
+        let after_withdrawal = self.balances[withdraw_token_id] - to_withdraw;
+        let after_deposit = exchange::after(
+            self.amplifier,
+            self.balances,
+            withdraw_token_id,
+            deposit_token_id,
+            after_withdrawal,
+        );
+        after_deposit - self.balances[deposit_token_id]
+    }
+
+    ///
+    /// Given the amount to deposit, returns the amount that will be withdrawn.
+    ///
+    pub fn get_dy(
+        self,
+        deposit_token_id: TokenId,
+        withdraw_token_id: TokenId,
+        to_deposit: Balance,
+    ) -> Balance {
+        let after_deposit = self.balances[deposit_token_id] + to_deposit;
+        let after_withdrawal = exchange::after(
+            self.amplifier,
+            self.balances,
+            withdraw_token_id,
+            deposit_token_id,
+            after_deposit,
+        );
+        self.balances[withdraw_token_id] - after_withdrawal
+    }
+}

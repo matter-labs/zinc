@@ -127,17 +127,15 @@ fn error_item_redeclared() {
     let input = r#"
 fn main() {
     let result = 42;
-    {
-        let result = 64;
-    }
+    let result = 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemRedeclared {
-            location: Location::new(5, 13),
+            location: Location::test(4, 9),
             name: "result".to_owned(),
-            reference: Some(Location::new(3, 9)),
+            reference: Some(Location::test(3, 9)),
         },
     )));
 
@@ -160,9 +158,9 @@ fn main() -> X {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemRedeclared {
-            location: Location::new(4, 5),
+            location: Location::test(4, 5),
             name: "X".to_owned(),
-            reference: Some(Location::new(2, 1)),
+            reference: Some(Location::test(2, 1)),
         },
     )));
 
@@ -186,9 +184,9 @@ fn main() -> Y {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemRedeclared {
-            location: Location::new(5, 10),
+            location: Location::test(5, 10),
             name: "Y".to_owned(),
-            reference: Some(Location::new(3, 1)),
+            reference: Some(Location::test(3, 1)),
         },
     )));
 
@@ -207,7 +205,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemUndeclared {
-            location: Location::new(3, 5),
+            location: Location::test(3, 5),
             name: "result".to_owned(),
         },
     )));
@@ -230,7 +228,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemUndeclared {
-            location: Location::new(6, 5),
+            location: Location::test(6, 5),
             name: "result".to_owned(),
         },
     )));
@@ -254,7 +252,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemUndeclared {
-            location: Location::new(7, 31),
+            location: Location::test(7, 31),
             name: "Exists".to_owned(),
         },
     )));
@@ -278,7 +276,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemUndeclared {
-            location: Location::new(7, 31),
+            location: Location::test(7, 31),
             name: "Gone".to_owned(),
         },
     )));
@@ -302,7 +300,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemUndeclared {
-            location: Location::new(2, 15),
+            location: Location::test(2, 15),
             name: Keyword::SelfUppercase.to_string(),
         },
     )));
@@ -326,7 +324,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemUndeclared {
-            location: Location::new(2, 22),
+            location: Location::test(2, 22),
             name: Keyword::SelfUppercase.to_string(),
         },
     )));
@@ -355,7 +353,7 @@ fn main() {}
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemUndeclared {
-            location: Location::new(9, 9),
+            location: Location::test(9, 9),
             name: "a".to_owned(),
         },
     )));
@@ -377,7 +375,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemIsNotANamespace {
-            location: Location::new(5, 18),
+            location: Location::test(5, 18),
             name: "NOT_NAMESPACE".to_owned(),
         },
     )));
@@ -408,7 +406,7 @@ fn main() {}
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::AssociatedItemWithoutOwner {
-            location: Location::new(11, 29),
+            location: Location::test(11, 29),
             name: "C".to_owned(),
         },
     )));
@@ -437,7 +435,7 @@ fn main() {}
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::AssociatedItemWithoutOwner {
-            location: Location::new(9, 19),
+            location: Location::test(9, 19),
             name: "B".to_owned(),
         },
     )));
@@ -470,7 +468,7 @@ fn main() {}
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::AssociatedItemWithoutOwner {
-            location: Location::new(13, 24),
+            location: Location::test(13, 24),
             name: "get_b".to_owned(),
         },
     )));
@@ -494,7 +492,7 @@ contract Test {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::AssociatedItemWithoutOwner {
-            location: Location::new(6, 9),
+            location: Location::test(6, 9),
             name: "A".to_owned(),
         },
     )));
@@ -522,7 +520,7 @@ contract Test {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::AssociatedItemWithoutOwner {
-            location: Location::new(6, 9),
+            location: Location::test(6, 9),
             name: "get_a".to_owned(),
         },
     )));
@@ -546,7 +544,7 @@ contract Test {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::AssociatedItemWithoutOwner {
-            location: Location::new(6, 9),
+            location: Location::test(6, 9),
             name: "a".to_owned(),
         },
     )));
@@ -570,8 +568,8 @@ contract Multiswap {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ContractRedeclared {
-            location: Location::new(6, 1),
-            reference: Location::new(2, 1),
+            location: Location::test(6, 1),
+            reference: Location::test(2, 1),
         },
     )));
 
@@ -591,7 +589,7 @@ fn main() -> u8 { B }
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(2, 7),
+            location: Location::test(2, 7),
         },
     )));
 
@@ -613,7 +611,7 @@ fn main() -> u8 { D }
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(2, 7),
+            location: Location::test(2, 7),
         },
     )));
 
@@ -633,7 +631,7 @@ fn main() -> A {}
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(2, 1),
+            location: Location::test(2, 1),
         },
     )));
 
@@ -664,7 +662,7 @@ fn main() -> bool {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(2, 1),
+            location: Location::test(2, 1),
         },
     )));
 
@@ -685,7 +683,7 @@ fn main() {}
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(2, 1),
+            location: Location::test(2, 1),
         },
     )));
 
@@ -713,7 +711,7 @@ fn main() -> Array {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(2, 1),
+            location: Location::test(2, 1),
         },
     )));
 
@@ -734,7 +732,7 @@ fn main() -> u8 { first() }
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(2, 1),
+            location: Location::test(2, 1),
         },
     )));
 
@@ -759,7 +757,7 @@ fn main() -> u8 { first() }
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(2, 1),
+            location: Location::test(2, 1),
         },
     )));
 
@@ -792,7 +790,7 @@ fn main() -> Data {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(7, 5),
+            location: Location::test(7, 5),
         },
     )));
 
@@ -833,7 +831,7 @@ fn main() -> Data {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(7, 5),
+            location: Location::test(7, 5),
         },
     )));
 
@@ -860,7 +858,7 @@ contract Data {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(5, 5),
+            location: Location::test(5, 5),
         },
     )));
 
@@ -895,7 +893,7 @@ contract Data {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new(5, 5),
+            location: Location::test(5, 5),
         },
     )));
 
@@ -920,21 +918,15 @@ fn main() -> u8 { call() }
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new_with_file_id(2, 1, 1),
+            location: Location::test(2, 1),
         },
     )));
-
-    let mut index_iter = 1..;
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
             "other".to_owned(),
-            Source::test(
-                other,
-                PathBuf::from("other.zn"),
-                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                HashMap::new(),
-            ),
+            Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+                .expect(zinc_const::panic::TEST_DATA_VALID),
         )]
         .into_iter()
         .collect::<HashMap<String, Source>>(),
@@ -971,11 +963,9 @@ fn main() -> u8 { call() }
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new_with_file_id(2, 1, 3),
+            location: Location::test(2, 1),
         },
     )));
-
-    let mut index_iter = 1..;
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
@@ -983,29 +973,29 @@ fn main() -> u8 { call() }
             Source::test(
                 first,
                 PathBuf::from("first.zn"),
-                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                 vec![(
                     "second".to_owned(),
                     Source::test(
                         second,
                         PathBuf::from("first/second.zn"),
-                        index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                         vec![(
                             "third".to_owned(),
                             Source::test(
                                 third,
                                 PathBuf::from("first/second/third.zn"),
-                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                 HashMap::new(),
-                            ),
+                            )
+                            .expect(zinc_const::panic::TEST_DATA_VALID),
                         )]
                         .into_iter()
                         .collect::<HashMap<String, Source>>(),
-                    ),
+                    )
+                    .expect(zinc_const::panic::TEST_DATA_VALID),
                 )]
                 .into_iter()
                 .collect::<HashMap<String, Source>>(),
-            ),
+            )
+            .expect(zinc_const::panic::TEST_DATA_VALID),
         )]
         .into_iter()
         .collect::<HashMap<String, Source>>(),
@@ -1040,21 +1030,15 @@ fn main() -> u8 { Call { value: 42 }.call() }
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new_with_file_id(5, 5, 1),
+            location: Location::test(5, 5),
         },
     )));
-
-    let mut index_iter = 1..;
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
             "other".to_owned(),
-            Source::test(
-                other,
-                PathBuf::from("other.zn"),
-                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                HashMap::new(),
-            ),
+            Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+                .expect(zinc_const::panic::TEST_DATA_VALID),
         )]
         .into_iter()
         .collect::<HashMap<String, Source>>(),
@@ -1109,11 +1093,9 @@ fn main() -> u8 { Call { value: 42 }.call() }
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ReferenceLoop {
-            location: Location::new_with_file_id(7, 5, 0),
+            location: Location::test(7, 5),
         },
     )));
-
-    let mut index_iter = 1..;
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
@@ -1121,29 +1103,29 @@ fn main() -> u8 { Call { value: 42 }.call() }
             Source::test(
                 first,
                 PathBuf::from("first.zn"),
-                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                 vec![(
                     "second".to_owned(),
                     Source::test(
                         second,
                         PathBuf::from("first/second.zn"),
-                        index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                         vec![(
                             "third".to_owned(),
                             Source::test(
                                 third,
                                 PathBuf::from("first/second/third.zn"),
-                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                 HashMap::new(),
-                            ),
+                            )
+                            .expect(zinc_const::panic::TEST_DATA_VALID),
                         )]
                         .into_iter()
                         .collect::<HashMap<String, Source>>(),
-                    ),
+                    )
+                    .expect(zinc_const::panic::TEST_DATA_VALID),
                 )]
                 .into_iter()
                 .collect::<HashMap<String, Source>>(),
-            ),
+            )
+            .expect(zinc_const::panic::TEST_DATA_VALID),
         )]
         .into_iter()
         .collect::<HashMap<String, Source>>(),

@@ -27,37 +27,30 @@ pub(crate) fn compile_entry_with_dependencies(
     dependencies: HashMap<String, Source>,
 ) -> Result<(), Error> {
     let path = PathBuf::from("test.zn");
-    EntryAnalyzer::define(Source::test(code, path, 0, dependencies)).map_err(Error::Semantic)?;
+    EntryAnalyzer::define(Source::test(code, path, dependencies)?).map_err(Error::Semantic)?;
 
     Ok(())
 }
 
 pub(crate) fn compile_module(
     code: &str,
-    file_index: usize,
+    file: usize,
     scope: Rc<RefCell<Scope>>,
     scope_crate: Rc<RefCell<Scope>>,
     scope_super: Rc<RefCell<Scope>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
-    compile_module_with_dependencies(
-        code,
-        file_index,
-        scope,
-        HashMap::new(),
-        scope_crate,
-        scope_super,
-    )
+    compile_module_with_dependencies(code, file, scope, HashMap::new(), scope_crate, scope_super)
 }
 
 pub(crate) fn compile_module_with_dependencies(
     code: &str,
-    file_index: usize,
+    file: usize,
     scope: Rc<RefCell<Scope>>,
     dependencies: HashMap<String, Source>,
     scope_crate: Rc<RefCell<Scope>>,
     scope_super: Rc<RefCell<Scope>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
-    let module = Parser::default().parse(code, Some(file_index))?;
+    let module = Parser::default().parse(code, file)?;
     let (module, implementation_scopes) = ModuleAnalyzer::declare(
         scope.clone(),
         module,
@@ -108,8 +101,8 @@ contract Uniswap {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::EntryPointAmbiguous {
-        main: Location::new(2, 1),
-        contract: Location::new(6, 1),
+        main: Location::test(2, 1),
+        contract: Location::test(6, 1),
     }));
 
     let result = crate::semantic::tests::compile_entry(code);
@@ -126,7 +119,7 @@ const fn main() -> u8 {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::EntryPointConstant {
-        location: Location::new(2, 1),
+        location: Location::test(2, 1),
     }));
 
     let result = crate::semantic::tests::compile_entry(code);
@@ -143,7 +136,7 @@ contract Uniswap {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::EntryPointConstant {
-        location: Location::new(3, 5),
+        location: Location::test(3, 5),
     }));
 
     let result = crate::semantic::tests::compile_entry(code);
@@ -160,7 +153,7 @@ fn main() -> u8 {
 "#;
 
     let expected = Error::Semantic(SemanticError::FunctionMainBeyondEntry {
-        location: Location::new(2, 1),
+        location: Location::test(2, 1),
     });
 
     let result = crate::semantic::tests::compile_module(
@@ -184,7 +177,7 @@ contract Uniswap {
 "#;
 
     let expected = Error::Semantic(SemanticError::ContractBeyondEntry {
-        location: Location::new(2, 1),
+        location: Location::test(2, 1),
     });
 
     let result = crate::semantic::tests::compile_module(
@@ -208,7 +201,7 @@ fn main() {}
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::ModuleFileNotFound {
-        location: Location::new(2, 5),
+        location: Location::test(2, 5),
         name: "unknown".to_owned(),
     }));
 

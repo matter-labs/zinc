@@ -4,7 +4,6 @@
 
 use std::iter::IntoIterator;
 
-use num_bigint::BigUint;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use serde_json::Value as JsonValue;
@@ -21,6 +20,8 @@ pub struct Query {
     pub name: String,
     /// The version of the uploaded contract.
     pub version: String,
+    /// The uploaded contract instance name.
+    pub instance: String,
     /// The network where the contract must be uploaded to.
     pub network: Network,
 }
@@ -29,10 +30,11 @@ impl Query {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(name: String, version: String, network: Network) -> Self {
+    pub fn new(name: String, version: String, instance: String, network: Network) -> Self {
         Self {
             name,
             version,
+            instance,
             network,
         }
     }
@@ -47,6 +49,7 @@ impl IntoIterator for Query {
         vec![
             ("name", self.name),
             ("version", self.version),
+            ("instance", self.instance),
             ("network", self.network.to_string()),
         ]
         .into_iter()
@@ -66,8 +69,8 @@ pub struct Body {
     pub arguments: JsonValue,
     /// The verifying key.
     pub verifying_key: Vec<u8>,
-    /// The initial contract deposit transfer.
-    pub transfer: Transfer,
+    /// The contract owner private key.
+    pub owner_private_key: String,
 }
 
 impl Body {
@@ -79,40 +82,14 @@ impl Body {
         bytecode: Vec<u8>,
         arguments: JsonValue,
         verifying_key: Vec<u8>,
-        transfer: Transfer,
+        owner_private_key: String,
     ) -> Self {
         Self {
             source,
             bytecode,
             arguments,
             verifying_key,
-            transfer,
-        }
-    }
-}
-
-///
-/// The initial contract deposit transfer.
-///
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Transfer {
-    /// The address where the initial deposit is made from.
-    pub source_address: String,
-    /// The private key of the account where the initial deposit is made from.
-    pub source_private_key: String,
-    /// The initial deposit amount.
-    pub amount: BigUint,
-}
-
-impl Transfer {
-    ///
-    /// A shortcut constructor.
-    ///
-    pub fn new(source_address: String, source_private_key: String, amount: BigUint) -> Self {
-        Self {
-            source_address,
-            source_private_key,
-            amount,
+            owner_private_key,
         }
     }
 }

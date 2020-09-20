@@ -25,23 +25,54 @@ const LEVEL_NAME_LENGTH: usize = 10;
 /// _ for `Trace`
 ///
 pub fn initialize(app_name: &'static str, verbosity: usize) {
+    let level = match verbosity {
+        0 => LevelFilter::Warn,
+        1 => LevelFilter::Info,
+        2 => LevelFilter::Debug,
+        _ => LevelFilter::Trace,
+    };
+
     env_logger::builder()
-        .filter_module("actix", LevelFilter::Info)
-        .filter_module("actix_web", LevelFilter::Info)
-        .filter_module("tokio", LevelFilter::Info)
-        .filter_module("tokio_core", LevelFilter::Info)
-        .filter_module("tokio_reactor", LevelFilter::Info)
-        .filter_module("reqwest", LevelFilter::Info)
-        .filter_module("hyper", LevelFilter::Info)
-        .filter_module("mio", LevelFilter::Info)
-        .filter_level(match verbosity {
-            0 => LevelFilter::Warn,
-            1 => LevelFilter::Info,
-            2 => LevelFilter::Debug,
-            _ => LevelFilter::Trace,
-        })
+        .filter(None, LevelFilter::Off)
+        .filter_module("actix_server", LevelFilter::Info)
+        .filter_module(zinc_const::app_name::ZARGO, level)
+        .filter_module(zinc_const::app_name::ZANDBOX, level)
+        .filter_module(zinc_const::app_name::ZINC_COMPILER, level)
+        .filter_module(zinc_const::app_name::ZINC_VIRTUAL_MACHINE, level)
+        .filter_module(zinc_const::app_name::ZINC_TESTER, level)
+        .filter_module(zinc_const::app_name::SCHNORR, level)
+        .filter_module(
+            zinc_const::crate_name::ZARGO.replace("-", "_").as_str(),
+            level,
+        )
+        .filter_module(
+            zinc_const::crate_name::ZANDBOX.replace("-", "_").as_str(),
+            level,
+        )
+        .filter_module(
+            zinc_const::crate_name::ZINC_COMPILER
+                .replace("-", "_")
+                .as_str(),
+            level,
+        )
+        .filter_module(
+            zinc_const::crate_name::ZINC_VIRTUAL_MACHINE
+                .replace("-", "_")
+                .as_str(),
+            level,
+        )
+        .filter_module(
+            zinc_const::crate_name::ZINC_TESTER
+                .replace("-", "_")
+                .as_str(),
+            level,
+        )
+        .filter_module(
+            zinc_const::crate_name::SCHNORR.replace("-", "_").as_str(),
+            level,
+        )
         .format(move |buffer, record| {
-            if let Level::Debug | Level::Trace = record.level() {
+            if record.level() >= Level::Debug {
                 writeln!(
                     buffer,
                     "[{:>5} {:>5}] {}",

@@ -131,9 +131,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Statement(
         StatementError::For(ForStatementError::BoundsExpectedConstantRangeExpression {
-            location: Location::new(4, 14),
+            location: Location::test(4, 14),
             found: Element::Constant(Constant::Boolean(BooleanConstant::new(
-                Location::new(4, 14),
+                Location::test(4, 14),
                 true,
             )))
             .to_string(),
@@ -158,7 +158,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Statement(
         StatementError::For(ForStatementError::WhileExpectedBooleanCondition {
-            location: Location::new(4, 26),
+            location: Location::test(4, 26),
             found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
         }),
     )));

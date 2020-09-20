@@ -202,6 +202,7 @@ mod tests {
     use crate::gadgets::scalar::Scalar;
 
     #[test]
+    #[ignore]
     fn test_storage_gadget_small() {
         const STORAGE_ELEMENT_COUNT: usize = 2;
 

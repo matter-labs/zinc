@@ -143,9 +143,9 @@ mod tests {
     fn ok_unit() {
         let input = r#"()"#;
 
-        let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::unit()), None));
+        let expected = Ok((Type::new(Location::test(1, 1), TypeVariant::unit()), None));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -156,13 +156,13 @@ mod tests {
 
         let expected = Ok((
             Type::new(
-                Location::new(1, 1),
-                TypeVariant::tuple(vec![Type::new(Location::new(1, 2), TypeVariant::Field)]),
+                Location::test(1, 1),
+                TypeVariant::tuple(vec![Type::new(Location::test(1, 2), TypeVariant::Field)]),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -173,13 +173,13 @@ mod tests {
 
         let expected = Ok((
             Type::new(
-                Location::new(1, 1),
-                TypeVariant::tuple(vec![Type::new(Location::new(1, 2), TypeVariant::Field)]),
+                Location::test(1, 1),
+                TypeVariant::tuple(vec![Type::new(Location::test(1, 2), TypeVariant::Field)]),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -190,19 +190,19 @@ mod tests {
 
         let expected = Ok((
             Type::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 TypeVariant::tuple(vec![
-                    Type::new(Location::new(1, 2), TypeVariant::Field),
-                    Type::new(Location::new(1, 9), TypeVariant::Unit),
+                    Type::new(Location::test(1, 2), TypeVariant::Field),
+                    Type::new(Location::test(1, 9), TypeVariant::Unit),
                     Type::new(
-                        Location::new(1, 13),
+                        Location::test(1, 13),
                         TypeVariant::array(
-                            Type::new(Location::new(1, 14), TypeVariant::integer_unsigned(8)),
+                            Type::new(Location::test(1, 14), TypeVariant::integer_unsigned(8)),
                             ExpressionTree::new(
-                                Location::new(1, 18),
+                                Location::test(1, 18),
                                 ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                                     IntegerLiteral::new(
-                                        Location::new(1, 18),
+                                        Location::test(1, 18),
                                         LexicalIntegerLiteral::new_decimal("4".to_owned()),
                                     ),
                                 )),
@@ -214,7 +214,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -225,19 +225,19 @@ mod tests {
 
         let expected = Ok((
             Type::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 TypeVariant::tuple(vec![Type::new(
-                    Location::new(1, 2),
+                    Location::test(1, 2),
                     TypeVariant::tuple(vec![
-                        Type::new(Location::new(1, 3), TypeVariant::Field),
-                        Type::new(Location::new(1, 10), TypeVariant::Field),
+                        Type::new(Location::test(1, 3), TypeVariant::Field),
+                        Type::new(Location::test(1, 10), TypeVariant::Field),
                     ]),
                 )]),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -247,13 +247,13 @@ mod tests {
         let input = r#"(field;)"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 7),
+            Location::test(1, 7),
             vec![",", ")"],
             Lexeme::Symbol(Symbol::Semicolon),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

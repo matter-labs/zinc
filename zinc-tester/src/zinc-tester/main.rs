@@ -23,11 +23,11 @@ use self::arguments::Arguments;
 fn main() {
     let args = Arguments::new();
 
-    if args.proof_check {
+    if true {
         ThreadPoolBuilder::new()
             .num_threads(1)
             .build_global()
-            .expect(zinc_const::panic::RAYON_POOL_INITIALIZATION);
+            .expect(zinc_const::panic::THREAD_POOL);
     }
     println!(
         "[INTEGRATION] Started with {} worker threads",

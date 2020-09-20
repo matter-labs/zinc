@@ -31,11 +31,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
-            location: Location::new(2, 1),
+            location: Location::test(2, 1),
             function: "another".to_owned(),
             expected: 1,
             found: 0,
-            reference: Some(Location::new(7, 24)),
+            reference: Some(Location::test(7, 24)),
         }),
     ))));
 
@@ -58,11 +58,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
-            location: Location::new(2, 1),
+            location: Location::test(2, 1),
             function: "another".to_owned(),
             expected: 1,
             found: 2,
-            reference: Some(Location::new(7, 24)),
+            reference: Some(Location::test(7, 24)),
         }),
     ))));
 
@@ -85,7 +85,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::new(7, 25),
+            location: Location::test(7, 25),
             function: "another".to_owned(),
             name: "x".to_owned(),
             position: 1,
@@ -114,9 +114,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::NonConstantElement {
-            location: Location::new(8, 13),
+            location: Location::test(8, 13),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::new(8, 13),
+                Location::test(8, 13),
                 false,
                 "x".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -147,7 +147,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::NonConstantElement {
-            location: Location::new(9, 25),
+            location: Location::test(9, 25),
             found: Element::Type(Type::integer_unsigned(None, zinc_const::bitlength::BYTE))
                 .to_string(),
         },
@@ -172,11 +172,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ReturnType {
-            location: Location::new(3, 5),
+            location: Location::test(3, 5),
             function: "another".to_owned(),
             expected: Type::boolean(None).to_string(),
             found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
-            reference: Location::new(2, 23),
+            reference: Location::test(2, 23),
         }),
     ))));
 
@@ -197,9 +197,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::NonCallable {
-            location: Location::new(5, 17),
+            location: Location::test(5, 17),
             name: Element::Type(Type::tuple(
-                Some(Location::new(5, 17)),
+                Some(Location::test(5, 17)),
                 vec![Type::integer_unsigned(None, zinc_const::bitlength::BYTE); 2],
             ))
             .to_string(),
@@ -231,10 +231,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::FunctionMethodSelfNotFirst {
-            location: Location::new(7, 14),
+            location: Location::test(7, 14),
             function: "method".to_owned(),
             position: 2,
-            reference: Location::new(7, 32),
+            reference: Location::test(7, 32),
         }),
     ))));
 

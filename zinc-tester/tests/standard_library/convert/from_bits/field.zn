@@ -21,7 +21,7 @@
 //!             false, false, false, false, false, false
 //!         ]
 //!     },
-//!     "output": "0"
+//!     "output": "0x0"
 //! }, {
 //!     "case": "max",
 //!     "input": {

@@ -27,7 +27,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::Test(TestFunctionError::CallForbidden {
-            location: Location::new(8, 17),
+            location: Location::test(8, 17),
             function: "test".to_owned(),
         })),
     ))));
@@ -58,7 +58,7 @@ fn main() -> u8 {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::Test(TestFunctionError::BeyondModuleScope {
-            location: Location::new(8, 5),
+            location: Location::test(8, 5),
             function: "test".to_owned(),
         })),
     ))));
@@ -83,7 +83,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::Test(TestFunctionError::PublicForbidden {
-            location: Location::new(3, 1),
+            location: Location::test(3, 1),
             function: "test".to_owned(),
         })),
     ))));
@@ -108,7 +108,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::Test(TestFunctionError::ConstantForbidden {
-            location: Location::new(3, 1),
+            location: Location::test(3, 1),
             function: "test".to_owned(),
         })),
     ))));
@@ -134,7 +134,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::Test(
             TestFunctionError::CannotHaveArguments {
-                location: Location::new(3, 1),
+                location: Location::test(3, 1),
                 function: "test".to_owned(),
             },
         )),
@@ -161,7 +161,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::Test(TestFunctionError::CannotReturnValue {
-            location: Location::new(3, 1),
+            location: Location::test(3, 1),
             function: "test".to_owned(),
         })),
     ))));

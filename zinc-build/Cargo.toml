@@ -20,5 +20,7 @@ bincode = "1.3"
 num-traits = "0.2"
 num-bigint = { version = "0.3", features = ["serde"] }
 
+zksync = { path = "../zksync/sdk/zksync-rs" }
+
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }

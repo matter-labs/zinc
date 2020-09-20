@@ -8,7 +8,6 @@ use std::str::FromStr;
 
 use colored::Colorize;
 use failure::Fail;
-use num::BigUint;
 use reqwest::Client as HttpClient;
 use reqwest::Method;
 use reqwest::Url;
@@ -17,7 +16,6 @@ use structopt::StructOpt;
 
 use zinc_data::Network;
 use zinc_data::PublishRequestBody;
-use zinc_data::PublishRequestBodyTransfer;
 use zinc_data::PublishRequestQuery;
 use zinc_data::Source;
 use zinc_data::SourceError;
@@ -60,6 +58,10 @@ pub struct Command {
         default_value = zinc_const::path::MANIFEST,
     )]
     pub manifest_path: PathBuf,
+
+    /// The contract instance name.
+    #[structopt(long = "instance", help = "Sets the contract instance name")]
+    pub instance: String,
 
     /// The network identifier, where the contract must be published to.
     #[structopt(
@@ -202,8 +204,9 @@ impl IExecutable for Command {
         );
 
         eprintln!(
-            "   {} {} v{} to {}",
+            "   {} the instance `{}` of `{} v{}` to network `{}`",
             "Uploading".bright_green(),
+            self.instance,
             manifest.project.name,
             manifest.project.version,
             network,
@@ -219,25 +222,22 @@ impl IExecutable for Command {
                             PublishRequestQuery::new(
                                 manifest.project.name,
                                 manifest.project.version,
+                                self.instance,
                                 network,
                             ),
                         )
-                        .expect(zinc_const::panic::DATA_VALID),
+                        .expect(zinc_const::panic::DATA_CONVERSION),
                     )
                     .json(&PublishRequestBody::new(
                         source,
                         bytecode.inner,
                         arguments.inner,
                         verifying_key.inner,
-                        PublishRequestBodyTransfer::new(
-                            "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049".to_owned(),
-                            "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110"
-                                .to_owned(),
-                            BigUint::from(1 as u64),
-                        ),
+                        "7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110"
+                            .to_owned(),
                     ))
                     .build()
-                    .expect(zinc_const::panic::DATA_VALID),
+                    .expect(zinc_const::panic::DATA_CONVERSION),
             )
             .map_err(Error::HttpRequest)?;
 
@@ -245,7 +245,9 @@ impl IExecutable for Command {
             return Err(Error::ActionFailed(format!(
                 "HTTP error ({}) {}",
                 http_response.status(),
-                http_response.text().expect(zinc_const::panic::DATA_VALID),
+                http_response
+                    .text()
+                    .expect(zinc_const::panic::DATA_CONVERSION),
             )));
         }
 
@@ -254,9 +256,9 @@ impl IExecutable for Command {
             serde_json::to_string_pretty(
                 &http_response
                     .json::<JsonValue>()
-                    .expect(zinc_const::panic::DATA_VALID)
+                    .expect(zinc_const::panic::DATA_CONVERSION)
             )
-            .expect(zinc_const::panic::DATA_VALID)
+            .expect(zinc_const::panic::DATA_CONVERSION)
         );
 
         Ok(())

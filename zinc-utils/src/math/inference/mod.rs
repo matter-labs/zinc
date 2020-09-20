@@ -10,8 +10,8 @@ pub mod r#type;
 
 use std::cmp;
 
-use num_bigint::BigInt;
-use num_traits::Signed;
+use num::BigInt;
+use num::Signed;
 
 use self::error::Error;
 use self::r#type::Type;

@@ -80,10 +80,10 @@ mod tests {
 
         let expected = Ok((
             Vec::<Variant>::new(),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 1))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 1))),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -94,17 +94,17 @@ mod tests {
 
         let expected = Ok((
             vec![Variant::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), "A".to_owned()),
+                Location::test(1, 1),
+                Identifier::new(Location::test(1, 1), "A".to_owned()),
                 IntegerLiteral::new(
-                    Location::new(1, 5),
+                    Location::test(1, 5),
                     LexicalIntegerLiteral::new_decimal("1".to_owned()),
                 ),
             )],
-            Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 6))),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -115,17 +115,17 @@ mod tests {
 
         let expected = Ok((
             vec![Variant::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), "A".to_owned()),
+                Location::test(1, 1),
+                Identifier::new(Location::test(1, 1), "A".to_owned()),
                 IntegerLiteral::new(
-                    Location::new(1, 5),
+                    Location::test(1, 5),
                     LexicalIntegerLiteral::new_decimal("1".to_owned()),
                 ),
             )],
-            Some(Token::new(Lexeme::Eof, Location::new(1, 7))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 7))),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -137,34 +137,34 @@ mod tests {
         let expected = Ok((
             vec![
                 Variant::new(
-                    Location::new(1, 1),
-                    Identifier::new(Location::new(1, 1), "A".to_owned()),
+                    Location::test(1, 1),
+                    Identifier::new(Location::test(1, 1), "A".to_owned()),
                     IntegerLiteral::new(
-                        Location::new(1, 5),
+                        Location::test(1, 5),
                         LexicalIntegerLiteral::new_decimal("1".to_owned()),
                     ),
                 ),
                 Variant::new(
-                    Location::new(1, 8),
-                    Identifier::new(Location::new(1, 8), "B".to_owned()),
+                    Location::test(1, 8),
+                    Identifier::new(Location::test(1, 8), "B".to_owned()),
                     IntegerLiteral::new(
-                        Location::new(1, 12),
+                        Location::test(1, 12),
                         LexicalIntegerLiteral::new_decimal("2".to_owned()),
                     ),
                 ),
                 Variant::new(
-                    Location::new(1, 15),
-                    Identifier::new(Location::new(1, 15), "C".to_owned()),
+                    Location::test(1, 15),
+                    Identifier::new(Location::test(1, 15), "C".to_owned()),
                     IntegerLiteral::new(
-                        Location::new(1, 19),
+                        Location::test(1, 19),
                         LexicalIntegerLiteral::new_decimal("3".to_owned()),
                     ),
                 ),
             ],
-            Some(Token::new(Lexeme::Eof, Location::new(1, 20))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 20))),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

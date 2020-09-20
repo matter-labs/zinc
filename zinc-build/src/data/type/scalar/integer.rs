@@ -51,6 +51,12 @@ impl Type {
         bitlength: 16,
     };
 
+    /// An auxiliary internal type.
+    pub const ETH_ADDRESS: Self = Type {
+        is_signed: false,
+        bitlength: 160,
+    };
+
     ///
     /// A shortcut constructor.
     ///

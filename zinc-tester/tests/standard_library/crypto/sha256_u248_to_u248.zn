@@ -3,11 +3,11 @@
 //!     "input": {
 //!         "preimage": "42"
 //!     },
-//!     "output": "0x24ef4f01b129cde88a501b3fbd739cc2e1534134ab930c52ec2bd7523f02de"
+//!     "output": "65258141722884530808301515418266180114263657401739173868432317015144727262"
 //! } ] }
 
-use std::convert;
 use std::array::truncate;
+use std::convert;
 use std::crypto::sha256;
 
 fn main(preimage: u248) -> u248 {

@@ -166,30 +166,30 @@ mod tests {
 
         let expected = Ok((
             UseStatement::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 ExpressionTree::new_with_leaves(
-                    Location::new(1, 16),
+                    Location::test(1, 16),
                     ExpressionTreeNode::operator(ExpressionOperator::Path),
                     Some(ExpressionTree::new_with_leaves(
-                        Location::new(1, 9),
+                        Location::test(1, 9),
                         ExpressionTreeNode::operator(ExpressionOperator::Path),
                         Some(ExpressionTree::new(
-                            Location::new(1, 5),
+                            Location::test(1, 5),
                             ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                                Identifier::new(Location::new(1, 5), "mega".to_owned()),
+                                Identifier::new(Location::test(1, 5), "mega".to_owned()),
                             )),
                         )),
                         Some(ExpressionTree::new(
-                            Location::new(1, 11),
+                            Location::test(1, 11),
                             ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                                Identifier::new(Location::new(1, 11), "ultra".to_owned()),
+                                Identifier::new(Location::test(1, 11), "ultra".to_owned()),
                             )),
                         )),
                     )),
                     Some(ExpressionTree::new(
-                        Location::new(1, 18),
+                        Location::test(1, 18),
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                            Identifier::new(Location::new(1, 18), "namespace".to_owned()),
+                            Identifier::new(Location::test(1, 18), "namespace".to_owned()),
                         )),
                     )),
                 ),
@@ -198,7 +198,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -209,42 +209,42 @@ mod tests {
 
         let expected = Ok((
             UseStatement::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 ExpressionTree::new_with_leaves(
-                    Location::new(1, 16),
+                    Location::test(1, 16),
                     ExpressionTreeNode::operator(ExpressionOperator::Path),
                     Some(ExpressionTree::new_with_leaves(
-                        Location::new(1, 9),
+                        Location::test(1, 9),
                         ExpressionTreeNode::operator(ExpressionOperator::Path),
                         Some(ExpressionTree::new(
-                            Location::new(1, 5),
+                            Location::test(1, 5),
                             ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                                Identifier::new(Location::new(1, 5), "mega".to_owned()),
+                                Identifier::new(Location::test(1, 5), "mega".to_owned()),
                             )),
                         )),
                         Some(ExpressionTree::new(
-                            Location::new(1, 11),
+                            Location::test(1, 11),
                             ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                                Identifier::new(Location::new(1, 11), "ultra".to_owned()),
+                                Identifier::new(Location::test(1, 11), "ultra".to_owned()),
                             )),
                         )),
                     )),
                     Some(ExpressionTree::new(
-                        Location::new(1, 18),
+                        Location::test(1, 18),
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                            Identifier::new(Location::new(1, 18), "namespace".to_owned()),
+                            Identifier::new(Location::test(1, 18), "namespace".to_owned()),
                         )),
                     )),
                 ),
                 Some(Identifier::new(
-                    Location::new(1, 31),
+                    Location::test(1, 31),
                     "MegaUltraNamespace".to_owned(),
                 )),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -254,13 +254,13 @@ mod tests {
         let input = r#"use jabberwocky"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 16),
+            Location::test(1, 16),
             vec![";"],
             Lexeme::Eof,
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

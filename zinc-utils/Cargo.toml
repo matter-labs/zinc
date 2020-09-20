@@ -14,7 +14,8 @@ failure = "0.1"
 env_logger = "0.7"
 colored = "2.0"
 
-num-bigint = "0.3"
-num-traits = "0.2"
+num = "0.3"
+
+zksync = { path = "../zksync/sdk/zksync-rs" }
 
 zinc-const = { path = "../zinc-const" }

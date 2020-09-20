@@ -6,10 +6,10 @@
 //!     "output": "131"
 //! } ] }
 
-const CONST: field = 42;
+const CONST: u248 = 42;
 
-fn main(witness: field) -> field {
-    let local: field = 64;
+fn main(witness: u248) -> u248 {
+    let local: u248 = 64;
 
     CONST + local + witness
 }

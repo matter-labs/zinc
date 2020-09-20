@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
-use crate::data::r#type::Type as BuildType;
+use crate::data::r#type::contract_field::ContractField as ContractFieldType;
 use crate::instructions::Instruction;
 use crate::program::unit_test::UnitTest;
 
@@ -23,7 +23,7 @@ pub struct Contract {
     /// The contract name.
     pub name: String,
     /// The contract storage structure.
-    pub storage: Vec<(String, BuildType)>,
+    pub storage: Vec<ContractFieldType>,
     /// The contract methods.
     pub methods: HashMap<String, Method>,
     /// The contract unit tests.
@@ -38,7 +38,7 @@ impl Contract {
     ///
     pub fn new(
         name: String,
-        storage: Vec<(String, BuildType)>,
+        storage: Vec<ContractFieldType>,
         methods: HashMap<String, Method>,
         unit_tests: HashMap<String, UnitTest>,
         instructions: Vec<Instruction>,

@@ -2,6 +2,8 @@
 //! The generator type.
 //!
 
+pub mod contract_field;
+
 use num_bigint::BigInt;
 
 use zinc_build::IntegerType;
@@ -9,6 +11,8 @@ use zinc_build::ScalarType;
 use zinc_build::Type as BuildType;
 
 use crate::semantic::element::r#type::Type as SemanticType;
+
+use self::contract_field::ContractField;
 
 ///
 /// The generator type, which contains only runtime values used by VM.
@@ -62,7 +66,7 @@ pub enum Type {
     /// The IR contract type.
     Contract {
         /// The ordered contract storage fields array.
-        fields: Vec<(String, Self)>,
+        fields: Vec<ContractField>,
     },
 }
 
@@ -150,7 +154,7 @@ impl Type {
     ///
     /// A shortcut constructor.
     ///
-    pub fn contract(fields: Vec<(String, Self)>) -> Self {
+    pub fn contract(fields: Vec<ContractField>) -> Self {
         Self::Contract { fields }
     }
 
@@ -168,7 +172,7 @@ impl Type {
             Self::Array { r#type, size } => r#type.size() * size,
             Self::Tuple { types } => types.iter().map(|r#type| r#type.size()).sum(),
             Self::Structure { fields } => fields.iter().map(|(_name, r#type)| r#type.size()).sum(),
-            Self::Contract { fields } => fields.iter().map(|(_name, r#type)| r#type.size()).sum(),
+            Self::Contract { fields } => fields.iter().map(|field| field.r#type.size()).sum(),
         }
     }
 
@@ -226,10 +230,8 @@ impl Type {
                 match inner
                     .fields
                     .iter()
-                    .filter_map(|(name, r#type)| {
-                        Self::try_from_semantic(r#type).map(|r#type| (name.to_owned(), r#type))
-                    })
-                    .collect::<Vec<(String, Type)>>()
+                    .filter_map(|field| ContractField::try_from_semantic(field))
+                    .collect::<Vec<ContractField>>()
                 {
                     fields if !fields.is_empty() => Some(Self::contract(fields)),
                     _ => None,
@@ -281,12 +283,9 @@ impl Into<BuildType> for Type {
                     .map(|(name, r#type)| (name, r#type.into()))
                     .collect(),
             ),
-            Self::Contract { fields } => BuildType::Contract(
-                fields
-                    .into_iter()
-                    .map(|(name, r#type)| (name, r#type.into()))
-                    .collect(),
-            ),
+            Self::Contract { fields } => {
+                BuildType::Contract(fields.into_iter().map(|field| field.into()).collect())
+            }
         }
     }
 }

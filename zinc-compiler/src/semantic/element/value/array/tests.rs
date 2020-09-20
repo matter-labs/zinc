@@ -24,7 +24,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType {
-            location: Location::new(3, 21),
+            location: Location::test(3, 21),
             expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             found: Type::boolean(None).to_string(),
         })),
@@ -45,7 +45,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Array(ArrayValueError::SliceStartOutOfRange {
-            location: Location::new(3, 22),
+            location: Location::test(3, 22),
             start: BigInt::from(-1).to_string(),
         })),
     )));
@@ -65,7 +65,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Array(ArrayValueError::SliceEndOutOfRange {
-            location: Location::new(3, 21),
+            location: Location::test(3, 21),
             end: BigInt::from(6).to_string(),
             size: 5,
         })),
@@ -87,7 +87,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Array(
             ArrayValueError::SliceEndLesserThanStart {
-                location: Location::new(3, 21),
+                location: Location::test(3, 21),
                 start: BigInt::from(2).to_string(),
                 end: BigInt::from(1).to_string(),
             },

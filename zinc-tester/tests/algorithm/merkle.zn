@@ -10,21 +10,20 @@
 //!     "output": {
 //!         "address": "0x558ef3cde10f05f73d27cdf30dbb1aa40adf940257e1549c239066",
 //!         "balance": "1000",
-//!         "root_hash": "0x2915116a62d5c0e17357da09e10726afc8030ac60e9371fbd950b407dfabf0"
+//!         "root_hash": "357406454112029849154463976133312378075905485468069502027060596673859010868"
 //!     }
 //! } ] }
 
-use std::crypto::sha256;
 use std::array::truncate;
+use std::crypto::sha256;
 
 type Sha256Digest = u248;
 
 const MERKLE_TREE_HEIGHT: u8 = 1;
 
-fn balance_hash(balance: field) -> Sha256Digest {
+fn balance_hash(balance: u248) -> Sha256Digest {
     let bits = std::convert::to_bits(balance);
-    let bits_padded = std::array::truncate(bits, 248);
-    let digest_bits = truncate(sha256(bits_padded), 248);
+    let digest_bits = truncate(sha256(bits), 248);
     std::convert::from_bits_unsigned(digest_bits)
 }
 
@@ -47,8 +46,7 @@ fn restore_root_hash(
     leaf_hash: Sha256Digest,
     address: field,
     merkle_path: [Sha256Digest; MERKLE_TREE_HEIGHT],
-) -> Sha256Digest
-{
+) -> Sha256Digest {
     let address_bits = std::convert::to_bits(address);
     let mut current = leaf_hash;
 
@@ -67,22 +65,18 @@ fn restore_root_hash(
 
 struct PublicInput {
     address: field,
-    balance: field,
+    balance: u248,
     root_hash: Sha256Digest,
 }
 
 fn main(
     address: field,
-    balance: field,
-    merkle_path: [Sha256Digest; MERKLE_TREE_HEIGHT]
+    balance: u248,
+    merkle_path: [Sha256Digest; MERKLE_TREE_HEIGHT],
 ) -> PublicInput {
     let leaf_hash = balance_hash(balance);
 
-    let root_hash = restore_root_hash(
-        leaf_hash,
-        address,
-        merkle_path,
-    );
+    let root_hash = restore_root_hash(leaf_hash, address, merkle_path);
 
     PublicInput {
         address: address,

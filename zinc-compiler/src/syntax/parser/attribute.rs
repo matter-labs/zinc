@@ -168,14 +168,14 @@ mod tests {
 
         let expected = Ok((
             Attribute::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 false,
-                Identifier::new(Location::new(1, 3), "test".to_owned()),
+                Identifier::new(Location::test(1, 3), "test".to_owned()),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -186,14 +186,14 @@ mod tests {
 
         let expected = Ok((
             Attribute::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 true,
-                Identifier::new(Location::new(1, 4), "test".to_owned()),
+                Identifier::new(Location::test(1, 4), "test".to_owned()),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -203,13 +203,13 @@ mod tests {
         let input = r#"#(test]"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 2),
+            Location::test(1, 2),
             vec!["["],
             Lexeme::Symbol(Symbol::ParenthesisLeft),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -219,12 +219,12 @@ mod tests {
         let input = r#"#[=]"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
-            Location::new(1, 3),
+            Location::test(1, 3),
             Lexeme::Symbol(Symbol::Equals),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -234,13 +234,13 @@ mod tests {
         let input = r#"#[test)"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 7),
+            Location::test(1, 7),
             vec!["]"],
             Lexeme::Symbol(Symbol::ParenthesisRight),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

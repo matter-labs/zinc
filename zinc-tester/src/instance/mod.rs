@@ -42,7 +42,8 @@ impl Instance {
         method: String,
         witness: JsonValue,
     ) -> Result<Self, Error> {
-        let source = Source::test(code, path, 0, HashMap::new());
+        let source = Source::test(code, path, HashMap::new())
+            .map_err(|error| Error::Compiler(error.format()))?;
         let program = thread::Builder::new()
             .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
             .spawn(|| {
@@ -57,9 +58,9 @@ impl Instance {
 
                 Ok(State::unwrap_rc(state).into_program(true))
             })
-            .expect(zinc_const::panic::MULTI_THREADING)
+            .expect(zinc_const::panic::SYNCHRONIZATION)
             .join()
-            .expect(zinc_const::panic::MULTI_THREADING)?;
+            .expect(zinc_const::panic::SYNCHRONIZATION)?;
 
         let input_type = match program {
             BuildProgram::Circuit(ref circuit) => circuit.input.to_owned(),

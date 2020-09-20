@@ -71,36 +71,36 @@ enum TokenId {
 const TOKENS_COUNT: u8 = 4;
 
 struct Person {
-    id: field,
+    id: u248,
     date_of_birth: Date,
-    balances: [(TokenId, field); TOKENS_COUNT],
+    balances: [(TokenId, u248); TOKENS_COUNT],
 }
 
 struct Result {
-    id: field,
-    sum: field,
+    id: u248,
+    sum: u248,
     date_of_birth: Date,
 }
 
 fn main(token_id: TokenId) -> Result {
     let person = Person {
-        id: 42 as field,
+        id: 42 as u248,
         date_of_birth: Date {
             year: 1994,
             month: Month::March,
             day: 16,
         },
         balances: [
-            (TokenId::Bitcoin, 1 as field),
-            (TokenId::Ethereum, 10 as field),
-            (TokenId::Litecoin, 50 as field),
-            (TokenId::Zcash, 100 as field),
+            (TokenId::Bitcoin, 1 as u248),
+            (TokenId::Ethereum, 10 as u248),
+            (TokenId::Litecoin, 50 as u248),
+            (TokenId::Zcash, 100 as u248),
         ],
     };
 
     let mut result = Result {
         id: person.id,
-        sum: 0 as field,
+        sum: 0 as u248,
         date_of_birth: person.date_of_birth,
     };
 

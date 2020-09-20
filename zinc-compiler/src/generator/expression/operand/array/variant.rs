@@ -8,7 +8,6 @@ use crate::generator::expression::Expression as GeneratorExpression;
 /// The generator expression array operand variant.
 ///
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub enum Variant {
     /// The list variant, where each item is translated separately.
     List {

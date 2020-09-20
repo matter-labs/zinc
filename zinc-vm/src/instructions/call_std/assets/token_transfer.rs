@@ -26,13 +26,13 @@ impl<E: IEngine> INativeCallable<E> for Transfer {
 
         let token_id = token_id
             .to_bigint()
-            .expect(zinc_const::panic::DATA_VALID)
+            .expect(zinc_const::panic::DATA_CONVERSION)
             .to_biguint()
-            .expect(zinc_const::panic::DATA_VALID);
+            .expect(zinc_const::panic::DATA_CONVERSION);
 
         let (_sign, from) = from
             .to_bigint()
-            .expect(zinc_const::panic::DATA_VALID)
+            .expect(zinc_const::panic::DATA_CONVERSION)
             .to_bytes_be();
         let mut from_array = [0; zinc_const::size::ETH_ADDRESS];
         for (index, byte) in from.into_iter().enumerate() {
@@ -41,7 +41,7 @@ impl<E: IEngine> INativeCallable<E> for Transfer {
 
         let (_sign, to) = to
             .to_bigint()
-            .expect(zinc_const::panic::DATA_VALID)
+            .expect(zinc_const::panic::DATA_CONVERSION)
             .to_bytes_be();
         let mut to_array = [0; zinc_const::size::ETH_ADDRESS];
         for (index, byte) in to.into_iter().enumerate() {
@@ -50,9 +50,9 @@ impl<E: IEngine> INativeCallable<E> for Transfer {
 
         let amount = amount
             .to_bigint()
-            .expect(zinc_const::panic::DATA_VALID)
+            .expect(zinc_const::panic::DATA_CONVERSION)
             .to_biguint()
-            .expect(zinc_const::panic::DATA_VALID);
+            .expect(zinc_const::panic::DATA_CONVERSION);
 
         state
             .transfers

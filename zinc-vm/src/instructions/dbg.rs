@@ -30,7 +30,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
             match argument_type {
                 BuildType::Contract(fields) => {
                     let mut flat = Vec::with_capacity(size);
-                    for (index, (_name, r#type)) in fields.iter().enumerate() {
+                    for (index, field) in fields.iter().enumerate() {
                         let values: Vec<BigInt> = vm
                             .storage_load(
                                 Scalar::new_constant_usize(
@@ -40,10 +40,14 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                                         zinc_const::bitlength::INDEX,
                                     )),
                                 ),
-                                r#type.size(),
+                                field.r#type.size(),
                             )?
                             .into_iter()
-                            .map(|scalar| scalar.to_bigint().expect(zinc_const::panic::DATA_VALID))
+                            .map(|scalar| {
+                                scalar
+                                    .to_bigint()
+                                    .expect(zinc_const::panic::DATA_CONVERSION)
+                            })
                             .collect();
                         flat.extend(values);
                     }
@@ -70,7 +74,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                 let mut buffer = self.format;
                 for value in values.into_iter().rev() {
                     let json = serde_json::to_string(&value.into_json())
-                        .expect(zinc_const::panic::DATA_VALID);
+                        .expect(zinc_const::panic::DATA_CONVERSION);
                     buffer = buffer.replacen("{}", &json, 1);
                 }
                 eprintln!("{}", buffer);

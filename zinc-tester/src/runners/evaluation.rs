@@ -8,6 +8,7 @@ use std::sync::Mutex;
 
 use colored::Colorize;
 
+use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Program as BuildProgram;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
@@ -60,7 +61,7 @@ impl IRunnable for Runner {
             if metadata.ignore || case.ignore {
                 summary
                     .lock()
-                    .expect(zinc_const::panic::MULTI_THREADING)
+                    .expect(zinc_const::panic::SYNCHRONIZATION)
                     .ignored += 1;
                 println!("[INTEGRATION] {} {}", "IGNORE".yellow(), case_name);
                 continue;
@@ -77,7 +78,7 @@ impl IRunnable for Runner {
                 Err(error) => {
                     summary
                         .lock()
-                        .expect(zinc_const::panic::MULTI_THREADING)
+                        .expect(zinc_const::panic::SYNCHRONIZATION)
                         .invalid += 1;
                     println!(
                         "[INTEGRATION] {} {} ({})",
@@ -101,7 +102,7 @@ impl IRunnable for Runner {
                                 if !case.should_panic {
                                     summary
                                         .lock()
-                                        .expect(zinc_const::panic::MULTI_THREADING)
+                                        .expect(zinc_const::panic::SYNCHRONIZATION)
                                         .passed += 1;
                                     if self.verbosity > 0 {
                                         println!(
@@ -113,7 +114,7 @@ impl IRunnable for Runner {
                                 } else {
                                     summary
                                         .lock()
-                                        .expect(zinc_const::panic::MULTI_THREADING)
+                                        .expect(zinc_const::panic::SYNCHRONIZATION)
                                         .failed += 1;
                                     println!(
                                         "[INTEGRATION] {} {} (should have panicked)",
@@ -124,7 +125,7 @@ impl IRunnable for Runner {
                             } else {
                                 summary
                                     .lock()
-                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .expect(zinc_const::panic::SYNCHRONIZATION)
                                     .failed += 1;
                                 println!(
                                     "[INTEGRATION] {} {} (expected {}, but got {})",
@@ -139,7 +140,7 @@ impl IRunnable for Runner {
                             if case.should_panic {
                                 summary
                                     .lock()
-                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .expect(zinc_const::panic::SYNCHRONIZATION)
                                     .passed += 1;
                                 if self.verbosity > 0 {
                                     println!(
@@ -151,7 +152,7 @@ impl IRunnable for Runner {
                             } else {
                                 summary
                                     .lock()
-                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .expect(zinc_const::panic::SYNCHRONIZATION)
                                     .failed += 1;
                                 println!(
                                     "[INTEGRATION] {} {} ({})",
@@ -164,11 +165,11 @@ impl IRunnable for Runner {
                     }
                 }
                 BuildProgram::Contract(contract) => {
-                    let storage: Vec<(String, BuildValue)> = contract
+                    let storage: Vec<BuildContractFieldValue> = contract
                         .storage
                         .clone()
                         .into_iter()
-                        .map(|(name, r#type)| (name, BuildValue::new(r#type)))
+                        .map(BuildContractFieldValue::new_from_type)
                         .collect();
 
                     let output = ContractFacade::new(contract).run::<Bn256>(
@@ -185,7 +186,7 @@ impl IRunnable for Runner {
                                 if !case.should_panic {
                                     summary
                                         .lock()
-                                        .expect(zinc_const::panic::MULTI_THREADING)
+                                        .expect(zinc_const::panic::SYNCHRONIZATION)
                                         .passed += 1;
                                     if self.verbosity > 0 {
                                         println!(
@@ -197,7 +198,7 @@ impl IRunnable for Runner {
                                 } else {
                                     summary
                                         .lock()
-                                        .expect(zinc_const::panic::MULTI_THREADING)
+                                        .expect(zinc_const::panic::SYNCHRONIZATION)
                                         .failed += 1;
                                     println!(
                                         "[INTEGRATION] {} {} (should have panicked)",
@@ -208,7 +209,7 @@ impl IRunnable for Runner {
                             } else {
                                 summary
                                     .lock()
-                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .expect(zinc_const::panic::SYNCHRONIZATION)
                                     .failed += 1;
                                 println!(
                                     "[INTEGRATION] {} {} (expected {}, but got {})",
@@ -223,7 +224,7 @@ impl IRunnable for Runner {
                             if case.should_panic {
                                 summary
                                     .lock()
-                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .expect(zinc_const::panic::SYNCHRONIZATION)
                                     .passed += 1;
                                 if self.verbosity > 0 {
                                     println!(
@@ -235,7 +236,7 @@ impl IRunnable for Runner {
                             } else {
                                 summary
                                     .lock()
-                                    .expect(zinc_const::panic::MULTI_THREADING)
+                                    .expect(zinc_const::panic::SYNCHRONIZATION)
                                     .failed += 1;
                                 println!(
                                     "[INTEGRATION] {} {} ({})",

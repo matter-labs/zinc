@@ -14,19 +14,11 @@ struct PublicInput {
     root_hash: Sha256Digest,
 }
 
-fn main(
-    address: field,
-    balance: field,
-    merkle_path: [Sha256Digest; TREE_HEIGHT]
-) -> PublicInput {
+fn main(address: field, balance: field, merkle_path: [Sha256Digest; TREE_HEIGHT]) -> PublicInput {
     let leaf_hash = self::merkle::balance_hash(balance); // call a function from `merkle`
 
     // call a function from `merkle`
-    let root_hash = self::merkle::restore_root_hash(
-        leaf_hash,
-        address,
-        merkle_path,
-    );
+    let root_hash = self::merkle::restore_root_hash(leaf_hash, address, merkle_path);
 
     PublicInput {
         address: address,

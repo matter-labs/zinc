@@ -46,27 +46,14 @@ impl<'a> TokenStream<'a> {
     const LOOK_AHEAD_INITIAL_CAPACITY: usize = 16;
 
     ///
-    /// Initializes a stream without a file identifier.
-    /// Used mostly for testing purposes.
-    ///
-    pub fn new(input: &'a str) -> Self {
-        Self {
-            input,
-            offset: 0,
-            location: Location::new_beginning(None),
-            look_ahead: VecDeque::with_capacity(Self::LOOK_AHEAD_INITIAL_CAPACITY),
-        }
-    }
-
-    ///
     /// Initializes a stream with a file identifier.
     /// The file identifier can be used to get its path from the global type index.
     ///
-    pub fn new_with_file(input: &'a str, file: usize) -> Self {
+    pub fn new(input: &'a str, file: usize) -> Self {
         Self {
             input,
             offset: 0,
-            location: Location::new_beginning(Some(file)),
+            location: Location::new(file),
             look_ahead: VecDeque::with_capacity(Self::LOOK_AHEAD_INITIAL_CAPACITY),
         }
     }
@@ -105,6 +92,21 @@ impl<'a> TokenStream<'a> {
         self.look_ahead
             .get(distance - 1)
             .ok_or_else(|| Error::unexpected_end(self.location))
+    }
+
+    ///
+    /// Initializes a stream with an auto-generated file identifier.
+    /// The file identifier can be used to get its path from the global type index.
+    /// Used for testing purposes.
+    ///
+    #[cfg(test)]
+    pub fn test(input: &'a str) -> Self {
+        Self {
+            input,
+            offset: 0,
+            location: Location::new(0),
+            look_ahead: VecDeque::with_capacity(Self::LOOK_AHEAD_INITIAL_CAPACITY),
+        }
     }
 
     ///

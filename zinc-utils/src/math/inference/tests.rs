@@ -6,7 +6,7 @@
 
 use std::str::FromStr;
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use crate::math::inference;
 use crate::math::inference::r#type::Type as InferredType;

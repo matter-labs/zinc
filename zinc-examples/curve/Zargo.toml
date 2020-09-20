@@ -1,0 +1,4 @@
+[project]
+name = "curve"
+type = "contract"
+version = "1.4.0"

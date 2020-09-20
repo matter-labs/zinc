@@ -143,9 +143,12 @@ mod tests {
     fn ok_bool() {
         let input = r#"bool"#;
 
-        let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::boolean()), None));
+        let expected = Ok((
+            Type::new(Location::test(1, 1), TypeVariant::boolean()),
+            None,
+        ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -155,11 +158,11 @@ mod tests {
         let input = r#"u232"#;
 
         let expected = Ok((
-            Type::new(Location::new(1, 1), TypeVariant::integer_unsigned(232)),
+            Type::new(Location::test(1, 1), TypeVariant::integer_unsigned(232)),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -168,9 +171,9 @@ mod tests {
     fn ok_field() {
         let input = r#"field"#;
 
-        let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::field()), None));
+        let expected = Ok((Type::new(Location::test(1, 1), TypeVariant::field()), None));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -181,19 +184,19 @@ mod tests {
 
         let expected = Ok((
             Type::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 TypeVariant::alias(ExpressionTree::new(
-                    Location::new(1, 1),
+                    Location::test(1, 1),
                     ExpressionTreeNode::operand(ExpressionOperand::Identifier(Identifier::new(
-                        Location::new(1, 1),
+                        Location::test(1, 1),
                         Keyword::SelfUppercase.to_string(),
                     ))),
                 )),
             ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 5))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 5))),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -203,12 +206,12 @@ mod tests {
         let input = r#"while"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
-            Location::new(1, 1),
+            Location::test(1, 1),
             Lexeme::Keyword(Keyword::While),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -218,14 +221,14 @@ mod tests {
         let input = r#"42"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
-            Location::new(1, 1),
+            Location::test(1, 1),
             Lexeme::Literal(LexicalLiteral::Integer(LexicalIntegerLiteral::new_decimal(
                 "42".to_owned(),
             ))),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

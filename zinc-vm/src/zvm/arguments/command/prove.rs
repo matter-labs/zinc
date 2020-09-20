@@ -11,6 +11,7 @@ use structopt::StructOpt;
 use franklin_crypto::bellman::groth16::Parameters;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
+use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Program as BuildProgram;
 use zinc_build::Value as BuildValue;
 
@@ -95,11 +96,13 @@ impl IExecutable for Command {
                 let storage_values = match storage_json {
                     JsonValue::Array(array) => {
                         let mut storage_values = Vec::with_capacity(contract.storage.len());
-                        for ((name, r#type), value) in
-                            contract.storage.clone().into_iter().zip(array)
-                        {
-                            storage_values
-                                .push((name, BuildValue::try_from_typed_json(value, r#type)?));
+                        for (field, value) in contract.storage.clone().into_iter().zip(array) {
+                            storage_values.push(BuildContractFieldValue::new(
+                                field.name,
+                                BuildValue::try_from_typed_json(value, field.r#type)?,
+                                field.is_public,
+                                field.is_external,
+                            ));
                         }
                         storage_values
                     }

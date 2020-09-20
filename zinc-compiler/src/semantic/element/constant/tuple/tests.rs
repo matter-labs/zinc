@@ -22,8 +22,8 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Constant(ConstantError::Tuple(TupleConstantError::FieldOutOrRange {
-            location: Location::new(3, 45),
-            type_identifier: Type::tuple(Some(Location::new(3, 45)), vec![Type::boolean(None); 3])
+            location: Location::test(3, 45),
+            type_identifier: Type::tuple(Some(Location::test(3, 45)), vec![Type::boolean(None); 3])
                 .to_string(),
             field_index: 5,
         })),

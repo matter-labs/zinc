@@ -2,6 +2,7 @@
 //! The Zinc VM type.
 //!
 
+pub mod contract_field;
 pub mod scalar;
 
 use std::fmt;
@@ -10,6 +11,7 @@ use num_bigint::BigInt;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
+use self::contract_field::ContractField;
 use self::scalar::integer::Type as IntegerType;
 use self::scalar::Type as ScalarType;
 
@@ -40,7 +42,7 @@ pub enum Type {
     /// The structure type.
     Structure(Vec<(String, Type)>),
     /// The contract type.
-    Contract(Vec<(String, Type)>),
+    Contract(Vec<ContractField>),
 }
 
 impl Type {
@@ -49,6 +51,13 @@ impl Type {
     ///
     pub fn new_empty_structure() -> Self {
         Self::Structure(vec![])
+    }
+
+    ///
+    /// Creates the ETH address type as integer.
+    ///
+    pub fn new_eth_address_integer() -> Self {
+        Self::Scalar(ScalarType::Integer(IntegerType::ETH_ADDRESS))
     }
 
     ///
@@ -79,7 +88,7 @@ impl Type {
                 .collect(),
             Self::Contract(types) => types
                 .into_iter()
-                .map(|(_name, r#type)| Self::into_flat_scalar_types(r#type))
+                .map(|field| Self::into_flat_scalar_types(field.r#type))
                 .flatten()
                 .collect(),
         }
@@ -108,7 +117,7 @@ impl Type {
             Self::Array(r#type, size) => r#type.size() * *size,
             Self::Tuple(fields) => fields.iter().map(Self::size).sum(),
             Self::Structure(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
-            Self::Contract(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
+            Self::Contract(fields) => fields.iter().map(|field| field.r#type.size()).sum(),
         }
     }
 
@@ -167,7 +176,7 @@ impl fmt::Display for Type {
                 "{}",
                 fields
                     .iter()
-                    .map(|(name, r#type)| format!("{}: {}", name, r#type))
+                    .map(|field| format!("{}: {}", field.name, field.r#type))
                     .collect::<Vec<String>>()
                     .join(", ")
             ),

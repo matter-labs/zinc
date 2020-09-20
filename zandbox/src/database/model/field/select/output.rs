@@ -14,12 +14,3 @@ pub struct Output {
     /// The field value in JSON representation.
     pub value: JsonValue,
 }
-
-impl Output {
-    ///
-    /// A shortcut constructor.
-    ///
-    pub fn new(name: String, value: JsonValue) -> Self {
-        Self { name, value }
-    }
-}

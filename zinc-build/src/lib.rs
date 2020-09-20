@@ -8,10 +8,13 @@ pub(crate) mod instructions;
 pub(crate) mod program;
 
 pub use self::bytes::Bytes;
+pub use self::data::r#type::contract_field::ContractField as ContractFieldType;
 pub use self::data::r#type::scalar::integer::Type as IntegerType;
 pub use self::data::r#type::scalar::Type as ScalarType;
 pub use self::data::r#type::Type;
+pub use self::data::value::contract_field::ContractField as ContractFieldValue;
 pub use self::data::value::error::Error as ValueError;
+pub use self::data::value::scalar::Value as ScalarValue;
 pub use self::data::value::Value;
 pub use self::instructions::assert::Assert;
 pub use self::instructions::call_std::function_identifier::FunctionIdentifier;

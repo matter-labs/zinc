@@ -33,36 +33,23 @@ fn main() -> u8 {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
             (
                 "one".to_owned(),
-                Source::test(
-                    one,
-                    PathBuf::from("one.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(one, PathBuf::from("one.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "two".to_owned(),
-                Source::test(
-                    two,
-                    PathBuf::from("two.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(two, PathBuf::from("two.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "three".to_owned(),
-                Source::test(
-                    three,
-                    PathBuf::from("three.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(three, PathBuf::from("three.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
         ]
         .into_iter()
@@ -97,7 +84,6 @@ fn main() -> u8 {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
@@ -105,29 +91,29 @@ fn main() -> u8 {
             Source::test(
                 level_1,
                 PathBuf::from("level_1.zn"),
-                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                 vec![(
                     "level_2".to_owned(),
                     Source::test(
                         level_2,
                         PathBuf::from("level_1/level_2.zn"),
-                        index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                         vec![(
                             "level_3".to_owned(),
                             Source::test(
                                 level_3,
                                 PathBuf::from("level_1/level_2/level_3.zn"),
-                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                 HashMap::new()
                             )
+                            .expect(zinc_const::panic::TEST_DATA_VALID)
                         )]
                         .into_iter()
                         .collect::<HashMap<String, Source>>()
                     )
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
                 )]
                 .into_iter()
                 .collect::<HashMap<String, Source>>()
             )
+            .expect(zinc_const::panic::TEST_DATA_VALID)
         )]
         .into_iter()
         .collect::<HashMap<String, Source>>()
@@ -196,7 +182,6 @@ fn main() -> u8 {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
@@ -205,90 +190,90 @@ fn main() -> u8 {
                 Source::test(
                     level_1_first,
                     PathBuf::from("level_1_first.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                     vec![
                         (
                             "level_2_first".to_owned(),
                             Source::test(
                                 first_level_2_first,
                                 PathBuf::from("level_1_first/level_2_first.zn"),
-                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                 HashMap::new()
                             )
+                            .expect(zinc_const::panic::TEST_DATA_VALID)
                         ),
                         (
                             "level_2_second".to_owned(),
                             Source::test(
                                 first_level_2_second,
                                 PathBuf::from("level_1_first/level_2_second.zn"),
-                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                 HashMap::new()
                             )
+                            .expect(zinc_const::panic::TEST_DATA_VALID)
                         ),
                     ]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )
+                .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "level_1_second".to_owned(),
                 Source::test(
                     level_1_second,
                     PathBuf::from("level_1_second.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                     vec![
                         (
                             "level_2_first".to_owned(),
                             Source::test(
                                 second_level_2_first,
                                 PathBuf::from("level_1_second/level_2_first.zn"),
-                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                 HashMap::new()
                             )
+                            .expect(zinc_const::panic::TEST_DATA_VALID)
                         ),
                         (
                             "level_2_second".to_owned(),
                             Source::test(
                                 second_level_2_second,
                                 PathBuf::from("level_1_second/level_2_second.zn"),
-                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                 HashMap::new()
                             )
+                            .expect(zinc_const::panic::TEST_DATA_VALID)
                         ),
                     ]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )
+                .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "level_1_third".to_owned(),
                 Source::test(
                     level_1_third,
                     PathBuf::from("level_1_third.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                     vec![
                         (
                             "level_2_first".to_owned(),
                             Source::test(
                                 third_level_2_first,
                                 PathBuf::from("level_1_third/level_2_first.zn"),
-                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                 HashMap::new()
                             )
+                            .expect(zinc_const::panic::TEST_DATA_VALID)
                         ),
                         (
                             "level_2_second".to_owned(),
                             Source::test(
                                 third_level_2_second,
                                 PathBuf::from("level_1_third/level_2_second.zn"),
-                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                 HashMap::new()
                             )
+                            .expect(zinc_const::panic::TEST_DATA_VALID)
                         ),
                     ]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )
+                .expect(zinc_const::panic::TEST_DATA_VALID)
             )
         ]
         .into_iter()
@@ -343,36 +328,23 @@ fn main() -> Together {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
             (
                 "one".to_owned(),
-                Source::test(
-                    one,
-                    PathBuf::from("one.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(one, PathBuf::from("one.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "two".to_owned(),
-                Source::test(
-                    two,
-                    PathBuf::from("two.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(two, PathBuf::from("two.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "three".to_owned(),
-                Source::test(
-                    three,
-                    PathBuf::from("three.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(three, PathBuf::from("three.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
         ]
         .into_iter()
@@ -431,36 +403,23 @@ fn main() -> Together {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
             (
                 "one".to_owned(),
-                Source::test(
-                    one,
-                    PathBuf::from("one.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(one, PathBuf::from("one.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "two".to_owned(),
-                Source::test(
-                    two,
-                    PathBuf::from("two.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(two, PathBuf::from("two.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "three".to_owned(),
-                Source::test(
-                    three,
-                    PathBuf::from("three.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(three, PathBuf::from("three.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
         ]
         .into_iter()
@@ -513,7 +472,6 @@ fn main() -> Together {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
@@ -521,29 +479,25 @@ fn main() -> Together {
             Source::test(
                 one,
                 PathBuf::from("one.zn"),
-                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                 vec![(
                     "two".to_owned(),
                     Source::test(
                         two,
                         PathBuf::from("one/two.zn"),
-                        index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                         vec![(
                             "three".to_owned(),
-                            Source::test(
-                                three,
-                                PathBuf::from("one/two/three.zn"),
-                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                                HashMap::new()
-                            )
+                            Source::test(three, PathBuf::from("one/two/three.zn"), HashMap::new())
+                                .expect(zinc_const::panic::TEST_DATA_VALID)
                         ),]
                         .into_iter()
                         .collect::<HashMap<String, Source>>()
                     )
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
                 ),]
                 .into_iter()
                 .collect::<HashMap<String, Source>>()
             )
+            .expect(zinc_const::panic::TEST_DATA_VALID)
         ),]
         .into_iter()
         .collect::<HashMap<String, Source>>()
@@ -603,7 +557,6 @@ fn main() -> Together {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
@@ -611,29 +564,25 @@ fn main() -> Together {
             Source::test(
                 one,
                 PathBuf::from("one.zn"),
-                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                 vec![(
                     "two".to_owned(),
                     Source::test(
                         two,
                         PathBuf::from("one/two.zn"),
-                        index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                         vec![(
                             "three".to_owned(),
-                            Source::test(
-                                three,
-                                PathBuf::from("one/two/three.zn"),
-                                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                                HashMap::new()
-                            )
+                            Source::test(three, PathBuf::from("one/two/three.zn"), HashMap::new())
+                                .expect(zinc_const::panic::TEST_DATA_VALID)
                         )]
                         .into_iter()
                         .collect::<HashMap<String, Source>>()
                     )
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
                 ),]
                 .into_iter()
                 .collect::<HashMap<String, Source>>()
             )
+            .expect(zinc_const::panic::TEST_DATA_VALID)
         ),]
         .into_iter()
         .collect::<HashMap<String, Source>>()
@@ -669,17 +618,12 @@ fn main() -> Other {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
             "other".to_owned(),
-            Source::test(
-                other,
-                PathBuf::from("other.zn"),
-                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                HashMap::new()
-            )
+            Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+                .expect(zinc_const::panic::TEST_DATA_VALID)
         ),]
         .into_iter()
         .collect::<HashMap<String, Source>>()
@@ -715,17 +659,12 @@ fn main() -> Other {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
             "other".to_owned(),
-            Source::test(
-                other,
-                PathBuf::from("other.zn"),
-                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                HashMap::new()
-            )
+            Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+                .expect(zinc_const::panic::TEST_DATA_VALID)
         ),]
         .into_iter()
         .collect::<HashMap<String, Source>>()
@@ -765,17 +704,12 @@ contract Test {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
             "other".to_owned(),
-            Source::test(
-                other,
-                PathBuf::from("other.zn"),
-                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                HashMap::new()
-            )
+            Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+                .expect(zinc_const::panic::TEST_DATA_VALID)
         ),]
         .into_iter()
         .collect::<HashMap<String, Source>>()
@@ -815,17 +749,12 @@ contract Test {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
             "other".to_owned(),
-            Source::test(
-                other,
-                PathBuf::from("other.zn"),
-                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                HashMap::new()
-            )
+            Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+                .expect(zinc_const::panic::TEST_DATA_VALID)
         ),]
         .into_iter()
         .collect::<HashMap<String, Source>>()
@@ -865,27 +794,18 @@ fn main() -> Other {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
             (
                 "other".to_owned(),
-                Source::test(
-                    other,
-                    PathBuf::from("other.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "accessed".to_owned(),
-                Source::test(
-                    accessed,
-                    PathBuf::from("accessed.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(accessed, PathBuf::from("accessed.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
         ]
         .into_iter()
@@ -926,27 +846,18 @@ fn main() -> Other {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
             (
                 "other".to_owned(),
-                Source::test(
-                    other,
-                    PathBuf::from("other.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "accessed".to_owned(),
-                Source::test(
-                    accessed,
-                    PathBuf::from("accessed.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(accessed, PathBuf::from("accessed.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
         ]
         .into_iter()
@@ -1003,7 +914,6 @@ fn main() -> Other {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
@@ -1012,42 +922,40 @@ fn main() -> Other {
                 Source::test(
                     other_level_1,
                     PathBuf::from("other_level_1.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                     vec![(
                         "other_level_2".to_owned(),
                         Source::test(
                             other_level_2,
                             PathBuf::from("other_level_1/other_level_2.zn"),
-                            index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                             vec![(
                                 "other_level_3".to_owned(),
                                 Source::test(
                                     other_level_3,
                                     PathBuf::from("other_level_1/other_level_2/other_level_3.zn"),
-                                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                     HashMap::new()
                                 )
+                                .expect(zinc_const::panic::TEST_DATA_VALID)
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
                         )
+                        .expect(zinc_const::panic::TEST_DATA_VALID)
                     ),]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )
+                .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "accessed_level_1".to_owned(),
                 Source::test(
                     accessed_level_1,
                     PathBuf::from("accessed_level_1.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                     vec![(
                         "accessed_level_2".to_owned(),
                         Source::test(
                             accessed_level_2,
                             PathBuf::from("accessed_level_1/accessed_level_2.zn"),
-                            index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                             vec![(
                                 "accessed_level_3".to_owned(),
                                 Source::test(
@@ -1055,17 +963,19 @@ fn main() -> Other {
                                     PathBuf::from(
                                         "accessed_level_1/accessed_level_2/accessed_level_3.zn"
                                     ),
-                                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                     HashMap::new()
                                 )
+                                .expect(zinc_const::panic::TEST_DATA_VALID)
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
                         )
+                        .expect(zinc_const::panic::TEST_DATA_VALID)
                     ),]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )
+                .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
         ]
         .into_iter()
@@ -1122,7 +1032,6 @@ fn main() -> Other {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
@@ -1131,42 +1040,40 @@ fn main() -> Other {
                 Source::test(
                     other_level_1,
                     PathBuf::from("other_level_1.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                     vec![(
                         "other_level_2".to_owned(),
                         Source::test(
                             other_level_2,
                             PathBuf::from("other_level_1/other_level_2.zn"),
-                            index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                             vec![(
                                 "other_level_3".to_owned(),
                                 Source::test(
                                     other_level_3,
                                     PathBuf::from("other_level_1/other_level_2/other_level_3.zn"),
-                                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                     HashMap::new()
                                 )
+                                .expect(zinc_const::panic::TEST_DATA_VALID)
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
                         )
+                        .expect(zinc_const::panic::TEST_DATA_VALID)
                     ),]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )
+                .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "accessed_level_1".to_owned(),
                 Source::test(
                     accessed_level_1,
                     PathBuf::from("accessed_level_1.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                     vec![(
                         "accessed_level_2".to_owned(),
                         Source::test(
                             accessed_level_2,
                             PathBuf::from("accessed_level_1/accessed_level_2.zn"),
-                            index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                             vec![(
                                 "accessed_level_3".to_owned(),
                                 Source::test(
@@ -1174,17 +1081,19 @@ fn main() -> Other {
                                     PathBuf::from(
                                         "accessed_level_1/accessed_level_2/accessed_level_3.zn"
                                     ),
-                                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                     HashMap::new()
                                 )
+                                .expect(zinc_const::panic::TEST_DATA_VALID)
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
                         )
+                        .expect(zinc_const::panic::TEST_DATA_VALID)
                     ),]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )
+                .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
         ]
         .into_iter()
@@ -1237,27 +1146,18 @@ fn main() -> Other {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
             (
                 "other".to_owned(),
-                Source::test(
-                    other,
-                    PathBuf::from("other.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "accessed".to_owned(),
-                Source::test(
-                    accessed,
-                    PathBuf::from("accessed.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(accessed, PathBuf::from("accessed.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
         ]
         .into_iter()
@@ -1310,27 +1210,18 @@ fn main() -> Other {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
             (
                 "other".to_owned(),
-                Source::test(
-                    other,
-                    PathBuf::from("other.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(other, PathBuf::from("other.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "accessed".to_owned(),
-                Source::test(
-                    accessed,
-                    PathBuf::from("accessed.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                    HashMap::new()
-                )
+                Source::test(accessed, PathBuf::from("accessed.zn"), HashMap::new())
+                    .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
         ]
         .into_iter()
@@ -1399,7 +1290,6 @@ fn main() -> Other {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
@@ -1408,42 +1298,40 @@ fn main() -> Other {
                 Source::test(
                     other_level_1,
                     PathBuf::from("other_level_1.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                     vec![(
                         "other_level_2".to_owned(),
                         Source::test(
                             other_level_2,
                             PathBuf::from("other_level_1/other_level_2.zn"),
-                            index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                             vec![(
                                 "other_level_3".to_owned(),
                                 Source::test(
                                     other_level_3,
                                     PathBuf::from("other_level_1/other_level_2/other_level_3.zn"),
-                                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                     HashMap::new()
                                 )
+                                .expect(zinc_const::panic::TEST_DATA_VALID)
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
                         )
+                        .expect(zinc_const::panic::TEST_DATA_VALID)
                     ),]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )
+                .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "accessed_level_1".to_owned(),
                 Source::test(
                     accessed_level_1,
                     PathBuf::from("accessed_level_1.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                     vec![(
                         "accessed_level_2".to_owned(),
                         Source::test(
                             accessed_level_2,
                             PathBuf::from("accessed_level_1/accessed_level_2.zn"),
-                            index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                             vec![(
                                 "accessed_level_3".to_owned(),
                                 Source::test(
@@ -1451,17 +1339,19 @@ fn main() -> Other {
                                     PathBuf::from(
                                         "accessed_level_1/accessed_level_2/accessed_level_3.zn"
                                     ),
-                                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                     HashMap::new()
                                 )
+                                .expect(zinc_const::panic::TEST_DATA_VALID)
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
                         )
+                        .expect(zinc_const::panic::TEST_DATA_VALID)
                     ),]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )
+                .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
         ]
         .into_iter()
@@ -1530,7 +1420,6 @@ fn main() -> Other {
 }
 "#;
 
-    let mut index_iter = 1..;
     assert!(crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![
@@ -1539,42 +1428,40 @@ fn main() -> Other {
                 Source::test(
                     other_level_1,
                     PathBuf::from("other_level_1.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                     vec![(
                         "other_level_2".to_owned(),
                         Source::test(
                             other_level_2,
                             PathBuf::from("other_level_1/other_level_2.zn"),
-                            index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                             vec![(
                                 "other_level_3".to_owned(),
                                 Source::test(
                                     other_level_3,
                                     PathBuf::from("other_level_1/other_level_2/other_level_3.zn"),
-                                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                     HashMap::new()
                                 )
+                                .expect(zinc_const::panic::TEST_DATA_VALID)
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
                         )
+                        .expect(zinc_const::panic::TEST_DATA_VALID)
                     ),]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )
+                .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
             (
                 "accessed_level_1".to_owned(),
                 Source::test(
                     accessed_level_1,
                     PathBuf::from("accessed_level_1.zn"),
-                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                     vec![(
                         "accessed_level_2".to_owned(),
                         Source::test(
                             accessed_level_2,
                             PathBuf::from("accessed_level_1/accessed_level_2.zn"),
-                            index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                             vec![(
                                 "accessed_level_3".to_owned(),
                                 Source::test(
@@ -1582,17 +1469,19 @@ fn main() -> Other {
                                     PathBuf::from(
                                         "accessed_level_1/accessed_level_2/accessed_level_3.zn"
                                     ),
-                                    index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
                                     HashMap::new()
                                 )
+                                .expect(zinc_const::panic::TEST_DATA_VALID)
                             ),]
                             .into_iter()
                             .collect::<HashMap<String, Source>>()
                         )
+                        .expect(zinc_const::panic::TEST_DATA_VALID)
                     ),]
                     .into_iter()
                     .collect::<HashMap<String, Source>>()
                 )
+                .expect(zinc_const::panic::TEST_DATA_VALID)
             ),
         ]
         .into_iter()

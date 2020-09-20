@@ -4,16 +4,11 @@
 
 #### Language
 
-*Project layout*
 - implemented the module system with access to the root and parent modules
 - allowed to declare constants, types, functions, and modules in arbitrary order
 - implemented unit-testing functionality
-
-*Object-oriented*
 - added methods with by-value `self` instance parameter
 - added the syntax sugar for calling methods via the dot `.` operator
-
-*Expressions*
 - extended constant expressions with arrays, tuples, structures, blocks, conditionals, and matches
 - implemented primitive constant functions
 - allowed bitwise operations on non-constant and witness values
@@ -21,8 +16,10 @@
 - implemented the type inference for integer literals in expressions
 - fixed the issue where operations on enums could result into an invalid variant
 - added aliases to the `use` import statement
+- allowed shadowing of items if they are declared in the parent scopes
 
-*Interfaces*
+#### Virtual machine
+
 - added the overflow checking and `enum` validation for input JSON files
 
 #### Compiler

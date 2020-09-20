@@ -80,10 +80,10 @@ mod tests {
 
         let expected = Ok((
             Vec::<Field>::new(),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 1))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 1))),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -94,14 +94,14 @@ mod tests {
 
         let expected = Ok((
             vec![Field::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), "a".to_owned()),
-                Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
+                Location::test(1, 1),
+                Identifier::new(Location::test(1, 1), "a".to_owned()),
+                Type::new(Location::test(1, 4), TypeVariant::integer_unsigned(232)),
             )],
-            Some(Token::new(Lexeme::Eof, Location::new(1, 8))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 8))),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -112,14 +112,14 @@ mod tests {
 
         let expected = Ok((
             vec![Field::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), "a".to_owned()),
-                Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
+                Location::test(1, 1),
+                Identifier::new(Location::test(1, 1), "a".to_owned()),
+                Type::new(Location::test(1, 4), TypeVariant::integer_unsigned(232)),
             )],
-            Some(Token::new(Lexeme::Eof, Location::new(1, 9))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 9))),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -131,25 +131,25 @@ mod tests {
         let expected = Ok((
             vec![
                 Field::new(
-                    Location::new(1, 1),
-                    Identifier::new(Location::new(1, 1), "a".to_owned()),
-                    Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
+                    Location::test(1, 1),
+                    Identifier::new(Location::test(1, 1), "a".to_owned()),
+                    Type::new(Location::test(1, 4), TypeVariant::integer_unsigned(232)),
                 ),
                 Field::new(
-                    Location::new(1, 10),
-                    Identifier::new(Location::new(1, 10), "b".to_owned()),
-                    Type::new(Location::new(1, 13), TypeVariant::integer_signed(128)),
+                    Location::test(1, 10),
+                    Identifier::new(Location::test(1, 10), "b".to_owned()),
+                    Type::new(Location::test(1, 13), TypeVariant::integer_signed(128)),
                 ),
                 Field::new(
-                    Location::new(1, 19),
-                    Identifier::new(Location::new(1, 19), "c".to_owned()),
-                    Type::new(Location::new(1, 22), TypeVariant::integer_unsigned(104)),
+                    Location::test(1, 19),
+                    Identifier::new(Location::test(1, 19), "c".to_owned()),
+                    Type::new(Location::test(1, 22), TypeVariant::integer_unsigned(104)),
                 ),
             ],
-            Some(Token::new(Lexeme::Eof, Location::new(1, 26))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 26))),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

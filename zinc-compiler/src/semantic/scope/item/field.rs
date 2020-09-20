@@ -23,13 +23,24 @@ pub struct Field {
     pub r#type: Type,
     /// The index of the field in the contract storage.
     pub index: usize,
+    /// Whether the field is public, that is, queryable as a part of the storage state.
+    pub is_public: bool,
+    /// Whether the field is external, that is, can be set only from outside the contract.
+    pub is_external: bool,
 }
 
 impl Field {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(location: Location, identifier: String, r#type: Type, index: usize) -> Self {
+    pub fn new(
+        location: Location,
+        identifier: String,
+        r#type: Type,
+        index: usize,
+        is_public: bool,
+        is_external: bool,
+    ) -> Self {
         let item_id = ITEM_INDEX.next(format!("field {}", identifier));
 
         Self {
@@ -38,6 +49,8 @@ impl Field {
             identifier,
             r#type,
             index,
+            is_public,
+            is_external,
         }
     }
 }

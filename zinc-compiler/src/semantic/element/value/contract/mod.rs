@@ -56,7 +56,7 @@ impl Contract {
                 .fields
                 .clone()
                 .into_iter()
-                .map(|(name, r#type)| (name, None, r#type))
+                .map(|field| (field.identifier.name, None, field.r#type))
                 .collect(),
             r#type: Some(r#type),
         }
@@ -86,23 +86,23 @@ impl Contract {
     pub fn validate(&mut self, expected: ContractType) -> Result<(), Error> {
         for (index, (name, location, r#type)) in self.fields.iter().enumerate() {
             match expected.fields.get(index) {
-                Some((expected_name, expected_type)) => {
-                    if name != expected_name {
+                Some(expected_field) => {
+                    if name != &expected_field.identifier.name {
                         return Err(Error::FieldExpected {
                             location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                             type_identifier: expected.identifier.to_owned(),
                             position: index + 1,
-                            expected: expected_name.to_owned(),
+                            expected: expected_field.identifier.name.to_owned(),
                             found: name.to_owned(),
                         });
                     }
 
-                    if r#type != expected_type {
+                    if r#type != &expected_field.r#type {
                         return Err(Error::FieldInvalidType {
                             location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                             type_identifier: expected.identifier.to_owned(),
-                            field_name: expected_name.to_owned(),
-                            expected: expected_type.to_string(),
+                            field_name: expected_field.identifier.name.to_owned(),
+                            expected: expected_field.r#type.to_string(),
                             found: r#type.to_string(),
                         });
                     }
@@ -138,6 +138,7 @@ impl Contract {
                     offset,
                     r#type.size(),
                     total_size,
+                    false,
                 );
 
                 let result = Value::try_from_type(r#type, false, self.location)

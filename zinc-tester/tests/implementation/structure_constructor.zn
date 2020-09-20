@@ -3,13 +3,13 @@
 //!     "input": {
 //!         "witness": "42"
 //!     },
-//!     "output": "42"
+//!     "output": "0x2a"
 //! }, {
 //!     "case": "second",
 //!     "input": {
 //!         "witness": "64"
 //!     },
-//!     "output": "64"
+//!     "output": "0x40"
 //! }, {
 //!     "case": "third",
 //!     "input": {
@@ -24,9 +24,7 @@ struct Data {
 
 impl Data {
     pub fn new(a: field) -> Self {
-        Self {
-            a: a,
-        }
+        Self { a: a }
     }
 }
 

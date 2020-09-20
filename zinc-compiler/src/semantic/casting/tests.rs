@@ -195,12 +195,12 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Casting {
-            location: Location::new(4, 18),
+            location: Location::test(4, 18),
             inner: CastingError::CastingFromInvalidType {
                 from: Type::field(None).to_string(),
                 to: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
-            reference: Location::new(4, 27),
+            reference: Location::test(4, 27),
         }),
     )));
 
@@ -220,12 +220,12 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Casting {
-            location: Location::new(4, 18),
+            location: Location::test(4, 18),
             inner: CastingError::CastingToInvalidType {
                 from: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 to: Type::boolean(None).to_string(),
             },
-            reference: Location::new(4, 27),
+            reference: Location::test(4, 27),
         }),
     )));
 
@@ -245,12 +245,12 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Casting {
-            location: Location::new(4, 24),
+            location: Location::test(4, 24),
             inner: CastingError::CastingToInvalidType {
                 from: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 to: Type::boolean(None).to_string(),
             },
-            reference: Location::new(4, 17),
+            reference: Location::test(4, 17),
         }),
     )));
 

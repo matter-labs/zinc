@@ -120,18 +120,18 @@ mod tests {
 
         let expected = Ok((
             FunctionLocalStatement::Let(LetStatement::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 9), "a".to_owned()),
+                Location::test(1, 1),
+                Identifier::new(Location::test(1, 9), "a".to_owned()),
                 true,
                 Some(Type::new(
-                    Location::new(1, 12),
+                    Location::test(1, 12),
                     TypeVariant::integer_unsigned(232),
                 )),
                 ExpressionTree::new(
-                    Location::new(1, 19),
+                    Location::test(1, 19),
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
-                            Location::new(1, 19),
+                            Location::test(1, 19),
                             LexicalIntegerLiteral::new_decimal("42".to_owned()),
                         ),
                     )),
@@ -141,7 +141,7 @@ mod tests {
             false,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -152,26 +152,26 @@ mod tests {
 
         let expected = Ok((
             FunctionLocalStatement::Expression(ExpressionTree::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 ExpressionTreeNode::operand(ExpressionOperand::Block(BlockExpression::new(
-                    Location::new(1, 1),
+                    Location::test(1, 1),
                     vec![],
                     Some(ExpressionTree::new(
-                        Location::new(1, 3),
+                        Location::test(1, 3),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
-                                Location::new(1, 3),
+                                Location::test(1, 3),
                                 LexicalIntegerLiteral::new_decimal("42".to_owned()),
                             ),
                         )),
                     )),
                 ))),
             )),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 7))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 7))),
             true,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

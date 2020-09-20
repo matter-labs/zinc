@@ -109,6 +109,13 @@ impl Scope {
     }
 
     ///
+    /// Returns the scope parent.
+    ///
+    pub fn parent(&self) -> Option<Rc<RefCell<Self>>> {
+        self.parent.to_owned()
+    }
+
+    ///
     /// Wraps the scope into `Rc<RefCell<_>>` simplifying most of initializations.
     ///
     pub fn wrap(self) -> Rc<RefCell<Self>> {
@@ -212,11 +219,10 @@ impl Scope {
         identifier: Identifier,
         r#type: Type,
         index: usize,
+        is_public: bool,
+        is_external: bool,
     ) -> Result<(), SemanticError> {
-        if let Ok(item) = scope
-            .borrow()
-            .resolve_item(&identifier, !identifier.is_self())
-        {
+        if let Ok(item) = scope.borrow().resolve_item(&identifier, false) {
             return Err(SemanticError::Scope(Error::ItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
@@ -230,6 +236,8 @@ impl Scope {
             identifier.name,
             r#type,
             index,
+            is_public,
+            is_external,
         ));
 
         scope.borrow().items.borrow_mut().insert(name, item.wrap());
@@ -487,6 +495,7 @@ impl Scope {
             let item = current_scope
                 .borrow()
                 .resolve_item(identifier, is_element_first)?;
+            item.borrow().define()?;
 
             if path.elements.len() == 1 && item.borrow().is_associated() {
                 return Err(SemanticError::Scope(Error::AssociatedItemWithoutOwner {

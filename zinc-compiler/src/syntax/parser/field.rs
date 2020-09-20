@@ -101,14 +101,14 @@ mod tests {
 
         let expected = Ok((
             Field::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), "id".to_owned()),
-                Type::new(Location::new(1, 5), TypeVariant::integer_unsigned(232)),
+                Location::test(1, 1),
+                Identifier::new(Location::test(1, 1), "id".to_owned()),
+                Type::new(Location::test(1, 5), TypeVariant::integer_unsigned(232)),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -118,12 +118,12 @@ mod tests {
         let input = r#"id"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
-            Location::new(1, 3),
+            Location::test(1, 3),
             Lexeme::Eof,
             Some(HINT_EXPECTED_TYPE),
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

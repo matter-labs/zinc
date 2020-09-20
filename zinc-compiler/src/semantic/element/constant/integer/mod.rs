@@ -1257,13 +1257,11 @@ impl TryFrom<&IntegerLiteral> for Integer {
     ///
     fn try_from(literal: &IntegerLiteral) -> Result<Self, Self::Error> {
         let (string, base) = match literal.inner {
-            LexicalIntegerLiteral::Binary { ref inner } => (inner, zinc_const::base::BINARY as u32),
-            LexicalIntegerLiteral::Octal { ref inner } => (inner, zinc_const::base::OCTAL as u32),
-            LexicalIntegerLiteral::Decimal { ref inner } => {
-                (inner, zinc_const::base::DECIMAL as u32)
-            }
+            LexicalIntegerLiteral::Binary { ref inner } => (inner, zinc_const::base::BINARY),
+            LexicalIntegerLiteral::Octal { ref inner } => (inner, zinc_const::base::OCTAL),
+            LexicalIntegerLiteral::Decimal { ref inner } => (inner, zinc_const::base::DECIMAL),
             LexicalIntegerLiteral::Hexadecimal { ref inner } => {
-                (inner, zinc_const::base::HEXADECIMAL as u32)
+                (inner, zinc_const::base::HEXADECIMAL)
             }
         };
 

@@ -108,7 +108,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::ScrutineeInvalidType {
-            location: Location::new(4, 24),
+            location: Location::test(4, 24),
             found: Type::unit(None).to_string(),
         }),
     )));
@@ -132,7 +132,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::NotExhausted {
-            location: Location::new(4, 18),
+            location: Location::test(4, 18),
         }),
     )));
 
@@ -154,7 +154,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::LessThanTwoBranches {
-            location: Location::new(4, 18),
+            location: Location::test(4, 18),
         }),
     )));
 
@@ -178,7 +178,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchUnreachable {
-            location: Location::new(7, 9),
+            location: Location::test(7, 9),
         }),
     )));
 
@@ -202,7 +202,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchUnreachable {
-            location: Location::new(7, 9),
+            location: Location::test(7, 9),
         }),
     )));
 
@@ -233,7 +233,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchUnreachable {
-            location: Location::new(14, 9),
+            location: Location::test(14, 9),
         }),
     )));
 
@@ -262,22 +262,16 @@ fn main() -> u8 {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchPatternPathExpectedConstant {
-            location: Location::new(7, 17),
+            location: Location::test(7, 17),
             found: Element::Type(Type::field(None)).to_string(),
         }),
     )));
-
-    let mut index_iter = 1..;
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
             "module_1".to_owned(),
-            Source::test(
-                module_1,
-                PathBuf::from("module_1.zn"),
-                index_iter.next().expect(zinc_const::panic::TEST_DATA_VALID),
-                HashMap::new(),
-            ),
+            Source::test(module_1, PathBuf::from("module_1.zn"), HashMap::new())
+                .expect(zinc_const::panic::TEST_DATA_VALID),
         )]
         .into_iter()
         .collect::<HashMap<String, Source>>(),
@@ -300,10 +294,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchPatternInvalidType {
-            location: Location::new(5, 9),
+            location: Location::test(5, 9),
             expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             found: Type::boolean(None).to_string(),
-            reference: Location::new(4, 24),
+            reference: Location::test(4, 24),
         }),
     )));
 
@@ -339,10 +333,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchPatternInvalidType {
-            location: Location::new(18, 9),
+            location: Location::test(18, 9),
             expected: "enumeration ListOne".to_owned(),
             found: "enumeration ListTwo".to_owned(),
-            reference: Location::new(16, 24),
+            reference: Location::test(16, 24),
         }),
     )));
 
@@ -365,10 +359,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchExpressionInvalidType {
-            location: Location::new(6, 14),
+            location: Location::test(6, 14),
             expected: Type::boolean(None).to_string(),
             found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
-            reference: Location::new(5, 14),
+            reference: Location::test(5, 14),
         }),
     )));
 
@@ -391,8 +385,8 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchDuplicate {
-            location: Location::new(6, 9),
-            reference: Location::new(5, 9),
+            location: Location::test(6, 9),
+            reference: Location::test(5, 9),
         }),
     )));
 
@@ -415,8 +409,8 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchDuplicate {
-            location: Location::new(6, 9),
-            reference: Location::new(5, 9),
+            location: Location::test(6, 9),
+            reference: Location::test(5, 9),
         }),
     )));
 

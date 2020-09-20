@@ -12,6 +12,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use crate::error::Error as CompilerError;
 use crate::generator::state::State;
 
 use self::directory::Directory;
@@ -123,14 +124,12 @@ impl Source {
     pub fn test(
         code: &str,
         path: PathBuf,
-        file_index: usize,
         dependencies: HashMap<String, Source>,
-    ) -> Self {
+    ) -> Result<Self, CompilerError> {
         if dependencies.is_empty() {
-            File::test(code, path, file_index).map(Self::File)
+            File::test(code, path).map(Self::File)
         } else {
-            Directory::test(code, path, file_index, dependencies).map(Self::Directory)
+            Directory::test(code, path, dependencies).map(Self::Directory)
         }
-        .expect(zinc_const::panic::TEST_DATA_VALID)
     }
 }

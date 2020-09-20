@@ -1240,6 +1240,12 @@ impl Error {
                     Some(format!("make this variable mutable: `mut {}`", name).as_str()),
                 )
             }
+            Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::MutatingExternalContractField { location, name }))) => {
+                Self::format_line(format!("cannot mutate the external contract storage field `{}`", name).as_str(),
+                                                 location,
+                                                 Some("such fields cannot be changed by the contract logic"),
+                )
+            }
             Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Structure(StructureValueError::FieldExpected { location, type_identifier, position, expected, found })))) |
             Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::Contract(ContractValueError::FieldExpected { location, type_identifier, position, expected, found })))) |
             Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Structure(StructureConstantError::FieldExpected { location, type_identifier, position, expected, found })))) => {
@@ -2030,9 +2036,9 @@ impl Error {
         let index = FILE_INDEX
             .inner
             .read()
-            .expect(zinc_const::panic::MULTI_THREADING);
+            .expect(zinc_const::panic::SYNCHRONIZATION);
         let context = index
-            .get(&location.file_index)
+            .get(&location.file)
             .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .code
             .lines()
@@ -2086,9 +2092,9 @@ impl Error {
         let index = FILE_INDEX
             .inner
             .read()
-            .expect(zinc_const::panic::MULTI_THREADING);
+            .expect(zinc_const::panic::SYNCHRONIZATION);
         let context = index
-            .get(&location.file_index)
+            .get(&location.file)
             .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .code
             .lines()
@@ -2103,7 +2109,7 @@ impl Error {
         ));
         if let Some(reference) = reference {
             let context = index
-                .get(&reference.file_index)
+                .get(&reference.file)
                 .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
                 .code
                 .lines()
@@ -2170,9 +2176,9 @@ impl Error {
         let index = FILE_INDEX
             .inner
             .read()
-            .expect(zinc_const::panic::MULTI_THREADING);
+            .expect(zinc_const::panic::SYNCHRONIZATION);
         let context = index
-            .get(&start.file_index)
+            .get(&start.file)
             .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .code
             .lines()

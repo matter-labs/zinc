@@ -84,8 +84,8 @@ impl fmt::Display for Error {
                         (hash, JsonValue::String(reason.to_owned()))
                     })
                     .collect();
-                let reasons =
-                    serde_json::to_string_pretty(&reasons).expect(zinc_const::panic::DATA_VALID);
+                let reasons = serde_json::to_string_pretty(&reasons)
+                    .expect(zinc_const::panic::DATA_CONVERSION);
 
                 write!(f, "Transfer failures: {}", reasons)
             }

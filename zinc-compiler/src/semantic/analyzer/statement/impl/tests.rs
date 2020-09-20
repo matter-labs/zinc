@@ -68,7 +68,7 @@ fn main() {}
 
     let expected = Err(Error::Semantic(SemanticError::Statement(
         StatementError::Impl(ImplStatementError::ExpectedStructureOrEnumeration {
-            location: Location::new(4, 6),
+            location: Location::test(4, 6),
             found: "X".to_owned(),
         }),
     )));

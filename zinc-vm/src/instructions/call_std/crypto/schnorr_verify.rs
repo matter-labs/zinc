@@ -163,6 +163,7 @@ mod tests {
     use crate::instructions::call_std::INativeCallable;
 
     #[test]
+    #[ignore]
     fn test_verify() -> Result<(), RuntimeError> {
         let params = AltJubjubBn256::new();
         let p_g = jubjub::FixedGenerators::SpendingKeyGenerator;

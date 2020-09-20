@@ -124,12 +124,19 @@ and fill the values you are going to pass:
 }
 ```
 
-To publish the contract, use this simple command with your account ID,
-which can be any integer for now:
+To publish the contract, use this simple command with the network identifier
+and instance name:
 
 ```bash
-zargo publish --id 42
+zargo publish --network ropsten --instance default
 ```
+
+To see the available testnets, enter `zargo publish --help`. When the contract
+is successfully published, its zkSync account ID will be returned. You will need
+it for the `id` argument in the consequent calls. Let's assume it equal to `42`.
+
+The instance name is used to uniquely identify your published contract without
+memorizing its zkSync account ID.
 
 The contract has been published!
 
@@ -139,7 +146,7 @@ The `constant_price` contract is now published, and its dedicated storage
 instance is created. You may query the Zandbox server to see the current balances:
 
 ```bash
-zargo query --id 42
+zargo query --network ropsten --id 42
 ```
 
 The output must be equal to the constructor input you specified above.
@@ -162,7 +169,7 @@ To call the contract method, use the following command with the method name and
 contract account ID:
 
 ```bash
-zargo call --method exchange --id 42
+zargo call --network localhost --id 42 --method exchange
 ```
 
 After the call has succeeded, query the contract storage again to see the

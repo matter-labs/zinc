@@ -15,6 +15,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_build::Contract as BuildContract;
+use zinc_build::ContractFieldValue;
 use zinc_build::Type as BuildType;
 use zinc_build::Value as BuildValue;
 use zinc_const::UnitTestExitCode;
@@ -64,17 +65,16 @@ impl Facade {
         let inputs_flat = input.into_flat_values();
         let output_type = method.output.into_contract_metadata();
 
-        let mut storage_names = Vec::with_capacity(self.inner.storage.len());
+        let storage_fields = self.inner.storage.clone();
         let mut storage_types = Vec::with_capacity(self.inner.storage.len());
-        for (name, r#type) in self.inner.storage.clone().into_iter() {
-            storage_names.push(name);
-            storage_types.push(r#type);
+        for field in self.inner.storage.iter() {
+            storage_types.push(field.r#type.to_owned());
         }
         let storage_values = match storage {
             BuildValue::Contract(fields) => fields
                 .into_iter()
-                .map(|(_name, value)| {
-                    let mut values = value.into_flat_values();
+                .map(|field| {
+                    let mut values = field.value.into_flat_values();
                     values.reverse();
                     values
                 })
@@ -120,13 +120,13 @@ impl Facade {
                 .into_inner()
                 .into_values()
                 .into_iter()
-                .zip(storage_names)
+                .zip(storage_fields)
                 .enumerate()
-                .map(|(index, (mut values, name))| {
+                .map(|(index, (mut values, field))| {
                     values.reverse();
 
-                    (
-                        name,
+                    ContractFieldValue::new(
+                        field.name,
                         BuildValue::from_flat_values(
                             storage_types
                                 .get(index)
@@ -134,9 +134,11 @@ impl Facade {
                                 .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                             values.as_slice(),
                         ),
+                        field.is_public,
+                        field.is_external,
                     )
                 })
-                .collect::<Vec<(String, BuildValue)>>(),
+                .collect::<Vec<ContractFieldValue>>(),
         );
 
         let transfers = state.execution_state.transfers;
@@ -164,17 +166,16 @@ impl Facade {
         let inputs_flat = input.into_flat_values();
         let output_type = method.output.into_contract_metadata();
 
-        let mut storage_names = Vec::with_capacity(self.inner.storage.len());
+        let storage_fields = self.inner.storage.clone();
         let mut storage_types = Vec::with_capacity(self.inner.storage.len());
-        for (name, r#type) in self.inner.storage.clone().into_iter() {
-            storage_names.push(name);
-            storage_types.push(r#type);
+        for field in self.inner.storage.iter() {
+            storage_types.push(field.r#type.to_owned());
         }
         let storage_values = match storage {
             BuildValue::Contract(fields) => fields
                 .into_iter()
-                .map(|(_name, value)| {
-                    let mut values = value.into_flat_values();
+                .map(|field| {
+                    let mut values = field.value.into_flat_values();
                     values.reverse();
                     values
                 })
@@ -226,13 +227,13 @@ impl Facade {
                 .into_inner()
                 .into_values()
                 .into_iter()
-                .zip(storage_names)
+                .zip(storage_fields)
                 .enumerate()
-                .map(|(index, (mut values, name))| {
+                .map(|(index, (mut values, field))| {
                     values.reverse();
 
-                    (
-                        name,
+                    ContractFieldValue::new(
+                        field.name,
                         BuildValue::from_flat_values(
                             storage_types
                                 .get(index)
@@ -240,9 +241,11 @@ impl Facade {
                                 .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                             values.as_slice(),
                         ),
+                        field.is_public,
+                        field.is_external,
                     )
                 })
-                .collect::<Vec<(String, BuildValue)>>(),
+                .collect::<Vec<ContractFieldValue>>(),
         );
 
         let transfers = state.execution_state.transfers;
@@ -266,7 +269,7 @@ impl Facade {
                 .storage
                 .clone()
                 .into_iter()
-                .map(|(_name, r#type)| r#type)
+                .map(|field| field.r#type)
                 .collect::<Vec<BuildType>>();
             let storage = SetupStorage::new(storage_types);
             let storage_gadget =
@@ -315,7 +318,7 @@ impl Facade {
             .inner
             .storage
             .iter()
-            .map(|(_name, r#type)| r#type.to_owned())
+            .map(|field| field.r#type.to_owned())
             .collect();
         let storage = SetupStorage::new(storage_fields);
 
@@ -359,17 +362,15 @@ impl Facade {
         let inputs_flat = input.into_flat_values();
         let output_type = method.output.into_contract_metadata();
 
-        let mut storage_names = Vec::with_capacity(self.inner.storage.len());
         let mut storage_types = Vec::with_capacity(self.inner.storage.len());
-        for (name, r#type) in self.inner.storage.clone().into_iter() {
-            storage_names.push(name);
-            storage_types.push(r#type);
+        for field in self.inner.storage.iter() {
+            storage_types.push(field.r#type.to_owned());
         }
         let storage_values = match storage {
             BuildValue::Contract(fields) => fields
                 .into_iter()
-                .map(|(_name, value)| {
-                    let mut values = value.into_flat_values();
+                .map(|field| {
+                    let mut values = field.value.into_flat_values();
                     values.reverse();
                     values
                 })

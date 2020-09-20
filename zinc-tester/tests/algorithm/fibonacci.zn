@@ -20,9 +20,9 @@
 
 const INDEX: u8 = 16;
 
-fn main(n: u8) -> field {
-    let mut value_1: field = 0;
-    let mut value_2: field = 1;
+fn main(n: u8) -> u248 {
+    let mut value_1: u248 = 0;
+    let mut value_2: u248 = 1;
     let mut fibo = value_1;
 
     for i in 1..=INDEX while i + 2 <= n {

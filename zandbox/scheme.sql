@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS zandbox.contracts (
     account_id         BIGINT NOT NULL,
     name               TEXT NOT NULL,
     version            TEXT NOT NULL,
+    instance           TEXT NOT NULL,
 
     zinc_version       TEXT NOT NULL,
     source_code        JSON NOT NULL,
@@ -17,6 +18,8 @@ CREATE TABLE IF NOT EXISTS zandbox.contracts (
 
     PRIMARY KEY        (account_id),
 
+    CONSTRAINT unq_name_version_instance
+        UNIQUE (name, version, instance),
     CONSTRAINT unq_eth_address
         UNIQUE (eth_address)
 );

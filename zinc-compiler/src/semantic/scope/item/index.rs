@@ -41,7 +41,7 @@ impl Index {
         let mut index = self
             .inner
             .write()
-            .expect(zinc_const::panic::MULTI_THREADING);
+            .expect(zinc_const::panic::SYNCHRONIZATION);
         let item_id = index.len();
 
         log::debug!("Item ID {:06} for {}", item_id, title);

@@ -156,11 +156,11 @@ mod tests {
         let input = r#"{}"#;
 
         let expected = Ok((
-            BlockExpression::new(Location::new(1, 1), vec![], None),
+            BlockExpression::new(Location::test(1, 1), vec![], None),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -171,25 +171,25 @@ mod tests {
 
         let expected = Ok((
             BlockExpression::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 vec![],
                 Some(ExpressionTree::new_with_leaves(
-                    Location::new(1, 5),
+                    Location::test(1, 5),
                     ExpressionTreeNode::operator(ExpressionOperator::Addition),
                     Some(ExpressionTree::new(
-                        Location::new(1, 3),
+                        Location::test(1, 3),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
-                                Location::new(1, 3),
+                                Location::test(1, 3),
                                 LexicalIntegerLiteral::new_decimal("2".to_owned()),
                             ),
                         )),
                     )),
                     Some(ExpressionTree::new(
-                        Location::new(1, 7),
+                        Location::test(1, 7),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
-                                Location::new(1, 7),
+                                Location::test(1, 7),
                                 LexicalIntegerLiteral::new_decimal("1".to_owned()),
                             ),
                         )),
@@ -199,7 +199,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -209,13 +209,13 @@ mod tests {
         let input = r#"{ 42 )"#;
 
         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 6),
+            Location::test(1, 6),
             vec!["}"],
             Lexeme::Symbol(Symbol::ParenthesisRight),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

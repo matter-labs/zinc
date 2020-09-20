@@ -75,7 +75,7 @@ where
 {
     let mut new_array = Vec::from(array);
 
-    let i = index.get_constant_usize()?;
+    let i = index.to_constant_unchecked()?.get_constant_usize()?;
     if i >= array.len() {
         return Err(RuntimeError::IndexOutOfBounds {
             lower_bound: 0,

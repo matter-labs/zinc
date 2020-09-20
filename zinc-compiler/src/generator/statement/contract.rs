@@ -5,11 +5,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::r#type::Type;
+use crate::generator::r#type::contract_field::ContractField as ContractFieldType;
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
 use crate::lexical::token::location::Location;
-use crate::semantic::element::r#type::Type as SemanticType;
+use crate::semantic::element::r#type::contract::field::Field as SemanticContractFieldType;
 
 ///
 /// The Zinc VM storage memory allocating statement.
@@ -19,22 +19,19 @@ pub struct Statement {
     /// The statement location in the source code.
     pub location: Location,
     /// The contract storage fields ordered array.
-    pub fields: Vec<(String, Type)>,
+    pub fields: Vec<ContractFieldType>,
 }
 
 impl Statement {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(location: Location, fields: Vec<(String, SemanticType)>) -> Self {
+    pub fn new(location: Location, fields: Vec<SemanticContractFieldType>) -> Self {
         Self {
             location,
             fields: fields
                 .into_iter()
-                .filter_map(|(name, r#type)| match Type::try_from_semantic(&r#type) {
-                    Some(r#type) => Some((name, r#type)),
-                    None => None,
-                })
+                .filter_map(|field| ContractFieldType::try_from_semantic(&field))
                 .collect(),
         }
     }

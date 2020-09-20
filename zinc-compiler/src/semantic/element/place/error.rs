@@ -27,6 +27,13 @@ pub enum Error {
         /// The location of the immutable variable. `None` for built-in items.
         reference: Option<Location>,
     },
+    /// Tried to change an external contract storage field.
+    MutatingExternalContractField {
+        /// The mutating expression location.
+        location: Location,
+        /// The name of the external contract storage field.
+        name: String,
+    },
 
     /// The `[]` index operator expects an array value as the first operand.
     OperatorIndexFirstOperandExpectedArray {

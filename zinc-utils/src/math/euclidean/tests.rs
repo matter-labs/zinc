@@ -4,7 +4,7 @@
 
 #![cfg(test)]
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use crate::math::euclidean;
 

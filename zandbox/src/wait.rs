@@ -8,12 +8,14 @@ use std::time::Instant;
 use futures::compat::Future01CompatExt;
 use futures::StreamExt;
 
-use zksync::error::ClientError;
 use zksync::web3::types::H256;
 use zksync::zksync_models::node::AccountId;
 use zksync::Wallet;
 
-pub(crate) async fn eth_tx(ethereum: &zksync::EthereumProvider, hash: H256) {
+pub(crate) async fn eth_tx(
+    ethereum: &zksync::EthereumProvider,
+    hash: H256,
+) -> Result<(), zksync::web3::Error> {
     let timeout = Duration::from_secs(60);
     let mut poller = async_std::stream::interval(Duration::from_millis(100));
     let start = Instant::now();
@@ -23,8 +25,7 @@ pub(crate) async fn eth_tx(ethereum: &zksync::EthereumProvider, hash: H256) {
         .eth()
         .transaction_receipt(hash)
         .compat()
-        .await
-        .unwrap()
+        .await?
         .is_none()
     {
         if start.elapsed() > timeout {
@@ -33,9 +34,13 @@ pub(crate) async fn eth_tx(ethereum: &zksync::EthereumProvider, hash: H256) {
 
         poller.next().await;
     }
+
+    Ok(())
 }
 
-pub(crate) async fn account_id(wallet: &mut Wallet) -> Result<AccountId, ClientError> {
+pub(crate) async fn account_id(
+    wallet: &mut Wallet,
+) -> Result<AccountId, zksync::error::ClientError> {
     let timeout = Duration::from_secs(60);
     let mut poller = async_std::stream::interval(std::time::Duration::from_millis(100));
     let start = Instant::now();

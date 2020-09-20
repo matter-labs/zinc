@@ -3,7 +3,7 @@
 //!
 
 use failure::Fail;
-use num_bigint::BigInt;
+use num::BigInt;
 
 ///
 /// The type inference error.

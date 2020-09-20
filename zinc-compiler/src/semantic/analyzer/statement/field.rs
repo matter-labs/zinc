@@ -26,7 +26,14 @@ impl Analyzer {
     ) -> Result<(), Error> {
         let r#type = Type::try_from_syntax(statement.r#type, scope.clone())?;
 
-        Scope::define_field(scope, statement.identifier, r#type, index)?;
+        Scope::define_field(
+            scope,
+            statement.identifier,
+            r#type,
+            index,
+            statement.is_public,
+            statement.is_external,
+        )?;
 
         Ok(())
     }

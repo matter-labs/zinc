@@ -1,0 +1,9 @@
+//!
+//! The Curve Stableswap contract types.
+//!
+
+pub mod token_id;
+pub mod transactions;
+
+pub type Address = u160;
+pub type Balance = u248;

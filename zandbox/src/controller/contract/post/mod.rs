@@ -90,42 +90,47 @@ pub async fn handle(
     };
     let provider = zksync::Provider::new(network);
 
-    log::debug!("Generating ETH private key");
+    log::debug!("Generating an ETH private key");
     let mut contract_private_key = H256::default();
     contract_private_key.randomize();
     let contract_eth_address: H160 =
-        PackedEthSignature::address_from_private_key(&contract_private_key).unwrap();
+        PackedEthSignature::address_from_private_key(&contract_private_key)
+            .expect(zinc_const::panic::DATA_CONVERSION);
     log::debug!(
         "The contract ETH address is {}",
-        contract_eth_address.to_string()
+        serde_json::to_string(&contract_eth_address).expect(zinc_const::panic::DATA_CONVERSION),
     );
 
-    let source_address: H160 = body.transfer.source_address[2..]
+    let owner_private_key: H256 = body
+        .owner_private_key
         .parse()
-        .map_err(Error::InvalidSourceAddress)?;
-    let source_private_key: H256 = body.transfer.source_private_key[2..]
-        .parse()
-        .map_err(Error::InvalidSourcePrivateKey)?;
+        .map_err(Error::InvalidOwnerPrivateKey)?;
+    let owner_eth_address: H160 = PackedEthSignature::address_from_private_key(&owner_private_key)
+        .expect(zinc_const::panic::DATA_CONVERSION);
 
     let owner_wallet_credentials =
-        zksync::WalletCredentials::from_eth_pk(source_address, source_private_key)
+        zksync::WalletCredentials::from_eth_pk(owner_eth_address, owner_private_key)
             .map_err(Error::ZkSync)?;
     let owner_wallet = zksync::Wallet::new(provider.clone(), owner_wallet_credentials)
         .await
         .map_err(Error::ZkSync)?;
 
-    log::debug!("Making the initial deposit");
+    log::debug!("Making the initial zero deposit");
     let ethereum = owner_wallet
         .ethereum("http://localhost:8545")
         .await
         .map_err(Error::ZkSync)?;
-    let amount = U256::from(body.transfer.amount.to_bytes_be().as_slice())
-        .pow(zinc_const::zandbox::ETH_BALANCE_EXPONENT.into());
     let eth_deposit_tx_hash = ethereum
-        .deposit("ETH", amount, contract_eth_address)
+        .deposit(
+            "ETH",
+            U256::from(100).pow(zinc_const::zandbox::ETH_BALANCE_EXPONENT.into()),
+            contract_eth_address,
+        )
         .await
         .map_err(Error::ZkSync)?;
-    crate::wait::eth_tx(&ethereum, eth_deposit_tx_hash).await;
+    crate::wait::eth_tx(&ethereum, eth_deposit_tx_hash)
+        .await
+        .map_err(Error::ZkSyncWeb3)?;
 
     log::debug!("Performing the change-pubkey transaction");
     let contract_wallet_credentials =
@@ -147,25 +152,34 @@ pub async fn handle(
     match output.result {
         BuildValue::Structure(mut storage_fields) => match storage_fields.remove(0).1 {
             BuildValue::Contract(storage_fields) => {
-                for (index, (name, value)) in storage_fields.into_iter().enumerate() {
-                    let value = value.into_json();
+                for (index, mut field) in storage_fields.into_iter().enumerate() {
+                    match field.name.as_str() {
+                        "owner" if field.is_external => {
+                            field.value = BuildValue::scalar_from_h160(owner_eth_address)
+                        }
+                        "address" if field.is_external => {
+                            field.value = BuildValue::scalar_from_h160(contract_eth_address)
+                        }
+                        _ => {}
+                    }
+
                     fields.push(FieldInsertInput::new(
                         contract_account_id as i64,
                         index as i16,
-                        name,
-                        value,
+                        field.name,
+                        field.value.into_json(),
                     ));
                 }
             }
-            _ => return Err(Error::InvalidStorage),
+            _ => panic!("The database contract storage is corrupted"),
         },
-        _ => return Err(Error::InvalidStorage),
+        _ => panic!("The database contract storage is corrupted"),
     }
 
-    log::debug!("Writing the contract to the server cache");
+    log::debug!("Writing the contract to the temporary server cache");
     app_data
         .write()
-        .expect(zinc_const::panic::MULTI_THREADING)
+        .expect(zinc_const::panic::SYNCHRONIZATION)
         .contracts
         .insert(
             contract_account_id,
@@ -175,14 +189,15 @@ pub async fn handle(
     log::debug!("Writing the contract to the persistent PostgreSQL database");
     app_data
         .read()
-        .expect(zinc_const::panic::MULTI_THREADING)
+        .expect(zinc_const::panic::SYNCHRONIZATION)
         .postgresql_client
         .insert_contract(ContractInsertInput::new(
             contract_account_id as i64,
             query.name,
             query.version,
+            query.instance,
             env!("CARGO_PKG_VERSION").to_owned(),
-            serde_json::to_value(body.source).expect(zinc_const::panic::DATA_VALID),
+            serde_json::to_value(body.source).expect(zinc_const::panic::DATA_CONVERSION),
             body.bytecode,
             body.verifying_key,
             contract_eth_address.into(),
@@ -194,7 +209,7 @@ pub async fn handle(
     log::debug!("Writing the contract storage to the persistent PostgreSQL database");
     app_data
         .read()
-        .expect(zinc_const::panic::MULTI_THREADING)
+        .expect(zinc_const::panic::SYNCHRONIZATION)
         .postgresql_client
         .insert_fields(fields)
         .await

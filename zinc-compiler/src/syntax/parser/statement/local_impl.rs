@@ -150,11 +150,11 @@ impl Parser {
 
                             if let Some(token) = self.keyword_constant {
                                 builder.set_location(token.location);
-                                builder.set_is_constant();
+                                builder.set_constant();
                             }
                             if let Some(token) = self.keyword_public {
                                 builder.set_location(token.location);
-                                builder.set_is_public();
+                                builder.set_public();
                             }
 
                             builder.set_attributes(self.attributes);
@@ -201,26 +201,26 @@ mod tests {
 
         let expected = Ok((
             ImplementationLocalStatement::Fn(FnStatement::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 true,
                 false,
-                Identifier::new(Location::new(1, 8), "f".to_owned()),
+                Identifier::new(Location::test(1, 8), "f".to_owned()),
                 vec![BindingPattern::new(
-                    Location::new(1, 10),
+                    Location::test(1, 10),
                     BindingPatternVariant::new_binding(
-                        Identifier::new(Location::new(1, 10), "a".to_owned()),
+                        Identifier::new(Location::test(1, 10), "a".to_owned()),
                         false,
                     ),
-                    Type::new(Location::new(1, 13), TypeVariant::field()),
+                    Type::new(Location::test(1, 13), TypeVariant::field()),
                 )],
-                Some(Type::new(Location::new(1, 23), TypeVariant::field())),
-                BlockExpression::new(Location::new(1, 29), vec![], None),
+                Some(Type::new(Location::test(1, 23), TypeVariant::field())),
+                BlockExpression::new(Location::test(1, 29), vec![], None),
                 vec![],
             )),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -231,26 +231,26 @@ mod tests {
 
         let expected = Ok((
             ImplementationLocalStatement::Fn(FnStatement::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 false,
                 true,
-                Identifier::new(Location::new(1, 10), "f".to_owned()),
+                Identifier::new(Location::test(1, 10), "f".to_owned()),
                 vec![BindingPattern::new(
-                    Location::new(1, 12),
+                    Location::test(1, 12),
                     BindingPatternVariant::new_binding(
-                        Identifier::new(Location::new(1, 12), "a".to_owned()),
+                        Identifier::new(Location::test(1, 12), "a".to_owned()),
                         false,
                     ),
-                    Type::new(Location::new(1, 15), TypeVariant::field()),
+                    Type::new(Location::test(1, 15), TypeVariant::field()),
                 )],
-                Some(Type::new(Location::new(1, 25), TypeVariant::field())),
-                BlockExpression::new(Location::new(1, 31), vec![], None),
+                Some(Type::new(Location::test(1, 25), TypeVariant::field())),
+                BlockExpression::new(Location::test(1, 31), vec![], None),
                 vec![],
             )),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -261,26 +261,26 @@ mod tests {
 
         let expected = Ok((
             ImplementationLocalStatement::Fn(FnStatement::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 true,
                 true,
-                Identifier::new(Location::new(1, 14), "f".to_owned()),
+                Identifier::new(Location::test(1, 14), "f".to_owned()),
                 vec![BindingPattern::new(
-                    Location::new(1, 16),
+                    Location::test(1, 16),
                     BindingPatternVariant::new_binding(
-                        Identifier::new(Location::new(1, 16), "a".to_owned()),
+                        Identifier::new(Location::test(1, 16), "a".to_owned()),
                         false,
                     ),
-                    Type::new(Location::new(1, 19), TypeVariant::field()),
+                    Type::new(Location::test(1, 19), TypeVariant::field()),
                 )],
-                Some(Type::new(Location::new(1, 29), TypeVariant::field())),
-                BlockExpression::new(Location::new(1, 35), vec![], None),
+                Some(Type::new(Location::test(1, 29), TypeVariant::field())),
+                BlockExpression::new(Location::test(1, 35), vec![], None),
                 vec![],
             )),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -294,23 +294,23 @@ fn test() {}
 
         let expected = Ok((
             ImplementationLocalStatement::Fn(FnStatement::new(
-                Location::new(3, 1),
+                Location::test(3, 1),
                 false,
                 false,
-                Identifier::new(Location::new(3, 4), "test".to_owned()),
+                Identifier::new(Location::test(3, 4), "test".to_owned()),
                 vec![],
                 None,
-                BlockExpression::new(Location::new(3, 11), vec![], None),
+                BlockExpression::new(Location::test(3, 11), vec![], None),
                 vec![Attribute::new(
-                    Location::new(2, 1),
+                    Location::test(2, 1),
                     false,
-                    Identifier::new(Location::new(2, 3), "test".to_owned()),
+                    Identifier::new(Location::test(2, 3), "test".to_owned()),
                 )],
             )),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -326,35 +326,35 @@ fn test() {}
 
         let expected = Ok((
             ImplementationLocalStatement::Fn(FnStatement::new(
-                Location::new(5, 1),
+                Location::test(5, 1),
                 false,
                 false,
-                Identifier::new(Location::new(5, 4), "test".to_owned()),
+                Identifier::new(Location::test(5, 4), "test".to_owned()),
                 vec![],
                 None,
-                BlockExpression::new(Location::new(5, 11), vec![], None),
+                BlockExpression::new(Location::test(5, 11), vec![], None),
                 vec![
                     Attribute::new(
-                        Location::new(2, 1),
+                        Location::test(2, 1),
                         false,
-                        Identifier::new(Location::new(2, 3), "test".to_owned()),
+                        Identifier::new(Location::test(2, 3), "test".to_owned()),
                     ),
                     Attribute::new(
-                        Location::new(3, 1),
+                        Location::test(3, 1),
                         false,
-                        Identifier::new(Location::new(3, 3), "should_panic".to_owned()),
+                        Identifier::new(Location::test(3, 3), "should_panic".to_owned()),
                     ),
                     Attribute::new(
-                        Location::new(4, 1),
+                        Location::test(4, 1),
                         false,
-                        Identifier::new(Location::new(4, 3), "ignore".to_owned()),
+                        Identifier::new(Location::test(4, 3), "ignore".to_owned()),
                     ),
                 ],
             )),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

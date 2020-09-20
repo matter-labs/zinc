@@ -214,27 +214,27 @@ mod tests {
 
         let expected = Ok((
             FnStatement::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 false,
                 false,
-                Identifier::new(Location::new(1, 4), "f".to_owned()),
+                Identifier::new(Location::test(1, 4), "f".to_owned()),
                 vec![BindingPattern::new(
-                    Location::new(1, 6),
+                    Location::test(1, 6),
                     BindingPatternVariant::new_binding(
-                        Identifier::new(Location::new(1, 6), "a".to_owned()),
+                        Identifier::new(Location::test(1, 6), "a".to_owned()),
                         false,
                     ),
-                    Type::new(Location::new(1, 9), TypeVariant::field()),
+                    Type::new(Location::test(1, 9), TypeVariant::field()),
                 )],
                 None,
-                BlockExpression::new(Location::new(1, 16), vec![], None),
+                BlockExpression::new(Location::test(1, 16), vec![], None),
                 vec![],
             ),
             None,
         ));
 
         let result = Parser::default()
-            .parse(TokenStream::new(input).wrap(), None)
+            .parse(TokenStream::test(input).wrap(), None)
             .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);
@@ -246,27 +246,27 @@ mod tests {
 
         let expected = Ok((
             FnStatement::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 false,
                 false,
-                Identifier::new(Location::new(1, 4), "f".to_owned()),
+                Identifier::new(Location::test(1, 4), "f".to_owned()),
                 vec![BindingPattern::new(
-                    Location::new(1, 6),
+                    Location::test(1, 6),
                     BindingPatternVariant::new_binding(
-                        Identifier::new(Location::new(1, 6), "a".to_owned()),
+                        Identifier::new(Location::test(1, 6), "a".to_owned()),
                         false,
                     ),
-                    Type::new(Location::new(1, 9), TypeVariant::field()),
+                    Type::new(Location::test(1, 9), TypeVariant::field()),
                 )],
-                Some(Type::new(Location::new(1, 19), TypeVariant::field())),
-                BlockExpression::new(Location::new(1, 25), vec![], None),
+                Some(Type::new(Location::test(1, 19), TypeVariant::field())),
+                BlockExpression::new(Location::test(1, 25), vec![], None),
                 vec![],
             ),
             None,
         ));
 
         let result = Parser::default()
-            .parse(TokenStream::new(input).wrap(), None)
+            .parse(TokenStream::test(input).wrap(), None)
             .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);
@@ -277,13 +277,13 @@ mod tests {
         let input = r#"fn (a: u8) -> field {}"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
-            Location::new(1, 4),
+            Location::test(1, 4),
             Lexeme::Symbol(Symbol::ParenthesisLeft),
             Some(super::HINT_EXPECTED_IDENTIFIER),
         )));
 
         let result = Parser::default()
-            .parse(TokenStream::new(input).wrap(), None)
+            .parse(TokenStream::test(input).wrap(), None)
             .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);
@@ -294,14 +294,14 @@ mod tests {
         let input = r#"fn sort -> field {}"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 9),
+            Location::test(1, 9),
             vec!["("],
             Lexeme::Symbol(Symbol::MinusGreater),
             Some(super::HINT_EXPECTED_ARGUMENT_LIST),
         )));
 
         let result = Parser::default()
-            .parse(TokenStream::new(input).wrap(), None)
+            .parse(TokenStream::test(input).wrap(), None)
             .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);
@@ -312,14 +312,14 @@ mod tests {
         let input = r#"fn sort(array: [u8; 100]] -> field {}"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 25),
+            Location::test(1, 25),
             vec![",", ")"],
             Lexeme::Symbol(Symbol::BracketSquareRight),
             None,
         )));
 
         let result = Parser::default()
-            .parse(TokenStream::new(input).wrap(), None)
+            .parse(TokenStream::test(input).wrap(), None)
             .map(|(builder, next)| (builder.finish(), next));
 
         assert_eq!(result, expected);

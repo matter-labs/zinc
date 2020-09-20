@@ -113,17 +113,17 @@ mod tests {
 
         let expected = Ok((
             Variant::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), "A".to_owned()),
+                Location::test(1, 1),
+                Identifier::new(Location::test(1, 1), "A".to_owned()),
                 IntegerLiteral::new(
-                    Location::new(1, 5),
+                    Location::test(1, 5),
                     LexicalIntegerLiteral::new_decimal("1".to_owned()),
                 ),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -133,12 +133,12 @@ mod tests {
         let input = r#"A"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_value(
-            Location::new(1, 2),
+            Location::test(1, 2),
             Lexeme::Eof,
             Some(super::HINT_EXPECTED_VALUE),
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -148,11 +148,11 @@ mod tests {
         let input = r#"A = id"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_integer_literal(
-            Location::new(1, 5),
+            Location::test(1, 5),
             Lexeme::Identifier(LexicalIdentifier::new("id".to_owned())),
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

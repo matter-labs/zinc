@@ -1,5 +1,5 @@
 //!
-//! The contract resource POST call method module.
+//! The contract resource POST method `call` module.
 //!
 
 pub mod error;
@@ -15,6 +15,7 @@ use serde_json::Value as JsonValue;
 
 use zksync::web3::types::H160;
 
+use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 
@@ -48,7 +49,7 @@ pub async fn handle(
 
     let contract = app_data
         .read()
-        .expect(zinc_const::panic::MULTI_THREADING)
+        .expect(zinc_const::panic::SYNCHRONIZATION)
         .contracts
         .get(&query.account_id)
         .cloned()
@@ -70,22 +71,28 @@ pub async fn handle(
     log::debug!("Loading the pre-transaction contract storage");
     let storage_value = app_data
         .read()
-        .expect(zinc_const::panic::MULTI_THREADING)
+        .expect(zinc_const::panic::SYNCHRONIZATION)
         .postgresql_client
         .select_fields(FieldSelectInput::new(query.account_id as i64))
         .await
         .map_err(Error::Database)?;
     let storage_fields_count = storage_value.len();
-    assert!(
-        storage_fields_count == contract.build.storage.len(),
+    assert_eq!(
+        storage_fields_count,
+        contract.build.storage.len(),
         "The database contract storage is corrupted"
     );
     let mut fields = Vec::with_capacity(storage_value.len());
     for (index, FieldSelectOutput { name, value }) in storage_value.into_iter().enumerate() {
-        let r#type = contract.build.storage[index].1.clone();
+        let r#type = contract.build.storage[index].r#type.clone();
         let value = BuildValue::try_from_typed_json(value, r#type)
             .expect("The database contract storage is corrupted");
-        fields.push((name, value))
+        fields.push(BuildContractFieldValue::new(
+            name,
+            value,
+            contract.build.storage[index].is_public,
+            contract.build.storage[index].is_external,
+        ));
     }
     let storage_value = BuildValue::Contract(fields);
 
@@ -105,12 +112,11 @@ pub async fn handle(
     let mut storage_fields = Vec::with_capacity(storage_fields_count);
     match output.storage {
         BuildValue::Contract(fields) => {
-            for (index, (_name, value)) in fields.into_iter().enumerate() {
-                let value = value.into_json();
+            for (index, field) in fields.into_iter().enumerate() {
                 storage_fields.push(FieldUpdateInput::new(
                     index as i16,
                     query.account_id as i64,
-                    value,
+                    field.value.into_json(),
                 ));
             }
         }
@@ -131,21 +137,24 @@ pub async fn handle(
         let to: H160 = transfer.to.into();
 
         log::debug!(
-            "Sending {:24} ETH from {} to {}",
-            transfer.amount,
-            from.to_string(),
-            to.to_string()
+            "Sending {} ETH from {} to {}",
+            zinc_utils::format_token_amount(
+                &transfer.amount,
+                zinc_const::zandbox::ETH_BALANCE_EXPONENT
+            ),
+            serde_json::to_string(&from).expect(zinc_const::panic::DATA_CONVERSION),
+            serde_json::to_string(&to).expect(zinc_const::panic::DATA_CONVERSION),
         );
 
         let signer_private_key = app_data
             .read()
-            .expect(zinc_const::panic::MULTI_THREADING)
+            .expect(zinc_const::panic::SYNCHRONIZATION)
             .postgresql_client
             .select_contract_private_key(ContractSelectPrivateKeyInput::new(transfer.from))
             .await
             .map_err(Error::Database)?
             .eth_private_key;
-        let signer_private_key = zinc_data::eth_private_key_from_vec(signer_private_key);
+        let signer_private_key = zinc_utils::eth_private_key_from_vec(signer_private_key);
 
         let wallet_credentials = zksync::WalletCredentials::from_eth_pk(from, signer_private_key)
             .map_err(Error::ZkSync)?;
@@ -195,7 +204,7 @@ pub async fn handle(
     log::debug!("Committing the contract storage state");
     app_data
         .read()
-        .expect(zinc_const::panic::MULTI_THREADING)
+        .expect(zinc_const::panic::SYNCHRONIZATION)
         .postgresql_client
         .update_fields(storage_fields)
         .await

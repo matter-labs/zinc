@@ -44,14 +44,14 @@ impl Builder {
     ///
     /// Sets the corresponding builder value.
     ///
-    pub fn set_is_public(&mut self) {
+    pub fn set_public(&mut self) {
         self.is_public = true;
     }
 
     ///
     /// Sets the corresponding builder value.
     ///
-    pub fn set_is_constant(&mut self) {
+    pub fn set_constant(&mut self) {
         self.is_constant = true;
     }
 

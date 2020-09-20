@@ -4,7 +4,7 @@ The standard library is currently located in a built-in module called `std`.
 The library contains the following modules:
 - `crypto` - cryptographic and hash functions
     - `ecc` - elliptic curve cryptography
-    - `schnorr` - EDDSA signatyre verification
+    - `schnorr` - EDDSA signature verification
 - `convert` - bit array conversion functions
 - `array` - array processing functions
 - `ff` - finite field functions

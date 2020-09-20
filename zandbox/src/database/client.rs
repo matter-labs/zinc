@@ -7,7 +7,8 @@ use sqlx::postgres::PgPoolOptions;
 use sqlx::Postgres;
 
 use crate::database::model::contract::insert::input::Input as ContractInsertInput;
-use crate::database::model::contract::select::output::Output as ContractSelectOutput;
+use crate::database::model::contract::select::all::output::Output as ContractSelectAllOutput;
+use crate::database::model::contract::select::curve::output::Output as ContractSelectCurveOutput;
 use crate::database::model::contract::select::private_key::input::Input as ContractSelectPrivateKeyInput;
 use crate::database::model::contract::select::private_key::output::Output as ContractSelectPrivateKeyOutput;
 use crate::database::model::field::insert::input::Input as FieldInsertInput;
@@ -55,12 +56,13 @@ impl Client {
     ///
     /// Select the contracts from the `contracts` table.
     ///
-    pub async fn select_contracts(&self) -> Result<Vec<ContractSelectOutput>, sqlx::Error> {
+    pub async fn select_contracts(&self) -> Result<Vec<ContractSelectAllOutput>, sqlx::Error> {
         const STATEMENT: &str = r#"
         SELECT
             account_id,
             name,
             version,
+            instance,
             bytecode,
             eth_address,
             eth_private_key
@@ -93,6 +95,27 @@ impl Client {
     }
 
     ///
+    /// Select the Curve contracts from the `contracts` table.
+    ///
+    pub async fn select_contracts_curve(
+        &self,
+    ) -> Result<Vec<ContractSelectCurveOutput>, sqlx::Error> {
+        const STATEMENT: &str = r#"
+        SELECT
+            account_id,
+            name,
+            version,
+            instance
+        FROM zandbox.contracts
+        WHERE
+            name = 'curve'
+        ORDER BY account_id;
+        "#;
+
+        Ok(sqlx::query_as(STATEMENT).fetch_all(&self.pool).await?)
+    }
+
+    ///
     /// Inserts a contract instance into the `contracts` table.
     ///
     pub async fn insert_contract(&self, input: ContractInsertInput) -> Result<(), sqlx::Error> {
@@ -102,6 +125,7 @@ impl Client {
 
             name,
             version,
+            instance,
 
             zinc_version,
             source_code,
@@ -122,6 +146,7 @@ impl Client {
             $7,
             $8,
             $9,
+            $10,
             NOW()
         );
         "#;
@@ -130,6 +155,7 @@ impl Client {
             .bind(input.account_id)
             .bind(input.name)
             .bind(input.version)
+            .bind(input.instance)
             .bind(input.zinc_version)
             .bind(input.source_code)
             .bind(input.bytecode)

@@ -109,9 +109,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::NonConstantElement {
-            location: Location::new(5, 26),
+            location: Location::test(5, 26),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::new(3, 9),
+                Location::test(3, 9),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -143,9 +143,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::NonConstantElement {
-            location: Location::new(10, 46),
+            location: Location::test(10, 46),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::new(3, 9),
+                Location::test(3, 9),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -179,9 +179,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::NonConstantElement {
-            location: Location::new(11, 29),
+            location: Location::test(11, 29),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::new(3, 9),
+                Location::test(3, 9),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -217,9 +217,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::NonConstantElement {
-            location: Location::new(10, 29),
+            location: Location::test(10, 29),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::new(3, 9),
+                Location::test(3, 9),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -255,9 +255,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::NonConstantElement {
-            location: Location::new(11, 29),
+            location: Location::test(11, 29),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::new(3, 9),
+                Location::test(3, 9),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -293,9 +293,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::NonConstantElement {
-            location: Location::new(13, 29),
+            location: Location::test(13, 29),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::new(3, 9),
+                Location::test(3, 9),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -330,9 +330,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::NonConstantElement {
-            location: Location::new(10, 32),
+            location: Location::test(10, 32),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::new(3, 9),
+                Location::test(3, 9),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -367,9 +367,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::NonConstantElement {
-            location: Location::new(11, 35),
+            location: Location::test(11, 35),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::new(3, 9),
+                Location::test(3, 9),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -404,9 +404,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::NonConstantElement {
-            location: Location::new(12, 34),
+            location: Location::test(12, 34),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::new(3, 9),
+                Location::test(3, 9),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),

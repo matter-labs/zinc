@@ -59,21 +59,21 @@ impl Builder {
     ///
     /// Sets the corresponding builder value.
     ///
-    pub fn set_is_mutable(&mut self) {
+    pub fn set_mutable(&mut self) {
         self.is_mutable = true;
     }
 
     ///
     /// Sets the corresponding builder value.
     ///
-    pub fn set_is_wildcard(&mut self) {
+    pub fn set_wildcard(&mut self) {
         self.is_wildcard = true;
     }
 
     ///
     /// Sets the corresponding builder value.
     ///
-    pub fn set_is_self_alias(&mut self) {
+    pub fn set_self_alias(&mut self) {
         self.is_self_alias = true;
     }
 

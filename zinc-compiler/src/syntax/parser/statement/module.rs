@@ -103,13 +103,13 @@ mod tests {
 
         let expected = Ok((
             ModStatement::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 5), "jabberwocky".to_owned()),
+                Location::test(1, 1),
+                Identifier::new(Location::test(1, 5), "jabberwocky".to_owned()),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -119,12 +119,12 @@ mod tests {
         let input = r#"mod;"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
-            Location::new(1, 4),
+            Location::test(1, 4),
             Lexeme::Symbol(Symbol::Semicolon),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -134,13 +134,13 @@ mod tests {
         let input = r#"mod jabberwocky"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 16),
+            Location::test(1, 16),
             vec![";"],
             Lexeme::Eof,
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

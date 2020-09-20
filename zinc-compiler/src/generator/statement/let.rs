@@ -60,11 +60,13 @@ impl IBytecodeWritable for Statement {
 
         match self.r#type {
             Type::Contract { fields } => {
-                for (index, (_name, r#type)) in fields.into_iter().enumerate().rev() {
+                for (index, field) in fields.into_iter().enumerate().rev() {
                     IntegerConstant::new(BigInt::from(index), false, zinc_const::bitlength::FIELD)
                         .write_all(state.clone());
                     state.borrow_mut().push_instruction(
-                        Instruction::StorageStore(zinc_build::StorageStore::new(r#type.size())),
+                        Instruction::StorageStore(zinc_build::StorageStore::new(
+                            field.r#type.size(),
+                        )),
                         Some(self.location),
                     );
                 }

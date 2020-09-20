@@ -190,64 +190,64 @@ mod tests {
 
         let expected = Ok((
             ConditionalExpression::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 ExpressionTree::new(
-                    Location::new(1, 4),
+                    Location::test(1, 4),
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
-                        BooleanLiteral::new(Location::new(1, 4), LexicalBooleanLiteral::r#true()),
+                        BooleanLiteral::new(Location::test(1, 4), LexicalBooleanLiteral::r#true()),
                     )),
                 ),
                 BlockExpression::new(
-                    Location::new(1, 9),
+                    Location::test(1, 9),
                     vec![],
                     Some(ExpressionTree::new(
-                        Location::new(1, 11),
+                        Location::test(1, 11),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
-                                Location::new(1, 11),
+                                Location::test(1, 11),
                                 LexicalIntegerLiteral::new_decimal("1".to_owned()),
                             ),
                         )),
                     )),
                 ),
                 Some(BlockExpression::new(
-                    Location::new(1, 20),
+                    Location::test(1, 20),
                     vec![],
                     Some(ExpressionTree::new(
-                        Location::new(1, 20),
+                        Location::test(1, 20),
                         ExpressionTreeNode::operand(ExpressionOperand::Conditional(
                             ConditionalExpression::new(
-                                Location::new(1, 20),
+                                Location::test(1, 20),
                                 ExpressionTree::new(
-                                    Location::new(1, 23),
+                                    Location::test(1, 23),
                                     ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
                                         BooleanLiteral::new(
-                                            Location::new(1, 23),
+                                            Location::test(1, 23),
                                             LexicalBooleanLiteral::r#false(),
                                         ),
                                     )),
                                 ),
                                 BlockExpression::new(
-                                    Location::new(1, 29),
+                                    Location::test(1, 29),
                                     vec![],
                                     Some(ExpressionTree::new(
-                                        Location::new(1, 31),
+                                        Location::test(1, 31),
                                         ExpressionTreeNode::operand(
                                             ExpressionOperand::LiteralInteger(IntegerLiteral::new(
-                                                Location::new(1, 31),
+                                                Location::test(1, 31),
                                                 LexicalIntegerLiteral::new_decimal("2".to_owned()),
                                             )),
                                         ),
                                     )),
                                 ),
                                 Some(BlockExpression::new(
-                                    Location::new(1, 40),
+                                    Location::test(1, 40),
                                     vec![],
                                     Some(ExpressionTree::new(
-                                        Location::new(1, 42),
+                                        Location::test(1, 42),
                                         ExpressionTreeNode::operand(
                                             ExpressionOperand::LiteralInteger(IntegerLiteral::new(
-                                                Location::new(1, 42),
+                                                Location::test(1, 42),
                                                 LexicalIntegerLiteral::new_decimal("3".to_owned()),
                                             )),
                                         ),
@@ -261,7 +261,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -271,13 +271,13 @@ mod tests {
         let input = r#"if true { 42 } else ("#;
 
         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 21),
+            Location::test(1, 21),
             vec!["if", "{"],
             Lexeme::Symbol(Symbol::ParenthesisLeft),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

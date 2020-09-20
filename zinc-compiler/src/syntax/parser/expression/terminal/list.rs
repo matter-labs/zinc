@@ -102,12 +102,12 @@ mod tests {
         let input = r#""#;
 
         let expected = Ok((
-            ListExpression::new(Location::new(1, 1), vec![]),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 1))),
+            ListExpression::new(Location::test(1, 1), vec![]),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 1))),
         ));
 
         let result =
-            Parser::default().parse(TokenStream::new(input).wrap(), None, Location::new(1, 1));
+            Parser::default().parse(TokenStream::test(input).wrap(), None, Location::test(1, 1));
 
         assert_eq!(result, expected);
     }
@@ -118,35 +118,35 @@ mod tests {
 
         let expected = Ok((
             ListExpression::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 vec![ExpressionTree::new_with_leaves(
-                    Location::new(1, 6),
+                    Location::test(1, 6),
                     ExpressionTreeNode::operator(ExpressionOperator::Or),
                     Some(ExpressionTree::new(
-                        Location::new(1, 1),
+                        Location::test(1, 1),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
                             BooleanLiteral::new(
-                                Location::new(1, 1),
+                                Location::test(1, 1),
                                 LexicalBooleanLiteral::r#true(),
                             ),
                         )),
                     )),
                     Some(ExpressionTree::new(
-                        Location::new(1, 9),
+                        Location::test(1, 9),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
                             BooleanLiteral::new(
-                                Location::new(1, 9),
+                                Location::test(1, 9),
                                 LexicalBooleanLiteral::r#false(),
                             ),
                         )),
                     )),
                 )],
             ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 14))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 14))),
         ));
 
         let result =
-            Parser::default().parse(TokenStream::new(input).wrap(), None, Location::new(1, 1));
+            Parser::default().parse(TokenStream::test(input).wrap(), None, Location::test(1, 1));
 
         assert_eq!(result, expected);
     }
@@ -157,35 +157,35 @@ mod tests {
 
         let expected = Ok((
             ListExpression::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 vec![ExpressionTree::new_with_leaves(
-                    Location::new(1, 6),
+                    Location::test(1, 6),
                     ExpressionTreeNode::operator(ExpressionOperator::Or),
                     Some(ExpressionTree::new(
-                        Location::new(1, 1),
+                        Location::test(1, 1),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
                             BooleanLiteral::new(
-                                Location::new(1, 1),
+                                Location::test(1, 1),
                                 LexicalBooleanLiteral::r#true(),
                             ),
                         )),
                     )),
                     Some(ExpressionTree::new(
-                        Location::new(1, 9),
+                        Location::test(1, 9),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
                             BooleanLiteral::new(
-                                Location::new(1, 9),
+                                Location::test(1, 9),
                                 LexicalBooleanLiteral::r#false(),
                             ),
                         )),
                     )),
                 )],
             ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 15))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 15))),
         ));
 
         let result =
-            Parser::default().parse(TokenStream::new(input).wrap(), None, Location::new(1, 1));
+            Parser::default().parse(TokenStream::test(input).wrap(), None, Location::test(1, 1));
 
         assert_eq!(result, expected);
     }
@@ -196,57 +196,57 @@ mod tests {
 
         let expected = Ok((
             ListExpression::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 vec![
                     ExpressionTree::new_with_leaves(
-                        Location::new(1, 6),
+                        Location::test(1, 6),
                         ExpressionTreeNode::operator(ExpressionOperator::Or),
                         Some(ExpressionTree::new(
-                            Location::new(1, 1),
+                            Location::test(1, 1),
                             ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
                                 BooleanLiteral::new(
-                                    Location::new(1, 1),
+                                    Location::test(1, 1),
                                     LexicalBooleanLiteral::r#true(),
                                 ),
                             )),
                         )),
                         Some(ExpressionTree::new(
-                            Location::new(1, 9),
+                            Location::test(1, 9),
                             ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
                                 BooleanLiteral::new(
-                                    Location::new(1, 9),
+                                    Location::test(1, 9),
                                     LexicalBooleanLiteral::r#false(),
                                 ),
                             )),
                         )),
                     ),
                     ExpressionTree::new_with_leaves(
-                        Location::new(1, 19),
+                        Location::test(1, 19),
                         ExpressionTreeNode::operator(ExpressionOperator::Casting),
                         Some(ExpressionTree::new(
-                            Location::new(1, 16),
+                            Location::test(1, 16),
                             ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
-                                    Location::new(1, 16),
+                                    Location::test(1, 16),
                                     LexicalIntegerLiteral::new_decimal("42".to_owned()),
                                 ),
                             )),
                         )),
                         Some(ExpressionTree::new(
-                            Location::new(1, 22),
+                            Location::test(1, 22),
                             ExpressionTreeNode::operand(ExpressionOperand::Type(Type::new(
-                                Location::new(1, 22),
+                                Location::test(1, 22),
                                 TypeVariant::field(),
                             ))),
                         )),
                     ),
                 ],
             ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 27))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 27))),
         ));
 
         let result =
-            Parser::default().parse(TokenStream::new(input).wrap(), None, Location::new(1, 1));
+            Parser::default().parse(TokenStream::test(input).wrap(), None, Location::test(1, 1));
 
         assert_eq!(result, expected);
     }

@@ -125,7 +125,7 @@ impl Parser {
                             location,
                         } => {
                             self.builder.set_location(location);
-                            self.builder.set_is_wildcard();
+                            self.builder.set_wildcard();
                             return Ok((self.builder.finish(), None));
                         }
                         Token { lexeme, location } => {
@@ -186,16 +186,16 @@ mod tests {
 
         let expected = Ok((
             MatchPattern::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 MatchPatternVariant::BooleanLiteral(BooleanLiteral::new(
-                    Location::new(1, 1),
+                    Location::test(1, 1),
                     LexicalBooleanLiteral::r#true(),
                 )),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -206,16 +206,16 @@ mod tests {
 
         let expected = Ok((
             MatchPattern::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 MatchPatternVariant::IntegerLiteral(IntegerLiteral::new(
-                    Location::new(1, 1),
+                    Location::test(1, 1),
                     LexicalIntegerLiteral::new_decimal("42".to_owned()),
                 )),
             ),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -226,16 +226,16 @@ mod tests {
 
         let expected = Ok((
             MatchPattern::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 MatchPatternVariant::Binding(Identifier::new(
-                    Location::new(1, 1),
+                    Location::test(1, 1),
                     "value".to_owned(),
                 )),
             ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 6))),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -246,38 +246,38 @@ mod tests {
 
         let expected = Ok((
             MatchPattern::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 MatchPatternVariant::Path(ExpressionTree::new_with_leaves(
-                    Location::new(1, 12),
+                    Location::test(1, 12),
                     ExpressionTreeNode::operator(ExpressionOperator::Path),
                     Some(ExpressionTree::new_with_leaves(
-                        Location::new(1, 5),
+                        Location::test(1, 5),
                         ExpressionTreeNode::operator(ExpressionOperator::Path),
                         Some(ExpressionTree::new(
-                            Location::new(1, 1),
+                            Location::test(1, 1),
                             ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                                Identifier::new(Location::new(1, 1), "data".to_owned()),
+                                Identifier::new(Location::test(1, 1), "data".to_owned()),
                             )),
                         )),
                         Some(ExpressionTree::new(
-                            Location::new(1, 7),
+                            Location::test(1, 7),
                             ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                                Identifier::new(Location::new(1, 7), "Inner".to_owned()),
+                                Identifier::new(Location::test(1, 7), "Inner".to_owned()),
                             )),
                         )),
                     )),
                     Some(ExpressionTree::new(
-                        Location::new(1, 14),
+                        Location::test(1, 14),
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                            Identifier::new(Location::new(1, 14), "Value".to_owned()),
+                            Identifier::new(Location::test(1, 14), "Value".to_owned()),
                         )),
                     )),
                 )),
             ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 19))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 19))),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -288,31 +288,31 @@ mod tests {
 
         let expected = Ok((
             MatchPattern::new(
-                Location::new(1, 1),
+                Location::test(1, 1),
                 MatchPatternVariant::Path(ExpressionTree::new_with_leaves(
-                    Location::new(1, 5),
+                    Location::test(1, 5),
                     ExpressionTreeNode::operator(ExpressionOperator::Path),
                     Some(ExpressionTree::new(
-                        Location::new(1, 1),
+                        Location::test(1, 1),
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                             Identifier::new(
-                                Location::new(1, 1),
+                                Location::test(1, 1),
                                 Keyword::SelfUppercase.to_string(),
                             ),
                         )),
                     )),
                     Some(ExpressionTree::new(
-                        Location::new(1, 7),
+                        Location::test(1, 7),
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                            Identifier::new(Location::new(1, 7), "Value".to_owned()),
+                            Identifier::new(Location::test(1, 7), "Value".to_owned()),
                         )),
                     )),
                 )),
             ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 12))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 12))),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -322,11 +322,11 @@ mod tests {
         let input = r#"_"#;
 
         let expected = Ok((
-            MatchPattern::new(Location::new(1, 1), MatchPatternVariant::Wildcard),
+            MatchPattern::new(Location::test(1, 1), MatchPatternVariant::Wildcard),
             None,
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

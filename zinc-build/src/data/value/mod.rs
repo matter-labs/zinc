@@ -2,13 +2,14 @@
 //! The Zinc VM template value.
 //!
 
+pub mod contract_field;
 pub mod error;
 pub mod scalar;
 
 use std::collections::HashSet;
 
 use num_bigint::BigInt;
-use num_traits::Num;
+use num_bigint::Sign;
 use num_traits::Signed;
 use num_traits::Zero;
 use serde_derive::Deserialize;
@@ -16,12 +17,16 @@ use serde_derive::Serialize;
 use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
 
+use zksync::web3::types::H160;
+
 use zinc_utils::InferenceError;
 
+use crate::data::r#type::contract_field::ContractField as ContractFieldType;
 use crate::data::r#type::scalar::integer::Type as IntegerType;
 use crate::data::r#type::scalar::Type as ScalarType;
 use crate::data::r#type::Type;
 
+use self::contract_field::ContractField;
 use self::error::context::IContext as IErrorContext;
 use self::error::r#type::Type as ErrorType;
 use self::error::Error;
@@ -51,7 +56,7 @@ pub enum Value {
     /// Represented with JSON object.
     Structure(Vec<(String, Value)>),
     /// Represented with JSON object.
-    Contract(Vec<(String, Value)>),
+    Contract(Vec<ContractField>),
 }
 
 impl Value {
@@ -97,10 +102,18 @@ impl Value {
             Type::Contract(fields) => Self::Contract(
                 fields
                     .into_iter()
-                    .map(|(name, r#type)| (name, Self::new(r#type)))
+                    .map(ContractField::new_from_type)
                     .collect(),
             ),
         }
+    }
+
+    ///
+    /// Creates an integer from the ZkSync ETH address representation.
+    ///
+    pub fn scalar_from_h160(value: H160) -> Self {
+        let value = BigInt::from_bytes_be(Sign::Plus, value.as_bytes());
+        Self::Scalar(ScalarValue::Integer(value, IntegerType::ETH_ADDRESS))
     }
 
     ///
@@ -189,10 +202,15 @@ impl Value {
             Type::Contract(fields) => {
                 let mut offset = 0;
                 let mut result = Vec::with_capacity(fields.len());
-                for (name, r#type) in fields.into_iter() {
+                for field in fields.into_iter() {
                     let slice = &flat_values[offset..];
-                    offset += r#type.size();
-                    result.push((name, Self::from_flat_values(r#type, slice)));
+                    offset += field.r#type.size();
+                    result.push(ContractField::new(
+                        field.name,
+                        Self::from_flat_values(field.r#type, slice),
+                        field.is_public,
+                        field.is_external,
+                    ));
                 }
                 Self::Contract(result)
             }
@@ -221,7 +239,7 @@ impl Value {
                 .collect(),
             Self::Contract(fields) => fields
                 .into_iter()
-                .map(|(_name, value)| Self::into_flat_values(value))
+                .map(|field| Self::into_flat_values(field.value))
                 .flatten()
                 .collect(),
         }
@@ -236,29 +254,16 @@ impl Value {
         match self {
             Self::Unit => JsonValue::Null,
             Self::Scalar(scalar) => match scalar {
-                ScalarValue::Field(value) => {
-                    if value <= BigInt::from(std::u64::MAX) {
-                        JsonValue::String(value.to_str_radix(zinc_const::base::DECIMAL as u32))
-                    } else {
-                        JsonValue::String(
-                            String::from("0x")
-                                + value
-                                    .to_str_radix(zinc_const::base::HEXADECIMAL as u32)
-                                    .as_str(),
-                        )
-                    }
-                }
+                ScalarValue::Field(value) => JsonValue::String(format!(
+                    "0x{}",
+                    value.to_str_radix(zinc_const::base::HEXADECIMAL)
+                )),
                 ScalarValue::Integer(value, r#type) => {
-                    if value <= BigInt::from(std::u64::MAX) || r#type.is_signed {
-                        JsonValue::String(value.to_str_radix(zinc_const::base::DECIMAL as u32))
+                    JsonValue::String(if r#type.bitlength == zinc_const::bitlength::ETH_ADDRESS {
+                        format!("0x{}", value.to_str_radix(zinc_const::base::HEXADECIMAL))
                     } else {
-                        JsonValue::String(
-                            String::from("0x")
-                                + value
-                                    .to_str_radix(zinc_const::base::HEXADECIMAL as u32)
-                                    .as_str(),
-                        )
-                    }
+                        value.to_string()
+                    })
                 }
                 ScalarValue::Boolean(value) => JsonValue::Bool(value),
             },
@@ -275,8 +280,8 @@ impl Value {
             }
             Self::Contract(fields) => {
                 let mut object = JsonMap::<String, JsonValue>::with_capacity(fields.len());
-                for (name, value) in fields.into_iter() {
-                    object.insert(name, Self::into_json(value));
+                for field in fields.into_iter() {
+                    object.insert(field.name, Self::into_json(field.value));
                 }
                 JsonValue::Object(object)
             }
@@ -319,16 +324,7 @@ impl Value {
             found: value.to_string(),
         })?;
 
-        let bigint_result = if value_string.starts_with("0b") {
-            BigInt::from_str_radix(&value_string[2..], zinc_const::base::BINARY as u32)
-        } else if value_string.starts_with("0o") {
-            BigInt::from_str_radix(&value_string[2..], zinc_const::base::OCTAL as u32)
-        } else if value_string.starts_with("0x") {
-            BigInt::from_str_radix(&value_string[2..], zinc_const::base::HEXADECIMAL as u32)
-        } else {
-            BigInt::from_str_radix(value_string, zinc_const::base::DECIMAL as u32)
-        };
-
+        let bigint_result = zinc_utils::bigint_from_str_radix(value_string);
         let bigint =
             bigint_result.map_err(|_| ErrorType::InvalidNumberFormat(value_string.into()))?;
         if bigint.is_negative() && !r#type.is_signed {
@@ -404,27 +400,9 @@ impl Value {
             found: value.to_string(),
         })?;
 
-        let bigint_result = if value_string.starts_with("0b") {
-            BigInt::from_str_radix(&value_string[2..], zinc_const::base::BINARY as u32)
-        } else if value_string.starts_with("0o") {
-            BigInt::from_str_radix(&value_string[2..], zinc_const::base::OCTAL as u32)
-        } else if value_string.starts_with("0x") {
-            BigInt::from_str_radix(&value_string[2..], zinc_const::base::HEXADECIMAL as u32)
-        } else {
-            BigInt::from_str_radix(value_string, zinc_const::base::DECIMAL as u32)
-        };
-
+        let bigint_result = zinc_utils::bigint_from_str_radix(value_string);
         let bigint =
             bigint_result.map_err(|_| ErrorType::InvalidNumberFormat(value_string.into()))?;
-        if bigint.is_negative() {
-            return Err(Error::from(ErrorType::ValueOverflow {
-                inner: InferenceError::Overflow {
-                    value: bigint,
-                    is_signed: false,
-                    bitlength: zinc_const::bitlength::FIELD,
-                },
-            }));
-        }
 
         let bitlength = zinc_utils::infer_minimal_bitlength(&bigint, false)
             .map_err(|error| Error::from(ErrorType::ValueOverflow { inner: error }))?;
@@ -546,7 +524,7 @@ impl Value {
     ///
     fn contract_from_json(
         value: JsonValue,
-        field_types: Vec<(String, Type)>,
+        field_types: Vec<ContractFieldType>,
     ) -> Result<Self, Error> {
         let mut object = value
             .as_object()
@@ -555,17 +533,22 @@ impl Value {
 
         let mut used_fields = HashSet::with_capacity(field_types.len());
         let mut field_values = Vec::with_capacity(field_types.len());
-        for (name, r#type) in field_types.into_iter() {
-            used_fields.insert(name.clone());
+        for field_type in field_types.into_iter() {
+            used_fields.insert(field_type.name.clone());
 
             let json_value = object
-                .remove(name.as_str())
-                .ok_or_else(|| ErrorType::MissingField(name.clone()))?;
+                .remove(field_type.name.as_str())
+                .ok_or_else(|| ErrorType::MissingField(field_type.name.clone()))?;
 
-            let value =
-                Self::try_from_typed_json(json_value, r#type).push_structure(name.as_str())?;
+            let value = Self::try_from_typed_json(json_value, field_type.r#type)
+                .push_structure(field_type.name.as_str())?;
 
-            field_values.push((name, value));
+            field_values.push(ContractField::new(
+                field_type.name,
+                value,
+                field_type.is_public,
+                field_type.is_external,
+            ));
         }
 
         for field in object.keys() {

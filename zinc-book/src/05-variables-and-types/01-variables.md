@@ -36,9 +36,9 @@ fn test() {
 ```
 
 Variable shadowing can be a convenient feature, but Zinc is going to enforce
-warning-as-error development workflow, forbidding shadowing as a potentially
-unsafe trick. You should use mutable variables and type suffixes if you want
-to have several variables with similar logical meaning.
+warning-as-error development workflow, forbidding variable shadowing as a
+potentially unsafe trick. You should use mutable variables or type suffixes
+if you need several adjacent variables with similar logical meaning.
 
 ```rust,no_run,noplaypen
 fn test() {

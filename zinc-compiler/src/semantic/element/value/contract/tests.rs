@@ -36,7 +36,7 @@ contract Test {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Contract(ContractValueError::NotInitialized {
-            location: Location::new(6, 29),
+            location: Location::test(6, 29),
             type_identifier: "Test".to_owned(),
         })),
     )));
@@ -60,7 +60,7 @@ contract Test {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Contract(
             ContractValueError::FieldDoesNotExist {
-                location: Location::new(6, 44),
+                location: Location::test(6, 44),
                 type_identifier: "Test".to_owned(),
                 field_name: "c".to_owned(),
             },
@@ -85,7 +85,7 @@ contract Test {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Contract(ContractValueError::FieldExpected {
-            location: Location::new(6, 38),
+            location: Location::test(6, 38),
             type_identifier: "Test".to_owned(),
             position: 2,
             expected: "b".to_owned(),
@@ -111,7 +111,7 @@ contract Test {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Contract(ContractValueError::FieldInvalidType {
-            location: Location::new(6, 38),
+            location: Location::test(6, 38),
             type_identifier: "Test".to_owned(),
             field_name: "b".to_owned(),
             expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
@@ -137,7 +137,7 @@ contract Test {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Contract(ContractValueError::FieldOutOfRange {
-            location: Location::new(6, 45),
+            location: Location::test(6, 45),
             type_identifier: "Test".to_owned(),
             expected: 2,
             found: 3,

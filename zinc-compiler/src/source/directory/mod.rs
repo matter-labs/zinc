@@ -171,13 +171,12 @@ impl Directory {
     pub fn test(
         code: &str,
         path: PathBuf,
-        file_index: usize,
         dependencies: HashMap<String, Source>,
     ) -> Result<Self, CompilerError> {
         Ok(Self {
             path: path.clone(),
             name: "test".to_owned(),
-            entry: File::test(code, path, file_index)?,
+            entry: File::test(code, path)?,
             dependencies,
         })
     }

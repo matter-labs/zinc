@@ -35,7 +35,7 @@ fn main() -> Data { Data }
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Structure(StructureValueError::NotInitialized {
-            location: Location::new(6, 21),
+            location: Location::test(6, 21),
             type_identifier: "Data".to_owned(),
         })),
     )));
@@ -62,7 +62,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Structure(
             StructureValueError::FieldDoesNotExist {
-                location: Location::new(9, 7),
+                location: Location::test(9, 7),
                 type_identifier: "Data".to_owned(),
                 field_name: "b".to_owned(),
             },
@@ -92,7 +92,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Structure(StructureValueError::FieldExpected {
-            location: Location::new(10, 9),
+            location: Location::test(10, 9),
             type_identifier: "Data".to_owned(),
             position: 2,
             expected: "b".to_owned(),
@@ -122,7 +122,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Structure(
             StructureValueError::FieldInvalidType {
-                location: Location::new(8, 9),
+                location: Location::test(8, 9),
                 type_identifier: "Data".to_owned(),
                 field_name: "a".to_owned(),
                 expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
@@ -156,7 +156,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Value(ValueError::Structure(
             StructureValueError::FieldOutOfRange {
-                location: Location::new(11, 9),
+                location: Location::test(11, 9),
                 type_identifier: "Data".to_owned(),
                 expected: 2,
                 found: 3,

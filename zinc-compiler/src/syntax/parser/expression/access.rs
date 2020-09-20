@@ -243,39 +243,39 @@ mod tests {
 
         let expected = Ok((
             ExpressionTree::new_with_leaves(
-                Location::new(1, 12),
+                Location::test(1, 12),
                 ExpressionTreeNode::operator(ExpressionOperator::Path),
                 Some(ExpressionTree::new_with_leaves(
-                    Location::new(1, 5),
+                    Location::test(1, 5),
                     ExpressionTreeNode::operator(ExpressionOperator::Path),
                     Some(ExpressionTree::new(
-                        Location::new(1, 1),
+                        Location::test(1, 1),
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                            Identifier::new(Location::new(1, 1), "mega".to_owned()),
+                            Identifier::new(Location::test(1, 1), "mega".to_owned()),
                         )),
                     )),
                     Some(ExpressionTree::new(
-                        Location::new(1, 7),
+                        Location::test(1, 7),
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                            Identifier::new(Location::new(1, 7), "ultra".to_owned()),
+                            Identifier::new(Location::test(1, 7), "ultra".to_owned()),
                         )),
                     )),
                 )),
                 Some(ExpressionTree::new(
-                    Location::new(1, 14),
+                    Location::test(1, 14),
                     ExpressionTreeNode::operand(ExpressionOperand::Identifier(Identifier::new(
-                        Location::new(1, 14),
+                        Location::test(1, 14),
                         "namespace".to_owned(),
                     ))),
                 )),
             ),
             Some(Token::new(
                 Lexeme::Symbol(Symbol::Semicolon),
-                Location::new(1, 23),
+                Location::test(1, 23),
             )),
         ));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -285,13 +285,13 @@ mod tests {
         let input = r#"array[42)"#;
 
         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 9),
+            Location::test(1, 9),
             vec!["]"],
             Lexeme::Symbol(Symbol::ParenthesisRight),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }
@@ -301,13 +301,13 @@ mod tests {
         let input = r#"sort(42, 64]"#;
 
         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 12),
+            Location::test(1, 12),
             vec![")"],
             Lexeme::Symbol(Symbol::BracketSquareRight),
             None,
         )));
 
-        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

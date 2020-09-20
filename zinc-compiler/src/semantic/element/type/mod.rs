@@ -39,6 +39,7 @@ use crate::syntax::tree::r#type::Type as SyntaxType;
 use crate::syntax::tree::variant::Variant;
 
 use self::array::Array;
+use self::contract::field::Field as ContractField;
 use self::contract::Contract;
 use self::enumeration::Enumeration;
 use self::function::Function;
@@ -289,7 +290,7 @@ impl Type {
     pub fn contract(
         location: Option<Location>,
         identifier: String,
-        fields: Vec<(String, Self)>,
+        fields: Vec<ContractField>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
         let type_id = TYPE_INDEX.next(format!("contract {}", identifier));

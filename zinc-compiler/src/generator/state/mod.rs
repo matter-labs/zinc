@@ -10,12 +10,14 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use zinc_build::ContractFieldType as BuildContractFieldType;
 use zinc_build::ContractMethod;
 use zinc_build::Instruction;
 use zinc_build::Program as BuildProgram;
 use zinc_build::Type as BuildType;
 use zinc_build::UnitTest as BuildUnitTest;
 
+use crate::generator::r#type::contract_field::ContractField as ContractFieldType;
 use crate::generator::r#type::Type;
 use crate::lexical::token::location::Location;
 use crate::source::file::index::INDEX as FILE_INDEX;
@@ -35,7 +37,7 @@ pub struct State {
     /// The Zinc VM instructions written by the bytecode generator.
     instructions: Vec<Instruction>,
     /// The contract storage structure.
-    contract_storage: Option<Vec<(String, Type)>>,
+    contract_storage: Option<Vec<ContractFieldType>>,
     /// Metadata of each contract method.
     methods: HashMap<usize, Method>,
     /// Unit tests.
@@ -61,8 +63,8 @@ impl State {
     /// The variable address hashmap default capacity.
     const VARIABLE_ADDRESSES_INITIAL_CAPACITY: usize = 16;
 
-    /// The application entry hashmap default capacity.
-    const ENTRY_METADATA_INITIAL_CAPACITY: usize = 16;
+    /// The contract method hashmap default capacity.
+    const METHODS_INITIAL_CAPACITY: usize = 16;
 
     ///
     /// Creates a new bytecode instance with the placeholders for the entry `Call` and
@@ -74,13 +76,13 @@ impl State {
 
             instructions: Vec::with_capacity(Self::INSTRUCTIONS_INITIAL_CAPACITY),
             contract_storage: None,
-            methods: HashMap::with_capacity(Self::ENTRY_METADATA_INITIAL_CAPACITY),
-            unit_tests: HashMap::with_capacity(Self::ENTRY_METADATA_INITIAL_CAPACITY),
+            methods: HashMap::with_capacity(Self::METHODS_INITIAL_CAPACITY),
+            unit_tests: HashMap::with_capacity(Self::METHODS_INITIAL_CAPACITY),
 
             function_addresses: HashMap::with_capacity(Self::FUNCTION_ADDRESSES_INITIAL_CAPACITY),
             variable_addresses: HashMap::with_capacity(Self::VARIABLE_ADDRESSES_INITIAL_CAPACITY),
             data_stack_pointer: 0,
-            current_location: Location::new_beginning(None),
+            current_location: Location::default(),
         }
     }
 
@@ -117,7 +119,7 @@ impl State {
     ///
     /// Sets the contract storage, which means the application is a contract.
     ///
-    pub fn set_contract_storage(&mut self, fields: Vec<(String, Type)>) {
+    pub fn set_contract_storage(&mut self, fields: Vec<ContractFieldType>) {
         self.contract_storage = Some(fields);
     }
 
@@ -133,7 +135,7 @@ impl State {
         self.instructions
             .push(Instruction::FileMarker(zinc_build::FileMarker::new(
                 FILE_INDEX
-                    .get_path(location.file_index)
+                    .get_path(location.file)
                     .to_string_lossy()
                     .to_string(),
             )));
@@ -202,13 +204,11 @@ impl State {
     pub fn push_instruction(&mut self, instruction: Instruction, location: Option<Location>) {
         if let Some(location) = location {
             if self.current_location != location {
-                if self.instructions.is_empty()
-                    || self.current_location.file_index != location.file_index
-                {
+                if self.instructions.is_empty() || self.current_location.file != location.file {
                     self.instructions
                         .push(Instruction::FileMarker(zinc_build::FileMarker::new(
                             FILE_INDEX
-                                .get_path(location.file_index)
+                                .get_path(location.file)
                                 .to_string_lossy()
                                 .to_string(),
                         )));
@@ -236,13 +236,10 @@ impl State {
     ///
     /// Converts the generator types to the VM ones.
     ///
-    pub fn contract_storage(&self) -> Option<Vec<(String, BuildType)>> {
-        self.contract_storage.to_owned().map(|storage| {
-            storage
-                .into_iter()
-                .map(|(name, r#type)| (name, r#type.into()))
-                .collect()
-        })
+    pub fn contract_storage(&self) -> Option<Vec<BuildContractFieldType>> {
+        self.contract_storage
+            .to_owned()
+            .map(|storage| storage.into_iter().map(|field| field.into()).collect())
     }
 
     ///
@@ -265,10 +262,7 @@ impl State {
                     );
                 }
 
-                let storage = storage
-                    .into_iter()
-                    .map(|(name, r#type)| (name, r#type.into()))
-                    .collect();
+                let storage = storage.into_iter().map(|field| field.into()).collect();
 
                 if optimize_dead_function_elimination {
                     let entry_ids: Vec<usize> = self

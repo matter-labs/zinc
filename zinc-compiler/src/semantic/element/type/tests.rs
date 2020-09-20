@@ -24,10 +24,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::AliasDoesNotPointToType {
-            location: Location::new(4, 24),
+            location: Location::test(4, 24),
             found: Element::Path(Path::new(
-                Location::new(4, 24),
-                Identifier::new(Location::new(4, 24), "unknown".to_owned()),
+                Location::test(4, 24),
+                Identifier::new(Location::test(4, 24), "unknown".to_owned()),
             ))
             .to_string(),
         },

@@ -58,7 +58,7 @@ impl Index {
         let type_id = self
             .inner
             .write()
-            .expect(zinc_const::panic::MULTI_THREADING)
+            .expect(zinc_const::panic::SYNCHRONIZATION)
             .len();
 
         self.next_with_id(title, type_id)
@@ -71,7 +71,7 @@ impl Index {
         let mut index = self
             .inner
             .write()
-            .expect(zinc_const::panic::MULTI_THREADING);
+            .expect(zinc_const::panic::SYNCHRONIZATION);
 
         log::debug!("Type ID {:06} for {}", type_id, title);
 

@@ -14,6 +14,7 @@ mod
 impl
 contract
 pub
+extern
 ```
 
 #### Controls
@@ -57,7 +58,6 @@ Self
 ```rust,no_run,noplaypen
 static
 ref
-extern
 return
 loop
 break

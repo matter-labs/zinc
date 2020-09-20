@@ -20,7 +20,7 @@
 			"patterns": [
 				{
 					"name": "keyword.declaration.zn",
-					"match": "\\b(let|mut|const|type|struct|enum|fn|use|mod|impl|contract|pub)\\b"
+					"match": "\\b(let|mut|const|type|struct|enum|fn|use|mod|impl|contract|pub|extern)\\b"
 				},
 				{
 					"name": "keyword.control.zn",

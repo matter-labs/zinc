@@ -52,8 +52,8 @@ impl Index {
         let mut index = self
             .inner
             .write()
-            .expect(zinc_const::panic::MULTI_THREADING);
-        let sequence_id = index.len();
+            .expect(zinc_const::panic::SYNCHRONIZATION);
+        let sequence_id = index.len() + 1;
 
         log::debug!("File ID {:06} for {:?}", sequence_id, path);
 
@@ -68,12 +68,33 @@ impl Index {
     }
 
     ///
+    /// Returns the current file sequence ID.
+    ///
+    pub fn current(&self) -> usize {
+        self.inner
+            .read()
+            .expect(zinc_const::panic::SYNCHRONIZATION)
+            .len()
+    }
+
+    ///
+    /// Peeks the next file sequence ID.
+    ///
+    pub fn peek(&self) -> usize {
+        self.inner
+            .read()
+            .expect(zinc_const::panic::SYNCHRONIZATION)
+            .len()
+            + 1
+    }
+
+    ///
     /// Get the file path by its index.
     ///
     pub fn get_path(&self, index: usize) -> PathBuf {
         self.inner
             .read()
-            .expect(zinc_const::panic::MULTI_THREADING)
+            .expect(zinc_const::panic::SYNCHRONIZATION)
             .get(&index)
             .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
             .path

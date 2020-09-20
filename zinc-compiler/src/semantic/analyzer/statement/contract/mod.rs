@@ -10,6 +10,7 @@ use std::rc::Rc;
 use crate::generator::statement::contract::Statement as GeneratorContractStatement;
 use crate::semantic::analyzer::statement::field::Analyzer as FieldStatementAnalyzer;
 use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
+use crate::semantic::element::r#type::contract::field::Field as ContractFieldType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::r#type::statement::Statement as TypeStatementVariant;
@@ -73,10 +74,10 @@ impl Analyzer {
                     storage_fields.len(),
                 )?;
 
-                storage_fields.push((
-                    statement.identifier.name.clone(),
-                    Type::try_from_syntax(statement.r#type, scope.clone())?,
-                ));
+                storage_fields.push(ContractFieldType::try_from_syntax(
+                    statement,
+                    scope.clone(),
+                )?);
             }
         }
 

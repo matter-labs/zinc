@@ -22,7 +22,6 @@ use crate::syntax::parser::Parser;
 use crate::syntax::tree::module::Module as SyntaxModule;
 
 use self::error::Error;
-use self::index::Data;
 use self::index::INDEX;
 
 ///
@@ -53,12 +52,12 @@ impl File {
                 INDEX
                     .inner
                     .read()
-                    .expect(zinc_const::panic::MULTI_THREADING)
+                    .expect(zinc_const::panic::SYNCHRONIZATION)
                     .get(&next_file_id)
                     .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
                     .code
                     .as_str(),
-                Some(next_file_id),
+                next_file_id,
             )
             .map_err(|error| error.format())
             .map_err(SourceError::Compiling)?;
@@ -112,12 +111,12 @@ impl File {
                 INDEX
                     .inner
                     .read()
-                    .expect(zinc_const::panic::MULTI_THREADING)
+                    .expect(zinc_const::panic::SYNCHRONIZATION)
                     .get(&next_file_id)
                     .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
                     .code
                     .as_str(),
-                Some(next_file_id),
+                next_file_id,
             )
             .map_err(|error| error.format())
             .map_err(SourceError::Compiling)?;
@@ -169,23 +168,17 @@ impl File {
     ///
     /// Initializes a test module file.
     ///
-    pub fn test(code: &str, path: PathBuf, file_index: usize) -> Result<Self, CompilerError> {
-        INDEX
-            .inner
-            .write()
-            .expect(zinc_const::panic::MULTI_THREADING)
-            .insert(
-                file_index,
-                Data {
-                    path: path.clone(),
-                    code: code.to_owned(),
-                },
-            );
+    pub fn test(code: &str, path: PathBuf) -> Result<Self, CompilerError> {
+        let next_file_id = INDEX.peek();
+
+        let tree = Parser::default().parse(code, next_file_id)?;
+
+        INDEX.next(&path, code.to_owned());
 
         Ok(Self {
             path,
-            name: "test".to_owned(),
-            tree: Parser::default().parse(code, Some(file_index))?,
+            name: format!("test_#{}", next_file_id),
+            tree,
         })
     }
 }

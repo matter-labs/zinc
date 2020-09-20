@@ -7,11 +7,11 @@
 ///
 #[derive(Debug, Clone)]
 pub struct Index {
-    /// The array element size
+    /// The array element size.
     pub element_size: usize,
-    /// The array total size
+    /// The array total size.
     pub total_size: usize,
-    /// The offset if the index is known at compile-time
+    /// The offset if the index is known at compile-time.
     pub offset: Option<usize>,
 }
 

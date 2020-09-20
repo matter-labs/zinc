@@ -21,9 +21,8 @@ pub enum Error {
     InvalidInput(BuildValueError),
     RuntimeError(RuntimeError),
     Database(sqlx::Error),
-    InvalidStorage,
-    InvalidSourceAddress(rustc_hex::FromHexError),
-    InvalidSourcePrivateKey(rustc_hex::FromHexError),
+    InvalidOwnerPrivateKey(rustc_hex::FromHexError),
+    ZkSyncWeb3(zksync::web3::Error),
     ZkSync(zksync::error::ClientError),
 }
 
@@ -36,9 +35,8 @@ impl ResponseError for Error {
             Self::InvalidInput(_) => StatusCode::BAD_REQUEST,
             Self::RuntimeError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::InvalidStorage => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::InvalidSourceAddress(_) => StatusCode::BAD_REQUEST,
-            Self::InvalidSourcePrivateKey(_) => StatusCode::BAD_REQUEST,
+            Self::InvalidOwnerPrivateKey(_) => StatusCode::BAD_REQUEST,
+            Self::ZkSyncWeb3(_) => StatusCode::SERVICE_UNAVAILABLE,
             Self::ZkSync(_) => StatusCode::SERVICE_UNAVAILABLE,
         }
     }
@@ -62,17 +60,12 @@ impl fmt::Display for Error {
             Self::InvalidInput(inner) => write!(f, "Input: {}", inner),
             Self::RuntimeError(inner) => write!(f, "Runtime: {:?}", inner),
             Self::Database(inner) => write!(f, "Database: {:?}", inner),
-            Self::InvalidStorage => write!(f, "Contract storage is broken"),
-            Self::InvalidSourceAddress(inner) => write!(
-                f,
-                "Invalid source ETH address ({}), expected `0x[0-9A-Fa-f]{{40}}`",
-                inner
-            ),
-            Self::InvalidSourcePrivateKey(inner) => write!(
+            Self::InvalidOwnerPrivateKey(inner) => write!(
                 f,
                 "Invalid source ETH private key ({}), expected `0x[0-9A-Fa-f]{{64}}`",
                 inner
             ),
+            Self::ZkSyncWeb3(inner) => write!(f, "ZkSync Web3: {:?}", inner),
             Self::ZkSync(inner) => write!(f, "ZkSync: {:?}", inner),
         }
     }

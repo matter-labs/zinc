@@ -8,6 +8,6 @@
 
 const ARRAY_SIZE: u16 = 10;
 
-fn main(array: [field; ARRAY_SIZE]) -> [field; ARRAY_SIZE] {
+fn main(array: [u64; ARRAY_SIZE]) -> [u64; ARRAY_SIZE] {
     std::array::reverse(array)
 }

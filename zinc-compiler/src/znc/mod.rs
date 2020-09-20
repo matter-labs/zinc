@@ -51,9 +51,9 @@ fn main_inner() -> Result<(), Error> {
             let program = State::unwrap_rc(state).into_program(optimize_dead_function_elimination);
             Ok(program.into_bytes())
         })
-        .expect(zinc_const::panic::MULTI_THREADING)
+        .expect(zinc_const::panic::SYNCHRONIZATION)
         .join()
-        .expect(zinc_const::panic::MULTI_THREADING)?;
+        .expect(zinc_const::panic::SYNCHRONIZATION)?;
 
     let mut build_directory_path = args.binary_path.clone();
     build_directory_path.pop();

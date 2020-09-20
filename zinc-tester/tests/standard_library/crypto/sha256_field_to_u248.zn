@@ -3,12 +3,12 @@
 //!     "input": {
 //!         "preimage": "42"
 //!     },
-//!     "output": "0x636ebb69d0417a54cc67e6ee058845d70cecaa0c1ea45eb96d8736d50059ab"
+//!     "output": "175682104164695848852753946915843012470109258865306722048589304064831936939"
 //! } ] }
 
-use std::convert;
-use std::array::truncate;
 use std::array::pad;
+use std::array::truncate;
+use std::convert;
 use std::crypto::sha256;
 
 fn main(preimage: field) -> u248 {
