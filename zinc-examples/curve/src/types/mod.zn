@@ -3,7 +3,7 @@
 //!
 
 pub mod token_id;
-pub mod transactions;
+pub mod transaction;
 
 pub type Address = u160;
 pub type Balance = u248;

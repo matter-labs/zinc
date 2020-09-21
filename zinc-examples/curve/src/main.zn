@@ -19,7 +19,7 @@ use self::constants::PRECISION;
 use self::types::Address;
 use self::types::Balance;
 use self::types::token_id::TokenId;
-use self::types::transactions::deposit::Deposit as DepositTransaction;
+use self::types::transaction::Transaction;
 
 ///
 /// The Curve Stableswap contract.
@@ -56,16 +56,12 @@ contract Stableswap {
     ///
     pub fn deposit(
         mut self,
-        deposits: [DepositTransaction; N],
+        tx: Transaction,
     ) {
         // Invariant before change
         let D0: Balance = invariant::calculate(self.amplifier, self.balances);
 
-        for i in 0..N {
-            self.balances[deposits[i].token_id] += deposits[i].amount;
-
-            Token::transfer(deposits[i].from, self.address, deposits[i].token_id, deposits[i].amount);
-        }
+        self.balances[tx.token_id] += tx.amount;
 
         // Invariant after change
         let D1 = invariant::calculate(self.amplifier, self.balances);
@@ -78,20 +74,17 @@ contract Stableswap {
     ///
     pub fn swap(
         mut self,
-        from: Address,
-        to: Address,
-        to_deposit: Balance,
-        deposit_token_id: TokenId,
+        tx: Transaction,
         withdraw_token_id: TokenId,
         min_withdraw: Balance,
     ) {
         let old_y = self.balances[withdraw_token_id];
 
-        let new_x = self.balances[deposit_token_id] + to_deposit;
+        let new_x = self.balances[tx.token_id] + tx.amount;
         let new_y = exchange::after(
             self.amplifier,
             self.balances,
-            deposit_token_id,
+            tx.token_id,
             withdraw_token_id,
             new_x
         );
@@ -99,11 +92,10 @@ contract Stableswap {
         assert!(old_y >= min_withdraw + new_y, "Exchange resulted in fewer coins than expected");
         let to_withdraw = old_y - new_y;
 
-        self.balances[deposit_token_id] = new_x;
+        self.balances[tx.token_id] = new_x;
         self.balances[withdraw_token_id] = new_y;
 
-        std::assets::Token::transfer(from, self.address, deposit_token_id, to_deposit);
-        std::assets::Token::transfer(self.address, to, withdraw_token_id, to_withdraw);
+        std::assets::Token::transfer(self.address, tx.to, withdraw_token_id, to_withdraw);
     }
 
     ///

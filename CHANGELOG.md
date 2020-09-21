@@ -16,7 +16,6 @@
 - implemented the type inference for integer literals in expressions
 - fixed the issue where operations on enums could result into an invalid variant
 - added aliases to the `use` import statement
-- allowed shadowing of items if they are declared in the parent scopes
 
 #### Virtual machine
 
