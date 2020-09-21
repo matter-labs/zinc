@@ -8,7 +8,8 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use serde_json::Value as JsonValue;
 
-use crate::network::Network;
+use zksync::Network;
+
 use crate::source::Source;
 
 ///

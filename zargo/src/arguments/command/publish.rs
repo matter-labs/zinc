@@ -14,7 +14,6 @@ use reqwest::Url;
 use serde_json::Value as JsonValue;
 use structopt::StructOpt;
 
-use zinc_data::Network;
 use zinc_data::PublishRequestBody;
 use zinc_data::PublishRequestQuery;
 use zinc_data::Source;
@@ -66,7 +65,8 @@ pub struct Command {
     /// The network identifier, where the contract must be published to.
     #[structopt(
         long = "network",
-        help = "Sets the network, which is either 'rinkeby', 'ropsten', or 'localhost'"
+        help = "Sets the network, which is either 'rinkeby', 'ropsten', or 'localhost'",
+        default_value = "localhost",
     )]
     pub network: String,
 }
@@ -124,7 +124,7 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        let network = Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
+        let network = zksync::Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
 
         let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 

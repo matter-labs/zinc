@@ -2,12 +2,10 @@
 //! The Zinc source code JSON representation.
 //!
 
-pub(crate) mod network;
 pub(crate) mod request;
 pub(crate) mod response;
 pub(crate) mod source;
 
-pub use self::network::Network;
 pub use self::request::call::Body as CallRequestBody;
 pub use self::request::call::Query as CallRequestQuery;
 pub use self::request::publish::Body as PublishRequestBody;

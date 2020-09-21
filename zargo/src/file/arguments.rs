@@ -1,5 +1,5 @@
 //!
-//! The function input arguments file.
+//! The method input arguments file.
 //!
 
 use std::fs::File;
@@ -10,9 +10,10 @@ use serde_derive::Deserialize;
 use serde_json::Value as JsonValue;
 
 use crate::file::error::Error;
+use crate::transaction::Transaction;
 
 ///
-/// The function input arguments file representation.
+/// The method input arguments file representation.
 ///
 #[derive(Deserialize)]
 pub struct Arguments {
@@ -45,6 +46,20 @@ impl Arguments {
             .map_err(|error| Error::Parsing(Self::file_name(method), error))?;
 
         Ok(Self { inner })
+    }
+
+    ///
+    /// Gets the transaction argument from the JSON.
+    ///
+    /// Should only be called for mutable methods (`call` command) where the transaction is mandatory.
+    ///
+    pub fn get_tx(&self) -> Option<Transaction> {
+        match self.inner {
+            JsonValue::Object(ref map) => {
+                map.get("tx").cloned().and_then(|tx| serde_json::from_value::<Transaction>(tx).ok())
+            }
+            _ => None,
+        }
     }
 
     ///

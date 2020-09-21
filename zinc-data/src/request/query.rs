@@ -9,8 +9,7 @@ use serde_derive::Serialize;
 use serde_json::Value as JsonValue;
 
 use zksync::zksync_models::node::AccountId;
-
-use crate::Network;
+use zksync::Network;
 
 ///
 /// The contract resource query PUT request query.

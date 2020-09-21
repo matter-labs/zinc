@@ -6,6 +6,7 @@ pub(crate) mod arguments;
 pub(crate) mod directory;
 pub(crate) mod executable;
 pub(crate) mod file;
+pub(crate) mod transaction;
 
 use std::process;
 

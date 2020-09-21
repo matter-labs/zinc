@@ -8,9 +8,9 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use serde_json::Value as JsonValue;
 
+use zksync::zksync_models::node::tx::Transfer;
 use zksync::zksync_models::node::AccountId;
-
-use crate::Network;
+use zksync::Network;
 
 ///
 /// The contract resource call POST request query.
@@ -60,13 +60,15 @@ impl IntoIterator for Query {
 pub struct Body {
     /// The JSON method input.
     pub arguments: JsonValue,
+    /// The signed transfer which must be sent directly to zkSync.
+    pub transfer: Transfer,
 }
 
 impl Body {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(arguments: JsonValue) -> Self {
-        Self { arguments }
+    pub fn new(arguments: JsonValue, transfer: Transfer) -> Self {
+        Self { arguments, transfer }
     }
 }

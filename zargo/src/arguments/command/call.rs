@@ -13,11 +13,20 @@ use reqwest::Method;
 use reqwest::Url;
 use serde_json::Value as JsonValue;
 use structopt::StructOpt;
+use num::BigUint;
+use num::Zero;
 
 use zinc_data::CallRequestBody;
 use zinc_data::CallRequestQuery;
-use zinc_data::Network;
 
+use zksync::web3::types::Address;
+use zksync::web3::types::H256;
+use zksync::web3::types::U256;
+use zksync::web3::types::H160;
+use zksync::zksync_models::node::tx::PackedEthSignature;
+
+use crate::transaction::Transaction;
+use crate::transaction::error::Error as TransactionError;
 use crate::arguments::command::IExecutable;
 use crate::directory::data::Directory as DataDirectory;
 use crate::file::arguments::Arguments as ArgumentsFile;
@@ -41,16 +50,17 @@ pub struct Command {
 
     /// The path to the Zargo project manifest file.
     #[structopt(
-    long = "manifest-path",
-    help = "Path to Zargo.toml",
-    default_value = zinc_const::path::MANIFEST,
+        long = "manifest-path",
+        help = "Path to Zargo.toml",
+        default_value = zinc_const::path::MANIFEST,
     )]
     pub manifest_path: PathBuf,
 
     /// The network identifier, where the contract resides.
     #[structopt(
         long = "network",
-        help = "Sets the network, which is either 'rinkeby', 'ropsten', or 'localhost'"
+        help = "Sets the network, which is either 'rinkeby', 'ropsten', or 'localhost'",
+        default_value = "localhost",
     )]
     pub network: String,
 
@@ -83,6 +93,12 @@ pub enum Error {
     /// The contract method arguments file error.
     #[fail(display = "arguments file {}", _0)]
     ArgumentsFile(FileError<serde_json::Error>),
+    /// The transaction argument is missing.
+    #[fail(display = "arguments do not contain the transfer transaction")]
+    TransactionArgumentMissing,
+    /// The transfer transaction signing error.
+    #[fail(display = "transfer transaction signing: {}", _0)]
+    TransactionSigning(TransactionError),
     /// The publish HTTP request error.
     #[fail(display = "HTTP request: {}", _0)]
     HttpRequest(reqwest::Error),
@@ -95,7 +111,7 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        let network = Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
+        let network = zksync::Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
 
         let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
@@ -120,6 +136,8 @@ impl IExecutable for Command {
 
         let arguments = ArgumentsFile::try_from_path(&arguments_path, self.method.as_str())
             .map_err(Error::ArgumentsFile)?;
+        let transaction = arguments.get_tx().ok_or(Error::TransactionArgumentMissing)?;
+        let transfer = transaction.try_into_transfer("7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110".to_owned()).map_err(Error::TransactionSigning)?;
 
         let endpoint_url = format!(
             "{}{}",
@@ -147,7 +165,7 @@ impl IExecutable for Command {
                         )
                         .expect(zinc_const::panic::DATA_CONVERSION),
                     )
-                    .json(&CallRequestBody::new(arguments.inner))
+                    .json(&CallRequestBody::new(arguments.inner, transfer))
                     .build()
                     .expect(zinc_const::panic::DATA_CONVERSION),
             )
