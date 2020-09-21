@@ -53,20 +53,22 @@ impl serde::Serialize for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidBytecode(inner) => write!(f, "Invalid bytecode: {}", inner),
-            Self::NotAContract => write!(f, "Not a contract"),
-            Self::ConstructorNotFound => write!(f, "Constructor not found"),
-            Self::InvalidInput(inner) => write!(f, "Input: {}", inner),
-            Self::RuntimeError(inner) => write!(f, "Runtime: {:?}", inner),
-            Self::Database(inner) => write!(f, "Database: {:?}", inner),
-            Self::InvalidOwnerPrivateKey(inner) => write!(
-                f,
+        let error = match self {
+            Self::InvalidBytecode(inner) => format!("Invalid bytecode: {}", inner),
+            Self::NotAContract => format!("Not a contract"),
+            Self::ConstructorNotFound => format!("Constructor not found"),
+            Self::InvalidInput(inner) => format!("Input: {}", inner),
+            Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
+            Self::Database(inner) => format!("Database: {:?}", inner),
+            Self::InvalidOwnerPrivateKey(inner) => format!(
                 "Invalid source ETH private key ({}), expected `0x[0-9A-Fa-f]{{64}}`",
                 inner
             ),
-            Self::ZkSyncWeb3(inner) => write!(f, "ZkSync Web3: {:?}", inner),
-            Self::ZkSync(inner) => write!(f, "ZkSync: {:?}", inner),
-        }
+            Self::ZkSyncWeb3(inner) => format!("ZkSync Web3: {:?}", inner),
+            Self::ZkSync(inner) => format!("ZkSync: {:?}", inner),
+        };
+
+        log::warn!("{}", error);
+        write!(f, "{}", error)
     }
 }

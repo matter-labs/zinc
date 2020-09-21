@@ -66,15 +66,15 @@ impl serde::Serialize for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::ContractNotFound => write!(f, "Contract not found"),
-            Self::MethodNotFound => write!(f, "Method not found"),
-            Self::MethodIsImmutable => write!(f, "Method is immutable: use 'query' instead"),
-            Self::InvalidInput(inner) => write!(f, "Input: {}", inner),
+        let error = match self {
+            Self::ContractNotFound => format!("Contract not found"),
+            Self::MethodNotFound => format!("Method not found"),
+            Self::MethodIsImmutable => format!("Method is immutable: use 'query' instead"),
+            Self::InvalidInput(inner) => format!("Input: {}", inner),
 
-            Self::RuntimeError(inner) => write!(f, "Runtime: {:?}", inner),
-            Self::Database(inner) => write!(f, "Database: {:?}", inner),
-            Self::ZkSync(inner) => write!(f, "ZkSync: {:?}", inner),
+            Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
+            Self::Database(inner) => format!("Database: {:?}", inner),
+            Self::ZkSync(inner) => format!("ZkSync: {:?}", inner),
             Self::TransferFailure { reasons } => {
                 let reasons: JsonMap<String, JsonValue> = reasons
                     .iter()
@@ -87,8 +87,11 @@ impl fmt::Display for Error {
                 let reasons = serde_json::to_string_pretty(&reasons)
                     .expect(zinc_const::panic::DATA_CONVERSION);
 
-                write!(f, "Transfer failures: {}", reasons)
+                format!("Transfer failures: {}", reasons)
             }
-        }
+        };
+
+        log::warn!("{}", error);
+        write!(f, "{}", error)
     }
 }

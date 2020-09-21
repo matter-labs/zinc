@@ -8,6 +8,7 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use serde_json::Value as JsonValue;
 
+use zksync::zksync_models::node::tx::PackedEthSignature;
 use zksync::zksync_models::node::tx::Transfer;
 use zksync::zksync_models::node::AccountId;
 use zksync::Network;
@@ -62,13 +63,19 @@ pub struct Body {
     pub arguments: JsonValue,
     /// The signed transfer which must be sent directly to zkSync.
     pub transfer: Transfer,
+    /// The transaction ETH signature.
+    pub signature: PackedEthSignature,
 }
 
 impl Body {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(arguments: JsonValue, transfer: Transfer) -> Self {
-        Self { arguments, transfer }
+    pub fn new(arguments: JsonValue, transfer: Transfer, signature: PackedEthSignature) -> Self {
+        Self {
+            arguments,
+            transfer,
+            signature,
+        }
     }
 }

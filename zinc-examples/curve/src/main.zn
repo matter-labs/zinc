@@ -42,6 +42,8 @@ contract Stableswap {
     pub fn new(
         _amplifier: u64,
     ) -> Self {
+        assert!(_amplifier > 0, "The Curve amplifier cannot be zero");
+
         Self {
             owner: 0x0 as Address,
             address: 0x0 as Address,

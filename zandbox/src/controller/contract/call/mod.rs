@@ -13,13 +13,14 @@ use actix_web::http::StatusCode;
 use actix_web::web;
 use serde_json::Value as JsonValue;
 
+use zksync::operations::SyncTransactionHandle;
 use zksync::web3::types::H160;
+use zksync::zksync_models::node::FranklinTx;
 
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 
-use crate::database::model::contract::select::private_key::input::Input as ContractSelectPrivateKeyInput;
 use crate::database::model::field::select::input::Input as FieldSelectInput;
 use crate::database::model::field::select::output::Output as FieldSelectOutput;
 use crate::database::model::field::update::input::Input as FieldUpdateInput;
@@ -98,8 +99,9 @@ pub async fn handle(
 
     log::debug!("Running the contract method on the virtual machine");
     let method = query.method;
+    let contract_build = contract.build;
     let output = async_std::task::spawn_blocking(move || {
-        zinc_vm::ContractFacade::new(contract.build).run::<Bn256>(
+        zinc_vm::ContractFacade::new(contract_build).run::<Bn256>(
             input_value,
             storage_value,
             method,
@@ -123,44 +125,43 @@ pub async fn handle(
         _ => panic!(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION),
     }
 
-    let network = match query.network {
-        zinc_data::Network::Localhost => zksync::Network::Localhost,
-        zinc_data::Network::Rinkeby => zksync::Network::Rinkeby,
-        zinc_data::Network::Ropsten => zksync::Network::Ropsten,
-    };
-    let provider = zksync::Provider::new(network);
+    let provider = zksync::Provider::new(query.network);
 
     log::debug!("Sending the transfers to ZkSync");
-    let mut handles = Vec::with_capacity(output.transfers.len());
+    let mut handles = Vec::with_capacity(output.transfers.len() + 1);
+
+    log::debug!(
+        "Sending {} ETH from {} to {}",
+        body.transfer.amount.to_string(),
+        serde_json::to_string(&body.transfer.from).expect(zinc_const::panic::DATA_CONVERSION),
+        serde_json::to_string(&body.transfer.to).expect(zinc_const::panic::DATA_CONVERSION),
+    );
+    let client_transfer_handle = provider
+        .send_tx(
+            FranklinTx::Transfer(Box::new(body.transfer)),
+            Some(body.signature),
+        )
+        .await
+        .map(|tx_hash| SyncTransactionHandle::new(tx_hash, provider.clone()))
+        .map_err(Error::ZkSync)?;
+    handles.push(client_transfer_handle);
+
+    let wallet_credentials =
+        zksync::WalletCredentials::from_eth_pk(contract.eth_address, contract.eth_private_key)
+            .map_err(Error::ZkSync)?;
+    let wallet = zksync::Wallet::new(provider, wallet_credentials)
+        .await
+        .map_err(Error::ZkSync)?;
+
     for transfer in output.transfers.into_iter() {
-        let from: H160 = transfer.from.into();
         let to: H160 = transfer.to.into();
 
         log::debug!(
             "Sending {} ETH from {} to {}",
-            zinc_utils::format_token_amount(
-                &transfer.amount,
-                zinc_const::zandbox::ETH_BALANCE_EXPONENT
-            ),
-            serde_json::to_string(&from).expect(zinc_const::panic::DATA_CONVERSION),
+            transfer.amount.to_string(),
+            serde_json::to_string(&contract.eth_address).expect(zinc_const::panic::DATA_CONVERSION),
             serde_json::to_string(&to).expect(zinc_const::panic::DATA_CONVERSION),
         );
-
-        let signer_private_key = app_data
-            .read()
-            .expect(zinc_const::panic::SYNCHRONIZATION)
-            .postgresql_client
-            .select_contract_private_key(ContractSelectPrivateKeyInput::new(transfer.from))
-            .await
-            .map_err(Error::Database)?
-            .eth_private_key;
-        let signer_private_key = zinc_utils::eth_private_key_from_vec(signer_private_key);
-
-        let wallet_credentials = zksync::WalletCredentials::from_eth_pk(from, signer_private_key)
-            .map_err(Error::ZkSync)?;
-        let wallet = zksync::Wallet::new(provider.clone(), wallet_credentials)
-            .await
-            .map_err(Error::ZkSync)?;
 
         let handle = wallet
             .start_transfer()

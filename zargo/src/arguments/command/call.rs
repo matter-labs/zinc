@@ -13,26 +13,18 @@ use reqwest::Method;
 use reqwest::Url;
 use serde_json::Value as JsonValue;
 use structopt::StructOpt;
-use num::BigUint;
-use num::Zero;
 
 use zinc_data::CallRequestBody;
 use zinc_data::CallRequestQuery;
 
-use zksync::web3::types::Address;
-use zksync::web3::types::H256;
-use zksync::web3::types::U256;
-use zksync::web3::types::H160;
-use zksync::zksync_models::node::tx::PackedEthSignature;
-
-use crate::transaction::Transaction;
-use crate::transaction::error::Error as TransactionError;
 use crate::arguments::command::IExecutable;
 use crate::directory::data::Directory as DataDirectory;
 use crate::file::arguments::Arguments as ArgumentsFile;
 use crate::file::error::Error as FileError;
 use crate::file::manifest::project_type::ProjectType;
 use crate::file::manifest::Manifest as ManifestFile;
+use crate::transaction::error::Error as TransactionError;
+use crate::transaction::Transaction;
 
 ///
 /// The Zargo project manager `call` subcommand.
@@ -60,7 +52,7 @@ pub struct Command {
     #[structopt(
         long = "network",
         help = "Sets the network, which is either 'rinkeby', 'ropsten', or 'localhost'",
-        default_value = "localhost",
+        default_value = "localhost"
     )]
     pub network: String,
 
@@ -97,8 +89,8 @@ pub enum Error {
     #[fail(display = "arguments do not contain the transfer transaction")]
     TransactionArgumentMissing,
     /// The transfer transaction signing error.
-    #[fail(display = "transfer transaction signing: {}", _0)]
-    TransactionSigning(TransactionError),
+    #[fail(display = "transfer transaction: {}", _0)]
+    Transaction(TransactionError),
     /// The publish HTTP request error.
     #[fail(display = "HTTP request: {}", _0)]
     HttpRequest(reqwest::Error),
@@ -111,9 +103,20 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        let network = zksync::Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
+        let network =
+            zksync::Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
 
         let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
+
+        eprintln!(
+            "     {} method `{}` of the contract `{} v{} with ID {}` on network `{}`",
+            "Calling".bright_green(),
+            self.method,
+            manifest.project.name,
+            manifest.project.version,
+            self.contract_id,
+            network,
+        );
 
         match manifest.project.r#type {
             ProjectType::Contract => {}
@@ -136,22 +139,23 @@ impl IExecutable for Command {
 
         let arguments = ArgumentsFile::try_from_path(&arguments_path, self.method.as_str())
             .map_err(Error::ArgumentsFile)?;
-        let transaction = arguments.get_tx().ok_or(Error::TransactionArgumentMissing)?;
-        let transfer = transaction.try_into_transfer("7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110".to_owned()).map_err(Error::TransactionSigning)?;
+        let transaction = Transaction::try_from(
+            arguments
+                .get_tx()
+                .ok_or(Error::TransactionArgumentMissing)?,
+        )
+        .map_err(Error::Transaction)?;
+        let (transfer, signature) = transaction
+            .try_into_transfer(
+                network,
+                "863275aeb638378fa01f4d226e23627d41c8426f86746bbce74163e45b9813cd".to_owned(),
+            )
+            .map_err(Error::Transaction)?;
 
         let endpoint_url = format!(
             "{}{}",
-            network.to_address(),
+            "http://127.0.0.1:4001",
             zinc_const::zandbox::CONTRACT_CALL_URL
-        );
-
-        eprintln!(
-            "     {} method `{}` of the contract `{} v{} with ID {}`",
-            "Calling".bright_green(),
-            self.method,
-            manifest.project.name,
-            manifest.project.version,
-            self.contract_id,
         );
         let http_client = HttpClient::new();
         let mut http_response = http_client
@@ -165,7 +169,7 @@ impl IExecutable for Command {
                         )
                         .expect(zinc_const::panic::DATA_CONVERSION),
                     )
-                    .json(&CallRequestBody::new(arguments.inner, transfer))
+                    .json(&CallRequestBody::new(arguments.inner, transfer, signature))
                     .build()
                     .expect(zinc_const::panic::DATA_CONVERSION),
             )

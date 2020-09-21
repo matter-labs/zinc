@@ -9,8 +9,6 @@ use sqlx::Postgres;
 use crate::database::model::contract::insert::input::Input as ContractInsertInput;
 use crate::database::model::contract::select::all::output::Output as ContractSelectAllOutput;
 use crate::database::model::contract::select::curve::output::Output as ContractSelectCurveOutput;
-use crate::database::model::contract::select::private_key::input::Input as ContractSelectPrivateKeyInput;
-use crate::database::model::contract::select::private_key::output::Output as ContractSelectPrivateKeyOutput;
 use crate::database::model::field::insert::input::Input as FieldInsertInput;
 use crate::database::model::field::select::input::Input as FieldSelectInput;
 use crate::database::model::field::select::output::Output as FieldSelectOutput;
@@ -71,27 +69,6 @@ impl Client {
         "#;
 
         Ok(sqlx::query_as(STATEMENT).fetch_all(&self.pool).await?)
-    }
-
-    ///
-    /// Select the contracts from the `contracts` table.
-    ///
-    pub async fn select_contract_private_key(
-        &self,
-        input: ContractSelectPrivateKeyInput,
-    ) -> Result<ContractSelectPrivateKeyOutput, sqlx::Error> {
-        const STATEMENT: &str = r#"
-        SELECT
-            eth_private_key
-        FROM zandbox.contracts
-        WHERE
-            eth_address = $1;
-        "#;
-
-        Ok(sqlx::query_as(STATEMENT)
-            .bind(input.eth_address.to_vec())
-            .fetch_one(&self.pool)
-            .await?)
     }
 
     ///

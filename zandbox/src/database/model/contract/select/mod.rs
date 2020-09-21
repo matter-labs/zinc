@@ -4,4 +4,3 @@
 
 pub mod all;
 pub mod curve;
-pub mod private_key;

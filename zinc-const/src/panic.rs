@@ -8,6 +8,9 @@ pub static SYNCHRONIZATION: &str = "Thread synchronization is always successful"
 /// The thread pool initialization is always successful.
 pub static THREAD_POOL: &str = "Thread pool initialization is always successful";
 
+/// The asynchronous runtime initialization is always successful.
+pub static ASYNC_RUNTIME: &str = "Asynchronous runtime initialization is always successful";
+
 /// The data conversion is always valid.
 pub static DATA_CONVERSION: &str = "Data conversion is always successful: ";
 

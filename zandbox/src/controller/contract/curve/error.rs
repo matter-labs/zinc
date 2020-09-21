@@ -34,8 +34,11 @@ impl serde::Serialize for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Database(inner) => write!(f, "Database: {:?}", inner),
-        }
+        let error = match self {
+            Self::Database(inner) => format!("Database: {:?}", inner),
+        };
+
+        log::warn!("{}", error);
+        write!(f, "{}", error)
     }
 }

@@ -53,20 +53,22 @@ impl serde::Serialize for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::ContractNotFound => write!(f, "Contract not found"),
-            Self::MethodNotFound => write!(f, "Method not found"),
-            Self::MethodArgumentsNotFound => write!(f, "Method input arguments not found"),
-            Self::MethodIsMutable => write!(f, "Method is mutable: use 'call' instead"),
-            Self::InvalidInput(inner) => write!(f, "Input: {}", inner),
-            Self::InvalidStorage(inner) => write!(f, "Contract storage is invalid: {}", inner),
-            Self::InvalidStorageSize { expected, found } => write!(
-                f,
+        let error = match self {
+            Self::ContractNotFound => format!("Contract not found"),
+            Self::MethodNotFound => format!("Method not found"),
+            Self::MethodArgumentsNotFound => format!("Method input arguments not found"),
+            Self::MethodIsMutable => format!("Method is mutable: use 'call' instead"),
+            Self::InvalidInput(inner) => format!("Input: {}", inner),
+            Self::InvalidStorage(inner) => format!("Contract storage is invalid: {}", inner),
+            Self::InvalidStorageSize { expected, found } => format!(
                 "Contract storage size invalid: expected {}, found {}",
                 expected, found
             ),
-            Self::RuntimeError(inner) => write!(f, "Runtime: {:?}", inner),
-            Self::Database(inner) => write!(f, "Database: {:?}", inner),
-        }
+            Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
+            Self::Database(inner) => format!("Database: {:?}", inner),
+        };
+
+        log::warn!("{}", error);
+        write!(f, "{}", error)
     }
 }

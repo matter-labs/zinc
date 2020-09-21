@@ -83,12 +83,7 @@ pub async fn handle(
     .await
     .map_err(Error::RuntimeError)?;
 
-    let network = match query.network {
-        zinc_data::Network::Localhost => zksync::Network::Localhost,
-        zinc_data::Network::Rinkeby => zksync::Network::Rinkeby,
-        zinc_data::Network::Ropsten => zksync::Network::Ropsten,
-    };
-    let provider = zksync::Provider::new(network);
+    let provider = zksync::Provider::new(query.network);
 
     log::debug!("Generating an ETH private key");
     let mut contract_private_key = H256::default();
@@ -123,7 +118,7 @@ pub async fn handle(
     let eth_deposit_tx_hash = ethereum
         .deposit(
             "ETH",
-            U256::from(100).pow(zinc_const::zandbox::ETH_BALANCE_EXPONENT.into()),
+            U256::from(100u64).pow(zinc_const::zandbox::ETH_BALANCE_EXPONENT.into()),
             contract_eth_address,
         )
         .await

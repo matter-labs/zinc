@@ -66,7 +66,7 @@ pub struct Command {
     #[structopt(
         long = "network",
         help = "Sets the network, which is either 'rinkeby', 'ropsten', or 'localhost'",
-        default_value = "localhost",
+        default_value = "localhost"
     )]
     pub network: String,
 }
@@ -124,9 +124,19 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        let network = zksync::Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
+        let network =
+            zksync::Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
 
         let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
+
+        eprintln!(
+            "   {} the instance `{}` of `{} v{}` to network `{}`",
+            "Uploading".bright_green(),
+            self.instance,
+            manifest.project.name,
+            manifest.project.version,
+            network,
+        );
 
         match manifest.project.r#type {
             ProjectType::Contract => {}
@@ -199,18 +209,10 @@ impl IExecutable for Command {
 
         let endpoint_url = format!(
             "{}{}",
-            network.to_address(),
+            "http://127.0.0.1:4001",
             zinc_const::zandbox::CONTRACT_PUBLISH_URL
         );
 
-        eprintln!(
-            "   {} the instance `{}` of `{} v{}` to network `{}`",
-            "Uploading".bright_green(),
-            self.instance,
-            manifest.project.name,
-            manifest.project.version,
-            network,
-        );
         let http_client = HttpClient::new();
         let mut http_response = http_client
             .execute(

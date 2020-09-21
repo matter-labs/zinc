@@ -7,10 +7,10 @@ use std::io::Read;
 use std::path::PathBuf;
 
 use serde_derive::Deserialize;
+use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
 
 use crate::file::error::Error;
-use crate::transaction::Transaction;
 
 ///
 /// The method input arguments file representation.
@@ -53,11 +53,12 @@ impl Arguments {
     ///
     /// Should only be called for mutable methods (`call` command) where the transaction is mandatory.
     ///
-    pub fn get_tx(&self) -> Option<Transaction> {
+    pub fn get_tx(&self) -> Option<JsonMap<String, JsonValue>> {
         match self.inner {
-            JsonValue::Object(ref map) => {
-                map.get("tx").cloned().and_then(|tx| serde_json::from_value::<Transaction>(tx).ok())
-            }
+            JsonValue::Object(ref map) => match map.get("tx").cloned() {
+                Some(JsonValue::Object(map)) => Some(map),
+                _ => None,
+            },
             _ => None,
         }
     }
