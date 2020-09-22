@@ -20,21 +20,21 @@ use zinc_data::Source;
 use zinc_data::SourceError;
 
 use crate::arguments::command::IExecutable;
-use crate::directory::build::Directory as BuildDirectory;
-use crate::directory::build::Error as BuildDirectoryError;
-use crate::directory::data::Directory as DataDirectory;
-use crate::directory::data::Error as DataDirectoryError;
-use crate::directory::source::Directory as SourceDirectory;
+use crate::error::directory::Error as DirectoryError;
+use crate::error::file::Error as FileError;
 use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
-use crate::file::arguments::Arguments as ArgumentsFile;
-use crate::file::bytecode::Bytecode as BytecodeFile;
-use crate::file::error::Error as FileError;
-use crate::file::manifest::project_type::ProjectType;
-use crate::file::manifest::Manifest as ManifestFile;
-use crate::file::verifying_key::VerifyingKey as VerifyingKeyFile;
+use crate::project::build::bytecode::Bytecode as BytecodeFile;
+use crate::project::build::Directory as BuildDirectory;
+use crate::project::data::arguments::Arguments as ArgumentsFile;
+use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
+use crate::project::data::verifying_key::VerifyingKey as VerifyingKeyFile;
+use crate::project::data::Directory as DataDirectory;
+use crate::project::manifest::project_type::ProjectType;
+use crate::project::manifest::Manifest as ManifestFile;
+use crate::project::source::Directory as SourceDirectory;
 
 ///
 /// The Zargo project manager `publish` subcommand.
@@ -69,6 +69,14 @@ pub struct Command {
         default_value = "localhost"
     )]
     pub network: String,
+
+    /// The path to the sender private key.
+    #[structopt(
+        long = "private-key",
+        help = "Path to sender private key",
+        default_value = zinc_const::path::PRIVATE_KEY,
+    )]
+    pub private_key_path: PathBuf,
 }
 
 ///
@@ -93,10 +101,10 @@ pub enum Error {
     Source(SourceError),
     /// The project binary build directory error.
     #[fail(display = "build directory {}", _0)]
-    BuildDirectory(BuildDirectoryError),
+    BuildDirectory(DirectoryError),
     /// The project template, keys, and other auxiliary data directory error.
     #[fail(display = "data directory {}", _0)]
-    DataDirectory(DataDirectoryError),
+    DataDirectory(DirectoryError),
     /// The compiler process error.
     #[fail(display = "compiler {}", _0)]
     Compiler(CompilerError),
@@ -112,6 +120,9 @@ pub enum Error {
     /// The verifying key file error.
     #[fail(display = "verifying key file {}", _0)]
     VerifyingKeyFile(FileError),
+    /// The private key file error.
+    #[fail(display = "private key file {}", _0)]
+    PrivateKeyFile(FileError),
     /// The publish HTTP request error.
     #[fail(display = "HTTP request: {}", _0)]
     HttpRequest(reqwest::Error),
@@ -164,6 +175,8 @@ impl IExecutable for Command {
         proving_key_path.push(zinc_const::file_name::PROVING_KEY);
         let mut verifying_key_path = data_directory_path.clone();
         verifying_key_path.push(zinc_const::file_name::VERIFYING_KEY.to_owned());
+        let mut private_key_path = data_directory_path.clone();
+        private_key_path.push(zinc_const::file_name::PRIVATE_KEY.to_owned());
 
         BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
         let build_directory_path = BuildDirectory::path(&manifest_path);
@@ -206,6 +219,9 @@ impl IExecutable for Command {
 
         let verifying_key =
             VerifyingKeyFile::try_from(&verifying_key_path).map_err(Error::VerifyingKeyFile)?;
+
+        let private_key =
+            PrivateKeyFile::try_from(&private_key_path).map_err(Error::PrivateKeyFile)?;
 
         let endpoint_url = format!(
             "{}{}",

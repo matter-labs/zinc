@@ -43,13 +43,13 @@ impl Instance {
         witness: JsonValue,
     ) -> Result<Self, Error> {
         let source = Source::test(code, path, HashMap::new())
-            .map_err(|error| Error::Compiler(error.format()))?;
+            .map_err(|error| Error::Compiler(format!("{:?}", error)))?;
         let program = thread::Builder::new()
             .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
             .spawn(|| {
                 let scope = EntryAnalyzer::define(source)
                     .map_err(CompilerError::Semantic)
-                    .map_err(|error| error.format())
+                    .map_err(|error| format!("{:?}", error))
                     .map_err(Error::Compiler)?;
 
                 let state = State::new(name).wrap();

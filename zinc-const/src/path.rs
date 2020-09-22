@@ -16,3 +16,6 @@ pub static MANIFEST: &str = "./Zargo.toml";
 
 /// The binary file default path.
 pub static BINARY: &str = "./build/main.znb";
+
+/// The private key file default path.
+pub static PRIVATE_KEY: &str = "./data/private_key";

@@ -10,7 +10,7 @@ use serde_derive::Deserialize;
 use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
 
-use crate::file::error::Error;
+use crate::error::file::Error as FileError;
 
 ///
 /// The method input arguments file representation.
@@ -25,25 +25,28 @@ impl Arguments {
     ///
     /// Parses the arguments file at `path`.
     ///
-    pub fn try_from_path(path: &PathBuf, method: &str) -> Result<Self, Error<serde_json::Error>> {
+    pub fn try_from_path(
+        path: &PathBuf,
+        method: &str,
+    ) -> Result<Self, FileError<serde_json::Error>> {
         let mut path = path.to_owned();
         if path.is_dir() {
             path.push(PathBuf::from(Self::file_name(method)));
         }
 
         let mut file =
-            File::open(path).map_err(|error| Error::Opening(Self::file_name(method), error))?;
+            File::open(path).map_err(|error| FileError::Opening(Self::file_name(method), error))?;
         let size = file
             .metadata()
-            .map_err(|error| Error::Metadata(Self::file_name(method), error))?
+            .map_err(|error| FileError::Metadata(Self::file_name(method), error))?
             .len() as usize;
 
         let mut buffer = String::with_capacity(size);
         file.read_to_string(&mut buffer)
-            .map_err(|error| Error::Reading(Self::file_name(method), error))?;
+            .map_err(|error| FileError::Reading(Self::file_name(method), error))?;
 
         let inner = serde_json::from_str(buffer.as_str())
-            .map_err(|error| Error::Parsing(Self::file_name(method), error))?;
+            .map_err(|error| FileError::Parsing(Self::file_name(method), error))?;
 
         Ok(Self { inner })
     }

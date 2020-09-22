@@ -11,6 +11,7 @@ use std::sync::RwLock;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
+use serde_json::json;
 use serde_json::Value as JsonValue;
 
 use zksync::operations::SyncTransactionHandle;
@@ -34,6 +35,19 @@ use self::request::Query as RequestQuery;
 ///
 /// The HTTP request handler.
 ///
+/// Sequence:
+/// 1. Get the contract from the in-memory cache.
+/// 2. Extract the called method from its metadata and check if it is mutable.
+/// 3. Parse the method input arguments.
+/// 4. Get the contract storage from the database and convert it to the Zinc VM representation.
+/// 5. Run the method on the Zinc VM.
+/// 6. Extract the storage with the updated state from the Zinc VM.
+/// 7. Send the client transfers to zkSync and store its handles.
+/// 8. Send the contract transfers to zkSync and store its handles.
+/// 9. Wait for all transactions to be committed.
+/// 10. Update the contract storage state in the database.
+/// 11. Send the contract method execution result back to the client.
+///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
     query: web::Query<RequestQuery>,
@@ -54,16 +68,14 @@ pub async fn handle(
         .contracts
         .get(&query.account_id)
         .cloned()
-        .ok_or(Error::ContractNotFound)?;
+        .ok_or(Error::ContractNotFound(query.account_id))?;
 
-    let method = contract
-        .build
-        .methods
-        .get(query.method.as_str())
-        .cloned()
-        .ok_or(Error::MethodNotFound)?;
+    let method = match contract.build.methods.get(query.method.as_str()).cloned() {
+        Some(method) => method,
+        None => return Err(Error::MethodNotFound(query.method)),
+    };
     if !method.is_mutable {
-        return Err(Error::MethodIsImmutable);
+        return Err(Error::MethodIsImmutable(query.method));
     }
 
     let input_value = BuildValue::try_from_typed_json(body.arguments, method.input)
@@ -211,7 +223,9 @@ pub async fn handle(
         .await
         .map_err(Error::Database)?;
 
-    let response = output.result.into_json();
+    let response = json!({
+        "output": output.result.into_json(),
+    });
 
     log::debug!("The sequence has been successfully executed");
     Ok(Response::new_with_data(StatusCode::OK, response))

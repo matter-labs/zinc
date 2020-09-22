@@ -9,16 +9,16 @@ use failure::Fail;
 use structopt::StructOpt;
 
 use crate::arguments::command::IExecutable;
-use crate::directory::build::Directory as BuildDirectory;
-use crate::directory::build::Error as BuildDirectoryError;
-use crate::directory::data::Directory as DataDirectory;
-use crate::directory::source::Directory as SourceDirectory;
+use crate::error::directory::Error as DirectoryError;
+use crate::error::file::Error as FileError;
 use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
-use crate::file::error::Error as FileError;
-use crate::file::manifest::Manifest as ManifestFile;
+use crate::project::build::Directory as BuildDirectory;
+use crate::project::data::Directory as DataDirectory;
+use crate::project::manifest::Manifest as ManifestFile;
+use crate::project::source::Directory as SourceDirectory;
 
 ///
 /// The Zargo project manager `test` subcommand.
@@ -54,7 +54,7 @@ pub enum Error {
     ManifestFile(FileError<toml::de::Error>),
     /// The project binary build directory error.
     #[fail(display = "build directory {}", _0)]
-    BuildDirectory(BuildDirectoryError),
+    BuildDirectory(DirectoryError),
     /// The compiler process error.
     #[fail(display = "compiler {}", _0)]
     Compiler(CompilerError),

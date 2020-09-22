@@ -5,8 +5,8 @@
 //!         "witness": "16"
 //!     },
 //!     "output": {
-//!         "$result": "81",
-//!         "$root_hash": "0x8d6b4d17ddf7da232990ab7931346272da603ce724d83f1e537490ccf308fd"
+//!         "result": "81",
+//!         "root_hash": "0x8d6b4d17ddf7da232990ab7931346272da603ce724d83f1e537490ccf308fd"
 //!     }
 //! } ] }
 

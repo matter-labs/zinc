@@ -9,12 +9,11 @@ use failure::Fail;
 use structopt::StructOpt;
 
 use crate::arguments::command::IExecutable;
-use crate::directory::build::Directory as BuildDirectory;
-use crate::directory::build::Error as BuildDirectoryError;
-use crate::directory::data::Directory as DataDirectory;
-use crate::directory::data::Error as DataDirectoryError;
-use crate::file::error::Error as FileError;
-use crate::file::manifest::Manifest as ManifestFile;
+use crate::error::directory::Error as DirectoryError;
+use crate::error::file::Error as FileError;
+use crate::project::build::Directory as BuildDirectory;
+use crate::project::data::Directory as DataDirectory;
+use crate::project::manifest::Manifest as ManifestFile;
 
 ///
 /// The Zargo project manager `clean` subcommand.
@@ -50,10 +49,10 @@ pub enum Error {
     ManifestFile(FileError<toml::de::Error>),
     /// The project binary build directory error.
     #[fail(display = "build directory {}", _0)]
-    BuildDirectory(BuildDirectoryError),
+    BuildDirectory(DirectoryError),
     /// The project template, keys, and other auxiliary data directory error.
     #[fail(display = "data directory {}", _0)]
-    DataDirectory(DataDirectoryError),
+    DataDirectory(DirectoryError),
 }
 
 impl IExecutable for Command {

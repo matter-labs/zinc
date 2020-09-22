@@ -22,12 +22,12 @@ fn after(
     assert!(0 <= token_x_id as u8 && token_x_id as u8 < N, "The token X ID must be between 0 and 4");
     assert!(0 <= token_y_id as u8 && token_y_id as u8 < N, "The token Y ID must be between 0 and 4");
 
-    let mut xp = balances;
+    let mut balances_p = balances;
     for i in 0..N {
-        xp[i] *= PRECISION;
+        balances_p[i] *= PRECISION;
     }
 
-    let D = crate::invariant::calculate(amplifier, xp);
+    let D = crate::invariant::calculate(amplifier, balances_p);
     let An: Balance = amplifier * (N as u64);
 
     let mut c = D;
@@ -35,11 +35,12 @@ fn after(
 
     for i in 0..N {
         if i == token_x_id as u8 {
-            S += after_deposit * PRECISION;
-            c = c * D / (after_deposit * PRECISION * (N as Balance));
+            let after_deposit_p = after_deposit * PRECISION;
+            S += after_deposit_p;
+            c = c * D / (after_deposit_p * (N as Balance));
         } else if i != token_y_id as u8 {
-            S += xp[i];
-            c = c * D / (xp[i] * (N as Balance));
+            S += balances_p[i];
+            c = c * D / (balances_p[i] * (N as Balance));
         };
     }
 

@@ -1,5 +1,5 @@
 //!
-//! The Zinc generic file error.
+//! The generic file error.
 //!
 
 use std::fmt;
@@ -8,7 +8,7 @@ use std::io;
 use failure::Fail;
 
 ///
-/// The Zinc generic file error.
+/// The generic file error.
 ///
 #[derive(Debug, Fail)]
 pub enum Error<P = String>

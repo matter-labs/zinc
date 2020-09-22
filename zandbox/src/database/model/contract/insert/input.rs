@@ -28,8 +28,6 @@ pub struct Input {
     /// The contract verifying key as a byte array.
     pub verifying_key: Vec<u8>,
 
-    /// The contract ETH address.
-    pub eth_address: [u8; zinc_const::size::ETH_ADDRESS],
     /// The contract private key.
     pub eth_private_key: [u8; zinc_const::size::ETH_PRIVATE_KEY],
 }
@@ -51,7 +49,6 @@ impl Input {
         bytecode: Vec<u8>,
         verifying_key: Vec<u8>,
 
-        eth_address: [u8; zinc_const::size::ETH_ADDRESS],
         eth_private_key: [u8; zinc_const::size::ETH_PRIVATE_KEY],
     ) -> Self {
         Self {
@@ -66,7 +63,6 @@ impl Input {
             bytecode,
             verifying_key,
 
-            eth_address,
             eth_private_key,
         }
     }

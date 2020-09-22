@@ -5,8 +5,8 @@
 //!         "value": "42"
 //!     },
 //!     "output": {
-//!         "$result": "1024",
-//!         "$root_hash": "0x8339ec4acb57397deb213852a7d9b6b1fdfeeede2379a0dda09b0ac4c49478"
+//!         "result": "1024",
+//!         "root_hash": "0x8339ec4acb57397deb213852a7d9b6b1fdfeeede2379a0dda09b0ac4c49478"
 //!     }
 //! } ] }
 

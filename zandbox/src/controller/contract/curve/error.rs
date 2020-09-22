@@ -12,13 +12,14 @@ use actix_web::ResponseError;
 ///
 #[derive(Debug)]
 pub enum Error {
+    /// The PostgreSQL database error.
     Database(sqlx::Error),
 }
 
 impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
-            Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Database(..) => StatusCode::SERVICE_UNAVAILABLE,
         }
     }
 }

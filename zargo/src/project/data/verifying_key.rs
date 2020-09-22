@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
-use crate::file::error::Error;
+use crate::error::file::Error as FileError;
 
 ///
 /// The verifying key file representation.
@@ -27,24 +27,27 @@ impl VerifyingKey {
 }
 
 impl TryFrom<&PathBuf> for VerifyingKey {
-    type Error = Error;
+    type Error = FileError;
 
     fn try_from(path: &PathBuf) -> Result<Self, Self::Error> {
         let mut path = path.to_owned();
         if path.is_dir() {
+            if !path.ends_with(zinc_const::directory::DATA) {
+                path.push(PathBuf::from(zinc_const::directory::DATA));
+            }
             path.push(PathBuf::from(Self::file_name()));
         }
 
         let mut file =
-            File::open(path).map_err(|error| Error::Opening(Self::file_name(), error))?;
+            File::open(path).map_err(|error| FileError::Opening(Self::file_name(), error))?;
         let size = file
             .metadata()
-            .map_err(|error| Error::Metadata(Self::file_name(), error))?
+            .map_err(|error| FileError::Metadata(Self::file_name(), error))?
             .len() as usize;
 
         let mut buffer = Vec::with_capacity(size);
         file.read_to_end(&mut buffer)
-            .map_err(|error| Error::Reading(Self::file_name(), error))?;
+            .map_err(|error| FileError::Reading(Self::file_name(), error))?;
 
         Ok(Self { inner: buffer })
     }

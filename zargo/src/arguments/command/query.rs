@@ -18,11 +18,11 @@ use zinc_data::QueryRequestBody;
 use zinc_data::QueryRequestQuery;
 
 use crate::arguments::command::IExecutable;
-use crate::directory::data::Directory as DataDirectory;
-use crate::file::arguments::Arguments as ArgumentsFile;
-use crate::file::error::Error as FileError;
-use crate::file::manifest::project_type::ProjectType;
-use crate::file::manifest::Manifest as ManifestFile;
+use crate::error::file::Error as FileError;
+use crate::project::data::arguments::Arguments as ArgumentsFile;
+use crate::project::data::Directory as DataDirectory;
+use crate::project::manifest::project_type::ProjectType;
+use crate::project::manifest::Manifest as ManifestFile;
 
 ///
 /// The Zargo project manager `query` subcommand.

@@ -89,7 +89,11 @@ impl IExecutable for Command {
                     .get(method_name.as_str())
                     .cloned()
                     .ok_or(Error::MethodNotFound { name: method_name })?;
-                method.output.into_contract_metadata()
+                if method.is_mutable {
+                    method.output.into_mutable_method_output()
+                } else {
+                    method.output
+                }
             }
         };
         let output_value = BuildValue::try_from_typed_json(output_json, output_type)?;

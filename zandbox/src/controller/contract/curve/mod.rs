@@ -21,6 +21,10 @@ use self::response::Instance as ResponseInstance;
 ///
 /// The HTTP request handler.
 ///
+/// Sequence:
+/// 1. Get all the contract instances with the name 'curve' from the database.
+/// 2. Return the instances to the client.
+///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
 ) -> crate::Result<ResponseBody, Error> {

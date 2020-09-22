@@ -48,7 +48,7 @@ contract Stableswap {
             owner: 0x0 as Address,
             address: 0x0 as Address,
 
-            balances: [ZERO; N],
+            balances: [1_000_000 as Balance; N],
             amplifier: _amplifier,
         }
     }
@@ -80,6 +80,9 @@ contract Stableswap {
         withdraw_token_id: TokenId,
         min_withdraw: Balance,
     ) {
+        assert!(tx.amount > 0, "Sent amount cannot be zero");
+        assert!(min_withdraw > 0, "Minimal withdrawal cannot be zero");
+
         let old_y = self.balances[withdraw_token_id];
 
         let new_x = self.balances[tx.token_id] + tx.amount;

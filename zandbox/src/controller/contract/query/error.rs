@@ -7,6 +7,8 @@ use std::fmt;
 use actix_web::http::StatusCode;
 use actix_web::ResponseError;
 
+use zksync::zksync_models::node::AccountId;
+
 use zinc_build::ValueError as BuildValueError;
 use zinc_vm::RuntimeError;
 
@@ -15,29 +17,34 @@ use zinc_vm::RuntimeError;
 ///
 #[derive(Debug)]
 pub enum Error {
-    ContractNotFound,
-    MethodNotFound,
-    MethodArgumentsNotFound,
-    MethodIsMutable,
+    /// The contract with the specified ID is not found in the server cache.
+    ContractNotFound(AccountId),
+    /// The specified method does not exist in the contract.
+    MethodNotFound(String),
+    /// The mutable method must be called via the `call` endpoint.
+    MethodIsMutable(String),
+    /// The method was specified in the query, but its arguments was not sent in the body.
+    MethodArgumentsNotFound(String),
+    /// Invalid contract method arguments.
     InvalidInput(BuildValueError),
-    InvalidStorage(BuildValueError),
-    InvalidStorageSize { expected: usize, found: usize },
+
+    /// The virtual machine contract method runtime error.
     RuntimeError(RuntimeError),
+    /// The PostgreSQL database error.
     Database(sqlx::Error),
 }
 
 impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
-            Self::ContractNotFound => StatusCode::NOT_FOUND,
-            Self::MethodNotFound => StatusCode::UNPROCESSABLE_ENTITY,
-            Self::MethodArgumentsNotFound => StatusCode::UNPROCESSABLE_ENTITY,
-            Self::MethodIsMutable => StatusCode::BAD_REQUEST,
-            Self::InvalidInput(_) => StatusCode::BAD_REQUEST,
-            Self::InvalidStorage(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::InvalidStorageSize { .. } => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::RuntimeError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::ContractNotFound(..) => StatusCode::NOT_FOUND,
+            Self::MethodNotFound(..) => StatusCode::BAD_REQUEST,
+            Self::MethodIsMutable(..) => StatusCode::BAD_REQUEST,
+            Self::MethodArgumentsNotFound(..) => StatusCode::BAD_REQUEST,
+            Self::InvalidInput(..) => StatusCode::BAD_REQUEST,
+
+            Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::Database(..) => StatusCode::SERVICE_UNAVAILABLE,
         }
     }
 }
@@ -54,16 +61,16 @@ impl serde::Serialize for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let error = match self {
-            Self::ContractNotFound => format!("Contract not found"),
-            Self::MethodNotFound => format!("Method not found"),
-            Self::MethodArgumentsNotFound => format!("Method input arguments not found"),
-            Self::MethodIsMutable => format!("Method is mutable: use 'call' instead"),
+            Self::ContractNotFound(id) => format!("Contract with account ID {} not found", id),
+            Self::MethodNotFound(name) => format!("Method `{}` not found", name),
+            Self::MethodIsMutable(name) => {
+                format!("Method `{}` is mutable: use 'call' instead", name)
+            }
+            Self::MethodArgumentsNotFound(name) => {
+                format!("Method `{}` input arguments missing in the request", name)
+            }
             Self::InvalidInput(inner) => format!("Input: {}", inner),
-            Self::InvalidStorage(inner) => format!("Contract storage is invalid: {}", inner),
-            Self::InvalidStorageSize { expected, found } => format!(
-                "Contract storage size invalid: expected {}, found {}",
-                expected, found
-            ),
+
             Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
             Self::Database(inner) => format!("Database: {:?}", inner),
         };

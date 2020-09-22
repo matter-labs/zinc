@@ -11,6 +11,7 @@ use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
 
 use zksync::zksync_models::node::tx::TxHash;
+use zksync::zksync_models::node::AccountId;
 
 use zinc_build::ValueError as BuildValueError;
 use zinc_vm::RuntimeError;
@@ -21,11 +22,11 @@ use zinc_vm::RuntimeError;
 #[derive(Debug)]
 pub enum Error {
     /// The contract with the specified ID is not found in the server cache.
-    ContractNotFound,
+    ContractNotFound(AccountId),
     /// The specified method does not exist in the contract.
-    MethodNotFound,
-    /// The immutable method must be used via the `query` endpoint.
-    MethodIsImmutable,
+    MethodNotFound(String),
+    /// The immutable method must be called via the `query` endpoint.
+    MethodIsImmutable(String),
     /// Invalid contract method arguments.
     InvalidInput(BuildValueError),
 
@@ -42,14 +43,14 @@ pub enum Error {
 impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
-            Self::ContractNotFound => StatusCode::NOT_FOUND,
-            Self::MethodNotFound => StatusCode::UNPROCESSABLE_ENTITY,
-            Self::MethodIsImmutable => StatusCode::BAD_REQUEST,
-            Self::InvalidInput(_) => StatusCode::BAD_REQUEST,
+            Self::ContractNotFound(..) => StatusCode::NOT_FOUND,
+            Self::MethodNotFound(..) => StatusCode::BAD_REQUEST,
+            Self::MethodIsImmutable(..) => StatusCode::BAD_REQUEST,
+            Self::InvalidInput(..) => StatusCode::BAD_REQUEST,
 
-            Self::RuntimeError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::ZkSync(_) => StatusCode::SERVICE_UNAVAILABLE,
+            Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::Database(..) => StatusCode::SERVICE_UNAVAILABLE,
+            Self::ZkSync(..) => StatusCode::SERVICE_UNAVAILABLE,
             Self::TransferFailure { .. } => StatusCode::UNPROCESSABLE_ENTITY,
         }
     }
@@ -67,9 +68,11 @@ impl serde::Serialize for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let error = match self {
-            Self::ContractNotFound => format!("Contract not found"),
-            Self::MethodNotFound => format!("Method not found"),
-            Self::MethodIsImmutable => format!("Method is immutable: use 'query' instead"),
+            Self::ContractNotFound(id) => format!("Contract with account ID {} not found", id),
+            Self::MethodNotFound(name) => format!("Method `{}` not found", name),
+            Self::MethodIsImmutable(name) => {
+                format!("Method `{}` is immutable: use 'query' instead", name)
+            }
             Self::InvalidInput(inner) => format!("Input: {}", inner),
 
             Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),

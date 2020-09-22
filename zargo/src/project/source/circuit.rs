@@ -3,12 +3,12 @@
 //!
 
 use std::fs::File;
-use std::io;
 use std::io::Write;
 use std::path::PathBuf;
 
-use failure::Fail;
 use serde_derive::Deserialize;
+
+use crate::error::file::Error as FileError;
 
 ///
 /// The circuit source code entry point file representation.
@@ -17,19 +17,6 @@ use serde_derive::Deserialize;
 pub struct Circuit {
     /// The circuit project name.
     pub name: String,
-}
-
-///
-/// The project circuit entry point file error.
-///
-#[derive(Debug, Fail)]
-pub enum Error {
-    /// The file creating error.
-    #[fail(display = "creating: {}", _0)]
-    Creating(io::Error),
-    /// The file writing error.
-    #[fail(display = "writing: {}", _0)]
-    Writing(io::Error),
 }
 
 impl Circuit {
@@ -43,28 +30,27 @@ impl Circuit {
     }
 
     ///
-    /// Checks if the file exists at the given `path`.
+    /// Checks if the file exists in the project at the given `path`.
     ///
     pub fn exists_at(path: &PathBuf) -> bool {
-        let mut path = path.to_owned();
-        if path.is_dir() {
-            if !path.ends_with(zinc_const::directory::SOURCE) {
-                path.push(PathBuf::from(zinc_const::directory::SOURCE));
-            }
-            let file_name = format!(
-                "{}.{}",
-                zinc_const::file_name::APPLICATION_ENTRY,
-                zinc_const::extension::SOURCE
-            );
-            path.push(PathBuf::from(file_name));
-        }
-        path.exists()
+        Self::append_default(path).exists()
     }
 
     ///
-    /// Creates the file at the given `path`.
+    /// Creates the file in the project at the given `path`.
     ///
-    pub fn write_to(self, path: &PathBuf) -> Result<(), Error> {
+    pub fn write_to(self, path: &PathBuf) -> Result<(), FileError> {
+        let path = Self::append_default(path);
+        let mut file =
+            File::create(&path).map_err(|error| FileError::Creating(Self::file_name(), error))?;
+        file.write_all(self.template().as_bytes())
+            .map_err(|error| FileError::Writing(Self::file_name(), error))
+    }
+
+    ///
+    /// If the path is a directory, appends the missing elements by default.
+    ///
+    fn append_default(path: &PathBuf) -> PathBuf {
         let mut path = path.to_owned();
         if path.is_dir() {
             if !path.ends_with(zinc_const::directory::SOURCE) {
@@ -77,10 +63,7 @@ impl Circuit {
             );
             path.push(PathBuf::from(file_name));
         }
-
-        let mut file = File::create(&path).map_err(Error::Creating)?;
-        file.write_all(self.template().as_bytes())
-            .map_err(Error::Writing)
+        path
     }
 
     ///
@@ -99,6 +82,17 @@ fn main(witness: u8) -> u8 {{
 }}
 "#,
             self.name
+        )
+    }
+
+    ///
+    /// Creates a string with the default file name.
+    ///
+    fn file_name() -> String {
+        format!(
+            "{}.{}",
+            zinc_const::file_name::APPLICATION_ENTRY,
+            zinc_const::extension::SOURCE,
         )
     }
 }

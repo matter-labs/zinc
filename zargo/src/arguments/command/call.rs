@@ -18,11 +18,12 @@ use zinc_data::CallRequestBody;
 use zinc_data::CallRequestQuery;
 
 use crate::arguments::command::IExecutable;
-use crate::directory::data::Directory as DataDirectory;
-use crate::file::arguments::Arguments as ArgumentsFile;
-use crate::file::error::Error as FileError;
-use crate::file::manifest::project_type::ProjectType;
-use crate::file::manifest::Manifest as ManifestFile;
+use crate::error::file::Error as FileError;
+use crate::project::data::arguments::Arguments as ArgumentsFile;
+use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
+use crate::project::data::Directory as DataDirectory;
+use crate::project::manifest::project_type::ProjectType;
+use crate::project::manifest::Manifest as ManifestFile;
 use crate::transaction::error::Error as TransactionError;
 use crate::transaction::Transaction;
 
@@ -63,6 +64,14 @@ pub struct Command {
     /// The contract method to call.
     #[structopt(long = "method", help = "The contract method to call")]
     pub method: String,
+
+    /// The path to the sender private key.
+    #[structopt(
+        long = "private-key",
+        help = "Path to sender private key",
+        default_value = zinc_const::path::PRIVATE_KEY,
+    )]
+    pub private_key_path: PathBuf,
 }
 
 ///
@@ -85,6 +94,9 @@ pub enum Error {
     /// The contract method arguments file error.
     #[fail(display = "arguments file {}", _0)]
     ArgumentsFile(FileError<serde_json::Error>),
+    /// The private key file error.
+    #[fail(display = "private key file {}", _0)]
+    PrivateKeyFile(FileError),
     /// The transaction argument is missing.
     #[fail(display = "arguments do not contain the transfer transaction")]
     TransactionArgumentMissing,
@@ -129,16 +141,22 @@ impl IExecutable for Command {
         }
 
         let data_directory_path = DataDirectory::path(&manifest_path);
-        let mut arguments_path = data_directory_path;
+        let mut arguments_path = data_directory_path.clone();
         arguments_path.push(format!(
             "{}_{}.{}",
             zinc_const::file_name::WITNESS,
             self.method,
             zinc_const::extension::JSON,
         ));
+        let mut private_key_path = data_directory_path;
+        private_key_path.push(zinc_const::file_name::PRIVATE_KEY.to_owned());
 
         let arguments = ArgumentsFile::try_from_path(&arguments_path, self.method.as_str())
             .map_err(Error::ArgumentsFile)?;
+
+        let private_key =
+            PrivateKeyFile::try_from(&private_key_path).map_err(Error::PrivateKeyFile)?;
+
         let transaction = Transaction::try_from(
             arguments
                 .get_tx()
@@ -146,10 +164,7 @@ impl IExecutable for Command {
         )
         .map_err(Error::Transaction)?;
         let (transfer, signature) = transaction
-            .try_into_transfer(
-                network,
-                "863275aeb638378fa01f4d226e23627d41c8426f86746bbce74163e45b9813cd".to_owned(),
-            )
+            .try_into_transfer(network, private_key.inner)
             .map_err(Error::Transaction)?;
 
         let endpoint_url = format!(

@@ -11,17 +11,11 @@ CREATE TABLE IF NOT EXISTS zandbox.contracts (
     bytecode           BYTEA NOT NULL,
     verifying_key      BYTEA NOT NULL,
 
-    eth_address        BYTEA NOT NULL,
     eth_private_key    BYTEA NOT NULL,
 
     created_at         TIMESTAMP NOT NULL,
 
-    PRIMARY KEY        (account_id),
-
-    CONSTRAINT unq_name_version_instance
-        UNIQUE (name, version, instance),
-    CONSTRAINT unq_eth_address
-        UNIQUE (eth_address)
+    PRIMARY KEY        (account_id)
 );
 
 CREATE TABLE IF NOT EXISTS zandbox.fields (

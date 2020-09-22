@@ -14,6 +14,7 @@ use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 use rayon::ThreadPoolBuilder;
 
+use zksync::zksync_models::node::tx::PackedEthSignature;
 use zksync::zksync_models::node::AccountId;
 
 use zinc_build::Program as BuildProgram;
@@ -65,7 +66,6 @@ async fn main() -> Result<(), Error> {
                  version,
                  instance,
                  bytecode,
-                 eth_address,
                  eth_private_key,
              }| {
                 let program = BuildProgram::try_from_slice(bytecode.as_slice())
@@ -78,11 +78,11 @@ async fn main() -> Result<(), Error> {
                     BuildProgram::Contract(contract) => contract,
                 };
 
-                let contract = SharedDataContract::new(
-                    build,
-                    zinc_utils::eth_address_from_vec(eth_address),
-                    zinc_utils::eth_private_key_from_vec(eth_private_key),
-                );
+                let eth_private_key = zinc_utils::eth_private_key_from_vec(eth_private_key);
+                let eth_address = PackedEthSignature::address_from_private_key(&eth_private_key)
+                    .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
+
+                let contract = SharedDataContract::new(build, eth_address, eth_private_key);
 
                 log::info!(
                     "{} [ID {:6}] instance `{}` of the contract `{} v{}`",

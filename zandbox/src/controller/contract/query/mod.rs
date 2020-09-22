@@ -10,6 +10,7 @@ use std::sync::RwLock;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
+use serde_json::json;
 use serde_json::Value as JsonValue;
 
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
@@ -28,6 +29,15 @@ use self::request::Query as RequestQuery;
 ///
 /// The HTTP request handler.
 ///
+/// Sequence:
+/// 1. Get the contract from the in-memory cache.
+/// 2. Get the contract storage from the database and convert it to the Zinc VM representation.
+/// 3. If the method was not specified, return the contract storage to the client.
+/// 4. Extract the called method from the contract metadata and check if it is immutable.
+/// 5. Parse the method input arguments.
+/// 6. Run the method on the Zinc VM.
+/// 7. Send the contract method execution result back to the client.
+///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
     query: web::Query<RequestQuery>,
@@ -42,7 +52,7 @@ pub async fn handle(
         .contracts
         .get(&query.account_id)
         .cloned()
-        .ok_or(Error::ContractNotFound)?;
+        .ok_or(Error::ContractNotFound(query.account_id))?;
 
     log::debug!("Loading the contract storage");
     let storage_value = app_data
@@ -52,19 +62,16 @@ pub async fn handle(
         .select_fields(FieldSelectInput::new(query.account_id as i64))
         .await
         .map_err(Error::Database)?;
-    if storage_value.len() != contract.build.storage.len() {
-        return Err(Error::InvalidStorageSize {
-            expected: contract.build.storage.len(),
-            found: storage_value.len(),
-        });
-    }
+    assert_eq!(
+        storage_value.len(),
+        contract.build.storage.len(),
+        "The database contract storage is corrupted"
+    );
     let mut contract_fields = Vec::with_capacity(storage_value.len());
     for (index, FieldSelectOutput { name, value }) in storage_value.into_iter().enumerate() {
         let r#type = contract.build.storage[index].r#type.clone();
-        let value = match BuildValue::try_from_typed_json(value, r#type) {
-            Ok(value) => value,
-            Err(error) => return Err(Error::InvalidStorage(error)),
-        };
+        let value = BuildValue::try_from_typed_json(value, r#type)
+            .expect("The database contract storage is corrupted");
         contract_fields.push(BuildContractFieldValue::new(
             name,
             value,
@@ -97,18 +104,20 @@ pub async fn handle(
         }
     };
 
-    let method = contract
-        .build
-        .methods
-        .get(method_name.as_str())
-        .cloned()
-        .ok_or(Error::MethodNotFound)?;
-    let arguments = body.arguments.ok_or(Error::MethodArgumentsNotFound)?;
+    let method = match contract.build.methods.get(method_name.as_str()).cloned() {
+        Some(method) => method,
+        None => return Err(Error::MethodNotFound(method_name)),
+    };
+    if method.is_mutable {
+        return Err(Error::MethodIsMutable(method_name));
+    }
+
+    let arguments = match body.arguments {
+        Some(arguments) => arguments,
+        None => return Err(Error::MethodArgumentsNotFound(method_name)),
+    };
     let input_value =
         BuildValue::try_from_typed_json(arguments, method.input).map_err(Error::InvalidInput)?;
-    if method.is_mutable {
-        return Err(Error::MethodIsMutable);
-    }
 
     log::debug!("Running the contract method on the virtual machine");
     let output = async_std::task::spawn_blocking(move || {
@@ -121,7 +130,9 @@ pub async fn handle(
     .await
     .map_err(Error::RuntimeError)?;
 
-    let response = output.result.into_json();
+    let response = json!({
+        "output": output.result.into_json(),
+    });
 
     log::debug!("The sequence has been successfully executed");
     Ok(Response::new_with_data(StatusCode::OK, response))

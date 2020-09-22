@@ -17,8 +17,6 @@ pub struct Output {
     pub instance: String,
     /// The contract bytecode.
     pub bytecode: Vec<u8>,
-    /// The contract ETH address.
-    pub eth_address: Vec<u8>,
     /// The contract private key.
     pub eth_private_key: Vec<u8>,
 }

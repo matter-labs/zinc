@@ -9,13 +9,14 @@ use failure::Fail;
 use structopt::StructOpt;
 
 use crate::arguments::command::IExecutable;
-use crate::directory::build::Directory as BuildDirectory;
-use crate::directory::data::Directory as DataDirectory;
+use crate::error::file::Error as FileError;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
-use crate::file::error::Error as FileError;
-use crate::file::manifest::project_type::ProjectType;
-use crate::file::manifest::Manifest as ManifestFile;
+use crate::project::build::Directory as BuildDirectory;
+use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
+use crate::project::data::Directory as DataDirectory;
+use crate::project::manifest::project_type::ProjectType;
+use crate::project::manifest::Manifest as ManifestFile;
 
 ///
 /// The Zargo project manager `prove` subcommand.
@@ -55,6 +56,9 @@ pub enum Error {
     /// The contract method to call is missing.
     #[fail(display = "contract method to call must be specified")]
     MethodMissing,
+    /// The private key file generation error.
+    #[fail(display = "private key file {}", _0)]
+    PrivateKeyFile(FileError),
     /// The virtual machine process error.
     #[fail(display = "virtual machine {}", _0)]
     VirtualMachine(VirtualMachineError),
@@ -92,6 +96,12 @@ impl IExecutable for Command {
                 method,
                 zinc_const::extension::JSON,
             ));
+
+            if !PrivateKeyFile::exists_at(&data_directory_path) {
+                PrivateKeyFile::default()
+                    .write_to(&data_directory_path)
+                    .map_err(Error::PrivateKeyFile)?;
+            }
         } else {
             witness_path.push(format!(
                 "{}.{}",

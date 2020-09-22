@@ -36,6 +36,19 @@ use self::response::Body as ResponseBody;
 ///
 /// The HTTP request handler.
 ///
+/// Sequence:
+/// 1. Parse the contract bytecode from the request.
+/// 2. Extract the contract constructor from its metadata.
+/// 3. Parse the construtor arguments.
+/// 4. Run the construtor on the Zinc VM which must return the contract storage.
+/// 5. Generate a private key for the contract.
+/// 6. Send the initial client transfer to the contract address.
+/// 7. Execute the change-pubkey transaction on the contract.
+/// 8. Fill the external contract storage fields.
+/// 9. Write the contract to the in-memory cache.
+/// 10. Write the contract and its storage to the persistent database.
+/// 11. Return the created contract address to the client.
+///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
     query: web::Query<RequestQuery>,
@@ -96,13 +109,9 @@ pub async fn handle(
         serde_json::to_string(&contract_eth_address).expect(zinc_const::panic::DATA_CONVERSION),
     );
 
-    let owner_private_key: H256 = body
-        .owner_private_key
-        .parse()
-        .map_err(Error::InvalidOwnerPrivateKey)?;
+    let owner_private_key: H256 = body.owner_private_key.parse().unwrap();
     let owner_eth_address: H160 = PackedEthSignature::address_from_private_key(&owner_private_key)
         .expect(zinc_const::panic::DATA_CONVERSION);
-
     let owner_wallet_credentials =
         zksync::WalletCredentials::from_eth_pk(owner_eth_address, owner_private_key)
             .map_err(Error::ZkSync)?;
@@ -125,7 +134,7 @@ pub async fn handle(
         .map_err(Error::ZkSync)?;
     crate::wait::eth_tx(&ethereum, eth_deposit_tx_hash)
         .await
-        .map_err(Error::ZkSyncWeb3)?;
+        .map_err(Error::Web3)?;
 
     log::debug!("Performing the change-pubkey transaction");
     let contract_wallet_credentials =
@@ -145,30 +154,27 @@ pub async fn handle(
 
     let mut fields = Vec::with_capacity(storage.len());
     match output.result {
-        BuildValue::Structure(mut storage_fields) => match storage_fields.remove(0).1 {
-            BuildValue::Contract(storage_fields) => {
-                for (index, mut field) in storage_fields.into_iter().enumerate() {
-                    match field.name.as_str() {
-                        "owner" if field.is_external => {
-                            field.value = BuildValue::scalar_from_h160(owner_eth_address)
-                        }
-                        "address" if field.is_external => {
-                            field.value = BuildValue::scalar_from_h160(contract_eth_address)
-                        }
-                        _ => {}
+        BuildValue::Contract(storage_fields) => {
+            for (index, mut field) in storage_fields.into_iter().enumerate() {
+                match field.name.as_str() {
+                    "owner" if field.is_external => {
+                        field.value = BuildValue::scalar_from_h160(owner_eth_address)
                     }
-
-                    fields.push(FieldInsertInput::new(
-                        contract_account_id as i64,
-                        index as i16,
-                        field.name,
-                        field.value.into_json(),
-                    ));
+                    "address" if field.is_external => {
+                        field.value = BuildValue::scalar_from_h160(contract_eth_address)
+                    }
+                    _ => {}
                 }
+
+                fields.push(FieldInsertInput::new(
+                    contract_account_id as i64,
+                    index as i16,
+                    field.name,
+                    field.value.into_json(),
+                ));
             }
-            _ => panic!("The database contract storage is corrupted"),
-        },
-        _ => panic!("The database contract storage is corrupted"),
+        }
+        _ => panic!(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION),
     }
 
     log::debug!("Writing the contract to the temporary server cache");
@@ -195,7 +201,6 @@ pub async fn handle(
             serde_json::to_value(body.source).expect(zinc_const::panic::DATA_CONVERSION),
             body.bytecode,
             body.verifying_key,
-            contract_eth_address.into(),
             contract_private_key.into(),
         ))
         .await

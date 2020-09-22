@@ -62,7 +62,6 @@ impl Client {
             version,
             instance,
             bytecode,
-            eth_address,
             eth_private_key
         FROM zandbox.contracts
         ORDER BY account_id;
@@ -109,7 +108,6 @@ impl Client {
             bytecode,
             verifying_key,
 
-            eth_address,
             eth_private_key,
 
             created_at
@@ -123,7 +121,6 @@ impl Client {
             $7,
             $8,
             $9,
-            $10,
             NOW()
         );
         "#;
@@ -137,7 +134,6 @@ impl Client {
             .bind(input.source_code)
             .bind(input.bytecode)
             .bind(input.verifying_key)
-            .bind(input.eth_address.to_vec())
             .bind(input.eth_private_key.to_vec())
             .execute(&self.pool)
             .await?;

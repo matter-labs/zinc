@@ -63,7 +63,11 @@ impl Facade {
             })?;
 
         let inputs_flat = input.into_flat_values();
-        let output_type = method.output.into_contract_metadata();
+        let output_type = if method.is_mutable {
+            method.output.into_mutable_method_output()
+        } else {
+            method.output
+        };
 
         let storage_fields = self.inner.storage.clone();
         let mut storage_types = Vec::with_capacity(self.inner.storage.len());
@@ -164,7 +168,11 @@ impl Facade {
             })?;
 
         let inputs_flat = input.into_flat_values();
-        let output_type = method.output.into_contract_metadata();
+        let output_type = if method.is_mutable {
+            method.output.into_mutable_method_output()
+        } else {
+            method.output
+        };
 
         let storage_fields = self.inner.storage.clone();
         let mut storage_types = Vec::with_capacity(self.inner.storage.len());
@@ -360,7 +368,11 @@ impl Facade {
         let rng = &mut rand::thread_rng();
 
         let inputs_flat = input.into_flat_values();
-        let output_type = method.output.into_contract_metadata();
+        let output_type = if method.is_mutable {
+            method.output.into_mutable_method_output()
+        } else {
+            method.output
+        };
 
         let mut storage_types = Vec::with_capacity(self.inner.storage.len());
         for field in self.inner.storage.iter() {

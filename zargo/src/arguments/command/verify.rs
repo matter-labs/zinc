@@ -9,13 +9,13 @@ use failure::Fail;
 use structopt::StructOpt;
 
 use crate::arguments::command::IExecutable;
-use crate::directory::build::Directory as BuildDirectory;
-use crate::directory::data::Directory as DataDirectory;
+use crate::error::file::Error as FileError;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
-use crate::file::error::Error as FileError;
-use crate::file::manifest::project_type::ProjectType;
-use crate::file::manifest::Manifest as ManifestFile;
+use crate::project::build::Directory as BuildDirectory;
+use crate::project::data::Directory as DataDirectory;
+use crate::project::manifest::project_type::ProjectType;
+use crate::project::manifest::Manifest as ManifestFile;
 
 ///
 /// The Zargo project manager `verify` subcommand.

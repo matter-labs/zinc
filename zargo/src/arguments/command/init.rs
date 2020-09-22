@@ -11,15 +11,13 @@ use failure::Fail;
 use structopt::StructOpt;
 
 use crate::arguments::command::IExecutable;
-use crate::directory::source::circuit::Circuit as CircuitFile;
-use crate::directory::source::circuit::Error as CircuitFileError;
-use crate::directory::source::contract::Contract as ContractFile;
-use crate::directory::source::contract::Error as ContractFileError;
-use crate::directory::source::Directory as SourceDirectory;
-use crate::directory::source::Error as SourceDirectoryError;
-use crate::file::error::Error as FileError;
-use crate::file::manifest::project_type::ProjectType;
-use crate::file::manifest::Manifest as ManifestFile;
+use crate::error::directory::Error as DirectoryError;
+use crate::error::file::Error as FileError;
+use crate::project::manifest::project_type::ProjectType;
+use crate::project::manifest::Manifest as ManifestFile;
+use crate::project::source::circuit::Circuit as CircuitFile;
+use crate::project::source::contract::Contract as ContractFile;
+use crate::project::source::Directory as SourceDirectory;
 
 ///
 /// The Zargo project manager `init` subcommand.
@@ -85,13 +83,13 @@ pub enum Error {
     ManifestFile(FileError<toml::de::Error>),
     /// The project source code directory error.
     #[fail(display = "source directory {}", _0)]
-    SourceDirectory(SourceDirectoryError),
+    SourceDirectory(DirectoryError),
     /// The circuit source code entry point file generation error.
     #[fail(display = "main file {}", _0)]
-    CircuitFile(CircuitFileError),
+    CircuitFile(FileError),
     /// The contract source code entry point file generation error.
     #[fail(display = "contract file {}", _0)]
-    ContractFile(ContractFileError),
+    ContractFile(FileError),
 }
 
 impl IExecutable for Command {
@@ -137,7 +135,7 @@ impl IExecutable for Command {
                 }
             }
             ProjectType::Contract => {
-                if !ContractFile::exists_at(&self.path, &project_name) {
+                if !ContractFile::exists_at(&self.path) {
                     ContractFile::new(&project_name)
                         .write_to(&self.path)
                         .map_err(Error::ContractFile)?;

@@ -12,8 +12,8 @@ use std::path::PathBuf;
 
 use serde_derive::Deserialize;
 
-use crate::file::error::Error;
-use crate::file::manifest::project_type::ProjectType;
+use crate::error::file::Error as FileError;
+use crate::project::manifest::project_type::ProjectType;
 
 ///
 /// The Zinc project manifest file representation.
@@ -52,7 +52,7 @@ impl Manifest {
     }
 
     ///
-    /// Checks if the manifest exists at the given `path`.
+    /// Checks if the manifest exists in the project at the given `path`.
     ///
     pub fn exists_at(path: &PathBuf) -> bool {
         let mut path = path.to_owned();
@@ -63,18 +63,18 @@ impl Manifest {
     }
 
     ///
-    /// Writes the manifest to a file at the given `path`.
+    /// Writes the manifest to a file in the project at the given `path`.
     ///
-    pub fn write_to(self, path: &PathBuf) -> Result<(), Error<toml::de::Error>> {
+    pub fn write_to(self, path: &PathBuf) -> Result<(), FileError<toml::de::Error>> {
         let mut path = path.to_owned();
         if path.is_dir() {
             path.push(PathBuf::from(Self::file_name()));
         }
 
         let mut file =
-            File::create(&path).map_err(|error| Error::Creating(Self::file_name(), error))?;
+            File::create(&path).map_err(|error| FileError::Creating(Self::file_name(), error))?;
         file.write_all(self.template().as_bytes())
-            .map_err(|error| Error::Writing(Self::file_name(), error))
+            .map_err(|error| FileError::Writing(Self::file_name(), error))
     }
 
     ///
@@ -104,7 +104,7 @@ version = "{}"
 }
 
 impl TryFrom<&PathBuf> for Manifest {
-    type Error = Error<toml::de::Error>;
+    type Error = FileError<toml::de::Error>;
 
     fn try_from(path: &PathBuf) -> Result<Self, Self::Error> {
         let mut path = path.to_owned();
@@ -113,17 +113,17 @@ impl TryFrom<&PathBuf> for Manifest {
         }
 
         let mut file =
-            File::open(path).map_err(|error| Error::Opening(Self::file_name(), error))?;
+            File::open(path).map_err(|error| FileError::Opening(Self::file_name(), error))?;
         let size = file
             .metadata()
-            .map_err(|error| Error::Metadata(Self::file_name(), error))?
+            .map_err(|error| FileError::Metadata(Self::file_name(), error))?
             .len() as usize;
 
         let mut buffer = String::with_capacity(size);
         file.read_to_string(&mut buffer)
-            .map_err(|error| Error::Reading(Self::file_name(), error))?;
+            .map_err(|error| FileError::Reading(Self::file_name(), error))?;
 
         Ok(toml::from_str(buffer.as_str())
-            .map_err(|error| Error::Parsing(Self::file_name(), error))?)
+            .map_err(|error| FileError::Parsing(Self::file_name(), error))?)
     }
 }

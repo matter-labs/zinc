@@ -5,8 +5,8 @@
 //!         "arg": "42"
 //!     },
 //!     "output": {
-//!         "$result": "126",
-//!         "$root_hash": "0x3bef38c65d7d0661232a8fbad2944cb97c11aa25d96674036be8efc5862a80"
+//!         "result": "126",
+//!         "root_hash": "0x3bef38c65d7d0661232a8fbad2944cb97c11aa25d96674036be8efc5862a80"
 //!     }
 //! } ] }
 

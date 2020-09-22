@@ -98,10 +98,12 @@ impl Type {
     /// Wraps the type into a structure, which consists of the contract output result itself and a
     /// field for the contract storage root hash, which is also an implicit part of the method output.
     ///
-    pub fn into_contract_metadata(self) -> Self {
+    /// Used only for mutable methods.
+    ///
+    pub fn into_mutable_method_output(self) -> Self {
         Self::Structure(vec![
-            ("$result".to_owned(), self),
-            ("$root_hash".to_owned(), Self::Scalar(ScalarType::Field)),
+            ("result".to_owned(), self),
+            ("root_hash".to_owned(), Self::Scalar(ScalarType::Field)),
         ])
     }
 

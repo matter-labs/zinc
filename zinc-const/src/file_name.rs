@@ -23,11 +23,11 @@ pub static PUBLIC_DATA: &str = "public_data";
 /// The storage file default name.
 pub static STORAGE: &str = "storage";
 
-/// The transfer file default name.
-pub static TRANSFER: &str = "transfer";
-
 /// The proving key file default name.
 pub static PROVING_KEY: &str = "proving_key";
 
 /// The verifying key file default name.
 pub static VERIFYING_KEY: &str = "verifying_key";
+
+/// The private key file default name (testnet only!).
+pub static PRIVATE_KEY: &str = "private_key";

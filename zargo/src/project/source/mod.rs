@@ -6,25 +6,14 @@ pub mod circuit;
 pub mod contract;
 
 use std::fs;
-use std::io;
 use std::path::PathBuf;
 
-use failure::Fail;
+use crate::error::directory::Error as DirectoryError;
 
 ///
 /// The project `src` directory.
 ///
 pub struct Directory {}
-
-///
-/// The project `src` directory error.
-///
-#[derive(Debug, Fail)]
-pub enum Error {
-    /// The directory creating error.
-    #[fail(display = "creating: {}", _0)]
-    Creating(io::Error),
-}
 
 impl Directory {
     ///
@@ -41,7 +30,7 @@ impl Directory {
     ///
     /// Creates a directory with all its parent directories if it does not exist.
     ///
-    pub fn create(path: &PathBuf) -> Result<(), Error> {
-        fs::create_dir_all(&Self::path(path)).map_err(Error::Creating)
+    pub fn create(path: &PathBuf) -> Result<(), DirectoryError> {
+        fs::create_dir_all(&Self::path(path)).map_err(DirectoryError::Creating)
     }
 }

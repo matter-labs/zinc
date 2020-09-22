@@ -14,9 +14,9 @@ use zinc_build::Contract as BuildContract;
 pub struct Contract {
     /// The pre-built contract ready to be called.
     pub build: BuildContract,
-    /// The contract address.
+    /// The contract ETH address.
     pub eth_address: H160,
-    /// The contract private key.
+    /// The contract ETH private key.
     pub eth_private_key: H256,
 }
 
