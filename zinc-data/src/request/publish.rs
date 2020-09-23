@@ -70,8 +70,6 @@ pub struct Body {
     pub arguments: JsonValue,
     /// The verifying key.
     pub verifying_key: Vec<u8>,
-    /// The contract owner private key.
-    pub owner_private_key: String,
 }
 
 impl Body {
@@ -83,14 +81,12 @@ impl Body {
         bytecode: Vec<u8>,
         arguments: JsonValue,
         verifying_key: Vec<u8>,
-        owner_private_key: String,
     ) -> Self {
         Self {
             source,
             bytecode,
             arguments,
             verifying_key,
-            owner_private_key,
         }
     }
 }

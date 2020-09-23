@@ -11,11 +11,11 @@ mod invariant;
 mod constants;
 mod exchange;
 
-use std::assets::Token;
-
 use self::constants::ZERO;
 use self::constants::N;
 use self::constants::PRECISION;
+use self::constants::ONE_ETH;
+
 use self::types::Address;
 use self::types::Balance;
 use self::types::token_id::TokenId;
@@ -25,8 +25,6 @@ use self::types::transaction::Transaction;
 /// The Curve Stableswap contract.
 ///
 contract Stableswap {
-    /// The contract owner address.
-    pub extern owner: Address;
     /// The contract address.
     pub extern address: Address;
 
@@ -45,10 +43,9 @@ contract Stableswap {
         assert!(_amplifier > 0, "The Curve amplifier cannot be zero");
 
         Self {
-            owner: 0x0 as Address,
             address: 0x0 as Address,
 
-            balances: [1_000_000 as Balance; N],
+            balances: [ONE_ETH; N],
             amplifier: _amplifier,
         }
     }
@@ -58,12 +55,14 @@ contract Stableswap {
     ///
     pub fn deposit(
         mut self,
-        tx: Transaction,
+        tx: [Transaction; N],
     ) {
         // Invariant before change
         let D0: Balance = invariant::calculate(self.amplifier, self.balances);
 
-        self.balances[tx.token_id] += tx.amount;
+        for i in 0..N {
+            self.balances[tx[i].token_id] += tx[i].amount;
+        }
 
         // Invariant after change
         let D1 = invariant::calculate(self.amplifier, self.balances);
@@ -100,7 +99,7 @@ contract Stableswap {
         self.balances[tx.token_id] = new_x;
         self.balances[withdraw_token_id] = new_y;
 
-        std::assets::Token::transfer(self.address, tx.to, withdraw_token_id, to_withdraw);
+        std::zksync::transfer(tx.to, withdraw_token_id, to_withdraw);
     }
 
     ///

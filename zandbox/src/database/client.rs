@@ -6,9 +6,10 @@ use sqlx::pool::Pool;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::Postgres;
 
-use crate::database::model::contract::insert::input::Input as ContractInsertInput;
+use crate::database::model::contract::insert::new::input::Input as ContractInsertNewInput;
 use crate::database::model::contract::select::all::output::Output as ContractSelectAllOutput;
 use crate::database::model::contract::select::curve::output::Output as ContractSelectCurveOutput;
+use crate::database::model::contract::update::account_id::input::Input as ContractUpdateAccountIdInput;
 use crate::database::model::field::insert::input::Input as FieldInsertInput;
 use crate::database::model::field::select::input::Input as FieldSelectInput;
 use crate::database::model::field::select::output::Output as FieldSelectOutput;
@@ -57,14 +58,17 @@ impl Client {
     pub async fn select_contracts(&self) -> Result<Vec<ContractSelectAllOutput>, sqlx::Error> {
         const STATEMENT: &str = r#"
         SELECT
-            account_id,
+            address,
+            
             name,
             version,
             instance,
+            
             bytecode,
+            
             eth_private_key
         FROM zandbox.contracts
-        ORDER BY account_id;
+        ORDER BY created_at;
         "#;
 
         Ok(sqlx::query_as(STATEMENT).fetch_all(&self.pool).await?)
@@ -78,14 +82,15 @@ impl Client {
     ) -> Result<Vec<ContractSelectCurveOutput>, sqlx::Error> {
         const STATEMENT: &str = r#"
         SELECT
-            account_id,
+            address,
+            
             name,
             version,
             instance
         FROM zandbox.contracts
         WHERE
             name = 'curve'
-        ORDER BY account_id;
+        ORDER BY created_at;
         "#;
 
         Ok(sqlx::query_as(STATEMENT).fetch_all(&self.pool).await?)
@@ -94,10 +99,10 @@ impl Client {
     ///
     /// Inserts a contract instance into the `contracts` table.
     ///
-    pub async fn insert_contract(&self, input: ContractInsertInput) -> Result<(), sqlx::Error> {
+    pub async fn insert_contract(&self, input: ContractInsertNewInput) -> Result<(), sqlx::Error> {
         const STATEMENT: &str = r#"
         INSERT INTO zandbox.contracts (
-            account_id,
+            address,
 
             name,
             version,
@@ -126,7 +131,7 @@ impl Client {
         "#;
 
         sqlx::query(STATEMENT)
-            .bind(input.account_id)
+            .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(input.address).to_vec())
             .bind(input.name)
             .bind(input.version)
             .bind(input.instance)
@@ -134,7 +139,31 @@ impl Client {
             .bind(input.source_code)
             .bind(input.bytecode)
             .bind(input.verifying_key)
-            .bind(input.eth_private_key.to_vec())
+            .bind(<[u8; zinc_const::size::ETH_PRIVATE_KEY]>::from(input.eth_private_key).to_vec())
+            .execute(&self.pool)
+            .await?;
+
+        Ok(())
+    }
+
+    ///
+    /// Sets the contract zkSync account ID in the `contracts` table.
+    ///
+    pub async fn update_contract_account_id(
+        &self,
+        input: ContractUpdateAccountIdInput,
+    ) -> Result<(), sqlx::Error> {
+        const STATEMENT: &str = r#"
+        UPDATE zandbox.contracts
+        SET
+            account_id = $2
+        WHERE
+            address = $1;
+        "#;
+
+        sqlx::query(STATEMENT)
+            .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(input.address).to_vec())
+            .bind(input.account_id)
             .execute(&self.pool)
             .await?;
 
@@ -154,12 +183,12 @@ impl Client {
             value
         FROM zandbox.fields
         WHERE
-            account_id = $1
+            address = $1
         ORDER BY index;
         "#;
 
         Ok(sqlx::query_as(STATEMENT)
-            .bind(input.account_id)
+            .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(input.address).to_vec())
             .fetch_all(&self.pool)
             .await?)
     }
@@ -168,33 +197,30 @@ impl Client {
     /// Inserts contract storage fields into the `fields` table.
     ///
     pub async fn insert_fields(&self, input: Vec<FieldInsertInput>) -> Result<(), sqlx::Error> {
-        let mut statement = String::with_capacity(input.len() * 256);
-        statement.push_str(
-            r#"
+        const STATEMENT: &str = r#"
         INSERT INTO zandbox.fields (
-            account_id,
+            address,
             index,
 
             name,
             value
-        ) VALUES "#,
+        ) VALUES (
+            $1,
+            $2,
+            $3,
+            $4
         );
-        let field_count = input.len();
-        for (index, field) in input.into_iter().enumerate() {
-            statement.push_str(
-                format!(
-                    "({},{},'{}','{}'){}",
-                    field.account_id,
-                    field.index,
-                    field.name,
-                    field.value,
-                    if index == field_count - 1 { ";" } else { "," }
-                )
-                .as_str(),
-            );
-        }
+        "#;
 
-        sqlx::query(statement.as_str()).execute(&self.pool).await?;
+        for field in input.into_iter() {
+            sqlx::query(STATEMENT)
+                .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(field.address).to_vec())
+                .bind(field.index)
+                .bind(field.name)
+                .bind(field.value)
+                .execute(&self.pool)
+                .await?;
+        }
 
         Ok(())
     }
@@ -208,14 +234,14 @@ impl Client {
         SET
             value = $3
         WHERE
-            index = $1
-        AND account_id = $2;
+            index = $2
+        AND address = $1;
         "#;
 
         for field in input.into_iter() {
             sqlx::query(STATEMENT)
+                .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(field.address).to_vec())
                 .bind(field.index)
-                .bind(field.account_id)
                 .bind(field.value)
                 .execute(&self.pool)
                 .await?;

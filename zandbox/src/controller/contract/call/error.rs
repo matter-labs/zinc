@@ -2,16 +2,13 @@
 //! The contract resource POST call error.
 //!
 
-use std::collections::HashMap;
 use std::fmt;
 
 use actix_web::http::StatusCode;
 use actix_web::ResponseError;
-use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
 
-use zksync::zksync_models::node::tx::TxHash;
-use zksync::zksync_models::node::AccountId;
+use zksync::zksync_models::node::TokenId;
 
 use zinc_build::ValueError as BuildValueError;
 use zinc_vm::RuntimeError;
@@ -21,23 +18,49 @@ use zinc_vm::RuntimeError;
 ///
 #[derive(Debug)]
 pub enum Error {
-    /// The contract with the specified ID is not found in the server cache.
-    ContractNotFound(AccountId),
+    /// The contract with the specified address is not found in the server cache.
+    ContractNotFound(String),
     /// The specified method does not exist in the contract.
     MethodNotFound(String),
     /// The immutable method must be called via the `query` endpoint.
     MethodIsImmutable(String),
     /// Invalid contract method arguments.
     InvalidInput(BuildValueError),
+    /// Token ID cannot be resolved by zkSync.
+    TokenNotFound(TokenId),
+    /// Failed to execute the change-pubkey transaction.
+    ChangePubkey(String),
+    /// Could not get the account ID.
+    AccountId,
 
     /// The virtual machine contract method runtime error.
     RuntimeError(RuntimeError),
     /// The PostgreSQL database error.
     Database(sqlx::Error),
-    /// The ZkSync server error.
-    ZkSync(zksync::error::ClientError),
+    /// The ZkSync server client error.
+    ZkSyncClient(zksync::error::ClientError),
+    /// The ZkSync server client error.
+    ZkSyncSigner(zksync::error::SignerError),
     /// The ZkSync transfer errors.
-    TransferFailure { reasons: HashMap<TxHash, String> },
+    TransferFailure { reasons: Vec<String> },
+}
+
+impl From<sqlx::Error> for Error {
+    fn from(inner: sqlx::Error) -> Self {
+        Self::Database(inner)
+    }
+}
+
+impl From<zksync::error::ClientError> for Error {
+    fn from(inner: zksync::error::ClientError) -> Self {
+        Self::ZkSyncClient(inner)
+    }
+}
+
+impl From<zksync::error::SignerError> for Error {
+    fn from(inner: zksync::error::SignerError) -> Self {
+        Self::ZkSyncSigner(inner)
+    }
 }
 
 impl ResponseError for Error {
@@ -47,10 +70,14 @@ impl ResponseError for Error {
             Self::MethodNotFound(..) => StatusCode::BAD_REQUEST,
             Self::MethodIsImmutable(..) => StatusCode::BAD_REQUEST,
             Self::InvalidInput(..) => StatusCode::BAD_REQUEST,
+            Self::TokenNotFound(..) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::AccountId => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::ChangePubkey(..) => StatusCode::UNPROCESSABLE_ENTITY,
 
             Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Database(..) => StatusCode::SERVICE_UNAVAILABLE,
-            Self::ZkSync(..) => StatusCode::SERVICE_UNAVAILABLE,
+            Self::ZkSyncClient(..) => StatusCode::SERVICE_UNAVAILABLE,
+            Self::ZkSyncSigner(..) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::TransferFailure { .. } => StatusCode::UNPROCESSABLE_ENTITY,
         }
     }
@@ -68,29 +95,29 @@ impl serde::Serialize for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let error = match self {
-            Self::ContractNotFound(id) => format!("Contract with account ID {} not found", id),
+            Self::ContractNotFound(address) => {
+                format!("Contract with address {} not found", address)
+            }
             Self::MethodNotFound(name) => format!("Method `{}` not found", name),
             Self::MethodIsImmutable(name) => {
                 format!("Method `{}` is immutable: use 'query' instead", name)
             }
             Self::InvalidInput(inner) => format!("Input: {}", inner),
+            Self::TokenNotFound(token_id) => format!("Token ID {} cannot be resolved", token_id),
+            Self::AccountId => "Could not get the contract account ID".to_owned(),
+            Self::ChangePubkey(inner) => format!("Changing the contract public key: {}", inner),
 
             Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
             Self::Database(inner) => format!("Database: {:?}", inner),
-            Self::ZkSync(inner) => format!("ZkSync: {:?}", inner),
+            Self::ZkSyncClient(inner) => format!("ZkSync: {:?}", inner),
+            Self::ZkSyncSigner(inner) => format!("ZkSync: {:?}", inner),
             Self::TransferFailure { reasons } => {
-                let reasons: JsonMap<String, JsonValue> = reasons
-                    .iter()
-                    .map(|(hash, reason)| {
-                        let mut hash = hash.to_string();
-                        hash.drain(.."sync-tx:".len());
-                        (hash, JsonValue::String(reason.to_owned()))
-                    })
-                    .collect();
+                let reasons: Vec<JsonValue> =
+                    reasons.iter().cloned().map(JsonValue::String).collect();
                 let reasons = serde_json::to_string_pretty(&reasons)
                     .expect(zinc_const::panic::DATA_CONVERSION);
 
-                format!("Transfer failures: {}", reasons)
+                format!("Transfer results: {}", reasons)
             }
         };
 

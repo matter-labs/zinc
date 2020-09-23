@@ -1,16 +1,19 @@
 //!
-//! The database contract INSERT input model.
+//! The database contract INSERT new input model.
 //!
 
 use serde_json::Value as JsonValue;
 
+use zksync::web3::types::Address;
+use zksync::web3::types::H256;
+
 ///
-/// The database contract INSERT input model.
+/// The database contract INSERT new input model.
 ///
 #[derive(Debug)]
 pub struct Input {
-    /// The contract account ID.
-    pub account_id: i64,
+    /// The contract ETH address.
+    pub address: Address,
 
     /// The contract project name.
     pub name: String,
@@ -29,7 +32,7 @@ pub struct Input {
     pub verifying_key: Vec<u8>,
 
     /// The contract private key.
-    pub eth_private_key: [u8; zinc_const::size::ETH_PRIVATE_KEY],
+    pub eth_private_key: H256,
 }
 
 impl Input {
@@ -38,7 +41,7 @@ impl Input {
     ///
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        account_id: i64,
+        address: Address,
 
         name: String,
         version: String,
@@ -49,10 +52,10 @@ impl Input {
         bytecode: Vec<u8>,
         verifying_key: Vec<u8>,
 
-        eth_private_key: [u8; zinc_const::size::ETH_PRIVATE_KEY],
+        eth_private_key: H256,
     ) -> Self {
         Self {
-            account_id,
+            address,
 
             name,
             version,

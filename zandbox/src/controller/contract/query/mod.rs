@@ -50,28 +50,32 @@ pub async fn handle(
         .read()
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .contracts
-        .get(&query.account_id)
+        .get(&query.address)
         .cloned()
-        .ok_or(Error::ContractNotFound(query.account_id))?;
+        .ok_or_else(|| {
+            Error::ContractNotFound(
+                serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION),
+            )
+        })?;
 
     log::debug!("Loading the contract storage");
     let storage_value = app_data
         .read()
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .postgresql_client
-        .select_fields(FieldSelectInput::new(query.account_id as i64))
-        .await
-        .map_err(Error::Database)?;
+        .select_fields(FieldSelectInput::new(query.address))
+        .await?;
     assert_eq!(
         storage_value.len(),
         contract.build.storage.len(),
-        "The database contract storage is corrupted"
+        "{}",
+        zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION
     );
     let mut contract_fields = Vec::with_capacity(storage_value.len());
     for (index, FieldSelectOutput { name, value }) in storage_value.into_iter().enumerate() {
         let r#type = contract.build.storage[index].r#type.clone();
         let value = BuildValue::try_from_typed_json(value, r#type)
-            .expect("The database contract storage is corrupted");
+            .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
         contract_fields.push(BuildContractFieldValue::new(
             name,
             value,
@@ -83,14 +87,17 @@ pub async fn handle(
     let method_name = match query.method {
         Some(method_name) => {
             log::debug!(
-                "Querying method `{}` of the contract #{}",
+                "Querying method `{}` of the contract {}",
                 method_name,
-                query.account_id
+                serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION)
             );
             method_name
         }
         None => {
-            log::debug!("Querying the storage of the contract #{}", query.account_id);
+            log::debug!(
+                "Querying the storage of the contract {}",
+                serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION)
+            );
             return Ok(Response::new_with_data(
                 StatusCode::OK,
                 BuildValue::Contract(
@@ -134,6 +141,6 @@ pub async fn handle(
         "output": output.result.into_json(),
     });
 
-    log::debug!("The sequence has been successfully executed");
+    log::debug!("The query has been successfully executed");
     Ok(Response::new_with_data(StatusCode::OK, response))
 }

@@ -5,23 +5,27 @@
 pub mod error;
 pub mod request;
 
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;
+use std::time::Duration;
+use std::time::Instant;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
+use futures::StreamExt;
 use serde_json::json;
 use serde_json::Value as JsonValue;
 
 use zksync::operations::SyncTransactionHandle;
-use zksync::web3::types::H160;
+use zksync::zksync_models::node::AccountId;
 use zksync::zksync_models::node::FranklinTx;
+use zksync::zksync_models::node::TxFeeTypes;
 
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 
+use crate::database::model::contract::update::account_id::input::Input as ContractUpdateAccountIdInput;
 use crate::database::model::field::select::input::Input as FieldSelectInput;
 use crate::database::model::field::select::output::Output as FieldSelectOutput;
 use crate::database::model::field::update::input::Input as FieldUpdateInput;
@@ -57,18 +61,22 @@ pub async fn handle(
     let body = body.into_inner();
 
     log::debug!(
-        "Calling method `{}` of contract #{}",
+        "Calling method `{}` of contract {}",
         query.method,
-        query.account_id
+        serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION),
     );
 
     let contract = app_data
         .read()
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .contracts
-        .get(&query.account_id)
+        .get(&query.address)
         .cloned()
-        .ok_or(Error::ContractNotFound(query.account_id))?;
+        .ok_or_else(|| {
+            Error::ContractNotFound(
+                serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION),
+            )
+        })?;
 
     let method = match contract.build.methods.get(query.method.as_str()).cloned() {
         Some(method) => method,
@@ -86,20 +94,20 @@ pub async fn handle(
         .read()
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .postgresql_client
-        .select_fields(FieldSelectInput::new(query.account_id as i64))
-        .await
-        .map_err(Error::Database)?;
+        .select_fields(FieldSelectInput::new(query.address))
+        .await?;
     let storage_fields_count = storage_value.len();
     assert_eq!(
         storage_fields_count,
         contract.build.storage.len(),
-        "The database contract storage is corrupted"
+        "{}",
+        zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION,
     );
     let mut fields = Vec::with_capacity(storage_value.len());
     for (index, FieldSelectOutput { name, value }) in storage_value.into_iter().enumerate() {
         let r#type = contract.build.storage[index].r#type.clone();
         let value = BuildValue::try_from_typed_json(value, r#type)
-            .expect("The database contract storage is corrupted");
+            .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
         fields.push(BuildContractFieldValue::new(
             name,
             value,
@@ -128,8 +136,8 @@ pub async fn handle(
         BuildValue::Contract(fields) => {
             for (index, field) in fields.into_iter().enumerate() {
                 storage_fields.push(FieldUpdateInput::new(
+                    query.address,
                     index as i16,
-                    query.account_id as i64,
                     field.value.into_json(),
                 ));
             }
@@ -137,96 +145,192 @@ pub async fn handle(
         _ => panic!(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION),
     }
 
+    log::debug!("Initializing the contract wallet");
     let provider = zksync::Provider::new(query.network);
+    let wallet_credentials = zksync::WalletCredentials::from_eth_pk(
+        query.address,
+        contract.eth_private_key,
+        query.network,
+    )?;
+    let mut wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
 
-    log::debug!("Sending the transfers to ZkSync");
-    let mut handles = Vec::with_capacity(output.transfers.len() + 1);
+    if contract.account_id.is_none() {
+        log::debug!("Sending the change-pubkey transaction");
+        let tx_info = wallet
+            .start_change_pubkey()
+            .send()
+            .await?
+            .wait_for_commit()
+            .await?;
+        if !tx_info.success.unwrap_or_default() {
+            return Err(Error::ChangePubkey(
+                tx_info
+                    .fail_reason
+                    .unwrap_or_else(|| "Unknown error".to_owned()),
+            ));
+        }
 
-    log::debug!(
-        "Sending {} ETH from {} to {}",
-        body.transfer.amount.to_string(),
-        serde_json::to_string(&body.transfer.from).expect(zinc_const::panic::DATA_CONVERSION),
-        serde_json::to_string(&body.transfer.to).expect(zinc_const::panic::DATA_CONVERSION),
-    );
-    let client_transfer_handle = provider
-        .send_tx(
-            FranklinTx::Transfer(Box::new(body.transfer)),
-            Some(body.signature),
-        )
-        .await
-        .map(|tx_hash| SyncTransactionHandle::new(tx_hash, provider.clone()))
-        .map_err(Error::ZkSync)?;
-    handles.push(client_transfer_handle);
+        log::debug!("Waiting for the account ID");
+        let account_id = wait_for_account_id(&mut wallet, 10_000).await?;
 
-    let wallet_credentials =
-        zksync::WalletCredentials::from_eth_pk(contract.eth_address, contract.eth_private_key)
-            .map_err(Error::ZkSync)?;
-    let wallet = zksync::Wallet::new(provider, wallet_credentials)
-        .await
-        .map_err(Error::ZkSync)?;
+        log::debug!("Writing account ID to the database and cache");
+        app_data
+            .read()
+            .expect(zinc_const::panic::SYNCHRONIZATION)
+            .postgresql_client
+            .update_contract_account_id(ContractUpdateAccountIdInput::new(
+                query.address,
+                account_id,
+            ))
+            .await?;
 
+        if let Some(contract) = app_data
+            .write()
+            .expect(zinc_const::panic::SYNCHRONIZATION)
+            .contracts
+            .get_mut(&query.address)
+        {
+            contract.set_account_id(account_id);
+        }
+    }
+
+    log::debug!("Building the transaction list");
+    let mut transactions = Vec::with_capacity(body.transactions.len() + output.transfers.len());
+    for (transaction, _signature) in body.transactions.iter() {
+        if let FranklinTx::Transfer(transfer) = transaction {
+            let token = wallet
+                .tokens
+                .resolve(transfer.token.into())
+                .ok_or(Error::TokenNotFound(transfer.token))?;
+
+            log::debug!(
+                "Sending {} {} from {} to {} with fee {}",
+                zksync::zksync_models::misc::utils::format_ether(&transfer.amount),
+                token.symbol,
+                serde_json::to_string(&transfer.from).expect(zinc_const::panic::DATA_CONVERSION),
+                serde_json::to_string(&transfer.to).expect(zinc_const::panic::DATA_CONVERSION),
+                zksync::zksync_models::misc::utils::format_ether(&transfer.fee),
+            );
+        }
+    }
+    transactions.extend(body.transactions);
+    let mut nonce = wallet
+        .provider
+        .account_info(query.address)
+        .await?
+        .committed
+        .nonce;
     for transfer in output.transfers.into_iter() {
-        let to: H160 = transfer.to.into();
+        let recipient = transfer.recipient.into();
+        let token = wallet
+            .tokens
+            .resolve(transfer.token_id.into())
+            .ok_or(Error::TokenNotFound(transfer.token_id))?;
+        let amount = num_old::BigUint::from_bytes_be(
+            transfer.amount.to_bytes_be().as_slice(), // TODO: remove when the SDK is updated
+        );
+        let fee = wallet
+            .provider
+            .get_tx_fee(TxFeeTypes::Transfer, query.address, transfer.token_id)
+            .await?
+            .total_fee;
 
         log::debug!(
-            "Sending {} ETH from {} to {}",
-            transfer.amount.to_string(),
-            serde_json::to_string(&contract.eth_address).expect(zinc_const::panic::DATA_CONVERSION),
-            serde_json::to_string(&to).expect(zinc_const::panic::DATA_CONVERSION),
+            "Sending {} {} from {} to {} with fee {}",
+            zksync::zksync_models::misc::utils::format_ether(&amount),
+            token.symbol,
+            serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION),
+            serde_json::to_string(&recipient).expect(zinc_const::panic::DATA_CONVERSION),
+            zksync::zksync_models::misc::utils::format_ether(&fee),
         );
 
-        let handle = wallet
-            .start_transfer()
-            .to(to)
-            .token("ETH")
-            .map_err(Error::ZkSync)?
-            .amount(num_old::BigUint::from_bytes_be(
-                transfer.amount.to_bytes_be().as_slice(), // TODO: remove when the SDK is updated
-            ))
-            .send()
-            .await
-            .map_err(Error::ZkSync)?;
+        let (transfer, signature) = wallet
+            .signer
+            .sign_transfer(token, amount, fee, recipient, nonce)?;
+        transactions.push((
+            FranklinTx::Transfer(Box::new(transfer)),
+            signature.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+        ));
 
+        nonce += 1;
+    }
+
+    log::debug!(
+        "Sending the transactions to zkSync on network `{}`",
+        query.network
+    );
+    let mut handles = Vec::with_capacity(transactions.len());
+    for (transaction, signature) in transactions.into_iter() {
+        let handle = wallet
+            .provider
+            .send_tx(transaction, Some(signature))
+            .await
+            .map(|tx_hash| SyncTransactionHandle::new(tx_hash, wallet.provider.clone()))?;
         handles.push(handle);
     }
 
     log::debug!("Waiting for the transfers to be committed");
-    let mut reasons = HashMap::with_capacity(handles.len());
+    let mut reasons = Vec::with_capacity(handles.len());
+    let mut are_errors = false;
     for handle in handles.into_iter() {
-        let tx_info = handle.wait_for_commit().await.map_err(Error::ZkSync)?;
-
-        assert!(
-            tx_info.executed,
-            "Transaction must be executed after waiting for commit"
-        );
-        if !tx_info.success.unwrap_or_default() {
-            reasons.insert(
-                handle.hash(),
+        let tx_info = handle.wait_for_commit().await?;
+        if tx_info.success.unwrap_or_default() {
+            reasons.push("OK".to_owned());
+        } else {
+            reasons.push(
                 tx_info
                     .fail_reason
-                    .unwrap_or_else(|| "Unknown reason".to_owned()),
+                    .unwrap_or_else(|| "Unknown error".to_owned()),
             );
+            are_errors = true;
         }
     }
-
-    if !reasons.is_empty() {
-        log::debug!("Reporting {} transfer failures", reasons.len());
+    if are_errors {
         return Err(Error::TransferFailure { reasons });
     }
 
-    log::debug!("Committing the contract storage state");
+    log::debug!("Committing the contract storage state to the database");
     app_data
         .read()
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .postgresql_client
         .update_fields(storage_fields)
-        .await
-        .map_err(Error::Database)?;
+        .await?;
 
     let response = json!({
         "output": output.result.into_json(),
     });
 
-    log::debug!("The sequence has been successfully executed");
+    log::debug!("The call has been successfully executed");
     Ok(Response::new_with_data(StatusCode::OK, response))
+}
+
+///
+/// Waits until there is a zkSync account ID associated with the `wallet` contract.
+///
+async fn wait_for_account_id(
+    wallet: &mut zksync::Wallet,
+    timeout_ms: u64,
+) -> Result<AccountId, Error> {
+    let timeout = Duration::from_millis(timeout_ms);
+    let mut poller = async_std::stream::interval(std::time::Duration::from_millis(100));
+    let start = Instant::now();
+
+    while wallet
+        .provider
+        .account_info(wallet.address())
+        .await?
+        .id
+        .is_none()
+    {
+        if start.elapsed() > timeout {
+            return Err(Error::AccountId);
+        }
+
+        poller.next().await;
+    }
+
+    wallet.update_account_id().await?;
+
+    wallet.account_id().ok_or(Error::AccountId)
 }

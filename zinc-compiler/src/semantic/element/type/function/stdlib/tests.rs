@@ -16,7 +16,6 @@ use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::stdlib::array_pad::Function as ArrayPadFunction;
 use crate::semantic::element::r#type::function::stdlib::array_reverse::Function as ArrayReverseFunction;
 use crate::semantic::element::r#type::function::stdlib::array_truncate::Function as ArrayTruncateFunction;
-use crate::semantic::element::r#type::function::stdlib::assets_token_transfer::Function as AssetsTokenTransferFunction;
 use crate::semantic::element::r#type::function::stdlib::convert_from_bits_field::Function as ConvertFromBitsFieldFunction;
 use crate::semantic::element::r#type::function::stdlib::convert_from_bits_signed::Function as ConvertFromBitsSignedFunction;
 use crate::semantic::element::r#type::function::stdlib::convert_from_bits_unsigned::Function as ConvertFromBitsUnsignedFunction;
@@ -26,6 +25,7 @@ use crate::semantic::element::r#type::function::stdlib::crypto_schnorr_signature
 use crate::semantic::element::r#type::function::stdlib::crypto_sha256::Function as CryptoSha256Function;
 use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
 use crate::semantic::element::r#type::function::stdlib::ff_invert::Function as FfInvertFunction;
+use crate::semantic::element::r#type::function::stdlib::zksync_transfer::Function as ZksyncTransferFunction;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Error as ElementError;
 use crate::semantic::error::Error as SemanticError;
@@ -1537,7 +1537,7 @@ fn main() {
 fn error_assets_token_transfer_argument_count_lesser() {
     let input = r#"
 fn main() {
-    std::assets::Token::transfer(0x42 as u160, 0x25 as u160, 1);
+    std::zksync::transfer(0x42 as u160, 1);
 }
 "#;
 
@@ -1545,8 +1545,8 @@ fn main() {
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
             function: "transfer".to_owned(),
-            expected: AssetsTokenTransferFunction::ARGUMENT_COUNT,
-            found: AssetsTokenTransferFunction::ARGUMENT_COUNT - 1,
+            expected: ZksyncTransferFunction::ARGUMENT_COUNT,
+            found: ZksyncTransferFunction::ARGUMENT_COUNT - 1,
             reference: None,
         }),
     ))));
@@ -1560,7 +1560,7 @@ fn main() {
 fn error_assets_token_transfer_argument_count_greater() {
     let input = r#"
 fn main() {
-    std::assets::Token::transfer(0x42 as u160, 0x25 as u160, 1, 500 as u248, 0x666);
+    std::zksync::transfer(0x42 as u160, 1, 500 as u248, 0x666);
 }
 "#;
 
@@ -1568,8 +1568,8 @@ fn main() {
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
             function: "transfer".to_owned(),
-            expected: AssetsTokenTransferFunction::ARGUMENT_COUNT,
-            found: AssetsTokenTransferFunction::ARGUMENT_COUNT + 1,
+            expected: ZksyncTransferFunction::ARGUMENT_COUNT,
+            found: ZksyncTransferFunction::ARGUMENT_COUNT + 1,
             reference: None,
         }),
     ))));
@@ -1580,19 +1580,19 @@ fn main() {
 }
 
 #[test]
-fn error_assets_token_transfer_argument_1_from_expected_u160() {
+fn error_assets_token_transfer_argument_1_recipient_expected_u160() {
     let input = r#"
 fn main() {
-    std::assets::Token::transfer(false, 0x25 as u160, 1, 500 as u248);
+    std::zksync::transfer(false, 1, 500 as u248);
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::test(3, 34),
+            location: Location::test(3, 27),
             function: "transfer".to_owned(),
-            name: "from".to_owned(),
-            position: AssetsTokenTransferFunction::ARGUMENT_INDEX_FROM + 1,
+            name: "recipient".to_owned(),
+            position: ZksyncTransferFunction::ARGUMENT_INDEX_RECIPIENT + 1,
             expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS).to_string(),
             found: Type::boolean(None).to_string(),
         }),
@@ -1604,43 +1604,19 @@ fn main() {
 }
 
 #[test]
-fn error_assets_token_transfer_argument_2_to_expected_u160() {
+fn error_assets_token_transfer_argument_2_token_id_expected_unsigned_integer() {
     let input = r#"
 fn main() {
-    std::assets::Token::transfer(0x42 as u160, false, 1, 500 as u248);
+    std::zksync::transfer(0x42 as u160, false, 500 as u248);
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::test(3, 48),
-            function: "transfer".to_owned(),
-            name: "to".to_owned(),
-            position: AssetsTokenTransferFunction::ARGUMENT_INDEX_TO + 1,
-            expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS).to_string(),
-            found: Type::boolean(None).to_string(),
-        }),
-    ))));
-
-    let result = crate::semantic::tests::compile_entry(input);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn error_assets_token_transfer_argument_3_token_id_expected_unsigned_integer() {
-    let input = r#"
-fn main() {
-    std::assets::Token::transfer(0x42 as u160, 0x25 as u160, false, 500 as u248);
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionError::ArgumentType {
-            location: Location::test(3, 62),
+            location: Location::test(3, 41),
             function: "transfer".to_owned(),
             name: "token_id".to_owned(),
-            position: AssetsTokenTransferFunction::ARGUMENT_INDEX_TOKEN_ID + 1,
+            position: ZksyncTransferFunction::ARGUMENT_INDEX_TOKEN_ID + 1,
             expected: "{unsigned integer}".to_owned(),
             found: Type::boolean(None).to_string(),
         }),
@@ -1652,19 +1628,19 @@ fn main() {
 }
 
 #[test]
-fn error_assets_token_transfer_argument_4_amount_expected_u248() {
+fn error_assets_token_transfer_argument_3_amount_expected_u248() {
     let input = r#"
 fn main() {
-    std::assets::Token::transfer(0x42 as u160, 0x25 as u160, 1, false);
+    std::zksync::transfer(0x42 as u160, 1, false);
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::test(3, 65),
+            location: Location::test(3, 44),
             function: "transfer".to_owned(),
             name: "amount".to_owned(),
-            position: AssetsTokenTransferFunction::ARGUMENT_INDEX_AMOUNT + 1,
+            position: ZksyncTransferFunction::ARGUMENT_INDEX_AMOUNT + 1,
             expected: Type::integer_unsigned(None, zinc_const::bitlength::INTEGER_MAX).to_string(),
             found: Type::boolean(None).to_string(),
         }),

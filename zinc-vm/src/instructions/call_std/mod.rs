@@ -3,10 +3,10 @@
 //!
 
 pub mod array;
-pub mod assets;
 pub mod convert;
 pub mod crypto;
 pub mod ff;
+pub mod zksync;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
@@ -22,7 +22,6 @@ use crate::IEngine;
 use self::array::pad::Pad as ArrayPad;
 use self::array::reverse::Reverse as ArrayReverse;
 use self::array::truncate::Truncate as ArrayTruncate;
-use self::assets::token_transfer::Transfer as AssetsTokenTransfer;
 use self::convert::from_bits_field::FromBitsField as ConvertFromBitsField;
 use self::convert::from_bits_signed::FromBitsSigned as ConvertFromBitsSigned;
 use self::convert::from_bits_unsigned::FromBitsUnsigned as ConvertFromBitsUnsigned;
@@ -31,6 +30,7 @@ use self::crypto::pedersen::Pedersen as CryptoPedersen;
 use self::crypto::schnorr_verify::SchnorrSignatureVerify as CryptoSchnorrSignatureVerify;
 use self::crypto::sha256::Sha256 as CryptoSha256;
 use self::ff::invert::Inverse as FfInverse;
+use self::zksync::transfer::Transfer as ZksyncTransfer;
 
 pub trait INativeCallable<E: IEngine> {
     fn call<CS: ConstraintSystem<E>>(
@@ -68,7 +68,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for CallStd {
 
             FunctionIdentifier::FieldInverse => vm.call_native(FfInverse),
 
-            FunctionIdentifier::AssetsTokenTransfer => vm.call_native(AssetsTokenTransfer),
+            FunctionIdentifier::ZksyncTransfer => vm.call_native(ZksyncTransfer),
         }
     }
 }

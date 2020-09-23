@@ -7,10 +7,9 @@ use crate::types::Balance;
 pub enum TokenId {
     ETH = 0,
     DAI = 1,
-    wBTC = 2,
-    BAT = 3,
-    MLTT = 4,
-
+    //    wBTC = 2,
+    //    BAT = 3,
+    //    MLTT = 4,
     Unknown = 255,
 }
 
@@ -19,15 +18,11 @@ impl TokenId {
         match value {
             0 => Self::ETH,
             1 => Self::DAI,
-            2 => Self::wBTC,
-            3 => Self::BAT,
-            4 => Self::MLTT,
-
+            //            2 => Self::wBTC,
+            //            3 => Self::BAT,
+            //            4 => Self::MLTT,
             _ => {
-                assert!(
-                    value <= Self::MLTT as u8,
-                    "Token ID must be between 0 and 4"
-                );
+                assert!(value < crate::constants::N, "Token ID is unknown");
                 Self::Unknown
             }
         }

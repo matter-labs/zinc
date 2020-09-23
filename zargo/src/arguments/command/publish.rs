@@ -29,7 +29,6 @@ use crate::executable::virtual_machine::VirtualMachine;
 use crate::project::build::bytecode::Bytecode as BytecodeFile;
 use crate::project::build::Directory as BuildDirectory;
 use crate::project::data::arguments::Arguments as ArgumentsFile;
-use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
 use crate::project::data::verifying_key::VerifyingKey as VerifyingKeyFile;
 use crate::project::data::Directory as DataDirectory;
 use crate::project::manifest::project_type::ProjectType;
@@ -65,18 +64,10 @@ pub struct Command {
     /// The network identifier, where the contract must be published to.
     #[structopt(
         long = "network",
-        help = "Sets the network, which is either 'rinkeby', 'ropsten', or 'localhost'",
+        help = "Sets the network name",
         default_value = "localhost"
     )]
     pub network: String,
-
-    /// The path to the sender private key.
-    #[structopt(
-        long = "private-key",
-        help = "Path to sender private key",
-        default_value = zinc_const::path::PRIVATE_KEY,
-    )]
-    pub private_key_path: PathBuf,
 }
 
 ///
@@ -85,10 +76,7 @@ pub struct Command {
 #[derive(Debug, Fail)]
 pub enum Error {
     /// The invalid network error.
-    #[fail(
-        display = "network must be either `rinkeby`, `ropsten`, or `localhost`, but found `{}`",
-        _0
-    )]
+    #[fail(display = "invalid network name: {}", _0)]
     NetworkInvalid(String),
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
@@ -120,9 +108,6 @@ pub enum Error {
     /// The verifying key file error.
     #[fail(display = "verifying key file {}", _0)]
     VerifyingKeyFile(FileError),
-    /// The private key file error.
-    #[fail(display = "private key file {}", _0)]
-    PrivateKeyFile(FileError),
     /// The publish HTTP request error.
     #[fail(display = "HTTP request: {}", _0)]
     HttpRequest(reqwest::Error),
@@ -139,15 +124,6 @@ impl IExecutable for Command {
             zksync::Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
 
         let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
-
-        eprintln!(
-            "   {} the instance `{}` of `{} v{}` to network `{}`",
-            "Uploading".bright_green(),
-            self.instance,
-            manifest.project.name,
-            manifest.project.version,
-            network,
-        );
 
         match manifest.project.r#type {
             ProjectType::Contract => {}
@@ -175,8 +151,6 @@ impl IExecutable for Command {
         proving_key_path.push(zinc_const::file_name::PROVING_KEY);
         let mut verifying_key_path = data_directory_path.clone();
         verifying_key_path.push(zinc_const::file_name::VERIFYING_KEY.to_owned());
-        let mut private_key_path = data_directory_path.clone();
-        private_key_path.push(zinc_const::file_name::PRIVATE_KEY.to_owned());
 
         BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
         let build_directory_path = BuildDirectory::path(&manifest_path);
@@ -220,8 +194,14 @@ impl IExecutable for Command {
         let verifying_key =
             VerifyingKeyFile::try_from(&verifying_key_path).map_err(Error::VerifyingKeyFile)?;
 
-        let private_key =
-            PrivateKeyFile::try_from(&private_key_path).map_err(Error::PrivateKeyFile)?;
+        eprintln!(
+            "   {} the instance `{}` of `{} v{}` to network `{}`",
+            "Uploading".bright_green(),
+            self.instance,
+            manifest.project.name,
+            manifest.project.version,
+            network,
+        );
 
         let endpoint_url = format!(
             "{}{}",
@@ -251,8 +231,6 @@ impl IExecutable for Command {
                         bytecode.inner,
                         arguments.inner,
                         verifying_key.inner,
-                        "7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110"
-                            .to_owned(),
                     ))
                     .build()
                     .expect(zinc_const::panic::DATA_CONVERSION),

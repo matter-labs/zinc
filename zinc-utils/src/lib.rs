@@ -20,4 +20,4 @@ pub use crate::math::inference::minimal_bitlength as infer_minimal_bitlength;
 pub use crate::math::inference::r#type::Type as InferredType;
 pub use crate::math::inference::result::Binary as BinaryInferenceResult;
 pub use crate::math::log2ceil;
-pub use crate::token::format_amount as format_token_amount;
+pub use crate::token::parse_amount as parse_token_amount;

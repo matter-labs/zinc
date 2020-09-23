@@ -49,14 +49,14 @@ pub struct Command {
     /// The network identifier, where the contract resides.
     #[structopt(
         long = "network",
-        help = "Sets the network, which is either 'rinkeby', 'ropsten', or 'localhost'",
+        help = "Sets the network name",
         default_value = "localhost"
     )]
     pub network: String,
 
-    /// The ID of the published contract.
-    #[structopt(long = "id", help = "The ID of the published contract")]
-    pub contract_id: u32,
+    /// The ETH address of the published contract.
+    #[structopt(long = "address", help = "The ETH address of the contract")]
+    pub address: String,
 
     /// The contract method to call. If not specified, the contract storage is queried.
     #[structopt(
@@ -71,11 +71,11 @@ pub struct Command {
 ///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The ETH address is invalid.
+    #[fail(display = "invalid ETH address: {}", _0)]
+    InvalidContractAddress(rustc_hex::FromHexError),
     /// The invalid network error.
-    #[fail(
-        display = "network must be either `rinkeby`, `ropsten`, or `localhost`, but found `{}`",
-        _0
-    )]
+    #[fail(display = "invalid network name: {}", _0)]
     NetworkInvalid(String),
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
@@ -98,6 +98,10 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
+        let address = self.address["0x".len()..]
+            .parse()
+            .map_err(Error::InvalidContractAddress)?;
+
         let network =
             zksync::Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
 
@@ -134,23 +138,25 @@ impl IExecutable for Command {
                     .map_err(Error::ArgumentsFile)?;
 
                 eprintln!(
-                    "    {} method `{}` of the contract `{} v{} with ID {}`",
+                    "    {} method `{}` of the contract `{} v{}` with address {} on network `{}`",
                     "Querying".bright_green(),
                     method,
                     manifest.project.name,
                     manifest.project.version,
-                    self.contract_id,
+                    self.address,
+                    network,
                 );
 
                 Some(arguments.inner)
             }
             None => {
                 eprintln!(
-                    "    {} the storage of the contract `{} v{} with ID {}`",
+                    "    {} the storage of the contract `{} v{}` with address {} on network `{}`",
                     "Querying".bright_green(),
                     manifest.project.name,
                     manifest.project.version,
-                    self.contract_id,
+                    self.address,
+                    network,
                 );
 
                 None
@@ -165,7 +171,7 @@ impl IExecutable for Command {
                         Method::PUT,
                         Url::parse_with_params(
                             endpoint_url.as_str(),
-                            QueryRequestQuery::new(self.contract_id, self.method, network),
+                            QueryRequestQuery::new(address, self.method, network),
                         )
                         .expect(zinc_const::panic::DATA_CONVERSION),
                     )

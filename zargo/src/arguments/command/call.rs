@@ -14,6 +14,8 @@ use reqwest::Url;
 use serde_json::Value as JsonValue;
 use structopt::StructOpt;
 
+use zksync::zksync_models::node::tx::FranklinTx;
+
 use zinc_data::CallRequestBody;
 use zinc_data::CallRequestQuery;
 
@@ -24,8 +26,8 @@ use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
 use crate::project::data::Directory as DataDirectory;
 use crate::project::manifest::project_type::ProjectType;
 use crate::project::manifest::Manifest as ManifestFile;
-use crate::transaction::error::Error as TransactionError;
-use crate::transaction::Transaction;
+use crate::transfer::error::Error as TransferError;
+use crate::transfer::Transfer;
 
 ///
 /// The Zargo project manager `call` subcommand.
@@ -52,14 +54,14 @@ pub struct Command {
     /// The network identifier, where the contract resides.
     #[structopt(
         long = "network",
-        help = "Sets the network, which is either 'rinkeby', 'ropsten', or 'localhost'",
+        help = "Sets the network name",
         default_value = "localhost"
     )]
     pub network: String,
 
-    /// The ID of the published contract.
-    #[structopt(long = "id", help = "The ID of the published contract")]
-    pub contract_id: u32,
+    /// The ETH address of the published contract.
+    #[structopt(long = "address", help = "The ETH address of the contract")]
+    pub address: String,
 
     /// The contract method to call.
     #[structopt(long = "method", help = "The contract method to call")]
@@ -79,11 +81,11 @@ pub struct Command {
 ///
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// The ETH address is invalid.
+    #[fail(display = "invalid ETH address: {}", _0)]
+    InvalidContractAddress(rustc_hex::FromHexError),
     /// The invalid network error.
-    #[fail(
-        display = "network must be either `rinkeby`, `ropsten`, or `localhost`, but found `{}`",
-        _0
-    )]
+    #[fail(display = "invalid network name: {}", _0)]
     NetworkInvalid(String),
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
@@ -97,12 +99,9 @@ pub enum Error {
     /// The private key file error.
     #[fail(display = "private key file {}", _0)]
     PrivateKeyFile(FileError),
-    /// The transaction argument is missing.
-    #[fail(display = "arguments do not contain the transfer transaction")]
-    TransactionArgumentMissing,
     /// The transfer transaction signing error.
     #[fail(display = "transfer transaction: {}", _0)]
-    Transaction(TransactionError),
+    Transfer(TransferError),
     /// The publish HTTP request error.
     #[fail(display = "HTTP request: {}", _0)]
     HttpRequest(reqwest::Error),
@@ -115,18 +114,22 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
+        let address = self.address["0x".len()..]
+            .parse()
+            .map_err(Error::InvalidContractAddress)?;
+
         let network =
             zksync::Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
 
         let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         eprintln!(
-            "     {} method `{}` of the contract `{} v{} with ID {}` on network `{}`",
+            "     {} method `{}` of the contract `{} v{}` with address {} on network `{}`",
             "Calling".bright_green(),
             self.method,
             manifest.project.name,
             manifest.project.version,
-            self.contract_id,
+            self.address,
             network,
         );
 
@@ -157,15 +160,20 @@ impl IExecutable for Command {
         let private_key =
             PrivateKeyFile::try_from(&private_key_path).map_err(Error::PrivateKeyFile)?;
 
-        let transaction = Transaction::try_from(
-            arguments
-                .get_tx()
-                .ok_or(Error::TransactionArgumentMissing)?,
-        )
-        .map_err(Error::Transaction)?;
-        let (transfer, signature) = transaction
-            .try_into_transfer(network, private_key.inner)
-            .map_err(Error::Transaction)?;
+        let transfers = arguments
+            .get_transfers()
+            .and_then(|transfers| {
+                Ok(
+                    Transfer::try_into_batch(transfers, network, private_key.inner)
+                        .map(|batch| {
+                            batch.into_iter().map(|(transfer, signature)| {
+                                (FranklinTx::Transfer(Box::new(transfer)), signature)
+                            })
+                        })?
+                        .collect(),
+                )
+            })
+            .map_err(Error::Transfer)?;
 
         let endpoint_url = format!(
             "{}{}",
@@ -180,11 +188,11 @@ impl IExecutable for Command {
                         Method::POST,
                         Url::parse_with_params(
                             endpoint_url.as_str(),
-                            CallRequestQuery::new(self.contract_id, self.method, network),
+                            CallRequestQuery::new(address, self.method, network),
                         )
                         .expect(zinc_const::panic::DATA_CONVERSION),
                     )
-                    .json(&CallRequestBody::new(arguments.inner, transfer, signature))
+                    .json(&CallRequestBody::new(arguments.inner, transfers))
                     .build()
                     .expect(zinc_const::panic::DATA_CONVERSION),
             )

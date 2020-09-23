@@ -21,8 +21,12 @@ pub enum Error {
     InvalidInput(BuildValueError),
     RuntimeError(RuntimeError),
     Database(sqlx::Error),
-    Web3(zksync::web3::Error),
-    ZkSync(zksync::error::ClientError),
+}
+
+impl From<sqlx::Error> for Error {
+    fn from(inner: sqlx::Error) -> Self {
+        Self::Database(inner)
+    }
 }
 
 impl ResponseError for Error {
@@ -35,8 +39,6 @@ impl ResponseError for Error {
 
             Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Database(..) => StatusCode::SERVICE_UNAVAILABLE,
-            Self::Web3(..) => StatusCode::SERVICE_UNAVAILABLE,
-            Self::ZkSync(..) => StatusCode::SERVICE_UNAVAILABLE,
         }
     }
 }
@@ -60,8 +62,6 @@ impl fmt::Display for Error {
 
             Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
             Self::Database(inner) => format!("Database: {:?}", inner),
-            Self::Web3(inner) => format!("ZkSync Web3: {:?}", inner),
-            Self::ZkSync(inner) => format!("ZkSync: {:?}", inner),
         };
 
         log::warn!("{}", error);

@@ -14,9 +14,6 @@ use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 use rayon::ThreadPoolBuilder;
 
-use zksync::zksync_models::node::tx::PackedEthSignature;
-use zksync::zksync_models::node::AccountId;
-
 use zinc_build::Program as BuildProgram;
 
 use zandbox::ContractSelectAllOutput;
@@ -61,7 +58,7 @@ async fn main() -> Result<(), Error> {
         .into_par_iter()
         .map(
             |ContractSelectAllOutput {
-                 account_id,
+                 address,
                  name,
                  version,
                  instance,
@@ -78,22 +75,21 @@ async fn main() -> Result<(), Error> {
                     BuildProgram::Contract(contract) => contract,
                 };
 
+                let address = zinc_utils::eth_address_from_vec(address);
                 let eth_private_key = zinc_utils::eth_private_key_from_vec(eth_private_key);
-                let eth_address = PackedEthSignature::address_from_private_key(&eth_private_key)
-                    .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
 
-                let contract = SharedDataContract::new(build, eth_address, eth_private_key);
+                let contract = SharedDataContract::new(build, eth_private_key);
 
                 log::info!(
-                    "{} [ID {:6}] instance `{}` of the contract `{} v{}`",
+                    "{} instance `{}` of the contract `{} v{}` with address {}",
                     "Loaded".bright_green(),
-                    account_id,
                     instance,
                     name,
                     version,
+                    serde_json::to_string(&address).expect(zinc_const::panic::DATA_CONVERSION),
                 );
 
-                (account_id as AccountId, contract)
+                (address, contract)
             },
         )
         .collect();

@@ -2,10 +2,10 @@
 //! The array-vector conversion tools.
 //!
 
-use zksync::web3::types::H160;
+use zksync::web3::types::Address;
 use zksync::web3::types::H256;
 
-pub fn eth_address_from_vec(vector: Vec<u8>) -> H160 {
+pub fn eth_address_from_vec(vector: Vec<u8>) -> Address {
     let mut array = [0; zinc_const::size::ETH_ADDRESS];
     for (index, byte) in vector.into_iter().enumerate() {
         array[index] = byte;

@@ -1,3 +1,4 @@
 [submodule "zksync"]
 	path = zksync
 	url = https://github.com/matter-labs/zksync-dev
+	branch = dev

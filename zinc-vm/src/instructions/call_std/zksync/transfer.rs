@@ -1,8 +1,9 @@
 //!
-//! The `std::assets::Token::transfer` function call.
+//! The `std::zksync::transfer` function call.
 //!
 
 use num_bigint::ToBigInt;
+use num_traits::ToPrimitive;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
@@ -21,31 +22,21 @@ impl<E: IEngine> INativeCallable<E> for Transfer {
     {
         let amount = state.evaluation_stack.pop()?.try_into_value()?;
         let token_id = state.evaluation_stack.pop()?.try_into_value()?;
-        let to = state.evaluation_stack.pop()?.try_into_value()?;
-        let from = state.evaluation_stack.pop()?.try_into_value()?;
+        let recipient = state.evaluation_stack.pop()?.try_into_value()?;
 
         let token_id = token_id
             .to_bigint()
             .expect(zinc_const::panic::DATA_CONVERSION)
-            .to_biguint()
+            .to_u16()
             .expect(zinc_const::panic::DATA_CONVERSION);
 
-        let (_sign, from) = from
+        let (_sign, recipient) = recipient
             .to_bigint()
             .expect(zinc_const::panic::DATA_CONVERSION)
             .to_bytes_be();
-        let mut from_array = [0; zinc_const::size::ETH_ADDRESS];
-        for (index, byte) in from.into_iter().enumerate() {
-            from_array[index] = byte;
-        }
-
-        let (_sign, to) = to
-            .to_bigint()
-            .expect(zinc_const::panic::DATA_CONVERSION)
-            .to_bytes_be();
-        let mut to_array = [0; zinc_const::size::ETH_ADDRESS];
-        for (index, byte) in to.into_iter().enumerate() {
-            to_array[index] = byte;
+        let mut recipient_array = [0; zinc_const::size::ETH_ADDRESS];
+        for (index, byte) in recipient.into_iter().enumerate() {
+            recipient_array[index] = byte;
         }
 
         let amount = amount
@@ -56,7 +47,7 @@ impl<E: IEngine> INativeCallable<E> for Transfer {
 
         state
             .transfers
-            .push(TransferOutput::new(token_id, from_array, to_array, amount));
+            .push(TransferOutput::new(recipient_array, token_id, amount));
 
         Ok(())
     }

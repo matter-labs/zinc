@@ -4,6 +4,8 @@
 
 use serde_derive::Serialize;
 
+use zksync::web3::types::Address;
+
 ///
 /// The contract resource GET `Curve` response body.
 ///
@@ -14,8 +16,8 @@ pub type Body = Vec<Instance>;
 ///
 #[derive(Debug, Serialize)]
 pub struct Instance {
-    /// The contract account ID.
-    pub account_id: i64,
+    /// The contract ETH address.
+    pub address: Address,
     /// The contract project name.
     pub name: String,
     /// The contract version.
@@ -28,9 +30,9 @@ impl Instance {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(account_id: i64, name: String, version: String, instance: String) -> Self {
+    pub fn new(address: Address, name: String, version: String, instance: String) -> Self {
         Self {
-            account_id,
+            address,
             name,
             version,
             instance,

@@ -36,6 +36,6 @@ pub enum FunctionIdentifier {
     /// The `std::ff::invert` function identifier.
     FieldInverse,
 
-    /// The `std::assets::Token::transfer` function identifier.
-    AssetsTokenTransfer,
+    /// The `std::zksync::transfer` function identifier.
+    ZksyncTransfer,
 }

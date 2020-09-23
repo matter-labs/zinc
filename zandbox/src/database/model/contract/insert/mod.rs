@@ -2,4 +2,4 @@
 //! The database contract INSERT model.
 //!
 
-pub mod input;
+pub mod new;

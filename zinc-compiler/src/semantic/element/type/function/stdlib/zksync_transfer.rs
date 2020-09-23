@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library `std::assets::Token::transfer` function element.
+//! The semantic analyzer standard library `std::zksync::transfer` function element.
 //!
 
 use std::fmt;
@@ -14,7 +14,7 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 
 ///
-/// The semantic analyzer standard library `std::assets::Token::transfer` function element.
+/// The semantic analyzer standard library `std::zksync::transfer` function element.
 ///
 #[derive(Debug, Clone)]
 pub struct Function {
@@ -27,20 +27,17 @@ pub struct Function {
 }
 
 impl Function {
-    /// The position of the `from` argument in the function argument list.
-    pub const ARGUMENT_INDEX_FROM: usize = 0;
+    /// The position of the `recipient` argument in the function argument list.
+    pub const ARGUMENT_INDEX_RECIPIENT: usize = 0;
 
-    /// The position of the `to` argument in the function argument list.
-    pub const ARGUMENT_INDEX_TO: usize = 1;
-
-    /// The position of the `token` argument in the function argument list.
-    pub const ARGUMENT_INDEX_TOKEN_ID: usize = 2;
+    /// The position of the `token_id` argument in the function argument list.
+    pub const ARGUMENT_INDEX_TOKEN_ID: usize = 1;
 
     /// The position of the `amount` argument in the function argument list.
-    pub const ARGUMENT_INDEX_AMOUNT: usize = 3;
+    pub const ARGUMENT_INDEX_AMOUNT: usize = 2;
 
     /// The expected number of the function arguments.
-    pub const ARGUMENT_COUNT: usize = 4;
+    pub const ARGUMENT_COUNT: usize = 3;
 
     ///
     /// A shortcut constructor.
@@ -81,7 +78,7 @@ impl Function {
             actual_params.push((r#type, location));
         }
 
-        match actual_params.get(Self::ARGUMENT_INDEX_FROM) {
+        match actual_params.get(Self::ARGUMENT_INDEX_RECIPIENT) {
             Some((
                 Type::IntegerUnsigned {
                     bitlength: zinc_const::bitlength::ETH_ADDRESS,
@@ -93,38 +90,8 @@ impl Function {
                 return Err(Error::ArgumentType {
                     location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
-                    name: "from".to_owned(),
-                    position: Self::ARGUMENT_INDEX_FROM + 1,
-                    expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS)
-                        .to_string(),
-                    found: r#type.to_string(),
-                })
-            }
-            None => {
-                return Err(Error::ArgumentCount {
-                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-                    function: self.identifier.to_owned(),
-                    expected: Self::ARGUMENT_COUNT,
-                    found: actual_params.len(),
-                    reference: None,
-                })
-            }
-        }
-
-        match actual_params.get(Self::ARGUMENT_INDEX_TO) {
-            Some((
-                Type::IntegerUnsigned {
-                    bitlength: zinc_const::bitlength::ETH_ADDRESS,
-                    ..
-                },
-                _location,
-            )) => {}
-            Some((r#type, location)) => {
-                return Err(Error::ArgumentType {
-                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-                    function: self.identifier.to_owned(),
-                    name: "to".to_owned(),
-                    position: Self::ARGUMENT_INDEX_TO + 1,
+                    name: "recipient".to_owned(),
+                    position: Self::ARGUMENT_INDEX_RECIPIENT + 1,
                     expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS)
                         .to_string(),
                     found: r#type.to_string(),
@@ -206,7 +173,7 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "assets::Token::{}(from: u160, to: u160, token_id: u{{N}}, amount: u248)",
+            "assets::Token::{}(recipient: u160, token_id: u{{N}}, amount: u248)",
             self.identifier
         )
     }

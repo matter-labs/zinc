@@ -7,7 +7,6 @@ mod tests;
 pub mod array_pad;
 pub mod array_reverse;
 pub mod array_truncate;
-pub mod assets_token_transfer;
 pub mod convert_from_bits_field;
 pub mod convert_from_bits_signed;
 pub mod convert_from_bits_unsigned;
@@ -17,6 +16,7 @@ pub mod crypto_schnorr_signature_verify;
 pub mod crypto_sha256;
 pub mod error;
 pub mod ff_invert;
+pub mod zksync_transfer;
 
 use std::fmt;
 
@@ -30,7 +30,6 @@ use crate::semantic::element::r#type::Type;
 use self::array_pad::Function as ArrayPadFunction;
 use self::array_reverse::Function as ArrayReverseFunction;
 use self::array_truncate::Function as ArrayTruncateFunction;
-use self::assets_token_transfer::Function as AssetsTokenTransferFunction;
 use self::convert_from_bits_field::Function as FromBitsFieldFunction;
 use self::convert_from_bits_signed::Function as FromBitsSignedFunction;
 use self::convert_from_bits_unsigned::Function as FromBitsUnsignedFunction;
@@ -39,6 +38,7 @@ use self::crypto_pedersen::Function as PedersenFunction;
 use self::crypto_schnorr_signature_verify::Function as SchnorrSignatureVerifyFunction;
 use self::crypto_sha256::Function as Sha256Function;
 use self::ff_invert::Function as FfInvertFunction;
+use self::zksync_transfer::Function as ZksyncTransferFunction;
 
 ///
 /// The semantic analyzer standard library function element.
@@ -71,8 +71,8 @@ pub enum Function {
     /// The `std::ff::invert` function variant.
     FfInvert(FfInvertFunction),
 
-    /// The `std::assets::Token::transfer` function variant.
-    AssetsTokenTransfer(AssetsTokenTransferFunction),
+    /// The `std::zksync::transfer` function variant.
+    ZksyncTransfer(ZksyncTransferFunction),
 }
 
 impl Function {
@@ -112,8 +112,8 @@ impl Function {
 
             FunctionIdentifier::FieldInverse => Self::FfInvert(FfInvertFunction::new(identifier)),
 
-            FunctionIdentifier::AssetsTokenTransfer => {
-                Self::AssetsTokenTransfer(AssetsTokenTransferFunction::new(identifier))
+            FunctionIdentifier::ZksyncTransfer => {
+                Self::ZksyncTransfer(ZksyncTransferFunction::new(identifier))
             }
         }
     }
@@ -142,7 +142,7 @@ impl Function {
 
             Self::FfInvert(inner) => inner.call(location, argument_list),
 
-            Self::AssetsTokenTransfer(inner) => inner.call(location, argument_list),
+            Self::ZksyncTransfer(inner) => inner.call(location, argument_list),
         }
     }
 
@@ -166,7 +166,7 @@ impl Function {
 
             Self::FfInvert(inner) => inner.identifier,
 
-            Self::AssetsTokenTransfer(inner) => inner.identifier,
+            Self::ZksyncTransfer(inner) => inner.identifier,
         }
     }
 
@@ -190,7 +190,7 @@ impl Function {
 
             Self::FfInvert(inner) => inner.stdlib_identifier,
 
-            Self::AssetsTokenTransfer(inner) => inner.stdlib_identifier,
+            Self::ZksyncTransfer(inner) => inner.stdlib_identifier,
         }
     }
 
@@ -214,7 +214,7 @@ impl Function {
 
             Self::FfInvert(inner) => inner.location = Some(location),
 
-            Self::AssetsTokenTransfer(inner) => inner.location = Some(location),
+            Self::ZksyncTransfer(inner) => inner.location = Some(location),
         }
     }
 
@@ -238,7 +238,7 @@ impl Function {
 
             Self::FfInvert(inner) => inner.location,
 
-            Self::AssetsTokenTransfer(inner) => inner.location,
+            Self::ZksyncTransfer(inner) => inner.location,
         }
     }
 }
@@ -261,7 +261,7 @@ impl fmt::Display for Function {
 
             Self::FfInvert(inner) => write!(f, "{}", inner),
 
-            Self::AssetsTokenTransfer(inner) => write!(f, "{}", inner),
+            Self::ZksyncTransfer(inner) => write!(f, "{}", inner),
         }
     }
 }

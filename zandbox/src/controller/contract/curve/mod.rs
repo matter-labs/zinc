@@ -33,12 +33,11 @@ pub async fn handle(
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .postgresql_client
         .select_contracts_curve()
-        .await
-        .map_err(Error::Database)?
+        .await?
         .into_iter()
         .map(|instance| {
             ResponseInstance::new(
-                instance.account_id,
+                zinc_utils::eth_address_from_vec(instance.address),
                 instance.name,
                 instance.version,
                 instance.instance,

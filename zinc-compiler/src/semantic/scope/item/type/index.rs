@@ -44,10 +44,6 @@ impl Index {
             "structure std::crypto::schnorr::Signature".to_owned(),
             BuiltInTypeId::StdCryptoSchnorrSignature as usize,
         );
-        index.next_with_id(
-            "structure std::assets::Token".to_owned(),
-            BuiltInTypeId::StdAssetsToken as usize,
-        );
         index
     }
 

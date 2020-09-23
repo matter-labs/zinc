@@ -16,6 +16,12 @@ pub enum Error {
     Database(sqlx::Error),
 }
 
+impl From<sqlx::Error> for Error {
+    fn from(inner: sqlx::Error) -> Self {
+        Self::Database(inner)
+    }
+}
+
 impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {

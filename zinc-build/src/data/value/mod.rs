@@ -17,7 +17,7 @@ use serde_derive::Serialize;
 use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
 
-use zksync::web3::types::H160;
+use zksync::web3::types::Address;
 
 use zinc_utils::InferenceError;
 
@@ -109,9 +109,9 @@ impl Value {
     }
 
     ///
-    /// Creates an integer from the ZkSync ETH address representation.
+    /// Creates an integer from the ETH address representation.
     ///
-    pub fn scalar_from_h160(value: H160) -> Self {
+    pub fn scalar_from_eth_address(value: Address) -> Self {
         let value = BigInt::from_bytes_be(Sign::Plus, value.as_bytes());
         Self::Scalar(ScalarValue::Integer(value, IntegerType::ETH_ADDRESS))
     }

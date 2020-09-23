@@ -182,9 +182,9 @@ Arguments:
 
 Returns: `field`
 
-## `std::assets` module
+## `std::zksync` module
 
-### `std::assets::Token::transfer`
+### `std::zksync::transfer`
 
 Executes a transfer which is sent to the zkSync platform.
 

@@ -2,20 +2,22 @@
 //! The database contract storage field SELECT input model.
 //!
 
+use zksync::web3::types::Address;
+
 ///
 /// The database contract storage field SELECT input model.
 ///
 #[derive(Debug)]
 pub struct Input {
-    /// The contract account ID referencing `contracts.account_id`.
-    pub account_id: i64,
+    /// The contract ETH address referencing `contracts.address`.
+    pub address: Address,
 }
 
 impl Input {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(account_id: i64) -> Self {
-        Self { account_id }
+    pub fn new(address: Address) -> Self {
+        Self { address }
     }
 }

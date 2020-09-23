@@ -17,12 +17,11 @@ use zinc_build::Type as BuildType;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 
-use zksync::web3::types::H160;
+use zksync::web3::types::Address;
 use zksync::web3::types::H256;
-use zksync::web3::types::U256;
 use zksync::zksync_models::node::tx::PackedEthSignature;
 
-use crate::database::model::contract::insert::input::Input as ContractInsertInput;
+use crate::database::model::contract::insert::new::input::Input as ContractInsertNewInput;
 use crate::database::model::field::insert::input::Input as FieldInsertInput;
 use crate::response::Response;
 use crate::shared_data::contract::Contract as SharedDataContract;
@@ -42,12 +41,10 @@ use self::response::Body as ResponseBody;
 /// 3. Parse the construtor arguments.
 /// 4. Run the construtor on the Zinc VM which must return the contract storage.
 /// 5. Generate a private key for the contract.
-/// 6. Send the initial client transfer to the contract address.
-/// 7. Execute the change-pubkey transaction on the contract.
-/// 8. Fill the external contract storage fields.
-/// 9. Write the contract to the in-memory cache.
-/// 10. Write the contract and its storage to the persistent database.
-/// 11. Return the created contract address to the client.
+/// 6. Fill the external contract storage fields.
+/// 7. Write the contract to the in-memory cache.
+/// 8. Write the contract and its storage to the persistent database.
+/// 9. Return the created contract address to the client.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
@@ -58,7 +55,8 @@ pub async fn handle(
     let body = body.into_inner();
 
     log::debug!(
-        "Publishing an instance of the contract `{} {}`",
+        "Publishing the instance `{}` of the contract `{} {}`",
+        query.instance,
         query.name,
         query.version
     );
@@ -96,78 +94,30 @@ pub async fn handle(
     .await
     .map_err(Error::RuntimeError)?;
 
-    let provider = zksync::Provider::new(query.network);
-
     log::debug!("Generating an ETH private key");
     let mut contract_private_key = H256::default();
     contract_private_key.randomize();
-    let contract_eth_address: H160 =
+    let contract_address: Address =
         PackedEthSignature::address_from_private_key(&contract_private_key)
             .expect(zinc_const::panic::DATA_CONVERSION);
     log::debug!(
         "The contract ETH address is {}",
-        serde_json::to_string(&contract_eth_address).expect(zinc_const::panic::DATA_CONVERSION),
+        serde_json::to_string(&contract_address).expect(zinc_const::panic::DATA_CONVERSION),
     );
-
-    let owner_private_key: H256 = body.owner_private_key.parse().unwrap();
-    let owner_eth_address: H160 = PackedEthSignature::address_from_private_key(&owner_private_key)
-        .expect(zinc_const::panic::DATA_CONVERSION);
-    let owner_wallet_credentials =
-        zksync::WalletCredentials::from_eth_pk(owner_eth_address, owner_private_key)
-            .map_err(Error::ZkSync)?;
-    let owner_wallet = zksync::Wallet::new(provider.clone(), owner_wallet_credentials)
-        .await
-        .map_err(Error::ZkSync)?;
-
-    log::debug!("Making the initial zero deposit");
-    let ethereum = owner_wallet
-        .ethereum("http://localhost:8545")
-        .await
-        .map_err(Error::ZkSync)?;
-    let eth_deposit_tx_hash = ethereum
-        .deposit(
-            "ETH",
-            U256::from(100u64).pow(zinc_const::zandbox::ETH_BALANCE_EXPONENT.into()),
-            contract_eth_address,
-        )
-        .await
-        .map_err(Error::ZkSync)?;
-    crate::wait::eth_tx(&ethereum, eth_deposit_tx_hash)
-        .await
-        .map_err(Error::Web3)?;
-
-    log::debug!("Performing the change-pubkey transaction");
-    let contract_wallet_credentials =
-        zksync::WalletCredentials::from_eth_pk(contract_eth_address, contract_private_key)
-            .map_err(Error::ZkSync)?;
-    let mut contract_wallet = zksync::Wallet::new(provider, contract_wallet_credentials)
-        .await
-        .map_err(Error::ZkSync)?;
-    let contract_account_id = crate::wait::account_id(&mut contract_wallet)
-        .await
-        .map_err(Error::ZkSync)?;
-    contract_wallet
-        .start_change_pubkey()
-        .send()
-        .await
-        .map_err(Error::ZkSync)?;
 
     let mut fields = Vec::with_capacity(storage.len());
     match output.result {
         BuildValue::Contract(storage_fields) => {
             for (index, mut field) in storage_fields.into_iter().enumerate() {
                 match field.name.as_str() {
-                    "owner" if field.is_external => {
-                        field.value = BuildValue::scalar_from_h160(owner_eth_address)
-                    }
                     "address" if field.is_external => {
-                        field.value = BuildValue::scalar_from_h160(contract_eth_address)
+                        field.value = BuildValue::scalar_from_eth_address(contract_address)
                     }
                     _ => {}
                 }
 
                 fields.push(FieldInsertInput::new(
-                    contract_account_id as i64,
+                    contract_address,
                     index as i16,
                     field.name,
                     field.value.into_json(),
@@ -183,8 +133,8 @@ pub async fn handle(
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .contracts
         .insert(
-            contract_account_id,
-            SharedDataContract::new(build, contract_eth_address, contract_private_key),
+            contract_address,
+            SharedDataContract::new(build, contract_private_key),
         );
 
     log::debug!("Writing the contract to the persistent PostgreSQL database");
@@ -192,8 +142,8 @@ pub async fn handle(
         .read()
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .postgresql_client
-        .insert_contract(ContractInsertInput::new(
-            contract_account_id as i64,
+        .insert_contract(ContractInsertNewInput::new(
+            contract_address,
             query.name,
             query.version,
             query.instance,
@@ -201,10 +151,9 @@ pub async fn handle(
             serde_json::to_value(body.source).expect(zinc_const::panic::DATA_CONVERSION),
             body.bytecode,
             body.verifying_key,
-            contract_private_key.into(),
+            contract_private_key,
         ))
-        .await
-        .map_err(Error::Database)?;
+        .await?;
 
     log::debug!("Writing the contract storage to the persistent PostgreSQL database");
     app_data
@@ -212,11 +161,10 @@ pub async fn handle(
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .postgresql_client
         .insert_fields(fields)
-        .await
-        .map_err(Error::Database)?;
+        .await?;
 
-    let response = ResponseBody::new(contract_account_id, contract_eth_address);
+    let response = ResponseBody::new(contract_address);
 
-    log::debug!("The sequence has been successfully executed");
+    log::debug!("The contract has been published");
     Ok(Response::new_with_data(StatusCode::CREATED, response))
 }

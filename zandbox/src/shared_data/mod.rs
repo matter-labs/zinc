@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use zksync::zksync_models::node::AccountId;
+use zksync::web3::types::Address;
 
 use crate::database::client::Client as DatabaseClient;
 
@@ -21,14 +21,14 @@ pub struct SharedData {
     /// The PostgreSQL asynchronous client.
     pub postgresql_client: DatabaseClient,
     /// The precompiled contracts written at application startup.
-    pub contracts: HashMap<AccountId, Contract>,
+    pub contracts: HashMap<Address, Contract>,
 }
 
 impl SharedData {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(postgresql_client: DatabaseClient, contracts: HashMap<AccountId, Contract>) -> Self {
+    pub fn new(postgresql_client: DatabaseClient, contracts: HashMap<Address, Contract>) -> Self {
         Self {
             postgresql_client,
             contracts,

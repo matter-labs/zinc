@@ -1,5 +1,5 @@
 //!
-//! The transaction which is signed as sent through Zandbox directly to zkSync.
+//! The transfer which is signed as sent through Zandbox directly to zkSync.
 //!
 
 pub mod error;
@@ -14,32 +14,33 @@ use serde_json::Value as JsonValue;
 use zksync::web3::types::Address;
 use zksync::web3::types::H256;
 use zksync::zksync_models::node::tx::PackedEthSignature;
-use zksync::zksync_models::node::tx::Transfer;
+use zksync::zksync_models::node::tx::Transfer as ZkSyncTransfer;
 use zksync::zksync_models::node::TokenLike;
+use zksync::zksync_models::node::TxFeeTypes;
 
 use self::error::Error;
 
 ///
-/// The transaction which is signed as sent through Zandbox directly to zkSync.
+/// The transfer which is signed as sent through Zandbox directly to zkSync.
 ///
 #[derive(Debug, Deserialize)]
-pub struct Transaction {
+pub struct Transfer {
     /// The sender address.
-    pub from: Address,
+    pub sender: Address,
     /// The recipient address.
-    pub to: Address,
+    pub recipient: Address,
     /// The token ID to send.
     pub token_id: TokenLike,
     /// The amount to send.
     pub amount: BigUint,
 }
 
-impl Transaction {
-    pub fn try_into_transfer(
-        self,
+impl Transfer {
+    pub fn try_into_batch(
+        transfers: Vec<Self>,
         network: zksync::Network,
         signer_private_key: String,
-    ) -> Result<(Transfer, PackedEthSignature), Error> {
+    ) -> Result<Vec<(ZkSyncTransfer, PackedEthSignature)>, Error> {
         let mut runtime = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
 
         let signer_private_key: H256 = signer_private_key
@@ -48,12 +49,8 @@ impl Transaction {
         let signer_address = PackedEthSignature::address_from_private_key(&signer_private_key)
             .map_err(Error::SenderAddressDeriving)?;
 
-        if signer_address != self.from {
-            return Err(Error::SenderAddressPrivateKeyMismatch);
-        }
-
         let wallet_credentials =
-            zksync::WalletCredentials::from_eth_pk(signer_address, signer_private_key)
+            zksync::WalletCredentials::from_eth_pk(signer_address, signer_private_key, network)
                 .expect(zinc_const::panic::DATA_CONVERSION);
         let wallet = runtime
             .block_on(zksync::Wallet::new(
@@ -61,50 +58,61 @@ impl Transaction {
                 wallet_credentials,
             ))
             .map_err(Error::WalletInitialization)?;
-        let nonce = runtime
+
+        let mut batch = Vec::with_capacity(transfers.len());
+        let mut nonce = runtime
             .block_on(wallet.provider.account_info(signer_address))
             .map_err(Error::AccountInfoRetrieving)?
             .committed
             .nonce;
-        let token = wallet
-            .tokens
-            .resolve(self.token_id)
-            .ok_or(Error::TokenIdInvalid)?;
-        let (transfer, signature) = wallet
-            .signer
-            .sign_transfer(
-                token,
-                self.amount,
-                BigUint::from(1_000_000_000_000_000u64),
-                self.to,
-                nonce,
-            )
-            .map_err(Error::TransactionSigning)?;
-        let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
+        for transfer in transfers.into_iter() {
+            let token = wallet
+                .tokens
+                .resolve(transfer.token_id.clone())
+                .ok_or(Error::TokenNotFound)?;
+            let fee = runtime
+                .block_on(wallet.provider.get_tx_fee(
+                    TxFeeTypes::Transfer,
+                    signer_address,
+                    transfer.token_id,
+                ))
+                .map_err(Error::FeeGetting)?
+                .total_fee;
 
-        Ok((transfer, signature))
+            let (transfer, signature) = wallet
+                .signer
+                .sign_transfer(token, transfer.amount, fee, transfer.recipient, nonce)
+                .map_err(Error::TransferSigning)?;
+            let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
+
+            batch.push((transfer, signature));
+
+            nonce += 1;
+        }
+
+        Ok(batch)
     }
 }
 
-impl TryFrom<JsonMap<String, JsonValue>> for Transaction {
+impl TryFrom<JsonMap<String, JsonValue>> for Transfer {
     type Error = Error;
 
     fn try_from(mut value: JsonMap<String, JsonValue>) -> Result<Self, Self::Error> {
-        const FIELD_NAME_FROM: &str = "from";
-        const FIELD_NAME_TO: &str = "to";
+        const FIELD_NAME_SENDER: &str = "sender";
+        const FIELD_NAME_RECIPIENT: &str = "recipient";
         const FIELD_NAME_TOKEN_ID: &str = "token_id";
         const FIELD_NAME_AMOUNT: &str = "amount";
 
         let from = value
-            .remove(FIELD_NAME_FROM)
-            .ok_or(Error::FieldMissing(FIELD_NAME_FROM))?;
-        let from = from.as_str().ok_or(Error::NotAString(FIELD_NAME_FROM))?;
+            .remove(FIELD_NAME_SENDER)
+            .ok_or(Error::FieldMissing(FIELD_NAME_SENDER))?;
+        let from = from.as_str().ok_or(Error::NotAString(FIELD_NAME_SENDER))?;
         let from: Address = from[2..].parse().map_err(Error::SenderAddressInvalid)?;
 
         let to = value
-            .remove(FIELD_NAME_TO)
-            .ok_or(Error::FieldMissing(FIELD_NAME_TO))?;
-        let to = to.as_str().ok_or(Error::NotAString(FIELD_NAME_TO))?;
+            .remove(FIELD_NAME_RECIPIENT)
+            .ok_or(Error::FieldMissing(FIELD_NAME_RECIPIENT))?;
+        let to = to.as_str().ok_or(Error::NotAString(FIELD_NAME_RECIPIENT))?;
         let to: Address = to[2..].parse().map_err(Error::RecipientAddressInvalid)?;
 
         let token_id = value
@@ -124,8 +132,8 @@ impl TryFrom<JsonMap<String, JsonValue>> for Transaction {
         let amount: BigUint = amount.parse().map_err(Error::AmountInvalid)?;
 
         Ok(Self {
-            from,
-            to,
+            sender: from,
+            recipient: to,
             token_id,
             amount,
         })

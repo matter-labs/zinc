@@ -6,7 +6,6 @@ pub(crate) mod controller;
 pub(crate) mod database;
 pub(crate) mod response;
 pub(crate) mod shared_data;
-pub(crate) mod wait;
 
 pub use self::controller::configure;
 pub use self::database::client::Client as DatabaseClient;

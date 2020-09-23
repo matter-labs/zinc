@@ -7,8 +7,6 @@ use std::fmt;
 use actix_web::http::StatusCode;
 use actix_web::ResponseError;
 
-use zksync::zksync_models::node::AccountId;
-
 use zinc_build::ValueError as BuildValueError;
 use zinc_vm::RuntimeError;
 
@@ -17,8 +15,8 @@ use zinc_vm::RuntimeError;
 ///
 #[derive(Debug)]
 pub enum Error {
-    /// The contract with the specified ID is not found in the server cache.
-    ContractNotFound(AccountId),
+    /// The contract with the specified address is not found in the server cache.
+    ContractNotFound(String),
     /// The specified method does not exist in the contract.
     MethodNotFound(String),
     /// The mutable method must be called via the `call` endpoint.
@@ -32,6 +30,12 @@ pub enum Error {
     RuntimeError(RuntimeError),
     /// The PostgreSQL database error.
     Database(sqlx::Error),
+}
+
+impl From<sqlx::Error> for Error {
+    fn from(inner: sqlx::Error) -> Self {
+        Self::Database(inner)
+    }
 }
 
 impl ResponseError for Error {
@@ -61,7 +65,9 @@ impl serde::Serialize for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let error = match self {
-            Self::ContractNotFound(id) => format!("Contract with account ID {} not found", id),
+            Self::ContractNotFound(address) => {
+                format!("Contract with address {} not found", address)
+            }
             Self::MethodNotFound(name) => format!("Method `{}` not found", name),
             Self::MethodIsMutable(name) => {
                 format!("Method `{}` is mutable: use 'call' instead", name)

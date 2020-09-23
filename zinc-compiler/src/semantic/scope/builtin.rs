@@ -31,8 +31,6 @@ pub enum BuiltInTypeId {
     StdCryptoEccPoint = 0,
     /// The `std::crypto::schnorr::Signature` structure type ID.
     StdCryptoSchnorrSignature = 1,
-    /// The `std::assets::Token` structure type ID.
-    StdAssetsToken = 2,
 }
 
 impl BuiltInScope {
@@ -80,10 +78,10 @@ impl BuiltInScope {
         );
         Scope::insert_item(
             std_scope.clone(),
-            "assets".to_owned(),
+            "zksync".to_owned(),
             ScopeItem::Module(ScopeModuleItem::new_built_in(
-                "assets".to_owned(),
-                Self::module_assets(),
+                "zksync".to_owned(),
+                Self::module_zksync(),
             ))
             .wrap(),
         );
@@ -348,40 +346,23 @@ impl BuiltInScope {
     }
 
     ///
-    /// Initializes the `std::assets` module scope.
+    /// Initializes the `std::zksync` module scope.
     ///
-    fn module_assets() -> Rc<RefCell<Scope>> {
-        let std_assets_scope = Scope::new_built_in("assets").wrap();
+    fn module_zksync() -> Rc<RefCell<Scope>> {
+        let std_zksync_scope = Scope::new_built_in("zksync").wrap();
 
-        let std_assets_token_scope = Scope::new_built_in("Token").wrap();
-        let std_assets_token_transfer =
-            FunctionType::new_std(FunctionIdentifier::AssetsTokenTransfer);
+        let std_zksync_transfer = FunctionType::new_std(FunctionIdentifier::ZksyncTransfer);
+
         Scope::insert_item(
-            std_assets_token_scope.clone(),
-            std_assets_token_transfer.identifier(),
+            std_zksync_scope.clone(),
+            std_zksync_transfer.identifier(),
             ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(std_assets_token_transfer),
-                true,
-            ))
-            .wrap(),
-        );
-        let std_assets_token = StructureType::new(
-            None,
-            std_assets_token_scope.borrow().name(),
-            BuiltInTypeId::StdAssetsToken as usize,
-            vec![],
-            Some(std_assets_token_scope.clone()),
-        );
-        Scope::insert_item(
-            std_assets_scope.clone(),
-            std_assets_token_scope.borrow().name(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Structure(std_assets_token),
+                Type::Function(std_zksync_transfer),
                 false,
             ))
             .wrap(),
         );
 
-        std_assets_scope
+        std_zksync_scope
     }
 }
