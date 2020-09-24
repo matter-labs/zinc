@@ -31,5 +31,5 @@ pub fn parse_amount(amount: &str, exponent: u32) -> BigUint {
         panic!("Too many dots in the ETH amount: {}", amount);
     };
 
-    BigUint::from_str(&string_wei_value).unwrap()
+    BigUint::from_str(&string_wei_value).expect("TODO: unreachable")
 }

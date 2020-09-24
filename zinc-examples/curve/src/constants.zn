@@ -8,10 +8,10 @@ use crate::types::Balance;
 pub const ZERO: Balance = 0;
 
 /// The one ETHER.
-pub const ONE_ETH: Balance = 1_000_000_000_000_000_000;
+pub const ONE_ETH: Balance = 1.0_E18;
 
 /// The default precision.
-pub const PRECISION: Balance = 1_000_000_000;
+pub const PRECISION: Balance = 1E9;
 
 /// The number of tokens the contract can work with.
 pub const N: u8 = 2;

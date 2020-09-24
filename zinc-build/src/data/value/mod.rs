@@ -324,7 +324,7 @@ impl Value {
             found: value.to_string(),
         })?;
 
-        let bigint_result = zinc_utils::bigint_from_str_radix(value_string);
+        let bigint_result = zinc_utils::bigint_from_str(value_string);
         let bigint =
             bigint_result.map_err(|_| ErrorType::InvalidNumberFormat(value_string.into()))?;
         if bigint.is_negative() && !r#type.is_signed {
@@ -400,7 +400,7 @@ impl Value {
             found: value.to_string(),
         })?;
 
-        let bigint_result = zinc_utils::bigint_from_str_radix(value_string);
+        let bigint_result = zinc_utils::bigint_from_str(value_string);
         let bigint =
             bigint_result.map_err(|_| ErrorType::InvalidNumberFormat(value_string.into()))?;
 

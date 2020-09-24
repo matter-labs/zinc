@@ -220,8 +220,10 @@ pub async fn handle(
             .tokens
             .resolve(transfer.token_id.into())
             .ok_or(Error::TokenNotFound(transfer.token_id))?;
-        let amount = num_old::BigUint::from_bytes_be(
-            transfer.amount.to_bytes_be().as_slice(), // TODO: remove when the SDK is updated
+        let amount = zksync::zksync_models::node::closest_packable_token_amount(
+            &num_old::BigUint::from_bytes_be(
+                transfer.amount.to_bytes_be().as_slice(), // TODO: remove when the SDK is updated
+            ),
         );
         let fee = wallet
             .provider

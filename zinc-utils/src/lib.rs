@@ -10,7 +10,7 @@ pub(crate) mod token;
 
 pub use crate::array::eth_address_from_vec;
 pub use crate::array::eth_private_key_from_vec;
-pub use crate::bigint::from_str_radix as bigint_from_str_radix;
+pub use crate::bigint::from_str as bigint_from_str;
 pub use crate::logger::initialize as initialize_logger;
 pub use crate::math::euclidean::div_rem as euclidean_div_rem;
 pub use crate::math::floor_to_power_of_two;

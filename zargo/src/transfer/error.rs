@@ -41,7 +41,7 @@ pub enum Error {
     TokenNotFound,
     /// The transaction amount is invalid.
     #[fail(display = "amount is invalid: {} (expected a decimal number)", _0)]
-    AmountInvalid(num_old::bigint::ParseBigIntError),
+    AmountInvalid(String),
     /// The sender private key is invalid.
     #[fail(display = "sender private key is invalid: {}", _0)]
     SenderPrivateKeyInvalid(rustc_hex::FromHexError),

@@ -15,7 +15,6 @@ use self::constants::ZERO;
 use self::constants::N;
 use self::constants::PRECISION;
 use self::constants::ONE_ETH;
-
 use self::types::Address;
 use self::types::Balance;
 use self::types::token_id::TokenId;

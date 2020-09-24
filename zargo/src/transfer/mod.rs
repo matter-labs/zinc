@@ -6,7 +6,6 @@ pub mod error;
 
 use std::convert::TryFrom;
 
-use num_old::BigUint;
 use serde_derive::Deserialize;
 use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
@@ -34,7 +33,7 @@ pub struct Transfer {
     /// The token ID to send.
     pub token_id: TokenLike,
     /// The amount to send.
-    pub amount: BigUint,
+    pub amount: num_old::BigUint,
 }
 
 impl Transfer {
@@ -72,6 +71,8 @@ impl Transfer {
                 .tokens
                 .resolve(transfer.token_id.clone())
                 .ok_or(Error::TokenNotFound)?;
+            let amount =
+                zksync::zksync_models::node::closest_packable_token_amount(&transfer.amount);
             let fee = runtime
                 .block_on(wallet.provider.get_tx_fee(
                     TxFeeTypes::Transfer,
@@ -83,7 +84,7 @@ impl Transfer {
 
             let (transfer, signature) = wallet
                 .signer
-                .sign_transfer(token, transfer.amount, fee, transfer.recipient, nonce)
+                .sign_transfer(token, amount, fee, transfer.recipient, nonce)
                 .map_err(Error::TransferSigning)?;
             let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
@@ -134,7 +135,11 @@ impl TryFrom<JsonMap<String, JsonValue>> for Transfer {
         let amount = amount
             .as_str()
             .ok_or(Error::NotAString(FIELD_NAME_AMOUNT))?;
-        let amount: BigUint = amount.parse().map_err(Error::AmountInvalid)?;
+        let amount: num_old::BigUint = zinc_utils::bigint_from_str(amount)
+            .map_err(|error| Error::AmountInvalid(error.to_string()))?
+            .to_biguint()
+            .map(|value| num_old::BigUint::from_bytes_be(value.to_bytes_be().as_slice())) // TODO: remove when the SDK is updated
+            .expect(zinc_const::panic::DATA_CONVERSION);
 
         Ok(Self {
             sender: from,

@@ -20,89 +20,6 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
-fn error_integer_too_large_ordinar_constant() {
-    let input = r#"
-fn main() {
-    let invalid = 0xffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff;
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::IntegerTooLarge {
-                location: Location::test(3, 19),
-                inner: InferenceError::Overflow {
-                    value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
-                    is_signed: false,
-                    bitlength: zinc_const::bitlength::FIELD,
-                }
-            },
-        )),
-    )));
-
-    let result = crate::semantic::tests::compile_entry(input);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn error_integer_too_large_loop_for_bound() {
-    let input = r#"
-fn main() {
-    for i in 0..0xffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff {}
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::IntegerTooLarge {
-                location: Location::test(3, 17),
-                inner: InferenceError::Overflow {
-                    value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
-                    is_signed: false,
-                    bitlength: zinc_const::bitlength::FIELD,
-                }
-            },
-        )),
-    )));
-
-    let result = crate::semantic::tests::compile_entry(input);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn error_integer_too_large_pattern_match() {
-    let input = r#"
-fn main() {
-    let scrutinee = 42;
-    let result = match scrutinee {
-        0xffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff => 10,
-        2 => 20,
-        _ => 30,
-    };
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::IntegerTooLarge {
-                location: Location::test(5, 9),
-                inner: InferenceError::Overflow {
-                    value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
-                    is_signed: false,
-                    bitlength: zinc_const::bitlength::FIELD,
-                }
-            },
-        )),
-    )));
-
-    let result = crate::semantic::tests::compile_entry(input);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
 fn error_types_mismatch_greater_equals() {
     let input = r#"
 fn main() {
@@ -1830,6 +1747,131 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ZeroRemainder {
                 location: Location::test(3, 22),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_integer_too_large_ordinar_constant() {
+    let input = r#"
+fn main() {
+    let invalid = 0xffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::IntegerTooLarge {
+                location: Location::test(3, 19),
+                inner: InferenceError::Overflow {
+                    value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
+                    is_signed: false,
+                    bitlength: zinc_const::bitlength::FIELD,
+                }
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_integer_too_large_loop_for_bound() {
+    let input = r#"
+fn main() {
+    for i in 0..0xffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff {}
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::IntegerTooLarge {
+                location: Location::test(3, 17),
+                inner: InferenceError::Overflow {
+                    value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
+                    is_signed: false,
+                    bitlength: zinc_const::bitlength::FIELD,
+                }
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_integer_too_large_pattern_match() {
+    let input = r#"
+fn main() {
+    let scrutinee = 42;
+    let result = match scrutinee {
+        0xffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff => 10,
+        2 => 20,
+        _ => 30,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::IntegerTooLarge {
+                location: Location::test(5, 9),
+                inner: InferenceError::Overflow {
+                    value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(zinc_const::panic::TEST_DATA_VALID),
+                    is_signed: false,
+                    bitlength: zinc_const::bitlength::FIELD,
+                }
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_exponent_too_small() {
+    let input = r#"
+fn main() {
+    let value = 42.666E2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ExponentTooSmall {
+                location: Location::test(3, 17),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_exponent_too_large() {
+    let input = r#"
+fn main() {
+    let value = 42.666E1000000000000000000;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ExponentTooLarge {
+                location: Location::test(3, 17),
             },
         )),
     )));

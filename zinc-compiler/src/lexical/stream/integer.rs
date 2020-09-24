@@ -110,9 +110,8 @@ pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
 
     let mut integer = String::with_capacity(40);
     let mut fractional = String::with_capacity(40);
-    let mut exponent = String::with_capacity(40);
+    let mut exponent = String::with_capacity(2);
 
-    // TODO: add a fake character to get rid of repeated code in the end
     while let Some(character) = input.chars().nth(size) {
         match state {
             State::Start => {

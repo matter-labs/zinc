@@ -1559,6 +1559,18 @@ impl Error {
                     None,
                 )
             }
+            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Integer(IntegerConstantError::ExponentTooSmall { location })))) => {
+                Self::format_line("The exponent value is too small",
+                                   location,
+                                   Some("The exponent value must be equals or greater than the number of fractional digits"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Integer(IntegerConstantError::ExponentTooLarge { location })))) => {
+                Self::format_line("The exponent value is too large",
+                                   location,
+                                   None,
+                )
+            }
             Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::AliasDoesNotPointToType { location, found }))) => {
                 Self::format_line( format!(
                         "expected type, found `{}`",
