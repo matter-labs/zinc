@@ -10,8 +10,8 @@ use crate::types::Balance;
 /// This entity mirrors another one which is signed by Zargo.
 ///
 pub struct Transaction {
-    from: Address,
-    to: Address,
+    sender: Address,
+    recipient: Address,
     token_id: TokenId,
     amount: Balance,
 }

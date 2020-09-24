@@ -28,10 +28,13 @@ use self::response::Instance as ResponseInstance;
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
 ) -> crate::Result<ResponseBody, Error> {
-    let response: ResponseBody = app_data
+    let postgresql = app_data
         .read()
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .postgresql_client
+        .clone();
+
+    let response: ResponseBody = postgresql
         .select_contracts_curve()
         .await?
         .into_iter()

@@ -23,6 +23,7 @@ use zksync::zksync_models::node::TxFeeTypes;
 
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Value as BuildValue;
+use zinc_data::CallRequestBodyTransaction;
 use zinc_vm::Bn256;
 
 use crate::database::model::contract::update::account_id::input::Input as ContractUpdateAccountIdInput;
@@ -60,6 +61,12 @@ pub async fn handle(
     let query = query.into_inner();
     let body = body.into_inner();
 
+    let postgresql = app_data
+        .read()
+        .expect(zinc_const::panic::SYNCHRONIZATION)
+        .postgresql_client
+        .clone();
+
     log::debug!(
         "Calling method `{}` of contract {}",
         query.method,
@@ -90,19 +97,10 @@ pub async fn handle(
         .map_err(Error::InvalidInput)?;
 
     log::debug!("Loading the pre-transaction contract storage");
-    let storage_value = app_data
-        .read()
-        .expect(zinc_const::panic::SYNCHRONIZATION)
-        .postgresql_client
+    let storage_value = postgresql
         .select_fields(FieldSelectInput::new(query.address))
         .await?;
     let storage_fields_count = storage_value.len();
-    assert_eq!(
-        storage_fields_count,
-        contract.build.storage.len(),
-        "{}",
-        zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION,
-    );
     let mut fields = Vec::with_capacity(storage_value.len());
     for (index, FieldSelectOutput { name, value }) in storage_value.into_iter().enumerate() {
         let r#type = contract.build.storage[index].r#type.clone();
@@ -174,16 +172,12 @@ pub async fn handle(
         let account_id = wait_for_account_id(&mut wallet, 10_000).await?;
 
         log::debug!("Writing account ID to the database and cache");
-        app_data
-            .read()
-            .expect(zinc_const::panic::SYNCHRONIZATION)
-            .postgresql_client
+        postgresql
             .update_contract_account_id(ContractUpdateAccountIdInput::new(
                 query.address,
                 account_id,
             ))
             .await?;
-
         if let Some(contract) = app_data
             .write()
             .expect(zinc_const::panic::SYNCHRONIZATION)
@@ -196,8 +190,8 @@ pub async fn handle(
 
     log::debug!("Building the transaction list");
     let mut transactions = Vec::with_capacity(body.transactions.len() + output.transfers.len());
-    for (transaction, _signature) in body.transactions.iter() {
-        if let FranklinTx::Transfer(transfer) = transaction {
+    for transaction in body.transactions.iter() {
+        if let FranklinTx::Transfer(ref transfer) = transaction.tx {
             let token = wallet
                 .tokens
                 .resolve(transfer.token.into())
@@ -247,7 +241,7 @@ pub async fn handle(
         let (transfer, signature) = wallet
             .signer
             .sign_transfer(token, amount, fee, recipient, nonce)?;
-        transactions.push((
+        transactions.push(CallRequestBodyTransaction::new(
             FranklinTx::Transfer(Box::new(transfer)),
             signature.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
         ));
@@ -260,10 +254,13 @@ pub async fn handle(
         query.network
     );
     let mut handles = Vec::with_capacity(transactions.len());
-    for (transaction, signature) in transactions.into_iter() {
+    for transaction in transactions.into_iter() {
         let handle = wallet
             .provider
-            .send_tx(transaction, Some(signature))
+            .send_tx(
+                transaction.tx,
+                Some(transaction.ethereum_signature.signature),
+            )
             .await
             .map(|tx_hash| SyncTransactionHandle::new(tx_hash, wallet.provider.clone()))?;
         handles.push(handle);
@@ -290,12 +287,7 @@ pub async fn handle(
     }
 
     log::debug!("Committing the contract storage state to the database");
-    app_data
-        .read()
-        .expect(zinc_const::panic::SYNCHRONIZATION)
-        .postgresql_client
-        .update_fields(storage_fields)
-        .await?;
+    postgresql.update_fields(storage_fields).await?;
 
     let response = json!({
         "output": output.result.into_json(),

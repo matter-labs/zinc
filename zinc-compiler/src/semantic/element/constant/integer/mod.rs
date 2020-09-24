@@ -1259,7 +1259,9 @@ impl TryFrom<&IntegerLiteral> for Integer {
         let (string, base) = match literal.inner {
             LexicalIntegerLiteral::Binary { ref inner } => (inner, zinc_const::base::BINARY),
             LexicalIntegerLiteral::Octal { ref inner } => (inner, zinc_const::base::OCTAL),
-            LexicalIntegerLiteral::Decimal { ref inner } => (inner, zinc_const::base::DECIMAL),
+            LexicalIntegerLiteral::Decimal { ref integer, .. } => {
+                (integer, zinc_const::base::DECIMAL)
+            }
             LexicalIntegerLiteral::Hexadecimal { ref inner } => {
                 (inner, zinc_const::base::HEXADECIMAL)
             }

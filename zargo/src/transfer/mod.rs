@@ -13,10 +13,12 @@ use serde_json::Value as JsonValue;
 
 use zksync::web3::types::Address;
 use zksync::web3::types::H256;
+use zksync::zksync_models::node::tx::FranklinTx;
 use zksync::zksync_models::node::tx::PackedEthSignature;
-use zksync::zksync_models::node::tx::Transfer as ZkSyncTransfer;
 use zksync::zksync_models::node::TokenLike;
 use zksync::zksync_models::node::TxFeeTypes;
+
+use zinc_data::CallRequestBodyTransaction;
 
 use self::error::Error;
 
@@ -40,7 +42,7 @@ impl Transfer {
         transfers: Vec<Self>,
         network: zksync::Network,
         signer_private_key: String,
-    ) -> Result<Vec<(ZkSyncTransfer, PackedEthSignature)>, Error> {
+    ) -> Result<Vec<CallRequestBodyTransaction>, Error> {
         let mut runtime = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
 
         let signer_private_key: H256 = signer_private_key
@@ -85,7 +87,10 @@ impl Transfer {
                 .map_err(Error::TransferSigning)?;
             let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
-            batch.push((transfer, signature));
+            batch.push(CallRequestBodyTransaction::new(
+                FranklinTx::Transfer(Box::new(transfer)),
+                signature,
+            ));
 
             nonce += 1;
         }

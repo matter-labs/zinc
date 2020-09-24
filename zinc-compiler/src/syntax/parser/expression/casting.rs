@@ -100,41 +100,41 @@ mod tests {
 
     #[test]
     fn ok_access() {
-        let input = r#"array[42].25.value"#;
+        let input = r#"(array[42].25).value"#;
 
         let expected = Ok((
             ExpressionTree::new_with_leaves(
-                Location::test(1, 13),
+                Location::test(1, 15),
                 ExpressionTreeNode::operator(ExpressionOperator::Dot),
                 Some(ExpressionTree::new_with_leaves(
-                    Location::test(1, 10),
+                    Location::test(1, 11),
                     ExpressionTreeNode::operator(ExpressionOperator::Dot),
                     Some(ExpressionTree::new_with_leaves(
-                        Location::test(1, 6),
+                        Location::test(1, 7),
                         ExpressionTreeNode::operator(ExpressionOperator::Index),
                         Some(ExpressionTree::new(
-                            Location::test(1, 1),
+                            Location::test(1, 2),
                             ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                                Identifier::new(Location::test(1, 1), "array".to_owned()),
+                                Identifier::new(Location::test(1, 2), "array".to_owned()),
                             )),
                         )),
                         Some(ExpressionTree::new(
-                            Location::test(1, 7),
+                            Location::test(1, 8),
                             ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
-                                    Location::test(1, 7),
+                                    Location::test(1, 8),
                                     LexicalIntegerLiteral::new_decimal("42".to_owned()),
                                 ),
                             )),
                         )),
                     )),
                     Some(ExpressionTree::new(
-                        Location::test(1, 11),
+                        Location::test(1, 12),
                         ExpressionTreeNode::operand(ExpressionOperand::TupleIndex(
                             TupleIndex::new(
-                                Location::test(1, 11),
+                                Location::test(1, 12),
                                 IntegerLiteral::new(
-                                    Location::test(1, 11),
+                                    Location::test(1, 12),
                                     LexicalIntegerLiteral::new_decimal("25".to_owned()),
                                 ),
                             ),
@@ -142,14 +142,14 @@ mod tests {
                     )),
                 )),
                 Some(ExpressionTree::new(
-                    Location::test(1, 14),
+                    Location::test(1, 16),
                     ExpressionTreeNode::operand(ExpressionOperand::Identifier(Identifier::new(
-                        Location::test(1, 14),
+                        Location::test(1, 16),
                         "value".to_owned(),
                     ))),
                 )),
             ),
-            Some(Token::new(Lexeme::Eof, Location::test(1, 19))),
+            Some(Token::new(Lexeme::Eof, Location::test(1, 21))),
         ));
 
         let result = Parser::default().parse(TokenStream::test(input).wrap(), None);

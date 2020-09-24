@@ -76,9 +76,11 @@ contract Stableswap {
     pub fn swap(
         mut self,
         tx: Transaction,
+        withdraw_address: Address,
         withdraw_token_id: TokenId,
         min_withdraw: Balance,
     ) {
+        assert!(tx.recipient == self.address, "Transaction recipient is not the contract");
         assert!(tx.amount > 0, "Sent amount cannot be zero");
         assert!(min_withdraw > 0, "Minimal withdrawal cannot be zero");
 
@@ -94,12 +96,12 @@ contract Stableswap {
         );
 
         assert!(old_y >= min_withdraw + new_y, "Exchange resulted in fewer coins than expected");
-        let to_withdraw = old_y - new_y;
+        let withdraw_amount = old_y - new_y;
 
         self.balances[tx.token_id] = new_x;
         self.balances[withdraw_token_id] = new_y;
 
-        std::zksync::transfer(tx.to, withdraw_token_id, to_withdraw);
+        std::zksync::transfer(withdraw_address, withdraw_token_id, withdraw_amount);
     }
 
     ///

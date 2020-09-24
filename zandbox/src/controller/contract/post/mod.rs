@@ -54,6 +54,12 @@ pub async fn handle(
     let query = query.into_inner();
     let body = body.into_inner();
 
+    let postgresql = app_data
+        .read()
+        .expect(zinc_const::panic::SYNCHRONIZATION)
+        .postgresql_client
+        .clone();
+
     log::debug!(
         "Publishing the instance `{}` of the contract `{} {}`",
         query.instance,
@@ -127,21 +133,8 @@ pub async fn handle(
         _ => panic!(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION),
     }
 
-    log::debug!("Writing the contract to the temporary server cache");
-    app_data
-        .write()
-        .expect(zinc_const::panic::SYNCHRONIZATION)
-        .contracts
-        .insert(
-            contract_address,
-            SharedDataContract::new(build, contract_private_key),
-        );
-
     log::debug!("Writing the contract to the persistent PostgreSQL database");
-    app_data
-        .read()
-        .expect(zinc_const::panic::SYNCHRONIZATION)
-        .postgresql_client
+    postgresql
         .insert_contract(ContractInsertNewInput::new(
             contract_address,
             query.name,
@@ -156,12 +149,17 @@ pub async fn handle(
         .await?;
 
     log::debug!("Writing the contract storage to the persistent PostgreSQL database");
+    postgresql.insert_fields(fields).await?;
+
+    log::debug!("Writing the contract to the temporary server cache");
     app_data
-        .read()
+        .write()
         .expect(zinc_const::panic::SYNCHRONIZATION)
-        .postgresql_client
-        .insert_fields(fields)
-        .await?;
+        .contracts
+        .insert(
+            contract_address,
+            SharedDataContract::new(build, contract_private_key),
+        );
 
     let response = ResponseBody::new(contract_address);
 

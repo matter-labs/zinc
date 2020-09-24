@@ -15,5 +15,5 @@ fn main(witness: u8) -> u8 {
     let tuple = ((1, 2), (3, 4));
     let structure = Data { value: witness };
 
-    array[1][1] + tuple.1.1 + structure.value
+    array[1][1] + (tuple.1).1 + structure.value
 }

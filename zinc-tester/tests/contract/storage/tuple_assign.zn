@@ -16,8 +16,8 @@ contract Test {
     const TEST: u8 = 42;
 
     pub fn main(mut self, arg: u8) -> u8 {
-        self.data.2 = arg;
+        (self.data).2 = arg;
 
-        arg + Self::TEST + self.data.2
+        arg + Self::TEST + (self.data).2
     }
 }

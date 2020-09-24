@@ -8,6 +8,7 @@ pub(crate) mod source;
 
 pub use self::request::call::Body as CallRequestBody;
 pub use self::request::call::Query as CallRequestQuery;
+pub use self::request::call::Transaction as CallRequestBodyTransaction;
 pub use self::request::publish::Body as PublishRequestBody;
 pub use self::request::publish::Query as PublishRequestQuery;
 pub use self::request::query::Body as QueryRequestBody;

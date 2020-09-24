@@ -46,6 +46,12 @@ pub async fn handle(
     let query = query.into_inner();
     let body = body.into_inner();
 
+    let postgresql = app_data
+        .read()
+        .expect(zinc_const::panic::SYNCHRONIZATION)
+        .postgresql_client
+        .clone();
+
     let contract = app_data
         .read()
         .expect(zinc_const::panic::SYNCHRONIZATION)
@@ -59,18 +65,9 @@ pub async fn handle(
         })?;
 
     log::debug!("Loading the contract storage");
-    let storage_value = app_data
-        .read()
-        .expect(zinc_const::panic::SYNCHRONIZATION)
-        .postgresql_client
+    let storage_value = postgresql
         .select_fields(FieldSelectInput::new(query.address))
         .await?;
-    assert_eq!(
-        storage_value.len(),
-        contract.build.storage.len(),
-        "{}",
-        zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION
-    );
     let mut contract_fields = Vec::with_capacity(storage_value.len());
     for (index, FieldSelectOutput { name, value }) in storage_value.into_iter().enumerate() {
         let r#type = contract.build.storage[index].r#type.clone();

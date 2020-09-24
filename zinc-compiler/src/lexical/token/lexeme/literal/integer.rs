@@ -21,8 +21,12 @@ pub enum Integer {
     },
     /// An integer literal, like `42`.
     Decimal {
-        /// The inner literal contents.
-        inner: String,
+        /// The pseudo-integer part.
+        integer: String,
+        /// The optional pseudo-fractional part.
+        fractional: Option<String>,
+        /// The optional pseudo-exponent part.
+        exponent: Option<String>,
     },
     /// A hexadecimal literal, like `0xffff`.
     Hexadecimal {
@@ -54,6 +58,10 @@ impl Integer {
     pub const CHARACTER_INITIAL_HEXADECIMAL: char = 'x';
     /// The underscore symbol which is used to separate groups of digits to improve readability.
     pub const CHARACTER_DELIMITER: char = '_';
+    /// The decimal point which is used to separate pseudo-integer and -fractional parts.
+    pub const CHARACTER_DECIMAL_POINT: char = '.';
+    /// The exponent character which specifies how many zeros must be added to the pseudo-fractional value.
+    pub const CHARACTER_EXPONENT: char = 'E';
 
     ///
     /// Creates a binary value.
@@ -72,8 +80,27 @@ impl Integer {
     ///
     /// Creates a decimal value.
     ///
-    pub fn new_decimal(inner: String) -> Self {
-        Self::Decimal { inner }
+    pub fn new_decimal(integer: String) -> Self {
+        Self::Decimal {
+            integer,
+            fractional: None,
+            exponent: None,
+        }
+    }
+
+    ///
+    /// Creates a decimal value.
+    ///
+    pub fn new_decimal_with_exponent(
+        integer: String,
+        fractional: Option<String>,
+        exponent: Option<String>,
+    ) -> Self {
+        Self::Decimal {
+            integer,
+            fractional,
+            exponent,
+        }
     }
 
     ///
@@ -89,7 +116,16 @@ impl Into<String> for Integer {
         match self {
             Self::Binary { inner } => inner,
             Self::Octal { inner } => inner,
-            Self::Decimal { inner } => inner,
+            Self::Decimal {
+                integer,
+                fractional,
+                exponent,
+            } => format!(
+                "{}.{}E{}",
+                integer,
+                fractional.unwrap_or_default(),
+                exponent.unwrap_or_default()
+            ),
             Self::Hexadecimal { inner } => inner,
         }
     }
@@ -97,11 +133,7 @@ impl Into<String> for Integer {
 
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Binary { inner } => write!(f, "{}", inner),
-            Self::Octal { inner } => write!(f, "{}", inner),
-            Self::Decimal { inner } => write!(f, "{}", inner),
-            Self::Hexadecimal { inner } => write!(f, "{}", inner),
-        }
+        let string: String = self.to_owned().into();
+        write!(f, "{}", string)
     }
 }

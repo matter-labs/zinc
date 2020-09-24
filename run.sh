@@ -63,11 +63,11 @@ export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
 export ZINC_TESTER_NAME='zinc-tester'
 export ZANDBOX_NAME='zandbox'
 
-cargo fmt --all
-cargo clippy
+#cargo fmt --all
+#cargo clippy
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_FLAG}
-cargo test
-cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin ${ZINC_TESTER_NAME} -- ${LOG_LEVEL} ${PROOF_CHECK}
+#cargo test
+#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin ${ZINC_TESTER_NAME} -- ${LOG_LEVEL} ${PROOF_CHECK}
 
 #if [[ -n "${PROJECT_NAME}" ]]; then
 #  export PROJECT_DIRECTORY="./zinc-examples/${PROJECT_NAME}/"

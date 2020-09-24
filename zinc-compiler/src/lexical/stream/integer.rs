@@ -20,6 +20,10 @@ pub enum State {
     Octal,
     /// The non-zero decimal character has been parsed so far.
     Decimal,
+    /// Some decimal characters and the point have been parsed so far.
+    DecimalAfterPoint,
+    /// Some decimal characters and the exponent symbol have been parsed so far.
+    DecimalAfterExponent,
     /// The `0x` has been parsed so far.
     Hexadecimal,
 }
@@ -39,6 +43,11 @@ pub enum Error {
     /// The lexeme is `0o`, which is not a valid octal literal.
     EmptyOctalBody {
         /// The position where the literal ends.
+        offset: usize,
+    },
+    /// The decimal literal exponent cannot be empty.
+    EmptyExponent {
+        /// The position of the invalid character.
         offset: usize,
     },
     /// The lexeme is `0x`, which is not a valid hexadecimal literal.
@@ -90,7 +99,7 @@ pub enum Error {
 /// '52'
 ///
 /// 3. Decimal
-/// '42'
+/// '42', '.05E18', '0.01E9', '15E18'
 ///
 /// 4. Hexadecimal
 /// '2a'
@@ -98,17 +107,24 @@ pub enum Error {
 pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
     let mut state = State::Start;
     let mut size = 0;
-    let mut value = String::with_capacity(40);
 
+    let mut integer = String::with_capacity(40);
+    let mut fractional = String::with_capacity(40);
+    let mut exponent = String::with_capacity(40);
+
+    // TODO: add a fake character to get rid of repeated code in the end
     while let Some(character) = input.chars().nth(size) {
         match state {
             State::Start => {
                 if character == Integer::CHARACTER_ZERO {
-                    value.push(character);
+                    integer.push(character);
                     size += 1;
                     state = State::ZeroOrNotDecimal;
+                } else if character == Integer::CHARACTER_DECIMAL_POINT {
+                    size += 1;
+                    state = State::DecimalAfterPoint;
                 } else if Integer::CHARACTERS_DECIMAL.contains(&character) {
-                    value.push(character);
+                    integer.push(character);
                     size += 1;
                     state = State::Decimal;
                 } else {
@@ -118,28 +134,31 @@ pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
             State::ZeroOrNotDecimal => {
                 if character == Integer::CHARACTER_INITIAL_BINARY {
                     size += 1;
-                    value.clear();
+                    integer.clear();
                     state = State::Binary;
                 } else if character == Integer::CHARACTER_INITIAL_OCTAL {
                     size += 1;
-                    value.clear();
+                    integer.clear();
                     state = State::Octal;
                 } else if character == Integer::CHARACTER_INITIAL_HEXADECIMAL {
                     size += 1;
-                    value.clear();
+                    integer.clear();
                     state = State::Hexadecimal;
+                } else if character == Integer::CHARACTER_DECIMAL_POINT {
+                    size += 1;
+                    state = State::DecimalAfterPoint;
                 } else if character.is_ascii_alphanumeric() {
                     return Err(Error::ExpectedOneOfDecimal {
                         found: character,
                         offset: size,
                     });
                 } else {
-                    return Ok((size, Integer::new_decimal(value)));
+                    return Ok((size, Integer::new_decimal(integer)));
                 }
             }
             State::Binary => {
                 if Integer::CHARACTERS_BINARY.contains(&character) {
-                    value.push(character.to_ascii_lowercase());
+                    integer.push(character.to_ascii_lowercase());
                     size += 1;
                 } else if character == Integer::CHARACTER_DELIMITER {
                     size += 1;
@@ -149,12 +168,12 @@ pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
                         offset: size,
                     });
                 } else {
-                    return Ok((size, Integer::new_binary(value)));
+                    return Ok((size, Integer::new_binary(integer)));
                 }
             }
             State::Octal => {
                 if Integer::CHARACTERS_OCTAL.contains(&character) {
-                    value.push(character.to_ascii_lowercase());
+                    integer.push(character.to_ascii_lowercase());
                     size += 1;
                 } else if character == Integer::CHARACTER_DELIMITER {
                     size += 1;
@@ -164,14 +183,63 @@ pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
                         offset: size,
                     });
                 } else {
-                    return Ok((size, Integer::new_octal(value)));
+                    return Ok((size, Integer::new_octal(integer)));
                 }
             }
             State::Decimal => {
                 if Integer::CHARACTERS_DECIMAL.contains(&character) {
-                    value.push(character);
+                    integer.push(character);
                     size += 1;
                 } else if character == Integer::CHARACTER_DELIMITER {
+                    size += 1;
+                } else if character == Integer::CHARACTER_DECIMAL_POINT {
+                    size += 1;
+                    state = State::DecimalAfterPoint;
+                } else if character == Integer::CHARACTER_EXPONENT {
+                    size += 1;
+                    state = State::DecimalAfterExponent;
+                } else if character.is_ascii_alphanumeric() {
+                    return Err(Error::ExpectedOneOfDecimal {
+                        found: character,
+                        offset: size,
+                    });
+                } else {
+                    return Ok((size, Integer::new_decimal(integer)));
+                }
+            }
+            State::DecimalAfterPoint => {
+                if Integer::CHARACTERS_DECIMAL.contains(&character) {
+                    fractional.push(character);
+                    size += 1;
+                } else if character == Integer::CHARACTER_DELIMITER {
+                    size += 1;
+                } else if character == Integer::CHARACTER_DECIMAL_POINT {
+                    // encountered a range operator, go one symbol back and return
+                    return Ok((size - 1, Integer::new_decimal(integer)));
+                } else if character == Integer::CHARACTER_EXPONENT {
+                    size += 1;
+                    state = State::DecimalAfterExponent;
+                } else if character.is_ascii_alphanumeric() {
+                    return Err(Error::ExpectedOneOfDecimal {
+                        found: character,
+                        offset: size,
+                    });
+                } else {
+                    let fractional = if fractional.is_empty() {
+                        None
+                    } else {
+                        Some(fractional)
+                    };
+
+                    return Ok((
+                        size,
+                        Integer::new_decimal_with_exponent(integer, fractional, None),
+                    ));
+                }
+            }
+            State::DecimalAfterExponent => {
+                if Integer::CHARACTERS_DECIMAL.contains(&character) {
+                    exponent.push(character);
                     size += 1;
                 } else if character.is_ascii_alphanumeric() {
                     return Err(Error::ExpectedOneOfDecimal {
@@ -179,12 +247,27 @@ pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
                         offset: size,
                     });
                 } else {
-                    return Ok((size, Integer::new_decimal(value)));
+                    let fractional = if fractional.is_empty() {
+                        None
+                    } else {
+                        Some(fractional)
+                    };
+
+                    let exponent = if exponent.is_empty() {
+                        return Err(Error::EmptyExponent { offset: size });
+                    } else {
+                        Some(exponent)
+                    };
+
+                    return Ok((
+                        size,
+                        Integer::new_decimal_with_exponent(integer, fractional, exponent),
+                    ));
                 }
             }
             State::Hexadecimal => {
                 if Integer::CHARACTERS_HEXADECIMAL.contains(&character) {
-                    value.push(character.to_ascii_lowercase());
+                    integer.push(character.to_ascii_lowercase());
                     size += 1;
                 } else if character == Integer::CHARACTER_DELIMITER {
                     size += 1;
@@ -194,7 +277,7 @@ pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
                         offset: size,
                     });
                 } else {
-                    return Ok((size, Integer::new_hexadecimal(value)));
+                    return Ok((size, Integer::new_hexadecimal(integer)));
                 }
             }
         }
@@ -202,25 +285,55 @@ pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
 
     match state {
         State::Start => Err(Error::UnexpectedEnd),
-        State::ZeroOrNotDecimal => Ok((size, Integer::new_decimal(value))),
+        State::ZeroOrNotDecimal => Ok((size, Integer::new_decimal(integer))),
         State::Binary => {
-            if !value.is_empty() {
-                Ok((size, Integer::new_binary(value)))
+            if !integer.is_empty() {
+                Ok((size, Integer::new_binary(integer)))
             } else {
                 Err(Error::EmptyBinaryBody { offset: size })
             }
         }
         State::Octal => {
-            if !value.is_empty() {
-                Ok((size, Integer::new_octal(value)))
+            if !integer.is_empty() {
+                Ok((size, Integer::new_octal(integer)))
             } else {
                 Err(Error::EmptyOctalBody { offset: size })
             }
         }
-        State::Decimal => Ok((size, Integer::new_decimal(value))),
+        State::Decimal => Ok((size, Integer::new_decimal(integer))),
+        State::DecimalAfterPoint => {
+            let fractional = if fractional.is_empty() {
+                None
+            } else {
+                Some(fractional)
+            };
+
+            Ok((
+                size,
+                Integer::new_decimal_with_exponent(integer, fractional, None),
+            ))
+        }
+        State::DecimalAfterExponent => {
+            let fractional = if fractional.is_empty() {
+                None
+            } else {
+                Some(fractional)
+            };
+
+            let exponent = if exponent.is_empty() {
+                return Err(Error::EmptyExponent { offset: size });
+            } else {
+                Some(exponent)
+            };
+
+            Ok((
+                size,
+                Integer::new_decimal_with_exponent(integer, fractional, exponent),
+            ))
+        }
         State::Hexadecimal => {
-            if !value.is_empty() {
-                Ok((size, Integer::new_hexadecimal(value)))
+            if !integer.is_empty() {
+                Ok((size, Integer::new_hexadecimal(integer)))
             } else {
                 Err(Error::EmptyHexadecimalBody { offset: size })
             }
@@ -261,9 +374,61 @@ mod tests {
     }
 
     #[test]
+    fn ok_decimal_zero_with_fractional() {
+        let input = "0.42";
+        let expected = Ok((
+            input.len(),
+            Integer::new_decimal_with_exponent("0".to_owned(), Some("42".to_owned()), None),
+        ));
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_decimal_zero_with_fractional_and_exponent() {
+        let input = "0.42E2";
+        let expected = Ok((
+            input.len(),
+            Integer::new_decimal_with_exponent(
+                "0".to_owned(),
+                Some("42".to_owned()),
+                Some("2".to_owned()),
+            ),
+        ));
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn ok_decimal() {
         let input = "666";
         let expected = Ok((input.len(), Integer::new_decimal(input.to_owned())));
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_decimal_with_fractional() {
+        let input = "666.42";
+        let expected = Ok((
+            input.len(),
+            Integer::new_decimal_with_exponent("666".to_owned(), Some("42".to_owned()), None),
+        ));
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_decimal_with_fractional_and_exponent() {
+        let input = "666.42E2";
+        let expected = Ok((
+            input.len(),
+            Integer::new_decimal_with_exponent(
+                "666".to_owned(),
+                Some("42".to_owned()),
+                Some("2".to_owned()),
+            ),
+        ));
         let result = parse(input);
         assert_eq!(result, expected);
     }
@@ -324,6 +489,24 @@ mod tests {
     }
 
     #[test]
+    fn error_empty_exponent() {
+        let input = "42.5E";
+        let expected = Err(Error::EmptyExponent {
+            offset: input.len(),
+        });
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_unexpected_exponent() {
+        let input = "";
+        let expected = Err(Error::UnexpectedEnd);
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn error_empty_hexadecimal_body() {
         let input = "0x";
         let expected = Err(Error::EmptyHexadecimalBody {
@@ -360,6 +543,17 @@ mod tests {
         let input = "25x";
         let expected = Err(Error::ExpectedOneOfDecimal {
             found: 'x',
+            offset: input.len() - 1,
+        });
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_one_of_decimal_zero_with_exponent() {
+        let input = "0E";
+        let expected = Err(Error::ExpectedOneOfDecimal {
+            found: Integer::CHARACTER_EXPONENT,
             offset: input.len() - 1,
         });
         let result = parse(input);

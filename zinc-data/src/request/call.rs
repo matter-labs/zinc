@@ -67,17 +67,65 @@ pub struct Body {
     /// The JSON method input.
     pub arguments: JsonValue,
     /// The signed transactions which must be sent directly to zkSync.
-    pub transactions: Vec<(FranklinTx, PackedEthSignature)>,
+    pub transactions: Vec<Transaction>,
 }
 
 impl Body {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(arguments: JsonValue, transfers: Vec<(FranklinTx, PackedEthSignature)>) -> Self {
+    pub fn new(arguments: JsonValue, transfers: Vec<Transaction>) -> Self {
         Self {
             arguments,
             transactions: transfers,
+        }
+    }
+}
+
+///
+/// The contract resource call POST request body transaction.
+///
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Transaction {
+    /// The transaction itself.
+    pub tx: FranklinTx,
+    /// The Ethereum signature of the transaction.
+    pub ethereum_signature: EthereumSignature,
+}
+
+impl Transaction {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(tx: FranklinTx, signature: PackedEthSignature) -> Self {
+        Self {
+            tx,
+            ethereum_signature: EthereumSignature::new(signature),
+        }
+    }
+}
+
+///
+/// The contract resource call POST request body transaction Ethereum signature.
+///
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EthereumSignature {
+    /// The default signature type.
+    pub r#type: String,
+    /// The signature as a hex string.
+    pub signature: PackedEthSignature,
+}
+
+impl EthereumSignature {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(signature: PackedEthSignature) -> Self {
+        Self {
+            r#type: "EthereumSignature".to_owned(),
+            signature,
         }
     }
 }

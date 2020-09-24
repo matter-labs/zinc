@@ -18,6 +18,7 @@ use crate::database::model::field::update::input::Input as FieldUpdateInput;
 ///
 /// The database asynchronous client adapter.
 ///
+#[derive(Clone)]
 pub struct Client {
     /// The database connection pool.
     pool: Pool<Postgres>,

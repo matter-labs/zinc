@@ -7,13 +7,10 @@
 //! } ] }
 
 fn main(witness: u8) -> u8 {
-    let mut tuple_nested: ((u8, u8), (u8, u8)) = (
-        (1, 2),
-        (3, 4),
-    );
+    let mut tuple_nested: ((u8, u8), (u8, u8)) = ((1, 2), (3, 4));
 
-    tuple_nested.1.1 = 111;
-    tuple_nested.0.0 = 42;
+    (tuple_nested.1).1 = 111;
+    (tuple_nested.0).0 = 42;
 
-    (tuple_nested.1.1 - tuple_nested.0.0) / witness
+    ((tuple_nested.1).1 - (tuple_nested.0).0) / witness
 }

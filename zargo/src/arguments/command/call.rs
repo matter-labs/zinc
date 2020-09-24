@@ -14,8 +14,6 @@ use reqwest::Url;
 use serde_json::Value as JsonValue;
 use structopt::StructOpt;
 
-use zksync::zksync_models::node::tx::FranklinTx;
-
 use zinc_data::CallRequestBody;
 use zinc_data::CallRequestQuery;
 
@@ -162,17 +160,7 @@ impl IExecutable for Command {
 
         let transfers = arguments
             .get_transfers()
-            .and_then(|transfers| {
-                Ok(
-                    Transfer::try_into_batch(transfers, network, private_key.inner)
-                        .map(|batch| {
-                            batch.into_iter().map(|(transfer, signature)| {
-                                (FranklinTx::Transfer(Box::new(transfer)), signature)
-                            })
-                        })?
-                        .collect(),
-                )
-            })
+            .and_then(|transfers| Transfer::try_into_batch(transfers, network, private_key.inner))
             .map_err(Error::Transfer)?;
 
         let endpoint_url = format!(

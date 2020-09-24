@@ -190,6 +190,7 @@ impl<'a> TokenStream<'a> {
                     Err(IntegerParserError::NotAnInteger) => {}
                     Err(IntegerParserError::EmptyBinaryBody { offset })
                     | Err(IntegerParserError::EmptyOctalBody { offset })
+                    | Err(IntegerParserError::EmptyExponent { offset })
                     | Err(IntegerParserError::EmptyHexadecimalBody { offset }) => {
                         return Err(Error::unexpected_end(self.location.shifted_right(offset)));
                     }
