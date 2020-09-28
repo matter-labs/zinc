@@ -19,7 +19,7 @@ use zinc_vm::Bn256;
 
 use zksync::web3::types::Address;
 use zksync::web3::types::H256;
-use zksync::zksync_models::node::tx::PackedEthSignature;
+use zksync::zksync_models::tx::PackedEthSignature;
 
 use crate::database::model::contract::insert::new::input::Input as ContractInsertNewInput;
 use crate::database::model::field::insert::input::Input as FieldInsertInput;

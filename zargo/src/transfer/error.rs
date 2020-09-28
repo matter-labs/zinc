@@ -42,18 +42,6 @@ pub enum Error {
     /// The transaction amount is invalid.
     #[fail(display = "amount is invalid: {} (expected a decimal number)", _0)]
     AmountInvalid(String),
-    /// The sender private key is invalid.
-    #[fail(display = "sender private key is invalid: {}", _0)]
-    SenderPrivateKeyInvalid(rustc_hex::FromHexError),
-    /// The sender address cannot be derived from the private key.
-    #[fail(
-        display = "could not derive the ETH address from the private key: {}",
-        _0
-    )]
-    SenderAddressDeriving(failure::Error),
-    /// The wallet initialization error.
-    #[fail(display = "wallet initialization error: {}", _0)]
-    WalletInitialization(zksync::error::ClientError),
     /// The transaction fee getting error.
     #[fail(display = "transaction fee getting error: {}", _0)]
     FeeGetting(zksync::error::ClientError),

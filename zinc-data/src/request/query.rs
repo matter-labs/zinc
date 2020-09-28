@@ -1,5 +1,5 @@
 //!
-//! The contract resource query PUT request.
+//! The contract resource `query` PUT request.
 //!
 
 use std::iter::IntoIterator;
@@ -12,7 +12,7 @@ use zksync::web3::types::Address;
 use zksync::Network;
 
 ///
-/// The contract resource query PUT request query.
+/// The contract resource `query` PUT request query.
 ///
 #[derive(Debug, Deserialize)]
 pub struct Query {
@@ -59,7 +59,7 @@ impl IntoIterator for Query {
 }
 
 ///
-/// The contract resource query PUT request body.
+/// The contract resource `query` PUT request body.
 ///
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Body {

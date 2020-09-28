@@ -21,6 +21,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
                             .route(web::post().to(contract::post::handle)),
                     )
                     .service(
+                        web::resource("/initialize")
+                            .route(web::head().to(head::handle))
+                            .route(web::put().to(contract::initialize::handle)),
+                    )
+                    .service(
                         web::resource("/query")
                             .route(web::head().to(head::handle))
                             .route(web::put().to(contract::query::handle)),

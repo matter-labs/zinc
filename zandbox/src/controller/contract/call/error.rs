@@ -1,5 +1,5 @@
 //!
-//! The contract resource POST call error.
+//! The contract resource POST `call` error.
 //!
 
 use std::fmt;
@@ -8,13 +8,13 @@ use actix_web::http::StatusCode;
 use actix_web::ResponseError;
 use serde_json::Value as JsonValue;
 
-use zksync::zksync_models::node::TokenId;
+use zksync::zksync_models::TokenId;
 
 use zinc_build::ValueError as BuildValueError;
 use zinc_vm::RuntimeError;
 
 ///
-/// The contract resource POST call error.
+/// The contract resource POST `call` error.
 ///
 #[derive(Debug)]
 pub enum Error {
@@ -28,10 +28,6 @@ pub enum Error {
     InvalidInput(BuildValueError),
     /// Token ID cannot be resolved by zkSync.
     TokenNotFound(TokenId),
-    /// Failed to execute the change-pubkey transaction.
-    ChangePubkey(String),
-    /// Could not get the account ID.
-    AccountId,
 
     /// The virtual machine contract method runtime error.
     RuntimeError(RuntimeError),
@@ -71,8 +67,6 @@ impl ResponseError for Error {
             Self::MethodIsImmutable(..) => StatusCode::BAD_REQUEST,
             Self::InvalidInput(..) => StatusCode::BAD_REQUEST,
             Self::TokenNotFound(..) => StatusCode::UNPROCESSABLE_ENTITY,
-            Self::AccountId => StatusCode::UNPROCESSABLE_ENTITY,
-            Self::ChangePubkey(..) => StatusCode::UNPROCESSABLE_ENTITY,
 
             Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Database(..) => StatusCode::SERVICE_UNAVAILABLE,
@@ -104,8 +98,6 @@ impl fmt::Display for Error {
             }
             Self::InvalidInput(inner) => format!("Input: {}", inner),
             Self::TokenNotFound(token_id) => format!("Token ID {} cannot be resolved", token_id),
-            Self::AccountId => "Could not get the contract account ID".to_owned(),
-            Self::ChangePubkey(inner) => format!("Changing the contract public key: {}", inner),
 
             Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
             Self::Database(inner) => format!("Database: {:?}", inner),

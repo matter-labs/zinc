@@ -3,13 +3,14 @@
 //!
 
 use serde_derive::Serialize;
+use serde_derive::Deserialize;
 
 use zksync::web3::types::Address;
 
 ///
 /// The contract resource POST response body.
 ///
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Body {
     /// The contract address.
     pub address: Address,

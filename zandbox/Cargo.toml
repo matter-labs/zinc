@@ -11,6 +11,10 @@ description = "The Zandbox server daemon"
 name = "zandbox"
 path = "src/zandbox/main.rs"
 
+[[bin]]
+name = "key-changer"
+path = "src/key_changer/main.rs"
+
 [dependencies]
 log = "0.4"
 structopt = "0.3"
@@ -31,6 +35,7 @@ actix-web = "2.0"
 sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-async-std", "macros", "postgres", "json" ] }
 
 zksync = { path = "../zksync/sdk/zksync-rs" }
+zksync_utils = { path = "../zksync/core/lib/utils" }
 num_old = { package = "num", version = "0.2.1" }
 
 zinc-const = { path = "../zinc-const" }

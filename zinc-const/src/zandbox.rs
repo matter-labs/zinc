@@ -14,6 +14,9 @@ pub static CONTRACT_CONSTRUCTOR_NAME: &str = "new";
 /// The contract publish URL.
 pub static CONTRACT_PUBLISH_URL: &str = "/api/v1/contract";
 
+/// The contract initialize URL.
+pub static CONTRACT_INITIALIZE_URL: &str = "/api/v1/contract/initialize";
+
 /// The contract query URL.
 pub static CONTRACT_QUERY_URL: &str = "/api/v1/contract/query";
 

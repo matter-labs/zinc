@@ -44,7 +44,7 @@ contract Stableswap {
         Self {
             address: 0x0 as Address,
 
-            balances: [ONE_ETH; N],
+            balances: [ZERO; N],
             amplifier: _amplifier,
         }
     }

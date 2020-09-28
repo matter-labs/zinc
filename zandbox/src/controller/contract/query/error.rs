@@ -1,5 +1,5 @@
 //!
-//! The contract resource PUT query error.
+//! The contract resource PUT `query` error.
 //!
 
 use std::fmt;
@@ -11,7 +11,7 @@ use zinc_build::ValueError as BuildValueError;
 use zinc_vm::RuntimeError;
 
 ///
-/// The contract run feature PUT query error.
+/// The contract run feature PUT `query` error.
 ///
 #[derive(Debug)]
 pub enum Error {

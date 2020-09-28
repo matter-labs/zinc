@@ -9,15 +9,14 @@ use std::convert::TryFrom;
 use serde_derive::Deserialize;
 use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
+use num_old::Zero;
 
 use zksync::web3::types::Address;
-use zksync::web3::types::H256;
-use zksync::zksync_models::node::tx::FranklinTx;
-use zksync::zksync_models::node::tx::PackedEthSignature;
-use zksync::zksync_models::node::TokenLike;
-use zksync::zksync_models::node::TxFeeTypes;
+use zksync::zksync_models::FranklinTx;
+use zksync::zksync_models::TokenLike;
+use zksync::zksync_models::TxFeeTypes;
 
-use zinc_data::CallRequestBodyTransaction;
+use zinc_data::Transaction;
 
 use self::error::Error;
 
@@ -37,32 +36,58 @@ pub struct Transfer {
 }
 
 impl Transfer {
-    pub fn try_into_batch(
-        transfers: Vec<Self>,
-        network: zksync::Network,
-        signer_private_key: String,
-    ) -> Result<Vec<CallRequestBodyTransaction>, Error> {
+    ///
+    /// Initializes a new initial zero transfer to assign an account ID to a newly created contract.
+    ///
+    pub fn new_initial(wallet: &zksync::Wallet, recipient: Address) -> Result<Transaction, Error> {
         let mut runtime = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
 
-        let signer_private_key: H256 = signer_private_key
-            .parse()
-            .map_err(Error::SenderPrivateKeyInvalid)?;
-        let signer_address = PackedEthSignature::address_from_private_key(&signer_private_key)
-            .map_err(Error::SenderAddressDeriving)?;
+        let token_id = 0;
+        let token_like = TokenLike::Id(token_id);
+        let token = wallet
+            .tokens
+            .resolve(TokenLike::Id(token_id))
+            .ok_or(Error::TokenNotFound)?;
 
-        let wallet_credentials =
-            zksync::WalletCredentials::from_eth_pk(signer_address, signer_private_key, network)
-                .expect(zinc_const::panic::DATA_CONVERSION);
-        let wallet = runtime
-            .block_on(zksync::Wallet::new(
-                zksync::Provider::new(network),
-                wallet_credentials,
+        let amount = num_old::BigUint::zero();
+        let fee = runtime
+            .block_on(wallet.provider.get_tx_fee(
+                TxFeeTypes::Transfer,
+                recipient,
+                token_like,
             ))
-            .map_err(Error::WalletInitialization)?;
+            .map_err(Error::FeeGetting)?
+            .total_fee;
+        let nonce = runtime
+            .block_on(wallet.provider.account_info(wallet.signer.address))
+            .map_err(Error::AccountInfoRetrieving)?
+            .committed
+            .nonce;
+
+        let (transfer, signature) = wallet
+            .signer
+            .sign_transfer(token, amount, fee, recipient, nonce)
+            .map_err(Error::TransferSigning)?;
+        let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
+
+        Ok(Transaction::new(
+            FranklinTx::Transfer(Box::new(transfer)),
+            signature,
+        ))
+    }
+
+    ///
+    /// Converts an array of input transfers into an array of signed zkSync transactions.
+    ///
+    pub fn try_into_batch(
+        transfers: Vec<Self>,
+        wallet: &zksync::Wallet,
+    ) -> Result<Vec<Transaction>, Error> {
+        let mut runtime = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
 
         let mut batch = Vec::with_capacity(transfers.len());
         let mut nonce = runtime
-            .block_on(wallet.provider.account_info(signer_address))
+            .block_on(wallet.provider.account_info(wallet.signer.address))
             .map_err(Error::AccountInfoRetrieving)?
             .committed
             .nonce;
@@ -72,11 +97,11 @@ impl Transfer {
                 .resolve(transfer.token_id.clone())
                 .ok_or(Error::TokenNotFound)?;
             let amount =
-                zksync::zksync_models::node::closest_packable_token_amount(&transfer.amount);
+                zksync::zksync_models::helpers::closest_packable_token_amount(&transfer.amount);
             let fee = runtime
                 .block_on(wallet.provider.get_tx_fee(
                     TxFeeTypes::Transfer,
-                    signer_address,
+                    wallet.signer.address,
                     transfer.token_id,
                 ))
                 .map_err(Error::FeeGetting)?
@@ -88,7 +113,7 @@ impl Transfer {
                 .map_err(Error::TransferSigning)?;
             let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
-            batch.push(CallRequestBodyTransaction::new(
+            batch.push(Transaction::new(
                 FranklinTx::Transfer(Box::new(transfer)),
                 signature,
             ));

@@ -2,6 +2,7 @@
 rustflags = [
 #    "-W", "missing_docs",
 ]
+incremental = true
 
 [tools.clippy]
 warn = [

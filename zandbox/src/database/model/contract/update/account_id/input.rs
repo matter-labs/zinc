@@ -3,7 +3,7 @@
 //!
 
 use zksync::web3::types::Address;
-use zksync::zksync_models::node::AccountId;
+use zksync::zksync_models::AccountId;
 
 ///
 /// The database contract UPDATE account ID input model.

@@ -11,20 +11,28 @@ use failure::Fail;
 use reqwest::Client as HttpClient;
 use reqwest::Method;
 use reqwest::Url;
-use serde_json::Value as JsonValue;
 use structopt::StructOpt;
+
+use zksync::web3::types::H256;
+use zksync::zksync_models::tx::PackedEthSignature;
 
 use zinc_data::PublishRequestBody;
 use zinc_data::PublishRequestQuery;
+use zinc_data::PublishResponseBody;
+use zinc_data::InitializeResponseBody;
+use zinc_data::InitializeRequestBody;
+use zinc_data::InitializeRequestQuery;
 use zinc_data::Source;
 use zinc_data::SourceError;
 
+use crate::transfer::Transfer;
 use crate::arguments::command::IExecutable;
 use crate::error::directory::Error as DirectoryError;
 use crate::error::file::Error as FileError;
 use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
+use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
 use crate::executable::virtual_machine::VirtualMachine;
 use crate::project::build::bytecode::Bytecode as BytecodeFile;
 use crate::project::build::Directory as BuildDirectory;
@@ -34,6 +42,7 @@ use crate::project::data::Directory as DataDirectory;
 use crate::project::manifest::project_type::ProjectType;
 use crate::project::manifest::Manifest as ManifestFile;
 use crate::project::source::Directory as SourceDirectory;
+use crate::transfer::error::Error as TransferError;
 
 ///
 /// The Zargo project manager `publish` subcommand.
@@ -114,6 +123,24 @@ pub enum Error {
     /// The smart contract server failure.
     #[fail(display = "action failed: {}", _0)]
     ActionFailed(String),
+    /// The private key file error.
+    #[fail(display = "private key file {}", _0)]
+    PrivateKeyFile(FileError),
+    /// The sender private key is invalid.
+    #[fail(display = "sender private key is invalid: {}", _0)]
+    SenderPrivateKeyInvalid(rustc_hex::FromHexError),
+    /// The sender address cannot be derived from the private key.
+    #[fail(
+        display = "could not derive the ETH address from the private key: {}",
+        _0
+    )]
+    SenderAddressDeriving(failure::Error),
+    /// The wallet initialization error.
+    #[fail(display = "wallet initialization: {}", _0)]
+    WalletInitialization(zksync::error::ClientError),
+    /// The transfer transaction signing error.
+    #[fail(display = "transfer transaction: {}", _0)]
+    Transfer(TransferError),
 }
 
 impl IExecutable for Command {
@@ -151,6 +178,8 @@ impl IExecutable for Command {
         proving_key_path.push(zinc_const::file_name::PROVING_KEY);
         let mut verifying_key_path = data_directory_path.clone();
         verifying_key_path.push(zinc_const::file_name::VERIFYING_KEY.to_owned());
+        let mut private_key_path = data_directory_path.clone();
+        private_key_path.push(zinc_const::file_name::PRIVATE_KEY.to_owned());
 
         BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
         let build_directory_path = BuildDirectory::path(&manifest_path);
@@ -203,13 +232,13 @@ impl IExecutable for Command {
             network,
         );
 
+        let http_client = HttpClient::new();
+
         let endpoint_url = format!(
             "{}{}",
             "http://127.0.0.1:4001",
             zinc_const::zandbox::CONTRACT_PUBLISH_URL
         );
-
-        let http_client = HttpClient::new();
         let mut http_response = http_client
             .execute(
                 http_client
@@ -247,15 +276,71 @@ impl IExecutable for Command {
             )));
         }
 
-        println!(
-            "{}",
-            serde_json::to_string_pretty(
-                &http_response
-                    .json::<JsonValue>()
-                    .expect(zinc_const::panic::DATA_CONVERSION)
-            )
-            .expect(zinc_const::panic::DATA_CONVERSION)
+        let response = http_response
+            .json::<PublishResponseBody>()
+            .expect(zinc_const::panic::DATA_CONVERSION);
+        println!("     {} {}", "Address".bright_green(), serde_json::to_string(&response.address).expect(zinc_const::panic::DATA_CONVERSION).replace("\"", ""));
+
+        let private_key =
+            PrivateKeyFile::try_from(&private_key_path).map_err(Error::PrivateKeyFile)?;
+
+        let signer_private_key: H256 = private_key.inner
+            .parse()
+            .map_err(Error::SenderPrivateKeyInvalid)?;
+        let signer_address = PackedEthSignature::address_from_private_key(&signer_private_key)
+            .map_err(Error::SenderAddressDeriving)?;
+
+        let wallet_credentials =
+            zksync::WalletCredentials::from_eth_pk(signer_address, signer_private_key, network)
+                .expect(zinc_const::panic::DATA_CONVERSION);
+        let wallet = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME)
+            .block_on(zksync::Wallet::new(
+                zksync::Provider::new(network),
+                wallet_credentials,
+            ))
+            .map_err(Error::WalletInitialization)?;
+
+        let initial_transfer = Transfer::new_initial(&wallet, response.address).map_err(Error::Transfer)?;
+
+        let endpoint_url = format!(
+            "{}{}",
+            "http://127.0.0.1:4001",
+            zinc_const::zandbox::CONTRACT_INITIALIZE_URL
         );
+        let mut http_response = http_client
+            .execute(
+                http_client
+                    .request(
+                        Method::PUT,
+                        Url::parse_with_params(
+                            endpoint_url.as_str(),
+                            InitializeRequestQuery::new(
+                                response.address,
+                                network,
+                            ),
+                        )
+                            .expect(zinc_const::panic::DATA_CONVERSION),
+                    )
+                    .json(&InitializeRequestBody::new(initial_transfer))
+                    .build()
+                    .expect(zinc_const::panic::DATA_CONVERSION),
+            )
+            .map_err(Error::HttpRequest)?;
+
+        if !http_response.status().is_success() {
+            return Err(Error::ActionFailed(format!(
+                "HTTP error ({}) {}",
+                http_response.status(),
+                http_response
+                    .text()
+                    .expect(zinc_const::panic::DATA_CONVERSION),
+            )));
+        }
+
+        let response = http_response
+            .json::<InitializeResponseBody>()
+            .expect(zinc_const::panic::DATA_CONVERSION);
+        println!("  {} {}", "Account ID".bright_green(), response.account_id);
 
         Ok(())
     }

@@ -3,7 +3,7 @@
 //!
 
 use zksync::web3::types::H256;
-use zksync::zksync_models::node::AccountId;
+use zksync::zksync_models::AccountId;
 
 use zinc_build::Contract as BuildContract;
 

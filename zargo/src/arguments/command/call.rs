@@ -14,6 +14,9 @@ use reqwest::Url;
 use serde_json::Value as JsonValue;
 use structopt::StructOpt;
 
+use zksync::web3::types::H256;
+use zksync::zksync_models::tx::PackedEthSignature;
+
 use zinc_data::CallRequestBody;
 use zinc_data::CallRequestQuery;
 
@@ -97,6 +100,18 @@ pub enum Error {
     /// The private key file error.
     #[fail(display = "private key file {}", _0)]
     PrivateKeyFile(FileError),
+    /// The sender private key is invalid.
+    #[fail(display = "sender private key is invalid: {}", _0)]
+    SenderPrivateKeyInvalid(rustc_hex::FromHexError),
+    /// The sender address cannot be derived from the private key.
+    #[fail(
+    display = "could not derive the ETH address from the private key: {}",
+    _0
+    )]
+    SenderAddressDeriving(failure::Error),
+    /// The wallet initialization error.
+    #[fail(display = "wallet initialization: {}", _0)]
+    WalletInitialization(zksync::error::ClientError),
     /// The transfer transaction signing error.
     #[fail(display = "transfer transaction: {}", _0)]
     Transfer(TransferError),
@@ -158,9 +173,25 @@ impl IExecutable for Command {
         let private_key =
             PrivateKeyFile::try_from(&private_key_path).map_err(Error::PrivateKeyFile)?;
 
+        let signer_private_key: H256 = private_key.inner
+            .parse()
+            .map_err(Error::SenderPrivateKeyInvalid)?;
+        let signer_address = PackedEthSignature::address_from_private_key(&signer_private_key)
+            .map_err(Error::SenderAddressDeriving)?;
+
+        let wallet_credentials =
+            zksync::WalletCredentials::from_eth_pk(signer_address, signer_private_key, network)
+                .expect(zinc_const::panic::DATA_CONVERSION);
+        let wallet = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME)
+            .block_on(zksync::Wallet::new(
+                zksync::Provider::new(network),
+                wallet_credentials,
+            ))
+            .map_err(Error::WalletInitialization)?;
+
         let transfers = arguments
             .get_transfers()
-            .and_then(|transfers| Transfer::try_into_batch(transfers, network, private_key.inner))
+            .and_then(|transfers| Transfer::try_into_batch(transfers, &wallet))
             .map_err(Error::Transfer)?;
 
         let endpoint_url = format!(

@@ -7,26 +7,21 @@ pub mod request;
 
 use std::sync::Arc;
 use std::sync::RwLock;
-use std::time::Duration;
-use std::time::Instant;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
-use futures::StreamExt;
 use serde_json::json;
 use serde_json::Value as JsonValue;
 
 use zksync::operations::SyncTransactionHandle;
-use zksync::zksync_models::node::AccountId;
-use zksync::zksync_models::node::FranklinTx;
-use zksync::zksync_models::node::TxFeeTypes;
+use zksync::zksync_models::FranklinTx;
+use zksync::zksync_models::TxFeeTypes;
 
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Value as BuildValue;
-use zinc_data::CallRequestBodyTransaction;
+use zinc_data::Transaction;
 use zinc_vm::Bn256;
 
-use crate::database::model::contract::update::account_id::input::Input as ContractUpdateAccountIdInput;
 use crate::database::model::field::select::input::Input as FieldSelectInput;
 use crate::database::model::field::select::output::Output as FieldSelectOutput;
 use crate::database::model::field::update::input::Input as FieldUpdateInput;
@@ -47,8 +42,8 @@ use self::request::Query as RequestQuery;
 /// 4. Get the contract storage from the database and convert it to the Zinc VM representation.
 /// 5. Run the method on the Zinc VM.
 /// 6. Extract the storage with the updated state from the Zinc VM.
-/// 7. Send the client transfers to zkSync and store its handles.
-/// 8. Send the contract transfers to zkSync and store its handles.
+/// 7. Create a transactions array from the client and contract transfers.
+/// 8. Send the transactions to zkSync and store its handles.
 /// 9. Wait for all transactions to be committed.
 /// 10. Update the contract storage state in the database.
 /// 11. Send the contract method execution result back to the client.
@@ -150,43 +145,7 @@ pub async fn handle(
         contract.eth_private_key,
         query.network,
     )?;
-    let mut wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
-
-    if contract.account_id.is_none() {
-        log::debug!("Sending the change-pubkey transaction");
-        let tx_info = wallet
-            .start_change_pubkey()
-            .send()
-            .await?
-            .wait_for_commit()
-            .await?;
-        if !tx_info.success.unwrap_or_default() {
-            return Err(Error::ChangePubkey(
-                tx_info
-                    .fail_reason
-                    .unwrap_or_else(|| "Unknown error".to_owned()),
-            ));
-        }
-
-        log::debug!("Waiting for the account ID");
-        let account_id = wait_for_account_id(&mut wallet, 10_000).await?;
-
-        log::debug!("Writing account ID to the database and cache");
-        postgresql
-            .update_contract_account_id(ContractUpdateAccountIdInput::new(
-                query.address,
-                account_id,
-            ))
-            .await?;
-        if let Some(contract) = app_data
-            .write()
-            .expect(zinc_const::panic::SYNCHRONIZATION)
-            .contracts
-            .get_mut(&query.address)
-        {
-            contract.set_account_id(account_id);
-        }
-    }
+    let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
 
     log::debug!("Building the transaction list");
     let mut transactions = Vec::with_capacity(body.transactions.len() + output.transfers.len());
@@ -199,11 +158,11 @@ pub async fn handle(
 
             log::debug!(
                 "Sending {} {} from {} to {} with fee {}",
-                zksync::zksync_models::misc::utils::format_ether(&transfer.amount),
+                zksync_utils::format_ether(&transfer.amount),
                 token.symbol,
                 serde_json::to_string(&transfer.from).expect(zinc_const::panic::DATA_CONVERSION),
                 serde_json::to_string(&transfer.to).expect(zinc_const::panic::DATA_CONVERSION),
-                zksync::zksync_models::misc::utils::format_ether(&transfer.fee),
+                zksync_utils::format_ether(&transfer.fee),
             );
         }
     }
@@ -220,7 +179,7 @@ pub async fn handle(
             .tokens
             .resolve(transfer.token_id.into())
             .ok_or(Error::TokenNotFound(transfer.token_id))?;
-        let amount = zksync::zksync_models::node::closest_packable_token_amount(
+        let amount = zksync::zksync_models::helpers::closest_packable_token_amount(
             &num_old::BigUint::from_bytes_be(
                 transfer.amount.to_bytes_be().as_slice(), // TODO: remove when the SDK is updated
             ),
@@ -233,17 +192,17 @@ pub async fn handle(
 
         log::debug!(
             "Sending {} {} from {} to {} with fee {}",
-            zksync::zksync_models::misc::utils::format_ether(&amount),
+            zksync_utils::format_ether(&amount),
             token.symbol,
             serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION),
             serde_json::to_string(&recipient).expect(zinc_const::panic::DATA_CONVERSION),
-            zksync::zksync_models::misc::utils::format_ether(&fee),
+            zksync_utils::format_ether(&fee),
         );
 
         let (transfer, signature) = wallet
             .signer
             .sign_transfer(token, amount, fee, recipient, nonce)?;
-        transactions.push(CallRequestBodyTransaction::new(
+        transactions.push(Transaction::new(
             FranklinTx::Transfer(Box::new(transfer)),
             signature.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
         ));
@@ -255,18 +214,12 @@ pub async fn handle(
         "Sending the transactions to zkSync on network `{}`",
         query.network
     );
-    let mut handles = Vec::with_capacity(transactions.len());
-    for transaction in transactions.into_iter() {
-        let handle = wallet
-            .provider
-            .send_tx(
-                transaction.tx,
-                Some(transaction.ethereum_signature.signature),
-            )
-            .await
-            .map(|tx_hash| SyncTransactionHandle::new(tx_hash, wallet.provider.clone()))?;
-        handles.push(handle);
-    }
+    let handles = wallet
+        .provider
+        .send_txs_batch(transactions.into_iter().map(|transaction| (transaction.tx, Some(transaction.ethereum_signature.signature))).collect())
+        .await?
+        .into_iter()
+        .map(|tx_hash| SyncTransactionHandle::new(tx_hash, wallet.provider.clone()));
 
     log::debug!("Waiting for the transfers to be committed");
     let mut reasons = Vec::with_capacity(handles.len());
@@ -297,34 +250,4 @@ pub async fn handle(
 
     log::debug!("The call has been successfully executed");
     Ok(Response::new_with_data(StatusCode::OK, response))
-}
-
-///
-/// Waits until there is a zkSync account ID associated with the `wallet` contract.
-///
-async fn wait_for_account_id(
-    wallet: &mut zksync::Wallet,
-    timeout_ms: u64,
-) -> Result<AccountId, Error> {
-    let timeout = Duration::from_millis(timeout_ms);
-    let mut poller = async_std::stream::interval(std::time::Duration::from_millis(100));
-    let start = Instant::now();
-
-    while wallet
-        .provider
-        .account_info(wallet.address())
-        .await?
-        .id
-        .is_none()
-    {
-        if start.elapsed() > timeout {
-            return Err(Error::AccountId);
-        }
-
-        poller.next().await;
-    }
-
-    wallet.update_account_id().await?;
-
-    wallet.account_id().ok_or(Error::AccountId)
 }
