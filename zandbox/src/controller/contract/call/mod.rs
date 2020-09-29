@@ -21,6 +21,7 @@ use zksync::zksync_models::FranklinTx;
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Value as BuildValue;
 use zinc_data::Transaction;
+use zinc_data::Transfer;
 use zinc_vm::Bn256;
 
 use crate::database::model::field::select::input::Input as FieldSelectInput;
@@ -39,15 +40,16 @@ use self::request::Query as RequestQuery;
 /// Sequence:
 /// 1. Get the contract from the in-memory cache.
 /// 2. Extract the called method from its metadata and check if it is mutable.
-/// 3. Parse the method input arguments.
-/// 4. Get the contract storage from the database and convert it to the Zinc VM representation.
-/// 5. Run the method on the Zinc VM.
-/// 6. Extract the storage with the updated state from the Zinc VM.
-/// 7. Create a transactions array from the client and contract transfers.
-/// 8. Send the transactions to zkSync and store its handles.
-/// 9. Wait for all transactions to be committed.
-/// 10. Update the contract storage state in the database.
-/// 11. Send the contract method execution result back to the client.
+/// 3. Check if the transactions in the contract method arguments match the signed ones.
+/// 4. Parse the method input arguments.
+/// 5. Get the contract storage from the database and convert it to the Zinc VM representation.
+/// 6. Run the method on the Zinc VM.
+/// 7. Extract the storage with the updated state from the Zinc VM.
+/// 8. Create a transactions array from the client and contract transfers.
+/// 9. Send the transactions to zkSync and store its handles.
+/// 10. Wait for all transactions to be committed.
+/// 11. Update the contract storage state in the database.
+/// 12. Send the contract method execution result back to the client.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
@@ -89,6 +91,10 @@ pub async fn handle(
         return Err(Error::MethodIsImmutable(query.method));
     }
 
+    let argument_transfers = Transfer::try_from_json(&body.arguments).unwrap_or_default();
+    for (signed, argument) in body.transactions.iter().zip(argument_transfers) {
+        argument.validate(signed)?;
+    }
     let input_value = BuildValue::try_from_typed_json(body.arguments, method.input)
         .map_err(Error::InvalidInput)?;
 

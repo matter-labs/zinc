@@ -41,8 +41,7 @@ use crate::project::data::Directory as DataDirectory;
 use crate::project::manifest::project_type::ProjectType;
 use crate::project::manifest::Manifest as ManifestFile;
 use crate::project::source::Directory as SourceDirectory;
-use crate::transfer::error::Error as TransferError;
-use crate::transfer::Transfer;
+use crate::transaction::error::Error as TransactionError;
 
 ///
 /// The Zargo project manager `publish` subcommand.
@@ -138,9 +137,9 @@ pub enum Error {
     /// The wallet initialization error.
     #[fail(display = "wallet initialization: {}", _0)]
     WalletInitialization(zksync::error::ClientError),
-    /// The transfer transaction signing error.
-    #[fail(display = "transfer transaction: {}", _0)]
-    Transfer(TransferError),
+    /// The transaction signing error.
+    #[fail(display = "transaction: {}", _0)]
+    Transaction(TransactionError),
 }
 
 impl IExecutable for Command {
@@ -309,7 +308,7 @@ impl IExecutable for Command {
             .map_err(Error::WalletInitialization)?;
 
         let initial_transfer =
-            Transfer::new_initial(&wallet, response.address).map_err(Error::Transfer)?;
+            crate::transaction::new_initial(&wallet, response.address).map_err(Error::Transaction)?;
 
         let endpoint_url = format!(
             "{}{}",

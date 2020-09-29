@@ -17,6 +17,7 @@ use structopt::StructOpt;
 use zksync::web3::types::H256;
 use zksync::zksync_models::tx::PackedEthSignature;
 
+use zinc_data::Transfer;
 use zinc_data::CallRequestBody;
 use zinc_data::CallRequestQuery;
 
@@ -27,8 +28,7 @@ use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
 use crate::project::data::Directory as DataDirectory;
 use crate::project::manifest::project_type::ProjectType;
 use crate::project::manifest::Manifest as ManifestFile;
-use crate::transfer::error::Error as TransferError;
-use crate::transfer::Transfer;
+use crate::transaction::error::Error as TransactionError;
 
 ///
 /// The Zargo project manager `call` subcommand.
@@ -112,9 +112,9 @@ pub enum Error {
     /// The wallet initialization error.
     #[fail(display = "wallet initialization: {}", _0)]
     WalletInitialization(zksync::error::ClientError),
-    /// The transfer transaction signing error.
-    #[fail(display = "transfer transaction: {}", _0)]
-    Transfer(TransferError),
+    /// The transaction signing error.
+    #[fail(display = "transaction: {}", _0)]
+    Transaction(TransactionError),
     /// The publish HTTP request error.
     #[fail(display = "HTTP request: {}", _0)]
     HttpRequest(reqwest::Error),
@@ -191,10 +191,9 @@ impl IExecutable for Command {
             ))
             .map_err(Error::WalletInitialization)?;
 
-        let transfers = arguments
-            .get_transfers()
-            .and_then(|transfers| Transfer::try_into_batch(transfers, &wallet, 2))
-            .map_err(Error::Transfer)?;
+        let transfers = Transfer::try_from_json(&arguments.inner).map_err(TransactionError::Parsing)
+            .and_then(|transfers| crate::transaction::try_into_batch(transfers, &wallet, 2))
+            .map_err(Error::Transaction)?;
 
         let endpoint_url = format!(
             "{}{}",

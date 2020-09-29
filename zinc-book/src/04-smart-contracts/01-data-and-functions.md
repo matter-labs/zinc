@@ -14,13 +14,22 @@ a semicolon in the end.
 
 ```rust,no_run,noplaypen
 contract Example {
+    pub extern address: u160;
+
+    pub tokens: (u8, u64);
+
     data: [u8; 1000];
-    tokens: (u8, u64);
-    address: u160;
 
     //...
 }
 ```
+
+Fields with the `extern` modifier are set from the outside of a contract and
+cannot be changed from within. In the example above, the `address` is
+automatically set by the smart contract server for the newly created contract.
+
+The public (`pub`) fields are visible when querying the contract storage state,
+whereas the private fields are internal and cannot be seen.
 
 Each smart contract instance gets its own storage, which is written to the
 database by the Zinc Zandbox server.

@@ -11,6 +11,13 @@ There are several complex operands worth mentioning. As you will see from the
 examples, you can nest these constructions as deep as you need, but do not abuse
 this ability too much.
 
+> Integer literal can be written with the pseudo-fractional part, which is useful
+> for representing values with a lot of zeros after the comma, e.g. WEI units or
+> satoshis: `1.0_E18`, `0.001_E8`, `42_E6`.
+>
+> Such numbers are pseudo-fractional, as the exponent cannot be less than the number
+>of fractional digits.
+
 ## Array
 
 ```rust,no_run,noplaypen

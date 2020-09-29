@@ -10,6 +10,7 @@ use serde_json::Value as JsonValue;
 
 use zksync::zksync_models::TokenId;
 
+use zinc_data::TransferError;
 use zinc_build::ValueError as BuildValueError;
 use zinc_vm::RuntimeError;
 
@@ -26,6 +27,8 @@ pub enum Error {
     MethodIsImmutable(String),
     /// Invalid contract method arguments.
     InvalidInput(BuildValueError),
+    /// The contract method transaction validation has failed.
+    TransferValidation(TransferError),
     /// Token ID cannot be resolved by zkSync.
     TokenNotFound(TokenId),
 
@@ -39,6 +42,12 @@ pub enum Error {
     ZkSyncSigner(zksync::error::SignerError),
     /// The ZkSync transfer errors.
     TransferFailure { reasons: Vec<String> },
+}
+
+impl From<TransferError> for Error {
+    fn from(inner: TransferError) -> Self {
+        Self::TransferValidation(inner)
+    }
 }
 
 impl From<sqlx::Error> for Error {
@@ -66,6 +75,7 @@ impl ResponseError for Error {
             Self::MethodNotFound(..) => StatusCode::BAD_REQUEST,
             Self::MethodIsImmutable(..) => StatusCode::BAD_REQUEST,
             Self::InvalidInput(..) => StatusCode::BAD_REQUEST,
+            Self::TransferValidation(..) => StatusCode::FORBIDDEN,
             Self::TokenNotFound(..) => StatusCode::UNPROCESSABLE_ENTITY,
 
             Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
@@ -97,6 +107,7 @@ impl fmt::Display for Error {
                 format!("Method `{}` is immutable: use 'query' instead", name)
             }
             Self::InvalidInput(inner) => format!("Input: {}", inner),
+            Self::TransferValidation(inner) => format!("Transfer validation: {}", inner),
             Self::TokenNotFound(token_id) => format!("Token ID {} cannot be resolved", token_id),
 
             Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),

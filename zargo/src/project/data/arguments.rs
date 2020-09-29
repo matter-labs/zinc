@@ -2,7 +2,6 @@
 //! The method input arguments file.
 //!
 
-use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
@@ -11,8 +10,6 @@ use serde_derive::Deserialize;
 use serde_json::Value as JsonValue;
 
 use crate::error::file::Error as FileError;
-use crate::transfer::error::Error as TransferError;
-use crate::transfer::Transfer;
 
 ///
 /// The method input arguments file representation.
@@ -51,41 +48,6 @@ impl Arguments {
             .map_err(|error| FileError::Parsing(Self::file_name(method), error))?;
 
         Ok(Self { inner })
-    }
-
-    ///
-    /// Gets the transaction argument from the JSON.
-    ///
-    /// Should only be called for mutable methods (`call` command) where the transaction is mandatory.
-    ///
-    pub fn get_transfers(&self) -> Result<Vec<Transfer>, TransferError> {
-        const ARGUMENT_NAME: &str = "tx";
-
-        match self.inner {
-            JsonValue::Object(ref map) => match map
-                .get(ARGUMENT_NAME)
-                .cloned()
-                .ok_or(TransferError::ArgumentMissing(ARGUMENT_NAME))?
-            {
-                JsonValue::Object(map) => {
-                    let transfer = Transfer::try_from(map)?;
-                    Ok(vec![transfer])
-                }
-                JsonValue::Array(array) => {
-                    let mut transfers = Vec::with_capacity(array.len());
-                    for element in array.into_iter() {
-                        let transfer = match element {
-                            JsonValue::Object(map) => Transfer::try_from(map)?,
-                            _ => return Err(TransferError::ArgumentInvalidFormat(ARGUMENT_NAME)),
-                        };
-                        transfers.push(transfer);
-                    }
-                    Ok(transfers)
-                }
-                _ => Err(TransferError::ArgumentInvalidFormat(ARGUMENT_NAME)),
-            },
-            _ => Err(TransferError::ArgumentInvalidFormat(ARGUMENT_NAME)),
-        }
     }
 
     ///

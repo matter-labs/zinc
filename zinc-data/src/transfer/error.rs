@@ -36,19 +36,10 @@ pub enum Error {
         _0
     )]
     RecipientAddressInvalid(rustc_hex::FromHexError),
-    /// The transaction token is invalid.
-    #[fail(display = "token is invalid and cannot be resolved")]
-    TokenNotFound,
-    /// The transaction amount is invalid.
+    /// The amount is invalid.
     #[fail(display = "amount is invalid: {} (expected a decimal number)", _0)]
     AmountInvalid(String),
-    /// The transaction fee getting error.
-    #[fail(display = "transaction fee getting error: {}", _0)]
-    FeeGetting(zksync::error::ClientError),
-    /// The account info retrieving error.
-    #[fail(display = "account info retrieving error: {}", _0)]
-    AccountInfoRetrieving(zksync::error::ClientError),
-    /// The transaction signing error.
-    #[fail(display = "signing error: {}", _0)]
-    TransferSigning(zksync::error::SignerError),
+    /// The transfer validation has failed.
+    #[fail(display = "the validation of the field `{}` has failed", _0)]
+    Validation(&'static str),
 }

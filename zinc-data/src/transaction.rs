@@ -9,7 +9,7 @@ use zksync::zksync_models::tx::PackedEthSignature;
 use zksync::zksync_models::FranklinTx;
 
 ///
-/// The transaction.
+/// The transaction, understandable by zkSync, front-end, Zandbox, and Zargo.
 ///
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
