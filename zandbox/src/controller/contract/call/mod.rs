@@ -10,12 +10,13 @@ use std::sync::RwLock;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
+use num_old::BigUint;
+use num_old::Zero;
 use serde_json::json;
 use serde_json::Value as JsonValue;
 
 use zksync::operations::SyncTransactionHandle;
 use zksync::zksync_models::FranklinTx;
-use zksync::zksync_models::TxFeeTypes;
 
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Value as BuildValue;
@@ -179,16 +180,11 @@ pub async fn handle(
             .tokens
             .resolve(transfer.token_id.into())
             .ok_or(Error::TokenNotFound(transfer.token_id))?;
-        let amount = zksync::zksync_models::helpers::closest_packable_token_amount(
-            &num_old::BigUint::from_bytes_be(
+        let amount =
+            zksync::utils::closest_packable_token_amount(&num_old::BigUint::from_bytes_be(
                 transfer.amount.to_bytes_be().as_slice(), // TODO: remove when the SDK is updated
-            ),
-        );
-        let fee = wallet
-            .provider
-            .get_tx_fee(TxFeeTypes::Transfer, query.address, transfer.token_id)
-            .await?
-            .total_fee;
+            ));
+        let fee = BigUint::zero();
 
         log::debug!(
             "Sending {} {} from {} to {} with fee {}",
@@ -216,7 +212,17 @@ pub async fn handle(
     );
     let handles = wallet
         .provider
-        .send_txs_batch(transactions.into_iter().map(|transaction| (transaction.tx, Some(transaction.ethereum_signature.signature))).collect())
+        .send_txs_batch(
+            transactions
+                .into_iter()
+                .map(|transaction| {
+                    (
+                        transaction.tx,
+                        Some(transaction.ethereum_signature.signature),
+                    )
+                })
+                .collect(),
+        )
         .await?
         .into_iter()
         .map(|tx_hash| SyncTransactionHandle::new(tx_hash, wallet.provider.clone()));

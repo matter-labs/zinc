@@ -2,6 +2,7 @@
 //! The semantic analyzer test function element.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod error;

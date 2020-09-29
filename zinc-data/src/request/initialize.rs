@@ -28,10 +28,7 @@ impl Query {
     /// A shortcut constructor.
     ///
     pub fn new(address: Address, network: Network) -> Self {
-        Self {
-            address,
-            network,
-        }
+        Self { address, network }
     }
 }
 
@@ -68,8 +65,6 @@ impl Body {
     /// A shortcut constructor.
     ///
     pub fn new(transaction: Transaction) -> Self {
-        Self {
-            transaction,
-        }
+        Self { transaction }
     }
 }

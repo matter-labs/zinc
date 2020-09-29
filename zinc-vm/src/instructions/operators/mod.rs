@@ -2,6 +2,7 @@
 //! The operator instructions.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod arithmetic;

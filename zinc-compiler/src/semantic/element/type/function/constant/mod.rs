@@ -2,6 +2,7 @@
 //! The semantic analyzer constant function element.
 //!
 
+#[cfg(test)]
 mod tests;
 
 use std::cell::RefCell;

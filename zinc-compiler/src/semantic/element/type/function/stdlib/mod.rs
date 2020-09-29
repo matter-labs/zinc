@@ -2,6 +2,7 @@
 //! The semantic analyzer standard library function element.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod array_pad;

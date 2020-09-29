@@ -65,7 +65,7 @@ export ZANDBOX_NAME='zandbox'
 
 #cargo fmt --all
 #cargo clippy
-#cargo build ${CARGO_LOG_LEVEL} ${RELEASE_FLAG}
+cargo build ${CARGO_LOG_LEVEL} ${RELEASE_FLAG}
 #cargo test
 #cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin ${ZINC_TESTER_NAME} -- ${LOG_LEVEL} ${PROOF_CHECK}
 

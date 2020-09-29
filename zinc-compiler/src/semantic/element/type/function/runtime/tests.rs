@@ -2,8 +2,6 @@
 //! The runtime function tests.
 //!
 
-#![cfg(test)]
-
 use crate::error::Error;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::error::Error as TypeError;

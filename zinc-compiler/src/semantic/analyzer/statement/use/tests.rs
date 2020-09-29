@@ -2,8 +2,6 @@
 //! The `use` statement tests.
 //!
 
-#![cfg(test)]
-
 use num_bigint::BigInt;
 
 use crate::error::Error;

@@ -2,8 +2,6 @@
 //! The `contract` statement tests.
 //!
 
-#![cfg(test)]
-
 #[test]
 fn ok_empty() {
     let input = r#"

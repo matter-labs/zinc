@@ -2,6 +2,7 @@
 //! The VM state data stack.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod branch;

@@ -172,6 +172,19 @@ impl Client {
     }
 
     ///
+    /// Deletes the `contracts` table contents.
+    ///
+    pub async fn delete_contracts(&self) -> Result<(), sqlx::Error> {
+        const STATEMENT: &str = r#"
+        DELETE FROM zandbox.contracts;
+        "#;
+
+        sqlx::query(STATEMENT).execute(&self.pool).await?;
+
+        Ok(())
+    }
+
+    ///
     /// Selects contract storage fields from the `fields` table.
     ///
     pub async fn select_fields(
@@ -247,6 +260,19 @@ impl Client {
                 .execute(&self.pool)
                 .await?;
         }
+
+        Ok(())
+    }
+
+    ///
+    /// Deletes the `field` table contents.
+    ///
+    pub async fn delete_fields(&self) -> Result<(), sqlx::Error> {
+        const STATEMENT: &str = r#"
+        DELETE FROM zandbox.fields;
+        "#;
+
+        sqlx::query(STATEMENT).execute(&self.pool).await?;
 
         Ok(())
     }

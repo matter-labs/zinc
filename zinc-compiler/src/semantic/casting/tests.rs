@@ -2,8 +2,6 @@
 //! The type caster tests.
 //!
 
-#![cfg(test)]
-
 use crate::error::Error;
 use crate::lexical::token::location::Location;
 use crate::semantic::casting::error::Error as CastingError;

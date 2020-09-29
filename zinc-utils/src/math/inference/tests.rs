@@ -2,8 +2,6 @@
 //! The integer type inference tests.
 //!
 
-#![cfg(test)]
-
 use std::str::FromStr;
 
 use num::BigInt;

@@ -43,3 +43,6 @@ zinc-utils = { path = "../zinc-utils" }
 zinc-build = { path = "../zinc-build" }
 zinc-data = { path = "../zinc-data" }
 zinc-vm = { path = "../zinc-vm" }
+
+[dev-dependencies]
+tokio = "0.2"

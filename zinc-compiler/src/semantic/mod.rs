@@ -2,6 +2,7 @@
 //! The semantic analyzer.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod analyzer;

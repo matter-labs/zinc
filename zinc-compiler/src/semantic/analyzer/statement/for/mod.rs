@@ -2,6 +2,7 @@
 //! The `for` statement semantic analyzer.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod error;

@@ -2,6 +2,7 @@
 //! The semantic analyzer scope.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod builtin;

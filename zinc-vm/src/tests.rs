@@ -2,8 +2,6 @@
 //! The Zinc VM test tools.
 //!
 
-#![cfg(test)]
-
 use std::collections::HashMap;
 
 use colored::Colorize;

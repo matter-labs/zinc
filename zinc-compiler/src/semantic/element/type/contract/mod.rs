@@ -2,6 +2,7 @@
 //! The semantic analyzer contract type element.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod error;

@@ -16,33 +16,33 @@ use structopt::StructOpt;
 use zksync::web3::types::H256;
 use zksync::zksync_models::tx::PackedEthSignature;
 
+use zinc_data::InitializeRequestBody;
+use zinc_data::InitializeRequestQuery;
+use zinc_data::InitializeResponseBody;
 use zinc_data::PublishRequestBody;
 use zinc_data::PublishRequestQuery;
 use zinc_data::PublishResponseBody;
-use zinc_data::InitializeResponseBody;
-use zinc_data::InitializeRequestBody;
-use zinc_data::InitializeRequestQuery;
 use zinc_data::Source;
 use zinc_data::SourceError;
 
-use crate::transfer::Transfer;
 use crate::arguments::command::IExecutable;
 use crate::error::directory::Error as DirectoryError;
 use crate::error::file::Error as FileError;
 use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
-use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
 use crate::executable::virtual_machine::VirtualMachine;
 use crate::project::build::bytecode::Bytecode as BytecodeFile;
 use crate::project::build::Directory as BuildDirectory;
 use crate::project::data::arguments::Arguments as ArgumentsFile;
+use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
 use crate::project::data::verifying_key::VerifyingKey as VerifyingKeyFile;
 use crate::project::data::Directory as DataDirectory;
 use crate::project::manifest::project_type::ProjectType;
 use crate::project::manifest::Manifest as ManifestFile;
 use crate::project::source::Directory as SourceDirectory;
 use crate::transfer::error::Error as TransferError;
+use crate::transfer::Transfer;
 
 ///
 /// The Zargo project manager `publish` subcommand.
@@ -279,12 +279,19 @@ impl IExecutable for Command {
         let response = http_response
             .json::<PublishResponseBody>()
             .expect(zinc_const::panic::DATA_CONVERSION);
-        println!("     {} {}", "Address".bright_green(), serde_json::to_string(&response.address).expect(zinc_const::panic::DATA_CONVERSION).replace("\"", ""));
+        println!(
+            "     {} {}",
+            "Address".bright_green(),
+            serde_json::to_string(&response.address)
+                .expect(zinc_const::panic::DATA_CONVERSION)
+                .replace("\"", "")
+        );
 
         let private_key =
             PrivateKeyFile::try_from(&private_key_path).map_err(Error::PrivateKeyFile)?;
 
-        let signer_private_key: H256 = private_key.inner
+        let signer_private_key: H256 = private_key
+            .inner
             .parse()
             .map_err(Error::SenderPrivateKeyInvalid)?;
         let signer_address = PackedEthSignature::address_from_private_key(&signer_private_key)
@@ -293,14 +300,16 @@ impl IExecutable for Command {
         let wallet_credentials =
             zksync::WalletCredentials::from_eth_pk(signer_address, signer_private_key, network)
                 .expect(zinc_const::panic::DATA_CONVERSION);
-        let wallet = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME)
+        let wallet = tokio::runtime::Runtime::new()
+            .expect(zinc_const::panic::ASYNC_RUNTIME)
             .block_on(zksync::Wallet::new(
                 zksync::Provider::new(network),
                 wallet_credentials,
             ))
             .map_err(Error::WalletInitialization)?;
 
-        let initial_transfer = Transfer::new_initial(&wallet, response.address).map_err(Error::Transfer)?;
+        let initial_transfer =
+            Transfer::new_initial(&wallet, response.address).map_err(Error::Transfer)?;
 
         let endpoint_url = format!(
             "{}{}",
@@ -314,12 +323,9 @@ impl IExecutable for Command {
                         Method::PUT,
                         Url::parse_with_params(
                             endpoint_url.as_str(),
-                            InitializeRequestQuery::new(
-                                response.address,
-                                network,
-                            ),
+                            InitializeRequestQuery::new(response.address, network),
                         )
-                            .expect(zinc_const::panic::DATA_CONVERSION),
+                        .expect(zinc_const::panic::DATA_CONVERSION),
                     )
                     .json(&InitializeRequestBody::new(initial_transfer))
                     .build()

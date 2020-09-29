@@ -8,16 +8,12 @@ pub mod response;
 
 use std::sync::Arc;
 use std::sync::RwLock;
-use std::time::Duration;
-use std::time::Instant;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
-use futures::StreamExt;
 
 use zksync::operations::SyncTransactionHandle;
 use zksync::zksync_models::FranklinTx;
-use zksync::zksync_models::AccountId;
 
 use crate::database::model::contract::update::account_id::input::Input as ContractUpdateAccountIdInput;
 use crate::response::Response;
@@ -34,7 +30,9 @@ use self::response::Body as ResponseBody;
 /// Sequence:
 /// 1. Get the contract from the in-memory cache.
 /// 2. Make the initial zero deposit to the newly created contract.
-/// 2. Send the change-pubkey transaction for the contract.
+/// 3. Send the change-pubkey transaction for the contract.
+/// 4. Update the contract account ID in the database.
+/// 5. Update the contract account ID in the temporary server cache.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
@@ -99,7 +97,9 @@ pub async fn handle(
             Some(body.transaction.ethereum_signature.signature),
         )
         .await
-        .map(|tx_hash| SyncTransactionHandle::new(tx_hash, wallet.provider.clone()))?.wait_for_commit().await?;
+        .map(|tx_hash| SyncTransactionHandle::new(tx_hash, wallet.provider.clone()))?
+        .wait_for_commit()
+        .await?;
     if !tx_info.success.unwrap_or_default() {
         return Err(Error::InitialTransfer(
             tx_info
@@ -109,7 +109,9 @@ pub async fn handle(
     }
 
     log::debug!("Waiting for the account ID");
-    let account_id = wait_for_account_id(&mut wallet, 10_000).await?;
+    let account_id = zksync::utils::wait_for_account_id(&mut wallet, 10_000)
+        .await
+        .ok_or(Error::AccountId)?;
 
     log::debug!("Sending the change-pubkey transaction");
     let tx_info = wallet
@@ -128,10 +130,7 @@ pub async fn handle(
 
     log::debug!("Writing account ID to the persistent PostgreSQL database");
     postgresql
-        .update_contract_account_id(ContractUpdateAccountIdInput::new(
-            query.address,
-            account_id,
-        ))
+        .update_contract_account_id(ContractUpdateAccountIdInput::new(query.address, account_id))
         .await?;
 
     log::debug!("Writing account ID to the temporary server cache");
@@ -148,34 +147,4 @@ pub async fn handle(
 
     log::debug!("The contract has been initialized");
     Ok(Response::new_with_data(StatusCode::OK, response))
-}
-
-///
-/// Waits until there is a zkSync account ID associated with the `wallet` contract.
-///
-async fn wait_for_account_id(
-    wallet: &mut zksync::Wallet,
-    timeout_ms: u64,
-) -> Result<AccountId, Error> {
-    let timeout = Duration::from_millis(timeout_ms);
-    let mut poller = async_std::stream::interval(std::time::Duration::from_millis(100));
-    let start = Instant::now();
-
-    while wallet
-        .provider
-        .account_info(wallet.address())
-        .await?
-        .id
-        .is_none()
-    {
-        if start.elapsed() > timeout {
-            return Err(Error::AccountId);
-        }
-
-        poller.next().await;
-    }
-
-    wallet.update_account_id().await?;
-
-    wallet.account_id().ok_or(Error::AccountId)
 }

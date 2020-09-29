@@ -2,6 +2,7 @@
 //! The semantic analyzer structure type element.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod error;

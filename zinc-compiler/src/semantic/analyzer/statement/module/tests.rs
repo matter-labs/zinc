@@ -2,8 +2,6 @@
 //! The `mod` statement tests.
 //!
 
-#![cfg(test)]
-
 use std::collections::HashMap;
 use std::path::PathBuf;
 

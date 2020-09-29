@@ -2,6 +2,7 @@
 //! The common Math functions.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod euclidean;

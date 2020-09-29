@@ -5,6 +5,7 @@
 //#![warn(missing_docs)]
 //#![warn(clippy::missing_docs_in_private_items)]
 
+#[cfg(test)]
 mod tests;
 
 pub(crate) mod constraint_systems;

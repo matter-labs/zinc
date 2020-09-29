@@ -2,8 +2,6 @@
 //! A semantic analyzer tests.
 //!
 
-#![cfg(test)]
-
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::PathBuf;

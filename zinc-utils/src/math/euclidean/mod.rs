@@ -2,6 +2,7 @@
 //! The Euclidean division and remainder.
 //!
 
+#[cfg(test)]
 mod tests;
 
 use std::ops::Div;

@@ -2,8 +2,6 @@
 //! The constant structure element tests.
 //!
 
-#![cfg(test)]
-
 use crate::error::Error;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::error::Error as ConstantError;

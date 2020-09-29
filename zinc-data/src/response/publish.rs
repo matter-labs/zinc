@@ -2,8 +2,8 @@
 //! The contract resource POST request.
 //!
 
-use serde_derive::Serialize;
 use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
 use zksync::web3::types::Address;
 

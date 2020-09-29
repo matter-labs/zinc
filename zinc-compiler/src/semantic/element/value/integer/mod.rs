@@ -2,6 +2,7 @@
 //! The semantic analyzer integer value element.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod error;

@@ -2,6 +2,7 @@
 //! The semantic analyzer memory place element.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod element;

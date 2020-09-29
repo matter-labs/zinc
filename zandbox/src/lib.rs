@@ -2,6 +2,9 @@
 //! The Zandbox server daemon library.
 //!
 
+#[cfg(test)]
+mod tests;
+
 pub(crate) mod controller;
 pub(crate) mod database;
 pub(crate) mod response;

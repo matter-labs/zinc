@@ -2,6 +2,7 @@
 //! The `mod` statement semantic analyzer.
 //!
 
+#[cfg(test)]
 mod tests;
 
 use crate::semantic::error::Error;

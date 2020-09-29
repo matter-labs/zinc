@@ -2,6 +2,7 @@
 //! The semantic analyzer built-in function element.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod assert;

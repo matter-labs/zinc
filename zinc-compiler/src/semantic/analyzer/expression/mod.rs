@@ -2,6 +2,7 @@
 //! The expression semantic analyzer.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod array;

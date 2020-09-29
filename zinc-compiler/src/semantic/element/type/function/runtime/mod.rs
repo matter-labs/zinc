@@ -2,6 +2,7 @@
 //! The semantic analyzer runtime function element.
 //!
 
+#[cfg(test)]
 mod tests;
 
 use std::fmt;

@@ -2,8 +2,6 @@
 //! The lexical parser tests.
 //!
 
-#![cfg(test)]
-
 use crate::lexical::error::Error;
 use crate::lexical::stream::TokenStream;
 use crate::lexical::token::lexeme::identifier::Identifier;

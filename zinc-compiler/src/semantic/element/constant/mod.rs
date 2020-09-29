@@ -2,6 +2,7 @@
 //! The semantic analyzer constant element.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod array;

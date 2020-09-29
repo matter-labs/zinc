@@ -2,8 +2,6 @@
 //! The built-in function tests.
 //!
 
-#![cfg(test)]
-
 use std::str::FromStr;
 
 use num_bigint::BigInt;

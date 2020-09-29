@@ -6,10 +6,10 @@ pub mod error;
 
 use std::convert::TryFrom;
 
+use num_old::Zero;
 use serde_derive::Deserialize;
 use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
-use num_old::Zero;
 
 use zksync::web3::types::Address;
 use zksync::zksync_models::FranklinTx;
@@ -51,11 +51,11 @@ impl Transfer {
 
         let amount = num_old::BigUint::zero();
         let fee = runtime
-            .block_on(wallet.provider.get_tx_fee(
-                TxFeeTypes::Transfer,
-                recipient,
-                token_like,
-            ))
+            .block_on(
+                wallet
+                    .provider
+                    .get_tx_fee(TxFeeTypes::Transfer, recipient, token_like),
+            )
             .map_err(Error::FeeGetting)?
             .total_fee;
         let nonce = runtime
@@ -82,6 +82,7 @@ impl Transfer {
     pub fn try_into_batch(
         transfers: Vec<Self>,
         wallet: &zksync::Wallet,
+        fee_multiplier: u64,
     ) -> Result<Vec<Transaction>, Error> {
         let mut runtime = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
 
@@ -96,8 +97,7 @@ impl Transfer {
                 .tokens
                 .resolve(transfer.token_id.clone())
                 .ok_or(Error::TokenNotFound)?;
-            let amount =
-                zksync::zksync_models::helpers::closest_packable_token_amount(&transfer.amount);
+            let amount = zksync::utils::closest_packable_token_amount(&transfer.amount);
             let fee = runtime
                 .block_on(wallet.provider.get_tx_fee(
                     TxFeeTypes::Transfer,
@@ -105,7 +105,8 @@ impl Transfer {
                     transfer.token_id,
                 ))
                 .map_err(Error::FeeGetting)?
-                .total_fee;
+                .total_fee
+                * num_old::BigUint::from(fee_multiplier);
 
             let (transfer, signature) = wallet
                 .signer

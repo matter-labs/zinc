@@ -5,8 +5,8 @@
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
-use zksync::zksync_models::FranklinTx;
 use zksync::zksync_models::tx::PackedEthSignature;
+use zksync::zksync_models::FranklinTx;
 
 ///
 /// The transaction.
@@ -55,4 +55,3 @@ impl EthereumSignature {
         }
     }
 }
-

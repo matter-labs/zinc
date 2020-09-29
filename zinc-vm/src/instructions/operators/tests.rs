@@ -2,8 +2,6 @@
 //! The operator instructions overflow tests.
 //!
 
-#![cfg(test)]
-
 use num_bigint::BigInt;
 use num_traits::One;
 

@@ -4747,6 +4747,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "structopt",
+ "tokio 0.2.22",
  "zinc-build",
  "zinc-const",
  "zinc-data",

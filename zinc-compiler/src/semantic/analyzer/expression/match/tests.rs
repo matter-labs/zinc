@@ -2,8 +2,6 @@
 //! The match expression tests.
 //!
 
-#![cfg(test)]
-
 use std::collections::HashMap;
 use std::path::PathBuf;
 

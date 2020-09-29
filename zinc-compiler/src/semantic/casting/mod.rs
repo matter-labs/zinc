@@ -2,6 +2,7 @@
 //! The type casting.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod error;

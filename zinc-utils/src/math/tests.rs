@@ -2,8 +2,6 @@
 //! The common Math functions tests.
 //!
 
-#![cfg(test)]
-
 use crate::math::floor_to_power_of_two;
 use crate::math::log2ceil;
 

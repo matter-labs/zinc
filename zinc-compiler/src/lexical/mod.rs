@@ -2,6 +2,7 @@
 //! The lexical parser.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod error;

@@ -2,8 +2,6 @@
 //! The VM state data stack tests.
 //!
 
-#![cfg(test)]
-
 use num_bigint::BigInt;
 use num_bigint::ToBigInt;
 

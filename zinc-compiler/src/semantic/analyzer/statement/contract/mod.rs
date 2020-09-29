@@ -2,6 +2,7 @@
 //! The `contract` statement semantic analyzer.
 //!
 
+#[cfg(test)]
 mod tests;
 
 use std::cell::RefCell;

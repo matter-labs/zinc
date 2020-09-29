@@ -2,6 +2,7 @@
 //! The semantic analyzer element.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod access;

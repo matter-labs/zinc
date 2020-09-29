@@ -2,6 +2,7 @@
 //! The conditional expression semantic analyzer.
 //!
 
+#[cfg(test)]
 mod tests;
 
 pub mod error;

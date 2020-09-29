@@ -2,8 +2,8 @@
 //! The contract resource `initialize` POST request.
 //!
 
-use serde_derive::Serialize;
 use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
 use zksync::zksync_models::AccountId;
 

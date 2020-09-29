@@ -42,8 +42,8 @@ use self::response::Body as ResponseBody;
 /// 4. Run the construtor on the Zinc VM which must return the contract storage.
 /// 5. Generate a private key for the contract.
 /// 6. Fill the external contract storage fields.
-/// 7. Write the contract to the in-memory cache.
-/// 8. Write the contract and its storage to the persistent database.
+/// 7. Write the contract and its storage to the persistent database.
+/// 8. Write the contract to the in-memory cache.
 /// 9. Return the created contract address to the client.
 ///
 pub async fn handle(

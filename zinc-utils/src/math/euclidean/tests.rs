@@ -2,8 +2,6 @@
 //! The Euclidean division and remainder tests.
 //!
 
-#![cfg(test)]
-
 use num::BigInt;
 
 use crate::math::euclidean;
