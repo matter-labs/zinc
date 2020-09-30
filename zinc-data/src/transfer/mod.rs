@@ -11,8 +11,8 @@ use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
 
 use zksync::web3::types::Address;
-use zksync::zksync_models::TokenLike;
 use zksync::zksync_models::FranklinTx;
+use zksync::zksync_models::TokenLike;
 
 use crate::transaction::Transaction;
 
@@ -52,7 +52,11 @@ impl Transfer {
     ///
     /// Validates the transfer against the signed transaction created from it.
     ///
-    pub fn validate(&self, transaction: &Transaction) -> Result<(), Error> {
+    pub fn validate(
+        &self,
+        wallet: &zksync::Wallet,
+        transaction: &Transaction,
+    ) -> Result<(), Error> {
         if let FranklinTx::Transfer(ref transfer) = transaction.tx {
             if self.sender != transfer.from {
                 return Err(Error::Validation(Self::FIELD_NAME_SENDER));
@@ -62,9 +66,13 @@ impl Transfer {
                 return Err(Error::Validation(Self::FIELD_NAME_RECIPIENT));
             }
 
-            // if self.token_id != TokenLike::Id(transfer.token) {
-            //     return Err(Error::Validation(Self::FIELD_NAME_TOKEN_ID));
-            // } // TODO: check why fails
+            let token = wallet
+                .tokens
+                .resolve(self.token_id.to_owned())
+                .ok_or(Error::TokenResolving(self.token_id.to_owned()))?;
+            if token.id != transfer.token {
+                return Err(Error::Validation(Self::FIELD_NAME_TOKEN_ID));
+            }
 
             if self.amount != transfer.amount {
                 return Err(Error::Validation(Self::FIELD_NAME_AMOUNT));
@@ -79,28 +87,14 @@ impl Transfer {
     ///
     /// Should only be called for mutable methods (`call` command) where the transaction is mandatory.
     ///
-    pub fn try_from_json(value: &JsonValue) -> Result<Vec<Self>, Error> {
+    pub fn try_from_json(value: &JsonValue) -> Result<Self, Error> {
         match value {
             JsonValue::Object(map) => match map
                 .get(Self::ARGUMENT_NAME)
                 .cloned()
                 .ok_or(Error::ArgumentMissing(Self::ARGUMENT_NAME))?
             {
-                JsonValue::Object(map) => {
-                    let transfer = Transfer::try_from(map)?;
-                    Ok(vec![transfer])
-                }
-                JsonValue::Array(array) => {
-                    let mut transfers = Vec::with_capacity(array.len());
-                    for element in array.into_iter() {
-                        let transfer = match element {
-                            JsonValue::Object(map) => Transfer::try_from(map)?,
-                            _ => return Err(Error::ArgumentInvalidFormat(Self::ARGUMENT_NAME)),
-                        };
-                        transfers.push(transfer);
-                    }
-                    Ok(transfers)
-                }
+                JsonValue::Object(map) => Transfer::try_from(map),
                 _ => Err(Error::ArgumentInvalidFormat(Self::ARGUMENT_NAME)),
             },
             _ => Err(Error::ArgumentInvalidFormat(Self::ARGUMENT_NAME)),
@@ -118,13 +112,17 @@ impl TryFrom<JsonMap<String, JsonValue>> for Transfer {
         let from = value
             .remove(Self::FIELD_NAME_SENDER)
             .ok_or(Error::FieldMissing(Self::FIELD_NAME_SENDER))?;
-        let from = from.as_str().ok_or(Error::NotAString(Self::FIELD_NAME_SENDER))?;
+        let from = from
+            .as_str()
+            .ok_or(Error::NotAString(Self::FIELD_NAME_SENDER))?;
         let from: Address = from[2..].parse().map_err(Error::SenderAddressInvalid)?;
 
         let to = value
             .remove(Self::FIELD_NAME_RECIPIENT)
             .ok_or(Error::FieldMissing(Self::FIELD_NAME_RECIPIENT))?;
-        let to = to.as_str().ok_or(Error::NotAString(Self::FIELD_NAME_RECIPIENT))?;
+        let to = to
+            .as_str()
+            .ok_or(Error::NotAString(Self::FIELD_NAME_RECIPIENT))?;
         let to: Address = to[2..].parse().map_err(Error::RecipientAddressInvalid)?;
 
         let token_id = value

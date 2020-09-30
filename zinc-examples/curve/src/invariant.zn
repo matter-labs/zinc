@@ -24,7 +24,7 @@ pub fn calculate(
 
         let amplifier_N: Balance = amplifier * (N as u64);
 
-        for _n in 0..255 while (D > D_prev && D - D_prev > 0) || (D <= D_prev && D_prev - D > ZERO) {
+        for _n in 0..15 while (D > D_prev && D - D_prev > 0) || (D <= D_prev && D_prev - D > ZERO) {
             let mut D_P = D;
 
             for i in 0..N {

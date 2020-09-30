@@ -10,8 +10,8 @@ use serde_json::Value as JsonValue;
 
 use zksync::zksync_models::TokenId;
 
-use zinc_data::TransferError;
 use zinc_build::ValueError as BuildValueError;
+use zinc_data::TransferError;
 use zinc_vm::RuntimeError;
 
 ///

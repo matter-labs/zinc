@@ -307,8 +307,8 @@ impl IExecutable for Command {
             ))
             .map_err(Error::WalletInitialization)?;
 
-        let initial_transfer =
-            crate::transaction::new_initial(&wallet, response.address).map_err(Error::Transaction)?;
+        let initial_transfer = crate::transaction::new_initial(&wallet, response.address)
+            .map_err(Error::Transaction)?;
 
         let endpoint_url = format!(
             "{}{}",

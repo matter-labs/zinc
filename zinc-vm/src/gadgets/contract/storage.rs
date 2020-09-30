@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::SynthesisError;
-use franklin_crypto::circuit::boolean::Boolean;
+// use franklin_crypto::circuit::boolean::Boolean;
 
 use zinc_build::ScalarType;
 
@@ -49,7 +49,7 @@ where
     pub fn load<CS>(
         &self,
         mut cs: CS,
-        size: usize,
+        _size: usize,
         index: Scalar<E>,
     ) -> Result<Vec<Scalar<E>>, RuntimeError>
     where
@@ -70,39 +70,39 @@ where
             merkle_tree_leaf.leaf_values,
         )?;
 
-        let authentication_path = AllocatedLeaf::alloc_authentication_path(
-            cs.namespace(|| "alloc authentication path"),
-            depth,
-            merkle_tree_leaf.authentication_path,
-        )?;
+        // if leaf_fields.len() != size {
+        //     return Err(RuntimeError::AssertionError(
+        //         "Incorrect number of slot fields returned from storage".into(),
+        //     ));
+        // }
 
-        if leaf_fields.len() != size {
-            return Err(RuntimeError::AssertionError(
-                "Incorrect number of slot fields returned from storage".into(),
-            ));
-        }
-
-        let authorized_root_hash = AllocatedLeaf::LeafFields(leaf_fields.clone())
-            .enforce_merkle_tree_path(
-                cs.namespace(|| "enforce merkle tree path"),
-                depth,
-                &H::default(),
-                &index_bits,
-                &authentication_path,
-            )?;
-
-        let root_hash_condition = gadgets::comparison::equals(
-            cs.namespace(|| "root hash equals to stored"),
-            &authorized_root_hash,
-            &self.root_hash,
-        )?
-        .to_boolean(cs.namespace(|| "root hash equals to stored to boolean"))?;
-
-        Boolean::enforce_equal(
-            cs.namespace(|| "enforcing that root hash equals to stored"),
-            &root_hash_condition,
-            &Boolean::Constant(true),
-        )?;
+        // let authentication_path = AllocatedLeaf::alloc_authentication_path(
+        //     cs.namespace(|| "alloc authentication path"),
+        //     depth,
+        //     merkle_tree_leaf.authentication_path,
+        // )?;
+        //
+        // let authorized_root_hash = AllocatedLeaf::LeafFields(leaf_fields.clone())
+        //     .enforce_merkle_tree_path(
+        //         cs.namespace(|| "enforce merkle tree path"),
+        //         depth,
+        //         &H::default(),
+        //         &index_bits,
+        //         &authentication_path,
+        //     )?;
+        //
+        // let root_hash_condition = gadgets::comparison::equals(
+        //     cs.namespace(|| "root hash equals to stored"),
+        //     &authorized_root_hash,
+        //     &self.root_hash,
+        // )?
+        // .to_boolean(cs.namespace(|| "root hash equals to stored to boolean"))?;
+        //
+        // Boolean::enforce_equal(
+        //     cs.namespace(|| "enforcing that root hash equals to stored"),
+        //     &root_hash_condition,
+        //     &Boolean::Constant(true),
+        // )?;
 
         Ok(leaf_fields)
     }
@@ -120,7 +120,7 @@ where
         let mut index_bits = index.get_bits_le(cs.namespace(|| "index into bits"))?;
         index_bits.truncate(depth);
 
-        let merkle_tree_leaf = self.storage.store(
+        let _merkle_tree_leaf = self.storage.store(
             index
                 .get_value()
                 .map(|field| gadgets::scalar::fr_bigint::fr_to_bigint::<E>(&field, false))
@@ -128,45 +128,45 @@ where
             values.clone(),
         )?;
 
-        let leaf_hash = AllocatedLeaf::alloc_leaf_hash(
-            cs.namespace(|| "alloc leaf hash"),
-            &merkle_tree_leaf.leaf_value_hash,
-        )?;
-
-        let authentication_path = AllocatedLeaf::alloc_authentication_path(
-            cs.namespace(|| "alloc authentication path"),
-            depth,
-            merkle_tree_leaf.authentication_path,
-        )?;
-
-        let authorized_root_hash = AllocatedLeaf::LeafHash(leaf_hash).enforce_merkle_tree_path(
-            cs.namespace(|| "enforce merkle tree path (loading value)"),
-            depth,
-            &H::default(),
-            &index_bits,
-            &authentication_path,
-        )?;
-
-        let root_hash_condition = gadgets::comparison::equals(
-            cs.namespace(|| "root hash equals to stored"),
-            &authorized_root_hash,
-            &self.root_hash,
-        )?
-        .to_boolean(cs.namespace(|| "root hash equals to stored to boolean"))?;
-
-        Boolean::enforce_equal(
-            cs.namespace(|| "enforcing that root hash equals to stored"),
-            &root_hash_condition,
-            &Boolean::Constant(true),
-        )?;
-
-        self.root_hash = AllocatedLeaf::LeafFields(values).enforce_merkle_tree_path(
-            cs.namespace(|| "enforce merkle tree path (storing value)"),
-            depth,
-            &H::default(),
-            &index_bits,
-            &authentication_path,
-        )?;
+        // let leaf_hash = AllocatedLeaf::alloc_leaf_hash(
+        //     cs.namespace(|| "alloc leaf hash"),
+        //     &merkle_tree_leaf.leaf_value_hash,
+        // )?;
+        //
+        // let authentication_path = AllocatedLeaf::alloc_authentication_path(
+        //     cs.namespace(|| "alloc authentication path"),
+        //     depth,
+        //     merkle_tree_leaf.authentication_path,
+        // )?;
+        //
+        // let authorized_root_hash = AllocatedLeaf::LeafHash(leaf_hash).enforce_merkle_tree_path(
+        //     cs.namespace(|| "enforce merkle tree path (loading value)"),
+        //     depth,
+        //     &H::default(),
+        //     &index_bits,
+        //     &authentication_path,
+        // )?;
+        //
+        // let root_hash_condition = gadgets::comparison::equals(
+        //     cs.namespace(|| "root hash equals to stored"),
+        //     &authorized_root_hash,
+        //     &self.root_hash,
+        // )?
+        // .to_boolean(cs.namespace(|| "root hash equals to stored to boolean"))?;
+        //
+        // Boolean::enforce_equal(
+        //     cs.namespace(|| "enforcing that root hash equals to stored"),
+        //     &root_hash_condition,
+        //     &Boolean::Constant(true),
+        // )?;
+        //
+        // self.root_hash = AllocatedLeaf::LeafFields(values).enforce_merkle_tree_path(
+        //     cs.namespace(|| "enforce merkle tree path (storing value)"),
+        //     depth,
+        //     &H::default(),
+        //     &index_bits,
+        //     &authentication_path,
+        // )?;
 
         Ok(())
     }

@@ -49,7 +49,7 @@ fn after(
 
     let mut y_prev: Balance = ZERO;
     let mut y: Balance = D;
-    for n in 0..255 while (y > y_prev && y - y_prev > ZERO) || (y <= y_prev && y_prev - y > ZERO) {
+    for n in 0..15 while (y > y_prev && y - y_prev > ZERO) || (y <= y_prev && y_prev - y > ZERO) {
         y_prev = y;
         y = (y * y + c) / (2 * y + b - D);
     }

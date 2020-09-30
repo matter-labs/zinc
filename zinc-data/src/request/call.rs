@@ -66,18 +66,18 @@ impl IntoIterator for Query {
 pub struct Body {
     /// The JSON method input.
     pub arguments: JsonValue,
-    /// The signed transactions which must be sent directly to zkSync.
-    pub transactions: Vec<Transaction>,
+    /// The signed transaction which must be sent directly to zkSync.
+    pub transaction: Transaction,
 }
 
 impl Body {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(arguments: JsonValue, transactions: Vec<Transaction>) -> Self {
+    pub fn new(arguments: JsonValue, transaction: Transaction) -> Self {
         Self {
             arguments,
-            transactions,
+            transaction,
         }
     }
 }

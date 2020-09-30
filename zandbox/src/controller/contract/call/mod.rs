@@ -91,10 +91,18 @@ pub async fn handle(
         return Err(Error::MethodIsImmutable(query.method));
     }
 
-    let argument_transfers = Transfer::try_from_json(&body.arguments).unwrap_or_default();
-    for (signed, argument) in body.transactions.iter().zip(argument_transfers) {
-        argument.validate(signed)?;
-    }
+    log::debug!("Initializing the contract wallet");
+    let provider = zksync::Provider::new(query.network);
+    let wallet_credentials = zksync::WalletCredentials::from_eth_pk(
+        query.address,
+        contract.eth_private_key,
+        query.network,
+    )?;
+    let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
+
+    let argument_transfer = Transfer::try_from_json(&body.arguments)?;
+    argument_transfer.validate(&wallet, &body.transaction)?;
+
     let input_value = BuildValue::try_from_typed_json(body.arguments, method.input)
         .map_err(Error::InvalidInput)?;
 
@@ -145,35 +153,24 @@ pub async fn handle(
         _ => panic!(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION),
     }
 
-    log::debug!("Initializing the contract wallet");
-    let provider = zksync::Provider::new(query.network);
-    let wallet_credentials = zksync::WalletCredentials::from_eth_pk(
-        query.address,
-        contract.eth_private_key,
-        query.network,
-    )?;
-    let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
-
     log::debug!("Building the transaction list");
-    let mut transactions = Vec::with_capacity(body.transactions.len() + output.transfers.len());
-    for transaction in body.transactions.iter() {
-        if let FranklinTx::Transfer(ref transfer) = transaction.tx {
-            let token = wallet
-                .tokens
-                .resolve(transfer.token.into())
-                .ok_or(Error::TokenNotFound(transfer.token))?;
+    let mut transactions = Vec::with_capacity(1 + output.transfers.len());
+    if let FranklinTx::Transfer(ref transfer) = body.transaction.tx {
+        let token = wallet
+            .tokens
+            .resolve(transfer.token.into())
+            .ok_or(Error::TokenNotFound(transfer.token))?;
 
-            log::debug!(
-                "Sending {} {} from {} to {} with fee {}",
-                zksync_utils::format_ether(&transfer.amount),
-                token.symbol,
-                serde_json::to_string(&transfer.from).expect(zinc_const::panic::DATA_CONVERSION),
-                serde_json::to_string(&transfer.to).expect(zinc_const::panic::DATA_CONVERSION),
-                zksync_utils::format_ether(&transfer.fee),
-            );
-        }
+        log::debug!(
+            "Sending {} {} from {} to {} with fee {}",
+            zksync_utils::format_ether(&transfer.amount),
+            token.symbol,
+            serde_json::to_string(&transfer.from).expect(zinc_const::panic::DATA_CONVERSION),
+            serde_json::to_string(&transfer.to).expect(zinc_const::panic::DATA_CONVERSION),
+            zksync_utils::format_ether(&transfer.fee),
+        );
     }
-    transactions.extend(body.transactions);
+    transactions.push(body.transaction);
     let mut nonce = wallet
         .provider
         .account_info(query.address)

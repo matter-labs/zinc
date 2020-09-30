@@ -54,18 +54,14 @@ contract Stableswap {
     ///
     pub fn deposit(
         mut self,
-        tx: [Transaction; N],
+        tx: Transaction,
     ) {
-        for i in 0..N {
-            assert!(tx[i].recipient == self.address, "Transaction recipient is not the contract");
-        }
+        assert!(tx.recipient == self.address, "Transaction recipient is not the contract");
 
         // Invariant before change
         let D0: Balance = invariant::calculate(self.amplifier, self.balances);
 
-        for i in 0..N {
-            self.balances[tx[i].token_id] += tx[i].amount;
-        }
+        self.balances[tx.token_id] += tx.amount;
 
         // Invariant after change
         let D1 = invariant::calculate(self.amplifier, self.balances);

@@ -17,9 +17,9 @@ use structopt::StructOpt;
 use zksync::web3::types::H256;
 use zksync::zksync_models::tx::PackedEthSignature;
 
-use zinc_data::Transfer;
 use zinc_data::CallRequestBody;
 use zinc_data::CallRequestQuery;
+use zinc_data::Transfer;
 
 use crate::arguments::command::IExecutable;
 use crate::error::file::Error as FileError;
@@ -191,8 +191,9 @@ impl IExecutable for Command {
             ))
             .map_err(Error::WalletInitialization)?;
 
-        let transfers = Transfer::try_from_json(&arguments.inner).map_err(TransactionError::Parsing)
-            .and_then(|transfers| crate::transaction::try_into_batch(transfers, &wallet, 2))
+        let transfers = Transfer::try_from_json(&arguments.inner)
+            .map_err(TransactionError::Parsing)
+            .and_then(|transaction| crate::transaction::try_into_zksync(transaction, &wallet, 2))
             .map_err(Error::Transaction)?;
 
         let endpoint_url = format!(

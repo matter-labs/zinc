@@ -4,6 +4,8 @@
 
 use failure::Fail;
 
+use zksync::zksync_models::TokenLike;
+
 ///
 /// The transfer error.
 ///
@@ -36,6 +38,9 @@ pub enum Error {
         _0
     )]
     RecipientAddressInvalid(rustc_hex::FromHexError),
+    /// The token is unknown and cannot be resolved.
+    #[fail(display = "unknown token {:?}", _0)]
+    TokenResolving(TokenLike),
     /// The amount is invalid.
     #[fail(display = "amount is invalid: {} (expected a decimal number)", _0)]
     AmountInvalid(String),

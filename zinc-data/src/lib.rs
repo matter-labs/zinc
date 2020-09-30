@@ -5,8 +5,8 @@
 pub(crate) mod request;
 pub(crate) mod response;
 pub(crate) mod source;
-pub(crate) mod transfer;
 pub(crate) mod transaction;
+pub(crate) mod transfer;
 
 pub use self::request::call::Body as CallRequestBody;
 pub use self::request::call::Query as CallRequestQuery;
@@ -23,5 +23,5 @@ pub use self::source::error::Error as SourceError;
 pub use self::source::file::File;
 pub use self::source::Source;
 pub use self::transaction::Transaction;
-pub use self::transfer::Transfer;
 pub use self::transfer::error::Error as TransferError;
+pub use self::transfer::Transfer;
