@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS zandbox.contracts (
     bytecode           BYTEA NOT NULL,
     verifying_key      BYTEA NOT NULL,
 
-    account_id         BIGINT,
+    account_id         BIGINT NOT NULL,
     eth_private_key    BYTEA NOT NULL,
 
     created_at         TIMESTAMP NOT NULL,

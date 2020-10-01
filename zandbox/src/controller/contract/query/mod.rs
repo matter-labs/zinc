@@ -17,8 +17,8 @@ use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 
-use crate::database::model::field::select::input::Input as FieldSelectInput;
-use crate::database::model::field::select::output::Output as FieldSelectOutput;
+use crate::database::model::field::select::Input as FieldSelectInput;
+use crate::database::model::field::select::Output as FieldSelectOutput;
 use crate::response::Response;
 use crate::shared_data::SharedData;
 
@@ -124,6 +124,7 @@ pub async fn handle(
         BuildValue::try_from_typed_json(arguments, method.input).map_err(Error::InvalidInput)?;
 
     log::debug!("Running the contract method on the virtual machine");
+    let vm_time = std::time::Instant::now();
     let output = async_std::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new(contract.build).run::<Bn256>(
             input_value,
@@ -133,6 +134,7 @@ pub async fn handle(
     })
     .await
     .map_err(Error::RuntimeError)?;
+    log::debug!("VM executed in {} ms", vm_time.elapsed().as_millis());
 
     let response = json!({
         "output": output.result.into_json(),

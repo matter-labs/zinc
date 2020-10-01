@@ -1,9 +1,9 @@
 //!
-//! The database contract Curve SELECT output model.
+//! The database contract SELECT Curve model.
 //!
 
 ///
-/// The database contract Curve SELECT output model.
+/// The database contract SELECT Curve output model.
 ///
 #[derive(Debug, sqlx::FromRow)]
 pub struct Output {

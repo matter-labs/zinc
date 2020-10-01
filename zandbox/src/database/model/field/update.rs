@@ -1,5 +1,5 @@
 //!
-//! The database contract storage field UPDATE input model.
+//! The database contract storage field UPDATE model.
 //!
 
 use serde_json::Value as JsonValue;

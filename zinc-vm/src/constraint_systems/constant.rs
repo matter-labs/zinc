@@ -12,6 +12,16 @@ use crate::IEngine;
 #[derive(Default)]
 pub struct Constant {}
 
+impl Constant {
+    pub fn is_satisfied(&self) -> bool {
+        true
+    }
+
+    pub fn num_constraints(&self) -> usize {
+        0
+    }
+}
+
 impl<E: IEngine> ConstraintSystem<E> for Constant {
     type Root = Self;
 

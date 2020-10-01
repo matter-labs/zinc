@@ -15,7 +15,8 @@ use actix_web::web;
 use zksync::operations::SyncTransactionHandle;
 use zksync::zksync_models::FranklinTx;
 
-use crate::database::model::contract::update::account_id::input::Input as ContractUpdateAccountIdInput;
+use crate::database::model::field::insert::Input as FieldInsertInput;
+use crate::database::model::contract::insert_new::Input as ContractInsertNewInput;
 use crate::response::Response;
 use crate::shared_data::SharedData;
 
@@ -31,8 +32,8 @@ use self::response::Body as ResponseBody;
 /// 1. Get the contract from the in-memory cache.
 /// 2. Make the initial zero deposit to the newly created contract.
 /// 3. Send the change-pubkey transaction for the contract.
-/// 4. Update the contract account ID in the database.
-/// 5. Update the contract account ID in the temporary server cache.
+/// 4. Set the received contract account ID.
+/// 5. Write the contract and its storage to the persistent database.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
@@ -128,23 +129,33 @@ pub async fn handle(
         ));
     }
 
-    log::debug!("Writing account ID to the persistent PostgreSQL database");
+    let contract_eth_address = contract.eth_address;
+
+    let fields = contract.fields.into_iter().enumerate().map(|(index, (name, value))| {
+        FieldInsertInput::new(contract_eth_address, index as i16, name, value.into_json())
+    }).collect();
+
+    log::debug!("Writing the contract to the persistent PostgreSQL database");
     postgresql
-        .update_contract_account_id(ContractUpdateAccountIdInput::new(query.address, account_id))
+        .insert_contract(ContractInsertNewInput::new(
+            contract_eth_address,
+            contract.name,
+            contract.version,
+            contract.instance,
+            env!("CARGO_PKG_VERSION").to_owned(),
+            contract.source_code,
+            contract.bytecode,
+            contract.verifying_key,
+            account_id,
+            contract.eth_private_key,
+        ))
         .await?;
 
-    log::debug!("Writing account ID to the temporary server cache");
-    if let Some(contract) = app_data
-        .write()
-        .expect(zinc_const::panic::SYNCHRONIZATION)
-        .contracts
-        .get_mut(&query.address)
-    {
-        contract.set_account_id(account_id);
-    }
+    log::debug!("Writing the contract storage to the persistent PostgreSQL database");
+    postgresql.insert_fields(fields).await?;
 
     let response = ResponseBody::new(account_id);
 
-    log::debug!("The contract has been initialized");
+    log::debug!("The contract has been unlocked and published");
     Ok(Response::new_with_data(StatusCode::OK, response))
 }

@@ -24,9 +24,9 @@ use zinc_data::Transaction;
 use zinc_data::Transfer;
 use zinc_vm::Bn256;
 
-use crate::database::model::field::select::input::Input as FieldSelectInput;
-use crate::database::model::field::select::output::Output as FieldSelectOutput;
-use crate::database::model::field::update::input::Input as FieldUpdateInput;
+use crate::database::model::field::select::Input as FieldSelectInput;
+use crate::database::model::field::select::Output as FieldSelectOutput;
+use crate::database::model::field::update::Input as FieldUpdateInput;
 use crate::response::Response;
 use crate::shared_data::SharedData;
 
@@ -128,6 +128,7 @@ pub async fn handle(
     log::debug!("Running the contract method on the virtual machine");
     let method = query.method;
     let contract_build = contract.build;
+    let vm_time = std::time::Instant::now();
     let output = async_std::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new(contract_build).run::<Bn256>(
             input_value,
@@ -137,6 +138,7 @@ pub async fn handle(
     })
     .await
     .map_err(Error::RuntimeError)?;
+    log::debug!("VM executed in {} ms", vm_time.elapsed().as_millis());
 
     log::debug!("Loading the post-transaction contract storage");
     let mut storage_fields = Vec::with_capacity(storage_fields_count);

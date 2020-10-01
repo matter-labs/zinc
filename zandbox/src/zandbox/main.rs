@@ -5,6 +5,8 @@
 mod arguments;
 mod error;
 
+use std::collections::HashMap;
+
 use actix_web::middleware;
 use actix_web::web;
 use actix_web::App;
@@ -12,14 +14,19 @@ use actix_web::HttpServer;
 use colored::Colorize;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
-use rayon::ThreadPoolBuilder;
+
+use zksync::zksync_models::Address;
+use zksync::zksync_models::AccountId;
 
 use zinc_build::Program as BuildProgram;
+use zinc_build::Value as BuildValue;
 
 use zandbox::ContractSelectAllOutput;
 use zandbox::DatabaseClient;
 use zandbox::SharedData;
 use zandbox::SharedDataContract;
+use zandbox::FieldSelectInput;
+use zandbox::FieldSelectOutput;
 
 use self::arguments::Arguments;
 use self::error::Error;
@@ -45,26 +52,35 @@ async fn main() -> Result<(), Error> {
     )
     .await?;
 
-    log::info!("Initializing the contract deserializing thread pool");
-    ThreadPoolBuilder::new()
-        .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
-        .build_global()
-        .expect(zinc_const::panic::THREAD_POOL);
-
     log::info!("Loading the compiled contracts from the database");
-    let contracts = database_client
+    let mut contracts: HashMap<Address, SharedDataContract> = database_client
         .select_contracts()
         .await?
         .into_par_iter()
         .map(
             |ContractSelectAllOutput {
                  address,
+
                  name,
                  version,
                  instance,
+
+                 source_code,
                  bytecode,
+                 verifying_key,
+
+                 account_id,
                  eth_private_key,
              }| {
+                log::info!(
+                    "{} instance `{}` of the contract `{} v{}` with address {}",
+                    "Loaded".bright_green(),
+                    instance,
+                    name,
+                    version,
+                    serde_json::to_string(&address).expect(zinc_const::panic::DATA_CONVERSION),
+                );
+
                 let program = BuildProgram::try_from_slice(bytecode.as_slice())
                     .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
 
@@ -78,21 +94,41 @@ async fn main() -> Result<(), Error> {
                 let address = zinc_utils::eth_address_from_vec(address);
                 let eth_private_key = zinc_utils::eth_private_key_from_vec(eth_private_key);
 
-                let contract = SharedDataContract::new(build, eth_private_key);
+                let contract = SharedDataContract::new(
+                    address,
 
-                log::info!(
-                    "{} instance `{}` of the contract `{} v{}` with address {}",
-                    "Loaded".bright_green(),
-                    instance,
                     name,
                     version,
-                    serde_json::to_string(&address).expect(zinc_const::panic::DATA_CONVERSION),
+                    instance,
+
+                    source_code,
+                    bytecode,
+                    verifying_key,
+
+                    Some(account_id as AccountId),
+                    eth_private_key,
+
+                    build,
+                    vec![],
                 );
 
                 (address, contract)
             },
         )
         .collect();
+
+    log::info!("Loading the contract storages from the database");
+    for (address, contract) in contracts.iter_mut() {
+        let storage_value = database_client
+            .select_fields(FieldSelectInput::new(*address))
+            .await?;
+        for (index, FieldSelectOutput { name, value }) in storage_value.into_iter().enumerate() {
+            let r#type = contract.build.storage[index].r#type.clone();
+            let value = BuildValue::try_from_typed_json(value, r#type)
+                .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
+            contract.fields.push((name, value));
+        }
+    }
 
     let data = SharedData::new(database_client, contracts).wrap();
 

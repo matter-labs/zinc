@@ -6,14 +6,13 @@ use sqlx::pool::Pool;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::Postgres;
 
-use crate::database::model::contract::insert::new::input::Input as ContractInsertNewInput;
-use crate::database::model::contract::select::all::output::Output as ContractSelectAllOutput;
-use crate::database::model::contract::select::curve::output::Output as ContractSelectCurveOutput;
-use crate::database::model::contract::update::account_id::input::Input as ContractUpdateAccountIdInput;
-use crate::database::model::field::insert::input::Input as FieldInsertInput;
-use crate::database::model::field::select::input::Input as FieldSelectInput;
-use crate::database::model::field::select::output::Output as FieldSelectOutput;
-use crate::database::model::field::update::input::Input as FieldUpdateInput;
+use crate::database::model::contract::insert_new::Input as ContractInsertNewInput;
+use crate::database::model::contract::select_all::Output as ContractSelectAllOutput;
+use crate::database::model::contract::select_curve::Output as ContractSelectCurveOutput;
+use crate::database::model::field::insert::Input as FieldInsertInput;
+use crate::database::model::field::select::Input as FieldSelectInput;
+use crate::database::model::field::select::Output as FieldSelectOutput;
+use crate::database::model::field::update::Input as FieldUpdateInput;
 
 ///
 /// The database asynchronous client adapter.
@@ -64,9 +63,12 @@ impl Client {
             name,
             version,
             instance,
-            
+
+            source_code,
             bytecode,
-            
+            verifying_key,
+
+            account_id,
             eth_private_key
         FROM zandbox.contracts
         ORDER BY created_at;
@@ -114,6 +116,7 @@ impl Client {
             bytecode,
             verifying_key,
 
+            account_id,
             eth_private_key,
 
             created_at
@@ -127,12 +130,13 @@ impl Client {
             $7,
             $8,
             $9,
+            $10,
             NOW()
         );
         "#;
 
         sqlx::query(STATEMENT)
-            .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(input.address).to_vec())
+            .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(input.eth_address).to_vec())
             .bind(input.name)
             .bind(input.version)
             .bind(input.instance)
@@ -140,31 +144,8 @@ impl Client {
             .bind(input.source_code)
             .bind(input.bytecode)
             .bind(input.verifying_key)
+            .bind(input.account_id as i64)
             .bind(<[u8; zinc_const::size::ETH_PRIVATE_KEY]>::from(input.eth_private_key).to_vec())
-            .execute(&self.pool)
-            .await?;
-
-        Ok(())
-    }
-
-    ///
-    /// Sets the contract zkSync account ID in the `contracts` table.
-    ///
-    pub async fn update_contract_account_id(
-        &self,
-        input: ContractUpdateAccountIdInput,
-    ) -> Result<(), sqlx::Error> {
-        const STATEMENT: &str = r#"
-        UPDATE zandbox.contracts
-        SET
-            account_id = $2
-        WHERE
-            address = $1;
-        "#;
-
-        sqlx::query(STATEMENT)
-            .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(input.address).to_vec())
-            .bind(input.account_id)
             .execute(&self.pool)
             .await?;
 

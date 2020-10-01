@@ -69,7 +69,7 @@ impl Transfer {
             let token = wallet
                 .tokens
                 .resolve(self.token_id.to_owned())
-                .ok_or(Error::TokenResolving(self.token_id.to_owned()))?;
+                .ok_or_else(|| Error::TokenResolving(self.token_id.to_owned()))?;
             if token.id != transfer.token {
                 return Err(Error::Validation(Self::FIELD_NAME_TOKEN_ID));
             }

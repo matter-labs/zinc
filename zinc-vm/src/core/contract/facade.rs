@@ -20,7 +20,8 @@ use zinc_build::Type as BuildType;
 use zinc_build::Value as BuildValue;
 use zinc_const::UnitTestExitCode;
 
-use crate::constraint_systems::main::Main as MainCS;
+// use crate::constraint_systems::main::Main as MainCS;
+use crate::constraint_systems::constant::Constant as ConstantCS;
 use crate::core::contract::output::Output as ContractOutput;
 use crate::core::contract::storage::database::Storage as DatabaseStorage;
 use crate::core::contract::storage::setup::Storage as SetupStorage;
@@ -51,7 +52,7 @@ impl Facade {
         storage: BuildValue,
         method_name: String,
     ) -> Result<ContractOutput, RuntimeError> {
-        let mut cs = MainCS::<Bn256>::new();
+        let mut cs = ConstantCS {};
 
         let method = self
             .inner
@@ -85,7 +86,7 @@ impl Facade {
                 .collect::<Vec<Vec<BigInt>>>(),
             _ => return Err(RuntimeError::InvalidStorageValue),
         };
-        let storage = DatabaseStorage::new(storage_types.clone(), storage_values);
+        let storage = DatabaseStorage::<Bn256>::new(storage_types.clone(), storage_values);
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
 

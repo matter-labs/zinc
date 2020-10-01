@@ -21,8 +21,6 @@ use zksync::web3::types::Address;
 use zksync::web3::types::H256;
 use zksync::zksync_models::tx::PackedEthSignature;
 
-use crate::database::model::contract::insert::new::input::Input as ContractInsertNewInput;
-use crate::database::model::field::insert::input::Input as FieldInsertInput;
 use crate::response::Response;
 use crate::shared_data::contract::Contract as SharedDataContract;
 use crate::shared_data::SharedData;
@@ -42,9 +40,8 @@ use self::response::Body as ResponseBody;
 /// 4. Run the construtor on the Zinc VM which must return the contract storage.
 /// 5. Generate a private key for the contract.
 /// 6. Fill the external contract storage fields.
-/// 7. Write the contract and its storage to the persistent database.
-/// 8. Write the contract to the in-memory cache.
-/// 9. Return the created contract address to the client.
+/// 7. Write the contract and its storage to the in-memory cache.
+/// 8. Return the created contract address to the client.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
@@ -53,12 +50,6 @@ pub async fn handle(
 ) -> crate::Result<ResponseBody, Error> {
     let query = query.into_inner();
     let body = body.into_inner();
-
-    let postgresql = app_data
-        .read()
-        .expect(zinc_const::panic::SYNCHRONIZATION)
-        .postgresql_client
-        .clone();
 
     log::debug!(
         "Publishing the instance `{}` of the contract `{} {}`",
@@ -114,7 +105,7 @@ pub async fn handle(
     let mut fields = Vec::with_capacity(storage.len());
     match output.result {
         BuildValue::Contract(storage_fields) => {
-            for (index, mut field) in storage_fields.into_iter().enumerate() {
+            for mut field in storage_fields.into_iter() {
                 match field.name.as_str() {
                     "address" if field.is_external => {
                         field.value = BuildValue::scalar_from_eth_address(contract_address)
@@ -122,34 +113,11 @@ pub async fn handle(
                     _ => {}
                 }
 
-                fields.push(FieldInsertInput::new(
-                    contract_address,
-                    index as i16,
-                    field.name,
-                    field.value.into_json(),
-                ));
+                fields.push((field.name, field.value));
             }
         }
         _ => panic!(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION),
     }
-
-    log::debug!("Writing the contract to the persistent PostgreSQL database");
-    postgresql
-        .insert_contract(ContractInsertNewInput::new(
-            contract_address,
-            query.name,
-            query.version,
-            query.instance,
-            env!("CARGO_PKG_VERSION").to_owned(),
-            serde_json::to_value(body.source).expect(zinc_const::panic::DATA_CONVERSION),
-            body.bytecode,
-            body.verifying_key,
-            contract_private_key,
-        ))
-        .await?;
-
-    log::debug!("Writing the contract storage to the persistent PostgreSQL database");
-    postgresql.insert_fields(fields).await?;
 
     log::debug!("Writing the contract to the temporary server cache");
     app_data
@@ -158,11 +126,27 @@ pub async fn handle(
         .contracts
         .insert(
             contract_address,
-            SharedDataContract::new(build, contract_private_key),
+            SharedDataContract::new(
+                contract_address,
+
+                query.name,
+                query.version,
+                query.instance,
+
+                serde_json::to_value(body.source).expect(zinc_const::panic::DATA_CONVERSION),
+                body.bytecode,
+                body.verifying_key,
+
+                None,
+                contract_private_key,
+
+                build,
+                fields,
+            ),
         );
 
     let response = ResponseBody::new(contract_address);
 
-    log::debug!("The contract has been published");
+    log::debug!("The contract is waiting for the initialization");
     Ok(Response::new_with_data(StatusCode::CREATED, response))
 }

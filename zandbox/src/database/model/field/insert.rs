@@ -1,5 +1,5 @@
 //!
-//! The database contract storage field INSERT input model.
+//! The database contract storage field INSERT model.
 //!
 
 use serde_json::Value as JsonValue;
