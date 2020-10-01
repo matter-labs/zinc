@@ -116,6 +116,7 @@ where
         self.init_storage()?;
 
         let mut step = 0;
+        let execution_time = std::time::Instant::now();
         while self.execution_state.instruction_counter < contract.instructions.len() {
             let namespace = format!(
                 "step={}, addr={}",
@@ -125,7 +126,7 @@ where
             let instruction =
                 contract.instructions[self.execution_state.instruction_counter].clone();
 
-            log::trace!(
+            log::debug!(
                 "{}:{} > {}",
                 step,
                 self.execution_state.instruction_counter,
@@ -142,6 +143,8 @@ where
             instruction_callback(&self.counter.cs);
             self.counter.cs.pop_namespace();
             step += 1;
+
+            log::debug!("Elapsed time: {} micros", execution_time.elapsed().as_micros());
         }
 
         self.get_outputs()

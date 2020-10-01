@@ -29,10 +29,13 @@ pub struct DataStack<E: IEngine> {
 }
 
 impl<E: IEngine> DataStack<E> {
+    const MEMORY_INITIAL_CAPACITY: usize = 16384;
+    const BRANCHES_INITIAL_CAPACITY: usize = 64;
+
     pub fn new() -> Self {
         Self {
-            memory: Vec::new(),
-            branches: Vec::new(),
+            memory: Vec::with_capacity(Self::MEMORY_INITIAL_CAPACITY),
+            branches: Vec::with_capacity(Self::BRANCHES_INITIAL_CAPACITY),
         }
     }
 

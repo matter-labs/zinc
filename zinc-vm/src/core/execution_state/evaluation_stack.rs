@@ -25,7 +25,7 @@ impl<E: IEngine> Default for EvaluationStack<E> {
 }
 
 impl<E: IEngine> EvaluationStack<E> {
-    const STACK_INITIAL_CAPACITY: usize = 16;
+    const STACK_INITIAL_CAPACITY: usize = 16384;
 
     pub fn new() -> Self {
         Self {
