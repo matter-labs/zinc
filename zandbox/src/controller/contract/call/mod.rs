@@ -16,7 +16,7 @@ use serde_json::json;
 use serde_json::Value as JsonValue;
 
 use zksync::operations::SyncTransactionHandle;
-use zksync::zksync_models::FranklinTx;
+use zksync_types::FranklinTx;
 
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Value as BuildValue;

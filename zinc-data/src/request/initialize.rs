@@ -7,8 +7,8 @@ use std::iter::IntoIterator;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
-use zksync::web3::types::Address;
 use zksync::Network;
+use zksync_types::Address;
 
 use crate::transaction::Transaction;
 

@@ -54,7 +54,8 @@ contract ConstantPrice {
 }
 ```
 
-Let's change the code to have two balance fields and the `exchange` function:
+Let's change the code to have two balance fields, the `exchange` method, and
+two methods `get_x` and `get_y` to query the contract balances separately.
 
 ```rust,no_run,noplaypen
 enum Token {
@@ -102,6 +103,14 @@ contract ConstantPrice {
             },
         };
     }
+
+    pub fn get_x(self) -> Balance {
+        self.balance_x
+    }
+
+    pub fn get_y(self) -> Balance {
+        self.balance_y
+    }
 }
 ```
 
@@ -132,26 +141,41 @@ zargo publish --network ropsten --instance default
 ```
 
 To see the available testnets, enter `zargo publish --help`. When the contract
-is successfully published, its zkSync account ID will be returned. You will need
-it for the `id` argument in the consequent calls. Let's assume it equal to `42`.
+is successfully published, its ETH address and zkSync account ID will be returned.
+You will need the address to make the consequent calls. Let's assume it equal to
+`0x1234123412341234123412341234123412341234`.
 
 The instance name is used to uniquely identify your published contract without
-memorizing its zkSync account ID.
+memorizing its ETH address.
 
 The contract has been published!
 
-## Checking the contract state
+## Querying the contract storage
 
 The `constant_price` contract is now published, and its dedicated storage
 instance is created. You may query the Zandbox server to see the current balances:
 
 ```bash
-zargo query --network ropsten --id 42
+zargo query --network ropsten --address 0x1234123412341234123412341234123412341234
 ```
 
-The output must be equal to the constructor input you specified above.
+## Calling a non-mutable contract method
 
-## Calling a contract method
+A non-mutable contract method may be called with the same query as above, but
+with the `method` argument:
+
+```bash
+zargo query --network ropsten --address 0x1234123412341234123412341234123412341234 --method get_x
+```
+
+The output:
+```json
+{
+  "output": "50"
+}
+```
+
+## Calling a mutable contract method
 
 Let's now call our contract `exchange` method!
 
@@ -169,7 +193,7 @@ To call the contract method, use the following command with the method name and
 contract account ID:
 
 ```bash
-zargo call --network localhost --id 42 --method exchange
+zargo call --network localhost --address 0x1234123412341234123412341234123412341234 --method exchange
 ```
 
 After the call has succeeded, query the contract storage again to see the
@@ -177,8 +201,10 @@ expected result:
 
 ```json
 {
-  "balance_x": "50",
-  "balance_y": "150"
+  "output": {
+    "balance_x": "50",
+    "balance_y": "150"
+  }
 }
 ```
 

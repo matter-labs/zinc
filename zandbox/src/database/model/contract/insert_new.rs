@@ -4,9 +4,9 @@
 
 use serde_json::Value as JsonValue;
 
-use zksync::zksync_models::AccountId;
 use zksync::web3::types::Address;
 use zksync::web3::types::H256;
+use zksync_types::AccountId;
 
 ///
 /// The database contract INSERT new input model.

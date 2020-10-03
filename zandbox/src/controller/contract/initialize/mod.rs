@@ -13,10 +13,10 @@ use actix_web::http::StatusCode;
 use actix_web::web;
 
 use zksync::operations::SyncTransactionHandle;
-use zksync::zksync_models::FranklinTx;
+use zksync_types::FranklinTx;
 
-use crate::database::model::field::insert::Input as FieldInsertInput;
 use crate::database::model::contract::insert_new::Input as ContractInsertNewInput;
+use crate::database::model::field::insert::Input as FieldInsertInput;
 use crate::response::Response;
 use crate::shared_data::SharedData;
 
@@ -131,9 +131,14 @@ pub async fn handle(
 
     let contract_eth_address = contract.eth_address;
 
-    let fields = contract.fields.into_iter().enumerate().map(|(index, (name, value))| {
-        FieldInsertInput::new(contract_eth_address, index as i16, name, value.into_json())
-    }).collect();
+    let fields = contract
+        .fields
+        .into_iter()
+        .enumerate()
+        .map(|(index, (name, value))| {
+            FieldInsertInput::new(contract_eth_address, index as i16, name, value.into_json())
+        })
+        .collect();
 
     log::debug!("Writing the contract to the persistent PostgreSQL database");
     postgresql

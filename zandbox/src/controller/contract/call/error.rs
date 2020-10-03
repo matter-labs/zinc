@@ -8,7 +8,7 @@ use actix_web::http::StatusCode;
 use actix_web::ResponseError;
 use serde_json::Value as JsonValue;
 
-use zksync::zksync_models::TokenId;
+use zksync_types::TokenId;
 
 use zinc_build::ValueError as BuildValueError;
 use zinc_data::TransferError;

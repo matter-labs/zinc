@@ -43,44 +43,9 @@ case "${2}" in
         ;;
 esac
 
-# Zinc project name
-export PROJECT_NAME="${3}"
-
-# Zinc smart contract method name
-export PROJECT_METHOD="${4}"
-
-# Zinc integration tester: 'proof-check'?
-case "${5}" in
-    proof-check)
-        export PROOF_CHECK="--proof-check"
-        ;;
-    *)
-        export PROOF_CHECK=""
-        ;;
-esac
-
-export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
-export ZINC_TESTER_NAME='zinc-tester'
-
 #cargo fmt --all
 #cargo clippy
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_FLAG}
 #cargo test
-#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin ${ZINC_TESTER_NAME} -- ${LOG_LEVEL} ${PROOF_CHECK}
-
-#if [[ -n "${PROJECT_NAME}" ]]; then
-#  export PROJECT_DIRECTORY="./zinc-examples/${PROJECT_NAME}/"
-#  export MANIFEST_PATH="${PROJECT_DIRECTORY}/Zargo.toml"
-#
-#  "${ZARGO_PATH}" clean ${LOG_LEVEL} --manifest-path "${MANIFEST_PATH}"
-#  "${ZARGO_PATH}" test ${LOG_LEVEL} --manifest-path "${MANIFEST_PATH}"
-#
-#  if [[ -n "${PROJECT_METHOD}" ]]; then
-#    "${ZARGO_PATH}" proof-check ${LOG_LEVEL} ${RELEASE_FLAG} --manifest-path "${MANIFEST_PATH}" --method "${PROJECT_METHOD}"
-#  else
-#    "${ZARGO_PATH}" proof-check ${LOG_LEVEL} ${RELEASE_FLAG} --manifest-path "${MANIFEST_PATH}"
-#  fi
-#fi
-
-cargo build ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zargo'
-cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zandbox' -- ${LOG_LEVEL}
+#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
+#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zandbox' -- ${LOG_LEVEL}

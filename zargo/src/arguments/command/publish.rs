@@ -14,7 +14,7 @@ use reqwest::Url;
 use structopt::StructOpt;
 
 use zksync::web3::types::H256;
-use zksync::zksync_models::tx::PackedEthSignature;
+use zksync_types::tx::PackedEthSignature;
 
 use zinc_data::InitializeRequestBody;
 use zinc_data::InitializeRequestQuery;
@@ -133,7 +133,7 @@ pub enum Error {
         display = "could not derive the ETH address from the private key: {}",
         _0
     )]
-    SenderAddressDeriving(failure::Error),
+    SenderAddressDeriving(anyhow::Error),
     /// The wallet initialization error.
     #[fail(display = "wallet initialization: {}", _0)]
     WalletInitialization(zksync::error::ClientError),

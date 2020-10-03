@@ -5,7 +5,7 @@
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
-use zksync::zksync_models::AccountId;
+use zksync_types::AccountId;
 
 ///
 /// The contract resource `initialize` POST response body.

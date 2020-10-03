@@ -6,7 +6,7 @@ use serde_json::Value as JsonValue;
 
 use zksync::web3::types::H160;
 use zksync::web3::types::H256;
-use zksync::zksync_models::AccountId;
+use zksync_types::AccountId;
 
 use zinc_build::Contract as BuildContract;
 use zinc_build::Value as BuildValue;
@@ -48,6 +48,7 @@ impl Contract {
     ///
     /// A shortcut constructor.
     ///
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         eth_address: H160,
 

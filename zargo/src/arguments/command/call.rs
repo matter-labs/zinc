@@ -15,7 +15,7 @@ use serde_json::Value as JsonValue;
 use structopt::StructOpt;
 
 use zksync::web3::types::H256;
-use zksync::zksync_models::tx::PackedEthSignature;
+use zksync_types::tx::PackedEthSignature;
 
 use zinc_data::CallRequestBody;
 use zinc_data::CallRequestQuery;
@@ -108,7 +108,7 @@ pub enum Error {
         display = "could not derive the ETH address from the private key: {}",
         _0
     )]
-    SenderAddressDeriving(failure::Error),
+    SenderAddressDeriving(anyhow::Error),
     /// The wallet initialization error.
     #[fail(display = "wallet initialization: {}", _0)]
     WalletInitialization(zksync::error::ClientError),

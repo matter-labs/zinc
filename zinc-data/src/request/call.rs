@@ -8,8 +8,8 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use serde_json::Value as JsonValue;
 
-use zksync::web3::types::Address;
 use zksync::Network;
+use zksync_types::Address;
 
 use crate::transaction::Transaction;
 

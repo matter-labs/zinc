@@ -5,8 +5,8 @@
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
-use zksync::zksync_models::tx::PackedEthSignature;
-use zksync::zksync_models::FranklinTx;
+use zksync_types::tx::PackedEthSignature;
+use zksync_types::FranklinTx;
 
 ///
 /// The transaction, understandable by zkSync, front-end, Zandbox, and Zargo.

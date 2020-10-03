@@ -16,6 +16,7 @@ log = "0.4"
 structopt = "0.3"
 
 failure = "0.1"
+anyhow = "1.0"
 colored = "2.0"
 
 serde = "1.0"
@@ -30,6 +31,7 @@ tokio = "0.2"
 reqwest = "0.9"
 
 zksync = { path = "../zksync/sdk/zksync-rs" }
+zksync_types = { path = "../zksync/core/lib/types" }
 num_old = { package = "num", version = "0.2.1" }
 
 zinc-const = { path = "../zinc-const" }

@@ -16,6 +16,7 @@ serde_json = "1.0"
 rustc-hex = "2.1"
 
 zksync = { path = "../zksync/sdk/zksync-rs" }
+zksync_types = { path = "../zksync/core/lib/types" }
 num_old = { package = "num", version = "0.2.1" }
 
 zinc-utils = { path = "../zinc-utils" }

@@ -15,18 +15,18 @@ use colored::Colorize;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
-use zksync::zksync_models::Address;
-use zksync::zksync_models::AccountId;
+use zksync_types::AccountId;
+use zksync_types::Address;
 
 use zinc_build::Program as BuildProgram;
 use zinc_build::Value as BuildValue;
 
 use zandbox::ContractSelectAllOutput;
 use zandbox::DatabaseClient;
-use zandbox::SharedData;
-use zandbox::SharedDataContract;
 use zandbox::FieldSelectInput;
 use zandbox::FieldSelectOutput;
+use zandbox::SharedData;
+use zandbox::SharedDataContract;
 
 use self::arguments::Arguments;
 use self::error::Error;
@@ -96,18 +96,14 @@ async fn main() -> Result<(), Error> {
 
                 let contract = SharedDataContract::new(
                     address,
-
                     name,
                     version,
                     instance,
-
                     source_code,
                     bytecode,
                     verifying_key,
-
                     Some(account_id as AccountId),
                     eth_private_key,
-
                     build,
                     vec![],
                 );

@@ -20,10 +20,10 @@ mod simple_math;
 use simple_math::cube;
 
 contract CubeDeposit {
-    // ...
+    pub balance: u64;
 
-    pub fn deposit(amount: u64) -> u64 {
-        cube(amount)
+    pub fn deposit(mut self, amount: u64) {
+        self.balance += cube(amount);
     }
 }
 ```

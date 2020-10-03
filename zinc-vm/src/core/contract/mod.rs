@@ -144,7 +144,10 @@ where
             self.counter.cs.pop_namespace();
             step += 1;
 
-            log::debug!("Elapsed time: {} micros", execution_time.elapsed().as_micros());
+            log::debug!(
+                "Elapsed time: {} micros",
+                execution_time.elapsed().as_micros()
+            );
         }
 
         self.get_outputs()

@@ -7,7 +7,6 @@ use std::process::Command;
 
 use num_old::BigUint;
 use serde_json::json;
-use tokio::runtime::Runtime;
 
 use crate::database::client::Client as DatabaseClient;
 use std::io::Write;
@@ -16,26 +15,27 @@ static MANIFEST_PATH: &str = "../zinc-examples/curve/";
 
 static OWNER_ADDRESS: &str = "0x36615cf349d7f6344891b1e7ca7c72883f5dc049";
 
-#[test]
-fn ok_curve() {
-    let mut runtime = Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
-
+#[async_std::test]
+#[cfg_attr(not(feature = "integration-tests"), ignore)]
+async fn ok_curve() {
     let provider = zksync::Provider::new(zksync::Network::Localhost);
 
-    let database_client = runtime
-        .block_on(DatabaseClient::new(
-            zinc_const::postgresql::HOST.to_owned(),
-            zinc_const::postgresql::PORT,
-            zinc_const::postgresql::USER.to_owned(),
-            zinc_const::postgresql::PASSWORD.to_owned(),
-            zinc_const::postgresql::DATABASE.to_owned(),
-        ))
-        .expect("Database client initialization");
-    runtime
-        .block_on(database_client.delete_fields())
+    let database_client = DatabaseClient::new(
+        zinc_const::postgresql::HOST.to_owned(),
+        zinc_const::postgresql::PORT,
+        zinc_const::postgresql::USER.to_owned(),
+        zinc_const::postgresql::PASSWORD.to_owned(),
+        zinc_const::postgresql::DATABASE.to_owned(),
+    )
+    .await
+    .expect("Database client initialization");
+    database_client
+        .delete_fields()
+        .await
         .expect("Database contract storage deleting");
-    runtime
-        .block_on(database_client.delete_contracts())
+    database_client
+        .delete_contracts()
+        .await
         .expect("Database contracts deleting");
 
     let output = Command::new(zinc_const::app_name::ZARGO)
@@ -152,14 +152,13 @@ fn ok_curve() {
         )
         .expect("Swap input file writing");
 
-    let account_info = runtime
-        .block_on(
-            provider.account_info(
-                address["0x".len()..]
-                    .parse()
-                    .expect(zinc_const::panic::DATA_CONVERSION),
-            ),
+    let account_info = provider
+        .account_info(
+            address["0x".len()..]
+                .parse()
+                .expect(zinc_const::panic::DATA_CONVERSION),
         )
+        .await
         .expect("Account info getting");
     assert_eq!(
         account_info
@@ -196,14 +195,13 @@ fn ok_curve() {
         .expect("Zargo swap call process waiting");
     assert!(status.success(), "Zargo swap call process failure");
 
-    let mut account_info = runtime
-        .block_on(
-            provider.account_info(
-                address["0x".len()..]
-                    .parse()
-                    .expect(zinc_const::panic::DATA_CONVERSION),
-            ),
+    let mut account_info = provider
+        .account_info(
+            address["0x".len()..]
+                .parse()
+                .expect(zinc_const::panic::DATA_CONVERSION),
         )
+        .await
         .expect("Account info getting");
     assert_eq!(
         account_info
@@ -240,14 +238,13 @@ fn ok_curve() {
         .expect("Zargo swap call process waiting");
     assert!(status.success(), "Zargo swap call process failure");
 
-    let mut account_info = runtime
-        .block_on(
-            provider.account_info(
-                address["0x".len()..]
-                    .parse()
-                    .expect(zinc_const::panic::DATA_CONVERSION),
-            ),
+    let mut account_info = provider
+        .account_info(
+            address["0x".len()..]
+                .parse()
+                .expect(zinc_const::panic::DATA_CONVERSION),
         )
+        .await
         .expect("Account info getting");
     assert_eq!(
         account_info
@@ -284,14 +281,13 @@ fn ok_curve() {
         .expect("Zargo swap call process waiting");
     assert!(status.success(), "Zargo swap call process failure");
 
-    let mut account_info = runtime
-        .block_on(
-            provider.account_info(
-                address["0x".len()..]
-                    .parse()
-                    .expect(zinc_const::panic::DATA_CONVERSION),
-            ),
+    let mut account_info = provider
+        .account_info(
+            address["0x".len()..]
+                .parse()
+                .expect(zinc_const::panic::DATA_CONVERSION),
         )
+        .await
         .expect("Account info getting");
     assert_eq!(
         account_info

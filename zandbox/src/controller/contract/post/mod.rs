@@ -19,7 +19,7 @@ use zinc_vm::Bn256;
 
 use zksync::web3::types::Address;
 use zksync::web3::types::H256;
-use zksync::zksync_models::tx::PackedEthSignature;
+use zksync_types::tx::PackedEthSignature;
 
 use crate::response::Response;
 use crate::shared_data::contract::Contract as SharedDataContract;
@@ -128,18 +128,14 @@ pub async fn handle(
             contract_address,
             SharedDataContract::new(
                 contract_address,
-
                 query.name,
                 query.version,
                 query.instance,
-
                 serde_json::to_value(body.source).expect(zinc_const::panic::DATA_CONVERSION),
                 body.bytecode,
                 body.verifying_key,
-
                 None,
                 contract_private_key,
-
                 build,
                 fields,
             ),

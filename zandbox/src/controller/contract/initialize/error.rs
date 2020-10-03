@@ -7,7 +7,7 @@ use std::fmt;
 use actix_web::http::StatusCode;
 use actix_web::ResponseError;
 
-use zksync::zksync_models::TokenId;
+use zksync_types::TokenId;
 
 ///
 /// The contract resource POST `initialize` error.

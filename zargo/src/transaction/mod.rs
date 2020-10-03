@@ -7,9 +7,9 @@ pub mod error;
 use num_old::Zero;
 
 use zksync::web3::types::Address;
-use zksync::zksync_models::FranklinTx;
-use zksync::zksync_models::TokenLike;
-use zksync::zksync_models::TxFeeTypes;
+use zksync_types::FranklinTx;
+use zksync_types::TokenLike;
+use zksync_types::TxFeeTypes;
 
 use zinc_data::Transaction;
 use zinc_data::Transfer;

@@ -29,12 +29,13 @@ num = "0.3"
 
 rayon = "1.4"
 futures = "0.3"
-async-std = "1.6"
+async-std = { version = "1.6", features = [ "attributes" ] }
 actix-rt = "1.1"
 actix-web = "2.0"
 sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-async-std", "macros", "postgres", "json" ] }
 
 zksync = { path = "../zksync/sdk/zksync-rs" }
+zksync_types = { path = "../zksync/core/lib/types" }
 zksync_utils = { path = "../zksync/core/lib/utils" }
 num_old = { package = "num", version = "0.2.1" }
 
@@ -44,5 +45,5 @@ zinc-build = { path = "../zinc-build" }
 zinc-data = { path = "../zinc-data" }
 zinc-vm = { path = "../zinc-vm" }
 
-[dev-dependencies]
-tokio = "0.2"
+[features]
+integration-tests = []

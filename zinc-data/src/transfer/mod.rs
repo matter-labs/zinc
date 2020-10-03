@@ -10,9 +10,9 @@ use serde_derive::Deserialize;
 use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
 
-use zksync::web3::types::Address;
-use zksync::zksync_models::FranklinTx;
-use zksync::zksync_models::TokenLike;
+use zksync_types::Address;
+use zksync_types::FranklinTx;
+use zksync_types::TokenLike;
 
 use crate::transaction::Transaction;
 

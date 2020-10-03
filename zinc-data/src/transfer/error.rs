@@ -4,7 +4,7 @@
 
 use failure::Fail;
 
-use zksync::zksync_models::TokenLike;
+use zksync_types::TokenLike;
 
 ///
 /// The transfer error.

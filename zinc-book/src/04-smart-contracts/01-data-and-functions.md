@@ -43,7 +43,7 @@ contract methods. The contract must have at least one public function.
 contract Example {
     //...
 
-    pub fn deposit(amount: u64) -> bool { ... }
+    pub fn deposit(mut self, amount: u64) -> bool { ... }
 }
 ```
 
@@ -57,7 +57,7 @@ can be called from within the public methods.
 contract Example {
     //...
 
-    fn is_valid(address: u160) -> bool { ... }
+    fn get_balance(address: u160) -> bool { ... }
 }
 ```
 

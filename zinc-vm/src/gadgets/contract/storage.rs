@@ -125,7 +125,7 @@ where
                 .get_value()
                 .map(|field| gadgets::scalar::fr_bigint::fr_to_bigint::<E>(&field, false))
                 .expect(zinc_const::panic::TEST_DATA_VALID),
-            values/*.clone()*/,
+            values, /*.clone()*/
         )?;
 
         // let leaf_hash = AllocatedLeaf::alloc_leaf_hash(
