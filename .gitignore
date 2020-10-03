@@ -5,9 +5,6 @@
 # Rust build
 /target/
 
-# Book build
-/zinc-book/build/
-
 # Visual Studio Code extension build
 /vscode/*.vsix
 

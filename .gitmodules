@@ -1,4 +1,8 @@
 [submodule "zksync"]
 	path = zksync
-	url = https://github.com/matter-labs/zksync-dev
+	url = ssh://git@github.com/matter-labs/zksync-dev
 	branch = dev
+[submodule "zinc-book-build"]
+	path = zinc-book/build
+	url = ssh://git@github.com/matter-labs/zinc-contracts-book
+	branch = master
