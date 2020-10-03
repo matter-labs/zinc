@@ -2,6 +2,11 @@
 //! The semantic analyzer enumeration type element.
 //!
 
+#[cfg(test)]
+mod tests;
+
+pub mod error;
+
 use std::cell::RefCell;
 use std::convert::TryFrom;
 use std::fmt;
@@ -14,9 +19,12 @@ use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::error::Error;
+use crate::semantic::element::r#type::error::Error as TypeError;
+use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::variant::Variant;
+
+use self::error::Error;
 
 ///
 /// Describes an enumeration type.
@@ -53,15 +61,15 @@ impl Enumeration {
         type_id: usize,
         variants: Vec<Variant>,
         scope: Option<Rc<RefCell<Scope>>>,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, SemanticError> {
         let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());
 
         let mut variants_bigint = Vec::with_capacity(variants.len());
-        for variant in variants.into_iter() {
+        for variant in variants.iter() {
             let value = IntegerConstant::try_from(&variant.literal).map_err(|error| {
-                Error::Element(ElementError::Constant(ConstantError::Integer(error)))
+                SemanticError::Element(ElementError::Constant(ConstantError::Integer(error)))
             })?;
-            variants_bigint.push((variant.identifier, value.value.clone()));
+            variants_bigint.push((variant.identifier.to_owned(), value.value.to_owned()));
         }
         let names: Vec<String> = variants_bigint
             .iter()
@@ -71,13 +79,31 @@ impl Enumeration {
             .iter()
             .map(|(_identifier, value)| value.to_owned())
             .collect();
+        for (index, bigint) in bigints.iter().enumerate() {
+            if bigints.iter().filter(|value| value == &bigint).count() > 1 {
+                let variant = variants
+                    .get(index)
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
+
+                return Err(SemanticError::Element(ElementError::Type(
+                    TypeError::Enumeration(Error::DuplicateVariantValue {
+                        location: variant.identifier.location,
+                        type_identifier: identifier,
+                        variant_name: variant.identifier.name.to_owned(),
+                        variant_value: bigint.to_owned(),
+                    }),
+                )));
+            }
+        }
 
         let minimal_bitlength = IntegerConstant::minimal_bitlength_bigints(
             bigints.iter().collect::<Vec<&BigInt>>().as_slice(),
             false,
             location,
         )
-        .map_err(|error| Error::Element(ElementError::Constant(ConstantError::Integer(error))))?;
+        .map_err(|error| {
+            SemanticError::Element(ElementError::Constant(ConstantError::Integer(error)))
+        })?;
 
         bigints.sort();
         let mut enumeration = Self {

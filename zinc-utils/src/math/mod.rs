@@ -5,9 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod euclidean;
-pub mod inference;
-
 ///
 /// The power of two enough to represent `n`.
 ///

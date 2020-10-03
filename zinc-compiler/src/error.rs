@@ -26,6 +26,7 @@ use crate::semantic::element::constant::tuple::error::Error as TupleConstantErro
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::r#type::contract::error::Error as ContractTypeError;
+use crate::semantic::element::r#type::enumeration::error::Error as EnumerationTypeError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
@@ -1848,6 +1849,16 @@ impl Error {
                         .as_str(),
                     location,
                     Some("consider giving the field a unique name"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Enumeration(EnumerationTypeError::DuplicateVariantValue { location, type_identifier, variant_name, variant_value })))) => {
+                Self::format_line( format!(
+                    "`{}` has a duplicate variant `{}` with value `{}`",
+                    type_identifier, variant_name, variant_value,
+                )
+                                       .as_str(),
+                                   location,
+                                   Some("variants with the same value are temporary forbidden"),
                 )
             }
             Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Contract(ContractTypeError::DuplicateField { location, type_identifier, field_name })))) => {

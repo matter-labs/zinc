@@ -372,7 +372,7 @@ impl Value {
 
         let bigint = match variants
             .into_iter()
-            .find(|(name, _value)| name == value_string)
+            .find(|(name, value)| name == value_string || value.to_string() == value_string)
         {
             Some((_name, bigint)) => bigint,
             None => {

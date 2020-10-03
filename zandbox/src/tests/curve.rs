@@ -11,11 +11,11 @@ use serde_json::json;
 use crate::database::client::Client as DatabaseClient;
 use std::io::Write;
 
-static MANIFEST_PATH: &str = "../zinc-examples/curve/";
+static MANIFEST_PATH: &str = "/home/hedgar/src/curve-zinc/";
 
 static OWNER_ADDRESS: &str = "0x36615cf349d7f6344891b1e7ca7c72883f5dc049";
 
-#[async_std::test]
+#[tokio::test]
 #[cfg_attr(not(feature = "integration-tests"), ignore)]
 async fn ok_curve() {
     let provider = zksync::Provider::new(zksync::Network::Localhost);
@@ -55,7 +55,13 @@ async fn ok_curve() {
                 .nth(1)
                 .expect("Zargo output format is invalid")
         })
-        .expect("Zargo output format is invalid");
+        .expect(
+            format!(
+                "Zargo stdout format is invalid: {}",
+                String::from_utf8_lossy(output.stdout.as_slice())
+            )
+            .as_str(),
+        );
     assert!(output.status.success(), "Zargo publish process failure");
 
     let witness_new_path = format!("{}/data/witness_{}.json", MANIFEST_PATH, "new");

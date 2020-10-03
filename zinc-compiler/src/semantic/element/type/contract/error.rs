@@ -9,11 +9,11 @@ use crate::lexical::token::location::Location;
 ///
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    /// A field with the same name occures for the second time.
+    /// A field with the same name occurs for the second time.
     DuplicateField {
         /// The duplicate field location.
         location: Location,
-        /// The stringified field type.
+        /// The contract type name.
         type_identifier: String,
         /// The duplicate field name.
         field_name: String,

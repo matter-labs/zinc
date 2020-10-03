@@ -37,6 +37,8 @@ use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
+use crate::semantic::element::value::Value;
+use crate::semantic::element::Element;
 use crate::syntax::tree::identifier::Identifier;
 
 use self::array::Array;
@@ -673,19 +675,42 @@ impl Neg for Constant {
 
 impl Constant {
     ///
-    /// Executes the `[]` array index operator.
+    /// Executes the `[]` array index operator with a non-constant value.
     ///
-    pub fn index(self, other: Constant) -> Result<(Self, IndexAccess), Error> {
+    pub fn index_value(self, other: Value) -> Result<(Element, IndexAccess), Error> {
         match self {
             Constant::Array(array) => match other {
-                Constant::Integer(integer) => array.slice_single(integer).map_err(Error::Array),
+                Value::Integer(_) => array.slice_single(None).map_err(Error::Array),
+                value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
+                    location: value
+                        .location()
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                    found: value.to_string(),
+                }),
+            },
+            constant => Err(Error::OperatorIndexFirstOperandExpectedArray {
+                location: constant.location(),
+                found: constant.to_string(),
+            }),
+        }
+    }
+
+    ///
+    /// Executes the `[]` array index operator with a constant value.
+    ///
+    pub fn index_constant(self, other: Constant) -> Result<(Element, IndexAccess), Error> {
+        match self {
+            Constant::Array(array) => match other {
+                Constant::Integer(integer) => {
+                    array.slice_single(Some(integer)).map_err(Error::Array)
+                }
                 Constant::Range(range) => array
                     .slice_range(range)
-                    .map(|(constant, access)| (constant, access))
+                    .map(|(constant, access)| (Element::Constant(constant), access))
                     .map_err(Error::Array),
                 Constant::RangeInclusive(range) => array
                     .slice_range_inclusive(range)
-                    .map(|(constant, access)| (constant, access))
+                    .map(|(constant, access)| (Element::Constant(constant), access))
                     .map_err(Error::Array),
                 constant => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
                     location: constant.location(),

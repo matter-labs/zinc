@@ -29,7 +29,7 @@ num = "0.3"
 
 rayon = "1.4"
 futures = "0.3"
-async-std = { version = "1.6", features = [ "attributes" ] }
+async-std = "1.6"
 actix-rt = "1.1"
 actix-web = "2.0"
 sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-async-std", "macros", "postgres", "json" ] }
@@ -44,6 +44,9 @@ zinc-utils = { path = "../zinc-utils" }
 zinc-build = { path = "../zinc-build" }
 zinc-data = { path = "../zinc-data" }
 zinc-vm = { path = "../zinc-vm" }
+
+[dev-dependencies]
+tokio = { version = "0.2", features = [ "macros" ] }
 
 [features]
 integration-tests = []

@@ -4,6 +4,7 @@
 
 use colored::Colorize;
 
+static TOKEN_SYMBOL: &str = "ETH";
 static ETH_ADDRESS: &str = "36615Cf349d7F6344891B1e7CA7C72883F5dc049";
 static ETH_PRIVATE_KEY: &str = "7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
 
@@ -25,6 +26,8 @@ async fn main() {
 
     let tx_info = wallet
         .start_change_pubkey()
+        .fee_token(TOKEN_SYMBOL)
+        .expect("Fee token resolving")
         .send()
         .await
         .expect("Transaction sending")

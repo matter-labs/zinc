@@ -41,7 +41,7 @@ pub enum Error {
 
     /// The JSON template file data does not match the bytecode program input/output types metadata.
     #[fail(
-        display = "invalid json structure: {}\nNote: remove the file ./data/witness.json so the compiler may recreate it",
+        display = "invalid json structure: {}\nNote: remove the JSON file so the compiler may recreate it",
         _0
     )]
     JsonValue(BuildValueError),

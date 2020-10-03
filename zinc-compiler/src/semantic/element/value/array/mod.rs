@@ -123,7 +123,7 @@ impl Array {
     /// Applies the index operator, getting a single element from the array.
     ///
     pub fn slice_single(self) -> (Value, IndexAccess) {
-        let access = IndexAccess::new(self.r#type.size(), self.r#type().size(), None);
+        let access = IndexAccess::new(self.r#type.size(), 1, self.r#type().size(), None);
 
         let result = Value::try_from_type(&self.r#type, false, self.location)
             .expect(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
@@ -175,11 +175,15 @@ impl Array {
             });
         }
 
-        let length = end - start;
+        let slice_length = end - start;
 
-        let access = IndexAccess::new(self.r#type.size() * length, self.r#type().size(), None);
+        let access = IndexAccess::new(self.r#type.size(), slice_length, self.r#type().size(), None);
 
-        let result = Value::Array(Self::new_with_values(self.location, self.r#type, length));
+        let result = Value::Array(Self::new_with_values(
+            self.location,
+            self.r#type,
+            slice_length,
+        ));
 
         Ok((result, access))
     }
@@ -231,11 +235,15 @@ impl Array {
             });
         }
 
-        let length = end - start + 1;
+        let slice_length = end - start + 1;
 
-        let access = IndexAccess::new(self.r#type.size() * length, self.r#type().size(), None);
+        let access = IndexAccess::new(self.r#type.size(), slice_length, self.r#type().size(), None);
 
-        let result = Value::Array(Self::new_with_values(self.location, self.r#type, length));
+        let result = Value::Array(Self::new_with_values(
+            self.location,
+            self.r#type,
+            slice_length,
+        ));
 
         Ok((result, access))
     }

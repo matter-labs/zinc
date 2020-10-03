@@ -105,7 +105,7 @@ where
             let instruction =
                 circuit.instructions[self.execution_state.instruction_counter].clone();
 
-            log::debug!(
+            log::trace!(
                 "{}:{} > {}",
                 step,
                 self.execution_state.instruction_counter,

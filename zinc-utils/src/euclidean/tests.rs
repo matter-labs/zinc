@@ -4,7 +4,7 @@
 
 use num::BigInt;
 
-use crate::math::euclidean;
+use crate::euclidean;
 
 #[test]
 fn ok_div_rem() {

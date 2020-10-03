@@ -126,7 +126,7 @@ where
             let instruction =
                 contract.instructions[self.execution_state.instruction_counter].clone();
 
-            log::debug!(
+            log::trace!(
                 "{}:{} > {}",
                 step,
                 self.execution_state.instruction_counter,
@@ -143,12 +143,12 @@ where
             instruction_callback(&self.counter.cs);
             self.counter.cs.pop_namespace();
             step += 1;
-
-            log::debug!(
-                "Elapsed time: {} micros",
-                execution_time.elapsed().as_micros()
-            );
         }
+
+        log::trace!(
+            "Elapsed time: {} micros",
+            execution_time.elapsed().as_micros()
+        );
 
         self.get_outputs()
     }

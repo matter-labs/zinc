@@ -91,6 +91,11 @@ pub async fn handle(
         );
     }
 
+    let fee_token_id = match body.transaction.tx {
+        FranklinTx::Transfer(ref transfer) => transfer.token,
+        _ => panic!(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+    };
+
     let tx_info = wallet
         .provider
         .send_tx(
@@ -117,6 +122,8 @@ pub async fn handle(
     log::debug!("Sending the change-pubkey transaction");
     let tx_info = wallet
         .start_change_pubkey()
+        .fee(0_u64)
+        .fee_token(fee_token_id)?
         .send()
         .await?
         .wait_for_commit()

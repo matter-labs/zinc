@@ -1605,10 +1605,8 @@ impl Element {
                 }),
             },
             Self::Constant(constant) => match other {
-                Self::Constant(index) => constant
-                    .index(index)
-                    .map(|(constant, access)| (Element::Constant(constant), access))
-                    .map_err(Error::Constant),
+                Self::Value(index) => constant.index_value(index).map_err(Error::Constant),
+                Self::Constant(index) => constant.index_constant(index).map_err(Error::Constant),
                 element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable {
                     location: element
                         .location()

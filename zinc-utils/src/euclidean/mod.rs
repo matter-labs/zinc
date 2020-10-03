@@ -43,7 +43,7 @@ pub fn div_rem(nominator: &BigInt, denominator: &BigInt) -> Option<(BigInt, BigI
 mod test {
     use num::BigInt;
 
-    use crate::math::euclidean;
+    use crate::euclidean;
 
     #[test]
     fn test_div_rem() {

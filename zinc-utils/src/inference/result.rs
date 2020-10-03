@@ -2,7 +2,7 @@
 //! The integer type inference result.
 //!
 
-use crate::math::inference::r#type::Type;
+use crate::inference::r#type::Type;
 
 ///
 /// The binary operation type inference result.

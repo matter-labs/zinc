@@ -705,10 +705,22 @@ impl IBytecodeWritable for Expression {
                                 Instruction::Cast(zinc_build::Cast::new(ScalarType::Field)),
                                 Some(location),
                             );
+                            if access.slice_length == 1 {
+                                IntegerConstant::new(
+                                    BigInt::from(access.element_size),
+                                    false,
+                                    zinc_const::bitlength::FIELD,
+                                )
+                                .write_all(state.clone());
+                                state.borrow_mut().push_instruction(
+                                    Instruction::Mul(zinc_build::Mul),
+                                    Some(location),
+                                );
+                            }
                         }
                         state.borrow_mut().push_instruction(
                             Instruction::Slice(zinc_build::Slice::new(
-                                access.element_size,
+                                access.element_size * access.slice_length,
                                 access.total_size,
                             )),
                             Some(location),

@@ -31,21 +31,21 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Slice {
             .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
             .to_usize()
             .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
-        if offset_usize + self.slice_size > self.total_size {
+        if offset_usize + self.slice_length > self.total_size {
             return Err(RuntimeError::IndexOutOfBounds {
                 lower_bound: 0,
                 upper_bound: self.total_size,
-                found: offset_usize + self.slice_size,
+                found: offset_usize + self.slice_length,
             });
         }
 
-        for i in 0..self.slice_size {
+        for i in 0..self.slice_length {
             let condition = vm.condition_top()?;
             let namespace = format!("conditional_get_{}", i);
             let value = gadgets::array::conditional_get(
                 vm.constraint_system().namespace(|| namespace),
                 &condition,
-                &array[i..=array.len() - self.slice_size + i],
+                &array[i..=array.len() - self.slice_length + i],
                 &offset,
             )?;
             vm.push(Cell::Value(value))?;

@@ -15,7 +15,7 @@ use crate::instructions::Instruction;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Slice {
     /// The size of the sliced chunk.
-    pub slice_size: usize,
+    pub slice_length: usize,
     /// The total size of the data chunk to be sliced.
     pub total_size: usize,
 }
@@ -24,9 +24,9 @@ impl Slice {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(slice_size: usize, total_size: usize) -> Self {
+    pub fn new(slice_length: usize, total_size: usize) -> Self {
         Self {
-            slice_size,
+            slice_length,
             total_size,
         }
     }
@@ -47,6 +47,6 @@ impl Into<Instruction> for Slice {
 
 impl fmt::Display for Slice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "slice {} {}", self.slice_size, self.total_size)
+        write!(f, "slice {} {}", self.slice_length, self.total_size)
     }
 }

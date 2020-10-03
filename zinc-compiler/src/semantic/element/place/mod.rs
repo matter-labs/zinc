@@ -94,14 +94,14 @@ impl Place {
         let inner_type_size = inner_type.size();
         match index_value {
             Element::Value(Value::Integer(..)) => {
-                let access = IndexAccess::new(inner_type_size, array_size, None);
+                let access = IndexAccess::new(inner_type_size, 1, array_size, None);
 
                 self.r#type = inner_type;
 
                 Ok((self, access))
             }
             Element::Constant(Constant::Integer(_integer)) => {
-                let access = IndexAccess::new(inner_type_size, array_size, None);
+                let access = IndexAccess::new(inner_type_size, 1, array_size, None);
 
                 self.r#type = inner_type;
 
@@ -149,7 +149,7 @@ impl Place {
                     });
                 }
 
-                let length = (end - start).to_usize().ok_or_else(|| {
+                let slice_length = (end - start).to_usize().ok_or_else(|| {
                     Error::ArraySliceEndLesserThanStart {
                         location: range.location,
                         start: start.to_string(),
@@ -157,9 +157,9 @@ impl Place {
                     }
                 })?;
 
-                let access = IndexAccess::new(inner_type_size, array_size, None);
+                let access = IndexAccess::new(inner_type_size, slice_length, array_size, None);
 
-                self.r#type = Type::array(Some(self.identifier.location), inner_type, length);
+                self.r#type = Type::array(Some(self.identifier.location), inner_type, slice_length);
 
                 Ok((self, access))
             }
@@ -205,7 +205,7 @@ impl Place {
                     });
                 }
 
-                let length = (end - start + 1).to_usize().ok_or_else(|| {
+                let slice_length = (end - start + 1).to_usize().ok_or_else(|| {
                     Error::ArraySliceEndLesserThanStart {
                         location: range.location,
                         start: start.to_string(),
@@ -213,9 +213,9 @@ impl Place {
                     }
                 })?;
 
-                let access = IndexAccess::new(inner_type_size, array_size, None);
+                let access = IndexAccess::new(inner_type_size, slice_length, array_size, None);
 
-                self.r#type = Type::array(Some(self.identifier.location), inner_type, length);
+                self.r#type = Type::array(Some(self.identifier.location), inner_type, slice_length);
 
                 Ok((self, access))
             }

@@ -20,6 +20,8 @@ use crate::semantic::element::constant::range_inclusive::RangeInclusive as Range
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::Value;
+use crate::semantic::element::Element;
 
 use self::error::Error;
 
@@ -114,34 +116,48 @@ impl Array {
     ///
     pub fn slice_single(
         mut self,
-        index: IntegerConstant,
-    ) -> Result<(Constant, IndexAccess), Error> {
-        let location = index.location;
+        index: Option<IntegerConstant>,
+    ) -> Result<(Element, IndexAccess), Error> {
+        match index {
+            Some(index) => {
+                let location = index.location;
 
-        let index = index
-            .value
-            .to_usize()
-            .ok_or_else(|| Error::IndexOutOfRange {
-                location,
-                index: index.to_string(),
-                size: self.values.len(),
-            })?;
+                let index = index
+                    .value
+                    .to_usize()
+                    .ok_or_else(|| Error::IndexOutOfRange {
+                        location,
+                        index: index.to_string(),
+                        size: self.values.len(),
+                    })?;
 
-        if index >= self.values.len() {
-            return Err(Error::IndexOutOfRange {
-                location,
-                index: index.to_string(),
-                size: self.values.len(),
-            });
+                if index >= self.values.len() {
+                    return Err(Error::IndexOutOfRange {
+                        location,
+                        index: index.to_string(),
+                        size: self.values.len(),
+                    });
+                }
+
+                let access = IndexAccess::new(
+                    self.r#type.size(),
+                    1,
+                    self.r#type().size(),
+                    Some(self.r#type.size() * index),
+                );
+                let element = Element::Constant(self.values.remove(index));
+
+                Ok((element, access))
+            }
+            None => {
+                let access = IndexAccess::new(self.r#type.size(), 1, self.r#type().size(), None);
+                let element = Value::try_from_type(&self.r#type, false, None)
+                    .map(Element::Value)
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
+
+                Ok((element, access))
+            }
         }
-
-        let access = IndexAccess::new(
-            self.r#type.size(),
-            self.r#type().size(),
-            Some(self.r#type.size() * index),
-        );
-
-        Ok((self.values.remove(index), access))
     }
 
     ///
@@ -188,10 +204,11 @@ impl Array {
             });
         }
 
-        let length = end - start;
+        let slice_length = end - start;
 
         let access = IndexAccess::new(
-            self.r#type.size() * length,
+            self.r#type.size(),
+            slice_length,
             self.r#type().size(),
             Some(self.r#type.size() * start),
         );
@@ -252,10 +269,11 @@ impl Array {
             });
         }
 
-        let length = end - start + 1;
+        let slice_length = end - start + 1;
 
         let access = IndexAccess::new(
-            self.r#type.size() * length,
+            self.r#type.size(),
+            slice_length,
             self.r#type().size(),
             Some(self.r#type.size() * start),
         );

@@ -72,6 +72,9 @@ async fn main() -> Result<(), Error> {
                  account_id,
                  eth_private_key,
              }| {
+                let address = zinc_utils::eth_address_from_vec(address);
+                let eth_private_key = zinc_utils::eth_private_key_from_vec(eth_private_key);
+
                 log::info!(
                     "{} instance `{}` of the contract `{} v{}` with address {}",
                     "Loaded".bright_green(),
@@ -90,9 +93,6 @@ async fn main() -> Result<(), Error> {
                     }
                     BuildProgram::Contract(contract) => contract,
                 };
-
-                let address = zinc_utils::eth_address_from_vec(address);
-                let eth_private_key = zinc_utils::eth_private_key_from_vec(eth_private_key);
 
                 let contract = SharedDataContract::new(
                     address,

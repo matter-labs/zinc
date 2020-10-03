@@ -6,9 +6,9 @@ use std::str::FromStr;
 
 use num::BigInt;
 
-use crate::math::inference;
-use crate::math::inference::r#type::Type as InferredType;
-use crate::math::inference::result::Binary as BinaryInferenceResult;
+use crate::inference;
+use crate::inference::r#type::Type as InferredType;
+use crate::inference::result::Binary as BinaryInferenceResult;
 
 #[test]
 fn ok_minimal_bitlength() {
