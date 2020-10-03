@@ -5,9 +5,9 @@ export VERSION_ZINC="${1}"
 export TARGET_LINUX='x86_64-unknown-linux-musl'
 export TARGET_MACOS='x86_64-apple-darwin'
 
-cd './zinc-dev/'
+mkdir --verbose "zinc-release-${VERSION_ZINC}"
 
-mkdir --verbose "./zinc-release-${VERSION_ZINC}/"
+git submodule update --recursive --remote
 
 
 
@@ -64,18 +64,18 @@ rustup target add "${TARGET_LINUX}"
 
 # Building OpenSSL
 wget --verbose \
-  --output-document 'openssl-linux-1.1.1g.tar.gz' \
+  --output-document 'openssl-1.1.1g.tar.gz' \
   'https://www.openssl.org/source/openssl-1.1.1g.tar.gz'
-tar --verbose --extract --file 'openssl-linux-1.1.1g.tar.gz'
-cd './openssl-1.1.1g/'
+tar --verbose --extract --file 'openssl-1.1.1g.tar.gz'
+cd 'openssl-1.1.1g/'
 ./config \
-  --prefix='/matter-labs/zinc-dev/openssl-linux-1.1.1g/build/' \
-  --openssldir='/matter-labs/zinc-dev/openssl-linux-1.1.1g/build/' \
+  --prefix='/zinc-dev/openssl-1.1.1g/build/' \
+  --openssldir='/zinc-dev/openssl-1.1.1g/build/' \
   'shared' \
   'zlib'
 make -j"$(nproc)" && make install
 cd -
-export OPENSSL_DIR='/matter-labs/zinc-dev/openssl-linux-1.1.1g/build/'
+export OPENSSL_DIR='/zinc-dev/openssl-1.1.1g/build/'
 
 # Building
 cargo build --verbose --release --target "${TARGET_LINUX}"
@@ -84,16 +84,16 @@ cargo build --verbose --release --target "${TARGET_LINUX}"
 unset OPENSSL_DIR
 
 # Bundling
-mkdir --verbose "./zinc-${VERSION_ZINC}-linux"
+mkdir --verbose "zinc-${VERSION_ZINC}-linux"
 mv --verbose --force \
-    "./target/${TARGET_LINUX}/release/zargo" \
-    "./target/${TARGET_LINUX}/release/znc" \
-    "./target/${TARGET_LINUX}/release/zvm" \
-    "./target/${TARGET_LINUX}/release/zandbox" \
-    "./zinc-${VERSION_ZINC}-linux/"
+    "target/${TARGET_LINUX}/release/zargo" \
+    "target/${TARGET_LINUX}/release/znc" \
+    "target/${TARGET_LINUX}/release/zvm" \
+    "target/${TARGET_LINUX}/release/zandbox" \
+    "zinc-${VERSION_ZINC}-linux"
 tar --verbose \
     --create --gzip --file "zinc-release-${VERSION_ZINC}/zinc-${VERSION_ZINC}-linux.tar.gz" \
-    "./zinc-${VERSION_ZINC}-linux/"
+    "zinc-${VERSION_ZINC}-linux"
 
 
 
@@ -116,24 +116,24 @@ rustup target add "${TARGET_MACOS}"
 # Building cross-compiling tools
 git clone \
     'https://github.com/tpoechtrager/osxcross' \
-    './osxcross/'
+    'osxcross/'
 wget --verbose \
-    --output-document './osxcross/tarballs/MacOSX10.10.sdk.tar.xz' \
+    --output-document 'osxcross/tarballs/MacOSX10.10.sdk.tar.xz' \
     'https://s3.dockerproject.org/darwin/v2/MacOSX10.10.sdk.tar.xz'
-UNATTENDED='yes' OSX_VERSION_MIN='10.7' bash './osxcross/build.sh'
-export PATH="${PATH}:/matter-labs/zinc-dev/osxcross/target/bin/"
+UNATTENDED='yes' OSX_VERSION_MIN='10.7' bash 'osxcross/build.sh'
+export PATH="${PATH}:/zinc-dev/osxcross/target/bin/"
 export CC='o64-clang'
 export CXX='o64-clang++'
 
 # Downloading OpenSSL
 wget --verbose \
-  --output-document './openssl-macos-1.1.1g.tar.gz' \
+  --output-document 'openssl-1.1.1g.tar.gz' \
   'https://homebrew.bintray.com/bottles/openssl%401.1-1.1.1g.catalina.bottle.tar.gz'
-tar --verbose --extract --file './openssl-macos-1.1.1g.tar.gz'
-export OPENSSL_DIR='/matter-labs/zinc-dev/openssl@1.1/1.1.1g/'
+tar --verbose --extract --file 'openssl-1.1.1g.tar.gz'
+export OPENSSL_DIR='/zinc-dev/openssl@1.1/1.1.1g/'
 
 # Configuring
-cat <<EOT >> './.cargo/config'
+cat <<EOT >> '.cargo/config'
 [target.x86_64-apple-darwin]
 linker = "x86_64-apple-darwin14-clang"
 ar = "x86_64-apple-darwin14-ar"
@@ -153,13 +153,13 @@ unset CXX
 unset OPENSSL_DIR
 
 # Bundling
-mkdir --verbose "./zinc-${VERSION_ZINC}-macos/"
+mkdir --verbose "zinc-${VERSION_ZINC}-macos"
 mv --verbose --force \
-    "./target/${TARGET_MACOS}/release/zargo" \
-    "./target/${TARGET_MACOS}/release/znc" \
-    "./target/${TARGET_MACOS}/release/zvm" \
-    "./target/${TARGET_MACOS}/release/zandbox" \
-    "./zinc-${VERSION_ZINC}-macos/"
+    "target/${TARGET_MACOS}/release/zargo" \
+    "target/${TARGET_MACOS}/release/znc" \
+    "target/${TARGET_MACOS}/release/zvm" \
+    "target/${TARGET_MACOS}/release/zandbox" \
+    "zinc-${VERSION_ZINC}-macos"
 zip --verbose -r \
-    "./zinc-release-${VERSION_ZINC}/zinc-${VERSION_ZINC}-macos.zip" \
-    "./zinc-${VERSION_ZINC}-macos/"
+    "zinc-release-${VERSION_ZINC}/zinc-${VERSION_ZINC}-macos.zip" \
+    "zinc-${VERSION_ZINC}-macos"
