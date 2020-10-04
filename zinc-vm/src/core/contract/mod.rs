@@ -8,8 +8,8 @@ pub mod storage;
 pub mod synthesizer;
 
 use colored::Colorize;
-use num_bigint::BigInt;
-use num_bigint::ToBigInt;
+use num::bigint::ToBigInt;
+use num::BigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
 

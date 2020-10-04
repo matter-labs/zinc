@@ -23,11 +23,11 @@ use std::ops::Shr;
 use std::ops::Sub;
 use std::str::FromStr;
 
-use num_bigint::BigInt;
-use num_traits::Num;
-use num_traits::Signed;
-use num_traits::ToPrimitive;
-use num_traits::Zero;
+use num::BigInt;
+use num::Num;
+use num::Signed;
+use num::ToPrimitive;
+use num::Zero;
 
 use zinc_utils::InferenceError;
 

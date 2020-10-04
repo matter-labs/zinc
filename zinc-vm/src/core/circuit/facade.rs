@@ -5,7 +5,7 @@
 use std::marker::PhantomData;
 
 use colored::Colorize;
-use num_bigint::BigInt;
+use num::BigInt;
 
 use franklin_crypto::bellman::groth16;
 use franklin_crypto::bellman::groth16::Parameters;

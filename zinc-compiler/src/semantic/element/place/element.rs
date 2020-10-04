@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;

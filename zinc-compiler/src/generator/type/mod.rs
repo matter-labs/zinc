@@ -4,7 +4,7 @@
 
 pub mod contract_field;
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use zinc_build::IntegerType;
 use zinc_build::ScalarType;

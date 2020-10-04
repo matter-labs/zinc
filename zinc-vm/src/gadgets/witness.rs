@@ -2,7 +2,7 @@
 //! The witness allocating gadget.
 //!
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;

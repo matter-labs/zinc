@@ -2,8 +2,8 @@
 //! The `std::zksync::transfer` function call.
 //!
 
-use num_bigint::ToBigInt;
-use num_traits::ToPrimitive;
+use num::bigint::ToBigInt;
+use num::ToPrimitive;
 
 use franklin_crypto::bellman::ConstraintSystem;
 

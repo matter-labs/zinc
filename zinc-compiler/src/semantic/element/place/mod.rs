@@ -12,9 +12,9 @@ pub mod memory_type;
 use std::fmt;
 use std::ops::Deref;
 
-use num_bigint::BigInt;
-use num_traits::Signed;
-use num_traits::ToPrimitive;
+use num::BigInt;
+use num::Signed;
+use num::ToPrimitive;
 
 use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
 use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;

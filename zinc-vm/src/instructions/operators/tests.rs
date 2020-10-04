@@ -2,8 +2,8 @@
 //! The operator instructions overflow tests.
 //!
 
-use num_bigint::BigInt;
-use num_traits::One;
+use num::BigInt;
+use num::One;
 
 use zinc_build::Add;
 use zinc_build::IntegerType;

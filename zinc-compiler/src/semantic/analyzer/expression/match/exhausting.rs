@@ -4,9 +4,9 @@
 
 use std::collections::HashMap;
 
-use num_bigint::BigInt;
-use num_traits::One;
-use num_traits::Zero;
+use num::BigInt;
+use num::One;
+use num::Zero;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::enumeration::Enumeration;

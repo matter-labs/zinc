@@ -23,9 +23,9 @@ impl<VM: IVirtualMachine> IExecutable<VM> for LoopEnd {
 
 #[cfg(test)]
 mod test {
-    use num_bigint::BigInt;
-    use num_traits::One;
-    use num_traits::Zero;
+    use num::BigInt;
+    use num::One;
+    use num::Zero;
 
     use crate::tests::TestRunner;
     use crate::tests::TestingError;

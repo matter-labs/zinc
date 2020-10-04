@@ -23,7 +23,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Return {
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigInt;
+    use num::BigInt;
 
     use crate::tests::TestRunner;
     use crate::tests::TestingError;

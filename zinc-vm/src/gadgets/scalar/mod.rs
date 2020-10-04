@@ -4,9 +4,9 @@ pub mod variant;
 
 use std::fmt;
 
-use num_bigint::BigInt;
-use num_bigint::ToBigInt;
-use num_traits::ToPrimitive;
+use num::bigint::ToBigInt;
+use num::BigInt;
+use num::ToPrimitive;
 
 use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::pairing::ff::PrimeField;

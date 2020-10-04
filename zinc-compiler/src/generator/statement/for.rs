@@ -16,8 +16,8 @@ use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
 use crate::lexical::token::location::Location;
 
-use num_bigint::BigInt;
-use num_traits::One;
+use num::BigInt;
+use num::One;
 
 ///
 /// The Zinc VM loop statement.

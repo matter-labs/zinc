@@ -4,6 +4,7 @@
 
 pub mod error;
 
+use num_old::BigUint;
 use num_old::Zero;
 
 use zksync::web3::types::Address;
@@ -62,7 +63,7 @@ pub fn new_initial(wallet: &zksync::Wallet, recipient: Address) -> Result<Transa
 pub fn try_into_zksync(
     transfer: Transfer,
     wallet: &zksync::Wallet,
-    fee_multiplier: u64,
+    contract_fee: Option<BigUint>,
 ) -> Result<Transaction, Error> {
     let mut runtime = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
 
@@ -79,7 +80,7 @@ pub fn try_into_zksync(
         ))
         .map_err(Error::FeeGetting)?
         .total_fee
-        * num_old::BigUint::from(fee_multiplier);
+        + contract_fee.unwrap_or_default();
     let fee = zksync::utils::closest_packable_fee_amount(&fee);
     let nonce = runtime
         .block_on(wallet.provider.account_info(wallet.signer.address))

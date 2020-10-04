@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use num_bigint::BigInt;
+use num::BigInt;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 

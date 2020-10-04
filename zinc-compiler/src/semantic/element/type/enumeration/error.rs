@@ -2,7 +2,7 @@
 //! The semantic analyzer enumeration type element error.
 //!
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use crate::lexical::token::location::Location;
 

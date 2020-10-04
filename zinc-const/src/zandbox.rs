@@ -20,6 +20,9 @@ pub static CONTRACT_INITIALIZE_URL: &str = "/api/v1/contract/initialize";
 /// The contract query URL.
 pub static CONTRACT_QUERY_URL: &str = "/api/v1/contract/query";
 
+/// The contract fee URL.
+pub static CONTRACT_FEE_URL: &str = "/api/v1/contract/fee";
+
 /// The contract call URL.
 pub static CONTRACT_CALL_URL: &str = "/api/v1/contract/call";
 

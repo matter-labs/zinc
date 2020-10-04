@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::i_typed::ITyped;

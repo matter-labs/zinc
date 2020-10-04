@@ -2,7 +2,7 @@
 //! The `std::convert::to_bits` function call.
 //!
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;

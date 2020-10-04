@@ -10,8 +10,8 @@ pub mod error;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use num_traits::Signed;
-use num_traits::ToPrimitive;
+use num::Signed;
+use num::ToPrimitive;
 
 use zinc_utils::InferenceError;
 

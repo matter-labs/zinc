@@ -8,10 +8,10 @@ pub mod scalar;
 
 use std::collections::HashSet;
 
-use num_bigint::BigInt;
-use num_bigint::Sign;
-use num_traits::Signed;
-use num_traits::Zero;
+use num::bigint::Sign;
+use num::BigInt;
+use num::Signed;
+use num::Zero;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use serde_json::Map as JsonMap;

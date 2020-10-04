@@ -164,12 +164,13 @@ pub async fn handle(
             .ok_or(Error::TokenNotFound(transfer.token))?;
 
         log::debug!(
-            "Sending {} {} from {} to {} with fee {}",
-            zksync_utils::format_ether(&transfer.amount),
+            "Sending {} {} from {} to {} with total batch fee {} {}",
+            zksync_utils::format_units(&transfer.amount, token.decimals),
             token.symbol,
             serde_json::to_string(&transfer.from).expect(zinc_const::panic::DATA_CONVERSION),
             serde_json::to_string(&transfer.to).expect(zinc_const::panic::DATA_CONVERSION),
-            zksync_utils::format_ether(&transfer.fee),
+            zksync_utils::format_units(&transfer.fee, token.decimals),
+            token.symbol,
         );
     }
     transactions.push(body.transaction);
@@ -192,12 +193,11 @@ pub async fn handle(
         let fee = BigUint::zero();
 
         log::debug!(
-            "Sending {} {} from {} to {} with fee {}",
-            zksync_utils::format_ether(&amount),
+            "Sending {} {} from {} to {}",
+            zksync_utils::format_units(&amount, token.decimals),
             token.symbol,
             serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION),
             serde_json::to_string(&recipient).expect(zinc_const::panic::DATA_CONVERSION),
-            zksync_utils::format_ether(&fee),
         );
 
         let (transfer, signature) = wallet
@@ -233,23 +233,15 @@ pub async fn handle(
         .map(|tx_hash| SyncTransactionHandle::new(tx_hash, wallet.provider.clone()));
 
     log::debug!("Waiting for the transfers to be committed");
-    let mut reasons = Vec::with_capacity(handles.len());
-    let mut are_errors = false;
     for handle in handles.into_iter() {
         let tx_info = handle.wait_for_commit().await?;
-        if tx_info.success.unwrap_or_default() {
-            reasons.push("OK".to_owned());
-        } else {
-            reasons.push(
+        if !tx_info.success.unwrap_or_default() {
+            return Err(Error::TransferFailure(
                 tx_info
                     .fail_reason
                     .unwrap_or_else(|| "Unknown error".to_owned()),
-            );
-            are_errors = true;
+            ));
         }
-    }
-    if are_errors {
-        return Err(Error::TransferFailure { reasons });
     }
 
     log::debug!("Committing the contract storage state to the database");

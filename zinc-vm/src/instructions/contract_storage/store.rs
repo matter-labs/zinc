@@ -2,8 +2,8 @@
 //! The `StorageStore` instruction.
 //!
 
-use num_bigint::ToBigInt;
-use num_traits::Signed;
+use num::bigint::ToBigInt;
+use num::Signed;
 
 use zinc_build::StorageStore;
 

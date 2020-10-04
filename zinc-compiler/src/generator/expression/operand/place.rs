@@ -5,8 +5,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use num_bigint::BigInt;
-use num_traits::Zero;
+use num::BigInt;
+use num::Zero;
 
 use zinc_build::Instruction;
 use zinc_build::ScalarType;

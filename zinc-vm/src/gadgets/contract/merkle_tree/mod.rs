@@ -1,7 +1,7 @@
 pub mod allocated_leaf;
 pub mod hasher;
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use crate::core::contract::storage::leaf::Leaf as StorageLeaf;
 use crate::error::RuntimeError;

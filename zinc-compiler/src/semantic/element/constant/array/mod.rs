@@ -9,8 +9,8 @@ pub mod error;
 
 use std::fmt;
 
-use num_traits::Signed;
-use num_traits::ToPrimitive;
+use num::Signed;
+use num::ToPrimitive;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::access::index::Index as IndexAccess;

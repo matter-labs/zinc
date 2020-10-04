@@ -2,8 +2,8 @@
 //! The VM state data stack tests.
 //!
 
-use num_bigint::BigInt;
-use num_bigint::ToBigInt;
+use num::bigint::ToBigInt;
+use num::BigInt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;

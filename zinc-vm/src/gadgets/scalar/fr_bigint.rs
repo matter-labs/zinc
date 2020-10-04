@@ -1,9 +1,9 @@
 use std::ops::Div;
 use std::ops::Neg;
 
-use num_bigint::BigInt;
-use num_bigint::Sign;
-use num_traits::Signed;
+use num::bigint::Sign;
+use num::BigInt;
+use num::Signed;
 
 use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::pairing::ff::PrimeField;

@@ -26,9 +26,9 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Lt {
 
 #[cfg(test)]
 mod test {
-    use num_bigint::BigInt;
-    use num_traits::One;
-    use num_traits::Zero;
+    use num::BigInt;
+    use num::One;
+    use num::Zero;
 
     use franklin_crypto::bellman::pairing::bn256::Bn256;
     use franklin_crypto::bellman::pairing::bn256::Fr;

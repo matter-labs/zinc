@@ -19,6 +19,9 @@ use zksync_types::tx::PackedEthSignature;
 
 use zinc_data::CallRequestBody;
 use zinc_data::CallRequestQuery;
+use zinc_data::FeeRequestBody;
+use zinc_data::FeeRequestQuery;
+use zinc_data::FeeResponseBody;
 use zinc_data::Transfer;
 
 use crate::arguments::command::IExecutable;
@@ -191,10 +194,52 @@ impl IExecutable for Command {
             ))
             .map_err(Error::WalletInitialization)?;
 
-        let transfers = Transfer::try_from_json(&arguments.inner)
+        let transfer = Transfer::try_from_json(&arguments.inner)
             .map_err(TransactionError::Parsing)
-            .and_then(|transaction| crate::transaction::try_into_zksync(transaction, &wallet, 2))
             .map_err(Error::Transaction)?;
+        let transaction = crate::transaction::try_into_zksync(transfer.clone(), &wallet, None)
+            .map_err(Error::Transaction)?;
+
+        let endpoint_url = format!(
+            "{}{}",
+            "http://127.0.0.1:4001",
+            zinc_const::zandbox::CONTRACT_FEE_URL
+        );
+        let http_client = HttpClient::new();
+        let mut http_response = http_client
+            .execute(
+                http_client
+                    .request(
+                        Method::PUT,
+                        Url::parse_with_params(
+                            endpoint_url.as_str(),
+                            FeeRequestQuery::new(address, self.method.clone(), network),
+                        )
+                        .expect(zinc_const::panic::DATA_CONVERSION),
+                    )
+                    .json(&FeeRequestBody::new(arguments.inner.clone(), transaction))
+                    .build()
+                    .expect(zinc_const::panic::DATA_CONVERSION),
+            )
+            .map_err(Error::HttpRequest)?;
+
+        if !http_response.status().is_success() {
+            return Err(Error::ActionFailed(format!(
+                "HTTP error ({}) {}",
+                http_response.status(),
+                http_response
+                    .text()
+                    .expect(zinc_const::panic::DATA_CONVERSION),
+            )));
+        }
+
+        let response = http_response
+            .json::<FeeResponseBody>()
+            .expect(zinc_const::panic::DATA_CONVERSION);
+        let contract_fee = response.fee;
+        let transaction =
+            crate::transaction::try_into_zksync(transfer, &wallet, Some(contract_fee))
+                .map_err(Error::Transaction)?;
 
         let endpoint_url = format!(
             "{}{}",
@@ -213,7 +258,7 @@ impl IExecutable for Command {
                         )
                         .expect(zinc_const::panic::DATA_CONVERSION),
                     )
-                    .json(&CallRequestBody::new(arguments.inner, transfers))
+                    .json(&CallRequestBody::new(arguments.inner, transaction))
                     .build()
                     .expect(zinc_const::panic::DATA_CONVERSION),
             )

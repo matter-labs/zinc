@@ -31,9 +31,9 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Assert {
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigInt;
-    use num_traits::One;
-    use num_traits::Zero;
+    use num::BigInt;
+    use num::One;
+    use num::Zero;
 
     use crate::error::RuntimeError;
     use crate::tests::TestRunner;

@@ -2,7 +2,7 @@
 //! The semantic analyzer constant integer element error.
 //!
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use zinc_utils::InferenceError;
 

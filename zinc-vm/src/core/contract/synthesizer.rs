@@ -4,7 +4,7 @@
 
 use std::marker::PhantomData;
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use franklin_crypto::bellman;
 use franklin_crypto::bellman::ConstraintSystem;

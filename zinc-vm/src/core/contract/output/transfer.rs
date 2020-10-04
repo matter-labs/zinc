@@ -2,7 +2,7 @@
 //! The virtual machine contract output transfer.
 //!
 
-use num_bigint::BigUint;
+use num::BigUint;
 
 ///
 /// The virtual machine contract output transfer.

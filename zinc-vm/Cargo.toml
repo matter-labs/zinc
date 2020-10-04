@@ -24,9 +24,7 @@ lazy_static = "1.4"
 rand = "0.4"
 hex = "0.4"
 sha2 = "0.9"
-
-num-bigint = "0.3"
-num-traits = "0.2"
+num = "0.3"
 
 franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc" }
 

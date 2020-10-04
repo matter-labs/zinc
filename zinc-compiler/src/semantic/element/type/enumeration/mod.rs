@@ -12,7 +12,7 @@ use std::convert::TryFrom;
 use std::fmt;
 use std::rc::Rc;
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::error::Error as ConstantError;

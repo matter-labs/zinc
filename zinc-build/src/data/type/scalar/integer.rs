@@ -4,8 +4,8 @@
 
 use std::fmt;
 
-use num_bigint::BigInt;
-use num_traits::Zero;
+use num::BigInt;
+use num::Zero;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 

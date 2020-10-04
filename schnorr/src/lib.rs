@@ -2,6 +2,8 @@
 //! The Schnorr signature tool library.
 //!
 
+use num::bigint::Sign;
+use num::BigInt;
 use rand::Rng;
 
 use franklin_crypto::bellman::pairing::ff::PrimeField;
@@ -60,7 +62,7 @@ pub fn fr_into_hex<Fr: PrimeField>(fr: Fr) -> String {
         .write_be(&mut buffer)
         .expect("failed to write into Vec<u8>");
 
-    let num = num_bigint::BigInt::from_bytes_be(num_bigint::Sign::Plus, &buffer);
+    let num = BigInt::from_bytes_be(Sign::Plus, &buffer);
     format!(
         "0x{}",
         num.to_str_radix(zinc_const::base::HEXADECIMAL as u32)

@@ -1,5 +1,5 @@
 //!
-//! The contract resource POST `call` error.
+//! The contract resource PUT `fee` error.
 //!
 
 use std::fmt;
@@ -14,7 +14,7 @@ use zinc_data::TransferError;
 use zinc_vm::RuntimeError;
 
 ///
-/// The contract resource POST `call` error.
+/// The contract resource PUT `fee` error.
 ///
 #[derive(Debug)]
 pub enum Error {
@@ -37,10 +37,6 @@ pub enum Error {
     Database(sqlx::Error),
     /// The ZkSync server client error.
     ZkSyncClient(zksync::error::ClientError),
-    /// The ZkSync server signer error.
-    ZkSyncSigner(zksync::error::SignerError),
-    /// The ZkSync transfer errors.
-    TransferFailure(String),
 }
 
 impl From<TransferError> for Error {
@@ -61,12 +57,6 @@ impl From<zksync::error::ClientError> for Error {
     }
 }
 
-impl From<zksync::error::SignerError> for Error {
-    fn from(inner: zksync::error::SignerError) -> Self {
-        Self::ZkSyncSigner(inner)
-    }
-}
-
 impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
@@ -80,8 +70,6 @@ impl ResponseError for Error {
             Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Database(..) => StatusCode::SERVICE_UNAVAILABLE,
             Self::ZkSyncClient(..) => StatusCode::SERVICE_UNAVAILABLE,
-            Self::ZkSyncSigner(..) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::TransferFailure { .. } => StatusCode::UNPROCESSABLE_ENTITY,
         }
     }
 }
@@ -112,8 +100,6 @@ impl fmt::Display for Error {
             Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
             Self::Database(inner) => format!("Database: {:?}", inner),
             Self::ZkSyncClient(inner) => format!("ZkSync: {:?}", inner),
-            Self::ZkSyncSigner(inner) => format!("ZkSync: {:?}", inner),
-            Self::TransferFailure(inner) => format!("Transfer failure: {}", inner),
         };
 
         log::warn!("{}", error);

@@ -182,8 +182,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigInt;
-    use num_traits::Zero;
+    use num::BigInt;
+    use num::Zero;
     use rand::Rng;
     use rand::SeedableRng;
     use rand::XorShiftRng;

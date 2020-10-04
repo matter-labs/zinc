@@ -2,7 +2,7 @@
 //! The `std::convert::from_bits_signed` function call.
 //!
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use franklin_crypto::bellman::pairing::ff::PrimeField;
 use franklin_crypto::bellman::ConstraintSystem;

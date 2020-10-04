@@ -18,8 +18,8 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Exit {
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigInt;
-    use num_traits::One;
+    use num::BigInt;
+    use num::One;
 
     use crate::tests::TestRunner;
     use crate::tests::TestingError;

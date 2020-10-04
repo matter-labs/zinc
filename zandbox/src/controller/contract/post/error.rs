@@ -15,11 +15,18 @@ use zinc_vm::RuntimeError;
 ///
 #[derive(Debug)]
 pub enum Error {
+    /// The uploaded bytecode is malformed.
     InvalidBytecode(String),
+    /// The uploaded program is not a contract.
     NotAContract,
+    /// The contract has no constructor.
     ConstructorNotFound,
+    /// Invalid contract method arguments.
     InvalidInput(BuildValueError),
+
+    /// The virtual machine constructor runtime error.
     RuntimeError(RuntimeError),
+    /// The PostgreSQL database error.
     Database(sqlx::Error),
 }
 

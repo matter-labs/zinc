@@ -21,7 +21,7 @@ use self::error::Error;
 ///
 /// The transfer argument which is sent to the smart contract method.
 ///
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Transfer {
     /// The sender address.
     pub sender: Address,

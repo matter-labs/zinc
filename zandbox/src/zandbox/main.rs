@@ -130,8 +130,9 @@ async fn main() -> Result<(), Error> {
 
     HttpServer::new(move || {
         App::new()
-            .wrap(middleware::DefaultHeaders::new().content_type())
             .wrap(middleware::Logger::default())
+            .wrap(middleware::DefaultHeaders::new().content_type())
+            .wrap(actix_cors::Cors::default())
             .app_data(web::JsonConfig::default().limit(zinc_const::limit::JSON_PAYLOAD))
             .data(data.clone())
             .configure(zandbox::configure)

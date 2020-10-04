@@ -4,8 +4,8 @@
 
 use std::marker::PhantomData;
 
-use num_bigint::BigInt;
-use num_traits::Signed;
+use num::BigInt;
+use num::Signed;
 
 use franklin_crypto::bellman::pairing::Engine;
 use franklin_crypto::bellman::ConstraintSystem;

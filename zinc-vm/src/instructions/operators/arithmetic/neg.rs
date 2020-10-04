@@ -45,7 +45,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Neg {
 
 #[cfg(test)]
 mod test {
-    use num_bigint::BigInt;
+    use num::BigInt;
 
     use zinc_build::IntegerType;
     use zinc_build::Neg;

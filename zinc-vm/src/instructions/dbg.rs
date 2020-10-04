@@ -2,9 +2,9 @@
 //! The `Debug` instruction.
 //!
 
-use num_bigint::BigInt;
-use num_bigint::ToBigInt;
-use num_traits::Signed;
+use num::bigint::ToBigInt;
+use num::BigInt;
+use num::Signed;
 
 use franklin_crypto::bellman::SynthesisError;
 
@@ -87,7 +87,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigInt;
+    use num::BigInt;
 
     use crate::tests::TestRunner;
 

@@ -5,7 +5,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use num_bigint::BigInt;
+use num::BigInt;
 
 use zinc_build::Instruction;
 

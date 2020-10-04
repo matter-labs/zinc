@@ -1,5 +1,5 @@
-use num_bigint::BigInt;
-use num_bigint::Sign;
+use num::bigint::Sign;
+use num::BigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;

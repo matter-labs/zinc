@@ -31,6 +31,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
                             .route(web::put().to(contract::query::handle)),
                     )
                     .service(
+                        web::resource("/fee")
+                            .route(web::head().to(head::handle))
+                            .route(web::put().to(contract::fee::handle)),
+                    )
+                    .service(
                         web::resource("/call")
                             .route(web::head().to(head::handle))
                             .route(web::post().to(contract::call::handle)),

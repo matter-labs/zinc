@@ -25,9 +25,9 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Not {
 
 #[cfg(test)]
 mod test {
-    use num_bigint::BigInt;
-    use num_traits::One;
-    use num_traits::Zero;
+    use num::BigInt;
+    use num::One;
+    use num::Zero;
 
     use zinc_build::ScalarType;
 
