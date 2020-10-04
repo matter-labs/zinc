@@ -462,9 +462,9 @@ dependencies = [
 
 [[package]]
 name = "async-io"
-version = "1.1.8"
+version = "1.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8cf20dd2c6d20ef09876e189b44f213e66e846972cb303eef28d9dfbe790928"
+checksum = "1a027f4b662e59d7070791e33baafd36affe67388965701b50039db5ebb240d2"
 dependencies = [
  "concurrent-queue",
  "fastrand",
@@ -1582,9 +1582,9 @@ checksum = "de27142b013a8e869c14957e6d2edeef89e97c289e69d042ee3a49acd8b51789"
 
 [[package]]
 name = "futures-lite"
-version = "1.8.0"
+version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0db18c5f58083b54b0c416638ea73066722c2815c1e54dd8ba85ee3def593c3a"
+checksum = "5b2ec5fce115ef4d4cc77f46025232fba6a2f84381ff42337794147050aae971"
 dependencies = [
  "fastrand",
  "futures-core",
@@ -2315,9 +2315,9 @@ dependencies = [
 
 [[package]]
 name = "nb-connect"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "701f47aeb98466d0a7fea67e2c2f667c33efa1f2e4fd7f76743aac1153196f72"
+checksum = "8123a81538e457d44b933a02faf885d3fe8408806b23fa700e8f01c6c3a98998"
 dependencies = [
  "libc",
  "winapi 0.3.9",

@@ -1,5 +1,3 @@
-CREATE SCHEMA IF NOT EXISTS zandbox;
-
 CREATE TABLE IF NOT EXISTS zandbox.contracts (
     address            BYTEA NOT NULL,
 

@@ -7,8 +7,6 @@ export TARGET_MACOS='x86_64-apple-darwin'
 
 mkdir --verbose "zinc-release-${VERSION_ZINC}"
 
-git submodule update --recursive --remote
-
 
 
 #######################################################################################################################
