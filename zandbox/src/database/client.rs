@@ -27,26 +27,10 @@ impl Client {
     ///
     /// Initializes a client instance.
     ///
-    pub async fn new(
-        host: String,
-        port: u16,
-        user: String,
-        password: String,
-        database: String,
-    ) -> Result<Self, sqlx::Error> {
-        let url = format!(
-            "{}://{}:{}@{}:{}/{}",
-            zinc_const::postgresql::PROTOCOL,
-            user,
-            password,
-            host,
-            port,
-            database
-        );
-
+    pub async fn new(connection_uri: &str) -> Result<Self, sqlx::Error> {
         let pool = PgPoolOptions::new()
             .max_connections(8)
-            .connect(&url)
+            .connect(connection_uri)
             .await?;
 
         Ok(Self { pool })
