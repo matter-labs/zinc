@@ -13,6 +13,8 @@ use std::io::Write;
 
 static MANIFEST_PATH: &str = "/home/hedgar/src/curve-zinc/";
 
+static POSTGRESQL_URL: &str = "postgres://postgres@localhost/zinc";
+
 static OWNER_ADDRESS: &str = "0x36615cf349d7f6344891b1e7ca7c72883f5dc049";
 
 #[tokio::test]
@@ -20,15 +22,9 @@ static OWNER_ADDRESS: &str = "0x36615cf349d7f6344891b1e7ca7c72883f5dc049";
 async fn ok_curve() {
     let provider = zksync::Provider::new(zksync::Network::Localhost);
 
-    let database_client = DatabaseClient::new(
-        zinc_const::postgresql::HOST.to_owned(),
-        zinc_const::postgresql::PORT,
-        zinc_const::postgresql::USER.to_owned(),
-        zinc_const::postgresql::PASSWORD.to_owned(),
-        zinc_const::postgresql::DATABASE.to_owned(),
-    )
-    .await
-    .expect("Database client initialization");
+    let database_client = DatabaseClient::new(POSTGRESQL_URL)
+        .await
+        .expect("Database client initialization");
     database_client
         .delete_fields()
         .await

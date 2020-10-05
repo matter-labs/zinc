@@ -25,41 +25,9 @@ pub struct Arguments {
     #[structopt(long = "http-port", help = "The HTTP server port")]
     pub http_port: Option<u16>,
 
-    /// The PostgreSQL database host.
-    #[structopt(
-        long = "postgres-host",
-        help = "The PostgreSQL database host",
-        default_value = zinc_const::postgresql::HOST,
-    )]
-    pub postgresql_host: String,
-
-    /// The PostgreSQL database port.
-    #[structopt(long = "postgres-port", help = "The PostgreSQL database port")]
-    pub postgresql_port: Option<u16>,
-
-    /// The PostgreSQL user name.
-    #[structopt(
-        long = "postgres-user",
-        help = "The PostgreSQL user name",
-        default_value = zinc_const::postgresql::USER,
-    )]
-    pub postgresql_user: String,
-
-    /// The PostgreSQL user password.
-    #[structopt(
-        long = "postgres-password",
-        help = "The PostgreSQL user password",
-        default_value = zinc_const::postgresql::PASSWORD,
-    )]
-    pub postgresql_password: String,
-
-    /// The PostgreSQL database name.
-    #[structopt(
-        long = "postgres-database",
-        help = "The PostgreSQL database name",
-        default_value = zinc_const::postgresql::DATABASE,
-    )]
-    pub postgresql_database: String,
+    /// The PostgreSQL connection string.
+    #[structopt(long = "postgresql", help = "The PostgreSQL connection string")]
+    pub postgresql_uri: String,
 }
 
 impl Arguments {

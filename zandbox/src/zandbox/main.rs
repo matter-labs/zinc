@@ -43,14 +43,7 @@ async fn main() -> Result<(), Error> {
     log::info!("Zandbox server started");
 
     log::info!("Initializing the PostgreSQL client");
-    let database_client = DatabaseClient::new(
-        args.postgresql_host,
-        args.postgresql_port.unwrap_or(zinc_const::postgresql::PORT),
-        args.postgresql_user,
-        args.postgresql_password,
-        args.postgresql_database,
-    )
-    .await?;
+    let database_client = DatabaseClient::new(args.postgresql_uri.as_str()).await?;
 
     log::info!("Loading the compiled contracts from the database");
     let mut contracts: HashMap<Address, SharedDataContract> = database_client
