@@ -8,6 +8,9 @@ pub static HOST: &str = "0.0.0.0";
 /// The default server binding port.
 pub const PORT: u16 = 4001;
 
+/// The default Zargo connection url.
+pub static CONNECTION_URL: &str = "https://rinkeby-zandbox.zksync.dev";
+
 /// The default contract constructor name.
 pub static CONTRACT_CONSTRUCTOR_NAME: &str = "new";
 

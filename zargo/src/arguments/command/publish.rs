@@ -235,7 +235,7 @@ impl IExecutable for Command {
 
         let endpoint_url = format!(
             "{}{}",
-            "http://127.0.0.1:4001",
+            zinc_const::zandbox::CONNECTION_URL,
             zinc_const::zandbox::CONTRACT_PUBLISH_URL
         );
         let mut http_response = http_client
@@ -312,7 +312,7 @@ impl IExecutable for Command {
 
         let endpoint_url = format!(
             "{}{}",
-            "http://127.0.0.1:4001",
+            zinc_const::zandbox::CONNECTION_URL,
             zinc_const::zandbox::CONTRACT_INITIALIZE_URL
         );
         let mut http_response = http_client

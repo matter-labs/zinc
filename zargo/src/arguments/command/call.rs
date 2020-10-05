@@ -202,7 +202,7 @@ impl IExecutable for Command {
 
         let endpoint_url = format!(
             "{}{}",
-            "http://127.0.0.1:4001",
+            zinc_const::zandbox::CONNECTION_URL,
             zinc_const::zandbox::CONTRACT_FEE_URL
         );
         let http_client = HttpClient::new();
@@ -243,7 +243,7 @@ impl IExecutable for Command {
 
         let endpoint_url = format!(
             "{}{}",
-            "http://127.0.0.1:4001",
+            zinc_const::zandbox::CONNECTION_URL,
             zinc_const::zandbox::CONTRACT_CALL_URL
         );
         let http_client = HttpClient::new();

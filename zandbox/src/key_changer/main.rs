@@ -5,19 +5,19 @@
 use colored::Colorize;
 
 static TOKEN_SYMBOL: &str = "ETH";
-static ETH_ADDRESS: &str = "36615Cf349d7F6344891B1e7CA7C72883F5dc049";
-static ETH_PRIVATE_KEY: &str = "7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
+static ETH_ADDRESS: &str = "7645e91c4Fa80b42eE532Bc53b5370F860e8daC9";
+static ETH_PRIVATE_KEY: &str = "d4f64abbedb7da5938abf9ef9b3ae6446bf960680c150547d469618ca5f23e3b";
 
 ///
 /// The utility entry point.
 ///
 #[actix_rt::main]
 async fn main() {
-    let provider = zksync::Provider::new(zksync::Network::Localhost);
+    let provider = zksync::Provider::new(zksync::Network::Rinkeby);
     let wallet_credentials = zksync::WalletCredentials::from_eth_pk(
         ETH_ADDRESS.parse().expect("ETH address parsing"),
         ETH_PRIVATE_KEY.parse().expect("ETH private key parsing"),
-        zksync::Network::Localhost,
+        zksync::Network::Rinkeby,
     )
     .expect("Wallet credentials");
     let wallet = zksync::Wallet::new(provider, wallet_credentials)
