@@ -13,7 +13,7 @@ use crate::error::Error;
 /// The `generate key` command arguments.
 ///
 #[derive(StructOpt)]
-#[structopt(name = "gen-key", about = "generate a random private key")]
+#[structopt(name = "gen-key", about = "Generates a random private key")]
 pub struct Command {}
 
 impl IExecutable for Command {

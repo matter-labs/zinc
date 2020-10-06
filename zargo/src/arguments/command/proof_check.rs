@@ -1,5 +1,5 @@
 //!
-//! The Zargo project manager `proof-check` subcommand.
+//! The Zargo package manager `proof-check` subcommand.
 //!
 
 use std::convert::TryFrom;
@@ -23,41 +23,36 @@ use crate::project::manifest::Manifest as ManifestFile;
 use crate::project::source::Directory as SourceDirectory;
 
 ///
-/// The Zargo project manager `proof-check` subcommand.
+/// The Zargo package manager `proof-check` subcommand.
 ///
 #[derive(Debug, StructOpt)]
 #[structopt(
     about = "Runs the full project building, running, trusted setup, proving & verifying sequence"
 )]
 pub struct Command {
-    /// The logging level value, which helps the logger to set the logging level.
-    #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity"
-    )]
+    /// Prints more logs, if passed several times.
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
     /// The path to the Zargo project manifest file.
     #[structopt(
         long = "manifest-path",
         parse(from_os_str),
-        help = "Path to Zargo.toml",
         default_value = zinc_const::path::MANIFEST,
     )]
     pub manifest_path: PathBuf,
 
-    /// The contract method to call. Only for contracts.
-    #[structopt(long = "method", help = "The contract method to call")]
+    /// The contract method to execute. Only for contracts.
+    #[structopt(long = "method")]
     pub method: Option<String>,
 
-    /// Whether to run the release version.
-    #[structopt(long = "release", help = "Run the release build")]
+    /// Executes the release build.
+    #[structopt(long = "release")]
     pub is_release: bool,
 }
 
 ///
-/// The Zargo project manager `proof-check` subcommand error.
+/// The Zargo package manager `proof-check` subcommand error.
 ///
 #[derive(Debug, Fail)]
 pub enum Error {

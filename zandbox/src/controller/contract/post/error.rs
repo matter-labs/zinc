@@ -17,7 +17,7 @@ use zinc_vm::RuntimeError;
 pub enum Error {
     /// The uploaded bytecode is malformed.
     InvalidBytecode(String),
-    /// The uploaded program is not a contract.
+    /// The uploaded application is not a contract.
     NotAContract,
     /// The contract has no constructor.
     ConstructorNotFound,

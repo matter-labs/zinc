@@ -22,7 +22,7 @@ pub enum Error {
         location: Location,
         /// The redeclared item name.
         name: String,
-        /// The location where the item is declared for the first item. `None` for built-in items.
+        /// The location where the item is declared for the first item. `None` for intrinsic items.
         reference: Option<Location>,
     },
     /// The item is not a namespace, and cannot be a part of a path expression.

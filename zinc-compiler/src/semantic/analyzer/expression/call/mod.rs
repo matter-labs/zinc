@@ -14,9 +14,9 @@ use crate::generator::expression::operator::Operator as GeneratorExpressionOpera
 use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
-use crate::semantic::element::r#type::function::builtin::Function as BuiltInFunctionType;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
+use crate::semantic::element::r#type::function::intrinsic::error::Error as IntrinsicFunctionError;
+use crate::semantic::element::r#type::function::intrinsic::Function as IntrinsicFunctionType;
 use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
@@ -100,12 +100,12 @@ impl Analyzer {
         }
 
         let (element, intermediate) = match function {
-            FunctionType::BuiltIn(function) => {
+            FunctionType::Intrinsic(function) => {
                 match call_type {
-                    CallType::BuiltIn => {}
+                    CallType::Intrinsic => {}
                     _ => {
                         return Err(Error::Element(ElementError::Type(TypeError::Function(
-                            FunctionError::BuiltIn(BuiltInFunctionError::SpecifierMissing {
+                            FunctionError::Intrinsic(IntrinsicFunctionError::SpecifierMissing {
                                 location: function_location.unwrap_or(location),
                                 function: function.identifier(),
                             }),
@@ -114,7 +114,7 @@ impl Analyzer {
                 }
 
                 match function {
-                    BuiltInFunctionType::Debug(function) => {
+                    IntrinsicFunctionType::Debug(function) => {
                         let (return_type, format, argument_types) = function
                             .call(function_location, argument_list)
                             .map_err(|error| {
@@ -139,7 +139,7 @@ impl Analyzer {
                             },
                         )
                     }
-                    BuiltInFunctionType::Assert(function) => {
+                    IntrinsicFunctionType::Assert(function) => {
                         let (return_type, message) = function
                             .call(function_location, argument_list)
                             .map_err(|error| {
@@ -166,16 +166,16 @@ impl Analyzer {
                 }
             }
             FunctionType::StandardLibrary(function) => {
-                if let CallType::BuiltIn = call_type {
+                if let CallType::Intrinsic = call_type {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
-                        FunctionError::BuiltIn(BuiltInFunctionError::Unknown {
+                        FunctionError::Intrinsic(IntrinsicFunctionError::Unknown {
                             location: function_location.unwrap_or(location),
                             function: function.identifier().to_owned(),
                         }),
                     ))));
                 }
 
-                let builtin_identifier = function.stdlib_identifier();
+                let intrinsic_identifier = function.stdlib_identifier();
 
                 let return_type =
                     function
@@ -191,7 +191,7 @@ impl Analyzer {
                 );
 
                 let intermediate = GeneratorExpressionOperator::call_std(
-                    builtin_identifier,
+                    intrinsic_identifier,
                     input_size,
                     return_type.size(),
                 );
@@ -205,9 +205,9 @@ impl Analyzer {
                 )
             }
             FunctionType::Runtime(function) => {
-                if let CallType::BuiltIn = call_type {
+                if let CallType::Intrinsic = call_type {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
-                        FunctionError::BuiltIn(BuiltInFunctionError::Unknown {
+                        FunctionError::Intrinsic(IntrinsicFunctionError::Unknown {
                             location,
                             function: function.identifier,
                         }),
@@ -259,9 +259,9 @@ impl Analyzer {
                 )
             }
             FunctionType::Constant(function) => {
-                if let CallType::BuiltIn = call_type {
+                if let CallType::Intrinsic = call_type {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
-                        FunctionError::BuiltIn(BuiltInFunctionError::Unknown {
+                        FunctionError::Intrinsic(IntrinsicFunctionError::Unknown {
                             location,
                             function: function.identifier,
                         }),

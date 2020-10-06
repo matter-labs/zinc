@@ -17,7 +17,7 @@ pub struct Builder {
     location: Option<Location>,
     /// The unit type, which means that the type is an empty tuple, which is the same as unit.
     is_unit: bool,
-    /// The type keyword, which means that the type is built-in.
+    /// The type keyword, which means that the type is intrinsic.
     keyword: Option<Keyword>,
     /// The array type, which means that the type is an array.
     array_type: Option<Type>,

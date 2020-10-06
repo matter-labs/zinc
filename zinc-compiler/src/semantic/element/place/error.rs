@@ -24,7 +24,7 @@ pub enum Error {
         location: Location,
         /// The name of the immutable variable.
         name: String,
-        /// The location of the immutable variable. `None` for built-in items.
+        /// The location of the immutable variable. `None` for intrinsic items.
         reference: Option<Location>,
     },
     /// Tried to change an external contract storage field.

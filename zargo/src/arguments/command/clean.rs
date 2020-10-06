@@ -1,5 +1,5 @@
 //!
-//! The Zargo project manager `clean` subcommand.
+//! The Zargo package manager `clean` subcommand.
 //!
 
 use std::convert::TryFrom;
@@ -16,31 +16,26 @@ use crate::project::data::Directory as DataDirectory;
 use crate::project::manifest::Manifest as ManifestFile;
 
 ///
-/// The Zargo project manager `clean` subcommand.
+/// The Zargo package manager `clean` subcommand.
 ///
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Cleans up the project")]
+#[structopt(about = "Removes the project build artifacts")]
 pub struct Command {
-    /// The logging level value, which helps the logger to set the logging level.
-    #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity"
-    )]
+    /// Prints more logs, if passed several times.
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
     /// The path to the Zargo project manifest file.
     #[structopt(
         long = "manifest-path",
         parse(from_os_str),
-        help = "Path to Zargo.toml",
         default_value = zinc_const::path::MANIFEST,
     )]
     pub manifest_path: PathBuf,
 }
 
 ///
-/// The Zargo project manager `clean` subcommand error.
+/// The Zargo package manager `clean` subcommand error.
 ///
 #[derive(Debug, Fail)]
 pub enum Error {

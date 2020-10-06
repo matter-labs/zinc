@@ -32,7 +32,7 @@ pub enum State {
     /// The initial state.
     PathOperand,
     /// The first path operand has been parsed so far.
-    /// The optional exclamation mark quasi-operator identifies the built-in function call.
+    /// The optional exclamation mark quasi-operator identifies the intrinsic function call.
     ExclamationMarkOrNext,
     /// The first path operand with an optional exclamation mark has been parsed so far.
     /// Expects one of the access or call operators `(`, `[`, `.`.
@@ -91,7 +91,7 @@ impl Parser {
                             location,
                         } => {
                             self.builder
-                                .eat_operator(ExpressionOperator::CallBuiltIn, location);
+                                .eat_operator(ExpressionOperator::CallIntrinsic, location);
                         }
                         token => self.next = Some(token),
                     }

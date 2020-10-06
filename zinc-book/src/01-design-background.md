@@ -3,7 +3,7 @@
 The goal of Zinc is to make writing safe zero-knowledge circuits and ZKP-based
 smart contracts easy. It has been designed with the following principles in mind:
 
-- **Security**. It should be easy to write deterministic and secure programs.
+- **Security**. It should be easy to write deterministic and secure applications.
 Conversely, it should be hard to write code to exploit some possible
 vulnerabilities found in other programming languages.
 - **Safety**. The language must enforce the strictest semantics available,
@@ -20,7 +20,7 @@ familiar with the C++ language family. There should be no counter-intuitive conc
 - **Minimalism**. Less code is better. There should ideally be only one way to
 do something efficiently. Complexity should be reduced.
 - **Expressiveness**. The language should be powerful enough to make building
-complex programs easy.
+complex applications easy.
 - **Turing incompleteness**. Unbounded looping and recursion are not permitted
 in Zinc. This not only allows more efficient R1CS circuit construction but
 also makes formal verifiability about the call and stack safety easier and

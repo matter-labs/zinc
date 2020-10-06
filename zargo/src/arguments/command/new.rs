@@ -1,5 +1,5 @@
 //!
-//! The Zargo project manager `new` subcommand.
+//! The Zargo package manager `new` subcommand.
 //!
 
 use std::ffi::OsString;
@@ -22,31 +22,21 @@ use crate::project::source::contract::Contract as ContractFile;
 use crate::project::source::Directory as SourceDirectory;
 
 ///
-/// The Zargo project manager `new` subcommand.
+/// The Zargo package manager `new` subcommand.
 ///
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Creates a new project directory")]
+#[structopt(about = "Creates a new project in the specified directory")]
 pub struct Command {
-    /// The logging level value, which helps the logger to set the logging level.
-    #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity"
-    )]
+    /// Prints more logs, if passed several times.
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
-    /// The project name, which will appear in the Zargo manifest file.
-    #[structopt(
-        long = "name",
-        help = "Set the project name, defaults to the directory name"
-    )]
+    /// Sets the project name, defaults to the directory name.
+    #[structopt(long = "name")]
     pub name: Option<String>,
 
-    /// The project type, which is either a circuit or contract for now.
-    #[structopt(
-        long = "type",
-        help = "Set the project type, either 'circuit' or 'contract'"
-    )]
+    /// Sets the project type, either 'circuit' or 'contract'.
+    #[structopt(long = "type")]
     pub r#type: String,
 
     /// The path to the project directory to initialize.
@@ -55,7 +45,7 @@ pub struct Command {
 }
 
 ///
-/// The Zargo project manager `new` subcommand error.
+/// The Zargo package manager `new` subcommand error.
 ///
 #[derive(Debug, Fail)]
 pub enum Error {

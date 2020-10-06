@@ -1,4 +1,4 @@
-# Standard library
+# The standard library
 
 The standard library is unstable. Function signatures and behavior are going to
 be changed in future releases.
@@ -181,17 +181,3 @@ Arguments:
 - value: `field`
 
 Returns: `field`
-
-## `std::zksync` module
-
-### `std::zksync::transfer`
-
-Executes a transfer which is sent to the zkSync platform.
-
-Arguments:
-- from: `u160`
-- to: `u160`
-- token_id: `u{N}`
-- amount: `u248`
-
-Returns: `()`

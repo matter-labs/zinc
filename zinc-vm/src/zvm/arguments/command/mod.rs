@@ -37,18 +37,19 @@ pub trait IExecutable {
 /// The Zinc virtual machine subcommand.
 ///
 #[derive(Debug, StructOpt)]
+#[structopt(about = "The Zinc virtual machine")]
 pub enum Command {
-    /// The `run` subcommand.
+    /// Executes the bytecode and prints its output.
     Run(RunCommand),
-    /// The `debug` subcommand.
+    /// Executes the bytecode with additional checks.
     Debug(DebugCommand),
-    /// The `test` subcommand.
+    /// Executes a unit test.
     Test(TestCommand),
-    /// The `setup` subcommand.
+    /// Generates a pair of proving and verifying keys.
     Setup(SetupCommand),
-    /// The `prove` subcommand.
+    /// Executes the bytecode and prints its output.
     Prove(ProveCommand),
-    /// The `verify` subcommand.
+    /// Verifies a proof using the verifying key.
     Verify(VerifyCommand),
 }
 

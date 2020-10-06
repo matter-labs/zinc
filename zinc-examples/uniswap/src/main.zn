@@ -56,34 +56,34 @@ contract Exchange {
         max_tokens: Balance,
         deadline: Timestamp,
     ) -> Balance {
-        assert!(deadline > tx.block.timestamp && max_tokens > ZERO_BALANCE && tx.value > ZERO_BALANCE);
+        require(deadline > tx.block.timestamp && max_tokens > ZERO_BALANCE && tx.value > ZERO_BALANCE);
 
         let total_liquidity: Balance = self.total_supply;
 
         if total_liquidity > ZERO_BALANCE {
-            assert!(min_liquidity > ZERO_BALANCE);
+            require(min_liquidity > ZERO_BALANCE);
 
             let eth_reserve: Balance = self.balance - tx.value;
             let token_reserve: Balance = self.balance_of(self.token_address);
             
             let token_amount: Balance = tx.value * token_reserve / eth_reserve + 1 as Balance;
             let liquidity_minted: Balance = tx.value * total_liquidity / eth_reserve;
-            assert!(max_tokens >= token_amount && liquidity_minted >= min_liquidity);
+            require(max_tokens >= token_amount && liquidity_minted >= min_liquidity);
 
             self.balances[tx.from] += liquidity_minted;
             self.total_supply = total_liquidity + liquidity_minted;
-            assert!(self.transfer_from(tx, tx.from, self.token_address, token_amount));
+            require(self.transfer_from(tx, tx.from, self.token_address, token_amount));
 
             liquidity_minted
         } else {
-            assert!(self._factory.address != ZERO_ADDRESS && self.token_address != ZERO_ADDRESS && tx.value >= 1000000000 as Balance);
-            assert!(self._factory.get_exchange(self.token_address) == self.token_address);
+            require(self._factory.address != ZERO_ADDRESS && self.token_address != ZERO_ADDRESS && tx.value >= 1000000000 as Balance);
+            require(self._factory.get_exchange(self.token_address) == self.token_address);
 
             let token_amount: Balance = max_tokens;
             let initial_liquidity: Balance = self.balance;
             self.total_supply = initial_liquidity;
             self.balances[tx.from] = initial_liquidity;
-            assert!(self.transfer_from(tx, tx.from, self.token_address, token_amount));
+            require(self.transfer_from(tx, tx.from, self.token_address, token_amount));
 
             initial_liquidity
         }
@@ -109,20 +109,20 @@ contract Exchange {
         min_tokens: Balance,
         deadline: Timestamp,
     ) -> (Balance, Balance) {
-        assert!(amount > ZERO_BALANCE && deadline > tx.block.timestamp && min_eth > ZERO_BALANCE && min_tokens > ZERO_BALANCE);
+        require(amount > ZERO_BALANCE && deadline > tx.block.timestamp && min_eth > ZERO_BALANCE && min_tokens > ZERO_BALANCE);
 
         let total_liquidity: Balance = self.total_supply;
-        assert!(total_liquidity > ZERO_BALANCE);
+        require(total_liquidity > ZERO_BALANCE);
 
         let token_reserve: Balance = self.balance_of(self.token_address);
         let eth_amount: Balance = amount * self.balance / total_liquidity;
         let token_amount: Balance = amount * token_reserve / total_liquidity;
-        assert!(eth_amount >= min_eth && token_amount >= min_tokens);
+        require(eth_amount >= min_eth && token_amount >= min_tokens);
 
         self.balances[tx.from] -= amount;
         self.total_supply = total_liquidity - amount;
 //        send(tx.from, eth_amount);
-        assert!(self.transfer(tx, tx.from, token_amount));
+        require(self.transfer(tx, tx.from, token_amount));
 
         (eth_amount, token_amount)
     }
@@ -146,12 +146,12 @@ contract Exchange {
         buyer: Address,
         recipient: Address,
     ) -> Balance {
-        assert!(deadline >= tx.block.timestamp && eth_sold > ZERO_BALANCE && min_tokens > ZERO_BALANCE);
+        require(deadline >= tx.block.timestamp && eth_sold > ZERO_BALANCE && min_tokens > ZERO_BALANCE);
 
         let token_reserve: Balance = self.balance_of(self.token_address);
         let tokens_bought: Balance = utils::get_input_price(eth_sold, self.balance - eth_sold, token_reserve);
-        assert!(tokens_bought >= min_tokens);
-        assert!(self.transfer(tx, recipient, tokens_bought));
+        require(tokens_bought >= min_tokens);
+        require(self.transfer(tx, recipient, tokens_bought));
 
         tokens_bought
     }
@@ -196,7 +196,7 @@ contract Exchange {
         min_tokens: Balance,
         deadline: Timestamp,
     ) -> Balance {
-        assert!(tx.to != self.token_address && tx.to != ZERO_ADDRESS);
+        require(tx.to != self.token_address && tx.to != ZERO_ADDRESS);
 
         self.eth_to_token_input(tx, tx.value, min_tokens, deadline, tx.from, tx.to)
     }
@@ -209,7 +209,7 @@ contract Exchange {
         deadline: Timestamp,
         buyer: Address,
     ) -> Balance {
-        assert!(deadline >= tx.block.timestamp && tokens_bought > ZERO_BALANCE && max_eth > ZERO_BALANCE);
+        require(deadline >= tx.block.timestamp && tokens_bought > ZERO_BALANCE && max_eth > ZERO_BALANCE);
 
         let token_reserve: Balance = self.balance_of(self.token_address);
         let eth_sold: Balance = utils::get_output_price(tokens_bought, self.balance - max_eth, token_reserve);
@@ -219,7 +219,7 @@ contract Exchange {
         if eth_refund > ZERO_BALANCE {
 //            send(buyer, eth_refund);
         };
-        assert!(self.transfer(tx, tx.to, tokens_bought));
+        require(self.transfer(tx, tx.to, tokens_bought));
 
         eth_sold
     }
@@ -263,7 +263,7 @@ contract Exchange {
         tokens_bought: Balance,
         deadline: Timestamp,
     ) -> Balance {
-        assert!(tx.to != self.token_address && tx.to != ZERO_ADDRESS);
+        require(tx.to != self.token_address && tx.to != ZERO_ADDRESS);
 
         self.eth_to_token_output(tx, tokens_bought, tx.value, deadline, tx.to)
     }
@@ -276,16 +276,16 @@ contract Exchange {
         deadline: Timestamp,
         buyer: Address,
     ) -> Balance {
-        assert!(deadline >= tx.block.timestamp && tx.value > ZERO_BALANCE && min_eth > ZERO_BALANCE);
+        require(deadline >= tx.block.timestamp && tx.value > ZERO_BALANCE && min_eth > ZERO_BALANCE);
 
         let token_reserve: Balance = self.balance_of(self.token_address);
         let eth_bought: Balance = utils::get_input_price(tokens_sold, token_reserve, self.balance);
         let wei_bought: Balance = eth_bought;
-        assert!(wei_bought >= min_eth);
+        require(wei_bought >= min_eth);
 
 //        send(tx.to, wei_bought); // external function
 
-        assert!(self.transfer_from(tx, buyer, self.token_address, tx.value));
+        require(self.transfer_from(tx, buyer, self.token_address, tx.value));
 
         wei_bought
     }
@@ -332,7 +332,7 @@ contract Exchange {
         min_eth: Balance,
         deadline: Timestamp,
     ) -> Balance {
-        assert!(tx.to != self.token_address && tx.to != ZERO_ADDRESS);
+        require(tx.to != self.token_address && tx.to != ZERO_ADDRESS);
 
         self.token_to_eth_input(tx, tx.value, min_eth, deadline, tx.to)
     }
@@ -346,15 +346,15 @@ contract Exchange {
         buyer: Address,
         recipient: Address,
     ) -> Balance {
-        assert!(deadline >= tx.block.timestamp && eth_bought > ZERO_BALANCE);
+        require(deadline >= tx.block.timestamp && eth_bought > ZERO_BALANCE);
 
         let token_reserve: Balance = self.balance_of(self.token_address);
         let tokens_sold: Balance = utils::get_output_price(eth_bought, token_reserve, self.total_supply);
-        assert!(max_tokens >= tokens_sold, "tokens sold is always > 0");
+        require(max_tokens >= tokens_sold, "tokens sold is always > 0");
 
 //        send(tx.to, eth_bought);
 
-        assert!(self.transfer_from(tx, buyer, self.token_address, tokens_sold));
+        require(self.transfer_from(tx, buyer, self.token_address, tokens_sold));
 
         tokens_sold
     }
@@ -403,7 +403,7 @@ contract Exchange {
         max_tokens: Balance,
         deadline: Timestamp,
     ) -> Balance {
-        assert!(tx.to != self.token_address && tx.to != ZERO_ADDRESS);
+        require(tx.to != self.token_address && tx.to != ZERO_ADDRESS);
 
         self.token_to_eth_output(tx, eth_bought, max_tokens, deadline, tx.from, tx.to)
     }
@@ -418,14 +418,14 @@ contract Exchange {
         buyer: Address,
         exchange_addr: Address,
     ) -> Balance {
-        assert!(deadline >= tx.block.timestamp && tokens_sold > ZERO_BALANCE && min_tokens_bought > ZERO_BALANCE && min_eth_bought > ZERO_BALANCE);
-        assert!(exchange_addr != self.token_address && exchange_addr != ZERO_ADDRESS);
+        require(deadline >= tx.block.timestamp && tokens_sold > ZERO_BALANCE && min_tokens_bought > ZERO_BALANCE && min_eth_bought > ZERO_BALANCE);
+        require(exchange_addr != self.token_address && exchange_addr != ZERO_ADDRESS);
 
         let token_reserve: Balance = self.balance_of(self.token_address);
         let eth_bought: Balance = utils::get_input_price(tokens_sold, token_reserve, self.balance);
         let wei_bought: Balance = eth_bought;
-        assert!(wei_bought >= min_eth_bought);
-        assert!(self.transfer_from(tx, buyer, self.token_address, tokens_sold));
+        require(wei_bought >= min_eth_bought);
+        require(self.transfer_from(tx, buyer, self.token_address, tokens_sold));
 
 //        Exchange(exchange_addr).eth_to_token_transfer_input(min_tokens_bought, deadline, tx.to, wei_bought)
 
@@ -501,15 +501,15 @@ contract Exchange {
         buyer: Address,
         exchange_addr: Address
     ) -> Balance {
-        assert!(deadline >= tx.block.timestamp && tokens_bought > ZERO_BALANCE && max_eth_sold > ZERO_BALANCE);
-        assert!(exchange_addr != self.token_address && exchange_addr != ZERO_ADDRESS);
+        require(deadline >= tx.block.timestamp && tokens_bought > ZERO_BALANCE && max_eth_sold > ZERO_BALANCE);
+        require(exchange_addr != self.token_address && exchange_addr != ZERO_ADDRESS);
 
 //        let eth_bought: Balance = Exchange(exchange_addr).getEthToTokenOutputPrice(tokens_bought);
         let eth_bought: Balance = ZERO_BALANCE;
         let token_reserve: Balance = self.balance_of(self.token_address);
         let tokens_sold: Balance = utils::get_output_price(eth_bought, token_reserve, self.balance);
-        assert!(max_tokens_sold >= tokens_sold && max_eth_sold >= eth_bought, "tokens sold is always > 0");
-        assert!(self.transfer_from(tx, buyer, self.token_address, tokens_sold));
+        require(max_tokens_sold >= tokens_sold && max_eth_sold >= eth_bought, "tokens sold is always > 0");
+        require(self.transfer_from(tx, buyer, self.token_address, tokens_sold));
 
 //        Exchange(exchange_addr).ethToTokenTransferOutput(tokens_bought, deadline, tx.to, value=eth_bought);
         ZERO_BALANCE
@@ -628,7 +628,7 @@ contract Exchange {
         deadline: Timestamp,
         exchange_addr: Address,
     ) -> Balance {
-        assert!(tx.to != self.token_address);
+        require(tx.to != self.token_address);
 
         self.token_to_token_input(tx, tokens_sold, min_tokens_bought, min_eth_bought, deadline, tx.to, exchange_addr)
     }
@@ -687,7 +687,7 @@ contract Exchange {
         deadline: Timestamp,
         exchange_addr: Address,
     ) -> Balance {
-        assert!(tx.to != self.token_address);
+        require(tx.to != self.token_address);
 
         self.token_to_token_output(tx, tokens_bought, max_tokens_sold, max_eth_sold, deadline, tx.to, exchange_addr)
     }
@@ -703,7 +703,7 @@ contract Exchange {
     /// Amount of Tokens that can be bought with input ETH.
     ///
     pub fn get_eth_to_token_input_price(self, eth_sold: Balance) -> Balance {
-        assert!(eth_sold > ZERO_BALANCE);
+        require(eth_sold > ZERO_BALANCE);
 
         let token_reserve: Balance = self.balance_of(self.token_address);
 
@@ -720,7 +720,7 @@ contract Exchange {
     /// Amount of ETH needed to buy output Tokens.
     ///
     pub fn get_eth_to_token_output_price(self, tokens_bought: Balance) -> Balance {
-        assert!(tokens_bought > ZERO_BALANCE);
+        require(tokens_bought > ZERO_BALANCE);
 
         let token_reserve: Balance = self.balance_of(self.token_address);
 
@@ -739,7 +739,7 @@ contract Exchange {
     /// Amount of ETH that can be bought with input Tokens.
     ///
     pub fn get_token_to_eth_input_price(self, tokens_sold: Balance) -> Balance {
-        assert!(tokens_sold > ZERO_BALANCE);
+        require(tokens_sold > ZERO_BALANCE);
 
         let token_reserve: Balance = self.balance_of(self.token_address);
         let eth_bought: Balance = utils::get_input_price(tokens_sold, token_reserve, self.balance);
@@ -757,7 +757,7 @@ contract Exchange {
     /// Amount of Tokens needed to buy output ETH.
     ///
     pub fn get_token_to_eth_output_price(self, eth_bought: Balance) -> Balance {
-        assert!(eth_bought > ZERO_BALANCE);
+        require(eth_bought > ZERO_BALANCE);
 
         let token_reserve: Balance = self.balance_of(self.token_address);
 

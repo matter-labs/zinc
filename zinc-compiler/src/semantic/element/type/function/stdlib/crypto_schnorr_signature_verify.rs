@@ -13,7 +13,7 @@ use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
-use crate::semantic::scope::builtin::BuiltInTypeId;
+use crate::semantic::scope::intrinsic::IntrinsicTypeId;
 
 ///
 /// The semantic analyzer standard library `std::crypto::schnorr::Signature::verify` function element.
@@ -22,7 +22,7 @@ use crate::semantic::scope::builtin::BuiltInTypeId;
 pub struct Function {
     /// The location where the function is called.
     pub location: Option<Location>,
-    /// The unique built-in function identifier.
+    /// The unique intrinsic function identifier.
     pub stdlib_identifier: FunctionIdentifier,
     /// The function identifier.
     pub identifier: &'static str,
@@ -82,7 +82,7 @@ impl Function {
 
         match actual_params.get(Self::ARGUMENT_INDEX_SIGNATURE) {
             Some((Type::Structure(structure), _location))
-                if structure.type_id == BuiltInTypeId::StdCryptoSchnorrSignature as usize => {}
+                if structure.type_id == IntrinsicTypeId::StdCryptoSchnorrSignature as usize => {}
             Some((r#type, location)) => {
                 return Err(Error::ArgumentType {
                     location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),

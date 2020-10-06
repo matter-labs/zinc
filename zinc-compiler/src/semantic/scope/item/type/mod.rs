@@ -32,7 +32,7 @@ use self::statement::Statement as TypeStatementVariant;
 ///
 #[derive(Debug, Clone)]
 pub struct Type {
-    /// The location where the type was declared. `None` for built-in items.
+    /// The location where the type was declared. `None` for intrinsic items.
     pub location: Option<Location>,
     /// The unique type ID, allocated upon declaration.
     pub item_id: usize,
@@ -119,7 +119,7 @@ impl Type {
     }
 
     ///
-    /// Useful method to declare a built-in type without a `location` or `intermediate` representation.
+    /// Useful method to declare an intrinsic type without a `location` or `intermediate` representation.
     ///
     pub fn new_built_in(inner: TypeElement, is_associated: bool) -> Self {
         let item_id = ITEM_INDEX.next(inner.to_string());

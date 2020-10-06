@@ -28,6 +28,3 @@ pub static CONTRACT_FEE_URL: &str = "/api/v1/contract/fee";
 
 /// The contract call URL.
 pub static CONTRACT_CALL_URL: &str = "/api/v1/contract/call";
-
-/// The ETH balance value exponent.
-pub const ETH_BALANCE_EXPONENT: u32 = 18;

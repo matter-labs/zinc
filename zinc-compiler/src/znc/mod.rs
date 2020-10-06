@@ -48,8 +48,9 @@ fn main_inner() -> Result<(), Error> {
         .spawn(move || -> Result<Bytes, Error> {
             let source = Source::try_from_entry(&source_directory_path)?;
             let state = source.compile(project_name)?;
-            let program = State::unwrap_rc(state).into_program(optimize_dead_function_elimination);
-            Ok(program.into_bytes())
+            let application =
+                State::unwrap_rc(state).into_application(optimize_dead_function_elimination);
+            Ok(application.into_bytes())
         })
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .join()

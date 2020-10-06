@@ -1,5 +1,5 @@
 //!
-//! The Zargo project manager binary.
+//! The Zargo package manager binary.
 //!
 
 pub(crate) mod arguments;

@@ -1,5 +1,5 @@
 //!
-//! The Zargo project manager subcommand error.
+//! The Zargo package manager subcommand error.
 //!
 
 use failure::Fail;
@@ -19,7 +19,7 @@ use crate::arguments::command::test::Error as TestCommandError;
 use crate::arguments::command::verify::Error as VerifyCommandError;
 
 ///
-/// The Zargo project manager error.
+/// The Zargo package manager error.
 ///
 #[derive(Debug, Fail)]
 pub enum Error {

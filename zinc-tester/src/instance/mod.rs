@@ -10,12 +10,12 @@ use std::thread;
 
 use serde_json::Value as JsonValue;
 
-use zinc_build::Program as BuildProgram;
+use zinc_build::Application as BuildApplication;
 use zinc_build::Value as BuildValue;
 use zinc_compiler::EntryAnalyzer;
 use zinc_compiler::Error as CompilerError;
 use zinc_compiler::IBytecodeWritable;
-use zinc_compiler::Module as IntermediateProgram;
+use zinc_compiler::Module as IntermediateApplication;
 use zinc_compiler::Source;
 use zinc_compiler::State;
 
@@ -28,7 +28,7 @@ pub struct Instance {
     /// The witness input data template value.
     pub witness: BuildValue,
     /// The instance bytecode with metadata.
-    pub program: BuildProgram,
+    pub application: BuildApplication,
 }
 
 impl Instance {
@@ -44,7 +44,7 @@ impl Instance {
     ) -> Result<Self, Error> {
         let source = Source::test(code, path, HashMap::new())
             .map_err(|error| Error::Compiler(format!("{:?}", error)))?;
-        let program = thread::Builder::new()
+        let application = thread::Builder::new()
             .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
             .spawn(|| {
                 let scope = EntryAnalyzer::define(source)
@@ -53,18 +53,18 @@ impl Instance {
                     .map_err(Error::Compiler)?;
 
                 let state = State::new(name).wrap();
-                IntermediateProgram::new(scope.borrow().get_intermediate())
+                IntermediateApplication::new(scope.borrow().get_intermediate())
                     .write_all(state.clone());
 
-                Ok(State::unwrap_rc(state).into_program(true))
+                Ok(State::unwrap_rc(state).into_application(true))
             })
             .expect(zinc_const::panic::SYNCHRONIZATION)
             .join()
             .expect(zinc_const::panic::SYNCHRONIZATION)?;
 
-        let input_type = match program {
-            BuildProgram::Circuit(ref circuit) => circuit.input.to_owned(),
-            BuildProgram::Contract(ref contract) => contract
+        let input_type = match application {
+            BuildApplication::Circuit(ref circuit) => circuit.input.to_owned(),
+            BuildApplication::Contract(ref contract) => contract
                 .methods
                 .get(method.as_str())
                 .ok_or(Error::MethodNotFound(method))?
@@ -75,6 +75,9 @@ impl Instance {
         let witness =
             BuildValue::try_from_typed_json(witness, input_type).map_err(Error::InputValue)?;
 
-        Ok(Self { witness, program })
+        Ok(Self {
+            witness,
+            application,
+        })
     }
 }

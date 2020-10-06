@@ -1,5 +1,5 @@
 //!
-//! The `program exit` instruction.
+//! The `exit` instruction.
 //!
 
 use std::fmt;
@@ -10,11 +10,11 @@ use serde_derive::Serialize;
 use crate::instructions::Instruction;
 
 ///
-/// The `program exit` instruction.
+/// The `exit` instruction.
 ///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Exit {
-    /// The number of fields returned by the program.
+    /// The number of fields returned by the application.
     pub output_size: usize,
 }
 

@@ -1,5 +1,5 @@
 //!
-//! The Zargo project manager `publish` subcommand.
+//! The Zargo package manager `publish` subcommand.
 //!
 
 use std::convert::TryFrom;
@@ -44,42 +44,34 @@ use crate::project::source::Directory as SourceDirectory;
 use crate::transaction::error::Error as TransactionError;
 
 ///
-/// The Zargo project manager `publish` subcommand.
+/// The Zargo package manager `publish` subcommand.
 ///
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Builds the project at the given path")]
+#[structopt(about = "Uploads the smart contract to the specified network")]
 pub struct Command {
-    /// The logging level value, which helps the logger to set the logging level.
-    #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity"
-    )]
+    /// Prints more logs, if passed several times.
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
     /// The path to the Zargo project manifest file.
     #[structopt(
         long = "manifest-path",
-        help = "Path to Zargo.toml",
+        parse(from_os_str),
         default_value = zinc_const::path::MANIFEST,
     )]
     pub manifest_path: PathBuf,
 
-    /// The contract instance name.
-    #[structopt(long = "instance", help = "Sets the contract instance name")]
+    /// Sets the contract instance name.
+    #[structopt(long = "instance")]
     pub instance: String,
 
-    /// The network identifier, where the contract must be published to.
-    #[structopt(
-        long = "network",
-        help = "Sets the network name",
-        default_value = "localhost"
-    )]
+    /// Sets the network name, where the contract must be published to.
+    #[structopt(long = "network", default_value = "localhost")]
     pub network: String,
 }
 
 ///
-/// The Zargo project manager `publish` subcommand error.
+/// The Zargo package manager `publish` subcommand error.
 ///
 #[derive(Debug, Fail)]
 pub enum Error {

@@ -5,8 +5,8 @@
 #[cfg(test)]
 mod tests;
 
-pub mod builtin;
 pub mod error;
+pub mod intrinsic;
 pub mod item;
 pub mod memory_type;
 pub mod stack;
@@ -28,8 +28,8 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::contract::Statement as ContractStatement;
 use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
-use self::builtin::BuiltInScope;
 use self::error::Error;
+use self::intrinsic::IntrinsicScope;
 use self::item::constant::Constant as ConstantItem;
 use self::item::field::Field as FieldItem;
 use self::item::module::Module as ModuleItem;
@@ -43,7 +43,7 @@ use self::memory_type::MemoryType;
 ///
 /// A scope consists of a hashmap of the declared items and a reference to its parent.
 ///
-/// The global scope has the `built-in` scope with the `std` library and built-in functions as its parent.
+/// The global scope has the `intrinsic` scope with the `std` library and intrinsic functions as its parent.
 ///
 /// Modules are connected to the entry scope hierarchy horizontally, being stored as module items.
 ///
@@ -55,7 +55,7 @@ pub struct Scope {
     parent: Option<Rc<RefCell<Self>>>,
     /// The hashmap with items declared at the current scope level, with item names as keys.
     items: RefCell<HashMap<String, Rc<RefCell<Item>>>>,
-    /// Whether the scope is the built-in one, that is, the root scope with built-in items.
+    /// Whether the scope is the intrinsic one, that is, the root scope with intrinsic items.
     is_built_in: bool,
 }
 
@@ -66,7 +66,7 @@ impl Scope {
     ///
     /// Initializes a scope with an explicit optional parent.
     ///
-    /// Beware that if you omit the `parent`, built-in functions and `std` will not be available
+    /// Beware that if you omit the `parent`, intrinsic functions and `std` will not be available
     /// throughout the scope stack. To create a scope with such items available, use `new_global`.
     ///
     pub fn new(name: String, parent: Option<Rc<RefCell<Self>>>) -> Self {
@@ -79,19 +79,19 @@ impl Scope {
     }
 
     ///
-    /// Initializes a global scope without the built-in one as its parent.
+    /// Initializes a global scope without the intrinsic one as its parent.
     ///
     pub fn new_global(name: String) -> Self {
         Self {
             name,
-            parent: Some(BuiltInScope::initialize()),
+            parent: Some(IntrinsicScope::initialize()),
             items: RefCell::new(HashMap::with_capacity(Self::ITEMS_INITIAL_CAPACITY)),
             is_built_in: false,
         }
     }
 
     ///
-    /// Initializes the built-in scope which is used for `std` and built-in function definitions.
+    /// Initializes the intrinsic scope which is used for `std` and intrinsic function definitions.
     ///
     pub fn new_built_in(name: &'static str) -> Self {
         Self {
@@ -472,7 +472,7 @@ impl Scope {
     /// Resolves an item at the specified path by looking through modules and type scopes.
     ///
     /// If the `path` consists of only one element, the path is resolved recursively, that is,
-    /// looking through the whole scope hierarchy up to the module level and global built-in scope.
+    /// looking through the whole scope hierarchy up to the module level and global intrinsic scope.
     ///
     /// If the `path` consists if more than one element, the elements starting from the 2nd are
     /// resolved non-recursively, that is, looking only at the first-level scope of the path element.

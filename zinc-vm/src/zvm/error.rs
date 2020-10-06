@@ -39,7 +39,7 @@ pub enum Error {
     #[fail(display = "failed to parse json: {}", _0)]
     JsonDecoding(serde_json::Error),
 
-    /// The JSON template file data does not match the bytecode program input/output types metadata.
+    /// The JSON template file data does not match the bytecode application input/output types metadata.
     #[fail(
         display = "invalid json structure: {}\nNote: remove the JSON file so the compiler may recreate it",
         _0
@@ -47,8 +47,8 @@ pub enum Error {
     JsonValue(BuildValueError),
 
     /// The bytecode deserialization error.
-    #[fail(display = "failed to decode program: {}", _0)]
-    ProgramDecoding(String),
+    #[fail(display = "failed to decode an application: {}", _0)]
+    ApplicationDecoding(String),
 
     /// The hexadecimal data decoding error. Is caused by invalid proofs and keys.
     #[fail(display = "failed to decode {} hex-code: {}", context, error)]

@@ -8,7 +8,7 @@ zero-knowledge proofs practical for bringing scalability and privacy to blockcha
 At the same time, most existing languages and frameworks for constructing R1CS
 circuits, while being useful in academic research and prototyping, do not
 provide a satisfying degree of expressiveness and brevity to write readable and
-easily maintainable programs. A notable exception is **xJsnark**, but being
+easily maintainable applications. A notable exception is **xJsnark**, but being
 based on Java it lacks a lot of safety features of modern functional languages.
 
 Further, existing frameworks completely lack functionality specific for

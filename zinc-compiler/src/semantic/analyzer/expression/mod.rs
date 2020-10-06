@@ -553,8 +553,8 @@ impl Analyzer {
                     let intermediate = self.call(tree.location, rule)?;
                     self.intermediate.push_element(intermediate);
                 }
-                ExpressionOperator::CallBuiltIn => {
-                    self.next_call_type = CallType::BuiltIn;
+                ExpressionOperator::CallIntrinsic => {
+                    self.next_call_type = CallType::Intrinsic;
 
                     self.left_local(tree.left, operator, rule)?;
                 }

@@ -12,7 +12,7 @@ use std::sync::RwLock;
 use actix_web::http::StatusCode;
 use actix_web::web;
 
-use zinc_build::Program as BuildProgram;
+use zinc_build::Application as BuildApplication;
 use zinc_build::Type as BuildType;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
@@ -58,12 +58,12 @@ pub async fn handle(
         query.version
     );
 
-    let program =
-        BuildProgram::try_from_slice(body.bytecode.as_slice()).map_err(Error::InvalidBytecode)?;
+    let application = BuildApplication::try_from_slice(body.bytecode.as_slice())
+        .map_err(Error::InvalidBytecode)?;
 
-    let build = match program.clone() {
-        BuildProgram::Circuit(_circuit) => return Err(Error::NotAContract),
-        BuildProgram::Contract(contract) => contract,
+    let build = match application.clone() {
+        BuildApplication::Circuit(_circuit) => return Err(Error::NotAContract),
+        BuildApplication::Contract(contract) => contract,
     };
 
     let constructor = build

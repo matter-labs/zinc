@@ -2,7 +2,7 @@
 //! The Zinc VM generator state.
 //!
 
-pub mod method;
+pub mod entry;
 pub mod optimizer;
 pub mod unit_test;
 
@@ -10,10 +10,10 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use zinc_build::Application as BuildApplication;
 use zinc_build::ContractFieldType as BuildContractFieldType;
 use zinc_build::ContractMethod;
 use zinc_build::Instruction;
-use zinc_build::Program as BuildProgram;
 use zinc_build::Type as BuildType;
 use zinc_build::UnitTest as BuildUnitTest;
 
@@ -22,7 +22,7 @@ use crate::generator::r#type::Type;
 use crate::lexical::token::location::Location;
 use crate::source::file::index::INDEX as FILE_INDEX;
 
-use self::method::Method;
+use self::entry::Entry;
 use self::optimizer::dead_function_code_elimination::Optimizer as DeadFunctionCodeEliminationOptimizer;
 use self::unit_test::UnitTest;
 
@@ -31,15 +31,15 @@ use self::unit_test::UnitTest;
 ///
 #[derive(Debug)]
 pub struct State {
-    /// The Zinc program name.
+    /// The Zinc application name.
     name: String,
 
     /// The Zinc VM instructions written by the bytecode generator.
     instructions: Vec<Instruction>,
     /// The contract storage structure.
     contract_storage: Option<Vec<ContractFieldType>>,
-    /// Metadata of each contract method.
-    methods: HashMap<usize, Method>,
+    /// Metadata of each application entry.
+    entries: HashMap<usize, Entry>,
     /// Unit tests.
     unit_tests: HashMap<usize, UnitTest>,
 
@@ -76,7 +76,7 @@ impl State {
 
             instructions: Vec::with_capacity(Self::INSTRUCTIONS_INITIAL_CAPACITY),
             contract_storage: None,
-            methods: HashMap::with_capacity(Self::METHODS_INITIAL_CAPACITY),
+            entries: HashMap::with_capacity(Self::METHODS_INITIAL_CAPACITY),
             unit_tests: HashMap::with_capacity(Self::METHODS_INITIAL_CAPACITY),
 
             function_addresses: HashMap::with_capacity(Self::FUNCTION_ADDRESSES_INITIAL_CAPACITY),
@@ -103,7 +103,7 @@ impl State {
     }
 
     ///
-    /// Returns the program name.
+    /// Returns the application name.
     ///
     pub fn name(&self) -> &str {
         self.name.as_str()
@@ -156,14 +156,14 @@ impl State {
         input_arguments: Vec<(String, bool, Type)>,
         output_type: Type,
     ) {
-        let method = Method::new(
+        let method = Entry::new(
             type_id,
             identifier.clone(),
             is_mutable,
             input_arguments,
             output_type,
         );
-        self.methods.insert(type_id, method);
+        self.entries.insert(type_id, method);
 
         self.start_function(location, type_id, identifier);
     }
@@ -232,7 +232,7 @@ impl State {
     }
 
     ///
-    /// Returns the contract storage structure if the program is a contract.
+    /// Returns the contract storage structure if the application is a contract.
     ///
     /// Converts the generator types to the VM ones.
     ///
@@ -246,7 +246,10 @@ impl State {
     /// Converts the compiled application state into a set of byte arrays, which are ready to be
     /// written to the Zinc project build files.
     ///
-    pub fn into_program(mut self, optimize_dead_function_elimination: bool) -> BuildProgram {
+    pub fn into_application(
+        mut self,
+        optimize_dead_function_elimination: bool,
+    ) -> BuildApplication {
         match self.contract_storage.take() {
             Some(storage) => {
                 let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
@@ -266,7 +269,7 @@ impl State {
 
                 if optimize_dead_function_elimination {
                     let entry_ids: Vec<usize> = self
-                        .methods
+                        .entries
                         .iter()
                         .map(|(_name, method)| method.type_id)
                         .collect();
@@ -282,8 +285,8 @@ impl State {
                     )
                 }
 
-                let mut methods = HashMap::with_capacity(self.methods.len());
-                for (type_id, method) in self.methods.into_iter() {
+                let mut methods = HashMap::with_capacity(self.entries.len());
+                for (type_id, method) in self.entries.into_iter() {
                     let address = self
                         .function_addresses
                         .get(&type_id)
@@ -300,7 +303,7 @@ impl State {
 
                 Self::print_instructions(self.instructions.as_slice());
 
-                BuildProgram::new_contract(
+                BuildApplication::new_contract(
                     self.name,
                     storage,
                     methods,
@@ -323,9 +326,9 @@ impl State {
                 }
 
                 let (entry_id, entry) = self
-                    .methods
+                    .entries
                     .into_iter()
-                    .collect::<Vec<(usize, Method)>>()
+                    .collect::<Vec<(usize, Entry)>>()
                     .remove(0);
                 let input = entry.input_fields_as_struct().into();
                 let output = entry.output_type.into();
@@ -351,7 +354,7 @@ impl State {
 
                 Self::print_instructions(self.instructions.as_slice());
 
-                BuildProgram::new_circuit(
+                BuildApplication::new_circuit(
                     self.name,
                     address,
                     input,

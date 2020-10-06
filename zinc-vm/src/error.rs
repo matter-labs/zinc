@@ -20,7 +20,7 @@ pub enum TypeSizeError {
 
 #[derive(Debug, Fail)]
 pub enum MalformedBytecode {
-    #[fail(display = "invalid arguments to built-in function: {}", _0)]
+    #[fail(display = "invalid arguments to an intrinsic function: {}", _0)]
     InvalidArguments(String),
 
     #[fail(display = "unexpected `loop_end` instruction")]

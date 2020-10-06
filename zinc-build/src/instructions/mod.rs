@@ -166,9 +166,9 @@ pub enum Instruction {
 
     /// The standard library function call instruction.
     CallStd(CallStd),
-    /// A built-in function call instruction.
+    /// An intrinsic function call instruction.
     Assert(Assert),
-    /// A built-in function call instruction.
+    /// An intrinsic function call instruction.
     Dbg(Dbg),
 
     /// A debug location marker instruction.

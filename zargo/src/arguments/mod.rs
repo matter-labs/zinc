@@ -1,5 +1,5 @@
 //!
-//! The Zargo project manager arguments.
+//! The Zargo package manager arguments.
 //!
 
 pub mod command;
@@ -9,17 +9,16 @@ use structopt::StructOpt;
 use self::command::Command;
 
 ///
-/// The Zargo project manager arguments.
+/// The Zargo package manager arguments.
 ///
 #[derive(Debug, StructOpt)]
-#[structopt(name = zinc_const::app_name::ZARGO, about = "Zinc's project manager")]
+#[structopt(
+    name = zinc_const::app_name::ZARGO,
+    about = "The Zinc package manager",
+)]
 pub struct Arguments {
-    /// The logging level value, which helps the logger to set the logging level.
-    #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity"
-    )]
+    /// Prints more logs, if passed several times.
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
     /// The subcommand variant.

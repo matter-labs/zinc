@@ -18,7 +18,7 @@ use rayon::iter::ParallelIterator;
 use zksync_types::AccountId;
 use zksync_types::Address;
 
-use zinc_build::Program as BuildProgram;
+use zinc_build::Application as BuildApplication;
 use zinc_build::Value as BuildValue;
 
 use zandbox::ContractSelectAllOutput;
@@ -77,14 +77,14 @@ async fn main() -> Result<(), Error> {
                     serde_json::to_string(&address).expect(zinc_const::panic::DATA_CONVERSION),
                 );
 
-                let program = BuildProgram::try_from_slice(bytecode.as_slice())
+                let application = BuildApplication::try_from_slice(bytecode.as_slice())
                     .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
 
-                let build = match program {
-                    BuildProgram::Circuit(_circuit) => {
+                let build = match application {
+                    BuildApplication::Circuit(_circuit) => {
                         panic!(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION)
                     }
-                    BuildProgram::Contract(contract) => contract,
+                    BuildApplication::Contract(contract) => contract,
                 };
 
                 let contract = SharedDataContract::new(

@@ -3,7 +3,7 @@
 //!
 
 use crate::lexical::token::location::Location;
-use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
+use crate::semantic::element::r#type::function::intrinsic::error::Error as IntrinsicFunctionError;
 use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
 use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 
@@ -103,8 +103,8 @@ pub enum Error {
         function: String,
     },
 
-    /// The built-in function error. See the inner element description.
-    BuiltIn(BuiltInFunctionError),
+    /// The intrinsic function error. See the inner element description.
+    Intrinsic(IntrinsicFunctionError),
     /// The standard library function error. See the inner element description.
     StandardLibrary(StandardLibraryFunctionError),
     /// The unit test function error. See the inner element description.

@@ -1,5 +1,5 @@
 //!
-//! The Zargo project manager `call` subcommand.
+//! The Zargo package manager `call` subcommand.
 //!
 
 use std::convert::TryFrom;
@@ -34,54 +34,45 @@ use crate::project::manifest::Manifest as ManifestFile;
 use crate::transaction::error::Error as TransactionError;
 
 ///
-/// The Zargo project manager `call` subcommand.
+/// The Zargo package manager `call` subcommand.
 ///
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Builds the project at the given path")]
+#[structopt(about = "Calls a mutable smart contract method")]
 pub struct Command {
-    /// The logging level value, which helps the logger to set the logging level.
-    #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity"
-    )]
+    /// Prints more logs, if passed several times.
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
     /// The path to the Zargo project manifest file.
     #[structopt(
         long = "manifest-path",
-        help = "Path to Zargo.toml",
+        parse(from_os_str),
         default_value = zinc_const::path::MANIFEST,
     )]
     pub manifest_path: PathBuf,
 
-    /// The network identifier, where the contract resides.
-    #[structopt(
-        long = "network",
-        help = "Sets the network name",
-        default_value = "localhost"
-    )]
+    /// Sets the network name, where the contract resides.
+    #[structopt(long = "network", default_value = "localhost")]
     pub network: String,
 
-    /// The ETH address of the published contract.
-    #[structopt(long = "address", help = "The ETH address of the contract")]
+    /// Sets the ETH address of the contract.
+    #[structopt(long = "address")]
     pub address: String,
 
-    /// The contract method to call.
-    #[structopt(long = "method", help = "The contract method to call")]
+    /// Sets the contract method to call.
+    #[structopt(long = "method")]
     pub method: String,
 
-    /// The path to the sender private key.
+    /// Sets the path to the sender private key.
     #[structopt(
         long = "private-key",
-        help = "Path to sender private key",
         default_value = zinc_const::path::PRIVATE_KEY,
     )]
     pub private_key_path: PathBuf,
 }
 
 ///
-/// The Zargo project manager `call` subcommand error.
+/// The Zargo package manager `call` subcommand error.
 ///
 #[derive(Debug, Fail)]
 pub enum Error {

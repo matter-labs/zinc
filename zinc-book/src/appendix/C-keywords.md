@@ -14,7 +14,6 @@ mod
 impl
 contract
 pub
-extern
 ```
 
 #### Controls
@@ -57,6 +56,7 @@ Self
 ## Reserved
 ```rust,no_run,noplaypen
 static
+extern
 ref
 return
 loop

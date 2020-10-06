@@ -12,25 +12,17 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(name = zinc_const::app_name::ZINC_COMPILER, about = "The Zinc compiler")]
 pub struct Arguments {
-    /// The logging level value, which helps the logger to set the logging level.
-    #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Show verbose logs, use multiple times for more verbosity"
-    )]
+    /// Prints more logs, if passed several times.
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
     /// The project name, which is specified in the project manifest file.
-    #[structopt(
-        long = "name",
-        help = "The project name specified in the manifest file"
-    )]
+    #[structopt(long = "name")]
     pub name: String,
 
     /// The path to the source code directory.
     #[structopt(
         parse(from_os_str),
-        help = "The source file or `src` directory path",
         default_value = zinc_const::path::SOURCE,
     )]
     pub source_directory_path: PathBuf,
@@ -39,7 +31,6 @@ pub struct Arguments {
     #[structopt(
         long = "data",
         parse(from_os_str),
-        help = "The witness and public data directory path",
         default_value = zinc_const::path::DATA,
     )]
     pub data_directory_path: PathBuf,
@@ -48,20 +39,16 @@ pub struct Arguments {
     #[structopt(
         long = "binary",
         parse(from_os_str),
-        help = "The path to the bytecode file",
         default_value = zinc_const::path::BINARY,
     )]
     pub binary_path: PathBuf,
 
-    /// If set, compiles only unit tests.
-    #[structopt(long = "test-only", help = "Build the unit tests only")]
+    /// Builds only the unit tests.
+    #[structopt(long = "test-only")]
     pub test_only: bool,
 
-    /// Whether to apply the dead function elimination optimization.
-    #[structopt(
-        long = "opt-dfe",
-        help = "Enable the dead function code elimination optimization"
-    )]
+    /// Enables the dead function code elimination optimization.
+    #[structopt(long = "opt-dfe")]
     pub optimize_dead_function_elimination: bool,
 }
 

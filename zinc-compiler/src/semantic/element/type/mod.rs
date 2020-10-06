@@ -411,7 +411,7 @@ impl Type {
     }
 
     ///
-    /// Checks if the type is a manually declared function, that is, not a built-in one.
+    /// Checks if the type is a manually declared function, that is, not an intrinsic one.
     ///
     pub fn is_source_function(&self) -> bool {
         match self {

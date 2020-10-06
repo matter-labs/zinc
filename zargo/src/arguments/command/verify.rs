@@ -1,5 +1,5 @@
 //!
-//! The Zargo project manager `verify` subcommand.
+//! The Zargo package manager `verify` subcommand.
 //!
 
 use std::convert::TryFrom;
@@ -18,34 +18,30 @@ use crate::project::manifest::project_type::ProjectType;
 use crate::project::manifest::Manifest as ManifestFile;
 
 ///
-/// The Zargo project manager `verify` subcommand.
+/// The Zargo package manager `verify` subcommand.
 ///
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Verifies the zero-knowledge proof")]
 pub struct Command {
-    /// The logging level value, which helps the logger to set the logging level.
-    #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity"
-    )]
+    /// Prints more logs, if passed several times.
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
     /// The path to the Zargo project manifest file.
     #[structopt(
         long = "manifest-path",
-        help = "Path to Zargo.toml",
+        parse(from_os_str),
         default_value = zinc_const::path::MANIFEST,
     )]
     pub manifest_path: PathBuf,
 
-    /// The contract method to call. Only for contracts.
-    #[structopt(long = "method", help = "The contract method to call")]
+    /// The contract method to verify. Only for contracts.
+    #[structopt(long = "method")]
     pub method: Option<String>,
 }
 
 ///
-/// The Zargo project manager `verify` subcommand error.
+/// The Zargo package manager `verify` subcommand error.
 ///
 #[derive(Debug, Fail)]
 pub enum Error {

@@ -1,5 +1,5 @@
 //!
-//! The Zargo project manager subcommand.
+//! The Zargo package manager subcommand.
 //!
 
 pub mod build;
@@ -48,35 +48,36 @@ pub trait IExecutable {
 }
 
 ///
-/// The Zargo project manager subcommand.
+/// The Zargo package manager subcommand.
 ///
 #[derive(Debug, StructOpt)]
+#[structopt(about = "The Zinc package manager")]
 pub enum Command {
-    /// The `new` subcommand.
+    /// Creates a new project in the specified directory.
     New(NewCommand),
-    /// The `init` subcommand.
+    /// Initializes a new project in the specified directory.
     Init(InitCommand),
-    /// The `build` subcommand.
+    /// Builds the project at the given path.
     Build(BuildCommand),
-    /// The `clean` subcommand.
+    /// Removes the project build artifacts.
     Clean(CleanCommand),
-    /// The `run` subcommand.
+    /// Runs the project and prints its output.
     Run(RunCommand),
-    /// The `test` subcommand.
+    /// Runs the project unit tests.
     Test(TestCommand),
-    /// The `setup` subcommand.
+    /// Generates a pair of proving and verifying keys.
     Setup(SetupCommand),
-    /// The `prove` subcommand.
+    /// Generates the zero-knowledge proof for given witness data.
     Prove(ProveCommand),
-    /// The `verify` subcommand.
+    /// Verifies the zero-knowledge proof.
     Verify(VerifyCommand),
-    /// The `proof-check` subcommand.
+    /// Runs the full project building, running, trusted setup, proving & verifying sequence.
     ProofCheck(ProofCheckCommand),
-    /// The `publish` subcommand.
+    /// Uploads the smart contract to the specified network.
     Publish(PublishCommand),
-    /// The `query` subcommand.
+    /// Queries a contract storage or calls an immutable method.
     Query(QueryCommand),
-    /// The `call` subcommand.
+    /// Calls a mutable smart contract method.
     Call(CallCommand),
 }
 

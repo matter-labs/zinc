@@ -14,6 +14,9 @@ pub static ASYNC_RUNTIME: &str = "Asynchronous runtime initialization is always 
 /// The data conversion is always valid.
 pub static DATA_CONVERSION: &str = "Data conversion is always successful: ";
 
+/// The `Result` or `Option` value is always set. Should be eliminated where possible.
+pub static VALUE_ALWAYS_EXISTS: &str = "Value always exists";
+
 /// The last shared reference unwrapping is always successful.
 pub static LAST_SHARED_REFERENCE: &str = "There must be no other references at this point";
 
@@ -44,6 +47,3 @@ pub static VALIDATED_DURING_RUNTIME_EXECUTION: &str = "Validated during runtime 
 
 /// The Zandbox database integrity responsibility.
 pub static VALIDATED_DURING_DATABASE_POPULATION: &str = "Validated during database population";
-
-/// The `Result` or `Option` value is always set. Should be eliminated where possible.
-pub static VALUE_ALWAYS_EXISTS: &str = "Value always exists";

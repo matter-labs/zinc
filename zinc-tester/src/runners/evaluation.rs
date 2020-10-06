@@ -8,8 +8,8 @@ use std::sync::Mutex;
 
 use colored::Colorize;
 
+use zinc_build::Application as BuildApplication;
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
-use zinc_build::Program as BuildProgram;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 use zinc_vm::CircuitFacade;
@@ -74,7 +74,7 @@ impl IRunnable for Runner {
                 case.method.clone(),
                 case.input,
             ) {
-                Ok(program) => program,
+                Ok(application) => application,
                 Err(error) => {
                     summary
                         .lock()
@@ -90,8 +90,8 @@ impl IRunnable for Runner {
                 }
             };
 
-            match instance.program {
-                BuildProgram::Circuit(circuit) => {
+            match instance.application {
+                BuildApplication::Circuit(circuit) => {
                     let output = CircuitFacade::new(circuit).run::<Bn256>(instance.witness);
 
                     match output {
@@ -164,7 +164,7 @@ impl IRunnable for Runner {
                         }
                     }
                 }
-                BuildProgram::Contract(contract) => {
+                BuildApplication::Contract(contract) => {
                     let storage: Vec<BuildContractFieldValue> = contract
                         .storage
                         .clone()

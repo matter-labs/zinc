@@ -22,7 +22,7 @@ pub fn get_input_price(
     input_reserve: Balance,
     output_reserve: Balance,
 ) -> Balance {
-    assert!(input_reserve > ZERO_INTEGER && output_reserve > ZERO_INTEGER);
+    require(input_reserve > ZERO_INTEGER && output_reserve > ZERO_INTEGER);
 
     let input_amount_with_fee: Balance = input_amount * 997 as Balance;
 
@@ -48,7 +48,7 @@ pub fn get_output_price(
     input_reserve: Balance,
     output_reserve: Balance,
 ) -> Balance {
-    assert!(input_reserve > ZERO_INTEGER && output_reserve > ZERO_INTEGER);
+    require(input_reserve > ZERO_INTEGER && output_reserve > ZERO_INTEGER);
 
     let numerator: Balance = input_reserve * output_amount * 1000 as Balance;
     let denominator: Balance = (output_reserve - output_amount) * 997 as Balance;

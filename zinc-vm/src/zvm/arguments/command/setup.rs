@@ -9,7 +9,7 @@ use structopt::StructOpt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
-use zinc_build::Program as BuildProgram;
+use zinc_build::Application as BuildApplication;
 
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
@@ -28,19 +28,19 @@ use crate::error::IErrorPath;
 )]
 pub struct Command {
     /// The path to the binary bytecode file.
-    #[structopt(long = "binary", help = "The bytecode file")]
+    #[structopt(long = "binary")]
     pub binary_path: PathBuf,
 
     /// The path to the proving key file.
-    #[structopt(long = "proving-key", help = "The proving key path")]
+    #[structopt(long = "proving-key")]
     pub proving_key_path: PathBuf,
 
     /// The path to the verifying key file.
-    #[structopt(long = "verifying-key", help = "The verifying key path")]
+    #[structopt(long = "verifying-key")]
     pub verifying_key_path: PathBuf,
 
-    /// The method name to call, if the program is a contract.
-    #[structopt(long = "method", help = "The method name")]
+    /// The method name to call, if the application is a contract.
+    #[structopt(long = "method")]
     pub method: Option<String>,
 }
 
@@ -50,12 +50,12 @@ impl IExecutable for Command {
     fn execute(self) -> Result<i32, Self::Error> {
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let program =
-            BuildProgram::try_from_slice(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
+        let application = BuildApplication::try_from_slice(bytes.as_slice())
+            .map_err(Error::ApplicationDecoding)?;
 
-        let params = match program {
-            BuildProgram::Circuit(circuit) => CircuitFacade::new(circuit).setup::<Bn256>()?,
-            BuildProgram::Contract(contract) => {
+        let params = match application {
+            BuildApplication::Circuit(circuit) => CircuitFacade::new(circuit).setup::<Bn256>()?,
+            BuildApplication::Contract(contract) => {
                 let method_name = self.method.ok_or(Error::MethodNameNotFound)?;
                 ContractFacade::new(contract).setup::<Bn256>(method_name)?
             }

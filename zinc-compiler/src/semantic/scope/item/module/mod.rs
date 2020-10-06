@@ -27,7 +27,7 @@ use self::state::State;
 ///
 #[derive(Debug, Clone)]
 pub struct Module {
-    /// The location where the module was declared. `None` for built-in modules.
+    /// The location where the module was declared. `None` for intrinsic modules.
     pub location: Option<Location>,
     /// The unique module ID, allocated upon declaration.
     pub item_id: usize,
@@ -136,7 +136,7 @@ impl Module {
     }
 
     ///
-    /// Useful method to declare a built-in module without a `location`.
+    /// Useful method to declare an intrinsic module without a `location`.
     ///
     pub fn new_built_in(identifier: String, scope: Rc<RefCell<Scope>>) -> Self {
         let item_id = ITEM_INDEX.next(format!("module {}", identifier));

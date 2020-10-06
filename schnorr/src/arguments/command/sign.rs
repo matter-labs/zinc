@@ -19,18 +19,14 @@ use crate::error::Error;
 /// The `sign` command arguments.
 ///
 #[derive(StructOpt)]
-#[structopt(name = "sign", about = "generate a signature")]
+#[structopt(name = "sign", about = "Generates a signature")]
 pub struct Command {
     /// The path to the private key.
-    #[structopt(short = "k", long = "key", help = "path to the private key")]
+    #[structopt(short = "k", long = "key")]
     private_key_path: PathBuf,
 
     /// The path to the message to sign. If set to `-`, reads from the `stdin`.
-    #[structopt(
-        short = "m",
-        long = "message",
-        help = "path to file with message or '-' for stdin"
-    )]
+    #[structopt(short = "m", long = "message")]
     message_path: PathBuf,
 }
 

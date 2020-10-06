@@ -13,20 +13,16 @@ use structopt::StructOpt;
     about = "The Zandbox server daemon"
 )]
 pub struct Arguments {
-    /// The logging level value, which helps the logger to set the logging level.
-    #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity"
-    )]
+    /// Prints more logs, if passed several times.
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
     /// The HTTP server port.
-    #[structopt(long = "http-port", help = "The HTTP server port")]
+    #[structopt(short = "p", long = "http-port")]
     pub http_port: Option<u16>,
 
     /// The PostgreSQL connection string.
-    #[structopt(long = "postgresql", help = "The PostgreSQL connection string")]
+    #[structopt(short = "d", long = "postgresql")]
     pub postgresql_uri: String,
 }
 

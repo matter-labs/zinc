@@ -8,8 +8,8 @@ use std::sync::Mutex;
 
 use colored::Colorize;
 
+use zinc_build::Application as BuildApplication;
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
-use zinc_build::Program as BuildProgram;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 use zinc_vm::CircuitFacade;
@@ -75,7 +75,7 @@ impl IRunnable for Runner {
                 case.method.clone(),
                 case.input,
             ) {
-                Ok(program) => program,
+                Ok(application) => application,
                 Err(error) => {
                     summary
                         .lock()
@@ -91,9 +91,9 @@ impl IRunnable for Runner {
                 }
             };
 
-            let params = match match instance.program.clone() {
-                BuildProgram::Circuit(circuit) => CircuitFacade::new(circuit).setup::<Bn256>(),
-                BuildProgram::Contract(contract) => {
+            let params = match match instance.application.clone() {
+                BuildApplication::Circuit(circuit) => CircuitFacade::new(circuit).setup::<Bn256>(),
+                BuildApplication::Contract(contract) => {
                     ContractFacade::new(contract).setup::<Bn256>(case.method.clone())
                 }
             } {
@@ -113,8 +113,8 @@ impl IRunnable for Runner {
                 }
             };
 
-            let (output, proof) = match instance.program.clone() {
-                BuildProgram::Circuit(circuit) => {
+            let (output, proof) = match instance.application.clone() {
+                BuildApplication::Circuit(circuit) => {
                     let result = CircuitFacade::new(circuit)
                         .prove::<Bn256>(params.clone(), instance.witness);
 
@@ -166,7 +166,7 @@ impl IRunnable for Runner {
                         }
                     }
                 }
-                BuildProgram::Contract(contract) => {
+                BuildApplication::Contract(contract) => {
                     let storage: Vec<BuildContractFieldValue> = contract
                         .storage
                         .clone()

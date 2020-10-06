@@ -1,5 +1,5 @@
 //!
-//! The Zargo project manager `build` subcommand.
+//! The Zargo package manager `build` subcommand.
 //!
 
 use std::convert::TryFrom;
@@ -21,34 +21,30 @@ use crate::project::manifest::Manifest as ManifestFile;
 use crate::project::source::Directory as SourceDirectory;
 
 ///
-/// The Zargo project manager `build` subcommand.
+/// The Zargo package manager `build` subcommand.
 ///
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Builds the project at the given path")]
 pub struct Command {
-    /// The logging level value, which helps the logger to set the logging level.
-    #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity"
-    )]
+    /// Prints more logs, if passed several times.
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
     /// The path to the Zargo project manifest file.
     #[structopt(
         long = "manifest-path",
-        help = "Path to Zargo.toml",
+        parse(from_os_str),
         default_value = zinc_const::path::MANIFEST,
     )]
     pub manifest_path: PathBuf,
 
-    /// Whether to build the release version.
-    #[structopt(long = "release", help = "Build the release version")]
+    /// Builds the release version.
+    #[structopt(long = "release")]
     pub is_release: bool,
 }
 
 ///
-/// The Zargo project manager `build` subcommand error.
+/// The Zargo package manager `build` subcommand error.
 ///
 #[derive(Debug, Fail)]
 pub enum Error {

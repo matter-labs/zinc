@@ -20,7 +20,7 @@ use crate::error::Error;
 #[derive(StructOpt)]
 #[structopt(
     name = "pub-key",
-    about = "recover the public key from the private key"
+    about = "Recovers the public key from the private key"
 )]
 pub struct Command {}
 

@@ -10,8 +10,8 @@ use structopt::StructOpt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
+use zinc_build::Application as BuildApplication;
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
-use zinc_build::Program as BuildProgram;
 use zinc_build::Value as BuildValue;
 
 use zinc_vm::CircuitFacade;
@@ -25,26 +25,26 @@ use crate::error::IErrorPath;
 /// The Zinc virtual machine `run` subcommand.
 ///
 #[derive(Debug, StructOpt)]
-#[structopt(name = "run", about = "Executes circuit and prints program's output")]
+#[structopt(name = "run", about = "Executes the bytecode and prints its output")]
 pub struct Command {
     /// The path to the binary bytecode file.
-    #[structopt(long = "binary", help = "The bytecode file")]
+    #[structopt(long = "binary")]
     pub binary_path: PathBuf,
 
     /// The path to the witness JSON file.
-    #[structopt(long = "witness", help = "The witness JSON file")]
+    #[structopt(long = "witness")]
     pub witness_path: PathBuf,
 
     /// The path to the public data JSON file.
-    #[structopt(long = "public-data", help = "The public data JSON file")]
+    #[structopt(long = "public-data")]
     pub public_data_path: PathBuf,
 
     /// The path to the contract storage JSON file.
-    #[structopt(long = "storage", help = "The contract storage JSON file")]
+    #[structopt(long = "storage")]
     pub storage: Option<PathBuf>,
 
-    /// The method name to call, if the program is a contract.
-    #[structopt(long = "method", help = "The method name")]
+    /// The method name to call, if the application is a contract.
+    #[structopt(long = "method")]
     pub method: Option<String>,
 }
 
@@ -57,19 +57,19 @@ impl IExecutable for Command {
         let input_template = fs::read_to_string(&self.witness_path)
             .error_with_path(|| self.witness_path.to_string_lossy())?;
 
-        let program =
-            BuildProgram::try_from_slice(bytecode.as_slice()).map_err(Error::ProgramDecoding)?;
+        let application = BuildApplication::try_from_slice(bytecode.as_slice())
+            .map_err(Error::ApplicationDecoding)?;
         let input_json = serde_json::from_str(input_template.as_str())?;
 
-        let output = match program {
-            BuildProgram::Circuit(circuit) => {
+        let output = match application {
+            BuildApplication::Circuit(circuit) => {
                 let input_type = circuit.input.clone();
                 let input_values = BuildValue::try_from_typed_json(input_json, input_type)?;
                 CircuitFacade::new(circuit)
                     .run::<Bn256>(input_values)?
                     .result
             }
-            BuildProgram::Contract(contract) => {
+            BuildApplication::Contract(contract) => {
                 let storage_path = match self.storage.take() {
                     Some(path) => path,
                     None => return Err(Error::ContractStoragePathMissing),

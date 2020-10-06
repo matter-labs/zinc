@@ -45,9 +45,9 @@ esac
 
 export POSTGRESQL_URI='postgres://postgres@localhost/zinc'
 
-cargo fmt --all
-cargo clippy
+#cargo fmt --all
+#cargo clippy
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_FLAG}
-cargo test
+#cargo test
 #cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
-cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zandbox' -- ${LOG_LEVEL} --postgresql "${POSTGRESQL_URI}"
+#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zandbox' -- ${LOG_LEVEL} --postgresql "${POSTGRESQL_URI}"

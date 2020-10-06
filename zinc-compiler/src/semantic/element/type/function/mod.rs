@@ -2,9 +2,9 @@
 //! The semantic analyzer function element.
 //!
 
-pub mod builtin;
 pub mod constant;
 pub mod error;
+pub mod intrinsic;
 pub mod runtime;
 pub mod stdlib;
 pub mod test;
@@ -17,8 +17,8 @@ use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
 
-use self::builtin::Function as BuiltInFunction;
 use self::constant::Function as ConstantFunction;
+use self::intrinsic::Function as IntrinsicFunction;
 use self::runtime::Function as RuntimeFunction;
 use self::stdlib::Function as StandardLibraryFunction;
 use self::test::Function as TestFunction;
@@ -30,9 +30,9 @@ use self::test::Function as TestFunction;
 pub enum Function {
     /// `dbg!` and `assert!`, which must be called with the `!` specifier. These correspond to
     /// some special VM instructions.
-    BuiltIn(BuiltInFunction),
-    /// These functions are declared in a virtual built-in scope and implemented in the VM
-    /// as built-in function calls.
+    Intrinsic(IntrinsicFunction),
+    /// These functions are declared in a virtual intrinsic scope and implemented in the VM
+    /// as intrinsic function calls.
     StandardLibrary(StandardLibraryFunction),
     /// Runtime functions declared anywhere within a project. There is a special `main` function,
     /// which is also declared by user, but serves as the circuit entry point.
@@ -50,14 +50,14 @@ impl Function {
     /// A shortcut constructor.
     ///
     pub fn new_dbg() -> Self {
-        Self::BuiltIn(BuiltInFunction::new_debug())
+        Self::Intrinsic(IntrinsicFunction::new_debug())
     }
 
     ///
     /// A shortcut constructor.
     ///
     pub fn new_assert() -> Self {
-        Self::BuiltIn(BuiltInFunction::new_assert())
+        Self::Intrinsic(IntrinsicFunction::new_assert())
     }
 
     ///
@@ -119,7 +119,7 @@ impl Function {
     ///
     pub fn identifier(&self) -> String {
         match self {
-            Self::BuiltIn(inner) => inner.identifier().to_owned(),
+            Self::Intrinsic(inner) => inner.identifier().to_owned(),
             Self::StandardLibrary(inner) => inner.identifier().to_owned(),
             Self::Runtime(inner) => inner.identifier.to_owned(),
             Self::Constant(inner) => inner.identifier.to_owned(),
@@ -132,7 +132,7 @@ impl Function {
     ///
     pub fn set_location(&mut self, value: Location) {
         match self {
-            Self::BuiltIn(inner) => inner.set_location(value),
+            Self::Intrinsic(inner) => inner.set_location(value),
             Self::StandardLibrary(inner) => inner.set_location(value),
             Self::Runtime(inner) => inner.location = value,
             Self::Constant(inner) => inner.location = value,
@@ -145,7 +145,7 @@ impl Function {
     ///
     pub fn location(&self) -> Option<Location> {
         match self {
-            Self::BuiltIn(inner) => inner.location(),
+            Self::Intrinsic(inner) => inner.location(),
             Self::StandardLibrary(inner) => inner.location(),
             Self::Runtime(inner) => Some(inner.location),
             Self::Constant(inner) => Some(inner.location),
@@ -157,7 +157,7 @@ impl Function {
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::BuiltIn(inner) => write!(f, "{}", inner),
+            Self::Intrinsic(inner) => write!(f, "{}", inner),
             Self::StandardLibrary(inner) => write!(f, "std::{}", inner),
             Self::Runtime(inner) => write!(f, "{}", inner),
             Self::Constant(inner) => write!(f, "{}", inner),

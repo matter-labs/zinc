@@ -94,8 +94,8 @@ pub enum Operator {
     /// The `.` operator.
     Dot,
 
-    /// The built-in function call `!` quasi-operator.
-    CallBuiltIn,
+    /// The intrinsic function call `!` quasi-operator.
+    CallIntrinsic,
     /// The function call `( ... )` quasi-operator.
     Call,
 

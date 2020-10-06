@@ -20,7 +20,7 @@ use crate::semantic::element::Element;
 pub struct Function {
     /// The location where the function is called.
     pub location: Option<Location>,
-    /// The unique built-in function identifier.
+    /// The unique intrinsic function identifier.
     pub stdlib_identifier: FunctionIdentifier,
     /// The function identifier.
     pub identifier: &'static str,

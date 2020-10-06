@@ -13,26 +13,14 @@ use structopt::StructOpt;
     about = "The integration test runner for the Zinc framework"
 )]
 pub struct Arguments {
-    /// The logging level value, which helps the logger to set the logging level.
-    #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity."
-    )]
+    /// Prints more logs, if passed several times.
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
-    /// If set, runs the full testing with trusted setup and proof verification.
-    #[structopt(
-        short = "p",
-        long = "proof-check",
-        help = "Performs proof-check for every test case"
-    )]
+    /// Runs the full testing with trusted setup and proof verification.
+    #[structopt(short = "p", long = "proof-check")]
     pub proof_check: bool,
-    /// If set, runs only tests whose name contains the specified string.
-    #[structopt(
-        short = "f",
-        long = "filter",
-        help = "Runs cases only if they contain the filter string"
-    )]
+    /// Runs only tests whose name contains the specified string.
+    #[structopt(short = "f", long = "filter")]
     pub filter: Option<String>,
 }
 

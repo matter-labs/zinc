@@ -7,12 +7,12 @@ use std::sync::RwLock;
 
 use lazy_static::lazy_static;
 
-use crate::semantic::scope::builtin::BuiltInTypeId;
+use crate::semantic::scope::intrinsic::IntrinsicTypeId;
 
 ///
 /// The type item index where the unique IDs for all declared types are recorded.
 ///
-/// It is initialized with some built-in and standard library types.
+/// It is initialized with some intrinsic and standard library types.
 ///
 /// The index treats type aliases equal to the type they point to.
 ///
@@ -38,11 +38,11 @@ impl Index {
         };
         index.next_with_id(
             "structure std::crypto::ecc::Point".to_owned(),
-            BuiltInTypeId::StdCryptoEccPoint as usize,
+            IntrinsicTypeId::StdCryptoEccPoint as usize,
         );
         index.next_with_id(
             "structure std::crypto::schnorr::Signature".to_owned(),
-            BuiltInTypeId::StdCryptoSchnorrSignature as usize,
+            IntrinsicTypeId::StdCryptoSchnorrSignature as usize,
         );
         index
     }

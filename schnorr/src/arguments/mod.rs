@@ -14,15 +14,11 @@ use self::command::Command;
 #[derive(StructOpt)]
 #[structopt(
     name = zinc_const::app_name::SCHNORR,
-    about = "Schnorr signature tool: create keys, sign and verify"
+    about = "Schnorr signature tool: creates keys, signs and verifies messages",
 )]
 pub struct Arguments {
-    /// The logging level value, which helps the logger to set the logging level.
-    #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity"
-    )]
+    /// Prints more logs, if passed several times.
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
     /// The subcommand variant.

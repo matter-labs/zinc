@@ -28,8 +28,8 @@ use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::r#type::contract::error::Error as ContractTypeError;
 use crate::semantic::element::r#type::enumeration::error::Error as EnumerationTypeError;
 use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
+use crate::semantic::element::r#type::function::intrinsic::error::Error as IntrinsicFunctionError;
 use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
 use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 use crate::semantic::element::r#type::structure::error::Error as StructureTypeError;
@@ -1721,27 +1721,27 @@ impl Error {
                                                  Some("consider making the instance mutable"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::BuiltIn(BuiltInFunctionError::Unknown { location, function }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Intrinsic(IntrinsicFunctionError::Unknown { location, function }))))) => {
                 Self::format_line( format!(
-                        "attempt to call a non-builtin function `{}` with `!` specifier",
+                        "attempt to call a non-intrinsic function `{}` with `!` specifier",
                         function
                     )
                         .as_str(),
                     location,
-                    Some("only built-in functions require the `!` symbol after the function name"),
+                    Some("only intrinsic functions require the `!` symbol after the function name"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::BuiltIn(BuiltInFunctionError::SpecifierMissing { location, function }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Intrinsic(IntrinsicFunctionError::SpecifierMissing { location, function }))))) => {
                 Self::format_line( format!(
-                        "attempt to call a builtin function `{}` without `!` specifier",
+                        "attempt to call an intrinsic function `{}` without `!` specifier",
                         function
                     )
                         .as_str(),
                     location,
-                    Some("built-in functions require the `!` symbol after the function name"),
+                    Some("intrinsic functions require the `!` symbol after the function name"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::BuiltIn(BuiltInFunctionError::DebugArgumentCount { location, expected, found }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Intrinsic(IntrinsicFunctionError::DebugArgumentCount { location, expected, found }))))) => {
                 Self::format_line( format!(
                         "the `dbg!` function expected {} arguments, but got {}",
                         expected, found,

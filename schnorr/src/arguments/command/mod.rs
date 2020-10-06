@@ -31,12 +31,13 @@ pub trait IExecutable {
 /// The Zinc Schnorr signature tool subcommand.
 ///
 #[derive(StructOpt)]
+#[structopt(about = "Schnorr signature tool: creates keys, signs and verifies messages")]
 pub enum Command {
-    /// The `generate key` subcommand.
+    /// Generates a random private key.
     GenKey(GenKeyCommand),
-    /// The `public key` subcommand.
+    /// Recovers the public key from the private key.
     PubKey(PubKeyCommand),
-    /// The `sign` subcommand.
+    /// Generates a signature.
     Sign(SignCommand),
 }
 

@@ -82,7 +82,7 @@ impl Rule {
             ExpressionOperator::Index => rule.constant_or_place(),
             ExpressionOperator::Dot => rule.constant_or_place(),
 
-            ExpressionOperator::CallBuiltIn => Self::Type,
+            ExpressionOperator::CallIntrinsic => Self::Type,
             ExpressionOperator::Call => Self::Type,
 
             ExpressionOperator::Path => Self::Path,
@@ -149,7 +149,7 @@ impl Rule {
             ExpressionOperator::Index => rule.constant_or_value(),
             ExpressionOperator::Dot => Self::Field,
 
-            ExpressionOperator::CallBuiltIn => {
+            ExpressionOperator::CallIntrinsic => {
                 panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)
             }
             ExpressionOperator::Call => rule.constant_or_value(),
