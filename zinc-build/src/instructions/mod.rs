@@ -2,8 +2,7 @@
 //! The Zinc VM bytecode instruction.
 //!
 
-pub mod assert;
-pub mod call_std;
+pub mod call_library;
 pub mod contract;
 pub mod data_stack;
 pub mod dbg;
@@ -12,14 +11,14 @@ pub mod flow;
 pub mod marker;
 pub mod noop;
 pub mod operator;
+pub mod require;
 
 use std::fmt;
 
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
-use self::assert::Assert;
-use self::call_std::CallStd;
+use self::call_library::CallLibrary;
 use self::contract::load::StorageLoad;
 use self::contract::store::StorageStore;
 use self::data_stack::load::Load;
@@ -66,6 +65,7 @@ use self::operator::logical::and::And;
 use self::operator::logical::not::Not;
 use self::operator::logical::or::Or;
 use self::operator::logical::xor::Xor;
+use self::require::Require;
 
 ///
 /// The Zinc VM bytecode instruction.
@@ -165,9 +165,9 @@ pub enum Instruction {
     Exit(Exit),
 
     /// The standard library function call instruction.
-    CallStd(CallStd),
+    CallLibrary(CallLibrary),
     /// An intrinsic function call instruction.
-    Assert(Assert),
+    Require(Require),
     /// An intrinsic function call instruction.
     Dbg(Dbg),
 
@@ -238,8 +238,8 @@ impl Instruction {
             Self::Return(inner) => inner.is_debug(),
             Self::Exit(inner) => inner.is_debug(),
 
-            Self::CallStd(inner) => inner.is_debug(),
-            Self::Assert(inner) => inner.is_debug(),
+            Self::CallLibrary(inner) => inner.is_debug(),
+            Self::Require(inner) => inner.is_debug(),
             Self::Dbg(inner) => inner.is_debug(),
 
             Self::FileMarker(inner) => inner.is_debug(),
@@ -304,8 +304,8 @@ impl fmt::Display for Instruction {
             Self::Return(inner) => write!(f, "{}", inner),
             Self::Exit(inner) => write!(f, "{}", inner),
 
-            Self::CallStd(inner) => write!(f, "{}", inner),
-            Self::Assert(inner) => write!(f, "{}", inner),
+            Self::CallLibrary(inner) => write!(f, "{}", inner),
+            Self::Require(inner) => write!(f, "{}", inner),
             Self::Dbg(inner) => write!(f, "{}", inner),
 
             Self::FileMarker(inner) => write!(f, "{}", inner),

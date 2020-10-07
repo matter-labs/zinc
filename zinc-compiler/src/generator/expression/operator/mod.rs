@@ -2,7 +2,7 @@
 //! The generator expression operator.
 //!
 
-use zinc_build::FunctionIdentifier;
+use zinc_build::LibraryFunctionIdentifier;
 
 use crate::generator::expression::operand::place::Place;
 use crate::generator::expression::Expression;
@@ -280,15 +280,15 @@ pub enum Operator {
         /// The debugged argument types.
         argument_types: Vec<Type>,
     },
-    /// The `assert!(...)` function call operator.
-    CallAssert {
+    /// The `require(...)` function call operator.
+    CallRequire {
         /// The optional error description message.
         message: Option<String>,
     },
     /// The standard library function call.
-    CallStandardLibrary {
+    CallLibrary {
         /// The unique standard library function identifier.
-        identifier: FunctionIdentifier,
+        identifier: LibraryFunctionIdentifier,
         /// The function arguments size.
         input_size: usize,
         /// The function result type size.
@@ -761,14 +761,18 @@ impl Operator {
     /// A shortcut constructor.
     ///
     pub fn call_assert(message: Option<String>) -> Self {
-        Self::CallAssert { message }
+        Self::CallRequire { message }
     }
 
     ///
     /// A shortcut constructor.
     ///
-    pub fn call_std(identifier: FunctionIdentifier, input_size: usize, output_size: usize) -> Self {
-        Self::CallStandardLibrary {
+    pub fn call_library(
+        identifier: LibraryFunctionIdentifier,
+        input_size: usize,
+        output_size: usize,
+    ) -> Self {
+        Self::CallLibrary {
             identifier,
             input_size,
             output_size,

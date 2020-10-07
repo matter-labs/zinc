@@ -8,7 +8,7 @@ use crate::core::execution_state::cell::Cell;
 use crate::core::location::Location;
 use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
-use crate::instructions::call_std::INativeCallable;
+use crate::instructions::call_library::INativeCallable;
 use crate::IEngine;
 
 ///

@@ -26,7 +26,7 @@ use crate::error::IErrorPath;
 /// The Zinc virtual machine `prove` subcommand.
 ///
 #[derive(Debug, StructOpt)]
-#[structopt(name = "prove", about = "Executes the bytecode and prints its output")]
+#[structopt(name = "prove", about = "Generates a proof using the proving key")]
 pub struct Command {
     /// The path to the binary bytecode file.
     #[structopt(long = "binary")]
@@ -63,7 +63,7 @@ impl IExecutable for Command {
         let application = BuildApplication::try_from_slice(bytes.as_slice())
             .map_err(Error::ApplicationDecoding)?;
 
-        // Read the verifying key
+        // Read the proving key
         let proving_key_path = self.proving_key_path;
         let file = fs::File::open(&proving_key_path)
             .error_with_path(|| proving_key_path.to_string_lossy())?;

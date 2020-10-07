@@ -13,8 +13,8 @@ use crate::semantic::element::Element;
 pub enum Type {
     /// Default function call without any extra behavior.
     Default,
-    /// Built-in function like `dbg!` or `assert!` where the `!` specifier is required.
-    Intrinsic,
+    /// Intrinsic function like `dbg!` where the `!` specifier is required.
+    MacroLike,
     /// Object method call where the first `self` argument must be temporarily stored.
     Method {
         /// The `self` instance, for which the method is called.

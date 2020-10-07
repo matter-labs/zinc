@@ -29,7 +29,7 @@ use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::scalar::Scalar;
-use crate::instructions::call_std::INativeCallable;
+use crate::instructions::call_library::INativeCallable;
 use crate::instructions::IExecutable;
 use crate::IEngine;
 

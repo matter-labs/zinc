@@ -25,12 +25,12 @@ fn f3() -> bool {
 }
 
 fn f4() -> bool {
-    assert!(false, "Is sometimes unreachable");
+    require(false, "Is sometimes unreachable");
     false
 }
 
 fn f5() -> bool {
-    assert!(false, "Is sometimes unreachable");
+    require(false, "Is sometimes unreachable");
     false
 }
 

@@ -43,7 +43,7 @@ use self::memory_type::MemoryType;
 ///
 /// A scope consists of a hashmap of the declared items and a reference to its parent.
 ///
-/// The global scope has the `intrinsic` scope with the `std` library and intrinsic functions as its parent.
+/// The global scope has the `root` scope as its parent with intrinsic functions and libraries.
 ///
 /// Modules are connected to the entry scope hierarchy horizontally, being stored as module items.
 ///
@@ -91,9 +91,9 @@ impl Scope {
     }
 
     ///
-    /// Initializes the intrinsic scope which is used for `std` and intrinsic function definitions.
+    /// Initializes the root scope with intrinsic function and library definitions.
     ///
-    pub fn new_built_in(name: &'static str) -> Self {
+    pub fn new_intrinsic(name: &'static str) -> Self {
         Self {
             name: name.to_owned(),
             parent: None,

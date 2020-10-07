@@ -13,8 +13,8 @@ use num::BigInt;
 use num::One;
 use num::Zero;
 
-use zinc_build::FunctionIdentifier;
 use zinc_build::Instruction;
+use zinc_build::LibraryFunctionIdentifier;
 use zinc_build::ScalarType;
 use zinc_build::Type as BuildType;
 
@@ -400,11 +400,11 @@ impl Expression {
     }
 
     ///
-    /// Translates an `assert!(...)` function call into the bytecode.
+    /// Translates an `require(...)` function call into the bytecode.
     ///
     fn call_assert(state: Rc<RefCell<State>>, message: Option<String>, location: Location) {
         state.borrow_mut().push_instruction(
-            Instruction::Assert(zinc_build::Assert::new(message)),
+            Instruction::Require(zinc_build::Require::new(message)),
             Some(location),
         );
     }
@@ -414,13 +414,13 @@ impl Expression {
     ///
     fn call_standard_library(
         state: Rc<RefCell<State>>,
-        identifier: FunctionIdentifier,
+        identifier: LibraryFunctionIdentifier,
         input_size: usize,
         output_size: usize,
         location: Location,
     ) {
         state.borrow_mut().push_instruction(
-            Instruction::CallStd(zinc_build::CallStd::new(
+            Instruction::CallLibrary(zinc_build::CallLibrary::new(
                 identifier,
                 input_size,
                 output_size,
@@ -758,10 +758,10 @@ impl IBytecodeWritable for Expression {
                             .collect(),
                         location,
                     ),
-                    Operator::CallAssert { message } => {
+                    Operator::CallRequire { message } => {
                         Self::call_assert(state.clone(), message, location)
                     }
-                    Operator::CallStandardLibrary {
+                    Operator::CallLibrary {
                         identifier,
                         input_size,
                         output_size,

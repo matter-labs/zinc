@@ -1,11 +1,11 @@
 # The zkSync library
 
 The zkSync library contains functions and utilities to perform operations in
-the zkSync network.
+the zkSync networks.
 
 ## `zksync::transfer` function
 
-Executes a transfer which is sent to the zkSync platform.
+Executes a transfer which is eventually sent to the zkSync platform.
 
 Arguments:
 - recipient: `u160`

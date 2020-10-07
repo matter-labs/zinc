@@ -33,7 +33,7 @@ use crate::gadgets::contract::merkle_tree::hasher::IHasher as IMerkleTreeHasher;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::contract::storage::StorageGadget;
 use crate::gadgets::scalar::Scalar;
-use crate::instructions::call_std::INativeCallable;
+use crate::instructions::call_library::INativeCallable;
 use crate::instructions::IExecutable;
 use crate::IEngine;
 

@@ -55,7 +55,7 @@ impl<E: IEngine> IMerkleTreeHasher<E> for Hasher {
         if left_node.len() != zinc_const::bitlength::SHA256_HASH
             || right_node.len() != zinc_const::bitlength::SHA256_HASH
         {
-            return Err(RuntimeError::AssertionError(
+            return Err(RuntimeError::RequireError(
                 "Incorrect node hash width".into(),
             ));
         }

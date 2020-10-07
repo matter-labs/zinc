@@ -5,41 +5,129 @@
 #[cfg(test)]
 mod tests;
 
-pub mod assert;
 pub mod debug;
 pub mod error;
+pub mod require;
+pub mod stdlib;
+pub mod zksync;
 
 use std::fmt;
 
+use zinc_build::LibraryFunctionIdentifier;
+
 use crate::lexical::token::location::Location;
 
-use self::assert::Function as AssertFunction;
 use self::debug::Function as DebugFunction;
+use self::require::Function as RequireFunction;
+use self::stdlib::array_pad::Function as StdArrayPadFunction;
+use self::stdlib::array_reverse::Function as StdArrayReverseFunction;
+use self::stdlib::array_truncate::Function as StdArrayTruncateFunction;
+use self::stdlib::convert_from_bits_field::Function as StdConvertFromBitsFieldFunction;
+use self::stdlib::convert_from_bits_signed::Function as StdConvertFromBitsSignedFunction;
+use self::stdlib::convert_from_bits_unsigned::Function as StdConvertFromBitsUnsignedFunction;
+use self::stdlib::convert_to_bits::Function as StdConvertToBitsFunction;
+use self::stdlib::crypto_pedersen::Function as StdConvertPedersenFunction;
+use self::stdlib::crypto_schnorr_signature_verify::Function as StdCryptoSchnorrSignatureVerifyFunction;
+use self::stdlib::crypto_sha256::Function as StdCryptoSha256Function;
+use self::stdlib::ff_invert::Function as StdFfInvertFunction;
+use self::stdlib::Function as StandardLibraryFunction;
+use self::zksync::transfer::Function as ZkSyncTransferFunction;
+use self::zksync::Function as ZkSyncLibraryFunction;
 
 ///
 /// The semantic analyzer intrinsic function element.
 ///
 #[derive(Debug, Clone)]
 pub enum Function {
-    /// The `assert!(...)` function. See the inner element description.
-    Assert(AssertFunction),
+    /// The `require(...)` function. See the inner element description.
+    Require(RequireFunction),
     /// The `dbg!(...)` function. See the inner element description.
     Debug(DebugFunction),
+    /// The standard library function. See the inner element description.
+    StandardLibrary(StandardLibraryFunction),
+    /// The zkSync library function. See the inner element description.
+    ZkSyncLibrary(ZkSyncLibraryFunction),
 }
 
 impl Function {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_assert() -> Self {
-        Self::Assert(AssertFunction::new())
+    pub fn new_require() -> Self {
+        Self::Require(RequireFunction::default())
     }
 
     ///
     /// A shortcut constructor.
     ///
     pub fn new_debug() -> Self {
-        Self::Debug(DebugFunction::new())
+        Self::Debug(DebugFunction::default())
+    }
+
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new_library(identifier: LibraryFunctionIdentifier) -> Self {
+        match identifier {
+            LibraryFunctionIdentifier::CryptoSha256 => Self::StandardLibrary(
+                StandardLibraryFunction::CryptoSha256(StdCryptoSha256Function::default()),
+            ),
+            LibraryFunctionIdentifier::CryptoPedersen => Self::StandardLibrary(
+                StandardLibraryFunction::CryptoPedersen(StdConvertPedersenFunction::default()),
+            ),
+            LibraryFunctionIdentifier::CryptoSchnorrSignatureVerify => {
+                Self::StandardLibrary(StandardLibraryFunction::CryptoSchnorrSignatureVerify(
+                    StdCryptoSchnorrSignatureVerifyFunction::default(),
+                ))
+            }
+
+            LibraryFunctionIdentifier::ConvertToBits => Self::StandardLibrary(
+                StandardLibraryFunction::ConvertToBits(StdConvertToBitsFunction::default()),
+            ),
+            LibraryFunctionIdentifier::ConvertFromBitsUnsigned => {
+                Self::StandardLibrary(StandardLibraryFunction::ConvertFromBitsUnsigned(
+                    StdConvertFromBitsUnsignedFunction::default(),
+                ))
+            }
+            LibraryFunctionIdentifier::ConvertFromBitsSigned => {
+                Self::StandardLibrary(StandardLibraryFunction::ConvertFromBitsSigned(
+                    StdConvertFromBitsSignedFunction::default(),
+                ))
+            }
+            LibraryFunctionIdentifier::ConvertFromBitsField => {
+                Self::StandardLibrary(StandardLibraryFunction::ConvertFromBitsField(
+                    StdConvertFromBitsFieldFunction::default(),
+                ))
+            }
+
+            LibraryFunctionIdentifier::ArrayReverse => Self::StandardLibrary(
+                StandardLibraryFunction::ArrayReverse(StdArrayReverseFunction::default()),
+            ),
+            LibraryFunctionIdentifier::ArrayTruncate => Self::StandardLibrary(
+                StandardLibraryFunction::ArrayTruncate(StdArrayTruncateFunction::default()),
+            ),
+            LibraryFunctionIdentifier::ArrayPad => Self::StandardLibrary(
+                StandardLibraryFunction::ArrayPad(StdArrayPadFunction::default()),
+            ),
+
+            LibraryFunctionIdentifier::FfInvert => Self::StandardLibrary(
+                StandardLibraryFunction::FfInvert(StdFfInvertFunction::default()),
+            ),
+
+            LibraryFunctionIdentifier::ZksyncTransfer => Self::ZkSyncLibrary(
+                ZkSyncLibraryFunction::Transfer(ZkSyncTransferFunction::default()),
+            ),
+        }
+    }
+
+    ///
+    /// Whether the function requires the Rust-macro-like `!` specifier.
+    ///
+    pub fn requires_exclamation_mark(&self) -> bool {
+        match self {
+            Self::Debug(_) => true,
+            _ => false,
+        }
     }
 
     ///
@@ -47,8 +135,10 @@ impl Function {
     ///
     pub fn identifier(&self) -> &'static str {
         match self {
-            Self::Assert(inner) => inner.identifier,
+            Self::Require(inner) => inner.identifier,
             Self::Debug(inner) => inner.identifier,
+            Self::StandardLibrary(inner) => inner.identifier(),
+            Self::ZkSyncLibrary(inner) => inner.identifier(),
         }
     }
 
@@ -57,8 +147,10 @@ impl Function {
     ///
     pub fn set_location(&mut self, location: Location) {
         match self {
-            Self::Assert(inner) => inner.location = Some(location),
+            Self::Require(inner) => inner.location = Some(location),
             Self::Debug(inner) => inner.location = Some(location),
+            Self::StandardLibrary(inner) => inner.set_location(location),
+            Self::ZkSyncLibrary(inner) => inner.set_location(location),
         }
     }
 
@@ -67,8 +159,10 @@ impl Function {
     ///
     pub fn location(&self) -> Option<Location> {
         match self {
-            Self::Assert(inner) => inner.location,
+            Self::Require(inner) => inner.location,
             Self::Debug(inner) => inner.location,
+            Self::StandardLibrary(inner) => inner.location(),
+            Self::ZkSyncLibrary(inner) => inner.location(),
         }
     }
 }
@@ -76,8 +170,10 @@ impl Function {
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Assert(inner) => write!(f, "{}", inner),
+            Self::Require(inner) => write!(f, "{}", inner),
             Self::Debug(inner) => write!(f, "{}", inner),
+            Self::StandardLibrary(inner) => write!(f, "std::{}", inner),
+            Self::ZkSyncLibrary(inner) => write!(f, "zksync::{}", inner),
         }
     }
 }

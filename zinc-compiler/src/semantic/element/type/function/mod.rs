@@ -6,12 +6,11 @@ pub mod constant;
 pub mod error;
 pub mod intrinsic;
 pub mod runtime;
-pub mod stdlib;
 pub mod test;
 
 use std::fmt;
 
-use zinc_build::FunctionIdentifier;
+use zinc_build::LibraryFunctionIdentifier;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
@@ -20,7 +19,6 @@ use crate::syntax::tree::expression::block::Expression as BlockExpression;
 use self::constant::Function as ConstantFunction;
 use self::intrinsic::Function as IntrinsicFunction;
 use self::runtime::Function as RuntimeFunction;
-use self::stdlib::Function as StandardLibraryFunction;
 use self::test::Function as TestFunction;
 
 ///
@@ -28,12 +26,11 @@ use self::test::Function as TestFunction;
 ///
 #[derive(Debug, Clone)]
 pub enum Function {
-    /// `dbg!` and `assert!`, which must be called with the `!` specifier. These correspond to
-    /// some special VM instructions.
+    /// The `dbg!` function, which must be called with the `!` specifier, and the `require` function.
+    /// These correspond to some special VM instructions.
+    /// Also, standard library and zkSync library functions, which are declared in a virtual intrinsic
+    /// scope and implemented in the VM as intrinsic function calls.
     Intrinsic(IntrinsicFunction),
-    /// These functions are declared in a virtual intrinsic scope and implemented in the VM
-    /// as intrinsic function calls.
-    StandardLibrary(StandardLibraryFunction),
     /// Runtime functions declared anywhere within a project. There is a special `main` function,
     /// which is also declared by user, but serves as the circuit entry point.
     Runtime(RuntimeFunction),
@@ -56,15 +53,15 @@ impl Function {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_assert() -> Self {
-        Self::Intrinsic(IntrinsicFunction::new_assert())
+    pub fn new_require() -> Self {
+        Self::Intrinsic(IntrinsicFunction::new_require())
     }
 
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_std(identifier: FunctionIdentifier) -> Self {
-        Self::StandardLibrary(StandardLibraryFunction::new(identifier))
+    pub fn new_library(identifier: LibraryFunctionIdentifier) -> Self {
+        Self::Intrinsic(IntrinsicFunction::new_library(identifier))
     }
 
     ///
@@ -120,7 +117,6 @@ impl Function {
     pub fn identifier(&self) -> String {
         match self {
             Self::Intrinsic(inner) => inner.identifier().to_owned(),
-            Self::StandardLibrary(inner) => inner.identifier().to_owned(),
             Self::Runtime(inner) => inner.identifier.to_owned(),
             Self::Constant(inner) => inner.identifier.to_owned(),
             Self::Test(inner) => inner.identifier.to_owned(),
@@ -133,7 +129,6 @@ impl Function {
     pub fn set_location(&mut self, value: Location) {
         match self {
             Self::Intrinsic(inner) => inner.set_location(value),
-            Self::StandardLibrary(inner) => inner.set_location(value),
             Self::Runtime(inner) => inner.location = value,
             Self::Constant(inner) => inner.location = value,
             Self::Test(inner) => inner.location = value,
@@ -146,7 +141,6 @@ impl Function {
     pub fn location(&self) -> Option<Location> {
         match self {
             Self::Intrinsic(inner) => inner.location(),
-            Self::StandardLibrary(inner) => inner.location(),
             Self::Runtime(inner) => Some(inner.location),
             Self::Constant(inner) => Some(inner.location),
             Self::Test(inner) => Some(inner.location),
@@ -158,7 +152,6 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Intrinsic(inner) => write!(f, "{}", inner),
-            Self::StandardLibrary(inner) => write!(f, "std::{}", inner),
             Self::Runtime(inner) => write!(f, "{}", inner),
             Self::Constant(inner) => write!(f, "{}", inner),
             Self::Test(inner) => write!(f, "{}", inner),

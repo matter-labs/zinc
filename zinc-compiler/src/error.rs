@@ -29,8 +29,9 @@ use crate::semantic::element::r#type::contract::error::Error as ContractTypeErro
 use crate::semantic::element::r#type::enumeration::error::Error as EnumerationTypeError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
+use crate::semantic::element::r#type::function::intrinsic::debug::error::Error as DebugFunctionError;
 use crate::semantic::element::r#type::function::intrinsic::error::Error as IntrinsicFunctionError;
-use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
+use crate::semantic::element::r#type::function::intrinsic::stdlib::error::Error as StandardLibraryFunctionError;
 use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 use crate::semantic::element::r#type::structure::error::Error as StructureTypeError;
 use crate::semantic::element::value::array::error::Error as ArrayValueError;
@@ -1731,7 +1732,7 @@ impl Error {
                     Some("only intrinsic functions require the `!` symbol after the function name"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Intrinsic(IntrinsicFunctionError::SpecifierMissing { location, function }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Intrinsic(IntrinsicFunctionError::ExclamationMarkMissing { location, function }))))) => {
                 Self::format_line( format!(
                         "attempt to call an intrinsic function `{}` without `!` specifier",
                         function
@@ -1741,7 +1742,7 @@ impl Error {
                     Some("intrinsic functions require the `!` symbol after the function name"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Intrinsic(IntrinsicFunctionError::DebugArgumentCount { location, expected, found }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Intrinsic(IntrinsicFunctionError::Debug(DebugFunctionError::ArgumentCount { location, expected, found })))))) => {
                 Self::format_line( format!(
                         "the `dbg!` function expected {} arguments, but got {}",
                         expected, found,
@@ -1751,7 +1752,7 @@ impl Error {
                     Some("the number of `dbg!` arguments after the format string must be equal to the number of placeholders, e.g. `dbg!(\"{}, {}\", a, b)`"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayTruncatingToBiggerSize { location, from, to }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Intrinsic(IntrinsicFunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayTruncatingToBiggerSize { location, from, to })))))) => {
                 Self::format_line( format!(
                         "attempt to truncate an array from size `{}` to bigger size `{}`",
                         from, to,
@@ -1761,7 +1762,7 @@ impl Error {
                     Some("consider truncating the array to a smaller size"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayPaddingToLesserSize { location, from, to }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Intrinsic(IntrinsicFunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayPaddingToLesserSize { location, from, to })))))) => {
                 Self::format_line( format!(
                         "attempt to pad an array from size `{}` to lesser size `{}`",
                         from, to,
@@ -1771,7 +1772,7 @@ impl Error {
                     Some("consider padding the array to a bigger size"),
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayNewLengthInvalid { location, value }))))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::Intrinsic(IntrinsicFunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayNewLengthInvalid { location, value })))))) => {
                 Self::format_line( format!(
                         "new array length `{}` cannot act as an index",
                         value,
@@ -1858,7 +1859,7 @@ impl Error {
                 )
                                        .as_str(),
                                    location,
-                                   Some("variants with the same value are temporary forbidden"),
+                                   Some("variants with the same value are temporarily prohibited"),
                 )
             }
             Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Contract(ContractTypeError::DuplicateField { location, type_identifier, field_name })))) => {

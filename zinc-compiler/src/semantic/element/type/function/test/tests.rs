@@ -15,7 +15,7 @@ fn error_call_forbidden() {
     let input = r#"
 #[test]
 fn test() {
-    assert!(true);
+    require(true);
 }
 
 fn main() {
@@ -45,7 +45,7 @@ struct Data {
 impl Data {
     #[test]
     fn test() {
-        assert!(true);
+        require(true);
     }
 }
 
@@ -71,7 +71,7 @@ fn error_public_forbidden() {
     let input = r#"
 #[test]
 pub fn test() {
-    assert!(true);
+    require(true);
 }
 
 fn main() {
@@ -96,7 +96,7 @@ fn error_constant_forbidden() {
     let input = r#"
 #[test]
 const fn test() {
-    assert!(true);
+    require(true);
 }
 
 fn main() {
@@ -121,7 +121,7 @@ fn error_cannot_have_arguments() {
     let input = r#"
 #[test]
 fn test(value: u8) {
-    assert!(true);
+    require(true);
 }
 
 fn main() {
@@ -148,7 +148,7 @@ fn error_cannot_return_value() {
     let input = r#"
 #[test]
 fn test() -> u8 {
-    assert!(true);
+    require(true);
     42
 }
 

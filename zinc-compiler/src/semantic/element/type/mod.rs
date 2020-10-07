@@ -77,7 +77,7 @@ pub enum Type {
     },
     /// The `field` type.
     Field(Option<Location>),
-    /// The compile-time only type used mostly for `dbg!` format strings and `assert!` messages.
+    /// The compile-time only type used mostly for `dbg!` format strings and `require` messages.
     String(Option<Location>),
     /// The compile-time only type used for loop bounds and array slicing.
     Range(Range),

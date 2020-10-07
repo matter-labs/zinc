@@ -554,7 +554,7 @@ impl Analyzer {
                     self.intermediate.push_element(intermediate);
                 }
                 ExpressionOperator::CallIntrinsic => {
-                    self.next_call_type = CallType::Intrinsic;
+                    self.next_call_type = CallType::MacroLike;
 
                     self.left_local(tree.left, operator, rule)?;
                 }

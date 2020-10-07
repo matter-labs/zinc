@@ -5,7 +5,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use zinc_build::FunctionIdentifier;
+use zinc_build::LibraryFunctionIdentifier;
 
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::structure::Structure as StructureType;
@@ -18,7 +18,7 @@ use crate::semantic::scope::Scope;
 ///
 /// An intrinsic items set instance creator.
 ///
-/// The intrinsic items are the intrinsic functions `dbg!` and `assert!` and the standard library.
+/// The intrinsic items are functions `dbg!` and `require` and the `std` and `zksync` libraries.
 ///
 #[derive(Debug)]
 pub struct IntrinsicScope {}
@@ -38,7 +38,58 @@ impl IntrinsicScope {
     /// Initializes the intrinsic module scope.
     ///
     pub fn initialize() -> Rc<RefCell<Scope>> {
-        let std_scope = Scope::new_built_in("std").wrap();
+        let intrinsic_scope = Scope::new_intrinsic("intrinsic").wrap();
+
+        let intrinsic_function_dbg = FunctionType::new_dbg();
+        Scope::insert_item(
+            intrinsic_scope.clone(),
+            intrinsic_function_dbg.identifier(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(intrinsic_function_dbg),
+                false,
+            ))
+            .wrap(),
+        );
+
+        let intrinsic_function_assert = FunctionType::new_require();
+        Scope::insert_item(
+            intrinsic_scope.clone(),
+            intrinsic_function_assert.identifier(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(
+                Type::Function(intrinsic_function_assert),
+                false,
+            ))
+            .wrap(),
+        );
+
+        Scope::insert_item(
+            intrinsic_scope.clone(),
+            "std".to_owned(),
+            ScopeItem::Module(ScopeModuleItem::new_built_in(
+                "std".to_owned(),
+                Self::module_std(),
+            ))
+            .wrap(),
+        );
+
+        Scope::insert_item(
+            intrinsic_scope.clone(),
+            "zksync".to_owned(),
+            ScopeItem::Module(ScopeModuleItem::new_built_in(
+                "zksync".to_owned(),
+                Self::module_zksync(),
+            ))
+            .wrap(),
+        );
+
+        intrinsic_scope
+    }
+
+    ///
+    /// Initializes the `std` module scope.
+    ///
+    fn module_std() -> Rc<RefCell<Scope>> {
+        let std_scope = Scope::new_intrinsic("std").wrap();
 
         Scope::insert_item(
             std_scope.clone(),
@@ -76,62 +127,24 @@ impl IntrinsicScope {
             ))
             .wrap(),
         );
-        Scope::insert_item(
-            std_scope.clone(),
-            "zksync".to_owned(),
-            ScopeItem::Module(ScopeModuleItem::new_built_in(
-                "zksync".to_owned(),
-                Self::module_zksync(),
-            ))
-            .wrap(),
-        );
 
-        let root_scope = Scope::new_built_in("root").wrap();
-
-        let intrinsic_function_dbg = FunctionType::new_dbg();
-        Scope::insert_item(
-            root_scope.clone(),
-            intrinsic_function_dbg.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(intrinsic_function_dbg),
-                false,
-            ))
-            .wrap(),
-        );
-
-        let intrinsic_function_assert = FunctionType::new_assert();
-        Scope::insert_item(
-            root_scope.clone(),
-            intrinsic_function_assert.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(intrinsic_function_assert),
-                false,
-            ))
-            .wrap(),
-        );
-
-        Scope::insert_item(
-            root_scope.clone(),
-            "std".to_owned(),
-            ScopeItem::Module(ScopeModuleItem::new_built_in("std".to_owned(), std_scope)).wrap(),
-        );
-
-        root_scope
+        std_scope
     }
 
     ///
     /// Initializes the `std::crypto` module scope.
     ///
     fn module_crypto() -> Rc<RefCell<Scope>> {
-        let std_crypto_scope = Scope::new_built_in("crypto").wrap();
+        let std_crypto_scope = Scope::new_intrinsic("crypto").wrap();
 
-        let std_crypto_sha256 = FunctionType::new_std(FunctionIdentifier::CryptoSha256);
-        let std_crypto_pedersen = FunctionType::new_std(FunctionIdentifier::CryptoPedersen);
+        let std_crypto_sha256 = FunctionType::new_library(LibraryFunctionIdentifier::CryptoSha256);
+        let std_crypto_pedersen =
+            FunctionType::new_library(LibraryFunctionIdentifier::CryptoPedersen);
 
-        let std_crypto_schnorr_scope = Scope::new_built_in("schnorr").wrap();
-        let std_crypto_schnorr_signature_scope = Scope::new_built_in("Signature").wrap();
+        let std_crypto_schnorr_scope = Scope::new_intrinsic("schnorr").wrap();
+        let std_crypto_schnorr_signature_scope = Scope::new_intrinsic("Signature").wrap();
         let std_crypto_schnorr_verify =
-            FunctionType::new_std(FunctionIdentifier::CryptoSchnorrSignatureVerify);
+            FunctionType::new_library(LibraryFunctionIdentifier::CryptoSchnorrSignatureVerify);
         Scope::insert_item(
             std_crypto_schnorr_signature_scope.clone(),
             std_crypto_schnorr_verify.identifier(),
@@ -178,7 +191,7 @@ impl IntrinsicScope {
             .wrap(),
         );
 
-        let std_crypto_ecc_scope = Scope::new_built_in("ecc").wrap();
+        let std_crypto_ecc_scope = Scope::new_intrinsic("ecc").wrap();
         Scope::insert_item(
             std_crypto_ecc_scope.clone(),
             std_crypto_ecc_point.identifier.clone(),
@@ -233,15 +246,16 @@ impl IntrinsicScope {
     /// Initializes the `std::convert` module scope.
     ///
     fn module_convert() -> Rc<RefCell<Scope>> {
-        let std_convert_scope = Scope::new_built_in("convert").wrap();
+        let std_convert_scope = Scope::new_intrinsic("convert").wrap();
 
-        let std_convert_to_bits = FunctionType::new_std(FunctionIdentifier::ConvertToBits);
+        let std_convert_to_bits =
+            FunctionType::new_library(LibraryFunctionIdentifier::ConvertToBits);
         let std_convert_from_bits_unsigned =
-            FunctionType::new_std(FunctionIdentifier::ConvertFromBitsUnsigned);
+            FunctionType::new_library(LibraryFunctionIdentifier::ConvertFromBitsUnsigned);
         let std_convert_from_bits_signed =
-            FunctionType::new_std(FunctionIdentifier::ConvertFromBitsSigned);
+            FunctionType::new_library(LibraryFunctionIdentifier::ConvertFromBitsSigned);
         let std_convert_from_bits_field =
-            FunctionType::new_std(FunctionIdentifier::ConvertFromBitsField);
+            FunctionType::new_library(LibraryFunctionIdentifier::ConvertFromBitsField);
 
         Scope::insert_item(
             std_convert_scope.clone(),
@@ -287,11 +301,12 @@ impl IntrinsicScope {
     /// Initializes the `std::array` module scope.
     ///
     fn module_array() -> Rc<RefCell<Scope>> {
-        let std_array_scope = Scope::new_built_in("array").wrap();
+        let std_array_scope = Scope::new_intrinsic("array").wrap();
 
-        let std_array_reverse = FunctionType::new_std(FunctionIdentifier::ArrayReverse);
-        let std_array_truncate = FunctionType::new_std(FunctionIdentifier::ArrayTruncate);
-        let std_array_pad = FunctionType::new_std(FunctionIdentifier::ArrayPad);
+        let std_array_reverse = FunctionType::new_library(LibraryFunctionIdentifier::ArrayReverse);
+        let std_array_truncate =
+            FunctionType::new_library(LibraryFunctionIdentifier::ArrayTruncate);
+        let std_array_pad = FunctionType::new_library(LibraryFunctionIdentifier::ArrayPad);
 
         Scope::insert_item(
             std_array_scope.clone(),
@@ -328,9 +343,9 @@ impl IntrinsicScope {
     /// Initializes the `std::ff` module scope.
     ///
     fn module_ff() -> Rc<RefCell<Scope>> {
-        let std_ff_scope = Scope::new_built_in("ff").wrap();
+        let std_ff_scope = Scope::new_intrinsic("ff").wrap();
 
-        let std_ff_invert = FunctionType::new_std(FunctionIdentifier::FieldInverse);
+        let std_ff_invert = FunctionType::new_library(LibraryFunctionIdentifier::FfInvert);
 
         Scope::insert_item(
             std_ff_scope.clone(),
@@ -346,23 +361,23 @@ impl IntrinsicScope {
     }
 
     ///
-    /// Initializes the `std::zksync` module scope.
+    /// Initializes the `zksync` module scope.
     ///
     fn module_zksync() -> Rc<RefCell<Scope>> {
-        let std_zksync_scope = Scope::new_built_in("zksync").wrap();
+        let zksync_scope = Scope::new_intrinsic("zksync").wrap();
 
-        let std_zksync_transfer = FunctionType::new_std(FunctionIdentifier::ZksyncTransfer);
+        let zksync_transfer = FunctionType::new_library(LibraryFunctionIdentifier::ZksyncTransfer);
 
         Scope::insert_item(
-            std_zksync_scope.clone(),
-            std_zksync_transfer.identifier(),
+            zksync_scope.clone(),
+            zksync_transfer.identifier(),
             ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(std_zksync_transfer),
+                Type::Function(zksync_transfer),
                 false,
             ))
             .wrap(),
         );
 
-        std_zksync_scope
+        zksync_scope
     }
 }

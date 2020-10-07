@@ -71,7 +71,7 @@ where
         )?;
 
         // if leaf_fields.len() != size {
-        //     return Err(RuntimeError::AssertionError(
+        //     return Err(RuntimeError::RequireError(
         //         "Incorrect number of slot fields returned from storage".into(),
         //     ));
         // }

@@ -22,7 +22,7 @@ where
     if let Some(value) = element.get_value() {
         if value.is_zero() {
             let s = message.unwrap_or("<no message>");
-            return Err(RuntimeError::AssertionError(s.into()));
+            return Err(RuntimeError::RequireError(s.into()));
         }
     }
 

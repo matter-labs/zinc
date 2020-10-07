@@ -3,7 +3,7 @@
 //!
 
 pub mod assert;
-pub mod call_std;
+pub mod call_library;
 pub mod contract_storage;
 pub mod data_stack;
 pub mod dbg;
@@ -76,8 +76,8 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Instruction {
             Self::Return(inner) => inner.execute(vm),
             Self::Exit(inner) => inner.execute(vm),
 
-            Self::CallStd(inner) => inner.execute(vm),
-            Self::Assert(inner) => inner.execute(vm),
+            Self::CallLibrary(inner) => inner.execute(vm),
+            Self::Require(inner) => inner.execute(vm),
             Self::Dbg(inner) => inner.execute(vm),
 
             Self::FileMarker(inner) => inner.execute(vm),

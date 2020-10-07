@@ -1,17 +1,17 @@
 //!
-//! The `Assert` instruction.
+//! The `Require` instruction.
 //!
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::Assert;
+use zinc_build::Require;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::instructions::IExecutable;
 
-impl<VM: IVirtualMachine> IExecutable<VM> for Assert {
+impl<VM: IVirtualMachine> IExecutable<VM> for Require {
     fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
         let value = vm.pop()?.try_into_value()?;
         let condition = vm.condition_top()?;
@@ -45,7 +45,7 @@ mod tests {
     fn test_assert_ok() -> Result<(), TestingError> {
         TestRunner::new()
             .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
-            .push(zinc_build::Assert::new(None))
+            .push(zinc_build::Require::new(None))
             .test::<i32>(&[])
     }
 
@@ -53,11 +53,11 @@ mod tests {
     fn test_assert_fail() {
         let res = TestRunner::new()
             .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
-            .push(zinc_build::Assert::new(None))
+            .push(zinc_build::Require::new(None))
             .test::<i32>(&[]);
 
         match res {
-            Err(TestingError::RuntimeError(RuntimeError::AssertionError(_))) => {}
+            Err(TestingError::RuntimeError(RuntimeError::RequireError(_))) => {}
             _ => panic!("Expected assertion error"),
         }
     }
@@ -68,7 +68,7 @@ mod tests {
             .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
             .push(zinc_build::If)
             .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
-            .push(zinc_build::Assert::new(None))
+            .push(zinc_build::Require::new(None))
             .push(zinc_build::EndIf)
             .test::<i32>(&[])
     }

@@ -3,33 +3,30 @@
 //!
 
 use crate::lexical::token::location::Location;
+use crate::semantic::element::r#type::function::intrinsic::debug::error::Error as DebugFunctionError;
+use crate::semantic::element::r#type::function::intrinsic::stdlib::error::Error as StandardLibraryFunctionError;
 
 ///
 /// The semantic analyzer intrinsic function error.
 ///
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    /// Tried to call an unknown function with the `!` specifier.
+    /// Tried to call a function with the `!` specifier, but the function does not require it.
     Unknown {
         /// The error location data.
         location: Location,
         /// The function identifier.
         function: String,
     },
-    /// The intrinsic functions can only be called with the `!` specifier.
-    SpecifierMissing {
+    /// Some intrinsic functions can only be called with the `!` specifier.
+    ExclamationMarkMissing {
         /// The error location data.
         location: Location,
         /// The function identifier.
         function: &'static str,
     },
-    /// The `dbg!(...)` function argument count does not match the number of placeholders in the format string.
-    DebugArgumentCount {
-        /// The error location data.
-        location: Location,
-        /// The number of expected function arguments including the format string.
-        expected: usize,
-        /// The number of actual function arguments including the format string.
-        found: usize,
-    },
+    /// The `dbg!(...)` function error.
+    Debug(DebugFunctionError),
+    /// The standary library function error.
+    StandardLibrary(StandardLibraryFunctionError),
 }

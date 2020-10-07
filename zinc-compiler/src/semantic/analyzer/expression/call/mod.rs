@@ -101,16 +101,14 @@ impl Analyzer {
 
         let (element, intermediate) = match function {
             FunctionType::Intrinsic(function) => {
-                match call_type {
-                    CallType::Intrinsic => {}
-                    _ => {
-                        return Err(Error::Element(ElementError::Type(TypeError::Function(
-                            FunctionError::Intrinsic(IntrinsicFunctionError::SpecifierMissing {
-                                location: function_location.unwrap_or(location),
-                                function: function.identifier(),
-                            }),
-                        ))))
-                    }
+                if function.requires_exclamation_mark() && !matches!(call_type, CallType::MacroLike)
+                {
+                    return Err(Error::Element(ElementError::Type(TypeError::Function(
+                        FunctionError::Intrinsic(IntrinsicFunctionError::ExclamationMarkMissing {
+                            location: function_location.unwrap_or(location),
+                            function: function.identifier(),
+                        }),
+                    ))));
                 }
 
                 match function {
@@ -139,7 +137,7 @@ impl Analyzer {
                             },
                         )
                     }
-                    IntrinsicFunctionType::Assert(function) => {
+                    IntrinsicFunctionType::Require(function) => {
                         let (return_type, message) = function
                             .call(function_location, argument_list)
                             .map_err(|error| {
@@ -163,49 +161,90 @@ impl Analyzer {
                             },
                         )
                     }
+                    IntrinsicFunctionType::StandardLibrary(function) => {
+                        if let CallType::MacroLike = call_type {
+                            return Err(Error::Element(ElementError::Type(TypeError::Function(
+                                FunctionError::Intrinsic(IntrinsicFunctionError::Unknown {
+                                    location: function_location.unwrap_or(location),
+                                    function: function.identifier().to_owned(),
+                                }),
+                            ))));
+                        }
+
+                        let intrinsic_identifier = function.library_identifier();
+
+                        let return_type =
+                            function
+                                .call(function_location, argument_list)
+                                .map_err(|error| {
+                                    Error::Element(ElementError::Type(TypeError::Function(error)))
+                                })?;
+
+                        let element = Element::Value(
+                            Value::try_from_type(&return_type, false, None)
+                                .map_err(ElementError::Value)
+                                .map_err(Error::Element)?,
+                        );
+
+                        let intermediate = GeneratorExpressionOperator::call_library(
+                            intrinsic_identifier,
+                            input_size,
+                            return_type.size(),
+                        );
+
+                        (
+                            element,
+                            GeneratorExpressionElement::Operator {
+                                location: function_location
+                                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                                operator: intermediate,
+                            },
+                        )
+                    }
+                    IntrinsicFunctionType::ZkSyncLibrary(function) => {
+                        if let CallType::MacroLike = call_type {
+                            return Err(Error::Element(ElementError::Type(TypeError::Function(
+                                FunctionError::Intrinsic(IntrinsicFunctionError::Unknown {
+                                    location: function_location.unwrap_or(location),
+                                    function: function.identifier().to_owned(),
+                                }),
+                            ))));
+                        }
+
+                        let intrinsic_identifier = function.library_identifier();
+
+                        let return_type =
+                            function
+                                .call(function_location, argument_list)
+                                .map_err(|error| {
+                                    Error::Element(ElementError::Type(TypeError::Function(error)))
+                                })?;
+
+                        let element = Element::Value(
+                            Value::try_from_type(&return_type, false, None)
+                                .map_err(ElementError::Value)
+                                .map_err(Error::Element)?,
+                        );
+
+                        let intermediate = GeneratorExpressionOperator::call_library(
+                            intrinsic_identifier,
+                            input_size,
+                            return_type.size(),
+                        );
+
+                        (
+                            element,
+                            GeneratorExpressionElement::Operator {
+                                location: function_location
+                                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                                operator: intermediate,
+                            },
+                        )
+                    }
                 }
-            }
-            FunctionType::StandardLibrary(function) => {
-                if let CallType::Intrinsic = call_type {
-                    return Err(Error::Element(ElementError::Type(TypeError::Function(
-                        FunctionError::Intrinsic(IntrinsicFunctionError::Unknown {
-                            location: function_location.unwrap_or(location),
-                            function: function.identifier().to_owned(),
-                        }),
-                    ))));
-                }
-
-                let intrinsic_identifier = function.stdlib_identifier();
-
-                let return_type =
-                    function
-                        .call(function_location, argument_list)
-                        .map_err(|error| {
-                            Error::Element(ElementError::Type(TypeError::Function(error)))
-                        })?;
-
-                let element = Element::Value(
-                    Value::try_from_type(&return_type, false, None)
-                        .map_err(ElementError::Value)
-                        .map_err(Error::Element)?,
-                );
-
-                let intermediate = GeneratorExpressionOperator::call_std(
-                    intrinsic_identifier,
-                    input_size,
-                    return_type.size(),
-                );
-
-                (
-                    element,
-                    GeneratorExpressionElement::Operator {
-                        location: function_location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-                        operator: intermediate,
-                    },
-                )
             }
             FunctionType::Runtime(function) => {
-                if let CallType::Intrinsic = call_type {
+                if let CallType::MacroLike = call_type {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
                         FunctionError::Intrinsic(IntrinsicFunctionError::Unknown {
                             location,
@@ -259,7 +298,7 @@ impl Analyzer {
                 )
             }
             FunctionType::Constant(function) => {
-                if let CallType::Intrinsic = call_type {
+                if let CallType::MacroLike = call_type {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
                         FunctionError::Intrinsic(IntrinsicFunctionError::Unknown {
                             location,

@@ -47,7 +47,7 @@ pub enum Command {
     Test(TestCommand),
     /// Generates a pair of proving and verifying keys.
     Setup(SetupCommand),
-    /// Executes the bytecode and prints its output.
+    /// Generates a proof using the proving key.
     Prove(ProveCommand),
     /// Verifies a proof using the verifying key.
     Verify(VerifyCommand),

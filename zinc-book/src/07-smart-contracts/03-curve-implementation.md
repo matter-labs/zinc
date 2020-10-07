@@ -117,7 +117,7 @@ contract Stableswap {
         self.balances[deposit_idx] = new_x;
         self.balances[withdraw_idx] = new_y;
 
-        std::zksync::transfer(withdraw_address, withdraw_token_id, withdraw_amount);
+        zksync::transfer(withdraw_address, withdraw_token_id, withdraw_amount);
     }
 
     ///
