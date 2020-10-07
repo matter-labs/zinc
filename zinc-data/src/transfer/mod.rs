@@ -10,8 +10,8 @@ use serde_derive::Deserialize;
 use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
 
+use zksync_types::tx::ZkSyncTx;
 use zksync_types::Address;
-use zksync_types::FranklinTx;
 use zksync_types::TokenLike;
 
 use crate::transaction::Transaction;
@@ -57,7 +57,7 @@ impl Transfer {
         wallet: &zksync::Wallet,
         transaction: &Transaction,
     ) -> Result<(), Error> {
-        if let FranklinTx::Transfer(ref transfer) = transaction.tx {
+        if let ZkSyncTx::Transfer(ref transfer) = transaction.tx {
             if self.sender != transfer.from {
                 return Err(Error::Validation(Self::FIELD_NAME_SENDER));
             }

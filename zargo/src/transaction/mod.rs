@@ -8,7 +8,7 @@ use num_old::BigUint;
 use num_old::Zero;
 
 use zksync::web3::types::Address;
-use zksync_types::FranklinTx;
+use zksync_types::tx::ZkSyncTx;
 use zksync_types::TokenLike;
 use zksync_types::TxFeeTypes;
 
@@ -52,7 +52,7 @@ pub fn new_initial(wallet: &zksync::Wallet, recipient: Address) -> Result<Transa
     let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
     Ok(Transaction::new(
-        FranklinTx::Transfer(Box::new(transfer)),
+        ZkSyncTx::Transfer(Box::new(transfer)),
         signature,
     ))
 }
@@ -95,7 +95,7 @@ pub fn try_into_zksync(
     let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
     Ok(Transaction::new(
-        FranklinTx::Transfer(Box::new(transfer)),
+        ZkSyncTx::Transfer(Box::new(transfer)),
         signature,
     ))
 }

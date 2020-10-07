@@ -16,7 +16,7 @@ use serde_json::json;
 use serde_json::Value as JsonValue;
 
 use zksync::operations::SyncTransactionHandle;
-use zksync_types::FranklinTx;
+use zksync_types::tx::ZkSyncTx;
 
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Value as BuildValue;
@@ -157,7 +157,7 @@ pub async fn handle(
 
     log::debug!("Building the transaction list");
     let mut transactions = Vec::with_capacity(1 + output.transfers.len());
-    if let FranklinTx::Transfer(ref transfer) = body.transaction.tx {
+    if let ZkSyncTx::Transfer(ref transfer) = body.transaction.tx {
         let token = wallet
             .tokens
             .resolve(transfer.token.into())
@@ -204,7 +204,7 @@ pub async fn handle(
             .signer
             .sign_transfer(token, amount, fee, recipient, nonce)?;
         transactions.push(Transaction::new(
-            FranklinTx::Transfer(Box::new(transfer)),
+            ZkSyncTx::Transfer(Box::new(transfer)),
             signature.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
         ));
 

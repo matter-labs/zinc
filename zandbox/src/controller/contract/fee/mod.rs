@@ -14,7 +14,7 @@ use actix_web::web;
 use num_old::BigUint;
 use num_old::Zero;
 
-use zksync_types::FranklinTx;
+use zksync_types::tx::ZkSyncTx;
 use zksync_types::TxFeeTypes;
 
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
@@ -137,7 +137,7 @@ pub async fn handle(
     log::debug!("Calculating the fee for the method transfers");
     let mut fee = BigUint::zero();
     let token = match body.transaction.tx {
-        FranklinTx::Transfer(ref transfer) => wallet
+        ZkSyncTx::Transfer(ref transfer) => wallet
             .tokens
             .resolve(transfer.token.into())
             .ok_or(Error::TokenNotFound(transfer.token))?,

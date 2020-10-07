@@ -6,7 +6,7 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
 use zksync_types::tx::PackedEthSignature;
-use zksync_types::FranklinTx;
+use zksync_types::tx::ZkSyncTx;
 
 ///
 /// The transaction, understandable by zkSync, front-end, Zandbox, and Zargo.
@@ -15,7 +15,7 @@ use zksync_types::FranklinTx;
 #[serde(rename_all = "camelCase")]
 pub struct Transaction {
     /// The transaction itself.
-    pub tx: FranklinTx,
+    pub tx: ZkSyncTx,
     /// The Ethereum signature of the transaction.
     pub ethereum_signature: EthereumSignature,
 }
@@ -24,7 +24,7 @@ impl Transaction {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(tx: FranklinTx, signature: PackedEthSignature) -> Self {
+    pub fn new(tx: ZkSyncTx, signature: PackedEthSignature) -> Self {
         Self {
             tx,
             ethereum_signature: EthereumSignature::new(signature),

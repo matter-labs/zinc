@@ -13,7 +13,7 @@ use actix_web::http::StatusCode;
 use actix_web::web;
 
 use zksync::operations::SyncTransactionHandle;
-use zksync_types::FranklinTx;
+use zksync_types::tx::ZkSyncTx;
 
 use crate::database::model::contract::insert_new::Input as ContractInsertNewInput;
 use crate::database::model::field::insert::Input as FieldInsertInput;
@@ -75,7 +75,7 @@ pub async fn handle(
     )?;
     let mut wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
 
-    if let FranklinTx::Transfer(ref transfer) = body.transaction.tx {
+    if let ZkSyncTx::Transfer(ref transfer) = body.transaction.tx {
         let token = wallet
             .tokens
             .resolve(transfer.token.into())
@@ -92,7 +92,7 @@ pub async fn handle(
     }
 
     let fee_token_id = match body.transaction.tx {
-        FranklinTx::Transfer(ref transfer) => transfer.token,
+        ZkSyncTx::Transfer(ref transfer) => transfer.token,
         _ => panic!(zinc_const::panic::VALUE_ALWAYS_EXISTS),
     };
 
