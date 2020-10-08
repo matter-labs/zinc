@@ -30,5 +30,5 @@ The zkSync library is an emerging library, which contains the only function to
 make transfers in the zkSync network.
 
 ```rust,no_run,noplaypen
-
+zksync::transfer(tx.sender, TokenId::ETH, 1_000_000);
 ```

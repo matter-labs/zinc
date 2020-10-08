@@ -174,7 +174,7 @@ To call the contract method, use the following command with the method name and
 contract account ID:
 
 ```bash,no_run,noplaypen
-zargo call --network localhost --address 0x1234123412341234123412341234123412341234 --method exchange
+zargo call --network localhost --address 0x1234...1234 --method exchange
 ```
 
 After the call has succeeded, query the contract storage again to see the
