@@ -9,7 +9,8 @@ use zksync::web3::types::H256;
 use zksync_types::AccountId;
 
 use zinc_build::Contract as BuildContract;
-use zinc_build::Value as BuildValue;
+
+use crate::storage::Storage;
 
 ///
 /// The cached contract data.
@@ -40,8 +41,8 @@ pub struct Contract {
 
     /// The pre-built contract ready to be called.
     pub build: BuildContract,
-    /// The contract storage fields.
-    pub fields: Vec<(String, BuildValue)>,
+    /// The contract storage.
+    pub storage: Storage,
 }
 
 impl Contract {
@@ -64,7 +65,7 @@ impl Contract {
         eth_private_key: H256,
 
         build: BuildContract,
-        fields: Vec<(String, BuildValue)>,
+        storage: Storage,
     ) -> Self {
         Self {
             eth_address,
@@ -81,7 +82,7 @@ impl Contract {
             eth_private_key,
 
             build,
-            fields,
+            storage,
         }
     }
 

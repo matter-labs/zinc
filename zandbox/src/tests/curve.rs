@@ -66,6 +66,7 @@ async fn ok_curve() {
         .write_all(
             serde_json::to_string_pretty(&json!({
                 "_amplifier": "100",
+                "_tokens": ["0", "1"],
             }))
             .expect(zinc_const::panic::DATA_CONVERSION)
             .as_bytes(),

@@ -19,6 +19,7 @@ use zinc_data::QueryRequestQuery;
 
 use crate::arguments::command::IExecutable;
 use crate::error::file::Error as FileError;
+use crate::network::Network;
 use crate::project::data::arguments::Arguments as ArgumentsFile;
 use crate::project::data::Directory as DataDirectory;
 use crate::project::manifest::project_type::ProjectType;
@@ -66,6 +67,9 @@ pub enum Error {
     /// The invalid network error.
     #[fail(display = "invalid network name: {}", _0)]
     NetworkInvalid(String),
+    /// The unimplemented network error.
+    #[fail(display = "unimplemented network: {}", _0)]
+    NetworkUnimplemented(zksync::Network),
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
     ManifestFile(FileError<toml::de::Error>),
@@ -91,8 +95,13 @@ impl IExecutable for Command {
             .parse()
             .map_err(Error::InvalidContractAddress)?;
 
-        let network =
-            zksync::Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
+        let network = zksync::Network::from_str(self.network.as_str())
+            .map(Network::from)
+            .map_err(Error::NetworkInvalid)?;
+
+        let url = network
+            .try_into_url()
+            .map_err(Error::NetworkUnimplemented)?;
 
         let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
@@ -105,12 +114,6 @@ impl IExecutable for Command {
         if manifest_path.is_file() {
             manifest_path.pop();
         }
-
-        let endpoint_url = format!(
-            "{}{}",
-            zinc_const::zandbox::CONNECTION_URL,
-            zinc_const::zandbox::CONTRACT_QUERY_URL
-        );
 
         let arguments = match self.method {
             Some(ref method) => {
@@ -159,8 +162,8 @@ impl IExecutable for Command {
                     .request(
                         Method::PUT,
                         Url::parse_with_params(
-                            endpoint_url.as_str(),
-                            QueryRequestQuery::new(address, self.method, network),
+                            format!("{}{}", url, zinc_const::zandbox::CONTRACT_QUERY_URL).as_str(),
+                            QueryRequestQuery::new(address, self.method, network.into()),
                         )
                         .expect(zinc_const::panic::DATA_CONVERSION),
                     )

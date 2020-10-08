@@ -881,7 +881,7 @@ impl Value {
                 Self::Integer(integer)
             }
             Type::Contract(inner) => Self::Contract(Contract::new_with_type(
-                location.or_else(|| inner.location),
+                location.or_else(|| Some(inner.location)),
                 inner.to_owned(),
             )),
             _ => panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),

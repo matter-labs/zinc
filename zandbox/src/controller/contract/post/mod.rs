@@ -13,7 +13,6 @@ use actix_web::http::StatusCode;
 use actix_web::web;
 
 use zinc_build::Application as BuildApplication;
-use zinc_build::Type as BuildType;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 
@@ -24,6 +23,7 @@ use zksync_types::tx::PackedEthSignature;
 use crate::response::Response;
 use crate::shared_data::contract::Contract as SharedDataContract;
 use crate::shared_data::SharedData;
+use crate::storage::Storage;
 
 use self::error::Error;
 use self::request::Body as RequestBody;
@@ -39,7 +39,7 @@ use self::response::Body as ResponseBody;
 /// 3. Parse the construtor arguments.
 /// 4. Run the construtor on the Zinc VM which must return the contract storage.
 /// 5. Generate a private key for the contract.
-/// 6. Fill the external contract storage fields.
+/// 6. Fill the implicit contract storage fields.
 /// 7. Write the contract and its storage to the in-memory cache.
 /// 8. Return the created contract address to the client.
 ///
@@ -68,7 +68,7 @@ pub async fn handle(
 
     let constructor = build
         .methods
-        .get(zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME)
+        .get(zinc_const::contract::CONSTRUCTOR_NAME)
         .cloned()
         .ok_or(Error::ConstructorNotFound)?;
 
@@ -76,16 +76,15 @@ pub async fn handle(
         .map_err(Error::InvalidInput)?;
 
     log::debug!("Initializing the contract storage");
-    let storage = build.storage.clone();
-    let storage_value = BuildValue::new(BuildType::Contract(build.storage.clone()));
+    let storage = Storage::new(build.storage.as_slice()).into_build();
 
     log::debug!("Running the contract constructor on the virtual machine");
     let build_to_run = build.clone();
     let output = async_std::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new(build_to_run).run::<Bn256>(
             input_value,
-            storage_value,
-            zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME.to_owned(),
+            storage,
+            zinc_const::contract::CONSTRUCTOR_NAME.to_owned(),
         )
     })
     .await
@@ -101,23 +100,6 @@ pub async fn handle(
         "The contract ETH address is {}",
         serde_json::to_string(&contract_address).expect(zinc_const::panic::DATA_CONVERSION),
     );
-
-    let mut fields = Vec::with_capacity(storage.len());
-    match output.result {
-        BuildValue::Contract(storage_fields) => {
-            for mut field in storage_fields.into_iter() {
-                match field.name.as_str() {
-                    "address" if field.is_external => {
-                        field.value = BuildValue::scalar_from_eth_address(contract_address)
-                    }
-                    _ => {}
-                }
-
-                fields.push((field.name, field.value));
-            }
-        }
-        _ => panic!(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION),
-    }
 
     log::debug!("Writing the contract to the temporary server cache");
     app_data
@@ -137,7 +119,7 @@ pub async fn handle(
                 None,
                 contract_private_key,
                 build,
-                fields,
+                Storage::from_build(output.result),
             ),
         );
 

@@ -11,40 +11,6 @@ use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
-fn ok_not_initialized() {
-    let input = r#"
-contract Test {
-    pub fn main() -> Self { Self }
-}
-"#;
-
-    assert!(crate::semantic::tests::compile_entry(input).is_ok());
-}
-
-#[test]
-fn error_not_initialized() {
-    let input = r#"
-contract Test {
-    a: u8;
-    b: u8;
-
-    pub fn main() -> Self { Self }
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Contract(ContractValueError::NotInitialized {
-            location: Location::test(6, 29),
-            type_identifier: "Test".to_owned(),
-        })),
-    )));
-
-    let result = crate::semantic::tests::compile_entry(input);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
 fn error_field_does_not_exist() {
     let input = r#"
 contract Test {
@@ -85,7 +51,7 @@ contract Test {
         ElementError::Value(ValueError::Contract(ContractValueError::FieldExpected {
             location: Location::test(6, 38),
             type_identifier: "Test".to_owned(),
-            position: 2,
+            position: 4,
             expected: "b".to_owned(),
             found: "c".to_owned(),
         })),
@@ -137,8 +103,8 @@ contract Test {
         ElementError::Value(ValueError::Contract(ContractValueError::FieldOutOfRange {
             location: Location::test(6, 45),
             type_identifier: "Test".to_owned(),
-            expected: 2,
-            found: 3,
+            expected: 4,
+            found: 5,
         })),
     )));
 

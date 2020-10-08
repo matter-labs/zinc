@@ -19,7 +19,7 @@ use self::contract::Contract;
 ///
 pub struct SharedData {
     /// The PostgreSQL asynchronous client.
-    pub postgresql_client: DatabaseClient,
+    pub postgresql: DatabaseClient,
     /// The precompiled contracts written at application startup.
     pub contracts: HashMap<Address, Contract>,
 }
@@ -28,9 +28,9 @@ impl SharedData {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(postgresql_client: DatabaseClient, contracts: HashMap<Address, Contract>) -> Self {
+    pub fn new(postgresql: DatabaseClient, contracts: HashMap<Address, Contract>) -> Self {
         Self {
-            postgresql_client,
+            postgresql,
             contracts,
         }
     }

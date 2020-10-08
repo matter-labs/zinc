@@ -17,15 +17,14 @@ use num_old::Zero;
 use zksync_types::tx::ZkSyncTx;
 use zksync_types::TxFeeTypes;
 
-use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::Value as BuildValue;
 use zinc_data::Transfer;
 use zinc_vm::Bn256;
 
 use crate::database::model::field::select::Input as FieldSelectInput;
-use crate::database::model::field::select::Output as FieldSelectOutput;
 use crate::response::Response;
 use crate::shared_data::SharedData;
+use crate::storage::Storage;
 
 use self::error::Error;
 use self::request::Body as RequestBody;
@@ -40,7 +39,7 @@ use self::response::Body as ResponseBody;
 /// 2. Extract the called method from its metadata and check if it is mutable.
 /// 3. Check if the transactions in the contract method arguments match the signed ones.
 /// 4. Parse the method input arguments.
-/// 5. Get the contract storage from the database and convert it to the Zinc VM representation.
+/// 5. Get the contract storage from data sources and convert it to the Zinc VM representation.
 /// 6. Run the method on the Zinc VM.
 /// 7. Extract the transfer data from the Zinc VM.
 /// 8. Calculate the fee required for the transfers.
@@ -57,7 +56,7 @@ pub async fn handle(
     let postgresql = app_data
         .read()
         .expect(zinc_const::panic::SYNCHRONIZATION)
-        .postgresql_client
+        .postgresql
         .clone();
 
     log::debug!(
@@ -77,6 +76,11 @@ pub async fn handle(
                 serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION),
             )
         })?;
+    let account_id = contract.account_id.ok_or_else(|| {
+        Error::ContractLocked(
+            serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION),
+        )
+    })?;
 
     let method = match contract.build.methods.get(query.method.as_str()).cloned() {
         Some(method) => method,
@@ -102,22 +106,16 @@ pub async fn handle(
         .map_err(Error::InvalidInput)?;
 
     log::debug!("Loading the pre-transaction contract storage");
-    let storage_value = postgresql
-        .select_fields(FieldSelectInput::new(query.address))
+    let database_fields = postgresql
+        .select_fields(FieldSelectInput::new(account_id))
         .await?;
-    let mut fields = Vec::with_capacity(storage_value.len());
-    for (index, FieldSelectOutput { name, value }) in storage_value.into_iter().enumerate() {
-        let r#type = contract.build.storage[index].r#type.clone();
-        let value = BuildValue::try_from_typed_json(value, r#type)
-            .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
-        fields.push(BuildContractFieldValue::new(
-            name,
-            value,
-            contract.build.storage[index].is_public,
-            contract.build.storage[index].is_external,
-        ));
-    }
-    let storage_value = BuildValue::Contract(fields);
+    let storage = Storage::new_with_data(
+        database_fields,
+        contract.build.storage.as_slice(),
+        contract.eth_address,
+        &wallet,
+    )
+    .await?;
 
     log::debug!("Running the contract method on the virtual machine");
     let method = query.method;
@@ -126,7 +124,7 @@ pub async fn handle(
     let output = async_std::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new(contract_build).run::<Bn256>(
             input_value,
-            storage_value,
+            storage.into_build(),
             method,
         )
     })

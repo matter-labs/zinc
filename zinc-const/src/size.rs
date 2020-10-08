@@ -2,6 +2,9 @@
 //! The Zinc size in bytes constants.
 //!
 
+/// The `sha256` hash size.
+pub const SHA256_HASH: usize = 32;
+
 /// The ETH address size.
 pub const ETH_ADDRESS: usize = 20;
 
@@ -13,6 +16,3 @@ pub const ETH_PRIVATE_KEY: usize = 32;
 
 /// The ETH signature size.
 pub const ETH_SIGNATURE: usize = 32;
-
-/// The `sha256` hash size.
-pub const SHA256_HASH: usize = 32;

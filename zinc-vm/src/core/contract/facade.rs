@@ -90,12 +90,11 @@ impl Facade {
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
 
-        let mut state = ContractState::new(cs, storage_gadget, false);
+        let mut state = ContractState::new(cs, storage_gadget, method_name, false);
 
         let mut num_constraints = 0;
         let result = state.run(
             self.inner,
-            method_name,
             Some(&inputs_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
@@ -140,7 +139,7 @@ impl Facade {
                             values.as_slice(),
                         ),
                         field.is_public,
-                        field.is_external,
+                        field.is_implicit,
                     )
                 })
                 .collect::<Vec<ContractFieldValue>>(),
@@ -195,12 +194,11 @@ impl Facade {
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
 
-        let mut state = ContractState::new(cs, storage_gadget, false);
+        let mut state = ContractState::new(cs, storage_gadget, method_name, false);
 
         let mut num_constraints = 0;
         let result = state.run(
             self.inner,
-            method_name,
             Some(&inputs_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
@@ -251,7 +249,7 @@ impl Facade {
                             values.as_slice(),
                         ),
                         field.is_public,
-                        field.is_external,
+                        field.is_implicit,
                     )
                 })
                 .collect::<Vec<ContractFieldValue>>(),
@@ -284,15 +282,9 @@ impl Facade {
             let storage_gadget =
                 StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
 
-            let mut state = ContractState::new(cs, storage_gadget, true);
+            let mut state = ContractState::new(cs, storage_gadget, name.clone(), true);
 
-            let result = state.run(
-                self.inner.clone(),
-                name.clone(),
-                Some(&[]),
-                |_| {},
-                |_| Ok(()),
-            );
+            let result = state.run(self.inner.clone(), Some(&[]), |_| {}, |_| Ok(()));
             match result {
                 Err(_) if unit_test.should_panic => {
                     println!("test {} ... {} (failed)", name, "ok".green());

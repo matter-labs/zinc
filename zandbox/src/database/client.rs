@@ -42,7 +42,7 @@ impl Client {
     pub async fn select_contracts(&self) -> Result<Vec<ContractSelectAllOutput>, sqlx::Error> {
         const STATEMENT: &str = r#"
         SELECT
-            address,
+            account_id,
             
             name,
             version,
@@ -52,7 +52,7 @@ impl Client {
             bytecode,
             verifying_key,
 
-            account_id,
+            eth_address,
             eth_private_key
         FROM zandbox.contracts
         ORDER BY created_at;
@@ -69,7 +69,7 @@ impl Client {
     ) -> Result<Vec<ContractSelectCurveOutput>, sqlx::Error> {
         const STATEMENT: &str = r#"
         SELECT
-            address,
+            eth_address,
             
             name,
             version,
@@ -89,7 +89,7 @@ impl Client {
     pub async fn insert_contract(&self, input: ContractInsertNewInput) -> Result<(), sqlx::Error> {
         const STATEMENT: &str = r#"
         INSERT INTO zandbox.contracts (
-            address,
+            account_id,
 
             name,
             version,
@@ -100,7 +100,7 @@ impl Client {
             bytecode,
             verifying_key,
 
-            account_id,
+            eth_address,
             eth_private_key,
 
             created_at
@@ -120,7 +120,7 @@ impl Client {
         "#;
 
         sqlx::query(STATEMENT)
-            .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(input.eth_address).to_vec())
+            .bind(input.account_id as i64)
             .bind(input.name)
             .bind(input.version)
             .bind(input.instance)
@@ -128,7 +128,7 @@ impl Client {
             .bind(input.source_code)
             .bind(input.bytecode)
             .bind(input.verifying_key)
-            .bind(input.account_id as i64)
+            .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(input.eth_address).to_vec())
             .bind(<[u8; zinc_const::size::ETH_PRIVATE_KEY]>::from(input.eth_private_key).to_vec())
             .execute(&self.pool)
             .await?;
@@ -162,12 +162,12 @@ impl Client {
             value
         FROM zandbox.fields
         WHERE
-            address = $1
+            account_id = $1
         ORDER BY index;
         "#;
 
         Ok(sqlx::query_as(STATEMENT)
-            .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(input.address).to_vec())
+            .bind(input.account_id)
             .fetch_all(&self.pool)
             .await?)
     }
@@ -178,7 +178,7 @@ impl Client {
     pub async fn insert_fields(&self, input: Vec<FieldInsertInput>) -> Result<(), sqlx::Error> {
         const STATEMENT: &str = r#"
         INSERT INTO zandbox.fields (
-            address,
+            account_id,
             index,
 
             name,
@@ -193,7 +193,7 @@ impl Client {
 
         for field in input.into_iter() {
             sqlx::query(STATEMENT)
-                .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(field.address).to_vec())
+                .bind(field.account_id)
                 .bind(field.index)
                 .bind(field.name)
                 .bind(field.value)
@@ -214,12 +214,12 @@ impl Client {
             value = $3
         WHERE
             index = $2
-        AND address = $1;
+        AND account_id = $1;
         "#;
 
         for field in input.into_iter() {
             sqlx::query(STATEMENT)
-                .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(field.address).to_vec())
+                .bind(field.account_id)
                 .bind(field.index)
                 .bind(field.value)
                 .execute(&self.pool)

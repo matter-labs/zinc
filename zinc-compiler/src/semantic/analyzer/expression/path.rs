@@ -15,7 +15,6 @@ use crate::semantic::element::path::Path;
 use crate::semantic::element::place::Place;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::contract::error::Error as ContractValueError;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::element::value::Value;
@@ -165,14 +164,6 @@ impl Translator {
                                 StructureValueError::NotInitialized {
                                     location,
                                     type_identifier: structure.identifier,
-                                },
-                            ))))
-                        }
-                        Type::Contract(contract) if !contract.fields.is_empty() => {
-                            return Err(Error::Element(ElementError::Value(ValueError::Contract(
-                                ContractValueError::NotInitialized {
-                                    location,
-                                    type_identifier: contract.identifier,
                                 },
                             ))))
                         }

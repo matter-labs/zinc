@@ -6,7 +6,7 @@ authors = [
     "Alexander Movchan <am@matterlabs.dev>",
 ]
 edition = "2018"
-description = "The Zinc build files data"
+description = "The Zinc data shared between the compiler and VM"
 
 [dependencies]
 log = "0.4"

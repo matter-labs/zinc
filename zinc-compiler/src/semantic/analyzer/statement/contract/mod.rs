@@ -16,6 +16,7 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::r#type::statement::Statement as TypeStatementVariant;
 use crate::semantic::scope::Scope;
+use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::contract::Statement as ContractStatement;
 use crate::syntax::tree::statement::local_contract::Statement as ContractLocalStatement;
 
@@ -66,7 +67,38 @@ impl Analyzer {
     ) -> Result<(Type, GeneratorContractStatement), Error> {
         let location = statement.location;
 
-        let mut storage_fields = Vec::new();
+        let mut storage_fields = Vec::with_capacity(zinc_const::contract::IMPLICIT_FIELDS_COUNT);
+        storage_fields.insert(
+            zinc_const::contract::FIELD_INDEX_ADDRESS,
+            ContractFieldType::new(
+                Identifier::new(
+                    statement.location,
+                    zinc_const::contract::FIELD_NAME_ADDRESS.to_owned(),
+                ),
+                Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS),
+                true,
+                true,
+                true,
+            ),
+        );
+        storage_fields.insert(
+            zinc_const::contract::FIELD_INDEX_BALANCES,
+            ContractFieldType::new(
+                Identifier::new(
+                    statement.location,
+                    zinc_const::contract::FIELD_NAME_BALANCES.to_owned(),
+                ),
+                Type::array(
+                    None,
+                    Type::integer_unsigned(None, zinc_const::bitlength::BALANCE),
+                    zinc_const::contract::ARRAY_SIZE_BALANCES,
+                ),
+                true,
+                true,
+                false,
+            ),
+        );
+
         for instant_statement in statement.statements.into_iter() {
             if let ContractLocalStatement::Field(statement) = instant_statement {
                 FieldStatementAnalyzer::define(
@@ -83,7 +115,7 @@ impl Analyzer {
         }
 
         let r#type = Type::contract(
-            Some(statement.location),
+            statement.location,
             statement.identifier.name,
             storage_fields.clone(),
             Some(scope.clone()),

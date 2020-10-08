@@ -221,7 +221,8 @@ impl Scope {
         r#type: Type,
         index: usize,
         is_public: bool,
-        is_external: bool,
+        is_implicit: bool,
+        is_immutable: bool,
     ) -> Result<(), SemanticError> {
         if let Ok(item) = scope.borrow().resolve_item(&identifier, false) {
             return Err(SemanticError::Scope(Error::ItemRedeclared {
@@ -238,7 +239,8 @@ impl Scope {
             r#type,
             index,
             is_public,
-            is_external,
+            is_implicit,
+            is_immutable,
         ));
 
         scope.borrow().items.borrow_mut().insert(name, item.wrap());

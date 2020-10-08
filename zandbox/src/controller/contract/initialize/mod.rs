@@ -16,7 +16,6 @@ use zksync::operations::SyncTransactionHandle;
 use zksync_types::tx::ZkSyncTx;
 
 use crate::database::model::contract::insert_new::Input as ContractInsertNewInput;
-use crate::database::model::field::insert::Input as FieldInsertInput;
 use crate::response::Response;
 use crate::shared_data::SharedData;
 
@@ -46,7 +45,7 @@ pub async fn handle(
     let postgresql = app_data
         .read()
         .expect(zinc_const::panic::SYNCHRONIZATION)
-        .postgresql_client
+        .postgresql
         .clone();
 
     log::debug!(
@@ -136,21 +135,23 @@ pub async fn handle(
         ));
     }
 
-    let contract_eth_address = contract.eth_address;
-
-    let fields = contract
-        .fields
-        .into_iter()
-        .enumerate()
-        .map(|(index, (name, value))| {
-            FieldInsertInput::new(contract_eth_address, index as i16, name, value.into_json())
-        })
-        .collect();
+    log::debug!("Setting the contract account ID to {}", account_id);
+    app_data
+        .write()
+        .expect(zinc_const::panic::SYNCHRONIZATION)
+        .contracts
+        .get_mut(&query.address)
+        .ok_or_else(|| {
+            Error::ContractNotFound(
+                serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION),
+            )
+        })?
+        .set_account_id(account_id);
 
     log::debug!("Writing the contract to the persistent PostgreSQL database");
     postgresql
         .insert_contract(ContractInsertNewInput::new(
-            contract_eth_address,
+            account_id,
             contract.name,
             contract.version,
             contract.instance,
@@ -158,13 +159,15 @@ pub async fn handle(
             contract.source_code,
             contract.bytecode,
             contract.verifying_key,
-            account_id,
+            contract.eth_address,
             contract.eth_private_key,
         ))
         .await?;
 
     log::debug!("Writing the contract storage to the persistent PostgreSQL database");
-    postgresql.insert_fields(fields).await?;
+    postgresql
+        .insert_fields(contract.storage.into_database_insert(account_id))
+        .await?;
 
     let response = ResponseBody::new(account_id);
 

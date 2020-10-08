@@ -31,7 +31,7 @@ pub async fn handle(
     let postgresql = app_data
         .read()
         .expect(zinc_const::panic::SYNCHRONIZATION)
-        .postgresql_client
+        .postgresql
         .clone();
 
     let response: ResponseBody = postgresql
@@ -40,7 +40,7 @@ pub async fn handle(
         .into_iter()
         .map(|instance| {
             ResponseInstance::new(
-                zinc_utils::eth_address_from_vec(instance.address),
+                zinc_utils::eth_address_from_vec(instance.eth_address),
                 instance.name,
                 instance.version,
                 instance.instance,

@@ -18,20 +18,20 @@ pub struct ContractField {
     pub r#type: Type,
     /// Whether the field is public.
     pub is_public: bool,
-    /// Whether the field is external.
-    pub is_external: bool,
+    /// Whether the field is implicit.
+    pub is_implicit: bool,
 }
 
 impl ContractField {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(name: String, r#type: Type, is_public: bool, is_external: bool) -> Self {
+    pub fn new(name: String, r#type: Type, is_public: bool, is_implicit: bool) -> Self {
         Self {
             name,
             r#type,
             is_public,
-            is_external,
+            is_implicit,
         }
     }
 
@@ -44,7 +44,7 @@ impl ContractField {
                 field.identifier.name.to_owned(),
                 r#type,
                 field.is_public,
-                field.is_external,
+                field.is_implicit,
             )
         })
     }
@@ -56,7 +56,7 @@ impl Into<BuildContractFieldType> for ContractField {
             self.name,
             self.r#type.into(),
             self.is_public,
-            self.is_external,
+            self.is_implicit,
         )
     }
 }

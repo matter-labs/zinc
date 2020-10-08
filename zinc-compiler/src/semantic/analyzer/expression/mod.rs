@@ -721,9 +721,9 @@ impl Analyzer {
                 },
             )));
         }
-        if let Some(name) = place.check_external_field() {
+        if let Some(name) = place.check_implicit_field() {
             return Err(Error::Element(ElementError::Place(
-                PlaceError::MutatingExternalContractField {
+                PlaceError::MutatingImmutableContractField {
                     location: place.identifier.location,
                     name,
                 },

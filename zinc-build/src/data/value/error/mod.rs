@@ -39,7 +39,7 @@ impl<T> IErrorContext for Result<T, Error> {
     ///
     fn push_structure(self, name: &str) -> Self {
         self.map_err(|mut e| {
-            e.path.push(name.into());
+            e.path.push(format!(".{}", name));
             e
         })
     }
@@ -64,11 +64,11 @@ impl fmt::Display for Error {
                 "{} at `{}`",
                 self.error,
                 self.path
-                    .clone()
+                    .to_owned()
                     .into_iter()
                     .rev()
                     .collect::<Vec<String>>()
-                    .join(".")
+                    .join("")
             )
         }
     }

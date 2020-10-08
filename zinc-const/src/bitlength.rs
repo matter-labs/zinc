@@ -11,9 +11,6 @@ pub const BYTE: usize = 8;
 /// The index type (usually `u64`) bitlength.
 pub const INDEX: usize = 64;
 
-/// The ETH address bitlength.
-pub const ETH_ADDRESS: usize = crate::size::ETH_ADDRESS * BYTE;
-
 /// The `u248` or `i248` types bitlength.
 pub const INTEGER_MAX: usize = 248;
 
@@ -25,3 +22,9 @@ pub const FIELD_PADDED: usize = FIELD + (BYTE - FIELD % BYTE);
 
 /// The `sha256` hash bitlength.
 pub const SHA256_HASH: usize = crate::size::SHA256_HASH * BYTE;
+
+/// The smart contract balance bitlength.
+pub const BALANCE: usize = self::INTEGER_MAX;
+
+/// The ETH address bitlength.
+pub const ETH_ADDRESS: usize = crate::size::ETH_ADDRESS * BYTE;

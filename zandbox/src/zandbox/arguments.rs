@@ -24,6 +24,10 @@ pub struct Arguments {
     /// The PostgreSQL connection string.
     #[structopt(short = "d", long = "postgresql")]
     pub postgresql_uri: String,
+
+    /// The zkSync network identifier.
+    #[structopt(short = "n", long = "network")]
+    pub network: String,
 }
 
 impl Arguments {

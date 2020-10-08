@@ -35,19 +35,6 @@ pub struct Contract {
 
 impl Contract {
     ///
-    /// A shortcut constructor.
-    ///
-    /// The type is not set here, so the value must be `validate`d later.
-    ///
-    pub fn new(location: Option<Location>) -> Self {
-        Self {
-            location,
-            fields: vec![],
-            r#type: None,
-        }
-    }
-
-    ///
     /// A shortcut constructor, which is called when the contract type is already known.
     ///
     pub fn new_with_type(location: Option<Location>, r#type: ContractType) -> Self {
@@ -67,18 +54,30 @@ impl Contract {
     /// Converts the contract value into a structure one, transferring all the fields one-by-one.
     ///
     pub fn from_structure(structure: StructureValue) -> Self {
+        let mut fields = Vec::with_capacity(
+            zinc_const::contract::IMPLICIT_FIELDS_COUNT + structure.fields.len(),
+        );
+        fields.push((
+            zinc_const::contract::FIELD_NAME_ADDRESS.to_owned(),
+            None,
+            Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS),
+        ));
+        fields.push((
+            zinc_const::contract::FIELD_NAME_BALANCES.to_owned(),
+            None,
+            Type::array(
+                None,
+                Type::integer_unsigned(None, zinc_const::bitlength::BALANCE),
+                zinc_const::contract::ARRAY_SIZE_BALANCES,
+            ),
+        ));
+        fields.extend(structure.fields);
+
         Self {
             location: structure.location,
-            fields: structure.fields,
+            fields,
             r#type: None,
         }
-    }
-
-    ///
-    /// Pushes a typed element into the contract fields array.
-    ///
-    pub fn push(&mut self, name: String, location: Option<Location>, r#type: Type) {
-        self.fields.push((name, location, r#type));
     }
 
     ///
@@ -90,7 +89,8 @@ impl Contract {
                 Some(expected_field) => {
                     if name != &expected_field.identifier.name {
                         return Err(Error::FieldExpected {
-                            location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                            location: location
+                                .unwrap_or_else(|| expected_field.identifier.location),
                             type_identifier: expected.identifier.to_owned(),
                             position: index + 1,
                             expected: expected_field.identifier.name.to_owned(),
@@ -100,7 +100,8 @@ impl Contract {
 
                     if r#type != &expected_field.r#type {
                         return Err(Error::FieldInvalidType {
-                            location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                            location: location
+                                .unwrap_or_else(|| expected_field.identifier.location),
                             type_identifier: expected.identifier.to_owned(),
                             field_name: expected_field.identifier.name.to_owned(),
                             expected: expected_field.r#type.to_string(),
@@ -110,7 +111,7 @@ impl Contract {
                 }
                 None => {
                     return Err(Error::FieldOutOfRange {
-                        location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                        location: location.unwrap_or_else(|| expected.location),
                         type_identifier: expected.identifier.to_owned(),
                         expected: expected.fields.len(),
                         found: index + 1,

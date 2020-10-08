@@ -5,6 +5,7 @@
 pub(crate) mod arguments;
 pub(crate) mod error;
 pub(crate) mod executable;
+pub(crate) mod network;
 pub(crate) mod project;
 pub(crate) mod transaction;
 

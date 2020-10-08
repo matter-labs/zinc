@@ -8,7 +8,7 @@
 #[derive(Debug, sqlx::FromRow)]
 pub struct Output {
     /// The contract ETH address.
-    pub address: Vec<u8>,
+    pub eth_address: Vec<u8>,
 
     /// The contract project name.
     pub name: String,
@@ -22,9 +22,9 @@ impl Output {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(address: Vec<u8>, name: String, version: String, instance: String) -> Self {
+    pub fn new(eth_address: Vec<u8>, name: String, version: String, instance: String) -> Self {
         Self {
-            address,
+            eth_address,
             name,
             version,
             instance,

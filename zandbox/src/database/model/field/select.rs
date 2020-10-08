@@ -4,23 +4,23 @@
 
 use serde_json::Value as JsonValue;
 
-use zksync::web3::types::Address;
+use zksync_types::AccountId;
 
 ///
 /// The database contract storage field SELECT input model.
 ///
 #[derive(Debug)]
 pub struct Input {
-    /// The contract ETH address referencing `contracts.address`.
-    pub address: Address,
+    /// The contract account ID referencing `contracts.account_id`.
+    pub account_id: AccountId,
 }
 
 impl Input {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(address: Address) -> Self {
-        Self { address }
+    pub fn new(account_id: AccountId) -> Self {
+        Self { account_id }
     }
 }
 

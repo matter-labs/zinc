@@ -18,6 +18,7 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
+use crate::syntax::tree::identifier::Identifier;
 
 use self::field::Field;
 
@@ -30,7 +31,7 @@ use self::field::Field;
 #[derive(Debug, Clone)]
 pub struct Contract {
     /// The contract type location in the code.
-    pub location: Option<Location>,
+    pub location: Location,
     /// The contract type identifier.
     pub identifier: String,
     /// The unique contract type ID.
@@ -46,13 +47,45 @@ impl Contract {
     /// A shortcut constructor.
     ///
     pub fn new(
-        location: Option<Location>,
+        location: Location,
         identifier: String,
         type_id: usize,
         fields: Vec<Field>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
         let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());
+
+        Scope::define_field(
+            scope.clone(),
+            Identifier::new(
+                location,
+                zinc_const::contract::FIELD_NAME_ADDRESS.to_owned(),
+            ),
+            Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS),
+            zinc_const::contract::FIELD_INDEX_ADDRESS,
+            true,
+            true,
+            true,
+        )
+        .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+
+        Scope::define_field(
+            scope.clone(),
+            Identifier::new(
+                location,
+                zinc_const::contract::FIELD_NAME_BALANCES.to_owned(),
+            ),
+            Type::array(
+                None,
+                Type::integer_unsigned(None, zinc_const::bitlength::BALANCE),
+                zinc_const::contract::ARRAY_SIZE_BALANCES,
+            ),
+            zinc_const::contract::FIELD_INDEX_BALANCES,
+            true,
+            true,
+            false,
+        )
+        .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
 
         let contract = Self {
             location,
@@ -66,7 +99,7 @@ impl Contract {
             scope,
             Keyword::SelfUppercase.to_string(),
             ScopeItem::Type(ScopeTypeItem::new_defined(
-                location,
+                Some(location),
                 Type::Contract(contract.clone()),
                 true,
                 false,

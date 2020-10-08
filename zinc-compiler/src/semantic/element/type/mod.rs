@@ -289,7 +289,7 @@ impl Type {
     /// A helper type constructor, which allocates a unique sequence ID for the type.
     ///
     pub fn contract(
-        location: Option<Location>,
+        location: Location,
         identifier: String,
         fields: Vec<ContractField>,
         scope: Option<Rc<RefCell<Scope>>>,
@@ -542,7 +542,7 @@ impl Type {
             Self::Structure(inner) => inner.location = Some(value),
             Self::Enumeration(inner) => inner.location = Some(value),
             Self::Function(inner) => inner.set_location(value),
-            Self::Contract(inner) => inner.location = Some(value),
+            Self::Contract(inner) => inner.location = value,
         }
     }
 
@@ -564,7 +564,7 @@ impl Type {
             Self::Structure(inner) => inner.location,
             Self::Enumeration(inner) => inner.location,
             Self::Function(inner) => inner.location(),
-            Self::Contract(inner) => inner.location,
+            Self::Contract(inner) => Some(inner.location),
         }
     }
 }

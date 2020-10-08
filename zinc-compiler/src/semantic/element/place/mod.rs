@@ -324,7 +324,7 @@ impl Place {
                             offset,
                             element_size,
                             total_size,
-                            field.is_external,
+                            field.is_immutable,
                         ));
 
                         self.r#type = field.r#type.to_owned();
@@ -355,12 +355,12 @@ impl Place {
     }
 
     ///
-    /// Whether the place path contains an external contract storage field.
+    /// Whether the place path contains an implicit contract storage field.
     ///
-    pub fn check_external_field(&self) -> Option<String> {
+    pub fn check_implicit_field(&self) -> Option<String> {
         for element in self.elements.iter() {
             match element {
-                PlaceElement::ContractField { access } if access.is_external => {
+                PlaceElement::ContractField { access } if access.is_immutable => {
                     return Some(access.name.to_owned())
                 }
                 _ => {}

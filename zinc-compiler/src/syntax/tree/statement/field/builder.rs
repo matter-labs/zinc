@@ -16,8 +16,6 @@ pub struct Builder {
     location: Option<Location>,
     /// If the contract storage field is public.
     is_public: bool,
-    /// If the contract storage field is external.
-    is_external: bool,
     /// The contract storage field identifier.
     identifier: Option<Identifier>,
     /// The contract storage field type.
@@ -37,13 +35,6 @@ impl Builder {
     ///
     pub fn set_public(&mut self) {
         self.is_public = true;
-    }
-
-    ///
-    /// Sets the corresponding builder value.
-    ///
-    pub fn set_external(&mut self) {
-        self.is_external = true;
     }
 
     ///
@@ -76,7 +67,6 @@ impl Builder {
                 )
             }),
             self.is_public,
-            self.is_external,
             self.identifier.take().unwrap_or_else(|| {
                 panic!(
                     "{}{}",

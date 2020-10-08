@@ -17,6 +17,8 @@ use zinc_vm::RuntimeError;
 pub enum Error {
     /// The contract with the specified address is not found in the server cache.
     ContractNotFound(String),
+    /// The contract with the specified address is locked.
+    ContractLocked(String),
     /// The specified method does not exist in the contract.
     MethodNotFound(String),
     /// The mutable method must be called via the `call` endpoint.
@@ -30,6 +32,8 @@ pub enum Error {
     RuntimeError(RuntimeError),
     /// The PostgreSQL database error.
     Database(sqlx::Error),
+    /// The ZkSync server client error.
+    ZkSyncClient(zksync::error::ClientError),
 }
 
 impl From<sqlx::Error> for Error {
@@ -38,10 +42,17 @@ impl From<sqlx::Error> for Error {
     }
 }
 
+impl From<zksync::error::ClientError> for Error {
+    fn from(inner: zksync::error::ClientError) -> Self {
+        Self::ZkSyncClient(inner)
+    }
+}
+
 impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
             Self::ContractNotFound(..) => StatusCode::NOT_FOUND,
+            Self::ContractLocked(..) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::MethodNotFound(..) => StatusCode::BAD_REQUEST,
             Self::MethodIsMutable(..) => StatusCode::BAD_REQUEST,
             Self::MethodArgumentsNotFound(..) => StatusCode::BAD_REQUEST,
@@ -49,6 +60,7 @@ impl ResponseError for Error {
 
             Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Database(..) => StatusCode::SERVICE_UNAVAILABLE,
+            Self::ZkSyncClient(..) => StatusCode::SERVICE_UNAVAILABLE,
         }
     }
 }
@@ -68,6 +80,7 @@ impl fmt::Display for Error {
             Self::ContractNotFound(address) => {
                 format!("Contract with address {} not found", address)
             }
+            Self::ContractLocked(address) => format!("Contract with address {} is locked", address),
             Self::MethodNotFound(name) => format!("Method `{}` not found", name),
             Self::MethodIsMutable(name) => {
                 format!("Method `{}` is mutable: use 'call' instead", name)
@@ -79,6 +92,7 @@ impl fmt::Display for Error {
 
             Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
             Self::Database(inner) => format!("Database: {:?}", inner),
+            Self::ZkSyncClient(inner) => format!("ZkSync: {:?}", inner),
         };
 
         log::warn!("{}", error);

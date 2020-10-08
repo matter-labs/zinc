@@ -6,6 +6,7 @@ mod arguments;
 mod error;
 
 use std::collections::HashMap;
+use std::str::FromStr;
 
 use actix_web::middleware;
 use actix_web::web;
@@ -16,15 +17,13 @@ use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
 use zksync_types::AccountId;
-use zksync_types::Address;
 
 use zinc_build::Application as BuildApplication;
-use zinc_build::Value as BuildValue;
 
 use zandbox::ContractSelectAllOutput;
+use zandbox::ContractStorage;
 use zandbox::DatabaseClient;
 use zandbox::FieldSelectInput;
-use zandbox::FieldSelectOutput;
 use zandbox::SharedData;
 use zandbox::SharedDataContract;
 
@@ -42,84 +41,79 @@ async fn main() -> Result<(), Error> {
 
     log::info!("Zandbox server started");
 
+    let network =
+        zksync::Network::from_str(args.network.as_str()).map_err(Error::InvalidNetwork)?;
+
     log::info!("Initializing the PostgreSQL client");
-    let database_client = DatabaseClient::new(args.postgresql_uri.as_str()).await?;
+    let postgresql = DatabaseClient::new(args.postgresql_uri.as_str()).await?;
 
     log::info!("Loading the compiled contracts from the database");
-    let mut contracts: HashMap<Address, SharedDataContract> = database_client
+    let database_data: Vec<ContractSelectAllOutput> = postgresql
         .select_contracts()
         .await?
         .into_par_iter()
-        .map(
-            |ContractSelectAllOutput {
-                 address,
-
-                 name,
-                 version,
-                 instance,
-
-                 source_code,
-                 bytecode,
-                 verifying_key,
-
-                 account_id,
-                 eth_private_key,
-             }| {
-                let address = zinc_utils::eth_address_from_vec(address);
-                let eth_private_key = zinc_utils::eth_private_key_from_vec(eth_private_key);
-
-                log::info!(
-                    "{} instance `{}` of the contract `{} v{}` with address {}",
-                    "Loaded".bright_green(),
-                    instance,
-                    name,
-                    version,
-                    serde_json::to_string(&address).expect(zinc_const::panic::DATA_CONVERSION),
-                );
-
-                let application = BuildApplication::try_from_slice(bytecode.as_slice())
-                    .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
-
-                let build = match application {
-                    BuildApplication::Circuit(_circuit) => {
-                        panic!(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION)
-                    }
-                    BuildApplication::Contract(contract) => contract,
-                };
-
-                let contract = SharedDataContract::new(
-                    address,
-                    name,
-                    version,
-                    instance,
-                    source_code,
-                    bytecode,
-                    verifying_key,
-                    Some(account_id as AccountId),
-                    eth_private_key,
-                    build,
-                    vec![],
-                );
-
-                (address, contract)
-            },
-        )
         .collect();
 
-    log::info!("Loading the contract storages from the database");
-    for (address, contract) in contracts.iter_mut() {
-        let storage_value = database_client
-            .select_fields(FieldSelectInput::new(*address))
+    let mut contracts = HashMap::with_capacity(database_data.len());
+    for contract in database_data.into_iter() {
+        let eth_address = zinc_utils::eth_address_from_vec(contract.eth_address);
+        let eth_private_key = zinc_utils::eth_private_key_from_vec(contract.eth_private_key);
+
+        log::info!(
+            "{} instance `{}` of the contract `{} v{}` with address {}",
+            "Loaded".bright_green(),
+            contract.instance,
+            contract.name,
+            contract.version,
+            serde_json::to_string(&eth_address).expect(zinc_const::panic::DATA_CONVERSION),
+        );
+
+        let application = BuildApplication::try_from_slice(contract.bytecode.as_slice())
+            .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
+
+        let build = match application {
+            BuildApplication::Circuit(_circuit) => {
+                panic!(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION)
+            }
+            BuildApplication::Contract(contract) => contract,
+        };
+
+        let provider = zksync::Provider::new(network);
+        let wallet_credentials =
+            zksync::WalletCredentials::from_eth_pk(eth_address, eth_private_key, network)?;
+        let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
+
+        let database_fields = postgresql
+            .select_fields(FieldSelectInput::new(contract.account_id as AccountId))
             .await?;
-        for (index, FieldSelectOutput { name, value }) in storage_value.into_iter().enumerate() {
-            let r#type = contract.build.storage[index].r#type.clone();
-            let value = BuildValue::try_from_typed_json(value, r#type)
-                .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
-            contract.fields.push((name, value));
-        }
+
+        let storage = ContractStorage::new_with_data(
+            database_fields,
+            build.storage.as_slice(),
+            eth_address,
+            &wallet,
+        )
+        .await?;
+
+        contracts.insert(
+            eth_address,
+            SharedDataContract::new(
+                eth_address,
+                contract.name,
+                contract.version,
+                contract.instance,
+                contract.source_code,
+                contract.bytecode,
+                contract.verifying_key,
+                Some(contract.account_id as AccountId),
+                eth_private_key,
+                build,
+                storage,
+            ),
+        );
     }
 
-    let data = SharedData::new(database_client, contracts).wrap();
+    let data = SharedData::new(postgresql, contracts).wrap();
 
     HttpServer::new(move || {
         App::new()

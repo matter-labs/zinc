@@ -29,8 +29,6 @@ pub enum State {
     KeywordPubOrNext,
     /// The attribute list has been parsed so far. Expects the optional `const` keyword.
     KeywordConstOrNext,
-    /// The attribute list has been parsed so far. Expects the optional `extern` keyword.
-    KeywordExternOrNext,
     /// The attribute list with optional `pub`, `const`, and `extern` keywords have been parsed so far.
     Statement,
 }
@@ -52,8 +50,6 @@ pub struct Parser {
     keyword_public: Option<Token>,
     /// The `const` keyword token, which is stored to get its location as the statement location.
     keyword_constant: Option<Token>,
-    /// The `extern` keyword token, which is stored to get its location as the statement location.
-    keyword_extern: Option<Token>,
     /// The statement outer attributes.
     attributes: Vec<Attribute>,
     /// The token returned from a subparser.
@@ -134,24 +130,10 @@ impl Parser {
                         }
                         token => {
                             self.next = Some(token);
-                            self.state = State::KeywordExternOrNext;
+                            self.state = State::Statement;
                             continue;
                         }
                     }
-                }
-                State::KeywordExternOrNext => {
-                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
-                        token
-                        @
-                        Token {
-                            lexeme: Lexeme::Keyword(Keyword::Extern),
-                            ..
-                        } => self.keyword_extern = Some(token),
-                        token => self.next = Some(token),
-                    }
-
-                    self.state = State::Statement;
-                    continue;
                 }
                 State::Statement => {
                     return match crate::syntax::parser::take_or_next(
@@ -188,10 +170,6 @@ impl Parser {
                             let (mut builder, next) = FieldStatementParser::default()
                                 .parse(stream.clone(), Some(token))?;
 
-                            if let Some(token) = self.keyword_extern {
-                                builder.set_location(token.location);
-                                builder.set_external();
-                            }
                             if let Some(token) = self.keyword_public {
                                 builder.set_location(token.location);
                                 builder.set_public();

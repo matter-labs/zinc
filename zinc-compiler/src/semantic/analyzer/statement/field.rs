@@ -32,7 +32,8 @@ impl Analyzer {
             r#type,
             index,
             statement.is_public,
-            statement.is_external,
+            false,
+            false,
         )?;
 
         Ok(())

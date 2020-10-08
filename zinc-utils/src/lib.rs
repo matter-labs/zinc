@@ -21,3 +21,17 @@ pub use crate::inference::result::Binary as BinaryInferenceResult;
 pub use crate::logger::initialize as initialize_logger;
 pub use crate::math::floor_to_power_of_two;
 pub use crate::math::log2ceil;
+
+///
+/// Converts the `BigUint` v0.3 to `BigUint` v0.2.
+///
+pub fn num_compat_backward(value: num::BigUint) -> num_old::BigUint {
+    num_old::BigUint::from_bytes_be(value.to_bytes_be().as_slice())
+}
+
+///
+/// Converts the `BigUint` v0.2 to `BigUint` v0.3.
+///
+pub fn num_compat_forward(value: num_old::BigUint) -> num::BigUint {
+    num::BigUint::from_bytes_be(value.to_bytes_be().as_slice())
+}

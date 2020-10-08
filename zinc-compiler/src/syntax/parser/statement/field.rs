@@ -151,7 +151,6 @@ mod tests {
             FieldStatement::new(
                 Location::test(1, 1),
                 false,
-                false,
                 Identifier::new(Location::test(1, 1), "data".to_owned()),
                 Type::new(Location::test(1, 7), TypeVariant::integer_unsigned(64)),
             ),

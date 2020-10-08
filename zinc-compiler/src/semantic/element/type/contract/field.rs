@@ -22,11 +22,32 @@ pub struct Field {
     pub r#type: Type,
     /// Whether the field is public.
     pub is_public: bool,
-    /// Whether the field is external.
-    pub is_external: bool,
+    /// Whether the field is implicit.
+    pub is_implicit: bool,
+    /// Whether the field is immutable.
+    pub is_immutable: bool,
 }
 
 impl Field {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(
+        identifier: Identifier,
+        r#type: Type,
+        is_public: bool,
+        is_implicit: bool,
+        is_immutable: bool,
+    ) -> Self {
+        Self {
+            identifier,
+            r#type,
+            is_public,
+            is_implicit,
+            is_immutable,
+        }
+    }
+
     ///
     /// A shortcut constructor.
     ///
@@ -40,7 +61,8 @@ impl Field {
             identifier: statement.identifier,
             r#type,
             is_public: statement.is_public,
-            is_external: statement.is_external,
+            is_implicit: false,
+            is_immutable: false,
         })
     }
 }

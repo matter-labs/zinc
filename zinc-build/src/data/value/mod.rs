@@ -209,7 +209,7 @@ impl Value {
                         field.name,
                         Self::from_flat_values(field.r#type, slice),
                         field.is_public,
-                        field.is_external,
+                        field.is_implicit,
                     ));
                 }
                 Self::Contract(result)
@@ -547,7 +547,7 @@ impl Value {
                 field_type.name,
                 value,
                 field_type.is_public,
-                field_type.is_external,
+                field_type.is_implicit,
             ));
         }
 

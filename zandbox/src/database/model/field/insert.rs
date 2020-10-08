@@ -4,15 +4,15 @@
 
 use serde_json::Value as JsonValue;
 
-use zksync::web3::types::Address;
+use zksync_types::AccountId;
 
 ///
 /// The database contract storage field INSERT input model.
 ///
 #[derive(Debug)]
 pub struct Input {
-    /// The contract ETH address referencing `contracts.address`.
-    pub address: Address,
+    /// The contract account ID referencing `contracts.account_id`.
+    pub account_id: AccountId,
     /// The field index in the contract storage.
     pub index: i16,
     /// The field name.
@@ -25,9 +25,9 @@ impl Input {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(address: Address, index: i16, name: String, value: JsonValue) -> Self {
+    pub fn new(account_id: AccountId, index: i16, name: String, value: JsonValue) -> Self {
         Self {
-            address,
+            account_id,
             index,
             name,
             value,

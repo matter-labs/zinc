@@ -13,7 +13,7 @@ use crate::semantic::scope::item::index::INDEX as ITEM_INDEX;
 ///
 #[derive(Debug, Clone)]
 pub struct Field {
-    /// The location, where the variable is declared.
+    /// The location, where the field is declared. Set to the contract location for implicit fields.
     pub location: Location,
     /// The unique item ID, allocated upon declaration.
     pub item_id: usize,
@@ -25,8 +25,10 @@ pub struct Field {
     pub index: usize,
     /// Whether the field is public, that is, queryable as a part of the storage state.
     pub is_public: bool,
-    /// Whether the field is external, that is, can be set only from outside the contract.
-    pub is_external: bool,
+    /// Whether the field is implicit, that is, can be set only from outside the contract.
+    pub is_implicit: bool,
+    /// Whether the field is immutable, that is, cannot be modified by the contract logic.
+    pub is_immutable: bool,
 }
 
 impl Field {
@@ -39,7 +41,8 @@ impl Field {
         r#type: Type,
         index: usize,
         is_public: bool,
-        is_external: bool,
+        is_implicit: bool,
+        is_immutable: bool,
     ) -> Self {
         let item_id = ITEM_INDEX.next(format!("field {}", identifier));
 
@@ -50,7 +53,8 @@ impl Field {
             r#type,
             index,
             is_public,
-            is_external,
+            is_implicit,
+            is_immutable,
         }
     }
 }

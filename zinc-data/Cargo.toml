@@ -5,7 +5,7 @@ authors = [
     "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
 ]
 edition = "2018"
-description = "The Zinc common data structures"
+description = "The Zinc data shared between Zargo and Zandbox"
 
 [dependencies]
 failure = "0.1"

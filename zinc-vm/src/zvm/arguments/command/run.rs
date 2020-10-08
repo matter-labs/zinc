@@ -87,7 +87,7 @@ impl IExecutable for Command {
                                 field.name,
                                 BuildValue::try_from_typed_json(value, field.r#type)?,
                                 field.is_public,
-                                field.is_external,
+                                field.is_implicit,
                             ));
                         }
                         storage_values

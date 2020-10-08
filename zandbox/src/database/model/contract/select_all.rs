@@ -9,8 +9,8 @@ use serde_json::Value as JsonValue;
 ///
 #[derive(Debug, sqlx::FromRow)]
 pub struct Output {
-    /// The contract ETH address.
-    pub address: Vec<u8>,
+    /// The contract account ID.
+    pub account_id: i64,
 
     /// The contract project name.
     pub name: String,
@@ -26,8 +26,8 @@ pub struct Output {
     /// The contract verifying key.
     pub verifying_key: Vec<u8>,
 
-    /// The contract account ID.
-    pub account_id: i64,
+    /// The contract ETH address.
+    pub eth_address: Vec<u8>,
     /// The contract private key.
     pub eth_private_key: Vec<u8>,
 }

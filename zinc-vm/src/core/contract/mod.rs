@@ -14,6 +14,7 @@ use num::BigInt;
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_build::Contract as BytecodeContract;
+use zinc_build::IntegerType;
 use zinc_build::ScalarType;
 use zinc_build::Type as BuildType;
 
@@ -49,6 +50,7 @@ where
     outputs: Vec<Scalar<E>>,
 
     storage: StorageGadget<E, S, H>,
+    method_name: String,
 
     pub(crate) debugging: bool,
     pub(crate) location: Location,
@@ -61,13 +63,19 @@ where
     S: IMerkleTree<E>,
     H: IMerkleTreeHasher<E>,
 {
-    pub fn new(cs: CS, storage: StorageGadget<E, S, H>, debugging: bool) -> Self {
+    pub fn new(
+        cs: CS,
+        storage: StorageGadget<E, S, H>,
+        method_name: String,
+        debugging: bool,
+    ) -> Self {
         Self {
             counter: NamespaceCounter::new(cs),
             execution_state: ExecutionState::new(),
             outputs: vec![],
 
             storage,
+            method_name,
 
             debugging,
             location: Location::new(),
@@ -77,7 +85,6 @@ where
     pub fn run<CB, F>(
         &mut self,
         contract: BytecodeContract,
-        method_name: String,
         inputs: Option<&[BigInt]>,
         mut instruction_callback: CB,
         mut check_cs: F,
@@ -95,11 +102,14 @@ where
         let one = Scalar::new_constant_usize(1, ScalarType::Boolean);
         self.condition_push(one)?;
 
-        let method = contract
-            .methods
-            .get(method_name.as_str())
-            .cloned()
-            .ok_or(RuntimeError::MethodNotFound { found: method_name })?;
+        let method = match contract.methods.get(self.method_name.as_str()) {
+            Some(method) => method.to_owned(),
+            None => {
+                return Err(RuntimeError::MethodNotFound {
+                    found: self.method_name.to_owned(),
+                })
+            }
+        };
 
         let input_size = method.input.size();
         self.execution_state
@@ -441,10 +451,38 @@ where
         Ok(())
     }
 
-    fn exit(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
+    fn exit(&mut self, mut outputs_count: usize) -> Result<(), RuntimeError> {
+        if self.method_name.as_str() == zinc_const::contract::CONSTRUCTOR_NAME {
+            outputs_count -= zinc_const::contract::IMPLICIT_FIELDS_SIZE;
+        }
+
         for _ in 0..outputs_count {
             let value = self.pop()?.try_into_value()?;
             self.outputs.push(value);
+        }
+
+        if self.method_name.as_str() == zinc_const::contract::CONSTRUCTOR_NAME {
+            self.outputs.extend(
+                vec![
+                    Scalar::new_constant_usize(0, ScalarType::Integer(IntegerType::ETH_ADDRESS)),
+                    Scalar::new_constant_usize(
+                        0,
+                        ScalarType::Integer(IntegerType::new(
+                            false,
+                            zinc_const::bitlength::BALANCE,
+                        )),
+                    ),
+                    Scalar::new_constant_usize(
+                        0,
+                        ScalarType::Integer(IntegerType::new(
+                            false,
+                            zinc_const::bitlength::BALANCE,
+                        )),
+                    ),
+                ]
+                .into_iter()
+                .rev(),
+            );
         }
         self.outputs.reverse();
 

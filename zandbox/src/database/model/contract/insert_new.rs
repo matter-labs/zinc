@@ -13,8 +13,8 @@ use zksync_types::AccountId;
 ///
 #[derive(Debug)]
 pub struct Input {
-    /// The contract ETH address.
-    pub eth_address: Address,
+    /// The contract account ID.
+    pub account_id: AccountId,
 
     /// The contract project name.
     pub name: String,
@@ -32,8 +32,8 @@ pub struct Input {
     /// The contract verifying key as a byte array.
     pub verifying_key: Vec<u8>,
 
-    /// The contract account ID.
-    pub account_id: AccountId,
+    /// The contract ETH address.
+    pub eth_address: Address,
     /// The contract private key.
     pub eth_private_key: H256,
 }
@@ -44,7 +44,7 @@ impl Input {
     ///
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        eth_address: Address,
+        account_id: AccountId,
 
         name: String,
         version: String,
@@ -55,11 +55,11 @@ impl Input {
         bytecode: Vec<u8>,
         verifying_key: Vec<u8>,
 
-        account_id: AccountId,
+        eth_address: Address,
         eth_private_key: H256,
     ) -> Self {
         Self {
-            eth_address,
+            account_id,
 
             name,
             version,
@@ -70,7 +70,7 @@ impl Input {
             bytecode,
             verifying_key,
 
-            account_id,
+            eth_address,
             eth_private_key,
         }
     }

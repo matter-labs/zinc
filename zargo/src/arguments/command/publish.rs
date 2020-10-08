@@ -32,6 +32,7 @@ use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
 use crate::executable::virtual_machine::Error as VirtualMachineError;
 use crate::executable::virtual_machine::VirtualMachine;
+use crate::network::Network;
 use crate::project::build::bytecode::Bytecode as BytecodeFile;
 use crate::project::build::Directory as BuildDirectory;
 use crate::project::data::arguments::Arguments as ArgumentsFile;
@@ -78,6 +79,9 @@ pub enum Error {
     /// The invalid network error.
     #[fail(display = "invalid network name: {}", _0)]
     NetworkInvalid(String),
+    /// The unimplemented network error.
+    #[fail(display = "unimplemented network: {}", _0)]
+    NetworkUnimplemented(zksync::Network),
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
     ManifestFile(FileError<toml::de::Error>),
@@ -138,8 +142,13 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
-        let network =
-            zksync::Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
+        let network = zksync::Network::from_str(self.network.as_str())
+            .map(Network::from)
+            .map_err(Error::NetworkInvalid)?;
+
+        let url = network
+            .try_into_url()
+            .map_err(Error::NetworkUnimplemented)?;
 
         let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
@@ -162,7 +171,7 @@ impl IExecutable for Command {
         arguments_path.push(format!(
             "{}_{}.{}",
             zinc_const::file_name::WITNESS,
-            zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME,
+            zinc_const::contract::CONSTRUCTOR_NAME,
             zinc_const::extension::JSON,
         ));
         let mut proving_key_path = data_directory_path.clone();
@@ -194,17 +203,15 @@ impl IExecutable for Command {
 
         let bytecode = BytecodeFile::try_from(&binary_path).map_err(Error::BinaryFile)?;
 
-        let arguments = ArgumentsFile::try_from_path(
-            &arguments_path,
-            zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME,
-        )
-        .map_err(Error::ArgumentsFile)?;
+        let arguments =
+            ArgumentsFile::try_from_path(&arguments_path, zinc_const::contract::CONSTRUCTOR_NAME)
+                .map_err(Error::ArgumentsFile)?;
 
         if !verifying_key_path.exists() {
             VirtualMachine::setup_contract(
                 self.verbosity,
                 &binary_path,
-                zinc_const::zandbox::CONTRACT_CONSTRUCTOR_NAME,
+                zinc_const::contract::CONSTRUCTOR_NAME,
                 &proving_key_path,
                 &verifying_key_path,
             )
@@ -225,23 +232,19 @@ impl IExecutable for Command {
 
         let http_client = HttpClient::new();
 
-        let endpoint_url = format!(
-            "{}{}",
-            zinc_const::zandbox::CONNECTION_URL,
-            zinc_const::zandbox::CONTRACT_PUBLISH_URL
-        );
         let mut http_response = http_client
             .execute(
                 http_client
                     .request(
                         Method::POST,
                         Url::parse_with_params(
-                            endpoint_url.as_str(),
+                            format!("{}{}", url, zinc_const::zandbox::CONTRACT_PUBLISH_URL)
+                                .as_str(),
                             PublishRequestQuery::new(
                                 manifest.project.name,
                                 manifest.project.version,
                                 self.instance,
-                                network,
+                                network.into(),
                             ),
                         )
                         .expect(zinc_const::panic::DATA_CONVERSION),
@@ -288,13 +291,16 @@ impl IExecutable for Command {
         let signer_address = PackedEthSignature::address_from_private_key(&signer_private_key)
             .map_err(Error::SenderAddressDeriving)?;
 
-        let wallet_credentials =
-            zksync::WalletCredentials::from_eth_pk(signer_address, signer_private_key, network)
-                .expect(zinc_const::panic::DATA_CONVERSION);
+        let wallet_credentials = zksync::WalletCredentials::from_eth_pk(
+            signer_address,
+            signer_private_key,
+            network.into(),
+        )
+        .expect(zinc_const::panic::DATA_CONVERSION);
         let wallet = tokio::runtime::Runtime::new()
             .expect(zinc_const::panic::ASYNC_RUNTIME)
             .block_on(zksync::Wallet::new(
-                zksync::Provider::new(network),
+                zksync::Provider::new(network.into()),
                 wallet_credentials,
             ))
             .map_err(Error::WalletInitialization)?;
@@ -302,19 +308,15 @@ impl IExecutable for Command {
         let initial_transfer = crate::transaction::new_initial(&wallet, response.address)
             .map_err(Error::Transaction)?;
 
-        let endpoint_url = format!(
-            "{}{}",
-            zinc_const::zandbox::CONNECTION_URL,
-            zinc_const::zandbox::CONTRACT_INITIALIZE_URL
-        );
         let mut http_response = http_client
             .execute(
                 http_client
                     .request(
                         Method::PUT,
                         Url::parse_with_params(
-                            endpoint_url.as_str(),
-                            InitializeRequestQuery::new(response.address, network),
+                            format!("{}{}", url, zinc_const::zandbox::CONTRACT_INITIALIZE_URL)
+                                .as_str(),
+                            InitializeRequestQuery::new(response.address, network.into()),
                         )
                         .expect(zinc_const::panic::DATA_CONVERSION),
                     )

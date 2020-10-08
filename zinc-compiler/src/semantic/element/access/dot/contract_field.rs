@@ -20,8 +20,8 @@ pub struct ContractField {
     pub element_size: usize,
     /// The total size of the contract storage.
     pub total_size: usize,
-    /// Whether the field is declared as external.
-    pub is_external: bool,
+    /// Whether the field is immutable.
+    pub is_immutable: bool,
 }
 
 impl ContractField {
@@ -34,7 +34,7 @@ impl ContractField {
         offset: usize,
         element_size: usize,
         total_size: usize,
-        is_external: bool,
+        is_immutable: bool,
     ) -> Self {
         Self {
             name,
@@ -42,7 +42,7 @@ impl ContractField {
             position,
             element_size,
             total_size,
-            is_external,
+            is_immutable,
         }
     }
 }

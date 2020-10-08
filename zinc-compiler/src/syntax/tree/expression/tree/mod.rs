@@ -57,9 +57,3 @@ impl Tree {
         }
     }
 }
-
-//impl Drop for Tree {
-//    fn drop(&mut self) {
-//        dbg!("Dummy");
-//    }
-//}

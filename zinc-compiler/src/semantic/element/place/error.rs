@@ -27,11 +27,11 @@ pub enum Error {
         /// The location of the immutable variable. `None` for intrinsic items.
         reference: Option<Location>,
     },
-    /// Tried to change an external contract storage field.
-    MutatingExternalContractField {
+    /// Tried to change an immutable contract storage field.
+    MutatingImmutableContractField {
         /// The mutating expression location.
         location: Location,
-        /// The name of the external contract storage field.
+        /// The name of the immutable contract storage field.
         name: String,
     },
 

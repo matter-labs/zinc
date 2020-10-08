@@ -19,20 +19,20 @@ pub struct ContractField {
     pub value: Value,
     /// Whether the field is public.
     pub is_public: bool,
-    /// Whether the field is external.
-    pub is_external: bool,
+    /// Whether the field is implicit.
+    pub is_implicit: bool,
 }
 
 impl ContractField {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(name: String, value: Value, is_public: bool, is_external: bool) -> Self {
+    pub fn new(name: String, value: Value, is_public: bool, is_implicit: bool) -> Self {
         Self {
             name,
             value,
             is_public,
-            is_external,
+            is_implicit,
         }
     }
 
@@ -44,7 +44,7 @@ impl ContractField {
             field.name,
             Value::new(field.r#type),
             field.is_public,
-            field.is_external,
+            field.is_implicit,
         )
     }
 }

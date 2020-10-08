@@ -9,13 +9,6 @@ use crate::lexical::token::location::Location;
 ///
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    /// The contract type appeared in the code without the contract literal with fields.
-    NotInitialized {
-        /// The error location data.
-        location: Location,
-        /// The stringified uninitiliazed contract type.
-        type_identifier: String,
-    },
     /// The provided field name does not exist in the contract type.
     FieldDoesNotExist {
         /// The error location data.

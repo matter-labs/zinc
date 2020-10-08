@@ -20,6 +20,8 @@ use zinc_vm::RuntimeError;
 pub enum Error {
     /// The contract with the specified address is not found in the server cache.
     ContractNotFound(String),
+    /// The contract with the specified address is locked.
+    ContractLocked(String),
     /// The specified method does not exist in the contract.
     MethodNotFound(String),
     /// The immutable method must be called via the `query` endpoint.
@@ -71,6 +73,7 @@ impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
             Self::ContractNotFound(..) => StatusCode::NOT_FOUND,
+            Self::ContractLocked(..) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::MethodNotFound(..) => StatusCode::BAD_REQUEST,
             Self::MethodIsImmutable(..) => StatusCode::BAD_REQUEST,
             Self::InvalidInput(..) => StatusCode::BAD_REQUEST,
@@ -101,6 +104,7 @@ impl fmt::Display for Error {
             Self::ContractNotFound(address) => {
                 format!("Contract with address {} not found", address)
             }
+            Self::ContractLocked(address) => format!("Contract with address {} is locked", address),
             Self::MethodNotFound(name) => format!("Method `{}` not found", name),
             Self::MethodIsImmutable(name) => {
                 format!("Method `{}` is immutable: use 'query' instead", name)

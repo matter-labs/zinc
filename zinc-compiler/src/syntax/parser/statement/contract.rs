@@ -225,7 +225,6 @@ mod tests {
                 vec![ContractLocalStatement::Field(FieldStatement::new(
                     Location::test(3, 9),
                     false,
-                    false,
                     Identifier::new(Location::test(3, 9), "a".to_owned()),
                     Type::new(Location::test(3, 12), TypeVariant::integer_unsigned(232)),
                 ))],
@@ -244,7 +243,7 @@ mod tests {
     contract Test {
         a: u232;
         pub b: u232;
-        pub extern c: u232;
+        pub c: u232;
     }
 "#;
 
@@ -256,23 +255,20 @@ mod tests {
                     ContractLocalStatement::Field(FieldStatement::new(
                         Location::test(3, 9),
                         false,
-                        false,
                         Identifier::new(Location::test(3, 9), "a".to_owned()),
                         Type::new(Location::test(3, 12), TypeVariant::integer_unsigned(232)),
                     )),
                     ContractLocalStatement::Field(FieldStatement::new(
                         Location::test(4, 9),
                         true,
-                        false,
                         Identifier::new(Location::test(4, 13), "b".to_owned()),
                         Type::new(Location::test(4, 16), TypeVariant::integer_unsigned(232)),
                     )),
                     ContractLocalStatement::Field(FieldStatement::new(
                         Location::test(5, 9),
                         true,
-                        true,
-                        Identifier::new(Location::test(5, 20), "c".to_owned()),
-                        Type::new(Location::test(5, 23), TypeVariant::integer_unsigned(232)),
+                        Identifier::new(Location::test(5, 13), "c".to_owned()),
+                        Type::new(Location::test(5, 16), TypeVariant::integer_unsigned(232)),
                     )),
                 ],
             ),
@@ -506,7 +502,7 @@ mod tests {
     fn ok_single_field_single_constant_single_function() {
         let input = r#"
     contract Test {
-        pub extern a: u232;
+        pub a: u232;
 
         const VALUE: u64 = 42;
 
@@ -522,9 +518,8 @@ mod tests {
                     ContractLocalStatement::Field(FieldStatement::new(
                         Location::test(3, 9),
                         true,
-                        true,
-                        Identifier::new(Location::test(3, 20), "a".to_owned()),
-                        Type::new(Location::test(3, 23), TypeVariant::integer_unsigned(232)),
+                        Identifier::new(Location::test(3, 13), "a".to_owned()),
+                        Type::new(Location::test(3, 16), TypeVariant::integer_unsigned(232)),
                     )),
                     ContractLocalStatement::Const(ConstStatement::new(
                         Location::test(5, 9),
@@ -573,7 +568,7 @@ mod tests {
     contract Test {
         a: u232;
         pub b: u232;
-        pub extern c: u232;
+        pub c: u232;
 
         const VALUE: u64 = 42;
         const ANOTHER: u64 = 42;
@@ -595,23 +590,20 @@ mod tests {
                     ContractLocalStatement::Field(FieldStatement::new(
                         Location::test(3, 9),
                         false,
-                        false,
                         Identifier::new(Location::test(3, 9), "a".to_owned()),
                         Type::new(Location::test(3, 12), TypeVariant::integer_unsigned(232)),
                     )),
                     ContractLocalStatement::Field(FieldStatement::new(
                         Location::test(4, 9),
                         true,
-                        false,
                         Identifier::new(Location::test(4, 13), "b".to_owned()),
                         Type::new(Location::test(4, 16), TypeVariant::integer_unsigned(232)),
                     )),
                     ContractLocalStatement::Field(FieldStatement::new(
                         Location::test(5, 9),
                         true,
-                        true,
-                        Identifier::new(Location::test(5, 20), "c".to_owned()),
-                        Type::new(Location::test(5, 23), TypeVariant::integer_unsigned(232)),
+                        Identifier::new(Location::test(5, 13), "c".to_owned()),
+                        Type::new(Location::test(5, 16), TypeVariant::integer_unsigned(232)),
                     )),
                     ContractLocalStatement::Const(ConstStatement::new(
                         Location::test(7, 9),

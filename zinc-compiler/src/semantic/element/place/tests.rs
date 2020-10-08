@@ -10,6 +10,7 @@ use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::error::Error as PlaceError;
+use crate::semantic::element::r#type::contract::Contract as ContractType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
@@ -187,21 +188,19 @@ fn main() {
 }
 
 #[test]
-fn error_mutating_contract_external_field() {
+fn error_mutating_contract_implicit_field() {
     let input = r#"
 contract Test {
-    extern value: u8;
-    
     pub fn mutator(mut self) {
-        self.value = 42;
+        self.address = 42 as u160;
     }
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::MutatingExternalContractField {
-            location: Location::test(6, 9),
-            name: "value".to_string(),
+        ElementError::Place(PlaceError::MutatingImmutableContractField {
+            location: Location::test(4, 9),
+            name: zinc_const::contract::FIELD_NAME_ADDRESS.to_string(),
         }),
     )));
 

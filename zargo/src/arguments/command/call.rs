@@ -26,6 +26,7 @@ use zinc_data::Transfer;
 
 use crate::arguments::command::IExecutable;
 use crate::error::file::Error as FileError;
+use crate::network::Network;
 use crate::project::data::arguments::Arguments as ArgumentsFile;
 use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
 use crate::project::data::Directory as DataDirectory;
@@ -82,6 +83,9 @@ pub enum Error {
     /// The invalid network error.
     #[fail(display = "invalid network name: {}", _0)]
     NetworkInvalid(String),
+    /// The unimplemented network error.
+    #[fail(display = "unimplemented network: {}", _0)]
+    NetworkUnimplemented(zksync::Network),
     /// The manifest file error.
     #[fail(display = "manifest file {}", _0)]
     ManifestFile(FileError<toml::de::Error>),
@@ -125,8 +129,13 @@ impl IExecutable for Command {
             .parse()
             .map_err(Error::InvalidContractAddress)?;
 
-        let network =
-            zksync::Network::from_str(self.network.as_str()).map_err(Error::NetworkInvalid)?;
+        let network = zksync::Network::from_str(self.network.as_str())
+            .map(Network::from)
+            .map_err(Error::NetworkInvalid)?;
+
+        let url = network
+            .try_into_url()
+            .map_err(Error::NetworkUnimplemented)?;
 
         let manifest = ManifestFile::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
@@ -174,13 +183,16 @@ impl IExecutable for Command {
         let signer_address = PackedEthSignature::address_from_private_key(&signer_private_key)
             .map_err(Error::SenderAddressDeriving)?;
 
-        let wallet_credentials =
-            zksync::WalletCredentials::from_eth_pk(signer_address, signer_private_key, network)
-                .expect(zinc_const::panic::DATA_CONVERSION);
+        let wallet_credentials = zksync::WalletCredentials::from_eth_pk(
+            signer_address,
+            signer_private_key,
+            network.into(),
+        )
+        .expect(zinc_const::panic::DATA_CONVERSION);
         let wallet = tokio::runtime::Runtime::new()
             .expect(zinc_const::panic::ASYNC_RUNTIME)
             .block_on(zksync::Wallet::new(
-                zksync::Provider::new(network),
+                zksync::Provider::new(network.into()),
                 wallet_credentials,
             ))
             .map_err(Error::WalletInitialization)?;
@@ -191,11 +203,6 @@ impl IExecutable for Command {
         let transaction = crate::transaction::try_into_zksync(transfer.clone(), &wallet, None)
             .map_err(Error::Transaction)?;
 
-        let endpoint_url = format!(
-            "{}{}",
-            zinc_const::zandbox::CONNECTION_URL,
-            zinc_const::zandbox::CONTRACT_FEE_URL
-        );
         let http_client = HttpClient::new();
         let mut http_response = http_client
             .execute(
@@ -203,8 +210,8 @@ impl IExecutable for Command {
                     .request(
                         Method::PUT,
                         Url::parse_with_params(
-                            endpoint_url.as_str(),
-                            FeeRequestQuery::new(address, self.method.clone(), network),
+                            format!("{}{}", url, zinc_const::zandbox::CONTRACT_FEE_URL).as_str(),
+                            FeeRequestQuery::new(address, self.method.clone(), network.into()),
                         )
                         .expect(zinc_const::panic::DATA_CONVERSION),
                     )
@@ -232,11 +239,6 @@ impl IExecutable for Command {
             crate::transaction::try_into_zksync(transfer, &wallet, Some(contract_fee))
                 .map_err(Error::Transaction)?;
 
-        let endpoint_url = format!(
-            "{}{}",
-            zinc_const::zandbox::CONNECTION_URL,
-            zinc_const::zandbox::CONTRACT_CALL_URL
-        );
         let http_client = HttpClient::new();
         let mut http_response = http_client
             .execute(
@@ -244,8 +246,8 @@ impl IExecutable for Command {
                     .request(
                         Method::POST,
                         Url::parse_with_params(
-                            endpoint_url.as_str(),
-                            CallRequestQuery::new(address, self.method, network),
+                            format!("{}{}", url, zinc_const::zandbox::CONTRACT_CALL_URL).as_str(),
+                            CallRequestQuery::new(address, self.method, network.into()),
                         )
                         .expect(zinc_const::panic::DATA_CONVERSION),
                     )

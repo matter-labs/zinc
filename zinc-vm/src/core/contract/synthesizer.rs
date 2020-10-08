@@ -42,14 +42,14 @@ where
             self.storage,
         )?;
 
-        let mut contract = State::new(DedupCS::new(LoggingCS::new(cs)), storage, false);
-        *self.output = Some(contract.run(
-            self.bytecode,
+        let mut contract = State::new(
+            DedupCS::new(LoggingCS::new(cs)),
+            storage,
             self.method_name,
-            self.inputs.as_deref(),
-            |_| {},
-            |_| Ok(()),
-        ));
+            false,
+        );
+        *self.output =
+            Some(contract.run(self.bytecode, self.inputs.as_deref(), |_| {}, |_| Ok(())));
 
         Ok(())
     }
