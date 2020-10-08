@@ -5,7 +5,7 @@
 - [Design background](01-design-background.md)
 - [Getting started](02-getting-started/00-overview.md)
     - [Require](02-getting-started/01-require-function.md)
-    - [Standard library](02-getting-started/02-standard-library.md)
+    - [Standard libraries](02-getting-started/02-standard-libraries.md)
     - [Debugging](02-getting-started/03-debugging.md)
     - [Testing](02-getting-started/04-testing.md)
 - [Variables and types](03-variables-and-types/00-overview.md)

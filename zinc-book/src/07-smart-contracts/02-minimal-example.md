@@ -7,14 +7,6 @@ This example will not use any means of transferring tokens between user accounts
 since its point only to demonstrate the basics of working with Zinc smart
 contracts.
 
-You will need two binaries from the Zinc framework:
-- `zargo`
-- `zandbox`
-
-Zandbox is the Zinc sandbox server, which is a middleware between the user and
-[zkSync](https://zksync.io/) platform. The server accepts the smart contract
-source code and method call requests.
-
 Zargo is the Zinc package manager, which bundles smart contract projects and
 simplifies usage of contract methods, using input data JSON templates located
 in the project data directory.
@@ -81,7 +73,6 @@ contract ConstantPrice {
                 self.balance_x += amount;
                 self.balance_y -= amount;
 
-                // transfer amount of X from the user
                 // transfer amount of Y to the user
             },
             Token::Y => {
@@ -89,7 +80,6 @@ contract ConstantPrice {
                 self.balance_y += amount;
                 self.balance_x -= amount;
 
-                // transfer amount of Y from the user
                 // transfer amount of X to the user
             },
         };

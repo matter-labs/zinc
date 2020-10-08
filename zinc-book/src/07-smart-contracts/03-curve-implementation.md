@@ -34,14 +34,8 @@ use self::types::transaction::Transaction;
 /// The Curve Stableswap contract.
 ///
 contract Stableswap {
-    /// The contract address.
-    pub extern address: Address;
-
     /// The tokens being traded in the pool.
     pub tokens: [TokenId; N];
-
-    /// The contract balances.
-    pub balances: [Balance; N];
 
     /// The Curve amplifier.
     pub amplifier: u64;
@@ -56,9 +50,7 @@ contract Stableswap {
         require(_amplifier > 0, "The Curve amplifier cannot be zero");
 
         Self {
-            address: 0x0 as Address,
             tokens: _tokens,
-            balances: [ZERO; N],
             amplifier: _amplifier,
         }
     }
@@ -70,7 +62,10 @@ contract Stableswap {
         mut self,
         tx: Transaction,
     ) {
-        require(tx.recipient == self.address, "Transaction recipient is not the contract");
+        require(
+            tx.recipient == self.address,
+            "Transaction recipient is not the contract",
+        );
 
         let deposit_idx = self.token_position(tx.token_id);
             
@@ -78,8 +73,8 @@ contract Stableswap {
     }
 
     ///
-    /// Exchanges the tokens, consuming some of the `tx.token_id` and returning some of the
-    /// `withdraw_token_id` to the client.
+    /// Exchanges the tokens, consuming some of the `tx.token_id` and returning
+    /// some of the `withdraw_token_id` to the client.
     ///
     pub fn swap(
         mut self,
@@ -88,17 +83,16 @@ contract Stableswap {
         withdraw_token_id: TokenId,
         min_withdraw: Balance,
     ) {
-        require(tx.recipient == self.address, "Transaction recipient is not the contract");
-        require(tx.amount > 0, "Sent amount cannot be zero");
-        require(min_withdraw > 0, "Minimal withdrawal cannot be zero");
+        require(
+            tx.recipient == self.address,
+            "Transaction recipient is not the contract",
+        );
 
         let deposit_idx = self.token_position(tx.token_id);
         let withdraw_idx = self.token_position(withdraw_token_id);
 
         require(self.balances[deposit_idx] != 0, "Deposit token balance is zero");
         require(self.balances[withdraw_idx] != 0, "Withdraw token balance is zero");
-
-        let old_y = self.balances[withdraw_idx];
 
         let new_x = self.balances[deposit_idx] + tx.amount;
         let new_y = exchange::after(
@@ -111,13 +105,17 @@ contract Stableswap {
             new_x
         );
 
-        require(old_y >= min_withdraw + new_y, "Exchange resulted in fewer coins than expected");
+        let old_y = self.balances[withdraw_idx];
+        require(
+            old_y >= min_withdraw + new_y,
+            "Exchange resulted in fewer coins than expected",
+        );
         let withdraw_amount = old_y - new_y;
+
+        zksync::transfer(withdraw_address, withdraw_token_id, withdraw_amount);
 
         self.balances[deposit_idx] = new_x;
         self.balances[withdraw_idx] = new_y;
-
-        zksync::transfer(withdraw_address, withdraw_token_id, withdraw_amount);
     }
 
     ///
@@ -194,7 +192,7 @@ contract Stableswap {
             }
         }
 
-        require(found, "Token ID is unknown");
+        require(found, "The token is not being traded in this pool");
 
         position
     }
@@ -216,7 +214,8 @@ use crate::constants::N;
 /// The `D` invariant calculation function.
 ///
 /// The function is quite generic and does not work on token balances directly.
-/// The only requirement for the `values` is to be of the same precision to avoid incorrect amplification.
+/// The only requirement for the `values` is to be of the same precision
+/// to avoid incorrect amplification.
 ///
 pub fn calculate(
     values: [u248; N],
@@ -233,15 +232,20 @@ pub fn calculate(
 
         let amplifier_N: u248 = amplifier * (N as u64);
 
-        for _n in 0..15 while (D > D_prev && D - D_prev > 0) || (D <= D_prev && D_prev - D > ZERO) {
+        for _n in 0..15 while
+            (D > D_prev && D - D_prev > 0) ||
+            (D <= D_prev && D_prev - D > ZERO)
+        {
             let mut D_P = D;
 
             for i in 0..N {
-                D_P = D_P * D / (values[i] * (N as u248) + 1); // +1 is to prevent division by 0
+                // +1 is to prevent division by 0
+                D_P = D_P * D / (values[i] * (N as u248) + 1);
             }
 
             D_prev = D;
-            D = (amplifier_N * sum + D_P * (N as u248)) * D / ((amplifier_N - 1) * D + ((N + 1) as u248) * D_P);
+            D = (amplifier_N * sum + D_P * (N as u248)) * D /
+                ((amplifier_N - 1) * D + ((N + 1) as u248) * D_P);
         }
 
         D
@@ -261,7 +265,7 @@ pub fn calculate(
 use crate::types::Balance;
 use crate::types::token_id::TokenId;
 use crate::constants::ZERO;
-use crate::constants::PRECISION;
+use crate::constants::PRECISION_MUL;
 use crate::constants::N;
 
 ///
@@ -274,26 +278,29 @@ pub fn after(
 
     token_x_idx: u8,
     token_y_idx: u8,
-    after_y: Balance,
+    after_x: Balance,
 ) -> Balance {
     require(token_x_idx != token_y_idx, "Cannot exchange between the same coins");
 
     let mut balances_p = balances;
     for i in 0..N {
-        balances_p[i] *= tokens[i].magnitude_diff() * PRECISION;
+        balances_p[i] *= tokens[i].magnitude_diff() * PRECISION_MUL;
     }
 
     let D = crate::invariant::calculate(balances_p, amplifier);
     let An: Balance = amplifier * (N as u64);
+
+    let x_magnitude_diff = tokens[token_x_idx].magnitude_diff() * PRECISION_MUL;
+    let y_magnitude_diff = tokens[token_y_idx].magnitude_diff() * PRECISION_MUL;
 
     let mut c = D;
     let mut S: Balance = ZERO;
 
     for i in 0..N {
         if i == token_x_idx as u8 {
-            let after_y_p = after_y * tokens[token_x_idx].magnitude_diff() * PRECISION;
-            S += after_y_p;
-            c = c * D / (after_y_p * (N as Balance));
+            let after_x_p = after_x * x_magnitude_diff;
+            S += after_x_p;
+            c = c * D / (after_x_p * (N as Balance));
         } else if i != token_y_idx as u8 {
             S += balances_p[i];
             c = c * D / (balances_p[i] * (N as Balance));
@@ -303,13 +310,23 @@ pub fn after(
     c = c * D / (An * (N as Balance));
     let b: Balance = S + D / An;
 
-    let mut y_prev: Balance = ZERO;
-    let mut y: Balance = D;
-    for n in 0..15 while (y > y_prev && y - y_prev > ZERO) || (y <= y_prev && y_prev - y > ZERO) {
-        y_prev = y;
-        y = (y * y + c) / (2 * y + b - D);
+    let mut y = D;
+    let mut y_next = y;
+    let mut y_done = false;
+    for n in 0..15 while !y_done {
+        y_next = (y * y + c) / (2 * y + b - D);
+
+        let is_next =
+            (y > y_next && y - y_next > y_magnitude_diff) ||
+            (y <= y_next && y_next - y > y_magnitude_diff);
+
+        if is_next {
+            y = y_next;
+        } else {
+            y_done = true;
+        };
     }
 
-    y / (tokens[token_y_idx].magnitude_diff() * PRECISION)
+    y / y_magnitude_diff
 }
 ```

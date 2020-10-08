@@ -23,3 +23,12 @@ fn main(preimage: [bool; 256]) -> ([bool; 256], (field, field)) {
     (input_sha256, input_pedersen)
 }
 ```
+
+# ZkSync library
+
+The zkSync library is an emerging library, which contains the only function to
+make transfers in the zkSync network.
+
+```rust,no_run,noplaypen
+
+```
