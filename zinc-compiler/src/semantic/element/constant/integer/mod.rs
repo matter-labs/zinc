@@ -21,13 +21,10 @@ use std::ops::Rem;
 use std::ops::Shl;
 use std::ops::Shr;
 use std::ops::Sub;
-use std::str::FromStr;
 
 use num::BigInt;
-use num::Num;
 use num::Signed;
 use num::ToPrimitive;
-use num::Zero;
 
 use zinc_utils::InferenceError;
 
@@ -1259,55 +1256,33 @@ impl TryFrom<&IntegerLiteral> for Integer {
     /// For now, the minimal bitlength enough to contain the number is inferred.
     ///
     fn try_from(literal: &IntegerLiteral) -> Result<Self, Self::Error> {
-        let value = match literal.inner {
-            LexicalIntegerLiteral::Binary { ref inner } => {
-                BigInt::from_str_radix(inner, zinc_const::base::BINARY)
-                    .expect(zinc_const::panic::VALIDATED_DURING_LEXICAL_ANALYSIS)
-            }
-            LexicalIntegerLiteral::Octal { ref inner } => {
-                BigInt::from_str_radix(inner, zinc_const::base::OCTAL)
-                    .expect(zinc_const::panic::VALIDATED_DURING_LEXICAL_ANALYSIS)
-            }
+        let value_string = match literal.inner {
+            LexicalIntegerLiteral::Binary { ref inner } => format!("0b{}", inner.to_owned()),
+            LexicalIntegerLiteral::Octal { ref inner } => format!("0o{}", inner.to_owned()),
             LexicalIntegerLiteral::Decimal {
                 ref integer,
                 ref fractional,
                 ref exponent,
             } => {
-                let integer = BigInt::from_str(&integer)
-                    .expect(zinc_const::panic::VALIDATED_DURING_LEXICAL_ANALYSIS);
-
-                let (fractional, fractional_digits) = match fractional {
-                    Some(fractional) => (
-                        BigInt::from_str(&fractional)
-                            .expect(zinc_const::panic::VALIDATED_DURING_LEXICAL_ANALYSIS),
-                        fractional.len(),
-                    ),
-                    None => (BigInt::zero(), 0),
-                };
-
-                let exponent = match exponent {
-                    Some(exponent) => {
-                        let exponent: u32 =
-                            exponent.parse().map_err(|_| Error::ExponentTooLarge {
-                                location: literal.location,
-                            })?;
-                        if (exponent as usize) < fractional_digits {
-                            return Err(Error::ExponentTooSmall {
-                                location: literal.location,
-                            });
-                        }
-                        exponent
-                    }
-                    None => 0,
-                };
-
-                integer * BigInt::from(10).pow(exponent) + fractional
+                let mut string = integer.to_owned();
+                if let Some(fractional) = fractional {
+                    string.push(crate::lexical::token::lexeme::literal::integer::Integer::CHARACTER_DECIMAL_POINT);
+                    string.push_str(fractional);
+                }
+                if let Some(exponent) = exponent {
+                    string.push(crate::lexical::token::lexeme::literal::integer::Integer::CHARACTER_EXPONENT);
+                    string.push_str(exponent);
+                }
+                string
             }
-            LexicalIntegerLiteral::Hexadecimal { ref inner } => {
-                BigInt::from_str_radix(inner, zinc_const::base::HEXADECIMAL)
-                    .expect(zinc_const::panic::VALIDATED_DURING_LEXICAL_ANALYSIS)
-            }
+            LexicalIntegerLiteral::Hexadecimal { ref inner } => format!("0x{}", inner.to_owned()),
         };
+
+        let value =
+            zinc_utils::bigint_from_str(value_string.as_str()).map_err(|error| Error::Parsing {
+                location: literal.location,
+                inner: error,
+            })?;
 
         let bitlength = zinc_utils::infer_minimal_bitlength(&value, false).map_err(|error| {
             Error::IntegerTooLarge {

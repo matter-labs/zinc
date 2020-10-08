@@ -11,6 +11,7 @@ pub(crate) mod math;
 
 pub use crate::array::eth_address_from_vec;
 pub use crate::array::eth_private_key_from_vec;
+pub use crate::bigint::error::Error as BigIntError;
 pub use crate::bigint::from_str as bigint_from_str;
 pub use crate::euclidean::div_rem as euclidean_div_rem;
 pub use crate::inference::error::Error as InferenceError;

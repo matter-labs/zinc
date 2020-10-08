@@ -263,14 +263,12 @@ pub enum Error {
         /// The inner inference error.
         inner: InferenceError,
     },
-    /// The integer exponent is too small.
-    ExponentTooSmall {
+
+    /// The integer constant literal parsing error.
+    Parsing {
         /// The error location data.
         location: Location,
-    },
-    /// The integer exponent is too large.
-    ExponentTooLarge {
-        /// The error location data.
-        location: Location,
+        /// The inner parsing error.
+        inner: zinc_utils::BigIntError,
     },
 }

@@ -12,16 +12,32 @@ use crate::bigint::error::Error;
 #[test]
 fn ok_from_str() {
     assert_eq!(bigint::from_str("0"), Ok(BigInt::zero()));
-    assert_eq!(bigint::from_str("0E0"), Ok(BigInt::zero()));
-    assert_eq!(bigint::from_str("0.0E0"), Ok(BigInt::zero()));
-    assert_eq!(bigint::from_str("0E10"), Ok(BigInt::zero()));
-    assert_eq!(bigint::from_str("0.0E10"), Ok(BigInt::zero()));
+    assert_eq!(bigint::from_str("0_E0"), Ok(BigInt::zero()));
+    assert_eq!(bigint::from_str("0.0_E0"), Ok(BigInt::zero()));
+    assert_eq!(bigint::from_str("0_E10"), Ok(BigInt::zero()));
+    assert_eq!(bigint::from_str("0.0_E10"), Ok(BigInt::zero()));
     assert_eq!(bigint::from_str("1"), Ok(BigInt::one()));
-    assert_eq!(bigint::from_str("1E0"), Ok(BigInt::one()));
-    assert_eq!(bigint::from_str("1.0E0"), Ok(BigInt::one()));
+    assert_eq!(bigint::from_str("1_E0"), Ok(BigInt::one()));
+    assert_eq!(bigint::from_str("1.0_E0"), Ok(BigInt::one()));
     assert_eq!(
-        bigint::from_str("1.0E9"),
+        bigint::from_str("1.0_E9"),
         Ok(BigInt::from(1_000_000_000_u64)),
+    );
+    assert_eq!(
+        bigint::from_str("1.9_E9"),
+        Ok(BigInt::from(1_900_000_000_u64)),
+    );
+    assert_eq!(
+        bigint::from_str("1.900_E9"),
+        Ok(BigInt::from(1_900_000_000_u64)),
+    );
+    assert_eq!(
+        bigint::from_str("1_900.0_E6"),
+        Ok(BigInt::from(1_900_000_000_u64)),
+    );
+    assert_eq!(
+        bigint::from_str("1_900.000_E6"),
+        Ok(BigInt::from(1_900_000_000_u64)),
     );
     assert_eq!(bigint::from_str("42.666_E3"), Ok(BigInt::from(42_666_u64)));
     assert_eq!(
@@ -50,7 +66,7 @@ fn ok_from_str() {
 #[test]
 fn error_number_parsing() {
     assert!(matches!(
-        bigint::from_str("42a.3E6"),
+        bigint::from_str("42a.3_E6"),
         Err(Error::NumberParsing(_))
     ));
 }
@@ -58,7 +74,7 @@ fn error_number_parsing() {
 #[test]
 fn error_exponent_parsing() {
     assert!(matches!(
-        bigint::from_str("42.0Ea"),
+        bigint::from_str("42.0_Ea"),
         Err(Error::ExponentParsing(_))
     ));
 }
@@ -70,7 +86,7 @@ fn error_exponent_too_small() {
         Err(Error::ExponentTooSmall(2))
     ));
     assert!(matches!(
-        bigint::from_str("42.001E2"),
+        bigint::from_str("42.001_E2"),
         Err(Error::ExponentTooSmall(2))
     ));
 }
