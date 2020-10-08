@@ -7,6 +7,7 @@
     - [Require](02-getting-started/01-require-function.md)
     - [Standard library](02-getting-started/02-standard-library.md)
     - [Debugging](02-getting-started/03-debugging.md)
+    - [Testing](02-getting-started/04-testing.md)
 - [Variables and types](03-variables-and-types/00-overview.md)
     - [Variables](03-variables-and-types/01-variables.md)
     - [Types](03-variables-and-types/02-types/00-overview.md)

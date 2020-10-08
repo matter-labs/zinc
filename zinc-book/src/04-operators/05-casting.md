@@ -2,11 +2,11 @@
 
 `as` is a binary operator.
 
-**Accepts**
+*Accepts*
 1. Expression of any type
 2. Expression of the same or another integer type
 
-**Returns** the casted value.
+*Returns* the casted value.
 
 Casting allowed:
 

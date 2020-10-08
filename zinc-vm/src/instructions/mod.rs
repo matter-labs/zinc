@@ -2,7 +2,6 @@
 //! The instructions.
 //!
 
-pub mod assert;
 pub mod call_library;
 pub mod contract_storage;
 pub mod data_stack;
@@ -12,6 +11,7 @@ pub mod flow;
 pub mod markers;
 pub mod noop;
 pub mod operators;
+pub mod require;
 
 use zinc_build::Instruction;
 

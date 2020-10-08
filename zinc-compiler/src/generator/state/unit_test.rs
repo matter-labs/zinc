@@ -7,6 +7,8 @@
 ///
 #[derive(Debug)]
 pub struct UnitTest {
+    /// The entry function type unique ID.
+    pub type_id: usize,
     /// The unit test name.
     pub name: String,
     /// Whether the test should fail to be successful.
@@ -19,8 +21,9 @@ impl UnitTest {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(name: String, should_panic: bool, is_ignored: bool) -> Self {
+    pub fn new(type_id: usize, name: String, should_panic: bool, is_ignored: bool) -> Self {
         Self {
+            type_id,
             name,
             should_panic,
             is_ignored,

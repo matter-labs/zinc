@@ -11,7 +11,7 @@ use std::process::ExitStatus;
 pub enum ExitCode {
     /// The test passed without an error or with an error if it is marked with the `should_panic` attribute.
     Passed = 0,
-    /// The unexpected runtime error, which has happened before the unit test assertions.
+    /// The unexpected runtime error, which has happened before the unit test requires.
     Invalid = 1,
     /// The test passed with an error or without an error if it is marked with the `should_panic` attribute.
     Failed = 2,

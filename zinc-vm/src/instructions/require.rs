@@ -25,7 +25,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Require {
             Some(message) => Some(message.as_str()),
             None => None,
         };
-        gadgets::assert::assert(cs, condition, message)
+        gadgets::require::require(cs, condition, message)
     }
 }
 
@@ -42,7 +42,7 @@ mod tests {
     use zinc_build::ScalarType;
 
     #[test]
-    fn test_assert_ok() -> Result<(), TestingError> {
+    fn test_require_ok() -> Result<(), TestingError> {
         TestRunner::new()
             .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
             .push(zinc_build::Require::new(None))
@@ -50,7 +50,7 @@ mod tests {
     }
 
     #[test]
-    fn test_assert_fail() {
+    fn test_require_fail() {
         let res = TestRunner::new()
             .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
             .push(zinc_build::Require::new(None))
@@ -58,12 +58,12 @@ mod tests {
 
         match res {
             Err(TestingError::RuntimeError(RuntimeError::RequireError(_))) => {}
-            _ => panic!("Expected assertion error"),
+            _ => panic!("Expected require error"),
         }
     }
 
     #[test]
-    fn test_assert_in_condition() -> Result<(), TestingError> {
+    fn test_require_in_condition() -> Result<(), TestingError> {
         TestRunner::new()
             .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
             .push(zinc_build::If)

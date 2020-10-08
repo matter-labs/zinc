@@ -13,10 +13,12 @@ for {identifier} in {range} [while {expression}] {
 
 The `for` loop statement can be modified with the `while` condition, which will
 be checked before each iteration of the loop. The `while` condition expression
-has access to the inner scope and can use its variables and the loop iterator.
+has access to the loop iterator variable.
 
 ```rust,no_run,noplaypen
-for i in 0..10 while i % x != 8 {
+let x = 7;
+
+for i in 0..10 while i % x != 2 {
     // do something
 };
 ```

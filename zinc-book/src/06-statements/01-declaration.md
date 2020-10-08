@@ -80,14 +80,31 @@ impl Data {
 
 `mod {identifier};`
 
-The `mod` statement declares a new module and behaves the same way as in Rust.
+The `mod` statement declares a new module and requires an eponymous module file
+to be present in the declaring module directory.
+
+That is, if your declare a module named `utils` in the file `main.zn` located in
+the `src/` directory, there must be a file `src/utils.zn`.
+
+The Zinc module system almost completely mimics [that of Rust](https://doc.rust-lang.org/book/second-edition/ch07-00-modules.html),
+but requires every module to reside in a separate file and temporarily allows
+importing private items.
 
 ## `use` module import
 
 `use {path};`
 
-The `use` statement imports an item from another namespace and behaves the same
-way as in Rust.
+The `use` statement imports an item from another namespace to the current one.
+
+Using the example above, you may import items from your `utils` module this way:
+
+```rust,no_run,noplaypen
+mod utils;
+
+use utils::UsefulUtility;
+
+// some code using 'UsefulUtility'
+```
 
 ## `contract` declaration
 

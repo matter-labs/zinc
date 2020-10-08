@@ -43,7 +43,7 @@ case "${2}" in
         ;;
 esac
 
-export POSTGRESQL_URI='postgres://postgres@localhost/zinc'
+export POSTGRESQL='postgres://postgres@localhost/zinc'
 export NETWORK='localhost'
 
 cargo fmt --all
@@ -53,4 +53,4 @@ cargo build ${CARGO_LOG_LEVEL} ${RELEASE_FLAG}
 cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
 cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zandbox' -- ${LOG_LEVEL} \
   --network "${NETWORK}" \
-  --postgresql "${POSTGRESQL_URI}"
+  --postgresql "${POSTGRESQL}"

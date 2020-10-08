@@ -152,8 +152,8 @@ impl Facade {
                 Ok(_) => {
                     println!("test {} ... {}", name, "ok".green());
                 }
-                Err(_) => {
-                    println!("test {} ... {}", name, "error".bright_red());
+                Err(error) => {
+                    println!("test {} ... {} ({})", name, "error".bright_red(), error);
                     exit_code = UnitTestExitCode::Failed;
                 }
             };

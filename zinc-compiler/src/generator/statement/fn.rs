@@ -34,10 +34,10 @@ pub struct Statement {
     pub output_type: Type,
     /// The function unique ID, which is assigned during the semantic analysis.
     pub type_id: usize,
-    /// Whether the function is a contract entry.
-    pub is_contract_entry: bool,
     /// Whether the function is a circuit entry.
     pub is_main: bool,
+    /// Whether the function is a contract entry.
+    pub is_contract_entry: bool,
     /// The function attibutes, e.g. the unit test ones.
     pub attributes: Vec<Attribute>,
 }
@@ -55,8 +55,8 @@ impl Statement {
         body: Expression,
         output_type: SemanticType,
         type_id: usize,
-        is_contract_entry: bool,
         is_main: bool,
+        is_contract_entry: bool,
         attributes: Vec<Attribute>,
     ) -> Self {
         let input_arguments = input_arguments
@@ -126,7 +126,7 @@ impl IBytecodeWritable for Statement {
 
         self.body.write_all(state.clone());
 
-        if self.is_main || self.is_contract_entry {
+        if self.is_main || self.is_contract_entry || self.attributes.contains(&Attribute::Test) {
             state.borrow_mut().push_instruction(
                 Instruction::Exit(zinc_build::Exit::new(output_size)),
                 Some(self.location),

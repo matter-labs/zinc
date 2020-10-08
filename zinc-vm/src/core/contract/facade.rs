@@ -95,6 +95,7 @@ impl Facade {
         let mut num_constraints = 0;
         let result = state.run(
             self.inner,
+            method.input,
             Some(&inputs_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
@@ -108,6 +109,7 @@ impl Facade {
 
                 Ok(())
             },
+            method.address,
         )?;
 
         let cs = state.constraint_system();
@@ -199,6 +201,7 @@ impl Facade {
         let mut num_constraints = 0;
         let result = state.run(
             self.inner,
+            method.input,
             Some(&inputs_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
@@ -212,6 +215,7 @@ impl Facade {
 
                 Ok(())
             },
+            method.address,
         )?;
 
         let cs = state.constraint_system();
@@ -284,7 +288,15 @@ impl Facade {
 
             let mut state = ContractState::new(cs, storage_gadget, name.clone(), true);
 
-            let result = state.run(self.inner.clone(), Some(&[]), |_| {}, |_| Ok(()));
+            let result = state.run(
+                self.inner.clone(),
+                BuildType::new_empty_structure(),
+                Some(&[]),
+                |_| {},
+                |_| Ok(()),
+                unit_test.address,
+            );
+
             match result {
                 Err(_) if unit_test.should_panic => {
                     println!("test {} ... {} (failed)", name, "ok".green());
@@ -301,8 +313,8 @@ impl Facade {
                 Ok(_) => {
                     println!("test {} ... {}", name, "ok".green());
                 }
-                Err(_) => {
-                    println!("test {} ... {}", name, "error".bright_red());
+                Err(error) => {
+                    println!("test {} ... {} ({})", name, "error".bright_red(), error);
                     exit_code = UnitTestExitCode::Failed;
                 }
             };
@@ -314,6 +326,15 @@ impl Facade {
     pub fn setup<E: IEngine>(self, method_name: String) -> Result<Parameters<E>, RuntimeError> {
         let rng = &mut rand::thread_rng();
         let mut result = None;
+
+        let method = self
+            .inner
+            .methods
+            .get(method_name.as_str())
+            .cloned()
+            .ok_or(RuntimeError::MethodNotFound {
+                found: method_name.clone(),
+            })?;
 
         let storage_fields = self
             .inner
@@ -327,7 +348,7 @@ impl Facade {
             inputs: None,
             output: &mut result,
             bytecode: self.inner,
-            method_name,
+            method,
             storage,
 
             _pd: PhantomData,
@@ -362,9 +383,9 @@ impl Facade {
 
         let inputs_flat = input.into_flat_values();
         let output_type = if method.is_mutable {
-            method.output.into_mutable_method_output()
+            method.output.clone().into_mutable_method_output()
         } else {
-            method.output
+            method.output.clone()
         };
 
         let mut storage_types = Vec::with_capacity(self.inner.storage.len());
@@ -388,7 +409,7 @@ impl Facade {
             inputs: Some(inputs_flat),
             output: &mut result,
             bytecode: self.inner,
-            method_name,
+            method,
             storage,
 
             _pd: PhantomData,

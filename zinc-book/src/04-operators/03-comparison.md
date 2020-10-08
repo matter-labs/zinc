@@ -1,61 +1,61 @@
 # Comparison operators
 
-#### Equality
+### Equality
 
 `==` is a binary operator.
 
-**Accepts**
+*Accepts*
 1. Integer **or** boolean expression
 2. Expression of the operand 1 type
 
-**Returns** the boolean result.
+*Returns* the boolean result.
 
-#### Non-equality
+### Non-equality
 
 `!=` is a binary operator.
 
-**Accepts**
+*Accepts*
 1. Integer **or** boolean expression
 2. Expression of the operand 1 type
 
-**Returns** the boolean result.
+*Returns* the boolean result.
 
-#### Lesser or equals
+### Lesser or equals
 
 `<=` is a binary operator.
 
-**Accepts**
+*Accepts*
 1. Integer expression
 2. Expression of the operand 1 type
 
-**Returns** the boolean result.
+*Returns* the boolean result.
 
-#### Greater or equals
+### Greater or equals
 
 `>=` is a binary operator.
 
-**Accepts**
+*Accepts*
 1. Integer expression
 2. Expression of the operand 1 type
 
-**Returns** the boolean result.
+*Returns* the boolean result.
 
-#### Lesser
+### Lesser
 
 `<` is a binary operator.
 
-**Accepts**
+*Accepts*
 1. Integer expression
 2. Expression of the operand 1 type
 
-**Returns** the boolean result.
+*Returns* the boolean result.
 
-#### Greater
+### Greater
 
 `>` is a binary operator.
 
-**Accepts**
+*Accepts*
 1. Integer expression
 2. Expression of the operand 1 type
 
-**Returns** the boolean result.
+*Returns* the boolean result.

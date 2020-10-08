@@ -179,7 +179,7 @@ impl State {
         should_panic: bool,
         is_ignored: bool,
     ) {
-        let test = UnitTest::new(identifier.clone(), should_panic, is_ignored);
+        let test = UnitTest::new(type_id, identifier.clone(), should_panic, is_ignored);
         self.unit_tests.insert(type_id, test);
 
         self.start_function(location, type_id, identifier);
@@ -252,27 +252,21 @@ impl State {
     ) -> BuildApplication {
         match self.contract_storage.take() {
             Some(storage) => {
-                let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
-                for (type_id, unit_test) in self.unit_tests.into_iter() {
-                    let address = self
-                        .function_addresses
-                        .get(&type_id)
-                        .cloned()
-                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
-                    unit_tests.insert(
-                        unit_test.name,
-                        BuildUnitTest::new(address, unit_test.should_panic, unit_test.is_ignored),
-                    );
-                }
-
                 let storage = storage.into_iter().map(|field| field.into()).collect();
 
                 if optimize_dead_function_elimination {
-                    let entry_ids: Vec<usize> = self
+                    let mut entry_ids: Vec<usize> = self
                         .entries
                         .iter()
                         .map(|(_name, method)| method.type_id)
                         .collect();
+                    entry_ids.extend(
+                        self.unit_tests
+                            .iter()
+                            .map(|(_name, unit_test)| unit_test.type_id)
+                            .collect::<Vec<usize>>(),
+                    );
+
                     DeadFunctionCodeEliminationOptimizer::optimize(
                         entry_ids,
                         &mut self.instructions,
@@ -296,8 +290,28 @@ impl State {
                     input.remove_contract_instance();
                     let output = method.output_type.into();
                     methods.insert(
-                        method.name,
-                        ContractMethod::new(type_id, address, method.is_mutable, input, output),
+                        method.name.clone(),
+                        ContractMethod::new(
+                            type_id,
+                            method.name,
+                            address,
+                            method.is_mutable,
+                            input,
+                            output,
+                        ),
+                    );
+                }
+
+                let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
+                for (type_id, unit_test) in self.unit_tests.into_iter() {
+                    let address = self
+                        .function_addresses
+                        .get(&type_id)
+                        .cloned()
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
+                    unit_tests.insert(
+                        unit_test.name,
+                        BuildUnitTest::new(address, unit_test.should_panic, unit_test.is_ignored),
                     );
                 }
 
@@ -312,6 +326,35 @@ impl State {
                 )
             }
             None => {
+                let (entry_id, entry) = self
+                    .entries
+                    .into_iter()
+                    .collect::<Vec<(usize, Entry)>>()
+                    .remove(0);
+                let input = entry.input_fields_as_struct().into();
+                let output = entry.output_type.into();
+
+                if optimize_dead_function_elimination {
+                    let mut entry_ids: Vec<usize> = vec![entry_id];
+                    entry_ids.extend(
+                        self.unit_tests
+                            .iter()
+                            .map(|(_name, unit_test)| unit_test.type_id)
+                            .collect::<Vec<usize>>(),
+                    );
+
+                    DeadFunctionCodeEliminationOptimizer::optimize(
+                        entry_ids,
+                        &mut self.instructions,
+                        &mut self.function_addresses,
+                    );
+                } else {
+                    DeadFunctionCodeEliminationOptimizer::set_addresses(
+                        &mut self.instructions,
+                        &self.function_addresses,
+                    )
+                }
+
                 let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
                 for (type_id, unit_test) in self.unit_tests.into_iter() {
                     let address = self
@@ -323,27 +366,6 @@ impl State {
                         unit_test.name,
                         BuildUnitTest::new(address, unit_test.should_panic, unit_test.is_ignored),
                     );
-                }
-
-                let (entry_id, entry) = self
-                    .entries
-                    .into_iter()
-                    .collect::<Vec<(usize, Entry)>>()
-                    .remove(0);
-                let input = entry.input_fields_as_struct().into();
-                let output = entry.output_type.into();
-
-                if optimize_dead_function_elimination {
-                    DeadFunctionCodeEliminationOptimizer::optimize(
-                        vec![entry_id],
-                        &mut self.instructions,
-                        &mut self.function_addresses,
-                    );
-                } else {
-                    DeadFunctionCodeEliminationOptimizer::set_addresses(
-                        &mut self.instructions,
-                        &self.function_addresses,
-                    )
                 }
 
                 let address = self

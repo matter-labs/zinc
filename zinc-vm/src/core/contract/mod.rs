@@ -85,9 +85,11 @@ where
     pub fn run<CB, F>(
         &mut self,
         contract: BytecodeContract,
-        inputs: Option<&[BigInt]>,
+        input_type: BuildType,
+        input_values: Option<&[BigInt]>,
         mut instruction_callback: CB,
         mut check_cs: F,
+        address: usize,
     ) -> Result<Vec<Option<BigInt>>, RuntimeError>
     where
         CB: FnMut(&CS),
@@ -102,21 +104,12 @@ where
         let one = Scalar::new_constant_usize(1, ScalarType::Boolean);
         self.condition_push(one)?;
 
-        let method = match contract.methods.get(self.method_name.as_str()) {
-            Some(method) => method.to_owned(),
-            None => {
-                return Err(RuntimeError::MethodNotFound {
-                    found: self.method_name.to_owned(),
-                })
-            }
-        };
-
-        let input_size = method.input.size();
+        let input_size = input_type.size();
         self.execution_state
             .frames_stack
             .push(Frame::new(0, std::usize::MAX));
-        self.init_root_frame(method.input, inputs)?;
-        if let Err(error) = zinc_build::Call::new(method.address, input_size)
+        self.init_root_frame(input_type, input_values)?;
+        if let Err(error) = zinc_build::Call::new(address, input_size)
             .execute(self)
             .and(check_cs(&self.counter.cs))
         {

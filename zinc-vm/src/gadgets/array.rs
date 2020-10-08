@@ -35,7 +35,7 @@ where
 
     let length = Scalar::new_constant_usize(array.len(), index.get_type());
     let lt = gadgets::comparison::lesser_than(cs.namespace(|| "lt"), index, &length)?;
-    gadgets::assert::assert(cs.namespace(|| "assert"), lt, Some("index out of bounds"))?;
+    gadgets::require::require(cs.namespace(|| "require"), lt, Some("index out of bounds"))?;
 
     let i = index.to_constant_unchecked()?.get_constant_usize()?;
     if i >= array.len() {

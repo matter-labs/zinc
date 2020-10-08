@@ -14,6 +14,8 @@ use crate::data::r#type::Type as BuildType;
 pub struct Method {
     /// The contract function type unique ID.
     pub type_id: usize,
+    /// The contract function name.
+    pub name: String,
     /// The contract method address in the bytecode.
     pub address: usize,
     /// Whether the method can mutate the contract storage state.
@@ -30,6 +32,7 @@ impl Method {
     ///
     pub fn new(
         type_id: usize,
+        name: String,
         address: usize,
         is_mutable: bool,
         input: BuildType,
@@ -37,6 +40,7 @@ impl Method {
     ) -> Self {
         Self {
             type_id,
+            name,
             address,
             is_mutable,
             input,

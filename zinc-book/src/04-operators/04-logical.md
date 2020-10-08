@@ -1,40 +1,40 @@
 # Logical operators
 
-#### OR
+### OR
 
 `||` is a binary operator.
 
-**Accepts**
+*Accepts*
 1. Boolean expression
 2. Boolean expression
 
-**Returns** the boolean result.
+*Returns* the boolean result.
 
-#### XOR
+### XOR
 
 `^^` is a binary operator.
 
-**Accepts**
+*Accepts*
 1. Boolean expression
 2. Boolean expression
 
-**Returns** the boolean result.
+*Returns* the boolean result.
 
-#### AND
+### AND
 
 `&&` is a binary operator.
 
-**Accepts**
+*Accepts*
 1. Boolean expression
 2. Boolean expression
 
-**Returns** the boolean result.
+*Returns* the boolean result.
 
-#### NOT
+### NOT
 
 `!` is a unary operator.
 
-**Accepts**
+*Accepts*
 1. Boolean expression
 
-**Returns** the boolean result.
+*Returns* the boolean result.

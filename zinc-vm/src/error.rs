@@ -65,7 +65,7 @@ pub enum RuntimeError {
     #[fail(display = "malformed bytecode: {}", _0)]
     MalformedBytecode(MalformedBytecode),
 
-    #[fail(display = "assertion error: {}", _0)]
+    #[fail(display = "require error: {}", _0)]
     RequireError(String),
 
     #[fail(

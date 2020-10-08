@@ -65,7 +65,7 @@ where
     pub fn run<CB, F>(
         &mut self,
         circuit: BuildCircuit,
-        inputs: Option<&[BigInt]>,
+        input_values: Option<&[BigInt]>,
         mut instruction_callback: CB,
         mut check_cs: F,
     ) -> Result<Vec<Option<BigInt>>, RuntimeError>
@@ -86,7 +86,7 @@ where
         self.execution_state
             .frames_stack
             .push(Frame::new(0, std::usize::MAX));
-        self.init_root_frame(circuit.input, inputs)?;
+        self.init_root_frame(circuit.input, input_values)?;
         if let Err(error) = zinc_build::Call::new(circuit.address, input_size)
             .execute(self)
             .and(check_cs(&self.counter.cs))

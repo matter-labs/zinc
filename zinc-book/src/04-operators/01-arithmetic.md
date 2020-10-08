@@ -11,61 +11,61 @@ The `+=`, `-=`, `*=`, `/=`, `%=` shortcut operators perform the operation
 and assign the result to the first operand. The first operand must be a mutable memory location
 like a variable, array element, or structure field.
 
-#### Addition
+### Addition
 
 `+` and `+=` are binary operators.
 
-**Accepts**
+*Accepts*
 1. Integer expression
 2. Expression of the operand 1 type
 
-**Returns** an integer result of the same type.
+*Returns* an integer result of the same type.
 
-#### Subtraction
+### Subtraction
 
 `-` and `-=` are binary operators.
 
-**Accepts**
+*Accepts*
 1. Integer expression
 2. Expression of the operand 1 type
 
-**Returns** an integer result of the same type.
+*Returns* an integer result of the same type.
 
-#### Multiplication
+### Multiplication
 
 `*` and `*=` are binary operators.
 
-**Accepts**
+*Accepts*
 1. Integer expression
 2. Expression of the operand 1 type
 
-**Returns** an integer result of the same type.
+*Returns* an integer result of the same type.
 
-#### Division
+### Division
 
 `/` and `/=` are binary operators.
 
-**Accepts**
+*Accepts*
 1. Integer expression (any type except `field`)
 2. Expression of the operand 1 type
 
-**Returns** an integer result of the same type.
+*Returns* an integer result of the same type.
 
-#### Remainder
+### Remainder
 
 `%` and `%=` are binary operators.
 
-**Accepts**
+*Accepts*
 1. Integer expression (any type except `field`)
 2. Expression of the operand 1 type
 
-**Returns** an integer result of the same type.
+*Returns* an integer result of the same type.
 
-#### Negation
+### Negation
 
 `-` is an unary operator.
 
-**Accepts**
+*Accepts*
 1. Unsigned integer expression
 
-**Returns** an integer result of the same type.
+*Returns* an integer result of the same type.

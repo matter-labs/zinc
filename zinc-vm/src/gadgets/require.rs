@@ -1,5 +1,5 @@
 //!
-//! The assert gadget.
+//! The `require` gadget.
 //!
 
 use franklin_crypto::bellman::pairing::ff::Field;
@@ -10,7 +10,7 @@ use crate::error::RuntimeError;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
-pub fn assert<E, CS>(
+pub fn require<E, CS>(
     mut cs: CS,
     element: Scalar<E>,
     message: Option<&str>,
@@ -35,7 +35,7 @@ where
         .map_err(RuntimeError::SynthesisError)?;
 
     cs.enforce(
-        || "assertion",
+        || "require",
         |lc| lc + &element.to_linear_combination::<CS>(),
         |lc| lc + inverse_variable,
         |lc| lc + CS::one(),

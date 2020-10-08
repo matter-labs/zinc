@@ -134,7 +134,7 @@ zargo publish --network rinkeby --instance default
 To see the available testnets, enter `zargo publish --help`. When the contract
 is successfully published, its ETH address and zkSync account ID will be returned.
 You will need the address to make the consequent calls. Let's assume it is
-`0x1234123412341234123412341234123412341234`.
+`0x1234...1234`.
 
 The instance name is used to uniquely identify your published contract without
 memorizing its ETH address.
@@ -147,7 +147,7 @@ The `constant_price` contract is now published, and its dedicated storage
 instance is created. You may query the Zandbox server to see the current balances:
 
 ```bash,no_run,noplaypen
-zargo query --network rinkeby --address 0x1234123412341234123412341234123412341234
+zargo query --network rinkeby --address 0x1234...1234
 ```
 
 ## Calling a non-mutable contract method
@@ -156,7 +156,7 @@ A non-mutable contract method may be called with the same query as above, but
 with the `method` argument:
 
 ```bash,no_run,noplaypen
-zargo query --network rinkeby --address 0x1234123412341234123412341234123412341234 --method get_x
+zargo query --network rinkeby --address 0x1234...1234 --method get_x
 ```
 
 The output:
