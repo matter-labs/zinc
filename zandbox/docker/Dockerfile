@@ -17,4 +17,4 @@ FROM debian:buster-slim
 RUN apt-get update && apt-get install -y libpq5 ca-certificates && rm -rf /var/lib/apt/lists/*
 EXPOSE 3000
 COPY --from=builder /usr/src/zandbox/target/release/zandbox /usr/bin
-ENTRYPOINT ["sh", "-c", "zandbox --http-port 3000 -vv --postgresql $DATABASE_URL"]
+ENTRYPOINT ["sh", "-c", "zandbox --http-port 3000 -vv --postgresql $DATABASE_URL --network $ETH_NETWORK"]
