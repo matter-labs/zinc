@@ -360,10 +360,7 @@ impl Type {
     /// Checks if the type is a signed scalar one (only signed integer for now).
     ///
     pub fn is_scalar_signed(&self) -> bool {
-        match self {
-            Self::IntegerSigned { .. } => true,
-            _ => false,
-        }
+        matches!(self, Self::IntegerSigned { .. })
     }
 
     ///

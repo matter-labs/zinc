@@ -8,6 +8,7 @@ pub mod response;
 
 use std::sync::Arc;
 use std::sync::RwLock;
+use std::time::Duration;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
@@ -102,7 +103,14 @@ pub async fn handle(
             Some(body.transaction.ethereum_signature.signature),
         )
         .await
-        .map(|tx_hash| SyncTransactionHandle::new(tx_hash, wallet.provider.clone()))?
+        .map(|tx_hash| {
+            let mut handle = SyncTransactionHandle::new(tx_hash, wallet.provider.clone())
+                .commit_timeout(Duration::from_secs(10));
+            handle
+                .polling_interval(Duration::from_millis(200))
+                .expect("Validated inside the method");
+            handle
+        })?
         .wait_for_commit()
         .await?;
     if !tx_info.success.unwrap_or_default() {
@@ -119,14 +127,17 @@ pub async fn handle(
         .ok_or(Error::AccountId)?;
 
     log::debug!("Sending the change-pubkey transaction");
-    let tx_info = wallet
+    let mut handle = wallet
         .start_change_pubkey()
         .fee(0_u64)
         .fee_token(fee_token_id)?
         .send()
         .await?
-        .wait_for_commit()
-        .await?;
+        .commit_timeout(Duration::from_secs(10));
+    handle
+        .polling_interval(Duration::from_millis(200))
+        .expect("Validated inside the method");
+    let tx_info = handle.wait_for_commit().await?;
     if !tx_info.success.unwrap_or_default() {
         return Err(Error::ChangePubkey(
             tx_info

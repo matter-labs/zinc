@@ -124,10 +124,7 @@ impl Function {
     /// Whether the function requires the Rust-macro-like `!` specifier.
     ///
     pub fn requires_exclamation_mark(&self) -> bool {
-        match self {
-            Self::Debug(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::Debug(_))
     }
 
     ///

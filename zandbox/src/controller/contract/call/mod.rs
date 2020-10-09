@@ -7,6 +7,7 @@ pub mod request;
 
 use std::sync::Arc;
 use std::sync::RwLock;
+use std::time::Duration;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
@@ -198,7 +199,7 @@ pub async fn handle(
         "Sending the transactions to zkSync on network `{}`",
         query.network
     );
-    let handles = wallet
+    let handles: Vec<SyncTransactionHandle> = wallet
         .provider
         .send_txs_batch(
             transactions
@@ -213,10 +214,19 @@ pub async fn handle(
         )
         .await?
         .into_iter()
-        .map(|tx_hash| SyncTransactionHandle::new(tx_hash, wallet.provider.clone()));
+        .map(|tx_hash| {
+            let mut handle = SyncTransactionHandle::new(tx_hash, wallet.provider.clone())
+                .commit_timeout(Duration::from_secs(10));
+            handle
+                .polling_interval(Duration::from_millis(200))
+                .expect("Validated inside the method");
+            handle
+        })
+        .collect();
 
-    log::debug!("Waiting for the transfers to be committed");
-    for handle in handles.into_iter() {
+    if let Some(handle) = handles.last() {
+        log::debug!("Waiting for the batch transaction to be committed");
+
         let tx_info = handle.wait_for_commit().await?;
         if !tx_info.success.unwrap_or_default() {
             return Err(Error::TransferFailure(

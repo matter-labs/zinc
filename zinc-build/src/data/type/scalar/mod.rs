@@ -30,12 +30,12 @@ impl Type {
     /// Checks whether the type is a signed integer.
     ///
     pub fn is_signed(&self) -> bool {
-        match self {
+        matches!(
+            self,
             Type::Integer(IntegerType {
                 is_signed: true, ..
-            }) => true,
-            _ => false,
-        }
+            })
+        )
     }
 }
 
