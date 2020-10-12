@@ -5,6 +5,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::LetStatement;
+
 use crate::generator::statement::r#let::Statement as GeneratorDeclarationStatement;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
@@ -13,7 +15,6 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::statement::r#let::Statement as LetStatement;
 
 ///
 /// The `let` statement semantic analyzer.

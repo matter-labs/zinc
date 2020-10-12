@@ -9,11 +9,11 @@ description = "The Zinc data shared between Zargo and Zandbox"
 
 [dependencies]
 failure = "0.1"
-
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 rustc-hex = "2.1"
+num = "0.3"
 
 zksync = { path = "../zksync/sdk/zksync-rs" }
 zksync_types = { path = "../zksync/core/lib/types" }

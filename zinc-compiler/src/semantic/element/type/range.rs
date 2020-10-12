@@ -4,8 +4,8 @@
 
 use std::fmt;
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
+use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer range type element.

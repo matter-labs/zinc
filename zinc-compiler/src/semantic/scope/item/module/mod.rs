@@ -10,8 +10,6 @@ use std::fmt;
 use std::rc::Rc;
 
 use crate::generator::statement::Statement as GeneratorStatement;
-use crate::lexical::token::lexeme::keyword::Keyword;
-use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::module::Analyzer as ModuleAnalyzer;
 use crate::semantic::error::Error;
 use crate::semantic::scope::error::Error as ScopeError;
@@ -19,6 +17,8 @@ use crate::semantic::scope::item::index::INDEX as ITEM_INDEX;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::source::Source;
+use zinc_lexical::Keyword;
+use zinc_lexical::Location;
 
 use self::state::State;
 

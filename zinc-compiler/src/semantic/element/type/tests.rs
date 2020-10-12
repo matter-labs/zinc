@@ -2,14 +2,15 @@
 //! The type tests.
 //!
 
+use zinc_lexical::Location;
+use zinc_syntax::Identifier;
+
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
-use crate::syntax::tree::identifier::Identifier;
 
 #[test]
 fn error_alias_does_not_point_to_type() {

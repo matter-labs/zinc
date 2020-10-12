@@ -5,10 +5,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::FieldStatement;
+
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::statement::field::Statement as FieldStatement;
 
 ///
 /// The field statement semantic analyzer.

@@ -15,11 +15,15 @@ const NETWORK: zksync::Network = zksync::Network::Localhost;
 #[actix_rt::main]
 async fn main() {
     let provider = zksync::Provider::new(NETWORK);
-    let wallet_credentials = zksync::WalletCredentials::from_eth_pk(
+    let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
         ETH_ADDRESS.parse().expect("ETH address parsing"),
-        ETH_PRIVATE_KEY.parse().expect("ETH private key parsing"),
+        ETH_PRIVATE_KEY
+            .parse()
+            .map(zksync_eth_signer::EthereumSigner::from_key)
+            .expect("ETH private key parsing"),
         NETWORK,
     )
+    .await
     .expect("Wallet credentials");
     let wallet = zksync::Wallet::new(provider, wallet_credentials)
         .await

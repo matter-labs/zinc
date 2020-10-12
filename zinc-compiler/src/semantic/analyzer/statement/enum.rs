@@ -5,10 +5,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::EnumStatement;
+
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::statement::r#enum::Statement as EnumStatement;
 
 ///
 /// The `enum` statement semantic analyzer.

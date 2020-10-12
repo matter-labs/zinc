@@ -4,13 +4,14 @@
 
 use std::convert::TryFrom;
 
+use zinc_syntax::TupleIndex as SyntaxTupleIndex;
+
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::tuple_index::TupleIndex;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::syntax::tree::tuple_index::TupleIndex as SyntaxTupleIndex;
 
 ///
 /// Analyzes the tuple field index, structure field identifier, or a path element.

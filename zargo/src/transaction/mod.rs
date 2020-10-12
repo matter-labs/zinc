@@ -20,7 +20,10 @@ use self::error::Error;
 ///
 /// Initializes a new initial zero transfer to assign an account ID to a newly created contract.
 ///
-pub fn new_initial(wallet: &zksync::Wallet, recipient: Address) -> Result<Transaction, Error> {
+pub async fn new_initial(
+    wallet: &zksync::Wallet,
+    recipient: Address,
+) -> Result<Transaction, Error> {
     let mut runtime = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
 
     let token_symbol = "ETH";
@@ -48,7 +51,8 @@ pub fn new_initial(wallet: &zksync::Wallet, recipient: Address) -> Result<Transa
     let (transfer, signature) = wallet
         .signer
         .sign_transfer(token, amount, fee, recipient, nonce)
-        .map_err(Error::TransferSigning)?;
+        .await
+        .map_err(Error::TransactionSigning)?;
     let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
     Ok(Transaction::new(
@@ -60,7 +64,7 @@ pub fn new_initial(wallet: &zksync::Wallet, recipient: Address) -> Result<Transa
 ///
 /// Converts an array of input transfers into an array of signed zkSync transactions.
 ///
-pub fn try_into_zksync(
+pub async fn try_into_zksync(
     transfer: Transfer,
     wallet: &zksync::Wallet,
     contract_fee: Option<BigUint>,
@@ -91,7 +95,8 @@ pub fn try_into_zksync(
     let (transfer, signature) = wallet
         .signer
         .sign_transfer(token, amount, fee, transfer.recipient, nonce)
-        .map_err(Error::TransferSigning)?;
+        .await
+        .map_err(Error::TransactionSigning)?;
     let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
     Ok(Transaction::new(

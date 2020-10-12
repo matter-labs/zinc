@@ -2,12 +2,12 @@
 //! The semantic analyzer error.
 //!
 
-use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::attribute::error::Error as AttributeError;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::statement::error::Error as StatementError;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::scope::error::Error as ScopeError;
+use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer error.

@@ -2,7 +2,7 @@
 //! The expression evaluation rule.
 //!
 
-use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
+use zinc_syntax::ExpressionOperator;
 
 ///
 /// The evaluation rule.

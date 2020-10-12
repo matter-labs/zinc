@@ -4,10 +4,11 @@
 
 use std::fmt;
 
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
+use zinc_syntax::BooleanLiteral;
+
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
-use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
 
 ///
 /// Simple wrapper around the `bool` constant.

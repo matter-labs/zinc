@@ -4,11 +4,14 @@
 
 use colored::Colorize;
 
+use zinc_lexical::Error as LexicalError;
+use zinc_lexical::Keyword;
+use zinc_lexical::Location;
+use zinc_syntax::Error as SyntaxError;
+use zinc_syntax::ParsingError;
 use zinc_utils::InferenceError;
+use zinc_utils::FILE_INDEX;
 
-use crate::lexical::error::Error as LexicalError;
-use crate::lexical::token::lexeme::keyword::Keyword;
-use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::attribute::error::Error as AttributeError;
 use crate::semantic::analyzer::expression::conditional::error::Error as ConditionalExpressionError;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
@@ -42,8 +45,6 @@ use crate::semantic::element::value::structure::error::Error as StructureValueEr
 use crate::semantic::element::value::tuple::error::Error as TupleValueError;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::error::Error as ScopeError;
-use crate::source::file::index::INDEX as FILE_INDEX;
-use crate::syntax::error::Error as SyntaxError;
 
 ///
 /// The Zinc compiler error.
@@ -2259,6 +2260,15 @@ impl From<LexicalError> for Error {
 impl From<SyntaxError> for Error {
     fn from(error: SyntaxError) -> Self {
         Self::Syntax(error)
+    }
+}
+
+impl From<ParsingError> for Error {
+    fn from(error: ParsingError) -> Self {
+        match error {
+            ParsingError::Lexical(error) => Self::Lexical(error),
+            ParsingError::Syntax(error) => Self::Syntax(error),
+        }
     }
 }
 

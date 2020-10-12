@@ -13,6 +13,7 @@ use std::rc::Rc;
 use num::Signed;
 use num::ToPrimitive;
 
+use zinc_syntax::ForStatement;
 use zinc_utils::InferenceError;
 
 use crate::generator::statement::r#for::Statement as GeneratorForLoopStatement;
@@ -31,7 +32,6 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::statement::r#for::Statement as ForStatement;
 
 ///
 /// The `for` statement semantic analyzer.

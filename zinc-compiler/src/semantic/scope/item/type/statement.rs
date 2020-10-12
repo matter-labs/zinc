@@ -2,14 +2,15 @@
 //! The semantic analyzer scope type item statement.
 //!
 
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
+use zinc_syntax::ContractStatement;
+use zinc_syntax::EnumStatement;
+use zinc_syntax::FnStatement;
+use zinc_syntax::Identifier;
+use zinc_syntax::StructStatement;
+use zinc_syntax::TypeStatement;
+
 use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
-use crate::syntax::tree::identifier::Identifier;
-use crate::syntax::tree::statement::contract::Statement as ContractStatement;
-use crate::syntax::tree::statement::r#enum::Statement as EnumStatement;
-use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
-use crate::syntax::tree::statement::r#struct::Statement as StructStatement;
-use crate::syntax::tree::statement::r#type::Statement as TypeStatement;
 
 ///
 /// The item declaration statement, which may be resolved

@@ -5,9 +5,10 @@
 #[cfg(test)]
 mod tests;
 
+use zinc_syntax::Identifier;
+use zinc_syntax::ModStatement;
+
 use crate::semantic::error::Error;
-use crate::syntax::tree::identifier::Identifier;
-use crate::syntax::tree::statement::module::Statement as ModStatement;
 
 ///
 /// The `mod` statement semantic analyzer.

@@ -4,8 +4,8 @@
 
 use std::fmt;
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::Element;
+use zinc_lexical::Location;
 
 ///
 /// A function argument list.

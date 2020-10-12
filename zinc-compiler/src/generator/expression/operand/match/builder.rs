@@ -6,7 +6,7 @@ use crate::generator::expression::operand::constant::Constant;
 use crate::generator::expression::operand::r#match::Expression as MatchExpression;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::r#type::Type;
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
 
 ///
 /// The generator expression match operand builder.

@@ -3,9 +3,9 @@
 //!
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::error::Error as ScopeError;
+use zinc_lexical::Location;
 
 #[test]
 fn error_duplicate_field() {

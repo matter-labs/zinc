@@ -11,10 +11,10 @@ pub mod test;
 use std::fmt;
 
 use zinc_build::LibraryFunctionIdentifier;
+use zinc_lexical::Location;
+use zinc_syntax::BlockExpression;
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
-use crate::syntax::tree::expression::block::Expression as BlockExpression;
 
 use self::constant::Function as ConstantFunction;
 use self::intrinsic::Function as IntrinsicFunction;

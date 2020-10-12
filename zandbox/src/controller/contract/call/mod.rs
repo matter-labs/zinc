@@ -97,11 +97,12 @@ pub async fn handle(
 
     log::debug!("Initializing the contract wallet");
     let provider = zksync::Provider::new(query.network);
-    let wallet_credentials = zksync::WalletCredentials::from_eth_pk(
+    let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
         query.address,
-        contract.eth_private_key,
+        zksync_eth_signer::EthereumSigner::from_key(contract.eth_private_key),
         query.network,
-    )?;
+    )
+    .await?;
     let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
 
     let argument_transfer = Transfer::try_from_json(&body.arguments)?;
@@ -171,9 +172,9 @@ pub async fn handle(
             .tokens
             .resolve(transfer.token_id.into())
             .ok_or(Error::TokenNotFound(transfer.token_id))?;
-        let amount = zksync::utils::closest_packable_token_amount(
-            &zinc_utils::num_compat_backward(transfer.amount),
-        );
+        let amount = zksync::utils::closest_packable_token_amount(&zinc_data::num_compat_backward(
+            transfer.amount,
+        ));
         let fee = BigUint::zero();
 
         log::debug!(
@@ -186,7 +187,8 @@ pub async fn handle(
 
         let (transfer, signature) = wallet
             .signer
-            .sign_transfer(token, amount, fee, recipient, nonce)?;
+            .sign_transfer(token, amount, fee, recipient, nonce)
+            .await?;
         transactions.push(Transaction::new(
             ZkSyncTx::Transfer(Box::new(transfer)),
             signature.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),

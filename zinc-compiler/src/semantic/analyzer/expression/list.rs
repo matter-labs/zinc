@@ -5,6 +5,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::ListExpression;
+
 use crate::generator::expression::operand::list::builder::Builder as GeneratorListExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
@@ -13,7 +15,6 @@ use crate::semantic::element::argument_list::ArgumentList as ArgumentListElement
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::expression::list::Expression as ListExpression;
 
 ///
 /// The list semantic analyzer.

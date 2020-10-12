@@ -40,7 +40,7 @@ pub enum Error {
     /// The ZkSync server client error.
     ZkSyncClient(zksync::error::ClientError),
     /// The ZkSync server signer error.
-    ZkSyncSigner(zksync::error::SignerError),
+    ZkSyncSigner(zksync_eth_signer::error::SignerError),
     /// The ZkSync transfer errors.
     TransferFailure(String),
 }
@@ -63,8 +63,8 @@ impl From<zksync::error::ClientError> for Error {
     }
 }
 
-impl From<zksync::error::SignerError> for Error {
-    fn from(inner: zksync::error::SignerError) -> Self {
+impl From<zksync_eth_signer::error::SignerError> for Error {
+    fn from(inner: zksync_eth_signer::error::SignerError) -> Self {
         Self::ZkSyncSigner(inner)
     }
 }

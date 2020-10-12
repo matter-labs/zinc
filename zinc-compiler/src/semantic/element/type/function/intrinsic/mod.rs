@@ -15,7 +15,7 @@ use std::fmt;
 
 use zinc_build::LibraryFunctionIdentifier;
 
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
 
 use self::debug::Function as DebugFunction;
 use self::require::Function as RequireFunction;

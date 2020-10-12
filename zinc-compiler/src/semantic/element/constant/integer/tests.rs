@@ -9,13 +9,13 @@ use num::BigInt;
 use zinc_utils::InferenceError;
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
+use zinc_lexical::Location;
 
 #[test]
 fn error_types_mismatch_greater_equals() {

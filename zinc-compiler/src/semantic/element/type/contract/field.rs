@@ -5,11 +5,12 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::FieldStatement;
+use zinc_syntax::Identifier;
+
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::identifier::Identifier;
-use crate::syntax::tree::statement::field::Statement as FieldStatement;
 
 ///
 /// The semantic analyzer contract storage field representation.

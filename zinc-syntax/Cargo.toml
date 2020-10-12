@@ -1,0 +1,14 @@
+[package]
+name = "zinc-syntax"
+version = "0.2.0"
+authors = [
+    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
+]
+edition = "2018"
+description = "The Zinc compiler syntax analyzer"
+
+[dependencies]
+log = "0.4"
+
+zinc-lexical = { path = "../zinc-lexical" }
+zinc-const = { path = "../zinc-const" }

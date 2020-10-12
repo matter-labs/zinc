@@ -2,11 +2,11 @@
 //! The semantic analyzer element error.
 //!
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::value::error::Error as ValueError;
+use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer element error.

@@ -11,10 +11,10 @@ use std::fmt;
 
 use zinc_build::LibraryFunctionIdentifier;
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
+use zinc_lexical::Location;
 
 use self::transfer::Function as TransferFunction;
 

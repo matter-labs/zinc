@@ -142,7 +142,7 @@ impl TryFrom<JsonMap<String, JsonValue>> for Transfer {
         let amount: num_old::BigUint = zinc_utils::bigint_from_str(amount)
             .map_err(|error| Error::AmountInvalid(error.to_string()))?
             .to_biguint()
-            .map(zinc_utils::num_compat_backward)
+            .map(crate::utils::num_compat_backward)
             .expect(zinc_const::panic::DATA_CONVERSION);
 
         Ok(Self {

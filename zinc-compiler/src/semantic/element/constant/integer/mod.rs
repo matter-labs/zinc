@@ -26,18 +26,18 @@ use num::BigInt;
 use num::Signed;
 use num::ToPrimitive;
 
+use zinc_lexical::IntegerLiteral as LexicalIntegerLiteral;
+use zinc_lexical::Location;
+use zinc_syntax::IntegerLiteral;
 use zinc_utils::InferenceError;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
-use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::range::Range;
 use crate::semantic::element::constant::range_inclusive::RangeInclusive;
 use crate::semantic::element::r#type::enumeration::Enumeration;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
-use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 
 use self::error::Error;
 
@@ -1266,11 +1266,11 @@ impl TryFrom<&IntegerLiteral> for Integer {
             } => {
                 let mut string = integer.to_owned();
                 if let Some(fractional) = fractional {
-                    string.push(crate::lexical::token::lexeme::literal::integer::Integer::CHARACTER_DECIMAL_POINT);
+                    string.push(zinc_lexical::IntegerLiteral::CHARACTER_DECIMAL_POINT);
                     string.push_str(fractional);
                 }
                 if let Some(exponent) = exponent {
-                    string.push(crate::lexical::token::lexeme::literal::integer::Integer::CHARACTER_EXPONENT);
+                    string.push(zinc_lexical::IntegerLiteral::CHARACTER_EXPONENT);
                     string.push_str(exponent);
                 }
                 string

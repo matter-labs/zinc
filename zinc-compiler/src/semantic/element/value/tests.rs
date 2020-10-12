@@ -3,7 +3,6 @@
 //!
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
@@ -11,6 +10,7 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::element::value::Value;
 use crate::semantic::error::Error as SemanticError;
+use zinc_lexical::Location;
 
 #[test]
 fn error_operator_or_1st_operand_expected_boolean() {

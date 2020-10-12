@@ -2,7 +2,7 @@
 //! The semantic analyzer `match` expression error.
 //!
 
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer `match` expression error.

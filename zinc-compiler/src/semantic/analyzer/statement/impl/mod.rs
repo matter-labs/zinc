@@ -10,7 +10,10 @@ pub mod error;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::lexical::token::lexeme::keyword::Keyword;
+use zinc_lexical::Keyword;
+use zinc_syntax::ImplStatement;
+use zinc_syntax::ImplementationLocalStatement;
+
 use crate::semantic::analyzer::statement::error::Error as StatementError;
 use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
 use crate::semantic::analyzer::statement::r#impl::error::Error as ImplStatementError;
@@ -23,8 +26,6 @@ use crate::semantic::scope::item::r#type::statement::Statement as ScopeTypeItemS
 use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
-use crate::syntax::tree::statement::r#impl::Statement as ImplStatement;
 
 ///
 /// The `impl` statement semantic analyzer.

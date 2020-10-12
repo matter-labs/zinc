@@ -4,10 +4,8 @@
 
 pub(crate) mod error;
 pub(crate) mod generator;
-pub(crate) mod lexical;
 pub(crate) mod semantic;
 pub(crate) mod source;
-pub(crate) mod syntax;
 
 pub use self::error::Error;
 pub use self::generator::module::Module;

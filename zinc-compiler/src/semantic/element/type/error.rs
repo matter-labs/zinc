@@ -2,11 +2,11 @@
 //! The semantic analyzer type error.
 //!
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::contract::error::Error as ContractTypeError;
 use crate::semantic::element::r#type::enumeration::error::Error as EnumerationTypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::structure::error::Error as StructureTypeError;
+use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer type error.

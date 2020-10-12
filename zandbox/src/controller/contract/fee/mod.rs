@@ -92,11 +92,12 @@ pub async fn handle(
 
     log::debug!("Initializing the contract wallet");
     let provider = zksync::Provider::new(query.network);
-    let wallet_credentials = zksync::WalletCredentials::from_eth_pk(
+    let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
         query.address,
-        contract.eth_private_key,
+        zksync_eth_signer::EthereumSigner::from_key(contract.eth_private_key),
         query.network,
-    )?;
+    )
+    .await?;
     let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
 
     let argument_transfer = Transfer::try_from_json(&body.arguments)?;

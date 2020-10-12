@@ -2,8 +2,9 @@
 //! The expression semantic analyzer stack element.
 //!
 
+use zinc_syntax::ExpressionOperand;
+
 use crate::semantic::element::Element as SemanticElement;
-use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
 
 ///
 /// The expression semantic analyzer stack element.

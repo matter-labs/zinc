@@ -4,8 +4,8 @@
 
 use std::fmt;
 
-use crate::lexical::token::location::Location;
-use crate::syntax::tree::identifier::Identifier;
+use zinc_lexical::Location;
+use zinc_syntax::Identifier;
 
 ///
 /// Paths are the `::` expressions which only exist at compile-time.

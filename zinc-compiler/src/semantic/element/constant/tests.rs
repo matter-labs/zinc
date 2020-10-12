@@ -5,7 +5,6 @@
 use num::BigInt;
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::constant::array::Array as ArrayConstant;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
@@ -17,6 +16,7 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
+use zinc_lexical::Location;
 
 #[test]
 fn error_operator_range_1st_expected_integer() {

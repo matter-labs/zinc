@@ -154,7 +154,7 @@ impl Storage {
                                     .balances
                                     .get(token.symbol.as_str())
                                     .map(|balance| balance.0.to_owned())
-                                    .map(zinc_utils::num_compat_forward)
+                                    .map(zinc_data::num_compat_forward)
                                     .unwrap_or_else(BigUint::zero);
 
                                 *value = BigInt::from_biguint(num::bigint::Sign::Plus, balance);

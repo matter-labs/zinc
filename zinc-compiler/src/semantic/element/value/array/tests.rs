@@ -5,12 +5,12 @@
 use num::BigInt;
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::array::error::Error as ArrayValueError;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::error::Error as SemanticError;
+use zinc_lexical::Location;
 
 #[test]
 fn error_pushing_invalid_type() {

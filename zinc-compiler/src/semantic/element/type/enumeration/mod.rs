@@ -14,7 +14,9 @@ use std::rc::Rc;
 
 use num::BigInt;
 
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
+use zinc_syntax::Variant;
+
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
@@ -22,7 +24,6 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::variant::Variant;
 
 use self::error::Error;
 

@@ -5,6 +5,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::TupleExpression;
+
 use crate::generator::expression::operand::group::builder::Builder as GeneratorGroupExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
@@ -18,7 +20,6 @@ use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::expression::tuple::Expression as TupleExpression;
 
 ///
 /// The tuple semantic analyzer.

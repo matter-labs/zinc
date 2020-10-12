@@ -22,10 +22,10 @@ use crate::generator::expression::operand::constant::integer::Integer as Integer
 use crate::generator::expression::operand::place::Place;
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
 use crate::semantic::element::place::memory_type::MemoryType;
+use zinc_lexical::Location;
 
 use self::element::Element;
 use self::operand::Operand;

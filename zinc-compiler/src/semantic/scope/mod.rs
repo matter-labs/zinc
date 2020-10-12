@@ -16,17 +16,18 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::str;
 
+use zinc_lexical::Keyword;
+use zinc_lexical::Location;
+use zinc_syntax::ConstStatement;
+use zinc_syntax::ContractStatement;
+use zinc_syntax::Identifier;
+
 use crate::generator::statement::Statement as GeneratorStatement;
-use crate::lexical::token::lexeme::keyword::Keyword;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
 use crate::source::Source;
-use crate::syntax::tree::identifier::Identifier;
-use crate::syntax::tree::statement::contract::Statement as ContractStatement;
-use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
 use self::error::Error;
 use self::intrinsic::IntrinsicScope;

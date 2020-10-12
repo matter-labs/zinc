@@ -3,12 +3,12 @@
 //!
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::structure::error::Error as StructureConstantError;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
+use zinc_lexical::Location;
 
 #[test]
 fn error_field_does_not_exist() {

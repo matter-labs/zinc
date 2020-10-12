@@ -5,9 +5,10 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::Module as SyntaxModule;
+
 use crate::generator::statement::Statement as GeneratorStatement;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::module::Module as SyntaxModule;
 
 ///
 /// The definition state, which is either `declared` or `defined`.

@@ -5,6 +5,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::BlockExpression;
+use zinc_syntax::FunctionLocalStatement;
+
 use crate::generator::expression::operand::block::builder::Builder as GeneratorBlockExpressionBuilder;
 use crate::generator::expression::operand::block::Expression as GeneratorBlockExpression;
 use crate::generator::statement::Statement as GeneratorStatement;
@@ -19,8 +22,6 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::expression::block::Expression as BlockExpression;
-use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
 
 ///
 /// The block expression semantic analyzer.

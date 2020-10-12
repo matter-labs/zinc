@@ -36,13 +36,18 @@ use std::ops::Shr;
 use std::ops::Sub;
 use std::rc::Rc;
 
+use zinc_lexical::Location;
+use zinc_syntax::ExpressionOperand;
+use zinc_syntax::ExpressionOperator;
+use zinc_syntax::ExpressionTree;
+use zinc_syntax::ExpressionTreeNode;
+
 use crate::generator::expression::element::Element as GeneratorExpressionElement;
 use crate::generator::expression::operand::constant::integer::Integer as GeneratorExpressionIntegerConstant;
 use crate::generator::expression::operand::constant::Constant as GeneratorExpressionConstant;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::generator::expression::Expression as GeneratorExpression;
-use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::access::dot::Dot as DotAccess;
 use crate::semantic::element::constant::unit::Unit as UnitConstant;
@@ -59,10 +64,6 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
-use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
-use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
-use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 use self::array::Analyzer as ArrayAnalyzer;
 use self::block::Analyzer as BlockAnalyzer;

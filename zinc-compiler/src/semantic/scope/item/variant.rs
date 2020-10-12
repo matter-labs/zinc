@@ -4,9 +4,9 @@
 
 use std::fmt;
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::Constant as ConstantElement;
 use crate::semantic::scope::item::index::INDEX as ITEM_INDEX;
+use zinc_lexical::Location;
 
 ///
 /// The enumeration variant item, declared using an `enum` statement.

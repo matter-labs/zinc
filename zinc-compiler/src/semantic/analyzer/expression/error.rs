@@ -2,9 +2,9 @@
 //! The semantic analyzer expression error.
 //!
 
-use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::expression::conditional::error::Error as ConditionalExpressionError;
 use crate::semantic::analyzer::expression::r#match::error::Error as MatchExpressionError;
+use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer expression error.

@@ -6,7 +6,7 @@ pub mod error;
 
 use std::convert::TryFrom;
 
-use crate::syntax::tree::attribute::Attribute as SyntaxAttribute;
+use zinc_syntax::Attribute as SyntaxAttribute;
 
 use self::error::Error;
 

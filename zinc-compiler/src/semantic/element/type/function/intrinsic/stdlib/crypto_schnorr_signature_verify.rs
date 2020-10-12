@@ -7,13 +7,13 @@ use std::ops::Deref;
 
 use zinc_build::LibraryFunctionIdentifier;
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::scope::intrinsic::IntrinsicTypeId;
+use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer standard library `std::crypto::schnorr::Signature::verify` function element.

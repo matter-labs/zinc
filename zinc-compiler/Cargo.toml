@@ -24,6 +24,8 @@ num = "0.3"
 lazy_static = "1.4"
 petgraph = "0.5"
 
+zinc-lexical = { path = "../zinc-lexical", features = [ "file_index" ] }
+zinc-syntax = { path = "../zinc-syntax" }
 zinc-const = { path = "../zinc-const" }
 zinc-utils = { path = "../zinc-utils" }
 zinc-data = { path = "../zinc-data" }

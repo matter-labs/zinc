@@ -142,6 +142,8 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
+        let mut runtime = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
+
         let network = zksync::Network::from_str(self.network.as_str())
             .map(Network::from)
             .map_err(Error::NetworkInvalid)?;
@@ -291,21 +293,22 @@ impl IExecutable for Command {
         let signer_address = PackedEthSignature::address_from_private_key(&signer_private_key)
             .map_err(Error::SenderAddressDeriving)?;
 
-        let wallet_credentials = zksync::WalletCredentials::from_eth_pk(
-            signer_address,
-            signer_private_key,
-            network.into(),
-        )
-        .expect(zinc_const::panic::DATA_CONVERSION);
-        let wallet = tokio::runtime::Runtime::new()
-            .expect(zinc_const::panic::ASYNC_RUNTIME)
+        let wallet_credentials = runtime
+            .block_on(zksync::WalletCredentials::from_eth_signer(
+                signer_address,
+                zksync_eth_signer::EthereumSigner::from_key(signer_private_key),
+                network.into(),
+            ))
+            .expect(zinc_const::panic::DATA_CONVERSION);
+        let wallet = runtime
             .block_on(zksync::Wallet::new(
                 zksync::Provider::new(network.into()),
                 wallet_credentials,
             ))
             .map_err(Error::WalletInitialization)?;
 
-        let initial_transfer = crate::transaction::new_initial(&wallet, response.address)
+        let initial_transfer = runtime
+            .block_on(crate::transaction::new_initial(&wallet, response.address))
             .map_err(Error::Transaction)?;
 
         let mut http_response = http_client

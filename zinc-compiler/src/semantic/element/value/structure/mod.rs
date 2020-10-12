@@ -9,14 +9,15 @@ pub mod error;
 
 use std::fmt;
 
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
+use zinc_syntax::Identifier;
+
 use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::contract::Contract as ContractValue;
 use crate::semantic::element::value::Value;
-use crate::syntax::tree::identifier::Identifier;
 
 use self::error::Error;
 

@@ -19,8 +19,8 @@ use zinc_build::UnitTest as BuildUnitTest;
 
 use crate::generator::r#type::contract_field::ContractField as ContractFieldType;
 use crate::generator::r#type::Type;
-use crate::lexical::token::location::Location;
-use crate::source::file::index::INDEX as FILE_INDEX;
+use zinc_lexical::Location;
+use zinc_utils::FILE_INDEX;
 
 use self::entry::Entry;
 use self::optimizer::dead_function_code_elimination::Optimizer as DeadFunctionCodeEliminationOptimizer;

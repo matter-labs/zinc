@@ -7,6 +7,7 @@ pub(crate) mod response;
 pub(crate) mod source;
 pub(crate) mod transaction;
 pub(crate) mod transfer;
+pub(crate) mod utils;
 
 pub use self::request::call::Body as CallRequestBody;
 pub use self::request::call::Query as CallRequestQuery;
@@ -28,3 +29,7 @@ pub use self::source::Source;
 pub use self::transaction::Transaction;
 pub use self::transfer::error::Error as TransferError;
 pub use self::transfer::Transfer;
+pub use self::utils::eth_address_from_vec;
+pub use self::utils::eth_private_key_from_vec;
+pub use self::utils::num_compat_backward;
+pub use self::utils::num_compat_forward;

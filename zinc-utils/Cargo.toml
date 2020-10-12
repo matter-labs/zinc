@@ -10,13 +10,10 @@ description = "The Zinc common utilities"
 
 [dependencies]
 log = "0.4"
-failure = "0.1"
 env_logger = "0.7"
 colored = "2.0"
-
+failure = "0.1"
+lazy_static = "1.4"
 num = "0.3"
-
-zksync = { path = "../zksync/sdk/zksync-rs" }
-num_old = { package = "num", version = "0.2.1" }
 
 zinc-const = { path = "../zinc-const" }

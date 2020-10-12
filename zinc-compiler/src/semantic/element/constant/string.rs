@@ -4,10 +4,11 @@
 
 use std::fmt;
 
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
+use zinc_syntax::StringLiteral;
+
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
-use crate::syntax::tree::literal::string::Literal as StringLiteral;
 
 ///
 /// Simple wrapper around the `std::string::String` value.

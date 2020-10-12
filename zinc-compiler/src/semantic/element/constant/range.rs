@@ -6,9 +6,9 @@ use std::fmt;
 
 use num::BigInt;
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
+use zinc_lexical::Location;
 
 ///
 /// Range is a constant with the `start` and non-inclusive `end` bounds, sign, and bitlength.

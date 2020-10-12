@@ -5,9 +5,10 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::ConstStatement;
+
 use crate::semantic::element::constant::Constant as ConstantElement;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
 ///
 /// The definition state, which is either `declared` or `defined`.

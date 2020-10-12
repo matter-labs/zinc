@@ -13,7 +13,7 @@ use crate::generator::expression::operand::block::Expression as BlockExpression;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
 
 ///
 /// The conditional expression which is translated to a Zinc VM conditional.

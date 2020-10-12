@@ -21,10 +21,10 @@ use std::ops::Shr;
 use std::ops::Sub;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::enumeration::Enumeration;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
+use zinc_lexical::Location;
 
 use self::error::Error;
 

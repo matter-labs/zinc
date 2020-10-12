@@ -16,6 +16,8 @@ use num::BigInt;
 use num::Signed;
 use num::ToPrimitive;
 
+use zinc_syntax::Identifier;
+
 use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
 use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::access::dot::Dot as DotAccessVariant;
@@ -26,7 +28,6 @@ use crate::semantic::element::tuple_index::TupleIndex;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::scope::item::Item as ScopeItem;
-use crate::syntax::tree::identifier::Identifier;
 
 use self::element::Element as PlaceElement;
 use self::error::Error;

@@ -3,7 +3,6 @@
 //!
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
@@ -14,6 +13,7 @@ use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::memory_type::MemoryType as ScopeVariableItemMemoryType;
+use zinc_lexical::Location;
 
 #[test]
 fn error_argument_count_lesser() {

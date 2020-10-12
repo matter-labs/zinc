@@ -2,7 +2,7 @@
 //! The `dbg!` intrinsic function error.
 //!
 
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
 
 ///
 /// The `dbg!` intrinsic function error.

@@ -6,8 +6,12 @@ use std::cell::RefCell;
 use std::convert::TryFrom;
 use std::rc::Rc;
 
+use zinc_lexical::Keyword;
+use zinc_syntax::BindingPatternVariant;
+use zinc_syntax::FnStatement;
+use zinc_syntax::Identifier;
+
 use crate::generator::statement::r#fn::Statement as GeneratorFunctionStatement;
-use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::semantic::analyzer::attribute::Attribute;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
@@ -20,9 +24,6 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::identifier::Identifier;
-use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
-use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
 
 ///
 /// The context lets the analyzer know where the function is declared.

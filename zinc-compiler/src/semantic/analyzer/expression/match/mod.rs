@@ -12,6 +12,9 @@ use std::cell::RefCell;
 use std::convert::TryFrom;
 use std::rc::Rc;
 
+use zinc_syntax::MatchExpression;
+use zinc_syntax::MatchPatternVariant;
+
 use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
 use crate::generator::expression::operand::r#match::builder::Builder as GeneratorMatchExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
@@ -33,8 +36,6 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
-use crate::syntax::tree::pattern_match::variant::Variant as MatchPatternVariant;
 
 use self::exhausting::Data as ExhaustingData;
 

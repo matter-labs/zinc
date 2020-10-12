@@ -5,13 +5,14 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::StructStatement;
+
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::structure::error::Error as StructureTypeError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::statement::r#struct::Statement as StructStatement;
 
 ///
 /// The `struct` statement semantic analyzer.

@@ -2,9 +2,9 @@
 //! The semantic analyzer function error.
 //!
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::function::intrinsic::error::Error as IntrinsicFunctionError;
 use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
+use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer function error.

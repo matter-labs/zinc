@@ -1,4 +1,0 @@
-[project]
-name = "merkle"
-type = "circuit"
-version = "0.2.0"

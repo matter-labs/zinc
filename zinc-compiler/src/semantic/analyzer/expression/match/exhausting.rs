@@ -8,8 +8,8 @@ use num::BigInt;
 use num::One;
 use num::Zero;
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::enumeration::Enumeration;
+use zinc_lexical::Location;
 
 ///
 /// The object, describing the `match` expression exhaustion process.

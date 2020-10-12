@@ -15,8 +15,8 @@ use std::fmt;
 use std::rc::Rc;
 
 use crate::generator::statement::Statement as GeneratorStatement;
-use crate::lexical::token::location::Location;
 use crate::semantic::error::Error;
+use zinc_lexical::Location;
 
 use self::constant::Constant;
 use self::field::Field;

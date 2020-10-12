@@ -6,7 +6,10 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::lexical::token::lexeme::keyword::Keyword;
+use zinc_lexical::Keyword;
+use zinc_syntax::Module as SyntaxModule;
+use zinc_syntax::ModuleLocalStatement;
+
 use crate::semantic::analyzer::statement::module::Analyzer as ModStatementAnalyzer;
 use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
 use crate::semantic::analyzer::statement::r#impl::Analyzer as ImplStatementAnalyzer;
@@ -16,8 +19,6 @@ use crate::semantic::scope::item::r#type::statement::Statement as TypeStatementV
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::source::Source;
-use crate::syntax::tree::module::Module as SyntaxModule;
-use crate::syntax::tree::statement::local_mod::Statement as ModuleLocalStatement;
 
 ///
 /// Analyzes a module, which is not the application entry point.

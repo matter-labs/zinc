@@ -5,6 +5,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::Identifier;
+
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::expression::path::Translator as PathTranslator;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
@@ -12,7 +14,6 @@ use crate::semantic::element::path::Path;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::identifier::Identifier;
 
 ///
 /// The identifier semantic analyzer.

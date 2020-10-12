@@ -7,7 +7,7 @@ use std::str::FromStr;
 use num::BigInt;
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::intrinsic::error::Error as IntrinsicFunctionError;

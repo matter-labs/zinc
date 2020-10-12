@@ -11,7 +11,6 @@ use crate::generator::expression::element::Element as GeneratorExpressionElement
 use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
@@ -25,6 +24,7 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
+use zinc_lexical::Location;
 
 use self::r#type::Type as CallType;
 

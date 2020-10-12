@@ -9,12 +9,12 @@ pub mod error;
 
 use std::fmt;
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
 use crate::semantic::element::value::Value;
+use zinc_lexical::Location;
 
 use self::error::Error;
 

@@ -3,12 +3,12 @@
 //!
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 use crate::semantic::element::Error as ElementError;
 use crate::semantic::error::Error as SemanticError;
+use zinc_lexical::Location;
 
 #[test]
 fn error_call_forbidden() {

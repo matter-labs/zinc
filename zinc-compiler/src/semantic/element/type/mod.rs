@@ -21,7 +21,12 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
+use zinc_syntax::BlockExpression;
+use zinc_syntax::Type as SyntaxType;
+use zinc_syntax::TypeVariant as SyntaxTypeVariant;
+use zinc_syntax::Variant;
+
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
@@ -34,10 +39,6 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::item::r#type::index::INDEX as TYPE_INDEX;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::expression::block::Expression as BlockExpression;
-use crate::syntax::tree::r#type::variant::Variant as SyntaxTypeVariant;
-use crate::syntax::tree::r#type::Type as SyntaxType;
-use crate::syntax::tree::variant::Variant;
 
 use self::array::Array;
 use self::contract::field::Field as ContractField;

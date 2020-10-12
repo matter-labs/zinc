@@ -9,7 +9,6 @@ pub mod error;
 
 use std::fmt;
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::function::error::Error;
@@ -18,6 +17,7 @@ use crate::semantic::element::r#type::function::intrinsic::error::Error as Intri
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
+use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer `dbg!` intrinsic function element.

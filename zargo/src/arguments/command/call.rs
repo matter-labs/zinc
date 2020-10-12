@@ -125,6 +125,8 @@ impl IExecutable for Command {
     type Error = Error;
 
     fn execute(self) -> Result<(), Self::Error> {
+        let mut runtime = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
+
         let address = self.address["0x".len()..]
             .parse()
             .map_err(Error::InvalidContractAddress)?;
@@ -183,14 +185,14 @@ impl IExecutable for Command {
         let signer_address = PackedEthSignature::address_from_private_key(&signer_private_key)
             .map_err(Error::SenderAddressDeriving)?;
 
-        let wallet_credentials = zksync::WalletCredentials::from_eth_pk(
-            signer_address,
-            signer_private_key,
-            network.into(),
-        )
-        .expect(zinc_const::panic::DATA_CONVERSION);
-        let wallet = tokio::runtime::Runtime::new()
-            .expect(zinc_const::panic::ASYNC_RUNTIME)
+        let wallet_credentials = runtime
+            .block_on(zksync::WalletCredentials::from_eth_signer(
+                signer_address,
+                zksync_eth_signer::EthereumSigner::from_key(signer_private_key),
+                network.into(),
+            ))
+            .expect(zinc_const::panic::DATA_CONVERSION);
+        let wallet = runtime
             .block_on(zksync::Wallet::new(
                 zksync::Provider::new(network.into()),
                 wallet_credentials,
@@ -200,7 +202,12 @@ impl IExecutable for Command {
         let transfer = Transfer::try_from_json(&arguments.inner)
             .map_err(TransactionError::Parsing)
             .map_err(Error::Transaction)?;
-        let transaction = crate::transaction::try_into_zksync(transfer.clone(), &wallet, None)
+        let transaction = runtime
+            .block_on(crate::transaction::try_into_zksync(
+                transfer.clone(),
+                &wallet,
+                None,
+            ))
             .map_err(Error::Transaction)?;
 
         let http_client = HttpClient::new();
@@ -235,9 +242,13 @@ impl IExecutable for Command {
             .json::<FeeResponseBody>()
             .expect(zinc_const::panic::DATA_CONVERSION);
         let contract_fee = response.fee;
-        let transaction =
-            crate::transaction::try_into_zksync(transfer, &wallet, Some(contract_fee))
-                .map_err(Error::Transaction)?;
+        let transaction = runtime
+            .block_on(crate::transaction::try_into_zksync(
+                transfer,
+                &wallet,
+                Some(contract_fee),
+            ))
+            .map_err(Error::Transaction)?;
 
         let http_client = HttpClient::new();
         let mut http_response = http_client

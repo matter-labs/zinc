@@ -4,6 +4,10 @@
 
 use std::convert::TryFrom;
 
+use zinc_syntax::BooleanLiteral;
+use zinc_syntax::IntegerLiteral;
+use zinc_syntax::StringLiteral;
+
 use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
@@ -14,9 +18,6 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
-use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
-use crate::syntax::tree::literal::string::Literal as StringLiteral;
 
 ///
 /// The literal semantic analyzer.

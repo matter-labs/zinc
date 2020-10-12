@@ -28,14 +28,15 @@ use std::ops::Shl;
 use std::ops::Shr;
 use std::ops::Sub;
 
+use zinc_lexical::Location;
+use zinc_syntax::Identifier;
+
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::item::Item as ScopeItem;
-use crate::syntax::tree::identifier::Identifier;
 
 use self::access::dot::Dot as DotAccessVariant;
 use self::access::index::Index as IndexAccess;

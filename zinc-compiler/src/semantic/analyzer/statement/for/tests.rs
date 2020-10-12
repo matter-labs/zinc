@@ -3,7 +3,6 @@
 //!
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::statement::error::Error as StatementError;
 use crate::semantic::analyzer::statement::r#for::error::Error as ForStatementError;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
@@ -11,6 +10,7 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
+use zinc_lexical::Location;
 
 #[test]
 fn ok_ordinar() {

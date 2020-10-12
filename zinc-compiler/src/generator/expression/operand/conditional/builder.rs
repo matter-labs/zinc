@@ -5,7 +5,7 @@
 use crate::generator::expression::operand::block::Expression as BlockExpression;
 use crate::generator::expression::operand::conditional::Expression as ConditionalExpression;
 use crate::generator::expression::Expression as GeneratorExpression;
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
 
 ///
 /// The generator expression conditional operand builder.

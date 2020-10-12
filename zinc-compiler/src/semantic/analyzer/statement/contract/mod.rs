@@ -8,6 +8,10 @@ mod tests;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::ContractLocalStatement;
+use zinc_syntax::ContractStatement;
+use zinc_syntax::Identifier;
+
 use crate::generator::statement::contract::Statement as GeneratorContractStatement;
 use crate::semantic::analyzer::statement::field::Analyzer as FieldStatementAnalyzer;
 use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
@@ -16,9 +20,6 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::r#type::statement::Statement as TypeStatementVariant;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::identifier::Identifier;
-use crate::syntax::tree::statement::contract::Statement as ContractStatement;
-use crate::syntax::tree::statement::local_contract::Statement as ContractLocalStatement;
 
 ///
 /// The `contract` statement semantic analyzer.

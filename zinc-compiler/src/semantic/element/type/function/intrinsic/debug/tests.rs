@@ -3,7 +3,6 @@
 //!
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::intrinsic::debug::error::Error as DebugFunctionError;
@@ -12,6 +11,7 @@ use crate::semantic::element::r#type::function::intrinsic::error::Error as Intri
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Error as ElementError;
 use crate::semantic::error::Error as SemanticError;
+use zinc_lexical::Location;
 
 #[test]
 fn error_argument_count_lesser() {

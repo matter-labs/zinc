@@ -5,11 +5,11 @@
 use num::BigInt;
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::enumeration::error::Error as EnumerationTypeError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::error::Error as SemanticError;
+use zinc_lexical::Location;
 
 #[test]
 fn error_duplicate_field() {

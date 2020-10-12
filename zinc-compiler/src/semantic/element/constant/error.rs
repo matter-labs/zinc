@@ -2,12 +2,12 @@
 //! The semantic analyzer constant element error.
 //!
 
-use crate::lexical::token::location::Location;
 use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::constant::array::error::Error as ArrayConstantError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::constant::structure::error::Error as StructureConstantError;
 use crate::semantic::element::constant::tuple::error::Error as TupleConstantError;
+use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer constant element error.

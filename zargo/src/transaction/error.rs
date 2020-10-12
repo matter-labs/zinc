@@ -23,7 +23,7 @@ pub enum Error {
     AccountInfoRetrieving(zksync::error::ClientError),
     /// The transaction signing error.
     #[fail(display = "signing error: {}", _0)]
-    TransferSigning(zksync::error::SignerError),
+    TransactionSigning(zksync_eth_signer::error::SignerError),
 }
 
 impl From<zinc_data::TransferError> for Error {

@@ -12,13 +12,14 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
-use crate::lexical::token::lexeme::keyword::Keyword;
-use crate::lexical::token::location::Location;
+use zinc_lexical::Keyword;
+use zinc_lexical::Location;
+use zinc_syntax::Identifier;
+
 use crate::semantic::element::r#type::Type;
 use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::identifier::Identifier;
 
 use self::field::Field;
 

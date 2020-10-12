@@ -10,6 +10,8 @@ pub mod error;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::ConditionalExpression;
+
 use crate::generator::expression::operand::conditional::builder::Builder as GeneratorConditionalExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
@@ -25,7 +27,6 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
 
 ///
 /// The conditional expression semantic analyzer.

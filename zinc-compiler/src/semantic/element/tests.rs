@@ -5,7 +5,6 @@
 use num::BigInt;
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
@@ -13,6 +12,7 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
+use zinc_lexical::Location;
 
 #[test]
 fn error_operator_assignment_1st_operand_expected_place() {

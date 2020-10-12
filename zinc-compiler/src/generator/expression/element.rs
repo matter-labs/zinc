@@ -4,7 +4,7 @@
 
 use crate::generator::expression::operand::Operand;
 use crate::generator::expression::operator::Operator;
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
 
 ///
 /// The bytecode generator expression element.

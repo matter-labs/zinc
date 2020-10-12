@@ -14,7 +14,7 @@ use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::r#type::Type;
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
 
 use num::BigInt;
 use num::One;

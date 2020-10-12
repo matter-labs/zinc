@@ -9,7 +9,9 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
+use zinc_syntax::BlockExpression;
+
 use crate::semantic::analyzer::expression::block::Analyzer as BlockExpressionAnalyzer;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
@@ -23,7 +25,6 @@ use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::item::constant::Constant as ScopeConstantItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::expression::block::Expression as BlockExpression;
 
 ///
 /// The semantic analyzer constant function element.

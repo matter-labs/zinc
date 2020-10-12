@@ -56,8 +56,8 @@ async fn main() -> Result<(), Error> {
 
     let mut contracts = HashMap::with_capacity(database_data.len());
     for contract in database_data.into_iter() {
-        let eth_address = zinc_utils::eth_address_from_vec(contract.eth_address);
-        let eth_private_key = zinc_utils::eth_private_key_from_vec(contract.eth_private_key);
+        let eth_address = zinc_data::eth_address_from_vec(contract.eth_address);
+        let eth_private_key = zinc_data::eth_private_key_from_vec(contract.eth_private_key);
 
         log::info!(
             "{} instance `{}` of the contract `{} v{}` with address {}",
@@ -79,8 +79,12 @@ async fn main() -> Result<(), Error> {
         };
 
         let provider = zksync::Provider::new(network);
-        let wallet_credentials =
-            zksync::WalletCredentials::from_eth_pk(eth_address, eth_private_key, network)?;
+        let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
+            eth_address,
+            zksync_eth_signer::EthereumSigner::from_key(eth_private_key),
+            network,
+        )
+        .await?;
         let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
 
         let database_fields = postgresql

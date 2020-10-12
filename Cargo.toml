@@ -1,12 +1,13 @@
 [workspace]
 members = [
-    "zargo",
-
+    "zinc-lexical",
+    "zinc-syntax",
     "zinc-compiler",
+
     "zinc-tester",
     "zinc-vm",
+    "zargo",
     "zandbox",
-    "schnorr",
 
     "zinc-data",
     "zinc-build",

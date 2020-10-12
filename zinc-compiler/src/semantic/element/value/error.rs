@@ -2,13 +2,13 @@
 //! The semantic analyzer value element error.
 //!
 
-use crate::lexical::token::location::Location;
 use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::value::array::error::Error as ArrayValueError;
 use crate::semantic::element::value::contract::error::Error as ContractValueError;
 use crate::semantic::element::value::integer::error::Error as IntegerValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::element::value::tuple::error::Error as TupleValueError;
+use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer value element error.

@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
 
 ///
 /// A tuple expression field identifier, e.g. `(1, 2, 3).2`.

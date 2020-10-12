@@ -8,14 +8,15 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
-use crate::lexical::token::location::Location;
+use zinc_lexical::Location;
+use zinc_syntax::ConstStatement;
+
 use crate::semantic::analyzer::statement::r#const::Analyzer as ConstStatementAnalyzer;
 use crate::semantic::element::constant::Constant as ConstantElement;
 use crate::semantic::error::Error;
 use crate::semantic::scope::error::Error as ScopeError;
 use crate::semantic::scope::item::index::INDEX as ITEM_INDEX;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
 use self::state::State;
 

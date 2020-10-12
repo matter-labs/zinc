@@ -1,0 +1,17 @@
+[package]
+name = "zinc-lexical"
+version = "0.2.0"
+authors = [
+    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
+]
+edition = "2018"
+description = "The Zinc compiler lexical analyzer"
+
+[dependencies]
+log = "0.4"
+
+zinc-const = { path = "../zinc-const" }
+zinc-utils = { path = "../zinc-utils", optional = true }
+
+[features]
+file_index = [ "zinc-utils" ]

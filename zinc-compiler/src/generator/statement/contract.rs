@@ -8,8 +8,8 @@ use std::rc::Rc;
 use crate::generator::r#type::contract_field::ContractField as ContractFieldType;
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::contract::field::Field as SemanticContractFieldType;
+use zinc_lexical::Location;
 
 ///
 /// The Zinc VM storage memory allocating statement.

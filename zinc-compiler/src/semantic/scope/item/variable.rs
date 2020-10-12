@@ -4,10 +4,10 @@
 
 use std::fmt;
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::scope::item::index::INDEX as ITEM_INDEX;
 use crate::semantic::scope::memory_type::MemoryType;
+use zinc_lexical::Location;
 
 ///
 /// The variable item, declared using a `let` statement.

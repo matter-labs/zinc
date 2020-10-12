@@ -3,10 +3,10 @@
 //!
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::statement::error::Error as StatementError;
 use crate::semantic::analyzer::statement::r#impl::error::Error as ImplStatementError;
 use crate::semantic::error::Error as SemanticError;
+use zinc_lexical::Location;
 
 #[test]
 fn ok_structure_constructor() {

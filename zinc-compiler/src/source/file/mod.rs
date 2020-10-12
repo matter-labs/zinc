@@ -3,13 +3,16 @@
 //!
 
 pub mod error;
-pub mod index;
 
 use std::cell::RefCell;
 use std::fs;
 use std::io::Read;
 use std::path::PathBuf;
 use std::rc::Rc;
+
+use zinc_syntax::Module as SyntaxModule;
+use zinc_syntax::Parser;
+use zinc_utils::FILE_INDEX;
 
 use crate::error::Error as CompilerError;
 use crate::generator::module::Module;
@@ -18,11 +21,8 @@ use crate::generator::IBytecodeWritable;
 use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 use crate::source::error::Error as SourceError;
 use crate::source::Source;
-use crate::syntax::parser::Parser;
-use crate::syntax::tree::module::Module as SyntaxModule;
 
 use self::error::Error;
-use self::index::INDEX;
 
 ///
 /// The Zinc source code file, which consists of its path and parsed syntax tree.
@@ -46,10 +46,10 @@ impl File {
     pub fn try_from_string(file: zinc_data::File) -> Result<Self, SourceError> {
         let path = PathBuf::from(file.path);
 
-        let next_file_id = INDEX.next(&path, file.code);
+        let next_file_id = FILE_INDEX.next(&path, file.code);
         let tree = Parser::default()
             .parse(
-                INDEX
+                FILE_INDEX
                     .inner
                     .read()
                     .expect(zinc_const::panic::SYNCHRONIZATION)
@@ -59,6 +59,7 @@ impl File {
                     .as_str(),
                 next_file_id,
             )
+            .map_err(CompilerError::from)
             .map_err(|error| error.format())
             .map_err(SourceError::Compiling)?;
 
@@ -105,10 +106,10 @@ impl File {
             .to_string_lossy()
             .to_string();
 
-        let next_file_id = INDEX.next(path, code);
+        let next_file_id = FILE_INDEX.next(path, code);
         let tree = Parser::default()
             .parse(
-                INDEX
+                FILE_INDEX
                     .inner
                     .read()
                     .expect(zinc_const::panic::SYNCHRONIZATION)
@@ -118,6 +119,7 @@ impl File {
                     .as_str(),
                 next_file_id,
             )
+            .map_err(CompilerError::from)
             .map_err(|error| error.format())
             .map_err(SourceError::Compiling)?;
 
@@ -169,11 +171,11 @@ impl File {
     /// Initializes a test module file.
     ///
     pub fn test(code: &str, path: PathBuf) -> Result<Self, CompilerError> {
-        let next_file_id = INDEX.peek();
+        let next_file_id = FILE_INDEX.peek();
 
         let tree = Parser::default().parse(code, next_file_id)?;
 
-        INDEX.next(&path, code.to_owned());
+        FILE_INDEX.next(&path, code.to_owned());
 
         Ok(Self {
             path,

@@ -10,6 +10,7 @@ use num::Zero;
 
 use zinc_build::Instruction;
 use zinc_build::ScalarType;
+use zinc_syntax::Identifier;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::state::State;
@@ -17,7 +18,6 @@ use crate::generator::IBytecodeWritable;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
 use crate::semantic::element::place::memory_type::MemoryType;
 use crate::semantic::element::place::Place as SemanticPlace;
-use crate::syntax::tree::identifier::Identifier;
 
 ///
 /// The bytecode generator memory place representation.

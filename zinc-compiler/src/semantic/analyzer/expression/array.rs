@@ -5,6 +5,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_syntax::ArrayExpression;
+use zinc_syntax::ArrayExpressionVariant;
+
 use crate::generator::expression::operand::array::builder::Builder as GeneratorArrayExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
@@ -21,8 +24,6 @@ use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::expression::array::variant::Variant as ArrayExpressionVariant;
-use crate::syntax::tree::expression::array::Expression as ArrayExpression;
 
 ///
 /// The array semantic analyzer.

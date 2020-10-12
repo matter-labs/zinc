@@ -27,8 +27,10 @@ use std::ops::Shl;
 use std::ops::Shr;
 use std::ops::Sub;
 
+use zinc_lexical::Location;
+use zinc_syntax::Identifier;
+
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
-use crate::lexical::token::location::Location;
 use crate::semantic::casting::Caster;
 use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::access::dot::Dot as DotAccessVariant;
@@ -38,7 +40,6 @@ use crate::semantic::element::place::Place;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
-use crate::syntax::tree::identifier::Identifier;
 
 use self::array::Array;
 use self::boolean::Boolean;

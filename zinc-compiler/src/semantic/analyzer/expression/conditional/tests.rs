@@ -3,11 +3,11 @@
 //!
 
 use crate::error::Error;
-use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::expression::conditional::error::Error as ConditionalExpressionError;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
+use zinc_lexical::Location;
 
 #[test]
 fn ok_simple() {
