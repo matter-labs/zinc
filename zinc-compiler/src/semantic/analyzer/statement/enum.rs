@@ -25,6 +25,7 @@ impl Analyzer {
             statement.location,
             statement.identifier.name.clone(),
             statement.variants,
+            vec![],
             Some(scope),
         )?;
 

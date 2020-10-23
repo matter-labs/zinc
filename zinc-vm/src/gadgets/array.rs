@@ -48,7 +48,7 @@ where
     Ok(array[i].clone())
 
     //            let mut cs = cs.namespace(|| "index");
-    //            let num_bits = zinc_utils::log2ceil(array.len());
+    //            let num_bits = zinc_math::log2ceil(array.len());
     //            let bits_le = index
     //                .to_expression::<CS>()
     //                .into_bits_le_fixed(cs.namespace(|| "into_bits"), num_bits)?;

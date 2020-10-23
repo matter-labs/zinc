@@ -2,7 +2,6 @@
 //! The Zinc virtual machine subcommand.
 //!
 
-pub mod debug;
 pub mod prove;
 pub mod run;
 pub mod setup;
@@ -13,7 +12,6 @@ use structopt::StructOpt;
 
 use crate::error::Error;
 
-use self::debug::Command as DebugCommand;
 use self::prove::Command as ProveCommand;
 use self::run::Command as RunCommand;
 use self::setup::Command as SetupCommand;
@@ -41,8 +39,6 @@ pub trait IExecutable {
 pub enum Command {
     /// Executes the bytecode and prints its output.
     Run(RunCommand),
-    /// Executes the bytecode with additional checks.
-    Debug(DebugCommand),
     /// Executes a unit test.
     Test(TestCommand),
     /// Generates a pair of proving and verifying keys.
@@ -59,7 +55,6 @@ impl IExecutable for Command {
     fn execute(self) -> Result<i32, Self::Error> {
         match self {
             Command::Run(inner) => inner.execute(),
-            Command::Debug(inner) => inner.execute(),
             Command::Test(inner) => inner.execute(),
             Command::Setup(inner) => inner.execute(),
             Command::Prove(inner) => inner.execute(),

@@ -7,10 +7,10 @@ use colored::Colorize;
 use zinc_lexical::Error as LexicalError;
 use zinc_lexical::Keyword;
 use zinc_lexical::Location;
+use zinc_lexical::FILE_INDEX;
+use zinc_math::InferenceError;
 use zinc_syntax::Error as SyntaxError;
 use zinc_syntax::ParsingError;
-use zinc_utils::InferenceError;
-use zinc_utils::FILE_INDEX;
 
 use crate::semantic::analyzer::attribute::error::Error as AttributeError;
 use crate::semantic::analyzer::expression::conditional::error::Error as ConditionalExpressionError;
@@ -1561,19 +1561,19 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Integer(IntegerConstantError::Parsing { location, inner: zinc_utils::BigIntError::NumberParsing(inner) })))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Integer(IntegerConstantError::Parsing { location, inner: zinc_math::BigIntError::NumberParsing(inner) })))) => {
                 Self::format_line(format!("The number parsing error: {}", inner).as_str(),
                                   location,
                                   None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Integer(IntegerConstantError::Parsing { location, inner: zinc_utils::BigIntError::ExponentParsing(inner) })))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Integer(IntegerConstantError::Parsing { location, inner: zinc_math::BigIntError::ExponentParsing(inner) })))) => {
                 Self::format_line(format!("The exponent value parsing error: {}", inner).as_str(),
                                   location,
                                   None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Integer(IntegerConstantError::Parsing { location, inner: zinc_utils::BigIntError::ExponentTooSmall(exponent) })))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Integer(IntegerConstantError::Parsing { location, inner: zinc_math::BigIntError::ExponentTooSmall(exponent) })))) => {
                 Self::format_line(format!("The exponent value `{}` is too small", exponent).as_str(),
                                    location,
                                    Some("The exponent value must be equals or greater than the number of fractional digits"),
@@ -1587,6 +1587,16 @@ impl Error {
                         .as_str(),
                     location,
                     None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::UnexpectedGenerics { location, r#type }))) => {
+                Self::format_line( format!(
+                    "type `{}` got unexpected generics",
+                    r#type
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
                 )
             }
             Self::Semantic(SemanticError::Scope(ScopeError::ItemRedeclared { location, name, reference })) => {
@@ -1856,6 +1866,36 @@ impl Error {
                         .as_str(),
                     location,
                     Some("consider giving the field a unique name"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Structure(StructureTypeError::ExpectedGenerics { location, type_identifier, expected })))) => {
+                Self::format_line( format!(
+                    "structure `{}` expected {} generic arguments",
+                    type_identifier, expected,
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Structure(StructureTypeError::UnexpectedGenerics { location, type_identifier })))) => {
+                Self::format_line( format!(
+                    "structure `{}` got unexpected generic arguments",
+                    type_identifier,
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Structure(StructureTypeError::InvalidGenericsNumber { location, type_identifier, expected, found })))) => {
+                Self::format_line( format!(
+                    "structure `{}` expected {} generic arguments, found {}",
+                    type_identifier, expected, found,
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
                 )
             }
             Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Enumeration(EnumerationTypeError::DuplicateVariantValue { location, type_identifier, variant_name, variant_value })))) => {

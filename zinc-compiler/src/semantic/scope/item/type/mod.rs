@@ -32,7 +32,7 @@ use self::statement::Statement as TypeStatementVariant;
 ///
 #[derive(Debug, Clone)]
 pub struct Type {
-    /// The location where the type was declared. `None` for intrinsic items.
+    /// The location where the type was declared. `None` for intrinsic types.
     pub location: Option<Location>,
     /// The unique type ID, allocated upon declaration.
     pub item_id: usize,

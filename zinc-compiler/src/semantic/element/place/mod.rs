@@ -319,6 +319,7 @@ impl Place {
                 if let Ok(item) = item {
                     if let ScopeItem::Field(ref field) = *item.borrow() {
                         let element_size = field.r#type.size();
+
                         let access = DotAccessVariant::ContractField(ContractFieldAccess::new(
                             identifier.name,
                             field.index,
@@ -326,6 +327,7 @@ impl Place {
                             element_size,
                             total_size,
                             field.is_immutable,
+                            field.r#type.is_mtreemap(),
                         ));
 
                         self.r#type = field.r#type.to_owned();
@@ -356,9 +358,9 @@ impl Place {
     }
 
     ///
-    /// Whether the place path contains an implicit contract storage field.
+    /// Whether the place path contains an immutable contract storage field.
     ///
-    pub fn check_implicit_field(&self) -> Option<String> {
+    pub fn check_immutable_field(&self) -> Option<String> {
         for element in self.elements.iter() {
             match element {
                 PlaceElement::ContractField { access } if access.is_immutable => {

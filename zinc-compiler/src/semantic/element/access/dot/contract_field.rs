@@ -22,6 +22,11 @@ pub struct ContractField {
     pub total_size: usize,
     /// Whether the field is immutable.
     pub is_immutable: bool,
+    /// Whether the field is an `std::collections::MTreeMap`, which is treated specially.
+    /// For this type the `StorageLoad` instruction is not created, so the storage field index
+    /// remains on the evaluation stack in order to be used by the `MTreeMap` methods as the
+    /// instance argument, which is simply the map's position in the contract storage.
+    pub is_mtreemap: bool,
 }
 
 impl ContractField {
@@ -35,6 +40,7 @@ impl ContractField {
         element_size: usize,
         total_size: usize,
         is_immutable: bool,
+        is_mtreemap: bool,
     ) -> Self {
         Self {
             name,
@@ -43,6 +49,7 @@ impl ContractField {
             element_size,
             total_size,
             is_immutable,
+            is_mtreemap,
         }
     }
 }

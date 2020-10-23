@@ -90,7 +90,6 @@ mod tests {
     /// }
     ///
     fn test_data_stack() -> Result<(), TestingError> {
-        let _ = env_logger::builder().is_test(true).try_init();
         let data = [(1, 1), (0, -1)];
 
         for (c, r) in data.iter() {
@@ -115,6 +114,7 @@ mod tests {
                 .push(zinc_build::Load::new(0, 1))
                 .test(&[*r])?;
         }
+
         Ok(())
     }
 }

@@ -44,6 +44,14 @@ impl Index {
             "structure std::crypto::schnorr::Signature".to_owned(),
             IntrinsicTypeId::StdCryptoSchnorrSignature as usize,
         );
+        index.next_with_id(
+            "structure zksync::Transaction".to_owned(),
+            IntrinsicTypeId::ZkSyncTransaction as usize,
+        );
+        index.next_with_id(
+            "structure std::collections::MTreeMap".to_owned(),
+            IntrinsicTypeId::StdCollectionsMTreeMap as usize,
+        );
         index
     }
 

@@ -142,6 +142,7 @@ impl Contract {
                     r#type.size(),
                     total_size,
                     false,
+                    r#type.is_mtreemap(),
                 );
 
                 let result = Value::try_from_type(r#type, false, self.location)

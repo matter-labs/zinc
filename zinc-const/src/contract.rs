@@ -25,3 +25,9 @@ pub static FIELD_NAME_BALANCES: &str = "balances";
 
 /// The second default implicit field name.
 pub const ARRAY_SIZE_BALANCES: usize = 2;
+
+/// The implicit transaction variable name.
+pub static TRANSACTION_VARIABLE_NAME: &str = "msg";
+
+/// The implicit transaction variable size.
+pub const TRANSACTION_SIZE: usize = 4;

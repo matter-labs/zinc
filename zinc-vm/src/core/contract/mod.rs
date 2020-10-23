@@ -3,11 +3,13 @@
 //!
 
 pub mod facade;
+pub mod input;
 pub mod output;
 pub mod storage;
 pub mod synthesizer;
 
 use colored::Colorize;
+use num::bigint::Sign;
 use num::bigint::ToBigInt;
 use num::BigInt;
 
@@ -17,7 +19,9 @@ use zinc_build::Contract as BytecodeContract;
 use zinc_build::IntegerType;
 use zinc_build::ScalarType;
 use zinc_build::Type as BuildType;
+use zinc_zksync::TransactionMsg;
 
+use crate::core::contract::storage::leaf::LeafVariant;
 use crate::core::counter::NamespaceCounter;
 use crate::core::execution_state::block::branch::Branch;
 use crate::core::execution_state::block::r#loop::Loop;
@@ -51,8 +55,8 @@ where
 
     storage: StorageGadget<E, S, H>,
     method_name: String,
+    transaction: Option<TransactionMsg>,
 
-    pub(crate) debugging: bool,
     pub(crate) location: Location,
 }
 
@@ -67,7 +71,7 @@ where
         cs: CS,
         storage: StorageGadget<E, S, H>,
         method_name: String,
-        debugging: bool,
+        transaction: TransactionMsg,
     ) -> Self {
         Self {
             counter: NamespaceCounter::new(cs),
@@ -76,12 +80,13 @@ where
 
             storage,
             method_name,
+            transaction: Some(transaction),
 
-            debugging,
             location: Location::new(),
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn run<CB, F>(
         &mut self,
         contract: BytecodeContract,
@@ -109,6 +114,7 @@ where
             .frames_stack
             .push(Frame::new(0, std::usize::MAX));
         self.init_root_frame(input_type, input_values)?;
+
         if let Err(error) = zinc_build::Call::new(address, input_size)
             .execute(self)
             .and(check_cs(&self.counter.cs))
@@ -116,6 +122,7 @@ where
             log::error!("{}\nat {}", error, self.location.to_string().blue());
             return Err(error);
         }
+
         self.init_storage()?;
 
         let mut step = 0;
@@ -239,6 +246,7 @@ where
 {
     type E = E;
     type CS = CS;
+    type S = S;
 
     fn push(&mut self, cell: Cell<E>) -> Result<(), RuntimeError> {
         self.execution_state.evaluation_stack.push(cell)
@@ -276,7 +284,7 @@ where
     fn storage_store(
         &mut self,
         index: Scalar<Self::E>,
-        values: Vec<Scalar<Self::E>>,
+        values: LeafVariant<Self::E>,
     ) -> Result<(), RuntimeError> {
         self.storage.store(self.counter.next(), index, values)
     }
@@ -322,9 +330,55 @@ where
             .frames_stack
             .push(Frame::new(offset, self.execution_state.instruction_counter));
 
+        let transaction_offset = if let Some(transaction) = self.transaction.take() {
+            let sender: [u8; zinc_const::size::ETH_ADDRESS] = transaction.sender.into();
+            let sender = gadgets::witness::allocate(
+                self.counter.next(),
+                Some(&BigInt::from_bytes_be(
+                    Sign::Plus,
+                    sender.to_vec().as_slice(),
+                )),
+                ScalarType::Integer(IntegerType::ETH_ADDRESS),
+            )?;
+            self.store(0, Cell::Value(sender))?;
+
+            let recipient: [u8; zinc_const::size::ETH_ADDRESS] = transaction.recipient.into();
+            let recipient = gadgets::witness::allocate(
+                self.counter.next(),
+                Some(&BigInt::from_bytes_be(
+                    Sign::Plus,
+                    recipient.to_vec().as_slice(),
+                )),
+                ScalarType::Integer(IntegerType::ETH_ADDRESS),
+            )?;
+            self.store(1, Cell::Value(recipient))?;
+
+            let token_id = gadgets::witness::allocate(
+                self.counter.next(),
+                Some(&transaction.token_id.into()),
+                ScalarType::Integer(IntegerType::U16),
+            )?;
+            self.store(2, Cell::Value(token_id))?;
+
+            let amount = gadgets::witness::allocate(
+                self.counter.next(),
+                Some(
+                    &zinc_zksync::num_compat_forward(transaction.amount)
+                        .to_bigint()
+                        .expect(zinc_const::panic::DATA_CONVERSION),
+                ),
+                ScalarType::Integer(IntegerType::BALANCE),
+            )?;
+            self.store(3, Cell::Value(amount))?;
+
+            zinc_const::contract::TRANSACTION_SIZE
+        } else {
+            0
+        };
+
         for i in 0..inputs_count {
             let arg = self.pop()?;
-            self.store(inputs_count - i - 1, arg)?;
+            self.store(transaction_offset + inputs_count - i - 1, arg)?;
         }
 
         self.execution_state.instruction_counter = address;
@@ -483,11 +537,15 @@ where
         Ok(())
     }
 
-    fn call_native<F: INativeCallable<E>>(&mut self, function: F) -> Result<(), RuntimeError> {
+    fn call_native<F: INativeCallable<E, S>>(&mut self, function: F) -> Result<(), RuntimeError> {
         let state = &mut self.execution_state;
         let cs = &mut self.counter.cs;
 
-        function.call(cs.namespace(|| "native function"), state)
+        function.call(
+            cs.namespace(|| "native function"),
+            state,
+            Some(self.storage.as_mut()),
+        )
     }
 
     fn condition_top(&mut self) -> Result<Scalar<E>, RuntimeError> {
@@ -500,10 +558,6 @@ where
 
     fn constraint_system(&mut self) -> &mut CS {
         &mut self.counter.cs
-    }
-
-    fn is_debugging(&self) -> bool {
-        self.debugging
     }
 
     fn get_location(&mut self) -> Location {

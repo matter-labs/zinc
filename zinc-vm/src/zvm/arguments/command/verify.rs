@@ -36,9 +36,9 @@ pub struct Command {
     #[structopt(long = "verifying-key")]
     pub verifying_key_path: PathBuf,
 
-    /// The path to the public data JSON file.
-    #[structopt(long = "public-data")]
-    pub public_data_path: PathBuf,
+    /// The path to the output JSON file.
+    #[structopt(long = "output")]
+    pub output_path: PathBuf,
 
     /// The method name to call, if the application is a contract.
     #[structopt(long = "method")]
@@ -77,8 +77,8 @@ impl IExecutable for Command {
             .error_with_path(|| self.verifying_key_path.to_string_lossy())?;
 
         // Read the public input
-        let output_text = fs::read_to_string(&self.public_data_path)
-            .error_with_path(|| self.public_data_path.to_string_lossy())?;
+        let output_text = fs::read_to_string(&self.output_path)
+            .error_with_path(|| self.output_path.to_string_lossy())?;
         let output_json = serde_json::from_str(output_text.as_str())?;
         let output_type = match application {
             BuildApplication::Circuit(circuit) => circuit.output,

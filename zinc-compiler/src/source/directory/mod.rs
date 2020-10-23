@@ -10,6 +10,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use zinc_manifest::Manifest;
+
 use crate::error::Error as CompilerError;
 use crate::generator::module::Module;
 use crate::generator::state::State;
@@ -42,7 +44,7 @@ impl Directory {
     /// Initializes an application directory from string data.
     ///
     pub fn try_from_string(
-        directory: zinc_data::Directory,
+        directory: zinc_source::Directory,
         is_entry: bool,
     ) -> Result<Self, SourceError> {
         let path = PathBuf::from(directory.path);
@@ -52,7 +54,7 @@ impl Directory {
 
         for (name, module) in directory.modules.into_iter() {
             match module {
-                zinc_data::Source::File(file) => {
+                zinc_source::Source::File(file) => {
                     if is_entry && file.is_module_entry() {
                         return Err(SourceError::Directory(Error::ModuleEntryInRoot));
                     }
@@ -69,7 +71,7 @@ impl Directory {
                         dependencies.insert(name, Source::File(file));
                     }
                 }
-                zinc_data::Source::Directory(directory) => {
+                zinc_source::Source::Directory(directory) => {
                     let directory = Self::try_from_string(directory, false)?;
 
                     dependencies.insert(name, Source::Directory(directory));
@@ -153,13 +155,13 @@ impl Directory {
     /// Gets all the intermediate representation scattered around the application scope tree and
     /// writes it to the bytecode.
     ///
-    pub fn compile(self, name: String) -> Result<Rc<RefCell<State>>, SourceError> {
+    pub fn compile(self, manifest: Manifest) -> Result<Rc<RefCell<State>>, SourceError> {
         let scope = EntryAnalyzer::define(Source::Directory(self))
             .map_err(CompilerError::Semantic)
             .map_err(|error| error.format())
             .map_err(SourceError::Compiling)?;
 
-        let state = State::new(name).wrap();
+        let state = State::new(manifest).wrap();
         Module::new(scope.borrow().get_intermediate()).write_all(state.clone());
 
         Ok(state)

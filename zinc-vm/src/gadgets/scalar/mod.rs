@@ -303,6 +303,12 @@ impl<E: IEngine> Scalar<E> {
     }
 }
 
+impl<E: IEngine> PartialEq<Self> for Scalar<E> {
+    fn eq(&self, other: &Self) -> bool {
+        self.to_bigint() == other.to_bigint()
+    }
+}
+
 impl<E: IEngine> ToBigInt for Scalar<E> {
     fn to_bigint(&self) -> Option<BigInt> {
         self.get_value()

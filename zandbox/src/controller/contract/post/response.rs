@@ -5,4 +5,4 @@
 ///
 /// The contract resource POST response body.
 ///
-pub type Body = zinc_data::PublishResponseBody;
+pub type Body = zinc_zksync::PublishResponseBody;

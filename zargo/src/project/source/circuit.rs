@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
-use serde_derive::Deserialize;
+use serde::Deserialize;
 
 use crate::error::file::Error as FileError;
 

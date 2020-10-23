@@ -108,10 +108,9 @@ impl Analyzer {
                     storage_fields.len(),
                 )?;
 
-                storage_fields.push(ContractFieldType::try_from_syntax(
-                    statement,
-                    scope.clone(),
-                )?);
+                let field = ContractFieldType::try_from_syntax(statement, scope.clone())?;
+
+                storage_fields.push(field);
             }
         }
 
@@ -120,7 +119,7 @@ impl Analyzer {
             statement.identifier.name,
             storage_fields.clone(),
             Some(scope.clone()),
-        );
+        )?;
 
         scope.borrow().define()?;
 

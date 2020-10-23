@@ -6,8 +6,8 @@ use std::fmt;
 
 use num::BigInt;
 use num::Zero;
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use serde::Deserialize;
+use serde::Serialize;
 
 ///
 /// The Zinc VM scalar integer type.
@@ -24,37 +24,43 @@ impl Type {
     /// An auxiliary internal type.
     pub const U1: Self = Type {
         is_signed: false,
-        bitlength: 1,
+        bitlength: zinc_const::bitlength::BOOLEAN,
     };
 
     /// An auxiliary internal type.
     pub const U8: Self = Type {
         is_signed: false,
-        bitlength: 8,
+        bitlength: zinc_const::bitlength::BYTE,
     };
 
     /// An auxiliary internal type.
     pub const I8: Self = Type {
         is_signed: true,
-        bitlength: 8,
+        bitlength: zinc_const::bitlength::BYTE,
     };
 
     /// An auxiliary internal type.
     pub const U16: Self = Type {
         is_signed: false,
-        bitlength: 16,
+        bitlength: zinc_const::bitlength::BYTE * 2,
     };
 
     /// An auxiliary internal type.
     pub const I16: Self = Type {
         is_signed: true,
-        bitlength: 16,
+        bitlength: zinc_const::bitlength::BYTE * 2,
     };
 
     /// An auxiliary internal type.
     pub const ETH_ADDRESS: Self = Type {
         is_signed: false,
-        bitlength: 160,
+        bitlength: zinc_const::bitlength::ETH_ADDRESS,
+    };
+
+    /// An auxiliary internal type.
+    pub const BALANCE: Self = Type {
+        is_signed: false,
+        bitlength: zinc_const::bitlength::BALANCE,
     };
 
     ///

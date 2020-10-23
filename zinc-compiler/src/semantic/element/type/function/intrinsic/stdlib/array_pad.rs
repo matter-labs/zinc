@@ -6,6 +6,7 @@ use std::fmt;
 use std::ops::Deref;
 
 use zinc_build::LibraryFunctionIdentifier;
+use zinc_lexical::Location;
 
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::constant::Constant;
@@ -15,7 +16,6 @@ use crate::semantic::element::r#type::function::intrinsic::stdlib::error::Error 
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
-use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer standard library `std::array::pad` function element.
@@ -59,11 +59,7 @@ impl Function {
     ///
     /// Calls the function with the `argument_list`, validating the call.
     ///
-    pub fn call(
-        self,
-        location: Option<Location>,
-        argument_list: ArgumentList,
-    ) -> Result<Type, Error> {
+    pub fn call(self, location: Location, argument_list: ArgumentList) -> Result<Type, Error> {
         let mut actual_params = Vec::with_capacity(argument_list.arguments.len());
         for (index, element) in argument_list.arguments.into_iter().enumerate() {
             let location = element.location();
@@ -115,7 +111,7 @@ impl Function {
                 }
                 None => {
                     return Err(Error::ArgumentCount {
-                        location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                        location,
                         function: self.identifier.to_owned(),
                         expected: Self::ARGUMENT_COUNT,
                         found: actual_params.len(),
@@ -147,7 +143,7 @@ impl Function {
             }
             None => {
                 return Err(Error::ArgumentCount {
-                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                    location,
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT,
                     found: actual_params.len(),
@@ -171,7 +167,7 @@ impl Function {
             }
             None => {
                 return Err(Error::ArgumentCount {
-                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                    location,
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT,
                     found: actual_params.len(),
@@ -182,7 +178,7 @@ impl Function {
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
             return Err(Error::ArgumentCount {
-                location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                location,
                 function: self.identifier.to_owned(),
                 expected: Self::ARGUMENT_COUNT,
                 found: actual_params.len(),
@@ -193,14 +189,14 @@ impl Function {
         if new_length < input_array_size {
             return Err(Error::Intrinsic(IntrinsicError::StandardLibrary(
                 StdlibError::ArrayPaddingToLesserSize {
-                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                    location,
                     from: input_array_size,
                     to: new_length,
                 },
             )));
         }
 
-        Ok(Type::array(location, input_array_type, new_length))
+        Ok(Type::array(Some(location), input_array_type, new_length))
     }
 }
 

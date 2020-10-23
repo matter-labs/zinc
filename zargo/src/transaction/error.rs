@@ -1,17 +1,17 @@
 //!
-//! The transfer error.
+//! The transaction error.
 //!
 
 use failure::Fail;
 
 ///
-/// The transfer error.
+/// The transaction error.
 ///
 #[derive(Debug, Fail)]
 pub enum Error {
     /// A required transaction field is missing.
     #[fail(display = "parsing: {}", _0)]
-    Parsing(zinc_data::TransferError),
+    Parsing(zinc_zksync::TransactionMsgError),
     /// The transaction token is invalid.
     #[fail(display = "token is invalid and cannot be resolved")]
     TokenNotFound,
@@ -26,8 +26,8 @@ pub enum Error {
     TransactionSigning(zksync_eth_signer::error::SignerError),
 }
 
-impl From<zinc_data::TransferError> for Error {
-    fn from(inner: zinc_data::TransferError) -> Self {
+impl From<zinc_zksync::TransactionMsgError> for Error {
+    fn from(inner: zinc_zksync::TransactionMsgError) -> Self {
         Self::Parsing(inner)
     }
 }

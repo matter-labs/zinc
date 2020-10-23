@@ -236,15 +236,18 @@ mod tests {
                 BindingPatternVariant::new_self_alias(Location::test(1, 1), false),
                 Type::new(
                     Location::test(1, 1),
-                    TypeVariant::alias(ExpressionTree::new(
-                        Location::test(1, 1),
-                        ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                            Identifier::new(
-                                Location::test(1, 1),
-                                Keyword::SelfUppercase.to_string(),
-                            ),
-                        )),
-                    )),
+                    TypeVariant::alias(
+                        ExpressionTree::new(
+                            Location::test(1, 1),
+                            ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                Identifier::new(
+                                    Location::test(1, 1),
+                                    Keyword::SelfUppercase.to_string(),
+                                ),
+                            )),
+                        ),
+                        None,
+                    ),
                 ),
             ),
             None,
@@ -265,15 +268,18 @@ mod tests {
                 BindingPatternVariant::new_self_alias(Location::test(1, 5), true),
                 Type::new(
                     Location::test(1, 5),
-                    TypeVariant::alias(ExpressionTree::new(
-                        Location::test(1, 5),
-                        ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                            Identifier::new(
-                                Location::test(1, 5),
-                                Keyword::SelfUppercase.to_string(),
-                            ),
-                        )),
-                    )),
+                    TypeVariant::alias(
+                        ExpressionTree::new(
+                            Location::test(1, 5),
+                            ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                Identifier::new(
+                                    Location::test(1, 5),
+                                    Keyword::SelfUppercase.to_string(),
+                                ),
+                            )),
+                        ),
+                        None,
+                    ),
                 ),
             ),
             None,

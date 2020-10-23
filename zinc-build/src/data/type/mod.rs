@@ -8,8 +8,8 @@ pub mod scalar;
 use std::fmt;
 
 use num::BigInt;
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use serde::Deserialize;
+use serde::Serialize;
 
 use self::contract_field::ContractField;
 use self::scalar::integer::Type as IntegerType;
@@ -43,6 +43,14 @@ pub enum Type {
     Structure(Vec<(String, Type)>),
     /// The contract type.
     Contract(Vec<ContractField>),
+
+    /// The `std::collections::MTreeMap` type.
+    Map {
+        /// The map key type.
+        key_type: Box<Type>,
+        /// The map value type.
+        value_type: Box<Type>,
+    },
 }
 
 impl Type {
@@ -91,6 +99,8 @@ impl Type {
                 .map(|field| Self::into_flat_scalar_types(field.r#type))
                 .flatten()
                 .collect(),
+
+            Self::Map { .. } => vec![],
         }
     }
 
@@ -120,6 +130,8 @@ impl Type {
             Self::Tuple(fields) => fields.iter().map(Self::size).sum(),
             Self::Structure(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
             Self::Contract(fields) => fields.iter().map(|field| field.r#type.size()).sum(),
+
+            Self::Map { .. } => 0,
         }
     }
 
@@ -127,7 +139,7 @@ impl Type {
     /// Removes the first structure field, if the field is a contract instance.
     ///
     /// Is used before passing through the input arguments of a contract method, where the first
-    /// arguments is a contract instance, which is stored not in the data stack, but in the
+    /// argument is a contract instance, which is stored not in the data stack, but in the
     /// contract storage, and should not be taken into account when calculating the input size.
     ///
     pub fn remove_contract_instance(&mut self) {
@@ -181,6 +193,15 @@ impl fmt::Display for Type {
                     .map(|field| format!("{}: {}", field.name, field.r#type))
                     .collect::<Vec<String>>()
                     .join(", ")
+            ),
+
+            Self::Map {
+                key_type,
+                value_type,
+            } => write!(
+                f,
+                "std::collections::MTreeMap<{}, {}>",
+                key_type, value_type,
             ),
         }
     }

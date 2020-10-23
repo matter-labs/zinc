@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use num::BigInt;
 
-use zinc_utils::InferenceError;
+use zinc_math::InferenceError;
 
 use crate::error::Error;
 use crate::semantic::element::constant::error::Error as ConstantError;

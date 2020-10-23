@@ -77,7 +77,7 @@ impl Integer {
     /// Executes the `==` equals comparison operator.
     ///
     pub fn equals(mut self, mut other: Self) -> Result<GeneratorExpressionOperator, Error> {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -112,7 +112,7 @@ impl Integer {
     /// Executes the `!=` not-equals comparison operator.
     ///
     pub fn not_equals(mut self, mut other: Self) -> Result<GeneratorExpressionOperator, Error> {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -147,7 +147,7 @@ impl Integer {
     /// Executes the `>=` greater-equals comparison operator.
     ///
     pub fn greater_equals(mut self, mut other: Self) -> Result<GeneratorExpressionOperator, Error> {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -182,7 +182,7 @@ impl Integer {
     /// Executes the `<=` lesser-equals comparison operator.
     ///
     pub fn lesser_equals(mut self, mut other: Self) -> Result<GeneratorExpressionOperator, Error> {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -217,7 +217,7 @@ impl Integer {
     /// Executes the `>` greater comparison operator.
     ///
     pub fn greater(mut self, mut other: Self) -> Result<GeneratorExpressionOperator, Error> {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -252,7 +252,7 @@ impl Integer {
     /// Executes the `<` lesser comparison operator.
     ///
     pub fn lesser(mut self, mut other: Self) -> Result<GeneratorExpressionOperator, Error> {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -288,7 +288,7 @@ impl BitOr for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn bitor(mut self, mut other: Self) -> Self::Output {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -337,7 +337,7 @@ impl BitXor for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn bitxor(mut self, mut other: Self) -> Self::Output {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -386,7 +386,7 @@ impl BitAnd for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn bitand(mut self, mut other: Self) -> Self::Output {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -507,7 +507,7 @@ impl Add for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn add(mut self, mut other: Self) -> Self::Output {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -544,7 +544,7 @@ impl Sub for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn sub(mut self, mut other: Self) -> Self::Output {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -581,7 +581,7 @@ impl Mul for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn mul(mut self, mut other: Self) -> Self::Output {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -618,7 +618,7 @@ impl Div for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn div(mut self, mut other: Self) -> Self::Output {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -661,7 +661,7 @@ impl Rem for Integer {
     type Output = Result<(Self, GeneratorExpressionOperator), Error>;
 
     fn rem(mut self, mut other: Self) -> Self::Output {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,

@@ -5,9 +5,9 @@
 ///
 /// The contract resource POST `call` request query.
 ///
-pub type Query = zinc_data::CallRequestQuery;
+pub type Query = zinc_zksync::CallRequestQuery;
 
 ///
 /// The contract resource POST `call` request body.
 ///
-pub type Body = zinc_data::CallRequestBody;
+pub type Body = zinc_zksync::CallRequestBody;

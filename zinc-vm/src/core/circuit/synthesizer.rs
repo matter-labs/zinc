@@ -31,7 +31,7 @@ where
     E: IEngine,
 {
     fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
-        let mut circuit = State::new(DedupCS::new(LoggingCS::new(cs)), false);
+        let mut circuit = State::new(DedupCS::new(LoggingCS::new(cs)));
         *self.output = Some(circuit.run(self.bytecode, self.inputs.as_deref(), |_| {}, |_| Ok(())));
 
         Ok(())

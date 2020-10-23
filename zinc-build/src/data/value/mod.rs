@@ -8,18 +8,16 @@ pub mod scalar;
 
 use std::collections::HashSet;
 
-use num::bigint::Sign;
 use num::BigInt;
 use num::Signed;
 use num::Zero;
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use serde::Deserialize;
+use serde::Serialize;
+use serde_json::json;
 use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
 
-use zksync::web3::types::Address;
-
-use zinc_utils::InferenceError;
+use zinc_math::InferenceError;
 
 use crate::data::r#type::contract_field::ContractField as ContractFieldType;
 use crate::data::r#type::scalar::integer::Type as IntegerType;
@@ -51,12 +49,16 @@ pub enum Value {
         /// The enumeration variant value.
         value: ScalarValue,
     },
+
     /// Represented with JSON array.
     Array(Vec<Value>),
     /// Represented with JSON object.
     Structure(Vec<(String, Value)>),
     /// Represented with JSON object.
     Contract(Vec<ContractField>),
+
+    /// The `std::collections::MTreeMap` value.
+    Map(Vec<(Value, Value)>),
 }
 
 impl Value {
@@ -105,15 +107,9 @@ impl Value {
                     .map(ContractField::new_from_type)
                     .collect(),
             ),
-        }
-    }
 
-    ///
-    /// Creates an integer from the ETH address representation.
-    ///
-    pub fn scalar_from_eth_address(value: Address) -> Self {
-        let value = BigInt::from_bytes_be(Sign::Plus, value.as_bytes());
-        Self::Scalar(ScalarValue::Integer(value, IntegerType::ETH_ADDRESS))
+            Type::Map { .. } => Self::Map(vec![]),
+        }
     }
 
     ///
@@ -132,6 +128,11 @@ impl Value {
             Type::Tuple(inner) => Self::tuple_from_json(value, inner),
             Type::Structure(fields) => Self::structure_from_json(value, fields),
             Type::Contract(fields) => Self::contract_from_json(value, fields),
+
+            Type::Map {
+                key_type,
+                value_type,
+            } => Self::map_from_json(value, *key_type, *value_type),
         }
     }
 
@@ -179,6 +180,7 @@ impl Value {
                 }
                 Self::Array(result)
             }
+
             Type::Tuple(types) => {
                 let mut offset = 0;
                 let mut result = Vec::with_capacity(types.len());
@@ -214,6 +216,8 @@ impl Value {
                 }
                 Self::Contract(result)
             }
+
+            Type::Map { .. } => Self::Map(vec![]),
         }
     }
 
@@ -227,6 +231,7 @@ impl Value {
             Self::Unit => vec![],
             Self::Scalar(value) => vec![value.to_bigint()],
             Self::Enumeration { name: _, value } => vec![value.to_bigint()],
+
             Self::Array(values) => values
                 .into_iter()
                 .map(Self::into_flat_values)
@@ -242,6 +247,8 @@ impl Value {
                 .map(|field| Self::into_flat_values(field.value))
                 .flatten()
                 .collect(),
+
+            Self::Map(_entries) => vec![],
         }
     }
 
@@ -268,6 +275,7 @@ impl Value {
                 ScalarValue::Boolean(value) => JsonValue::Bool(value),
             },
             Self::Enumeration { name, value: _ } => JsonValue::String(name),
+
             Self::Array(values) => {
                 JsonValue::Array(values.into_iter().map(Self::into_json).collect())
             }
@@ -284,6 +292,17 @@ impl Value {
                     object.insert(field.name, Self::into_json(field.value));
                 }
                 JsonValue::Object(object)
+            }
+
+            Self::Map(entries) => {
+                let mut array = Vec::with_capacity(entries.len());
+                for (key, value) in entries.into_iter() {
+                    array.push(json!({
+                        "key": key.into_json(),
+                        "value": value.into_json(),
+                    }));
+                }
+                JsonValue::Array(array)
             }
         }
     }
@@ -324,7 +343,7 @@ impl Value {
             found: value.to_string(),
         })?;
 
-        let bigint_result = zinc_utils::bigint_from_str(value_string);
+        let bigint_result = zinc_math::bigint_from_str(value_string);
         let bigint =
             bigint_result.map_err(|_| ErrorType::InvalidNumberFormat(value_string.into()))?;
         if bigint.is_negative() && !r#type.is_signed {
@@ -337,7 +356,7 @@ impl Value {
             }));
         }
 
-        let bitlength = zinc_utils::infer_minimal_bitlength(&bigint, r#type.is_signed)
+        let bitlength = zinc_math::infer_minimal_bitlength(&bigint, r#type.is_signed)
             .map_err(|error| Error::from(ErrorType::ValueOverflow { inner: error }))?;
         if bitlength > r#type.bitlength {
             return Err(Error::from(ErrorType::ValueOverflow {
@@ -400,11 +419,11 @@ impl Value {
             found: value.to_string(),
         })?;
 
-        let bigint_result = zinc_utils::bigint_from_str(value_string);
+        let bigint_result = zinc_math::bigint_from_str(value_string);
         let bigint =
             bigint_result.map_err(|_| ErrorType::InvalidNumberFormat(value_string.into()))?;
 
-        let bitlength = zinc_utils::infer_minimal_bitlength(&bigint, false)
+        let bitlength = zinc_math::infer_minimal_bitlength(&bigint, false)
             .map_err(|error| Error::from(ErrorType::ValueOverflow { inner: error }))?;
         if bitlength > zinc_const::bitlength::FIELD {
             return Err(Error::from(ErrorType::ValueOverflow {
@@ -558,5 +577,37 @@ impl Value {
         }
 
         Ok(Self::Contract(field_values))
+    }
+
+    ///
+    /// Creates an `std::collections::MTreeMap` value from the JSON `value`.
+    ///
+    fn map_from_json(value: JsonValue, key_type: Type, value_type: Type) -> Result<Self, Error> {
+        let entries = match value {
+            JsonValue::Array(array) => array,
+            value => return Err(ErrorType::InvalidNumberFormat(value.to_string()).into()),
+        };
+
+        let mut result = Vec::with_capacity(entries.len());
+        for entry in entries.into_iter() {
+            let entry = entry
+                .as_object()
+                .ok_or_else(|| ErrorType::InvalidMapFormat(entry.to_string()))?;
+
+            let key = entry
+                .get("key")
+                .cloned()
+                .ok_or_else(|| ErrorType::MissingField("key".to_owned()))?;
+            let key = Self::try_from_typed_json(key, key_type.clone())?;
+
+            let value = entry
+                .get("value")
+                .cloned()
+                .ok_or_else(|| ErrorType::MissingField("value".to_owned()))?;
+            let value = Self::try_from_typed_json(value, value_type.clone())?;
+
+            result.push((key, value));
+        }
+        Ok(Self::Map(result))
     }
 }

@@ -5,4 +5,4 @@
 ///
 /// The contract resource PUT `fee` response body.
 ///
-pub type Body = zinc_data::FeeResponseBody;
+pub type Body = zinc_zksync::FeeResponseBody;

@@ -29,8 +29,7 @@ num = "0.3"
 franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc" }
 
 zinc-const = { path = "../zinc-const" }
-zinc-utils = { path = "../zinc-utils" }
+zinc-math = { path = "../zinc-math" }
+zinc-logger = { path = "../zinc-logger" }
+zinc-zksync = { path = "../zinc-zksync" }
 zinc-build = { path = "../zinc-build" }
-
-[dev-dependencies]
-env_logger = "0.7"

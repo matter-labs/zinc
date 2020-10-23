@@ -4,19 +4,19 @@
 
 use failure::Fail;
 
-use crate::arguments::command::build::Error as BuildCommandError;
-use crate::arguments::command::call::Error as CallCommandError;
-use crate::arguments::command::clean::Error as CleanCommandError;
-use crate::arguments::command::init::Error as InitCommandError;
-use crate::arguments::command::new::Error as NewCommandError;
-use crate::arguments::command::proof_check::Error as ProofCheckCommandError;
-use crate::arguments::command::prove::Error as ProveCommandError;
-use crate::arguments::command::publish::Error as PublishCommandError;
-use crate::arguments::command::query::Error as QueryCommandError;
-use crate::arguments::command::run::Error as RunCommandError;
-use crate::arguments::command::setup::Error as SetupCommandError;
-use crate::arguments::command::test::Error as TestCommandError;
-use crate::arguments::command::verify::Error as VerifyCommandError;
+use crate::arguments::command::build::error::Error as BuildCommandError;
+use crate::arguments::command::call::error::Error as CallCommandError;
+use crate::arguments::command::clean::error::Error as CleanCommandError;
+use crate::arguments::command::init::error::Error as InitCommandError;
+use crate::arguments::command::new::error::Error as NewCommandError;
+use crate::arguments::command::proof_check::error::Error as ProofCheckCommandError;
+use crate::arguments::command::prove::error::Error as ProveCommandError;
+use crate::arguments::command::publish::error::Error as PublishCommandError;
+use crate::arguments::command::query::error::Error as QueryCommandError;
+use crate::arguments::command::run::error::Error as RunCommandError;
+use crate::arguments::command::setup::error::Error as SetupCommandError;
+use crate::arguments::command::test::error::Error as TestCommandError;
+use crate::arguments::command::verify::error::Error as VerifyCommandError;
 
 ///
 /// The Zargo package manager error.

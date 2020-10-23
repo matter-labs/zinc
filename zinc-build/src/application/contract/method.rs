@@ -2,8 +2,8 @@
 //! The Zinc VM bytecode contract application method.
 //!
 
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::data::r#type::Type as BuildType;
 

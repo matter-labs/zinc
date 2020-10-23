@@ -13,7 +13,7 @@ use self::arguments::Arguments;
 fn main() {
     let args = Arguments::new();
 
-    zinc_utils::initialize_logger(zinc_const::app_name::ZINC_VIRTUAL_MACHINE, args.verbosity);
+    zinc_logger::initialize(zinc_const::app_name::VIRTUAL_MACHINE, args.verbosity);
 
     match args.command.execute() {
         Ok(exit_code) => process::exit(exit_code),

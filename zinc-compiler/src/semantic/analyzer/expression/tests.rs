@@ -109,7 +109,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::test(5, 26),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::test(3, 9),
+                Some(Location::test(3, 9)),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -143,7 +143,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::test(10, 46),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::test(3, 9),
+                Some(Location::test(3, 9)),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -179,7 +179,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::test(11, 29),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::test(3, 9),
+                Some(Location::test(3, 9)),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -217,7 +217,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::test(10, 29),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::test(3, 9),
+                Some(Location::test(3, 9)),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -255,7 +255,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::test(11, 29),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::test(3, 9),
+                Some(Location::test(3, 9)),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -293,7 +293,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::test(13, 29),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::test(3, 9),
+                Some(Location::test(3, 9)),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -330,7 +330,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::test(10, 32),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::test(3, 9),
+                Some(Location::test(3, 9)),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -367,7 +367,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::test(11, 35),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::test(3, 9),
+                Some(Location::test(3, 9)),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
@@ -404,7 +404,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::test(12, 34),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::test(3, 9),
+                Some(Location::test(3, 9)),
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),

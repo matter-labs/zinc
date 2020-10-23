@@ -15,6 +15,8 @@ use actix_web::web;
 use zinc_build::Application as BuildApplication;
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
+use zinc_vm::ContractInput;
+use zinc_zksync::TransactionMsg;
 
 use zksync::web3::types::Address;
 use zksync::web3::types::H256;
@@ -81,11 +83,12 @@ pub async fn handle(
     log::debug!("Running the contract constructor on the virtual machine");
     let build_to_run = build.clone();
     let output = async_std::task::spawn_blocking(move || {
-        zinc_vm::ContractFacade::new(build_to_run).run::<Bn256>(
+        zinc_vm::ContractFacade::new(build_to_run).run::<Bn256>(ContractInput::new(
             input_value,
             storage,
             zinc_const::contract::CONSTRUCTOR_NAME.to_owned(),
-        )
+            TransactionMsg::default(),
+        ))
     })
     .await
     .map_err(Error::RuntimeError)?;

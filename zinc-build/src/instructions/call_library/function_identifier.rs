@@ -2,8 +2,8 @@
 //! The standard library function identifier.
 //!
 
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use serde::Deserialize;
+use serde::Serialize;
 
 ///
 /// The standard library function identifier.
@@ -38,4 +38,13 @@ pub enum LibraryFunctionIdentifier {
 
     /// The `zksync::transfer` function identifier.
     ZksyncTransfer,
+
+    /// The `std::collections::MTreeMap::get` function identifier.
+    CollectionsMTreeMapGet,
+    /// The `std::collections::MTreeMap::contains` function identifier.
+    CollectionsMTreeMapContains,
+    /// The `std::collections::MTreeMap::insert` function identifier.
+    CollectionsMTreeMapInsert,
+    /// The `std::collections::MTreeMap::remove` function identifier.
+    CollectionsMTreeMapRemove,
 }

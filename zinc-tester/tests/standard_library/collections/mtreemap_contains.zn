@@ -1,0 +1,24 @@
+//! { "cases": [ {
+//!     "case": "default",
+//!     "method": "default",
+//!     "input": {
+//!         "key": "42",
+//!         "value": "25"
+//!     },
+//!     "output": {
+//!         "result": true,
+//!         "root_hash": "0x0"
+//!     }
+//! } ] }
+
+use std::collections::MTreeMap;
+
+contract Test {
+    map: MTreeMap<u248, u248>;
+
+    pub fn default(mut self, key: u248, value: u248) -> bool {
+        self.map.insert(key, value);
+
+        self.map.contains(key)
+    }
+}

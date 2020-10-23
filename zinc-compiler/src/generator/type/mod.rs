@@ -11,6 +11,7 @@ use zinc_build::ScalarType;
 use zinc_build::Type as BuildType;
 
 use crate::semantic::element::r#type::Type as SemanticType;
+use crate::semantic::scope::intrinsic::IntrinsicTypeId;
 
 use self::contract_field::ContractField;
 
@@ -67,6 +68,13 @@ pub enum Type {
     Contract {
         /// The ordered contract storage fields array.
         fields: Vec<ContractField>,
+    },
+    /// The IR map type.
+    Map {
+        /// The map key type.
+        key_type: Box<Self>,
+        /// The value key type.
+        value_type: Box<Self>,
     },
 }
 
@@ -159,6 +167,16 @@ impl Type {
     }
 
     ///
+    /// A shortcut constructor.
+    ///
+    pub fn map(key_type: Self, value_type: Self) -> Self {
+        Self::Map {
+            key_type: Box::new(key_type),
+            value_type: Box::new(value_type),
+        }
+    }
+
+    ///
     /// The type size in the Zinc VM data stack.
     ///
     pub fn size(&self) -> usize {
@@ -173,6 +191,7 @@ impl Type {
             Self::Tuple { types } => types.iter().map(|r#type| r#type.size()).sum(),
             Self::Structure { fields } => fields.iter().map(|(_name, r#type)| r#type.size()).sum(),
             Self::Contract { fields } => fields.iter().map(|field| field.r#type.size()).sum(),
+            Self::Map { .. } => 0,
         }
     }
 
@@ -205,6 +224,21 @@ impl Type {
                 }
             }
             SemanticType::Structure(inner) => {
+                if inner.type_id == IntrinsicTypeId::StdCollectionsMTreeMap as usize {
+                    let key_type = inner
+                        .params
+                        .as_ref()?
+                        .get("K")
+                        .map(Self::try_from_semantic)??;
+                    let value_type = inner
+                        .params
+                        .as_ref()?
+                        .get("V")
+                        .map(Self::try_from_semantic)??;
+
+                    return Some(Self::map(key_type, value_type));
+                }
+
                 match inner
                     .fields
                     .iter()
@@ -285,6 +319,17 @@ impl Into<BuildType> for Type {
             ),
             Self::Contract { fields } => {
                 BuildType::Contract(fields.into_iter().map(|field| field.into()).collect())
+            }
+            Self::Map {
+                key_type,
+                value_type,
+            } => {
+                let key_type: BuildType = (*key_type).into();
+                let value_type: BuildType = (*value_type).into();
+                BuildType::Map {
+                    key_type: Box::new(key_type),
+                    value_type: Box::new(value_type),
+                }
             }
         }
     }

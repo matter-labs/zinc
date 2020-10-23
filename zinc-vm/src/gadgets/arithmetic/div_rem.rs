@@ -51,8 +51,8 @@ where
         let denom_bi =
             gadgets::scalar::fr_bigint::fr_to_bigint::<E>(&denom, denominator.is_signed());
 
-        let (q, r) = zinc_utils::euclidean_div_rem(&nom_bi, &denom_bi)
-            .ok_or(RuntimeError::DivisionByZero)?;
+        let (q, r) =
+            zinc_math::euclidean_div_rem(&nom_bi, &denom_bi).ok_or(RuntimeError::DivisionByZero)?;
 
         quotient_value = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&q);
         remainder_value = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&r);

@@ -6,12 +6,18 @@ use std::str::FromStr;
 
 use num::BigInt;
 
-use crate::error::Error;
+use zinc_lexical::Keyword;
 use zinc_lexical::Location;
+
+use crate::error::Error;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::intrinsic::error::Error as IntrinsicFunctionError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
+use crate::semantic::element::r#type::function::intrinsic::stdlib::collections_mtreemap_get::Function as CollectionsMTreeMapGetFunction;
+use crate::semantic::element::r#type::function::intrinsic::stdlib::collections_mtreemap_contains::Function as CollectionsMTreeMapContainsFunction;
+use crate::semantic::element::r#type::function::intrinsic::stdlib::collections_mtreemap_insert::Function as CollectionsMTreeMapInsertFunction;
+use crate::semantic::element::r#type::function::intrinsic::stdlib::collections_mtreemap_remove::Function as CollectionsMTreeMapRemoveFunction;
 use crate::semantic::element::r#type::function::intrinsic::stdlib::array_pad::Function as ArrayPadFunction;
 use crate::semantic::element::r#type::function::intrinsic::stdlib::array_reverse::Function as ArrayReverseFunction;
 use crate::semantic::element::r#type::function::intrinsic::stdlib::array_truncate::Function as ArrayTruncateFunction;
@@ -39,7 +45,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "sha256".to_owned(),
+            function: CryptoSha256Function::IDENTIFIER.to_owned(),
             expected: CryptoSha256Function::ARGUMENT_COUNT,
             found: CryptoSha256Function::ARGUMENT_COUNT - 1,
             reference: None,
@@ -62,7 +68,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "sha256".to_owned(),
+            function: CryptoSha256Function::IDENTIFIER.to_owned(),
             expected: CryptoSha256Function::ARGUMENT_COUNT,
             found: CryptoSha256Function::ARGUMENT_COUNT + 1,
             reference: None,
@@ -85,7 +91,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 25),
-            function: "sha256".to_owned(),
+            function: CryptoSha256Function::IDENTIFIER.to_owned(),
             name: "preimage".to_owned(),
             position: CryptoSha256Function::ARGUMENT_INDEX_PREIMAGE + 1,
             expected: format!("[bool; N], N > 0, N % {} == 0", zinc_const::bitlength::BYTE),
@@ -109,7 +115,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 25),
-            function: "sha256".to_owned(),
+            function: CryptoSha256Function::IDENTIFIER.to_owned(),
             name: "preimage".to_owned(),
             position: CryptoSha256Function::ARGUMENT_INDEX_PREIMAGE + 1,
             expected: format!("[bool; N], N > 0, N % {} == 0", zinc_const::bitlength::BYTE),
@@ -133,7 +139,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 25),
-            function: "sha256".to_owned(),
+            function: CryptoSha256Function::IDENTIFIER.to_owned(),
             name: "preimage".to_owned(),
             position: CryptoSha256Function::ARGUMENT_INDEX_PREIMAGE + 1,
             expected: format!("[bool; N], N > 0, N % {} == 0", zinc_const::bitlength::BYTE),
@@ -157,7 +163,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "pedersen".to_owned(),
+            function: CryptoPedersenFunction::IDENTIFIER.to_owned(),
             expected: CryptoPedersenFunction::ARGUMENT_COUNT,
             found: CryptoPedersenFunction::ARGUMENT_COUNT - 1,
             reference: None,
@@ -180,7 +186,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "pedersen".to_owned(),
+            function: CryptoPedersenFunction::IDENTIFIER.to_owned(),
             expected: CryptoPedersenFunction::ARGUMENT_COUNT,
             found: CryptoPedersenFunction::ARGUMENT_COUNT + 1,
             reference: None,
@@ -203,7 +209,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 27),
-            function: "pedersen".to_owned(),
+            function: CryptoPedersenFunction::IDENTIFIER.to_owned(),
             name: "preimage".to_owned(),
             position: CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
             expected: format!(
@@ -230,7 +236,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 27),
-            function: "pedersen".to_owned(),
+            function: CryptoPedersenFunction::IDENTIFIER.to_owned(),
             name: "preimage".to_owned(),
             position: CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
             expected: format!(
@@ -257,7 +263,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 27),
-            function: "pedersen".to_owned(),
+            function: CryptoPedersenFunction::IDENTIFIER.to_owned(),
             name: "preimage".to_owned(),
             position: CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
             expected: format!(
@@ -292,14 +298,14 @@ fn main() {
     };
     let message = [true; 8];
 
-    Signature::verify(signature);
+    signature.verify();
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
-            location: Location::test(13, 5),
-            function: "verify".to_owned(),
+            location: Location::test(13, 21),
+            function: CryptoSchnorrSignatureVerifyFunction::IDENTIFIER.to_owned(),
             expected: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT,
             found: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT - 1,
             reference: None,
@@ -325,14 +331,14 @@ fn main() {
     };
     let message = [true; 8];
 
-    Signature::verify(signature, message, 42);
+    signature.verify(message, 42);
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
-            location: Location::test(13, 5),
-            function: "verify".to_owned(),
+            location: Location::test(13, 21),
+            function: CryptoSchnorrSignatureVerifyFunction::IDENTIFIER.to_owned(),
             expected: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT,
             found: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT + 1,
             reference: None,
@@ -357,7 +363,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::Type(TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(5, 23),
-            function: "verify".to_owned(),
+            function: CryptoSchnorrSignatureVerifyFunction::IDENTIFIER.to_owned(),
             name: "signature".to_owned(),
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_SIGNATURE + 1,
             expected: "std::crypto::schnorr::Signature { r: std::crypto::ecc::Point, s: field, pk: std::crypto::ecc::Point }".to_owned(),
@@ -384,14 +390,14 @@ fn main() {
     };
     let message = [true; 8];
 
-    Signature::verify(signature, 42);
+    signature.verify(42);
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::test(13, 34),
-            function: "verify".to_owned(),
+            location: Location::test(13, 22),
+            function: CryptoSchnorrSignatureVerifyFunction::IDENTIFIER.to_owned(),
             name: "message".to_owned(),
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: format!(
@@ -422,14 +428,14 @@ fn main() {
     };
     let message = [true; 0];
 
-    Signature::verify(signature, message);
+    signature.verify(message);
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::test(13, 34),
-            function: "verify".to_owned(),
+            location: Location::test(13, 22),
+            function: CryptoSchnorrSignatureVerifyFunction::IDENTIFIER.to_owned(),
             name: "message".to_owned(),
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: format!(
@@ -460,14 +466,14 @@ fn main() {
     };
     let message = [true; 256];
 
-    Signature::verify(signature, message);
+    signature.verify(message);
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::test(13, 34),
-            function: "verify".to_owned(),
+            location: Location::test(13, 22),
+            function: CryptoSchnorrSignatureVerifyFunction::IDENTIFIER.to_owned(),
             name: "message".to_owned(),
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: format!(
@@ -503,14 +509,14 @@ fn main() {
     };
     let message = [true; 4];
 
-    Signature::verify(signature, message);
+    signature.verify(message);
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::test(13, 34),
-            function: "verify".to_owned(),
+            location: Location::test(13, 22),
+            function: CryptoSchnorrSignatureVerifyFunction::IDENTIFIER.to_owned(),
             name: "message".to_owned(),
             position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
             expected: format!(
@@ -538,7 +544,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "from_bits_unsigned".to_owned(),
+            function: ConvertFromBitsUnsignedFunction::IDENTIFIER.to_owned(),
             expected: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT,
             found: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT - 1,
             reference: None,
@@ -561,7 +567,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "from_bits_unsigned".to_owned(),
+            function: ConvertFromBitsUnsignedFunction::IDENTIFIER.to_owned(),
             expected: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT,
             found: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT + 1,
             reference: None,
@@ -584,7 +590,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 38),
-            function: "from_bits_unsigned".to_owned(),
+            function: ConvertFromBitsUnsignedFunction::IDENTIFIER.to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
@@ -613,7 +619,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 38),
-            function: "from_bits_unsigned".to_owned(),
+            function: ConvertFromBitsUnsignedFunction::IDENTIFIER.to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
@@ -642,7 +648,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 38),
-            function: "from_bits_unsigned".to_owned(),
+            function: ConvertFromBitsUnsignedFunction::IDENTIFIER.to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
@@ -676,7 +682,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 38),
-            function: "from_bits_unsigned".to_owned(),
+            function: ConvertFromBitsUnsignedFunction::IDENTIFIER.to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
@@ -705,7 +711,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "from_bits_signed".to_owned(),
+            function: ConvertFromBitsSignedFunction::IDENTIFIER.to_owned(),
             expected: ConvertFromBitsSignedFunction::ARGUMENT_COUNT,
             found: ConvertFromBitsSignedFunction::ARGUMENT_COUNT - 1,
             reference: None,
@@ -728,7 +734,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "from_bits_signed".to_owned(),
+            function: ConvertFromBitsSignedFunction::IDENTIFIER.to_owned(),
             expected: ConvertFromBitsSignedFunction::ARGUMENT_COUNT,
             found: ConvertFromBitsSignedFunction::ARGUMENT_COUNT + 1,
             reference: None,
@@ -751,7 +757,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 36),
-            function: "from_bits_signed".to_owned(),
+            function: ConvertFromBitsSignedFunction::IDENTIFIER.to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
@@ -780,7 +786,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 36),
-            function: "from_bits_signed".to_owned(),
+            function: ConvertFromBitsSignedFunction::IDENTIFIER.to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
@@ -809,7 +815,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 36),
-            function: "from_bits_signed".to_owned(),
+            function: ConvertFromBitsSignedFunction::IDENTIFIER.to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
@@ -843,7 +849,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 36),
-            function: "from_bits_signed".to_owned(),
+            function: ConvertFromBitsSignedFunction::IDENTIFIER.to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!(
@@ -872,7 +878,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "from_bits_field".to_owned(),
+            function: ConvertFromBitsFieldFunction::IDENTIFIER.to_owned(),
             expected: ConvertFromBitsFieldFunction::ARGUMENT_COUNT,
             found: ConvertFromBitsFieldFunction::ARGUMENT_COUNT - 1,
             reference: None,
@@ -895,7 +901,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "from_bits_field".to_owned(),
+            function: ConvertFromBitsFieldFunction::IDENTIFIER.to_owned(),
             expected: ConvertFromBitsFieldFunction::ARGUMENT_COUNT,
             found: ConvertFromBitsFieldFunction::ARGUMENT_COUNT + 1,
             reference: None,
@@ -918,7 +924,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 35),
-            function: "from_bits_field".to_owned(),
+            function: ConvertFromBitsFieldFunction::IDENTIFIER.to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsFieldFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!("[bool; {}]", zinc_const::bitlength::FIELD),
@@ -942,7 +948,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 35),
-            function: "from_bits_field".to_owned(),
+            function: ConvertFromBitsFieldFunction::IDENTIFIER.to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsFieldFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!("[bool; {}]", zinc_const::bitlength::FIELD),
@@ -966,7 +972,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 35),
-            function: "from_bits_field".to_owned(),
+            function: ConvertFromBitsFieldFunction::IDENTIFIER.to_owned(),
             name: "bits".to_owned(),
             position: ConvertFromBitsFieldFunction::ARGUMENT_INDEX_BITS + 1,
             expected: format!("[bool; {}]", zinc_const::bitlength::FIELD),
@@ -995,7 +1001,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "to_bits".to_owned(),
+            function: ConvertToBitsFunction::IDENTIFIER.to_owned(),
             expected: ConvertToBitsFunction::ARGUMENT_COUNT,
             found: ConvertToBitsFunction::ARGUMENT_COUNT - 1,
             reference: None,
@@ -1018,7 +1024,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "to_bits".to_owned(),
+            function: ConvertToBitsFunction::IDENTIFIER.to_owned(),
             expected: ConvertToBitsFunction::ARGUMENT_COUNT,
             found: ConvertToBitsFunction::ARGUMENT_COUNT + 1,
             reference: None,
@@ -1041,7 +1047,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 27),
-            function: "to_bits".to_owned(),
+            function: ConvertToBitsFunction::IDENTIFIER.to_owned(),
             name: "value".to_owned(),
             position: ConvertToBitsFunction::ARGUMENT_INDEX_VALUE + 1,
             expected: "{integer}".to_owned(),
@@ -1066,7 +1072,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "reverse".to_owned(),
+            function: ArrayReverseFunction::IDENTIFIER.to_owned(),
             expected: ArrayReverseFunction::ARGUMENT_COUNT,
             found: ArrayReverseFunction::ARGUMENT_COUNT - 1,
             reference: None,
@@ -1089,7 +1095,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "reverse".to_owned(),
+            function: ArrayReverseFunction::IDENTIFIER.to_owned(),
             expected: ArrayReverseFunction::ARGUMENT_COUNT,
             found: ArrayReverseFunction::ARGUMENT_COUNT + 1,
             reference: None,
@@ -1112,7 +1118,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 25),
-            function: "reverse".to_owned(),
+            function: ArrayReverseFunction::IDENTIFIER.to_owned(),
             name: "array".to_owned(),
             position: ArrayReverseFunction::ARGUMENT_INDEX_ARRAY + 1,
             expected: "[{scalar}; N]".to_owned(),
@@ -1136,7 +1142,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "truncate".to_owned(),
+            function: ArrayTruncateFunction::IDENTIFIER.to_owned(),
             expected: ArrayTruncateFunction::ARGUMENT_COUNT,
             found: ArrayTruncateFunction::ARGUMENT_COUNT - 1,
             reference: None,
@@ -1159,7 +1165,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "truncate".to_owned(),
+            function: ArrayTruncateFunction::IDENTIFIER.to_owned(),
             expected: ArrayTruncateFunction::ARGUMENT_COUNT,
             found: ArrayTruncateFunction::ARGUMENT_COUNT + 1,
             reference: None,
@@ -1182,7 +1188,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 26),
-            function: "truncate".to_owned(),
+            function: ArrayTruncateFunction::IDENTIFIER.to_owned(),
             name: "array".to_owned(),
             position: ArrayTruncateFunction::ARGUMENT_INDEX_ARRAY + 1,
             expected: "[{scalar}; N]".to_owned(),
@@ -1206,7 +1212,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 37),
-            function: "truncate".to_owned(),
+            function: ArrayTruncateFunction::IDENTIFIER.to_owned(),
             name: "new_length".to_owned(),
             position: ArrayTruncateFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
             expected: "{unsigned integer}".to_owned(),
@@ -1231,7 +1237,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentConstantness {
             location: Location::test(4, 37),
-            function: "truncate".to_owned(),
+            function: ArrayTruncateFunction::IDENTIFIER.to_owned(),
             name: "new_length".to_owned(),
             position: ArrayTruncateFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
             found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
@@ -1279,7 +1285,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "pad".to_owned(),
+            function: ArrayPadFunction::IDENTIFIER.to_owned(),
             expected: ArrayPadFunction::ARGUMENT_COUNT,
             found: ArrayPadFunction::ARGUMENT_COUNT - 1,
             reference: None,
@@ -1302,7 +1308,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "pad".to_owned(),
+            function: ArrayPadFunction::IDENTIFIER.to_owned(),
             expected: ArrayPadFunction::ARGUMENT_COUNT,
             found: ArrayPadFunction::ARGUMENT_COUNT + 1,
             reference: None,
@@ -1325,7 +1331,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 21),
-            function: "pad".to_owned(),
+            function: ArrayPadFunction::IDENTIFIER.to_owned(),
             name: "array".to_owned(),
             position: ArrayPadFunction::ARGUMENT_INDEX_ARRAY + 1,
             expected: "[{scalar}; N]".to_owned(),
@@ -1349,7 +1355,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 32),
-            function: "pad".to_owned(),
+            function: ArrayPadFunction::IDENTIFIER.to_owned(),
             name: "new_length".to_owned(),
             position: ArrayPadFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
             expected: "{unsigned integer}".to_owned(),
@@ -1374,7 +1380,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentConstantness {
             location: Location::test(4, 32),
-            function: "pad".to_owned(),
+            function: ArrayPadFunction::IDENTIFIER.to_owned(),
             name: "new_length".to_owned(),
             position: ArrayPadFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
             found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
@@ -1397,7 +1403,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 36),
-            function: "pad".to_owned(),
+            function: ArrayPadFunction::IDENTIFIER.to_owned(),
             name: "fill_value".to_owned(),
             position: ArrayPadFunction::ARGUMENT_INDEX_FILL_VALUE + 1,
             expected: Type::boolean(None).to_string(),
@@ -1478,7 +1484,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "invert".to_owned(),
+            function: FfInvertFunction::IDENTIFIER.to_owned(),
             expected: FfInvertFunction::ARGUMENT_COUNT,
             found: FfInvertFunction::ARGUMENT_COUNT - 1,
             reference: None,
@@ -1501,7 +1507,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentCount {
             location: Location::test(3, 5),
-            function: "invert".to_owned(),
+            function: FfInvertFunction::IDENTIFIER.to_owned(),
             expected: FfInvertFunction::ARGUMENT_COUNT,
             found: FfInvertFunction::ARGUMENT_COUNT + 1,
             reference: None,
@@ -1524,10 +1530,512 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 21),
-            function: "invert".to_owned(),
+            function: FfInvertFunction::IDENTIFIER.to_owned(),
             name: "value".to_owned(),
             position: FfInvertFunction::ARGUMENT_INDEX_VALUE + 1,
             expected: Type::field(None).to_string(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_get_argument_count_lesser() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.get();
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentCount {
+            location: Location::test(8, 24),
+            function: CollectionsMTreeMapGetFunction::IDENTIFIER.to_owned(),
+            expected: CollectionsMTreeMapGetFunction::ARGUMENT_COUNT,
+            found: CollectionsMTreeMapGetFunction::ARGUMENT_COUNT - 1,
+            reference: None,
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_get_argument_count_greater() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.get(0 as u160, true);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentCount {
+            location: Location::test(8, 24),
+            function: CollectionsMTreeMapGetFunction::IDENTIFIER.to_owned(),
+            expected: CollectionsMTreeMapGetFunction::ARGUMENT_COUNT,
+            found: CollectionsMTreeMapGetFunction::ARGUMENT_COUNT + 1,
+            reference: None,
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_get_argument_1_self_expected_map() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        MTreeMap::get(false);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentType {
+            location: Location::test(8, 23),
+            function: CollectionsMTreeMapGetFunction::IDENTIFIER.to_owned(),
+            name: Keyword::SelfLowercase.to_string(),
+            position: CollectionsMTreeMapGetFunction::ARGUMENT_INDEX_SELF + 1,
+            expected: "std::collections::MTreeMap".to_owned(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_get_argument_2_key_expected_u160() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.get(false);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentType {
+            location: Location::test(8, 25),
+            function: CollectionsMTreeMapGetFunction::IDENTIFIER.to_owned(),
+            name: "key".to_owned(),
+            position: CollectionsMTreeMapGetFunction::ARGUMENT_INDEX_KEY + 1,
+            expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS).to_string(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_contains_argument_count_lesser() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.contains();
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentCount {
+            location: Location::test(8, 29),
+            function: CollectionsMTreeMapContainsFunction::IDENTIFIER.to_owned(),
+            expected: CollectionsMTreeMapContainsFunction::ARGUMENT_COUNT,
+            found: CollectionsMTreeMapContainsFunction::ARGUMENT_COUNT - 1,
+            reference: None,
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_contains_argument_count_greater() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.contains(0 as u160, true);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentCount {
+            location: Location::test(8, 29),
+            function: CollectionsMTreeMapContainsFunction::IDENTIFIER.to_owned(),
+            expected: CollectionsMTreeMapContainsFunction::ARGUMENT_COUNT,
+            found: CollectionsMTreeMapContainsFunction::ARGUMENT_COUNT + 1,
+            reference: None,
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_contains_argument_1_self_expected_map() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        MTreeMap::contains(false);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentType {
+            location: Location::test(8, 28),
+            function: CollectionsMTreeMapContainsFunction::IDENTIFIER.to_owned(),
+            name: Keyword::SelfLowercase.to_string(),
+            position: CollectionsMTreeMapContainsFunction::ARGUMENT_INDEX_SELF + 1,
+            expected: "std::collections::MTreeMap".to_owned(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_contains_argument_2_key_expected_u160() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.contains(false);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentType {
+            location: Location::test(8, 30),
+            function: CollectionsMTreeMapContainsFunction::IDENTIFIER.to_owned(),
+            name: "key".to_owned(),
+            position: CollectionsMTreeMapContainsFunction::ARGUMENT_INDEX_KEY + 1,
+            expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS).to_string(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_insert_argument_count_lesser() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.insert(0x0000000000000000000000000000000000000000 as u160);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentCount {
+            location: Location::test(8, 27),
+            function: CollectionsMTreeMapInsertFunction::IDENTIFIER.to_owned(),
+            expected: CollectionsMTreeMapInsertFunction::ARGUMENT_COUNT,
+            found: CollectionsMTreeMapInsertFunction::ARGUMENT_COUNT - 1,
+            reference: None,
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_insert_argument_count_greater() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.insert(0 as u160, 1000 as u248, false);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentCount {
+            location: Location::test(8, 27),
+            function: CollectionsMTreeMapInsertFunction::IDENTIFIER.to_owned(),
+            expected: CollectionsMTreeMapInsertFunction::ARGUMENT_COUNT,
+            found: CollectionsMTreeMapInsertFunction::ARGUMENT_COUNT + 1,
+            reference: None,
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_insert_argument_1_self_expected_map() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        MTreeMap::insert(false);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentType {
+            location: Location::test(8, 26),
+            function: CollectionsMTreeMapInsertFunction::IDENTIFIER.to_owned(),
+            name: Keyword::SelfLowercase.to_string(),
+            position: CollectionsMTreeMapInsertFunction::ARGUMENT_INDEX_SELF + 1,
+            expected: "std::collections::MTreeMap".to_owned(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_insert_argument_2_key_expected_u160() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.insert(false);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentType {
+            location: Location::test(8, 28),
+            function: CollectionsMTreeMapInsertFunction::IDENTIFIER.to_owned(),
+            name: "key".to_owned(),
+            position: CollectionsMTreeMapInsertFunction::ARGUMENT_INDEX_KEY + 1,
+            expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS).to_string(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_insert_argument_2_key_expected_u248() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.insert(0x0000000000000000000000000000000000000000 as u160, false);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentType {
+            location: Location::test(8, 80),
+            function: CollectionsMTreeMapInsertFunction::IDENTIFIER.to_owned(),
+            name: "value".to_owned(),
+            position: CollectionsMTreeMapInsertFunction::ARGUMENT_INDEX_VALUE + 1,
+            expected: Type::integer_unsigned(None, zinc_const::bitlength::BALANCE).to_string(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_remove_argument_count_lesser() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.remove();
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentCount {
+            location: Location::test(8, 27),
+            function: CollectionsMTreeMapRemoveFunction::IDENTIFIER.to_owned(),
+            expected: CollectionsMTreeMapRemoveFunction::ARGUMENT_COUNT,
+            found: CollectionsMTreeMapRemoveFunction::ARGUMENT_COUNT - 1,
+            reference: None,
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_remove_argument_count_greater() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.remove(0 as u160, true);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentCount {
+            location: Location::test(8, 27),
+            function: CollectionsMTreeMapRemoveFunction::IDENTIFIER.to_owned(),
+            expected: CollectionsMTreeMapRemoveFunction::ARGUMENT_COUNT,
+            found: CollectionsMTreeMapRemoveFunction::ARGUMENT_COUNT + 1,
+            reference: None,
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_remove_argument_1_self_expected_map() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        MTreeMap::remove(false);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentType {
+            location: Location::test(8, 26),
+            function: CollectionsMTreeMapRemoveFunction::IDENTIFIER.to_owned(),
+            name: Keyword::SelfLowercase.to_string(),
+            position: CollectionsMTreeMapRemoveFunction::ARGUMENT_INDEX_SELF + 1,
+            expected: "std::collections::MTreeMap".to_owned(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_collections_mtreemap_remove_argument_2_key_expected_u160() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Test {
+    values: MTreeMap<u160, u248>;
+
+    pub fn test(self) -> u248 {
+        self.values.remove(false);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::ArgumentType {
+            location: Location::test(8, 28),
+            function: CollectionsMTreeMapRemoveFunction::IDENTIFIER.to_owned(),
+            name: "key".to_owned(),
+            position: CollectionsMTreeMapRemoveFunction::ARGUMENT_INDEX_KEY + 1,
+            expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS).to_string(),
             found: Type::boolean(None).to_string(),
         }),
     ))));

@@ -14,7 +14,9 @@ use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
+use zinc_vm::ContractInput;
 use zinc_vm::Facade;
+use zinc_zksync::TransactionMsg;
 
 use crate::file::File;
 use crate::instance::Instance;
@@ -93,9 +95,10 @@ impl IRunnable for Runner {
 
             let params = match match instance.application.clone() {
                 BuildApplication::Circuit(circuit) => CircuitFacade::new(circuit).setup::<Bn256>(),
-                BuildApplication::Contract(contract) => {
-                    ContractFacade::new(contract).setup::<Bn256>(case.method.clone())
-                }
+                BuildApplication::Contract(contract) => ContractFacade::new(contract)
+                    .setup::<Bn256>(case.method.clone().unwrap_or_else(|| {
+                        zinc_const::source::FUNCTION_MAIN_IDENTIFIER.to_owned()
+                    })),
             } {
                 Ok(params) => params,
                 Err(error) => {
@@ -115,8 +118,8 @@ impl IRunnable for Runner {
 
             let (output, proof) = match instance.application.clone() {
                 BuildApplication::Circuit(circuit) => {
-                    let result = CircuitFacade::new(circuit)
-                        .prove::<Bn256>(params.clone(), instance.witness);
+                    let result =
+                        CircuitFacade::new(circuit).prove::<Bn256>(params.clone(), instance.input);
 
                     match result {
                         Ok((result, proof)) => {
@@ -176,9 +179,14 @@ impl IRunnable for Runner {
 
                     let result = ContractFacade::new(contract).prove::<Bn256>(
                         params.clone(),
-                        instance.witness,
-                        BuildValue::Contract(storage),
-                        case.method,
+                        ContractInput::new(
+                            instance.input,
+                            BuildValue::Contract(storage),
+                            case.method.unwrap_or_else(|| {
+                                zinc_const::source::FUNCTION_MAIN_IDENTIFIER.to_owned()
+                            }),
+                            TransactionMsg::default(),
+                        ),
                     );
 
                     match result {

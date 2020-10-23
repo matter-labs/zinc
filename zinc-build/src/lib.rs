@@ -3,7 +3,7 @@
 //!
 
 pub(crate) mod application;
-pub(crate) mod bytes;
+pub(crate) mod build;
 pub(crate) mod data;
 pub(crate) mod instructions;
 
@@ -12,7 +12,8 @@ pub use self::application::contract::method::Method as ContractMethod;
 pub use self::application::contract::Contract;
 pub use self::application::unit_test::UnitTest;
 pub use self::application::Application;
-pub use self::bytes::Bytes;
+pub use self::build::input::Input as InputBuild;
+pub use self::build::Build;
 pub use self::data::r#type::contract_field::ContractField as ContractFieldType;
 pub use self::data::r#type::scalar::integer::Type as IntegerType;
 pub use self::data::r#type::scalar::Type as ScalarType;

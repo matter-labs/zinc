@@ -9,9 +9,7 @@ description = "The Zinc compiler lexical analyzer"
 
 [dependencies]
 log = "0.4"
+lazy_static = "1.4"
 
 zinc-const = { path = "../zinc-const" }
-zinc-utils = { path = "../zinc-utils", optional = true }
-
-[features]
-file_index = [ "zinc-utils" ]
+zinc-math = { path = "../zinc-math" }

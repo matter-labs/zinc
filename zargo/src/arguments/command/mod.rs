@@ -35,19 +35,6 @@ use self::test::Command as TestCommand;
 use self::verify::Command as VerifyCommand;
 
 ///
-/// The generic trait used for commands.
-///
-pub trait IExecutable {
-    /// The generic subcommand error type.
-    type Error;
-
-    ///
-    /// Executes the instance.
-    ///
-    fn execute(self) -> Result<(), Self::Error>;
-}
-
-///
 /// The Zargo package manager subcommand.
 ///
 #[derive(Debug, StructOpt)]
@@ -67,7 +54,7 @@ pub enum Command {
     Test(TestCommand),
     /// Generates a pair of proving and verifying keys.
     Setup(SetupCommand),
-    /// Generates the zero-knowledge proof for given witness data.
+    /// Generates the zero-knowledge proof for given input data.
     Prove(ProveCommand),
     /// Verifies the zero-knowledge proof.
     Verify(VerifyCommand),
@@ -81,10 +68,11 @@ pub enum Command {
     Call(CallCommand),
 }
 
-impl IExecutable for Command {
-    type Error = Error;
-
-    fn execute(self) -> Result<(), Self::Error> {
+impl Command {
+    ///
+    /// Executes the command.
+    ///
+    pub async fn execute(self) -> Result<(), Error> {
         match self {
             Self::New(inner) => inner.execute()?,
             Self::Init(inner) => inner.execute()?,
@@ -96,9 +84,9 @@ impl IExecutable for Command {
             Self::Prove(inner) => inner.execute()?,
             Self::Verify(inner) => inner.execute()?,
             Self::ProofCheck(inner) => inner.execute()?,
-            Self::Publish(inner) => inner.execute()?,
-            Self::Query(inner) => inner.execute()?,
-            Self::Call(inner) => inner.execute()?,
+            Self::Publish(inner) => inner.execute().await?,
+            Self::Query(inner) => inner.execute().await?,
+            Self::Call(inner) => inner.execute().await?,
         }
 
         Ok(())

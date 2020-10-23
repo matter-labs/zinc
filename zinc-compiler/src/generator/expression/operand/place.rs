@@ -124,7 +124,7 @@ impl IBytecodeWritable for Place {
                         Some(self.identifier.location),
                     );
                 }
-                SemanticPlaceElement::ContractField { .. } => {}
+                SemanticPlaceElement::ContractField { access: _ } => {}
             }
         }
     }

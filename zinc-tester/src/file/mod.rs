@@ -9,7 +9,7 @@ use std::fs;
 use std::io::Read;
 use std::path::PathBuf;
 
-use serde_derive::Deserialize;
+use serde::Deserialize;
 
 use self::error::Error;
 

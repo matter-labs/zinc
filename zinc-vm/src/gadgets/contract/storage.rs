@@ -1,3 +1,4 @@
+use std::borrow::BorrowMut;
 use std::marker::PhantomData;
 
 use franklin_crypto::bellman::ConstraintSystem;
@@ -6,6 +7,7 @@ use franklin_crypto::bellman::SynthesisError;
 
 use zinc_build::ScalarType;
 
+use crate::core::contract::storage::leaf::LeafVariant;
 use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::contract::merkle_tree::allocated_leaf::AllocatedLeaf;
@@ -65,10 +67,12 @@ where
             .expect(zinc_const::panic::TEST_DATA_VALID);
         let merkle_tree_leaf = self.storage.load(index)?;
 
-        let leaf_fields = AllocatedLeaf::alloc_leaf_fields(
-            cs.namespace(|| "alloc leaf fields"),
-            merkle_tree_leaf.leaf_values,
-        )?;
+        let leaf_value = match merkle_tree_leaf.leaf_values {
+            LeafVariant::Array(array) => array,
+            LeafVariant::Map { .. } => vec![],
+        };
+        let leaf_fields =
+            AllocatedLeaf::alloc_leaf_fields(cs.namespace(|| "alloc leaf fields"), leaf_value)?;
 
         // if leaf_fields.len() != size {
         //     return Err(RuntimeError::RequireError(
@@ -111,7 +115,7 @@ where
         &mut self,
         mut cs: CS,
         index: Scalar<E>,
-        values: Vec<Scalar<E>>,
+        values: LeafVariant<E>,
     ) -> Result<(), RuntimeError>
     where
         CS: ConstraintSystem<E>,
@@ -125,7 +129,7 @@ where
                 .get_value()
                 .map(|field| gadgets::scalar::fr_bigint::fr_to_bigint::<E>(&field, false))
                 .expect(zinc_const::panic::TEST_DATA_VALID),
-            values, /*.clone()*/
+            values,
         )?;
 
         // let leaf_hash = AllocatedLeaf::alloc_leaf_hash(
@@ -175,6 +179,11 @@ where
         Ok(self.root_hash.clone())
     }
 
+    #[allow(clippy::should_implement_trait)]
+    pub fn as_mut(&mut self) -> &mut S {
+        self.storage.borrow_mut()
+    }
+
     pub fn into_inner(self) -> S {
         self.storage
     }
@@ -197,12 +206,13 @@ mod tests {
     use zinc_build::Type as BuildType;
 
     use crate::core::contract::storage::database::Storage as DatabaseStorage;
+    use crate::core::contract::storage::leaf::LeafInput;
+    use crate::core::contract::storage::leaf::LeafVariant;
     use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
     use crate::gadgets::contract::storage::StorageGadget;
     use crate::gadgets::scalar::Scalar;
 
     #[test]
-    #[ignore]
     fn test_storage_gadget_small() {
         const STORAGE_ELEMENT_COUNT: usize = 2;
 
@@ -210,10 +220,13 @@ mod tests {
 
         let mut cs = TestConstraintSystem::<Bn256>::new();
 
-        let storage = DatabaseStorage::<Bn256>::new(
-            vec![BuildType::Scalar(ScalarType::Field); STORAGE_ELEMENT_COUNT],
-            vec![vec![BigInt::zero()]; STORAGE_ELEMENT_COUNT],
-        );
+        let storage = DatabaseStorage::<Bn256>::new(vec![
+            LeafInput::Array {
+                r#type: BuildType::Scalar(ScalarType::Field),
+                values: vec![BigInt::zero()],
+            };
+            STORAGE_ELEMENT_COUNT
+        ]);
 
         let mut storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "gadget creation"), storage)
@@ -235,7 +248,7 @@ mod tests {
                 .store(
                     cs.namespace(|| format!("store :: index({})", i)),
                     Scalar::<Bn256>::new_constant_usize(i, ScalarType::Field),
-                    vec![scalar],
+                    LeafVariant::Array(vec![scalar]),
                 )
                 .expect(zinc_const::panic::TEST_DATA_VALID);
 

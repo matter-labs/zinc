@@ -10,13 +10,19 @@ use franklin_crypto::bellman::ConstraintSystem;
 use crate::core::contract::output::transfer::Transfer as TransferOutput;
 use crate::core::execution_state::ExecutionState;
 use crate::error::RuntimeError;
+use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::instructions::call_library::INativeCallable;
 use crate::IEngine;
 
 pub struct Transfer;
 
-impl<E: IEngine> INativeCallable<E> for Transfer {
-    fn call<CS>(&self, _cs: CS, state: &mut ExecutionState<E>) -> Result<(), RuntimeError>
+impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Transfer {
+    fn call<CS>(
+        &self,
+        _cs: CS,
+        state: &mut ExecutionState<E>,
+        _storage: Option<&mut S>,
+    ) -> Result<(), RuntimeError>
     where
         CS: ConstraintSystem<E>,
     {

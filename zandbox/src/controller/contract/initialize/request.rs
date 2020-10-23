@@ -5,9 +5,9 @@
 ///
 /// The contract resource POST `initialize` request query.
 ///
-pub type Query = zinc_data::InitializeRequestQuery;
+pub type Query = zinc_zksync::InitializeRequestQuery;
 
 ///
 /// The contract resource POST `initialize` request body.
 ///
-pub type Body = zinc_data::InitializeRequestBody;
+pub type Body = zinc_zksync::InitializeRequestBody;

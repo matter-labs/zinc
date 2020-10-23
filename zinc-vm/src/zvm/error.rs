@@ -9,6 +9,7 @@ use hex::FromHexError;
 use serde_json::Value as JsonValue;
 
 use zinc_build::ValueError as BuildValueError;
+use zinc_zksync::TransactionMsgError;
 
 use zinc_vm::RuntimeError;
 use zinc_vm::VerificationError;
@@ -59,6 +60,18 @@ pub enum Error {
         error: FromHexError,
     },
 
+    /// The input data is invalid.
+    #[fail(
+        display = "the input data is invalid: expected for `{}`, found for `{}`",
+        expected, found
+    )]
+    InputDataInvalid {
+        /// The expected project type.
+        expected: String,
+        /// The found project type.
+        found: String,
+    },
+
     /// The method name is not specified.
     #[fail(display = "method name is missing")]
     MethodNameNotFound,
@@ -67,11 +80,18 @@ pub enum Error {
     #[fail(display = "method `{}` not found", _0)]
     MethodNotFound { name: String },
 
-    /// The contract storage is required for a contract application.
-    #[fail(display = "contract storage path missing")]
-    ContractStoragePathMissing,
+    /// The method arguments are not present in the input data.
+    #[fail(display = "method `{}` arguments not found", _0)]
+    MethodArgumentsNotFound { name: String },
 
-    /// The contract storage JSON file is invalid.
+    /// The transaction JSON is invalid.
+    #[fail(display = "transaction is invalid")]
+    InvalidTransaction {
+        inner: TransactionMsgError,
+        found: JsonValue,
+    },
+
+    /// The contract storage JSON is invalid.
     #[fail(display = "contract storage must be an array, but found `{}`", found)]
     InvalidContractStorageFormat { found: JsonValue },
 }

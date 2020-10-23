@@ -48,6 +48,8 @@ pub struct Enumeration {
     pub names: Vec<String>,
     /// The ordered list of the variant values.
     pub values: Vec<BigInt>,
+    /// The ordered list of the enumeration generic type arguments.
+    pub generics: Vec<String>,
     /// The enumeration scope, where its methods and associated items are declared.
     pub scope: Rc<RefCell<Scope>>,
 }
@@ -61,6 +63,7 @@ impl Enumeration {
         identifier: String,
         type_id: usize,
         variants: Vec<Variant>,
+        generics: Vec<String>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Result<Self, SemanticError> {
         let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());
@@ -114,6 +117,7 @@ impl Enumeration {
             bitlength: minimal_bitlength,
             names,
             values: bigints,
+            generics,
             scope: scope.clone(),
         };
 

@@ -4,16 +4,14 @@
 
 pub mod error;
 
-use num_old::BigUint;
-use num_old::Zero;
+use num::BigUint;
 
 use zksync::web3::types::Address;
 use zksync_types::tx::ZkSyncTx;
 use zksync_types::TokenLike;
 use zksync_types::TxFeeTypes;
 
-use zinc_data::Transaction;
-use zinc_data::Transfer;
+use zinc_zksync::TransactionMsg;
 
 use self::error::Error;
 
@@ -23,27 +21,27 @@ use self::error::Error;
 pub async fn new_initial(
     wallet: &zksync::Wallet,
     recipient: Address,
-) -> Result<Transaction, Error> {
-    let mut runtime = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
-
-    let token_symbol = "ETH";
-    let token_like = TokenLike::Symbol(token_symbol.to_owned());
+    token_symbol: String,
+    amount: BigUint,
+) -> Result<zinc_zksync::Transaction, Error> {
+    let token_like = TokenLike::Symbol(token_symbol);
     let token = wallet
         .tokens
-        .resolve(token_like)
+        .resolve(token_like.clone())
         .ok_or(Error::TokenNotFound)?;
 
-    let amount = num_old::BigUint::zero();
-    let fee = runtime
-        .block_on(
-            wallet
-                .provider
-                .get_tx_fee(TxFeeTypes::Transfer, recipient, token_symbol),
-        )
+    let amount =
+        zksync::utils::closest_packable_token_amount(&zinc_zksync::num_compat_backward(amount));
+    let fee = wallet
+        .provider
+        .get_tx_fee(TxFeeTypes::Transfer, recipient, token_like)
+        .await
         .map_err(Error::FeeGetting)?
         .total_fee;
-    let nonce = runtime
-        .block_on(wallet.provider.account_info(wallet.signer.address))
+    let nonce = wallet
+        .provider
+        .account_info(wallet.signer.address)
+        .await
         .map_err(Error::AccountInfoRetrieving)?
         .committed
         .nonce;
@@ -55,7 +53,7 @@ pub async fn new_initial(
         .map_err(Error::TransactionSigning)?;
     let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
-    Ok(Transaction::new(
+    Ok(zinc_zksync::Transaction::new(
         ZkSyncTx::Transfer(Box::new(transfer)),
         signature,
     ))
@@ -65,41 +63,45 @@ pub async fn new_initial(
 /// Converts an array of input transfers into an array of signed zkSync transactions.
 ///
 pub async fn try_into_zksync(
-    transfer: Transfer,
+    transaction: TransactionMsg,
     wallet: &zksync::Wallet,
     contract_fee: Option<BigUint>,
-) -> Result<Transaction, Error> {
-    let mut runtime = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
-
+) -> Result<zinc_zksync::Transaction, Error> {
     let token = wallet
         .tokens
-        .resolve(transfer.token_id.clone())
+        .resolve(transaction.token_id.into())
         .ok_or(Error::TokenNotFound)?;
-    let amount = zksync::utils::closest_packable_token_amount(&transfer.amount);
-    let fee = runtime
-        .block_on(wallet.provider.get_tx_fee(
+    let amount = zksync::utils::closest_packable_token_amount(&transaction.amount);
+    let fee = wallet
+        .provider
+        .get_tx_fee(
             TxFeeTypes::Transfer,
             wallet.signer.address,
-            transfer.token_id,
-        ))
+            transaction.token_id,
+        )
+        .await
         .map_err(Error::FeeGetting)?
         .total_fee
-        + contract_fee.unwrap_or_default();
+        + contract_fee
+            .map(zinc_zksync::num_compat_backward)
+            .unwrap_or_default();
     let fee = zksync::utils::closest_packable_fee_amount(&fee);
-    let nonce = runtime
-        .block_on(wallet.provider.account_info(wallet.signer.address))
+    let nonce = wallet
+        .provider
+        .account_info(wallet.signer.address)
+        .await
         .map_err(Error::AccountInfoRetrieving)?
         .committed
         .nonce;
 
     let (transfer, signature) = wallet
         .signer
-        .sign_transfer(token, amount, fee, transfer.recipient, nonce)
+        .sign_transfer(token, amount, fee, transaction.recipient, nonce)
         .await
         .map_err(Error::TransactionSigning)?;
     let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
-    Ok(Transaction::new(
+    Ok(zinc_zksync::Transaction::new(
         ZkSyncTx::Transfer(Box::new(transfer)),
         signature,
     ))

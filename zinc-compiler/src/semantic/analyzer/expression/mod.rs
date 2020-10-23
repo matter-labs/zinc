@@ -722,7 +722,7 @@ impl Analyzer {
                 },
             )));
         }
-        if let Some(name) = place.check_implicit_field() {
+        if let Some(name) = place.check_immutable_field() {
             return Err(Error::Element(ElementError::Place(
                 PlaceError::MutatingImmutableContractField {
                     location: place.identifier.location,

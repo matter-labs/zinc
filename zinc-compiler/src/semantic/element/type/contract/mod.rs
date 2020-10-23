@@ -17,6 +17,7 @@ use zinc_lexical::Location;
 use zinc_syntax::Identifier;
 
 use crate::semantic::element::r#type::Type;
+use crate::semantic::error::Error;
 use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
@@ -53,7 +54,7 @@ impl Contract {
         type_id: usize,
         fields: Vec<Field>,
         scope: Option<Rc<RefCell<Scope>>>,
-    ) -> Self {
+    ) -> Result<Self, Error> {
         let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());
 
         Scope::define_field(
@@ -67,8 +68,7 @@ impl Contract {
             true,
             true,
             true,
-        )
-        .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+        )?;
 
         Scope::define_field(
             scope.clone(),
@@ -84,9 +84,8 @@ impl Contract {
             zinc_const::contract::FIELD_INDEX_BALANCES,
             true,
             true,
-            false,
-        )
-        .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+            true,
+        )?;
 
         let contract = Self {
             location,
@@ -109,7 +108,7 @@ impl Contract {
             .wrap(),
         );
 
-        contract
+        Ok(contract)
     }
 }
 

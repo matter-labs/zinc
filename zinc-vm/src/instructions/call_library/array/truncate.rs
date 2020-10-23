@@ -7,6 +7,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use crate::core::execution_state::ExecutionState;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
+use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::instructions::call_library::INativeCallable;
 use crate::IEngine;
 
@@ -28,11 +29,12 @@ impl Truncate {
     }
 }
 
-impl<E: IEngine> INativeCallable<E> for Truncate {
+impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Truncate {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         _cs: CS,
         state: &mut ExecutionState<E>,
+        _storage: Option<&mut S>,
     ) -> Result<(), RuntimeError> {
         let new_length = state
             .evaluation_stack

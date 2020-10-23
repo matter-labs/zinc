@@ -40,9 +40,14 @@ async fn ok_curve() {
         .arg(MANIFEST_PATH)
         .arg("--instance")
         .arg("test")
+        .arg("--deposit-token")
+        .arg("ETH")
+        .arg("--deposit-amount")
+        .arg("0.001_E18")
         .output()
         .expect("Zargo publish process waiting");
     let stdout = String::from_utf8_lossy(output.stdout.as_slice());
+    let stderr = String::from_utf8_lossy(output.stderr.as_slice());
     let address = stdout
         .lines()
         .find(|line| line.contains("Address"))
@@ -58,102 +63,84 @@ async fn ok_curve() {
             )
             .as_str(),
         );
-    assert!(output.status.success(), "Zargo publish process failure");
+    if !output.status.success() {
+        panic!("Zargo publish process failure: {}", stderr);
+    }
 
-    let witness_new_path = format!("{}/data/witness_{}.json", MANIFEST_PATH, "new");
-    File::create(witness_new_path)
-        .expect("Constructor input file creating")
+    let input_path = format!(
+        "{}/data/{}.{}",
+        MANIFEST_PATH,
+        zinc_const::file_name::INPUT,
+        zinc_const::extension::JSON
+    );
+    File::create(input_path)
+        .expect("Input file creating")
         .write_all(
             serde_json::to_string_pretty(&json!({
-                "_amplifier": "100",
-                "_tokens": ["0", "1"],
-            }))
-            .expect(zinc_const::panic::DATA_CONVERSION)
-            .as_bytes(),
-        )
-        .expect("Constructor input file writing");
-
-    let witness_deposit_path = format!("{}/data/witness_{}.json", MANIFEST_PATH, "deposit");
-    File::create(witness_deposit_path)
-        .expect("Deposit input file creating")
-        .write_all(
-            serde_json::to_string_pretty(&json!({
-                "tx": {
-                    "sender": OWNER_ADDRESS,
-                    "recipient": address,
-                    "token_id": "ETH",
-                    "amount": "1.0_E18"
-                }
-            }))
-            .expect(zinc_const::panic::DATA_CONVERSION)
-            .as_bytes(),
-        )
-        .expect("Deposit input file writing");
-
-    let status = Command::new(zinc_const::app_name::ZARGO)
-        .arg("call")
-        .arg("--manifest-path")
-        .arg(MANIFEST_PATH)
-        .arg("--address")
-        .arg(address)
-        .arg("--method")
-        .arg("deposit")
-        .spawn()
-        .expect("Zargo deposit call process spawning")
-        .wait()
-        .expect("Zargo deposit call process waiting");
-    assert!(status.success(), "Zargo deposit call process failure");
-
-    let witness_deposit_path = format!("{}/data/witness_{}.json", MANIFEST_PATH, "deposit");
-    File::create(witness_deposit_path)
-        .expect("Deposit input file creating")
-        .write_all(
-            serde_json::to_string_pretty(&json!({
-                "tx": {
-                    "sender": OWNER_ADDRESS,
-                    "recipient": address,
-                    "token_id": "DAI",
-                    "amount": "1.0_E18"
-                }
-            }))
-            .expect(zinc_const::panic::DATA_CONVERSION)
-            .as_bytes(),
-        )
-        .expect("Deposit input file writing");
-
-    let status = Command::new(zinc_const::app_name::ZARGO)
-        .arg("call")
-        .arg("--manifest-path")
-        .arg(MANIFEST_PATH)
-        .arg("--address")
-        .arg(address)
-        .arg("--method")
-        .arg("deposit")
-        .spawn()
-        .expect("Zargo deposit call process spawning")
-        .wait()
-        .expect("Zargo deposit call process waiting");
-    assert!(status.success(), "Zargo deposit call process failure");
-
-    let witness_swap_path = format!("{}/data/witness_{}.json", MANIFEST_PATH, "swap");
-    File::create(witness_swap_path)
-        .expect("Swap input file creating")
-        .write_all(
-            serde_json::to_string_pretty(&json!({
-                "tx": {
-                    "sender": OWNER_ADDRESS,
-                    "recipient": address,
-                    "token_id": "ETH",
-                    "amount": "0.1_E18"
+              "type": "contract",
+              "storage": [
+                address,
+                [
+                  "0",
+                  "0"
+                ],
+                [
+                  "0",
+                  "1"
+                ],
+                "100"
+              ],
+              "msg": {
+                "sender": OWNER_ADDRESS,
+                "recipient": address,
+                "token_id": "0",
+                "amount": "1E18"
+              },
+              "arguments": {
+                "get_dx": {
+                  "deposit_token_id": "DAI",
+                  "withdraw_token_id": "ETH",
+                  "to_withdraw": "0.1E18"
                 },
-                "withdraw_address": OWNER_ADDRESS,
-                "withdraw_token_id": "DAI",
-                "min_withdraw": "0.01_E18"
+                "new": {
+                  "_tokens": [
+                    "ETH",
+                    "DAI"
+                  ],
+                  "_amplifier": "100"
+                },
+                "get_dy": {
+                  "deposit_token_id": "ETH",
+                  "withdraw_token_id": "DAI",
+                  "to_deposit": "0.1E18"
+                },
+                "deposit": {},
+                "swap": {
+                  "withdraw_address": OWNER_ADDRESS,
+                  "withdraw_token_id": "DAI",
+                  "min_withdraw": "0.05E18"
+                }
+              }
             }))
             .expect(zinc_const::panic::DATA_CONVERSION)
             .as_bytes(),
         )
-        .expect("Swap input file writing");
+        .expect("Input file writing");
+
+    let output = Command::new(zinc_const::app_name::ZARGO)
+        .arg("call")
+        .arg("--manifest-path")
+        .arg(MANIFEST_PATH)
+        .arg("--address")
+        .arg(address)
+        .arg("--method")
+        .arg("deposit")
+        .output()
+        .expect("Zargo deposit call process waiting");
+    let stderr = String::from_utf8_lossy(output.stderr.as_slice());
+    if !output.status.success() {
+        panic!("Zargo deposit call process failure: {}", stderr);
+    }
 
     let account_info = provider
         .account_info(
@@ -163,153 +150,14 @@ async fn ok_curve() {
         )
         .await
         .expect("Account info getting");
-    assert_eq!(
+    assert!(
         account_info
             .committed
             .balances
             .get("ETH")
             .expect("Balance error")
-            .0,
-        BigUint::from(1_000_000_000_000_000_000_u64),
+            .0
+            > BigUint::from(1_000_000_000_000_000_000_u64),
         "ETH deposit has failed"
-    );
-    assert_eq!(
-        account_info
-            .committed
-            .balances
-            .get("DAI")
-            .expect("Balance error")
-            .0,
-        BigUint::from(1_000_000_000_000_000_000_u64),
-        "DAI deposit has failed"
-    );
-
-    let status = Command::new(zinc_const::app_name::ZARGO)
-        .arg("call")
-        .arg("--manifest-path")
-        .arg(MANIFEST_PATH)
-        .arg("--address")
-        .arg(address)
-        .arg("--method")
-        .arg("swap")
-        .spawn()
-        .expect("Zargo swap call process spawning")
-        .wait()
-        .expect("Zargo swap call process waiting");
-    assert!(status.success(), "Zargo swap call process failure");
-
-    let mut account_info = provider
-        .account_info(
-            address["0x".len()..]
-                .parse()
-                .expect(zinc_const::panic::DATA_CONVERSION),
-        )
-        .await
-        .expect("Account info getting");
-    assert_eq!(
-        account_info
-            .committed
-            .balances
-            .get("ETH")
-            .expect("Balance error")
-            .0,
-        BigUint::from(1_100_000_000_000_000_000_u64),
-        "ETH client-side swap has failed"
-    );
-    let after_first_swap = account_info
-        .committed
-        .balances
-        .remove("DAI")
-        .expect("Balance error")
-        .0;
-    assert!(
-        after_first_swap < BigUint::from(1_000_000_000_000_000_000_u64),
-        "DAI contract-side swap has failed, as the token amount has not decreased"
-    );
-
-    let status = Command::new(zinc_const::app_name::ZARGO)
-        .arg("call")
-        .arg("--manifest-path")
-        .arg(MANIFEST_PATH)
-        .arg("--address")
-        .arg(address)
-        .arg("--method")
-        .arg("swap")
-        .spawn()
-        .expect("Zargo swap call process spawning")
-        .wait()
-        .expect("Zargo swap call process waiting");
-    assert!(status.success(), "Zargo swap call process failure");
-
-    let mut account_info = provider
-        .account_info(
-            address["0x".len()..]
-                .parse()
-                .expect(zinc_const::panic::DATA_CONVERSION),
-        )
-        .await
-        .expect("Account info getting");
-    assert_eq!(
-        account_info
-            .committed
-            .balances
-            .get("ETH")
-            .expect("Balance error")
-            .0,
-        BigUint::from(1_200_000_000_000_000_000_u64),
-        "ETH client-side swap has failed"
-    );
-    let after_second_swap = account_info
-        .committed
-        .balances
-        .remove("DAI")
-        .expect("Balance error")
-        .0;
-    assert!(
-        after_second_swap < after_first_swap,
-        "DAI contract-side swap has failed, as the token amount has not decreased"
-    );
-
-    let status = Command::new(zinc_const::app_name::ZARGO)
-        .arg("call")
-        .arg("--manifest-path")
-        .arg(MANIFEST_PATH)
-        .arg("--address")
-        .arg(address)
-        .arg("--method")
-        .arg("swap")
-        .spawn()
-        .expect("Zargo swap call process spawning")
-        .wait()
-        .expect("Zargo swap call process waiting");
-    assert!(status.success(), "Zargo swap call process failure");
-
-    let mut account_info = provider
-        .account_info(
-            address["0x".len()..]
-                .parse()
-                .expect(zinc_const::panic::DATA_CONVERSION),
-        )
-        .await
-        .expect("Account info getting");
-    assert_eq!(
-        account_info
-            .committed
-            .balances
-            .get("ETH")
-            .expect("Balance error")
-            .0,
-        BigUint::from(1_300_000_000_000_000_000_u64),
-        "ETH client-side swap has failed"
-    );
-    let after_third_swap = account_info
-        .committed
-        .balances
-        .remove("DAI")
-        .expect("Balance error")
-        .0;
-    assert!(
-        after_third_swap < after_second_swap,
-        "DAI contract-side swap has failed, as the token amount has not decreased"
     );
 }

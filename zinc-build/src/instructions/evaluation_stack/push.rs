@@ -5,8 +5,8 @@
 use std::fmt;
 
 use num::BigInt;
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::data::r#type::scalar::Type as ScalarType;
 use crate::instructions::Instruction;

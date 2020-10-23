@@ -10,11 +10,11 @@ pub mod transfer;
 use std::fmt;
 
 use zinc_build::LibraryFunctionIdentifier;
+use zinc_lexical::Location;
 
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
-use zinc_lexical::Location;
 
 use self::transfer::Function as TransferFunction;
 
@@ -31,11 +31,7 @@ impl Function {
     ///
     /// Calls the function with the `argument_list`, validating the call.
     ///
-    pub fn call(
-        self,
-        location: Option<Location>,
-        argument_list: ArgumentList,
-    ) -> Result<Type, Error> {
+    pub fn call(self, location: Location, argument_list: ArgumentList) -> Result<Type, Error> {
         match self {
             Self::Transfer(inner) => inner.call(location, argument_list),
         }

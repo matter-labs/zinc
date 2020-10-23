@@ -28,6 +28,8 @@ pub struct Builder {
     tuple_element_types: Vec<Type>,
     /// The path expression, which means that the type is an alias.
     path_expression: Option<ExpressionTree>,
+    /// The optional generic type arguments.
+    generics: Option<Vec<Type>>,
 }
 
 /// The invalid type keyword panic, which is prevented by the type parser.
@@ -90,6 +92,13 @@ impl Builder {
     }
 
     ///
+    /// Sets the corresponding builder value.
+    ///
+    pub fn set_generics(&mut self, value: Vec<Type>) {
+        self.generics = Some(value);
+    }
+
+    ///
     /// Finalizes the builder and returns the built value.
     ///
     /// # Panics
@@ -105,7 +114,7 @@ impl Builder {
         });
 
         let variant = if let Some(path) = self.path_expression.take() {
-            TypeVariant::alias(path)
+            TypeVariant::alias(path, self.generics.take())
         } else if let Some(keyword) = self.keyword.take() {
             match keyword {
                 Keyword::Bool => TypeVariant::boolean(),

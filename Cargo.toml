@@ -9,10 +9,13 @@ members = [
     "zargo",
     "zandbox",
 
-    "zinc-data",
-    "zinc-build",
-    "zinc-utils",
+    "zinc-logger",
     "zinc-const",
+    "zinc-math",
+    "zinc-manifest",
+    "zinc-source",
+    "zinc-build",
+    "zinc-zksync",
 ]
 
 exclude = [

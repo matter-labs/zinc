@@ -4,34 +4,44 @@
 
 #### Language
 
+*General*
+
 - implemented the module system with access to the root and parent modules
-- allowed to declare constants, types, functions, and modules in arbitrary order
+- allowed declaring constants, types, functions, and modules in arbitrary order
+- added aliases to the `use` import statement
 - implemented unit-testing functionality
+- renamed the `assert!` function to `require`
+
+*Object-oriented*
+
 - added methods with by-value `self` instance parameter
 - added the syntax sugar for calling methods via the dot `.` operator
+
+*Compile-time*
+
 - extended constant expressions with arrays, tuples, structures, blocks, conditionals, and matches
 - implemented primitive constant functions
+
+*Expressions*
+
+- fixed the issue where operations on enums could result into an invalid variant
 - allowed bitwise operations on non-constant and witness values
 - forbidden bitwise operations on signed integers and fields
 - implemented the type inference for integer literals in expressions
-- fixed the issue where operations on enums could result into an invalid variant
-- added aliases to the `use` import statement
-
-#### Virtual machine
-
-- added the overflow checking and `enum` validation for input JSON files
+- added the exponent form to integer literals
 
 #### Compiler
 
 - fixed the bug where namespace items where resolved from outside the namespace
-- fixed the bug where the type of a `match` enumeration variant path pattern was unchecked
+- fixed the bug where the type of `match` enumeration variant path pattern used to be unchecked
 - fixed the bug where a structure could be initialized without fields
 - implemented the per-entry dead code elimination optimization for unreachable functions
-- implemented the short-circuit boolean expressions evaluation
+- implemented the short-circuiting boolean expressions evaluation
 - improved some error messages
 
 #### Virtual machine
 
+- added the overflow checking and `enum` validation for input JSON files
 - allowed witness array indexes without constraints
 - improved some error messages
 
@@ -39,13 +49,20 @@
 
 - generalized for managing both circuit and smart contract projects
 - improved some commands and default values to decrease redundancy
-- added some commands for publishing and managing smart contracts
-- taught Zargo to mimic Cargo more precisely
+- added some commands for publishing and working with smart contracts
+- taught Zargo to mimic Cargo more accurately
 
 #### Source code
 
 - added doc comments for the entire project using `missing_docs_*` lints
-- moved some shared data to crates `zinc_utils`, `zinc_const`, `zinc_build`, and `zinc_data`
+- moved some shared data to crates:
+    - `zinc_logger`
+    - `zinc_const`
+    - `zinc_math`
+    - `zinc_manifest`
+    - `zinc_source`
+    - `zinc_build`
+    - `zinc_zksync`
 
 #### Overall
 

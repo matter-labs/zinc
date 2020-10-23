@@ -14,6 +14,8 @@ use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
+use zinc_vm::ContractInput;
+use zinc_zksync::TransactionMsg;
 
 use crate::file::File;
 use crate::instance::Instance;
@@ -92,7 +94,7 @@ impl IRunnable for Runner {
 
             match instance.application {
                 BuildApplication::Circuit(circuit) => {
-                    let output = CircuitFacade::new(circuit).run::<Bn256>(instance.witness);
+                    let output = CircuitFacade::new(circuit).run::<Bn256>(instance.input);
 
                     match output {
                         Ok(output) => {
@@ -172,11 +174,14 @@ impl IRunnable for Runner {
                         .map(BuildContractFieldValue::new_from_type)
                         .collect();
 
-                    let output = ContractFacade::new(contract).run::<Bn256>(
-                        instance.witness,
+                    let output = ContractFacade::new(contract).run::<Bn256>(ContractInput::new(
+                        instance.input,
                         BuildValue::Contract(storage),
-                        case.method,
-                    );
+                        case.method.unwrap_or_else(|| {
+                            zinc_const::source::FUNCTION_MAIN_IDENTIFIER.to_owned()
+                        }),
+                        TransactionMsg::default(),
+                    ));
 
                     match output {
                         Ok(output) => {

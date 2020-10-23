@@ -37,10 +37,12 @@ impl Compiler {
     ///
     /// If `is_test_only` is set, passes the flag to only build the project unit tests.
     ///
+    #[allow(clippy::too_many_arguments)]
     pub fn build_debug(
         verbosity: usize,
         name: &str,
         version: &str,
+        manifest_path: &PathBuf,
         data_path: &PathBuf,
         source_path: &PathBuf,
         binary_path: &PathBuf,
@@ -48,10 +50,10 @@ impl Compiler {
     ) -> Result<(), Error> {
         eprintln!("   {} {} v{}", "Compiling".bright_green(), name, version);
 
-        let mut child = process::Command::new(zinc_const::app_name::ZINC_COMPILER)
+        let mut child = process::Command::new(zinc_const::app_name::COMPILER)
             .args(vec!["-v"; verbosity])
-            .arg("--name")
-            .arg(name)
+            .arg("--manifest-path")
+            .arg(manifest_path)
             .arg("--data")
             .arg(data_path)
             .arg("--binary")
@@ -81,10 +83,12 @@ impl Compiler {
     ///
     /// If `is_test_only` is set, passes the flag to only build the project unit tests.
     ///
+    #[allow(clippy::too_many_arguments)]
     pub fn build_release(
         verbosity: usize,
         name: &str,
         version: &str,
+        manifest_path: &PathBuf,
         data_path: &PathBuf,
         source_path: &PathBuf,
         binary_path: &PathBuf,
@@ -92,10 +96,10 @@ impl Compiler {
     ) -> Result<(), Error> {
         eprintln!("   {} {} v{}", "Compiling".bright_green(), name, version);
 
-        let mut child = process::Command::new(zinc_const::app_name::ZINC_COMPILER)
+        let mut child = process::Command::new(zinc_const::app_name::COMPILER)
             .args(vec!["-v"; verbosity])
-            .arg("--name")
-            .arg(name)
+            .arg("--manifest-path")
+            .arg(manifest_path)
             .arg("--data")
             .arg(data_path)
             .arg("--binary")

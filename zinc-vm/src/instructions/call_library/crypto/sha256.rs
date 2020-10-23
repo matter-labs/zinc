@@ -8,6 +8,7 @@ use franklin_crypto::circuit::sha256;
 use crate::core::execution_state::ExecutionState;
 use crate::error::MalformedBytecode;
 use crate::error::RuntimeError;
+use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_library::INativeCallable;
 use crate::IEngine;
@@ -30,11 +31,12 @@ impl Sha256 {
     }
 }
 
-impl<E: IEngine> INativeCallable<E> for Sha256 {
+impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Sha256 {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
         state: &mut ExecutionState<E>,
+        _storage: Option<&mut S>,
     ) -> Result<(), RuntimeError> {
         let mut bits = Vec::new();
         for i in 0..self.message_length {

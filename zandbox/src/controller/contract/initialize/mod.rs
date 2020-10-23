@@ -130,7 +130,6 @@ pub async fn handle(
     log::debug!("Sending the change-pubkey transaction");
     let mut handle = wallet
         .start_change_pubkey()
-        .fee(0_u64)
         .fee_token(fee_token_id)?
         .send()
         .await?

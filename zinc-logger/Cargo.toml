@@ -1,0 +1,16 @@
+[package]
+name = "zinc-logger"
+version = "0.2.0"
+authors = [
+    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
+    "Alexander Movchan <am@matterlabs.dev>",
+]
+edition = "2018"
+description = "The Zinc logger"
+
+[dependencies]
+log = "0.4"
+env_logger = "0.7"
+colored = "2.0"
+
+zinc-const = { path = "../zinc-const" }

@@ -22,6 +22,10 @@ use self::require::Function as RequireFunction;
 use self::stdlib::array_pad::Function as StdArrayPadFunction;
 use self::stdlib::array_reverse::Function as StdArrayReverseFunction;
 use self::stdlib::array_truncate::Function as StdArrayTruncateFunction;
+use self::stdlib::collections_mtreemap_contains::Function as StdCollectionsMTreeMapContainsFunction;
+use self::stdlib::collections_mtreemap_get::Function as StdCollectionsMTreeMapGetFunction;
+use self::stdlib::collections_mtreemap_insert::Function as StdCollectionsMTreeMapInsertFunction;
+use self::stdlib::collections_mtreemap_remove::Function as StdCollectionsMTreeMapRemoveFunction;
 use self::stdlib::convert_from_bits_field::Function as StdConvertFromBitsFieldFunction;
 use self::stdlib::convert_from_bits_signed::Function as StdConvertFromBitsSignedFunction;
 use self::stdlib::convert_from_bits_unsigned::Function as StdConvertFromBitsUnsignedFunction;
@@ -117,6 +121,27 @@ impl Function {
             LibraryFunctionIdentifier::ZksyncTransfer => Self::ZkSyncLibrary(
                 ZkSyncLibraryFunction::Transfer(ZkSyncTransferFunction::default()),
             ),
+
+            LibraryFunctionIdentifier::CollectionsMTreeMapGet => {
+                Self::StandardLibrary(StandardLibraryFunction::CollectionsMTreeMapGet(
+                    StdCollectionsMTreeMapGetFunction::default(),
+                ))
+            }
+            LibraryFunctionIdentifier::CollectionsMTreeMapContains => {
+                Self::StandardLibrary(StandardLibraryFunction::CollectionsMTreeMapContains(
+                    StdCollectionsMTreeMapContainsFunction::default(),
+                ))
+            }
+            LibraryFunctionIdentifier::CollectionsMTreeMapInsert => {
+                Self::StandardLibrary(StandardLibraryFunction::CollectionsMTreeMapInsert(
+                    StdCollectionsMTreeMapInsertFunction::default(),
+                ))
+            }
+            LibraryFunctionIdentifier::CollectionsMTreeMapRemove => {
+                Self::StandardLibrary(StandardLibraryFunction::CollectionsMTreeMapRemove(
+                    StdCollectionsMTreeMapRemoveFunction::default(),
+                ))
+            }
         }
     }
 

@@ -14,14 +14,11 @@ pub static MODULE_ENTRY: &str = "mod";
 /// The binary file default name.
 pub static BINARY: &str = "main";
 
-/// The witness template file default name.
-pub static WITNESS: &str = "witness";
+/// The input template file default name.
+pub static INPUT: &str = "input";
 
-/// The public data template file default name.
-pub static PUBLIC_DATA: &str = "public_data";
-
-/// The storage file default name.
-pub static STORAGE: &str = "storage";
+/// The output template file default name.
+pub static OUTPUT: &str = "output";
 
 /// The proving key file default name.
 pub static PROVING_KEY: &str = "proving_key";

@@ -201,7 +201,7 @@ impl Scope {
 
         let name = identifier.name.clone();
         let item = Item::Variable(VariableItem::new(
-            identifier.location,
+            Some(identifier.location),
             is_mutable,
             identifier.name,
             r#type,

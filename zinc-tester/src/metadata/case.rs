@@ -2,7 +2,7 @@
 //! The Zinc tester metadata case.
 //!
 
-use serde_derive::Deserialize;
+use serde::Deserialize;
 use serde_json::Value as JsonValue;
 
 ///
@@ -13,8 +13,7 @@ pub struct Case {
     /// The case name.
     pub case: String,
     /// The entry or method which must be run for the case.
-    #[serde(default = "zinc_const::tester::default_method")]
-    pub method: String,
+    pub method: Option<String>,
     /// The entry or method input data.
     pub input: JsonValue,
     /// The entry or method expected output data.

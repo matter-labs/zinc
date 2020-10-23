@@ -9,7 +9,7 @@ use structopt::StructOpt;
 ///
 #[derive(Debug, StructOpt)]
 #[structopt(
-    name = zinc_const::app_name::ZINC_TESTER,
+    name = zinc_const::app_name::TESTER,
     about = "The integration test runner for the Zinc framework"
 )]
 pub struct Arguments {

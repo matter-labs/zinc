@@ -19,5 +19,6 @@ pub use self::token::lexeme::literal::string::String as StringLiteral;
 pub use self::token::lexeme::literal::Literal;
 pub use self::token::lexeme::symbol::Symbol;
 pub use self::token::lexeme::Lexeme;
+pub use self::token::location::file_index::FILE_INDEX;
 pub use self::token::location::Location;
 pub use self::token::Token;

@@ -7,13 +7,14 @@ mod tests;
 
 use std::fmt;
 
+use zinc_lexical::Location;
+
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
-use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer `require` intrinsic function element.
@@ -56,7 +57,7 @@ impl Function {
     ///
     pub fn call(
         self,
-        location: Option<Location>,
+        location: Location,
         argument_list: ArgumentList,
     ) -> Result<(Type, Option<String>), Error> {
         let mut actual_params = Vec::with_capacity(argument_list.arguments.len());
@@ -96,7 +97,7 @@ impl Function {
             }
             None => {
                 return Err(Error::ArgumentCount {
-                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                    location,
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT_MANDATORY,
                     found: actual_params.len(),
@@ -131,7 +132,7 @@ impl Function {
 
         if actual_params.len() > Self::ARGUMENT_COUNT_OPTIONAL {
             return Err(Error::ArgumentCount {
-                location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                location,
                 function: self.identifier.to_owned(),
                 expected: Self::ARGUMENT_COUNT_OPTIONAL,
                 found: actual_params.len(),

@@ -20,6 +20,13 @@ pub enum Error {
         /// The stringified item, found instead of a type.
         found: String,
     },
+    /// The generic items are not supported by the type.
+    UnexpectedGenerics {
+        /// The path expression location.
+        location: Location,
+        /// The type which does not expect generics.
+        r#type: String,
+    },
 
     /// The function type error. See the inner element description.
     Function(FunctionError),

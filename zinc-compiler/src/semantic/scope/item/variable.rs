@@ -14,8 +14,8 @@ use zinc_lexical::Location;
 ///
 #[derive(Debug, Clone)]
 pub struct Variable {
-    /// The location, where the variable is declared.
-    pub location: Location,
+    /// The location, where the variable is declared. `None` for implicit variables.
+    pub location: Option<Location>,
     /// The unique item ID, allocated upon declaration.
     pub item_id: usize,
     /// Whether the variable is mutable.
@@ -33,7 +33,7 @@ impl Variable {
     /// A shortcut constructor.
     ///
     pub fn new(
-        location: Location,
+        location: Option<Location>,
         is_mutable: bool,
         identifier: String,
         r#type: Type,

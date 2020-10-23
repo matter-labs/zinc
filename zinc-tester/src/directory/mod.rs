@@ -11,7 +11,7 @@ use std::str::FromStr;
 
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
-use serde_derive::Deserialize;
+use serde::Deserialize;
 
 use crate::file::File;
 use crate::metadata::Metadata;

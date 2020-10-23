@@ -7,6 +7,7 @@ use num::Signed;
 
 use zinc_build::StorageStore;
 
+use crate::core::contract::storage::leaf::LeafVariant;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
 use crate::instructions::IExecutable;
@@ -22,7 +23,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for StorageStore {
 
         if let Some(condition) = vm.condition_top()?.to_bigint() {
             if condition.is_positive() {
-                vm.storage_store(address, values)?;
+                vm.storage_store(address, LeafVariant::Array(values))?;
             }
         }
 

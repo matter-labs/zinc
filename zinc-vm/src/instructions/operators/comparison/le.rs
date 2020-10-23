@@ -29,15 +29,13 @@ mod test {
     use num::BigInt;
     use num::One;
 
+    use zinc_build::IntegerType;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
-    use zinc_build::IntegerType;
-
     #[test]
     fn test_le() -> Result<(), TestingError> {
-        let _ = env_logger::builder().is_test(true).try_init();
-
         TestRunner::new()
             .push(zinc_build::Push::new(
                 BigInt::from(2),

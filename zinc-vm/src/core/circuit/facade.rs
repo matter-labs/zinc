@@ -40,7 +40,7 @@ impl Facade {
         let inputs_flat = input.into_flat_values();
         let output_type = self.inner.output.clone();
 
-        let mut state = CircuitState::new(cs, false);
+        let mut state = CircuitState::new(cs);
 
         let mut num_constraints = 0;
         let result = state.run(
@@ -63,57 +63,6 @@ impl Facade {
         let cs = state.constraint_system();
         if !cs.is_satisfied() {
             return Err(RuntimeError::UnsatisfiedConstraint);
-        }
-
-        let output_flat: Vec<BigInt> = result.into_iter().filter_map(|value| value).collect();
-        let output_value = BuildValue::from_flat_values(output_type, &output_flat);
-
-        Ok(CircuitOutput::new(output_value))
-    }
-
-    pub fn debug<E: IEngine>(self, input: BuildValue) -> Result<CircuitOutput, RuntimeError> {
-        let cs = TestConstraintSystem::<Bn256>::new();
-
-        let inputs_flat = input.into_flat_values();
-        let output_type = self.inner.output.clone();
-
-        let mut state = CircuitState::new(cs, true);
-
-        let mut num_constraints = 0;
-        let result = state.run(
-            self.inner,
-            Some(&inputs_flat),
-            |cs| {
-                let num = cs.num_constraints() - num_constraints;
-                num_constraints += num;
-                log::trace!("Constraints: {}", num);
-            },
-            |cs| {
-                if !cs.is_satisfied() {
-                    return Err(RuntimeError::UnsatisfiedConstraint);
-                }
-
-                Ok(())
-            },
-        )?;
-
-        let cs = state.constraint_system();
-        if !cs.is_satisfied() {
-            log::trace!("{}", cs.pretty_print());
-            log::error!(
-                "Unsatisfied: {}",
-                cs.which_is_unsatisfied()
-                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
-            );
-            return Err(RuntimeError::UnsatisfiedConstraint);
-        }
-
-        let unconstrained = cs.find_unconstrained();
-        if !unconstrained.is_empty() {
-            log::error!("Unconstrained: {}", unconstrained);
-            return Err(RuntimeError::InternalError(
-                "Generated unconstrained variables".into(),
-            ));
         }
 
         let output_flat: Vec<BigInt> = result.into_iter().filter_map(|value| value).collect();
@@ -133,7 +82,7 @@ impl Facade {
 
             let cs = TestConstraintSystem::<Bn256>::new();
 
-            let mut state = CircuitState::new(cs, true);
+            let mut state = CircuitState::new(cs);
 
             let result = state.run(self.inner.clone(), Some(&[]), |_| {}, |_| Ok(()));
             match result {

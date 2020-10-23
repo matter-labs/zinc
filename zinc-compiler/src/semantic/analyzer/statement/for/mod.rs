@@ -13,8 +13,8 @@ use std::rc::Rc;
 use num::Signed;
 use num::ToPrimitive;
 
+use zinc_math::InferenceError;
 use zinc_syntax::ForStatement;
-use zinc_utils::InferenceError;
 
 use crate::generator::statement::r#for::Statement as GeneratorForLoopStatement;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;

@@ -4,9 +4,11 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
+use crate::core::contract::storage::leaf::LeafVariant;
 use crate::core::execution_state::cell::Cell;
 use crate::core::location::Location;
 use crate::error::RuntimeError;
+use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_library::INativeCallable;
 use crate::IEngine;
@@ -17,6 +19,7 @@ use crate::IEngine;
 pub trait IVirtualMachine {
     type E: IEngine;
     type CS: ConstraintSystem<Self::E>;
+    type S: IMerkleTree<Self::E>;
 
     // Operations with evaluation stack
 
@@ -38,7 +41,7 @@ pub trait IVirtualMachine {
     fn storage_store(
         &mut self,
         index: Scalar<Self::E>,
-        values: Vec<Scalar<Self::E>>,
+        values: LeafVariant<Self::E>,
     ) -> Result<(), RuntimeError>;
 
     fn loop_begin(&mut self, iter_count: usize) -> Result<(), RuntimeError>;
@@ -53,14 +56,14 @@ pub trait IVirtualMachine {
 
     fn exit(&mut self, values_count: usize) -> Result<(), RuntimeError>;
 
-    fn call_native<F: INativeCallable<Self::E>>(&mut self, function: F)
-        -> Result<(), RuntimeError>;
+    fn call_native<F: INativeCallable<Self::E, Self::S>>(
+        &mut self,
+        function: F,
+    ) -> Result<(), RuntimeError>;
 
     fn condition_top(&mut self) -> Result<Scalar<Self::E>, RuntimeError>;
 
     fn constraint_system(&mut self) -> &mut Self::CS;
-
-    fn is_debugging(&self) -> bool;
 
     fn get_location(&mut self) -> Location;
 

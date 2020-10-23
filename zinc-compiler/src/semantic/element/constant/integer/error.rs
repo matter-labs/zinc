@@ -4,7 +4,7 @@
 
 use num::BigInt;
 
-use zinc_utils::InferenceError;
+use zinc_math::InferenceError;
 
 use zinc_lexical::Location;
 
@@ -269,6 +269,6 @@ pub enum Error {
         /// The error location data.
         location: Location,
         /// The inner parsing error.
-        inner: zinc_utils::BigIntError,
+        inner: zinc_math::BigIntError,
     },
 }

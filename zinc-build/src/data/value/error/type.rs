@@ -5,7 +5,7 @@
 use failure::Fail;
 use serde_json::Value as JsonValue;
 
-use zinc_utils::InferenceError;
+use zinc_math::InferenceError;
 
 ///
 /// The inner type error variant.
@@ -55,6 +55,13 @@ pub enum Type {
         /// The found type.
         found: usize,
     },
+
+    /// The map input is malformed.
+    #[fail(
+        display = "expected an array with `key` and `value` fields, found `{}`",
+        _0
+    )]
+    InvalidMapFormat(String),
 }
 
 impl Type {

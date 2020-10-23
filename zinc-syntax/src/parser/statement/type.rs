@@ -172,7 +172,7 @@ mod tests {
             TypeStatement::new(
                 Location::test(1, 1),
                 Identifier::new(Location::test(1, 6), "X".to_owned()),
-                Type::new(Location::test(1, 10), TypeVariant::Field),
+                Type::new(Location::test(1, 10), TypeVariant::field()),
             ),
             None,
         ));

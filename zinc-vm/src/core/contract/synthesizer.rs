@@ -12,6 +12,7 @@ use franklin_crypto::bellman::SynthesisError;
 
 use zinc_build::Contract as BytecodeContract;
 use zinc_build::ContractMethod;
+use zinc_zksync::TransactionMsg;
 
 use crate::constraint_systems::dedup::Dedup as DedupCS;
 use crate::constraint_systems::logging::Logging as LoggingCS;
@@ -28,6 +29,7 @@ pub struct Synthesizer<'a, E: IEngine, S: IMerkleTree<E>> {
     pub bytecode: BytecodeContract,
     pub method: ContractMethod,
     pub storage: S,
+    pub transaction: TransactionMsg,
 
     pub _pd: PhantomData<E>,
 }
@@ -47,7 +49,7 @@ where
             DedupCS::new(LoggingCS::new(cs)),
             storage,
             self.method.name,
-            false,
+            self.transaction,
         );
 
         *self.output = Some(contract.run(

@@ -100,6 +100,7 @@ impl IBytecodeWritable for Operand {
                             ContractFieldAccess {
                                 position,
                                 element_size,
+                                is_mtreemap,
                                 ..
                             },
                     }) = inner.elements.first()
@@ -110,10 +111,15 @@ impl IBytecodeWritable for Operand {
                             zinc_const::bitlength::FIELD,
                         )
                         .write_all(state.clone());
-                        state.borrow_mut().push_instruction(
-                            Instruction::StorageLoad(zinc_build::StorageLoad::new(*element_size)),
-                            Some(inner.identifier.location),
-                        );
+
+                        if !is_mtreemap {
+                            state.borrow_mut().push_instruction(
+                                Instruction::StorageLoad(zinc_build::StorageLoad::new(
+                                    *element_size,
+                                )),
+                                Some(inner.identifier.location),
+                            );
+                        }
 
                         inner.elements.remove(0);
                     }

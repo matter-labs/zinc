@@ -305,6 +305,7 @@ fn main() {
                     Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                 )],
                 None,
+                None,
             )
             .to_string(),
         }),

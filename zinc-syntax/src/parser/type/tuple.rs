@@ -44,7 +44,7 @@ pub struct Parser {
     state: State,
     /// The token returned from a subparser.
     next: Option<Token>,
-    /// The builder of the parsed value.
+    /// The builder of the parsed type.
     builder: TypeBuilder,
 }
 
@@ -159,7 +159,7 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::test(1, 1),
-                TypeVariant::tuple(vec![Type::new(Location::test(1, 2), TypeVariant::Field)]),
+                TypeVariant::tuple(vec![Type::new(Location::test(1, 2), TypeVariant::field())]),
             ),
             None,
         ));
@@ -176,7 +176,7 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::test(1, 1),
-                TypeVariant::tuple(vec![Type::new(Location::test(1, 2), TypeVariant::Field)]),
+                TypeVariant::tuple(vec![Type::new(Location::test(1, 2), TypeVariant::field())]),
             ),
             None,
         ));
@@ -194,8 +194,8 @@ mod tests {
             Type::new(
                 Location::test(1, 1),
                 TypeVariant::tuple(vec![
-                    Type::new(Location::test(1, 2), TypeVariant::Field),
-                    Type::new(Location::test(1, 9), TypeVariant::Unit),
+                    Type::new(Location::test(1, 2), TypeVariant::field()),
+                    Type::new(Location::test(1, 9), TypeVariant::unit()),
                     Type::new(
                         Location::test(1, 13),
                         TypeVariant::array(
@@ -231,8 +231,8 @@ mod tests {
                 TypeVariant::tuple(vec![Type::new(
                     Location::test(1, 2),
                     TypeVariant::tuple(vec![
-                        Type::new(Location::test(1, 3), TypeVariant::Field),
-                        Type::new(Location::test(1, 10), TypeVariant::Field),
+                        Type::new(Location::test(1, 3), TypeVariant::field()),
+                        Type::new(Location::test(1, 10), TypeVariant::field()),
                     ]),
                 )]),
             ),

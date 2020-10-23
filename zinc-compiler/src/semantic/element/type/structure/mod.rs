@@ -8,12 +8,16 @@ mod tests;
 pub mod error;
 
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 
+use zinc_lexical::Location;
+
 use crate::semantic::element::r#type::Type;
 use crate::semantic::scope::Scope;
-use zinc_lexical::Location;
+
+use self::error::Error;
 
 ///
 /// Describes a structure type.
@@ -29,8 +33,13 @@ pub struct Structure {
     pub identifier: String,
     /// The unique structure type ID.
     pub type_id: usize,
-    /// The ordered structure fields array.
+    /// The ordered list of the structure fields.
     pub fields: Vec<(String, Type)>,
+    /// The ordered list of the structure generic type formal arguments.
+    pub generics: Option<Vec<String>>,
+    /// The structure generic type actual arguments.
+    /// These are set upon the structure value initialization, where arguments are set in `<...>`.
+    pub params: Option<HashMap<String, Type>>,
     /// The structure scope, where its methods and associated items are declared.
     pub scope: Rc<RefCell<Scope>>,
 }
@@ -44,6 +53,8 @@ impl Structure {
         identifier: String,
         type_id: usize,
         fields: Vec<(String, Type)>,
+        generics: Option<Vec<String>>,
+        params: Option<HashMap<String, Type>>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
         let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());
@@ -53,7 +64,49 @@ impl Structure {
             identifier,
             type_id,
             fields,
+            generics,
+            params,
             scope,
+        }
+    }
+
+    ///
+    /// Validates and sets the generic type arguments.
+    ///
+    pub fn set_generics(
+        &mut self,
+        location: Location,
+        generics: Option<Vec<Type>>,
+    ) -> Result<(), Error> {
+        match (self.generics.as_ref(), generics) {
+            (Some(formal), Some(actual)) => {
+                if formal.len() != actual.len() {
+                    return Err(Error::InvalidGenericsNumber {
+                        location,
+                        type_identifier: self.identifier.to_owned(),
+                        expected: formal.len(),
+                        found: actual.len(),
+                    });
+                }
+
+                let mut params = HashMap::with_capacity(actual.len());
+                for (name, r#type) in formal.iter().zip(actual.into_iter()) {
+                    params.insert(name.to_owned(), r#type);
+                }
+                self.params = Some(params);
+
+                Ok(())
+            }
+            (Some(names), None) => Err(Error::ExpectedGenerics {
+                location,
+                type_identifier: self.identifier.to_owned(),
+                expected: names.len(),
+            }),
+            (None, Some(_types)) => Err(Error::UnexpectedGenerics {
+                location,
+                type_identifier: self.identifier.to_owned(),
+            }),
+            (None, None) => Ok(()),
         }
     }
 }

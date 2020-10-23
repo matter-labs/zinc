@@ -1,0 +1,42 @@
+//! { "cases": [ {
+//!     "case": "default",
+//!     "method": "default",
+//!     "input": {
+//!         "value": {
+//!             "x": "7",
+//!             "y": "8",
+//!             "z": "9"
+//!         }
+//!     },
+//!     "output": {
+//!         "result": true,
+//!         "root_hash": "0x0"
+//!     }
+//! } ] }
+
+use std::collections::MTreeMap;
+
+struct Value {
+    x: u8,
+    y: u8,
+    z: u8,
+}
+
+contract Test {
+    map: MTreeMap<u248, Value>;
+
+    pub fn default(mut self, value: Value) -> bool {
+        let mut exists = true;
+        let mut not_exists = true;
+
+        for i in 0..10 {
+            self.map.insert(i as u248, value);
+            exists = exists && self.map.contains(i as u248);
+
+            self.map.remove(i as u248);
+            not_exists = not_exists && !self.map.contains(i as u248);
+        }
+
+        exists && not_exists
+    }
+}

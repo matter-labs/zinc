@@ -22,7 +22,6 @@ colored = "2.0"
 failure = "0.1"
 
 serde = "1.0"
-serde_derive = "1.0"
 serde_json = "1.0"
 rustc-hex = "2.1"
 num = "0.3"
@@ -41,10 +40,11 @@ zksync_utils = { path = "../zksync/core/lib/utils" }
 zksync_eth_signer = { path = "../zksync/core/lib/eth_signer" }
 num_old = { package = "num", version = "0.2.1" }
 
+zinc-logger = { path = "../zinc-logger" }
 zinc-const = { path = "../zinc-const" }
-zinc-utils = { path = "../zinc-utils" }
+zinc-math = { path = "../zinc-math" }
 zinc-build = { path = "../zinc-build" }
-zinc-data = { path = "../zinc-data" }
+zinc-zksync = { path = "../zinc-zksync" }
 zinc-vm = { path = "../zinc-vm" }
 
 [dev-dependencies]

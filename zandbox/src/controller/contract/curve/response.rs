@@ -2,7 +2,7 @@
 //! The contract resource GET `Curve` response.
 //!
 
-use serde_derive::Serialize;
+use serde::Serialize;
 
 use zksync::web3::types::Address;
 

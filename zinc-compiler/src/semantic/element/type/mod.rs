@@ -36,6 +36,7 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
+use crate::semantic::scope::intrinsic::IntrinsicTypeId;
 use crate::semantic::scope::item::r#type::index::INDEX as TYPE_INDEX;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
@@ -208,11 +209,14 @@ impl Type {
         location: Option<Location>,
         identifier: String,
         fields: Vec<(String, Self)>,
+        generics: Option<Vec<String>>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
         let type_id = TYPE_INDEX.next(format!("structure {}", identifier));
 
-        Self::Structure(Structure::new(location, identifier, type_id, fields, scope))
+        Self::Structure(Structure::new(
+            location, identifier, type_id, fields, generics, None, scope,
+        ))
     }
 
     ///
@@ -222,11 +226,13 @@ impl Type {
         location: Location,
         identifier: String,
         variants: Vec<Variant>,
+        generics: Vec<String>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Result<Self, Error> {
         let type_id = TYPE_INDEX.next(format!("enumeration {}", identifier));
 
-        Enumeration::new(location, identifier, type_id, variants, scope).map(Self::Enumeration)
+        Enumeration::new(location, identifier, type_id, variants, generics, scope)
+            .map(Self::Enumeration)
     }
 
     ///
@@ -294,10 +300,10 @@ impl Type {
         identifier: String,
         fields: Vec<ContractField>,
         scope: Option<Rc<RefCell<Scope>>>,
-    ) -> Self {
+    ) -> Result<Self, Error> {
         let type_id = TYPE_INDEX.next(format!("contract {}", identifier));
 
-        Self::Contract(Contract::new(location, identifier, type_id, fields, scope))
+        Contract::new(location, identifier, type_id, fields, scope).map(Self::Contract)
     }
 
     ///
@@ -420,6 +426,43 @@ impl Type {
     }
 
     ///
+    /// Checks if the type is an `std::collections::MTreeMap`, which is treated specially.
+    ///
+    pub fn is_mtreemap(&self) -> bool {
+        if let Self::Structure(structure) = self {
+            structure.type_id == IntrinsicTypeId::StdCollectionsMTreeMap as usize
+        } else {
+            false
+        }
+    }
+
+    ///
+    /// Sets the generic arguments for the type.
+    ///
+    /// Returns an error if the type does not expect any generic arguments.
+    ///
+    pub fn set_generics(
+        &mut self,
+        location: Location,
+        generics: Option<Vec<Type>>,
+    ) -> Result<(), Error> {
+        match self {
+            Self::Structure(inner) => inner
+                .set_generics(location, generics)
+                .map_err(TypeError::Structure)
+                .map_err(ElementError::Type)
+                .map_err(Error::Element),
+            ref r#type if generics.is_some() => Err(Error::Element(ElementError::Type(
+                TypeError::UnexpectedGenerics {
+                    location: self.location().unwrap_or(location),
+                    r#type: r#type.to_string(),
+                },
+            ))),
+            _ => Ok(()),
+        }
+    }
+
+    ///
     /// Resolves the semantic type from the syntax one.
     ///
     /// For primitive types, the semantic type is simply converted from the syntax tree.
@@ -467,10 +510,24 @@ impl Type {
                 }
                 Self::tuple(Some(location), types)
             }
-            SyntaxTypeVariant::Alias { path } => {
+            SyntaxTypeVariant::Alias { path, generics } => {
                 let location = path.location;
-                match ExpressionAnalyzer::new(scope, TranslationRule::Type).analyze(path)? {
-                    (Element::Type(r#type), _intermediate) => r#type,
+                match ExpressionAnalyzer::new(scope.clone(), TranslationRule::Type).analyze(path)? {
+                    (Element::Type(mut r#type), _intermediate) => {
+                        let generics = if let Some(generics) = generics {
+                            let mut semantic_generics = Vec::with_capacity(generics.len());
+                            for generic in generics.into_iter() {
+                                semantic_generics
+                                    .push(Self::try_from_syntax(generic, scope.clone())?);
+                            }
+                            Some(semantic_generics)
+                        } else {
+                            None
+                        };
+
+                        r#type.set_generics(location, generics)?;
+                        r#type
+                    }
                     (element, _intermediate) => {
                         return Err(Error::Element(ElementError::Type(
                             TypeError::AliasDoesNotPointToType {

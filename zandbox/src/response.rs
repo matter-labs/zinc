@@ -9,7 +9,7 @@ use actix_web::HttpRequest;
 use actix_web::HttpResponse;
 use actix_web::Responder;
 use futures::future;
-use serde_derive::Serialize;
+use serde::Serialize;
 
 ///
 /// The Zandbox server daemon response.

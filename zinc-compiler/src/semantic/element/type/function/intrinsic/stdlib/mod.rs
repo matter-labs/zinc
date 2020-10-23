@@ -8,6 +8,10 @@ mod tests;
 pub mod array_pad;
 pub mod array_reverse;
 pub mod array_truncate;
+pub mod collections_mtreemap_contains;
+pub mod collections_mtreemap_get;
+pub mod collections_mtreemap_insert;
+pub mod collections_mtreemap_remove;
 pub mod convert_from_bits_field;
 pub mod convert_from_bits_signed;
 pub mod convert_from_bits_unsigned;
@@ -21,15 +25,19 @@ pub mod ff_invert;
 use std::fmt;
 
 use zinc_build::LibraryFunctionIdentifier;
+use zinc_lexical::Location;
 
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
-use zinc_lexical::Location;
 
 use self::array_pad::Function as ArrayPadFunction;
 use self::array_reverse::Function as ArrayReverseFunction;
 use self::array_truncate::Function as ArrayTruncateFunction;
+use self::collections_mtreemap_contains::Function as MTreeMapContainsFunction;
+use self::collections_mtreemap_get::Function as MTreeMapGetFunction;
+use self::collections_mtreemap_insert::Function as MTreeMapInsertFunction;
+use self::collections_mtreemap_remove::Function as MTreeMapRemoveFunction;
 use self::convert_from_bits_field::Function as FromBitsFieldFunction;
 use self::convert_from_bits_signed::Function as FromBitsSignedFunction;
 use self::convert_from_bits_unsigned::Function as FromBitsUnsignedFunction;
@@ -69,17 +77,22 @@ pub enum Function {
 
     /// The `std::ff::invert` function variant.
     FfInvert(FfInvertFunction),
+
+    /// The `std::collections::MTreeMap::get` function variant.
+    CollectionsMTreeMapGet(MTreeMapGetFunction),
+    /// The `std::collections::MTreeMap::contains` function variant.
+    CollectionsMTreeMapContains(MTreeMapContainsFunction),
+    /// The `std::collections::MTreeMap::insert` function variant.
+    CollectionsMTreeMapInsert(MTreeMapInsertFunction),
+    /// The `std::collections::MTreeMap::remove` function variant.
+    CollectionsMTreeMapRemove(MTreeMapRemoveFunction),
 }
 
 impl Function {
     ///
     /// Calls the function with the `argument_list`, validating the call.
     ///
-    pub fn call(
-        self,
-        location: Option<Location>,
-        argument_list: ArgumentList,
-    ) -> Result<Type, Error> {
+    pub fn call(self, location: Location, argument_list: ArgumentList) -> Result<Type, Error> {
         match self {
             Self::CryptoSha256(inner) => inner.call(location, argument_list),
             Self::CryptoPedersen(inner) => inner.call(location, argument_list),
@@ -95,6 +108,11 @@ impl Function {
             Self::ArrayPad(inner) => inner.call(location, argument_list),
 
             Self::FfInvert(inner) => inner.call(location, argument_list),
+
+            Self::CollectionsMTreeMapGet(inner) => inner.call(location, argument_list),
+            Self::CollectionsMTreeMapContains(inner) => inner.call(location, argument_list),
+            Self::CollectionsMTreeMapInsert(inner) => inner.call(location, argument_list),
+            Self::CollectionsMTreeMapRemove(inner) => inner.call(location, argument_list),
         }
     }
 
@@ -117,6 +135,11 @@ impl Function {
             Self::ArrayPad(inner) => inner.identifier,
 
             Self::FfInvert(inner) => inner.identifier,
+
+            Self::CollectionsMTreeMapGet(inner) => inner.identifier,
+            Self::CollectionsMTreeMapContains(inner) => inner.identifier,
+            Self::CollectionsMTreeMapInsert(inner) => inner.identifier,
+            Self::CollectionsMTreeMapRemove(inner) => inner.identifier,
         }
     }
 
@@ -139,6 +162,11 @@ impl Function {
             Self::ArrayPad(inner) => inner.library_identifier,
 
             Self::FfInvert(inner) => inner.library_identifier,
+
+            Self::CollectionsMTreeMapGet(inner) => inner.library_identifier,
+            Self::CollectionsMTreeMapContains(inner) => inner.library_identifier,
+            Self::CollectionsMTreeMapInsert(inner) => inner.library_identifier,
+            Self::CollectionsMTreeMapRemove(inner) => inner.library_identifier,
         }
     }
 
@@ -161,6 +189,11 @@ impl Function {
             Self::ArrayPad(inner) => inner.location = Some(location),
 
             Self::FfInvert(inner) => inner.location = Some(location),
+
+            Self::CollectionsMTreeMapGet(inner) => inner.location = Some(location),
+            Self::CollectionsMTreeMapContains(inner) => inner.location = Some(location),
+            Self::CollectionsMTreeMapInsert(inner) => inner.location = Some(location),
+            Self::CollectionsMTreeMapRemove(inner) => inner.location = Some(location),
         }
     }
 
@@ -183,6 +216,11 @@ impl Function {
             Self::ArrayPad(inner) => inner.location,
 
             Self::FfInvert(inner) => inner.location,
+
+            Self::CollectionsMTreeMapGet(inner) => inner.location,
+            Self::CollectionsMTreeMapContains(inner) => inner.location,
+            Self::CollectionsMTreeMapInsert(inner) => inner.location,
+            Self::CollectionsMTreeMapRemove(inner) => inner.location,
         }
     }
 }
@@ -204,6 +242,11 @@ impl fmt::Display for Function {
             Self::ArrayPad(inner) => write!(f, "{}", inner),
 
             Self::FfInvert(inner) => write!(f, "{}", inner),
+
+            Self::CollectionsMTreeMapGet(inner) => write!(f, "{}", inner),
+            Self::CollectionsMTreeMapContains(inner) => write!(f, "{}", inner),
+            Self::CollectionsMTreeMapInsert(inner) => write!(f, "{}", inner),
+            Self::CollectionsMTreeMapRemove(inner) => write!(f, "{}", inner),
         }
     }
 }

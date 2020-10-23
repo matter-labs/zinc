@@ -23,6 +23,7 @@ use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::r#match::error::Error as MatchExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
+use crate::semantic::casting::Caster;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
@@ -176,7 +177,7 @@ impl Analyzer {
                         Error::Element(ElementError::Constant(ConstantError::Integer(error)))
                     })?;
                     let pattern_type = constant.r#type();
-                    if pattern_type != scrutinee_type {
+                    if Caster::cast(&pattern_type, &scrutinee_type).is_err() {
                         return Err(Error::Expression(ExpressionError::Match(
                             MatchExpressionError::BranchPatternInvalidType {
                                 location: pattern_location,
@@ -455,7 +456,7 @@ impl Analyzer {
                         Error::Element(ElementError::Constant(ConstantError::Integer(error)))
                     })?;
                     let pattern_type = constant.r#type();
-                    if pattern_type != scrutinee_type {
+                    if Caster::cast(&pattern_type, &scrutinee_type).is_err() {
                         return Err(Error::Expression(ExpressionError::Match(
                             MatchExpressionError::BranchPatternInvalidType {
                                 location: pattern_location,

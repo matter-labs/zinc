@@ -114,7 +114,7 @@ impl Analyzer {
                 match function {
                     IntrinsicFunctionType::Debug(function) => {
                         let (return_type, format, argument_types) = function
-                            .call(function_location, argument_list)
+                            .call(function_location.unwrap_or(location), argument_list)
                             .map_err(|error| {
                                 Error::Element(ElementError::Type(TypeError::Function(error)))
                             })?;
@@ -131,15 +131,14 @@ impl Analyzer {
                         (
                             element,
                             GeneratorExpressionElement::Operator {
-                                location: function_location
-                                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                                location: function_location.unwrap_or(location),
                                 operator: intermediate,
                             },
                         )
                     }
                     IntrinsicFunctionType::Require(function) => {
                         let (return_type, message) = function
-                            .call(function_location, argument_list)
+                            .call(function_location.unwrap_or(location), argument_list)
                             .map_err(|error| {
                                 Error::Element(ElementError::Type(TypeError::Function(error)))
                             })?;
@@ -155,8 +154,7 @@ impl Analyzer {
                         (
                             element,
                             GeneratorExpressionElement::Operator {
-                                location: function_location
-                                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                                location: function_location.unwrap_or(location),
                                 operator: intermediate,
                             },
                         )
@@ -173,12 +171,11 @@ impl Analyzer {
 
                         let intrinsic_identifier = function.library_identifier();
 
-                        let return_type =
-                            function
-                                .call(function_location, argument_list)
-                                .map_err(|error| {
-                                    Error::Element(ElementError::Type(TypeError::Function(error)))
-                                })?;
+                        let return_type = function
+                            .call(function_location.unwrap_or(location), argument_list)
+                            .map_err(|error| {
+                                Error::Element(ElementError::Type(TypeError::Function(error)))
+                            })?;
 
                         let element = Element::Value(
                             Value::try_from_type(&return_type, false, None)
@@ -195,8 +192,7 @@ impl Analyzer {
                         (
                             element,
                             GeneratorExpressionElement::Operator {
-                                location: function_location
-                                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                                location: function_location.unwrap_or(location),
                                 operator: intermediate,
                             },
                         )
@@ -213,12 +209,11 @@ impl Analyzer {
 
                         let intrinsic_identifier = function.library_identifier();
 
-                        let return_type =
-                            function
-                                .call(function_location, argument_list)
-                                .map_err(|error| {
-                                    Error::Element(ElementError::Type(TypeError::Function(error)))
-                                })?;
+                        let return_type = function
+                            .call(function_location.unwrap_or(location), argument_list)
+                            .map_err(|error| {
+                                Error::Element(ElementError::Type(TypeError::Function(error)))
+                            })?;
 
                         let element = Element::Value(
                             Value::try_from_type(&return_type, false, None)
@@ -235,8 +230,7 @@ impl Analyzer {
                         (
                             element,
                             GeneratorExpressionElement::Operator {
-                                location: function_location
-                                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                                location: function_location.unwrap_or(location),
                                 operator: intermediate,
                             },
                         )

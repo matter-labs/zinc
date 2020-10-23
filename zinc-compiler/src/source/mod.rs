@@ -12,6 +12,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use zinc_manifest::Manifest;
+
 use crate::error::Error as CompilerError;
 use crate::generator::state::State;
 
@@ -34,10 +36,10 @@ impl Source {
     ///
     /// Initializes an application module from string data.
     ///
-    pub fn try_from_string(source: zinc_data::Source, is_entry: bool) -> Result<Self, Error> {
+    pub fn try_from_string(source: zinc_source::Source, is_entry: bool) -> Result<Self, Error> {
         Ok(match source {
-            zinc_data::Source::File(inner) => File::try_from_string(inner).map(Source::File)?,
-            zinc_data::Source::Directory(inner) => {
+            zinc_source::Source::File(inner) => File::try_from_string(inner).map(Source::File)?,
+            zinc_source::Source::Directory(inner) => {
                 Directory::try_from_string(inner, is_entry).map(Source::Directory)?
             }
         })
@@ -81,10 +83,10 @@ impl Source {
     /// Gets all the intermediate representation scattered around the application scope tree and
     /// writes it to the bytecode.
     ///
-    pub fn compile(self, name: String) -> Result<Rc<RefCell<State>>, Error> {
+    pub fn compile(self, manifest: Manifest) -> Result<Rc<RefCell<State>>, Error> {
         match self {
-            Self::File(inner) => inner.compile(name),
-            Self::Directory(inner) => inner.compile(name),
+            Self::File(inner) => inner.compile(manifest),
+            Self::Directory(inner) => inner.compile(manifest),
         }
     }
 

@@ -114,7 +114,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::test(8, 13),
             found: ScopeItem::Variable(ScopeVariableItem::new(
-                Location::test(8, 13),
+                Some(Location::test(8, 13)),
                 false,
                 "x".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),

@@ -15,6 +15,8 @@ use serde_json::Value as JsonValue;
 
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
+use zinc_vm::ContractInput;
+use zinc_zksync::TransactionMsg;
 
 use crate::database::model::field::select::Input as FieldSelectInput;
 use crate::response::Response;
@@ -129,11 +131,12 @@ pub async fn handle(
     log::debug!("Running the contract method on the virtual machine");
     let vm_time = std::time::Instant::now();
     let output = async_std::task::spawn_blocking(move || {
-        zinc_vm::ContractFacade::new(contract.build).run::<Bn256>(
+        zinc_vm::ContractFacade::new(contract.build).run::<Bn256>(ContractInput::new(
             input_value,
             storage.into_build(),
             method_name,
-        )
+            TransactionMsg::default(),
+        ))
     })
     .await
     .map_err(Error::RuntimeError)?;

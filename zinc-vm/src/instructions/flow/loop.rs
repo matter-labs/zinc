@@ -32,8 +32,6 @@ mod test {
 
     #[test]
     fn test_loop() -> Result<(), TestingError> {
-        let _ = env_logger::builder().is_test(true).try_init();
-
         TestRunner::new()
             .push(zinc_build::Push::new_field(BigInt::zero()))
             .push(zinc_build::Store::new(0, 1))

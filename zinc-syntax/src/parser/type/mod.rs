@@ -3,6 +3,7 @@
 //!
 
 pub mod array;
+pub mod generics;
 pub mod path;
 pub mod tuple;
 
@@ -21,6 +22,7 @@ use crate::tree::r#type::builder::Builder as TypeBuilder;
 use crate::tree::r#type::Type;
 
 use self::array::Parser as ArrayParser;
+use self::generics::Parser as GenericsParser;
 use self::path::Parser as PathParser;
 use self::tuple::Parser as TupleParser;
 
@@ -79,10 +81,25 @@ impl Parser {
                 ..
             } => {
                 let location = token.location;
-                let (expression, next) = PathParser::default().parse(stream, Some(token))?;
+                let (expression, mut next) =
+                    PathParser::default().parse(stream.clone(), Some(token))?;
                 self.builder.set_location(location);
                 self.builder.set_path_expression(expression);
-                Ok((self.builder.finish(), next))
+
+                match crate::parser::take_or_next(next.take(), stream.clone())? {
+                    token
+                    @
+                    Token {
+                        lexeme: Lexeme::Symbol(Symbol::Lesser),
+                        ..
+                    } => {
+                        let (generics, next) =
+                            GenericsParser::default().parse(stream, Some(token))?;
+                        self.builder.set_generics(generics);
+                        Ok((self.builder.finish(), next))
+                    }
+                    token => Ok((self.builder.finish(), Some(token))),
+                }
             }
             Token {
                 lexeme: Lexeme::Keyword(keyword),
@@ -107,13 +124,13 @@ impl Parser {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
                 ..
-            } => ArrayParser::default().parse(stream, Some(token)),
+            } => ArrayParser::default().parse(stream.clone(), Some(token)),
             token
             @
             Token {
                 lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                 ..
-            } => TupleParser::default().parse(stream, Some(token)),
+            } => TupleParser::default().parse(stream.clone(), Some(token)),
             Token { lexeme, location } => Err(ParsingError::Syntax(SyntaxError::expected_type(
                 location, lexeme, None,
             ))),
@@ -128,6 +145,7 @@ mod tests {
     use zinc_lexical::Lexeme;
     use zinc_lexical::Literal as LexicalLiteral;
     use zinc_lexical::Location;
+    use zinc_lexical::Symbol;
     use zinc_lexical::Token;
     use zinc_lexical::TokenStream;
 
@@ -135,6 +153,7 @@ mod tests {
     use crate::error::Error as SyntaxError;
     use crate::error::ParsingError;
     use crate::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::tree::expression::tree::node::operator::Operator as ExpressionOperator;
     use crate::tree::expression::tree::node::Node as ExpressionTreeNode;
     use crate::tree::expression::tree::Tree as ExpressionTree;
     use crate::tree::identifier::Identifier;
@@ -187,15 +206,168 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::test(1, 1),
-                TypeVariant::alias(ExpressionTree::new(
-                    Location::test(1, 1),
-                    ExpressionTreeNode::operand(ExpressionOperand::Identifier(Identifier::new(
+                TypeVariant::alias(
+                    ExpressionTree::new(
                         Location::test(1, 1),
-                        Keyword::SelfUppercase.to_string(),
-                    ))),
-                )),
+                        ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                            Identifier::new(
+                                Location::test(1, 1),
+                                Keyword::SelfUppercase.to_string(),
+                            ),
+                        )),
+                    ),
+                    None,
+                ),
             ),
             Some(Token::new(Lexeme::Eof, Location::test(1, 5))),
+        ));
+
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_path() {
+        let input = r#"mega::ultra::namespace;"#;
+
+        let expected = Ok((
+            Type::new(
+                Location::test(1, 1),
+                TypeVariant::alias(
+                    ExpressionTree::new_with_leaves(
+                        Location::test(1, 12),
+                        ExpressionTreeNode::operator(ExpressionOperator::Path),
+                        Some(ExpressionTree::new_with_leaves(
+                            Location::test(1, 5),
+                            ExpressionTreeNode::operator(ExpressionOperator::Path),
+                            Some(ExpressionTree::new(
+                                Location::test(1, 1),
+                                ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                    Identifier::new(Location::test(1, 1), "mega".to_owned()),
+                                )),
+                            )),
+                            Some(ExpressionTree::new(
+                                Location::test(1, 7),
+                                ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                    Identifier::new(Location::test(1, 7), "ultra".to_owned()),
+                                )),
+                            )),
+                        )),
+                        Some(ExpressionTree::new(
+                            Location::test(1, 14),
+                            ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                Identifier::new(Location::test(1, 14), "namespace".to_owned()),
+                            )),
+                        )),
+                    ),
+                    None,
+                ),
+            ),
+            Some(Token::new(
+                Lexeme::Symbol(Symbol::Semicolon),
+                Location::test(1, 23),
+            )),
+        ));
+
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_path_with_one_generic() {
+        let input = r#"mega::ultra::namespace<u8>;"#;
+
+        let expected = Ok((
+            Type::new(
+                Location::test(1, 1),
+                TypeVariant::alias(
+                    ExpressionTree::new_with_leaves(
+                        Location::test(1, 12),
+                        ExpressionTreeNode::operator(ExpressionOperator::Path),
+                        Some(ExpressionTree::new_with_leaves(
+                            Location::test(1, 5),
+                            ExpressionTreeNode::operator(ExpressionOperator::Path),
+                            Some(ExpressionTree::new(
+                                Location::test(1, 1),
+                                ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                    Identifier::new(Location::test(1, 1), "mega".to_owned()),
+                                )),
+                            )),
+                            Some(ExpressionTree::new(
+                                Location::test(1, 7),
+                                ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                    Identifier::new(Location::test(1, 7), "ultra".to_owned()),
+                                )),
+                            )),
+                        )),
+                        Some(ExpressionTree::new(
+                            Location::test(1, 14),
+                            ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                Identifier::new(Location::test(1, 14), "namespace".to_owned()),
+                            )),
+                        )),
+                    ),
+                    Some(vec![Type::new(
+                        Location::test(1, 24),
+                        TypeVariant::integer_unsigned(zinc_const::bitlength::BYTE),
+                    )]),
+                ),
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_path_with_multiple_generics() {
+        let input = r#"mega::ultra::namespace<bool, u8, field>;"#;
+
+        let expected = Ok((
+            Type::new(
+                Location::test(1, 1),
+                TypeVariant::alias(
+                    ExpressionTree::new_with_leaves(
+                        Location::test(1, 12),
+                        ExpressionTreeNode::operator(ExpressionOperator::Path),
+                        Some(ExpressionTree::new_with_leaves(
+                            Location::test(1, 5),
+                            ExpressionTreeNode::operator(ExpressionOperator::Path),
+                            Some(ExpressionTree::new(
+                                Location::test(1, 1),
+                                ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                    Identifier::new(Location::test(1, 1), "mega".to_owned()),
+                                )),
+                            )),
+                            Some(ExpressionTree::new(
+                                Location::test(1, 7),
+                                ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                    Identifier::new(Location::test(1, 7), "ultra".to_owned()),
+                                )),
+                            )),
+                        )),
+                        Some(ExpressionTree::new(
+                            Location::test(1, 14),
+                            ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                Identifier::new(Location::test(1, 14), "namespace".to_owned()),
+                            )),
+                        )),
+                    ),
+                    Some(vec![
+                        Type::new(Location::test(1, 24), TypeVariant::boolean()),
+                        Type::new(
+                            Location::test(1, 30),
+                            TypeVariant::integer_unsigned(zinc_const::bitlength::BYTE),
+                        ),
+                        Type::new(Location::test(1, 34), TypeVariant::field()),
+                    ]),
+                ),
+            ),
+            None,
         ));
 
         let result = Parser::default().parse(TokenStream::test(input).wrap(), None);

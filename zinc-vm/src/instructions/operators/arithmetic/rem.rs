@@ -45,15 +45,13 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Rem {
 mod test {
     use num::BigInt;
 
+    use zinc_build::IntegerType;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
-    use zinc_build::IntegerType;
-
     #[test]
     fn test_rem() -> Result<(), TestingError> {
-        let _ = env_logger::builder().is_test(true).try_init();
-
         TestRunner::new()
             .push(zinc_build::Push::new(
                 BigInt::from(9),

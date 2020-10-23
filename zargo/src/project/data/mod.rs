@@ -2,7 +2,7 @@
 //! The project `data` directory.
 //!
 
-pub mod arguments;
+pub mod input;
 pub mod private_key;
 pub mod verifying_key;
 

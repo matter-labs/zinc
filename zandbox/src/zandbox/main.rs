@@ -37,7 +37,7 @@ use self::error::Error;
 async fn main() -> Result<(), Error> {
     let args = Arguments::new();
 
-    zinc_utils::initialize_logger(zinc_const::app_name::ZANDBOX, args.verbosity);
+    zinc_logger::initialize(zinc_const::app_name::ZANDBOX, args.verbosity);
 
     log::info!("Zandbox server started");
 
@@ -56,8 +56,8 @@ async fn main() -> Result<(), Error> {
 
     let mut contracts = HashMap::with_capacity(database_data.len());
     for contract in database_data.into_iter() {
-        let eth_address = zinc_data::eth_address_from_vec(contract.eth_address);
-        let eth_private_key = zinc_data::eth_private_key_from_vec(contract.eth_private_key);
+        let eth_address = zinc_zksync::eth_address_from_vec(contract.eth_address);
+        let eth_private_key = zinc_zksync::eth_private_key_from_vec(contract.eth_private_key);
 
         log::info!(
             "{} instance `{}` of the contract `{} v{}` with address {}",

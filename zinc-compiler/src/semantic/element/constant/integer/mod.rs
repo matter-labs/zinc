@@ -28,8 +28,8 @@ use num::ToPrimitive;
 
 use zinc_lexical::IntegerLiteral as LexicalIntegerLiteral;
 use zinc_lexical::Location;
+use zinc_math::InferenceError;
 use zinc_syntax::IntegerLiteral;
-use zinc_utils::InferenceError;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
@@ -150,7 +150,7 @@ impl Integer {
         mut self,
         mut other: Self,
     ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -188,7 +188,7 @@ impl Integer {
         mut self,
         mut other: Self,
     ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -226,7 +226,7 @@ impl Integer {
         mut self,
         mut other: Self,
     ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -264,7 +264,7 @@ impl Integer {
         mut self,
         mut other: Self,
     ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -302,7 +302,7 @@ impl Integer {
         mut self,
         mut other: Self,
     ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -340,7 +340,7 @@ impl Integer {
         mut self,
         mut other: Self,
     ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -379,7 +379,7 @@ impl BitOr for Integer {
         let location_1 = self.location;
         let location_2 = other.location;
 
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -437,7 +437,7 @@ impl BitXor for Integer {
         let location_1 = self.location;
         let location_2 = other.location;
 
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -495,7 +495,7 @@ impl BitAnd for Integer {
         let location_1 = self.location;
         let location_2 = other.location;
 
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -657,7 +657,7 @@ impl Add for Integer {
         let location_1 = self.location;
         let location_2 = other.location;
 
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -685,7 +685,7 @@ impl Add for Integer {
         }
 
         let bitlength =
-            zinc_utils::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
+            zinc_math::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
                 Error::IntegerTooLarge {
                     location: location_1,
                     inner: error,
@@ -731,7 +731,7 @@ impl Sub for Integer {
         let location_1 = self.location;
         let location_2 = other.location;
 
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -759,7 +759,7 @@ impl Sub for Integer {
         }
 
         let bitlength =
-            zinc_utils::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
+            zinc_math::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
                 Error::IntegerTooLarge {
                     location: location_1,
                     inner: error,
@@ -805,7 +805,7 @@ impl Mul for Integer {
         let location_1 = self.location;
         let location_2 = other.location;
 
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -833,7 +833,7 @@ impl Mul for Integer {
         }
 
         let bitlength =
-            zinc_utils::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
+            zinc_math::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
                 Error::IntegerTooLarge {
                     location: location_1,
                     inner: error,
@@ -879,7 +879,7 @@ impl Div for Integer {
         let location_1 = self.location;
         let location_2 = other.location;
 
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -902,11 +902,10 @@ impl Div for Integer {
             });
         }
 
-        let (result, _remainder) = zinc_utils::euclidean_div_rem(&self.value, &other.value).ok_or(
-            Error::ZeroDivision {
+        let (result, _remainder) =
+            zinc_math::euclidean_div_rem(&self.value, &other.value).ok_or(Error::ZeroDivision {
                 location: other.location,
-            },
-        )?;
+            })?;
         if result.is_negative() && !self.is_signed {
             return Err(Error::OverflowDivision {
                 location: self.location,
@@ -917,7 +916,7 @@ impl Div for Integer {
         }
 
         let bitlength =
-            zinc_utils::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
+            zinc_math::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
                 Error::IntegerTooLarge {
                     location: self.location,
                     inner: error,
@@ -963,7 +962,7 @@ impl Rem for Integer {
         let location_1 = self.location;
         let location_2 = other.location;
 
-        let inference_result = zinc_utils::infer_literal_types(
+        let inference_result = zinc_math::infer_literal_types(
             self.is_literal,
             &mut self.is_signed,
             &mut self.bitlength,
@@ -986,7 +985,7 @@ impl Rem for Integer {
             });
         }
 
-        let (_quotient, result) = zinc_utils::euclidean_div_rem(&self.value, &other.value).ok_or(
+        let (_quotient, result) = zinc_math::euclidean_div_rem(&self.value, &other.value).ok_or(
             Error::ZeroRemainder {
                 location: other.location,
             },
@@ -1001,7 +1000,7 @@ impl Rem for Integer {
         }
 
         let bitlength =
-            zinc_utils::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
+            zinc_math::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
                 Error::IntegerTooLarge {
                     location: self.location,
                     inner: error,
@@ -1057,7 +1056,7 @@ impl Integer {
             });
         }
 
-        let inferred_bitlength = zinc_utils::infer_minimal_bitlength(&self.value, is_signed)
+        let inferred_bitlength = zinc_math::infer_minimal_bitlength(&self.value, is_signed)
             .map_err(|error| Error::IntegerTooLarge {
                 location: self.location,
                 inner: error,
@@ -1139,7 +1138,7 @@ impl Neg for Integer {
 
         let result = -self.value;
         let bitlength =
-            zinc_utils::infer_minimal_bitlength(&result, is_signed).map_err(|error| {
+            zinc_math::infer_minimal_bitlength(&result, is_signed).map_err(|error| {
                 Error::IntegerTooLarge {
                     location,
                     inner: error,
@@ -1214,7 +1213,7 @@ impl Integer {
 
         for value in values.iter() {
             let bitlength =
-                zinc_utils::infer_minimal_bitlength(value, is_signed).map_err(|error| {
+                zinc_math::infer_minimal_bitlength(value, is_signed).map_err(|error| {
                     Error::IntegerTooLarge {
                         location,
                         inner: error,
@@ -1279,12 +1278,12 @@ impl TryFrom<&IntegerLiteral> for Integer {
         };
 
         let value =
-            zinc_utils::bigint_from_str(value_string.as_str()).map_err(|error| Error::Parsing {
+            zinc_math::bigint_from_str(value_string.as_str()).map_err(|error| Error::Parsing {
                 location: literal.location,
                 inner: error,
             })?;
 
-        let bitlength = zinc_utils::infer_minimal_bitlength(&value, false).map_err(|error| {
+        let bitlength = zinc_math::infer_minimal_bitlength(&value, false).map_err(|error| {
             Error::IntegerTooLarge {
                 location: literal.location,
                 inner: error,

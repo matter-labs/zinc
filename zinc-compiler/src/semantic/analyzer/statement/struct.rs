@@ -49,6 +49,7 @@ impl Analyzer {
             Some(statement.location),
             statement.identifier.name,
             fields,
+            None,
             Some(scope),
         );
 

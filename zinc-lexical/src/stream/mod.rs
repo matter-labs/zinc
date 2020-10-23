@@ -21,10 +21,10 @@ use crate::token::lexeme::Lexeme;
 use crate::token::location::Location;
 use crate::token::Token;
 
-use self::comment::Error as CommentParserError;
-use self::integer::Error as IntegerParserError;
-use self::string::Error as StringParserError;
-use self::symbol::Error as SymbolParserError;
+use self::comment::error::Error as CommentParserError;
+use self::integer::error::Error as IntegerParserError;
+use self::string::error::Error as StringParserError;
+use self::symbol::error::Error as SymbolParserError;
 
 ///
 /// A token stream is initialized for each input file.
@@ -42,7 +42,7 @@ pub struct TokenStream<'a> {
 }
 
 impl<'a> TokenStream<'a> {
-    /// The initial of the look-ahead buffer queue.
+    /// The initial capacity of the look-ahead buffer queue.
     const LOOK_AHEAD_INITIAL_CAPACITY: usize = 16;
 
     ///
@@ -136,13 +136,13 @@ impl<'a> TokenStream<'a> {
 
             if character == '/' {
                 match self::comment::parse(&self.input[self.offset..]) {
-                    Ok((size, lines, column, comment)) => {
-                        self.location.line += lines;
-                        self.location.column = match comment {
+                    Ok(output) => {
+                        self.location.line += output.lines;
+                        self.location.column = match output.comment {
                             Comment::Line { .. } => 1,
-                            Comment::Block { .. } => column,
+                            Comment::Block { .. } => output.column,
                         };
-                        self.offset += size;
+                        self.offset += output.size;
                         continue;
                     }
                     Err(CommentParserError::NotAComment) => {}
@@ -157,12 +157,12 @@ impl<'a> TokenStream<'a> {
 
             if character == '\"' {
                 match self::string::parse(&self.input[self.offset..]) {
-                    Ok((size, value)) => {
+                    Ok(output) => {
                         let location = self.location;
-                        self.location.column += size;
-                        self.offset += size;
+                        self.location.column += output.size;
+                        self.offset += output.size;
                         return Ok(Token::new(
-                            Lexeme::Literal(Literal::String(StringLiteral::new(value))),
+                            Lexeme::Literal(Literal::String(StringLiteral::new(output.string))),
                             location,
                         ));
                     }
@@ -178,12 +178,12 @@ impl<'a> TokenStream<'a> {
 
             if character.is_ascii_digit() {
                 match self::integer::parse(&self.input[self.offset..]) {
-                    Ok((size, integer)) => {
+                    Ok(output) => {
                         let location = self.location;
-                        self.location.column += size;
-                        self.offset += size;
+                        self.location.column += output.size;
+                        self.offset += output.size;
                         return Ok(Token::new(
-                            Lexeme::Literal(Literal::Integer(integer)),
+                            Lexeme::Literal(Literal::Integer(output.integer)),
                             location,
                         ));
                     }
@@ -225,19 +225,19 @@ impl<'a> TokenStream<'a> {
             }
 
             if Identifier::can_start_with(character) {
-                let (size, lexeme) = self::word::parse(&self.input[self.offset..]);
+                let output = self::word::parse(&self.input[self.offset..]);
                 let location = self.location;
-                self.location.column += size;
-                self.offset += size;
-                return Ok(Token::new(lexeme, location));
+                self.location.column += output.size;
+                self.offset += output.size;
+                return Ok(Token::new(output.word, location));
             }
 
             return match self::symbol::parse(&self.input[self.offset..]) {
-                Ok((size, symbol)) => {
+                Ok(output) => {
                     let location = self.location;
-                    self.location.column += size;
-                    self.offset += size;
-                    Ok(Token::new(Lexeme::Symbol(symbol), location))
+                    self.location.column += output.size;
+                    self.offset += output.size;
+                    Ok(Token::new(Lexeme::Symbol(output.symbol), location))
                 }
                 Err(SymbolParserError::InvalidCharacter { found, offset }) => Err(
                     Error::invalid_character(self.location.shifted_right(offset), found),

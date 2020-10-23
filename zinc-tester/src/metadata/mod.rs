@@ -7,7 +7,7 @@ pub mod error;
 
 use std::str::FromStr;
 
-use serde_derive::Deserialize;
+use serde::Deserialize;
 
 use self::case::Case;
 use self::error::Error;

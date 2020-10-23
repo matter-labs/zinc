@@ -40,7 +40,7 @@ pub async fn handle(
         .into_iter()
         .map(|instance| {
             ResponseInstance::new(
-                zinc_data::eth_address_from_vec(instance.eth_address),
+                zinc_zksync::eth_address_from_vec(instance.eth_address),
                 instance.name,
                 instance.version,
                 instance.instance,

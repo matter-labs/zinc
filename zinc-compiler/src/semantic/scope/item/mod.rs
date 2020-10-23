@@ -139,7 +139,7 @@ impl Item {
     ///
     pub fn location(&self) -> Option<Location> {
         match self {
-            Self::Variable(inner) => Some(inner.location),
+            Self::Variable(inner) => inner.location,
             Self::Field(inner) => Some(inner.location),
             Self::Constant(inner) => Some(inner.location),
             Self::Variant(inner) => Some(inner.location),

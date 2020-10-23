@@ -16,6 +16,8 @@ use zinc_build::Circuit as BuildCircuit;
 use zinc_build::ScalarType;
 use zinc_build::Type as BuildType;
 
+use crate::core::contract::storage::leaf::LeafVariant;
+use crate::core::contract::storage::setup::Storage as SetupStorage;
 use crate::core::counter::NamespaceCounter;
 use crate::core::execution_state::block::branch::Branch;
 use crate::core::execution_state::block::r#loop::Loop;
@@ -42,7 +44,6 @@ where
     execution_state: ExecutionState<E>,
     outputs: Vec<Scalar<E>>,
 
-    pub(crate) debugging: bool,
     pub(crate) location: Location,
 }
 
@@ -51,13 +52,12 @@ where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    pub fn new(cs: CS, debugging: bool) -> Self {
+    pub fn new(cs: CS) -> Self {
         Self {
             counter: NamespaceCounter::new(cs),
             execution_state: ExecutionState::new(),
             outputs: vec![],
 
-            debugging,
             location: Location::new(),
         }
     }
@@ -187,6 +187,7 @@ where
 {
     type E = E;
     type CS = CS;
+    type S = SetupStorage<E>;
 
     fn push(&mut self, cell: Cell<E>) -> Result<(), RuntimeError> {
         self.execution_state.evaluation_stack.push(cell)
@@ -224,7 +225,7 @@ where
     fn storage_store(
         &mut self,
         _address: Scalar<Self::E>,
-        _value: Vec<Scalar<Self::E>>,
+        _value: LeafVariant<Self::E>,
     ) -> Result<(), RuntimeError> {
         Err(RuntimeError::OnlyForContracts)
     }
@@ -400,11 +401,14 @@ where
         Ok(())
     }
 
-    fn call_native<F: INativeCallable<E>>(&mut self, function: F) -> Result<(), RuntimeError> {
+    fn call_native<F: INativeCallable<E, SetupStorage<E>>>(
+        &mut self,
+        function: F,
+    ) -> Result<(), RuntimeError> {
         let state = &mut self.execution_state;
         let cs = &mut self.counter.cs;
 
-        function.call(cs.namespace(|| "native function"), state)
+        function.call(cs.namespace(|| "native function"), state, None)
     }
 
     fn condition_top(&mut self) -> Result<Scalar<E>, RuntimeError> {
@@ -417,10 +421,6 @@ where
 
     fn constraint_system(&mut self) -> &mut CS {
         &mut self.counter.cs
-    }
-
-    fn is_debugging(&self) -> bool {
-        self.debugging
     }
 
     fn get_location(&mut self) -> Location {

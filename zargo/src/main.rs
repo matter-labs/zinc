@@ -11,18 +11,18 @@ pub(crate) mod transaction;
 
 use std::process;
 
-use self::arguments::command::IExecutable;
 use self::arguments::Arguments;
 
 ///
 /// The application entry point.
 ///
-fn main() {
+#[tokio::main]
+async fn main() {
     let args = Arguments::new();
 
-    zinc_utils::initialize_logger(zinc_const::app_name::ZARGO, args.verbosity);
+    zinc_logger::initialize(zinc_const::app_name::ZARGO, args.verbosity);
 
-    process::exit(match args.command.execute() {
+    process::exit(match args.command.execute().await {
         Ok(()) => zinc_const::exit_code::SUCCESS,
         Err(error) => {
             log::error!("{}", error);

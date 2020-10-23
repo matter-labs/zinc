@@ -6,8 +6,8 @@ pub mod method;
 
 use std::collections::HashMap;
 
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::application::unit_test::UnitTest;
 use crate::data::r#type::contract_field::ContractField as ContractFieldType;

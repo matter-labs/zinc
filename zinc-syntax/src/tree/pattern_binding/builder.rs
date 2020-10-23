@@ -121,13 +121,15 @@ impl Builder {
 
             let r#type = Type::new(
                 self_location,
-                TypeVariant::alias(ExpressionTree::new(
-                    self_location,
-                    ExpressionTreeNode::operand(ExpressionOperand::Identifier(Identifier::new(
+                TypeVariant::alias(
+                    ExpressionTree::new(
                         self_location,
-                        Keyword::SelfUppercase.to_string(),
-                    ))),
-                )),
+                        ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                            Identifier::new(self_location, Keyword::SelfUppercase.to_string()),
+                        )),
+                    ),
+                    None,
+                ),
             );
 
             (variant, r#type)

@@ -10,8 +10,8 @@ use actix_web::ResponseError;
 use zksync_types::TokenId;
 
 use zinc_build::ValueError as BuildValueError;
-use zinc_data::TransferError;
 use zinc_vm::RuntimeError;
+use zinc_zksync::TransactionError;
 
 ///
 /// The contract resource PUT `fee` error.
@@ -28,8 +28,8 @@ pub enum Error {
     MethodIsImmutable(String),
     /// Invalid contract method arguments.
     InvalidInput(BuildValueError),
-    /// The contract method transaction validation has failed.
-    TransferValidation(TransferError),
+    /// The contract method input transaction is invalid.
+    Transaction(TransactionError),
     /// Token ID cannot be resolved by zkSync.
     TokenNotFound(TokenId),
 
@@ -41,9 +41,9 @@ pub enum Error {
     ZkSyncClient(zksync::error::ClientError),
 }
 
-impl From<TransferError> for Error {
-    fn from(inner: TransferError) -> Self {
-        Self::TransferValidation(inner)
+impl From<TransactionError> for Error {
+    fn from(inner: TransactionError) -> Self {
+        Self::Transaction(inner)
     }
 }
 
@@ -67,7 +67,7 @@ impl ResponseError for Error {
             Self::MethodNotFound(..) => StatusCode::BAD_REQUEST,
             Self::MethodIsImmutable(..) => StatusCode::BAD_REQUEST,
             Self::InvalidInput(..) => StatusCode::BAD_REQUEST,
-            Self::TransferValidation(..) => StatusCode::FORBIDDEN,
+            Self::Transaction(..) => StatusCode::BAD_REQUEST,
             Self::TokenNotFound(..) => StatusCode::UNPROCESSABLE_ENTITY,
 
             Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
@@ -98,7 +98,7 @@ impl fmt::Display for Error {
                 format!("Method `{}` is immutable: use 'query' instead", name)
             }
             Self::InvalidInput(inner) => format!("Input: {}", inner),
-            Self::TransferValidation(inner) => format!("Transfer validation: {}", inner),
+            Self::Transaction(inner) => format!("Transaction: {}", inner),
             Self::TokenNotFound(token_id) => format!("Token ID {} cannot be resolved", token_id),
 
             Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),

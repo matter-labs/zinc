@@ -7,7 +7,7 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use inflector::Inflector;
-use serde_derive::Deserialize;
+use serde::Deserialize;
 
 use crate::error::file::Error as FileError;
 

@@ -8,12 +8,14 @@ pub mod unit_test;
 
 use std::collections::HashMap;
 
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use serde::Deserialize;
+use serde::Serialize;
+use serde_json::json;
 use serde_json::Value as JsonValue;
 
 use crate::application::unit_test::UnitTest;
-use crate::bytes::Bytes;
+use crate::build::input::Input as InputBuild;
+use crate::build::Build;
 use crate::data::r#type::contract_field::ContractField as ContractFieldType;
 use crate::data::r#type::Type;
 use crate::data::value::Value;
@@ -89,35 +91,20 @@ impl Application {
     /// Converts the compiled application state into a set of byte arrays, which are ready to be
     /// written to the Zinc project build files.
     ///
-    pub fn into_bytes(self) -> Bytes {
+    pub fn into_build(self) -> Build {
         match self {
             Application::Circuit(circuit) => {
-                let input_template =
-                    serde_json::to_vec_pretty(&Value::new(circuit.input.clone()).into_json())
-                        .expect(zinc_const::panic::DATA_CONVERSION);
-                let output_template =
-                    serde_json::to_vec_pretty(&Value::new(circuit.output.clone()).into_json())
-                        .expect(zinc_const::panic::DATA_CONVERSION);
-
+                let arguments = Value::new(circuit.input.clone()).into_json();
                 let bytecode = Application::Circuit(circuit).into_vec();
 
-                Bytes::new_circuit(bytecode, input_template, output_template)
+                Build::new(bytecode, InputBuild::new_circuit(arguments))
             }
             Application::Contract(contract) => {
-                let mut input_templates = HashMap::with_capacity(contract.methods.len());
-                let mut output_templates = HashMap::with_capacity(contract.methods.len());
+                let mut arguments = HashMap::with_capacity(contract.methods.len());
                 for (name, method) in contract.methods.iter() {
-                    input_templates.insert(
+                    arguments.insert(
                         name.to_owned(),
-                        serde_json::to_vec_pretty(&Value::new(method.input.to_owned()).into_json())
-                            .expect(zinc_const::panic::DATA_CONVERSION),
-                    );
-                    output_templates.insert(
-                        name.to_owned(),
-                        serde_json::to_vec_pretty(
-                            &Value::new(method.output.to_owned()).into_json(),
-                        )
-                        .expect(zinc_const::panic::DATA_CONVERSION),
+                        Value::new(method.input.to_owned()).into_json(),
                     );
                 }
 
@@ -127,12 +114,21 @@ impl Application {
                     .into_iter()
                     .map(|field| Value::new(field.r#type).into_json())
                     .collect();
-                let storage = serde_json::to_vec_pretty(&JsonValue::Array(fields))
-                    .expect(zinc_const::panic::DATA_CONVERSION);
+                let storage = JsonValue::Array(fields);
+
+                let transaction = json!({
+                    "sender": "0x0000000000000000000000000000000000000000",
+                    "recipient": "0x0000000000000000000000000000000000000000",
+                    "token_id": "0",
+                    "amount": "0",
+                });
 
                 let bytecode = Application::Contract(contract).into_vec();
 
-                Bytes::new_contract(bytecode, storage, input_templates, output_templates)
+                Build::new(
+                    bytecode,
+                    InputBuild::new_contract(storage, transaction, arguments),
+                )
             }
         }
     }

@@ -51,6 +51,6 @@ cargo clippy
 cargo test
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_FLAG}
 cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
-cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zandbox' -- ${LOG_LEVEL} \
-  --network "${NETWORK}" \
-  --postgresql "${POSTGRESQL}"
+#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zandbox' -- ${LOG_LEVEL} \
+#  --network "${NETWORK}" \
+#  --postgresql "${POSTGRESQL}"

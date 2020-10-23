@@ -19,11 +19,14 @@ use zinc_build::ContractFieldValue;
 use zinc_build::Type as BuildType;
 use zinc_build::Value as BuildValue;
 use zinc_const::UnitTestExitCode;
+use zinc_zksync::TransactionMsg;
 
-// use crate::constraint_systems::main::Main as MainCS;
 use crate::constraint_systems::constant::Constant as ConstantCS;
+use crate::core::contract::input::Input as ContractInput;
 use crate::core::contract::output::Output as ContractOutput;
 use crate::core::contract::storage::database::Storage as DatabaseStorage;
+use crate::core::contract::storage::leaf::LeafInput;
+use crate::core::contract::storage::leaf::LeafOutput;
 use crate::core::contract::storage::setup::Storage as SetupStorage;
 use crate::core::contract::synthesizer::Synthesizer as ContractSynthesizer;
 use crate::core::contract::State as ContractState;
@@ -46,24 +49,19 @@ impl Facade {
         Self { inner }
     }
 
-    pub fn run<E: IEngine>(
-        self,
-        input: BuildValue,
-        storage: BuildValue,
-        method_name: String,
-    ) -> Result<ContractOutput, RuntimeError> {
+    pub fn run<E: IEngine>(self, input: ContractInput) -> Result<ContractOutput, RuntimeError> {
         let mut cs = ConstantCS {};
 
         let method = self
             .inner
             .methods
-            .get(method_name.as_str())
+            .get(input.method_name.as_str())
             .cloned()
             .ok_or(RuntimeError::MethodNotFound {
-                found: method_name.clone(),
+                found: input.method_name.clone(),
             })?;
 
-        let inputs_flat = input.into_flat_values();
+        let arguments_flat = input.arguments.into_flat_values();
         let output_type = if method.is_mutable {
             method.output.into_mutable_method_output()
         } else {
@@ -75,28 +73,57 @@ impl Facade {
         for field in self.inner.storage.iter() {
             storage_types.push(field.r#type.to_owned());
         }
-        let storage_values = match storage {
+        let storage_leaves = match input.storage {
             BuildValue::Contract(fields) => fields
                 .into_iter()
-                .map(|field| {
-                    let mut values = field.value.into_flat_values();
-                    values.reverse();
-                    values
+                .enumerate()
+                .map(|(index, field)| {
+                    let r#type = storage_types[index].to_owned();
+
+                    match field.value {
+                        BuildValue::Map(map) => {
+                            let (key_type, value_type) = match r#type {
+                                BuildType::Map {
+                                    key_type,
+                                    value_type,
+                                } => (*key_type, *value_type),
+                                _ => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
+                            };
+
+                            let entries = map
+                                .into_iter()
+                                .map(|(key, value)| {
+                                    (key.into_flat_values(), value.into_flat_values())
+                                })
+                                .collect();
+                            LeafInput::Map {
+                                key_type,
+                                value_type,
+                                entries,
+                            }
+                        }
+                        value => {
+                            let mut values = value.into_flat_values();
+                            values.reverse();
+                            LeafInput::Array { r#type, values }
+                        }
+                    }
                 })
-                .collect::<Vec<Vec<BigInt>>>(),
+                .collect::<Vec<LeafInput>>(),
             _ => return Err(RuntimeError::InvalidStorageValue),
         };
-        let storage = DatabaseStorage::<Bn256>::new(storage_types.clone(), storage_values);
+        let storage = DatabaseStorage::<Bn256>::new(storage_leaves);
         let storage_gadget =
             StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
 
-        let mut state = ContractState::new(cs, storage_gadget, method_name, false);
+        let mut state =
+            ContractState::new(cs, storage_gadget, input.method_name, input.transaction);
 
         let mut num_constraints = 0;
         let result = state.run(
             self.inner,
             method.input,
-            Some(&inputs_flat),
+            Some(&arguments_flat),
             |cs| {
                 let num = cs.num_constraints() - num_constraints;
                 num_constraints += num;
@@ -128,133 +155,40 @@ impl Facade {
                 .into_iter()
                 .zip(storage_fields)
                 .enumerate()
-                .map(|(index, (mut values, field))| {
-                    values.reverse();
+                .map(|(index, (leaf, field))| {
+                    let r#type = storage_types
+                        .get(index)
+                        .cloned()
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
 
-                    ContractFieldValue::new(
-                        field.name,
-                        BuildValue::from_flat_values(
-                            storage_types
-                                .get(index)
-                                .cloned()
-                                .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-                            values.as_slice(),
-                        ),
-                        field.is_public,
-                        field.is_implicit,
-                    )
-                })
-                .collect::<Vec<ContractFieldValue>>(),
-        );
+                    let value = match leaf {
+                        LeafOutput::Array(array) => {
+                            BuildValue::from_flat_values(r#type, array.as_slice())
+                        }
+                        LeafOutput::Map(entries) => {
+                            let (key_type, value_type) = match r#type {
+                                BuildType::Map {
+                                    key_type,
+                                    value_type,
+                                } => (*key_type, *value_type),
+                                _ => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
+                            };
 
-        let transfers = state.execution_state.transfers;
+                            let mut values = Vec::with_capacity(entries.len());
+                            for (key, value) in entries.into_iter() {
+                                let key =
+                                    BuildValue::from_flat_values(key_type.clone(), key.as_slice());
+                                let value = BuildValue::from_flat_values(
+                                    value_type.clone(),
+                                    value.as_slice(),
+                                );
+                                values.push((key, value));
+                            }
+                            BuildValue::Map(values)
+                        }
+                    };
 
-        Ok(ContractOutput::new(output_value, storage_value, transfers))
-    }
-
-    pub fn debug<E: IEngine>(
-        self,
-        input: BuildValue,
-        storage: BuildValue,
-        method_name: String,
-    ) -> Result<ContractOutput, RuntimeError> {
-        let mut cs = TestConstraintSystem::<Bn256>::new();
-
-        let method = self
-            .inner
-            .methods
-            .get(method_name.as_str())
-            .cloned()
-            .ok_or(RuntimeError::MethodNotFound {
-                found: method_name.clone(),
-            })?;
-
-        let inputs_flat = input.into_flat_values();
-        let output_type = if method.is_mutable {
-            method.output.into_mutable_method_output()
-        } else {
-            method.output
-        };
-
-        let storage_fields = self.inner.storage.clone();
-        let mut storage_types = Vec::with_capacity(self.inner.storage.len());
-        for field in self.inner.storage.iter() {
-            storage_types.push(field.r#type.to_owned());
-        }
-        let storage_values = match storage {
-            BuildValue::Contract(fields) => fields
-                .into_iter()
-                .map(|field| {
-                    let mut values = field.value.into_flat_values();
-                    values.reverse();
-                    values
-                })
-                .collect::<Vec<Vec<BigInt>>>(),
-            _ => return Err(RuntimeError::InvalidStorageValue),
-        };
-        let storage = DatabaseStorage::new(storage_types.clone(), storage_values);
-        let storage_gadget =
-            StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
-
-        let mut state = ContractState::new(cs, storage_gadget, method_name, false);
-
-        let mut num_constraints = 0;
-        let result = state.run(
-            self.inner,
-            method.input,
-            Some(&inputs_flat),
-            |cs| {
-                let num = cs.num_constraints() - num_constraints;
-                num_constraints += num;
-                log::trace!("Constraints: {}", num);
-            },
-            |cs| {
-                if !cs.is_satisfied() {
-                    return Err(RuntimeError::UnsatisfiedConstraint);
-                }
-
-                Ok(())
-            },
-            method.address,
-        )?;
-
-        let cs = state.constraint_system();
-        if !cs.is_satisfied() {
-            log::trace!("{}", cs.pretty_print());
-            log::error!(
-                "Unsatisfied: {}",
-                cs.which_is_unsatisfied()
-                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
-            );
-            return Err(RuntimeError::UnsatisfiedConstraint);
-        }
-
-        let output_value: Vec<BigInt> = result.into_iter().filter_map(|value| value).collect();
-        let output_value = BuildValue::from_flat_values(output_type, &output_value);
-
-        let storage_value = BuildValue::Contract(
-            state
-                .storage
-                .into_inner()
-                .into_values()
-                .into_iter()
-                .zip(storage_fields)
-                .enumerate()
-                .map(|(index, (mut values, field))| {
-                    values.reverse();
-
-                    ContractFieldValue::new(
-                        field.name,
-                        BuildValue::from_flat_values(
-                            storage_types
-                                .get(index)
-                                .cloned()
-                                .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-                            values.as_slice(),
-                        ),
-                        field.is_public,
-                        field.is_implicit,
-                    )
+                    ContractFieldValue::new(field.name, value, field.is_public, field.is_implicit)
                 })
                 .collect::<Vec<ContractFieldValue>>(),
         );
@@ -286,7 +220,8 @@ impl Facade {
             let storage_gadget =
                 StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
 
-            let mut state = ContractState::new(cs, storage_gadget, name.clone(), true);
+            let mut state =
+                ContractState::new(cs, storage_gadget, name.clone(), TransactionMsg::default());
 
             let result = state.run(
                 self.inner.clone(),
@@ -350,6 +285,7 @@ impl Facade {
             bytecode: self.inner,
             method,
             storage,
+            transaction: TransactionMsg::default(),
 
             _pd: PhantomData,
         };
@@ -365,23 +301,21 @@ impl Facade {
     pub fn prove<E: IEngine>(
         self,
         params: Parameters<E>,
-        input: BuildValue,
-        storage: BuildValue,
-        method_name: String,
+        input: ContractInput,
     ) -> Result<(BuildValue, Proof<E>), RuntimeError> {
         let method = self
             .inner
             .methods
-            .get(method_name.as_str())
+            .get(input.method_name.as_str())
             .cloned()
             .ok_or(RuntimeError::MethodNotFound {
-                found: method_name.clone(),
+                found: input.method_name.clone(),
             })?;
 
         let mut result = None;
         let rng = &mut rand::thread_rng();
 
-        let inputs_flat = input.into_flat_values();
+        let arguments_flat = input.arguments.into_flat_values();
         let output_type = if method.is_mutable {
             method.output.clone().into_mutable_method_output()
         } else {
@@ -392,25 +326,54 @@ impl Facade {
         for field in self.inner.storage.iter() {
             storage_types.push(field.r#type.to_owned());
         }
-        let storage_values = match storage {
+        let storage_leaves = match input.storage {
             BuildValue::Contract(fields) => fields
                 .into_iter()
-                .map(|field| {
-                    let mut values = field.value.into_flat_values();
-                    values.reverse();
-                    values
+                .enumerate()
+                .map(|(index, field)| {
+                    let r#type = storage_types[index].to_owned();
+
+                    match field.value {
+                        BuildValue::Map(map) => {
+                            let (key_type, value_type) = match r#type {
+                                BuildType::Map {
+                                    key_type,
+                                    value_type,
+                                } => (*key_type, *value_type),
+                                _ => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
+                            };
+
+                            let entries = map
+                                .into_iter()
+                                .map(|(key, value)| {
+                                    (key.into_flat_values(), value.into_flat_values())
+                                })
+                                .collect();
+                            LeafInput::Map {
+                                key_type,
+                                value_type,
+                                entries,
+                            }
+                        }
+                        value => {
+                            let mut values = value.into_flat_values();
+                            values.reverse();
+                            LeafInput::Array { r#type, values }
+                        }
+                    }
                 })
-                .collect::<Vec<Vec<BigInt>>>(),
+                .collect::<Vec<LeafInput>>(),
             _ => return Err(RuntimeError::InvalidStorageValue),
         };
-        let storage = DatabaseStorage::new(storage_types, storage_values);
+        let storage = DatabaseStorage::new(storage_leaves);
 
         let synthesizable = ContractSynthesizer {
-            inputs: Some(inputs_flat),
+            inputs: Some(arguments_flat),
             output: &mut result,
             bytecode: self.inner,
             method,
             storage,
+            transaction: input.transaction,
 
             _pd: PhantomData,
         };

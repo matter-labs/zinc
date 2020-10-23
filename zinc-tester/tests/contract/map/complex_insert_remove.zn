@@ -1,0 +1,49 @@
+//! { "cases": [ {
+//!     "case": "default",
+//!     "method": "default",
+//!     "input": {
+//!         "key": {
+//!             "a": "1",
+//!             "b": "2"
+//!         },
+//!         "value": {
+//!             "x": "7",
+//!             "y": "8",
+//!             "z": "9"
+//!         }
+//!     },
+//!     "output": {
+//!         "result": [
+//!             [{
+//!                 "x": "7",
+//!                 "y": "8",
+//!                 "z": "9"
+//!             }, true],
+//!             false
+//!         ],
+//!         "root_hash": "0x0"
+//!     }
+//! } ] }
+
+use std::collections::MTreeMap;
+
+struct Key {
+    a: u8,
+    b: u8,
+}
+
+struct Value {
+    x: u8,
+    y: u8,
+    z: u8,
+}
+
+contract Test {
+    map: MTreeMap<Key, Value>;
+
+    pub fn default(mut self, key: Key, value: Value) -> ((Value, bool), bool) {
+        self.map.insert(key, value);
+
+        (self.map.remove(key), self.map.contains(key))
+    }
+}

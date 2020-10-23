@@ -11,16 +11,17 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use zinc_build::Application as BuildApplication;
-use zinc_build::ContractFieldType as BuildContractFieldType;
 use zinc_build::ContractMethod;
 use zinc_build::Instruction;
 use zinc_build::Type as BuildType;
 use zinc_build::UnitTest as BuildUnitTest;
+use zinc_lexical::Location;
+use zinc_lexical::FILE_INDEX;
+use zinc_manifest::Manifest;
+use zinc_manifest::ProjectType;
 
 use crate::generator::r#type::contract_field::ContractField as ContractFieldType;
 use crate::generator::r#type::Type;
-use zinc_lexical::Location;
-use zinc_utils::FILE_INDEX;
 
 use self::entry::Entry;
 use self::optimizer::dead_function_code_elimination::Optimizer as DeadFunctionCodeEliminationOptimizer;
@@ -31,8 +32,8 @@ use self::unit_test::UnitTest;
 ///
 #[derive(Debug)]
 pub struct State {
-    /// The Zinc application name.
-    name: String,
+    /// The Zinc project manifest.
+    manifest: Manifest,
 
     /// The Zinc VM instructions written by the bytecode generator.
     instructions: Vec<Instruction>,
@@ -63,21 +64,24 @@ impl State {
     /// The variable address hashmap default capacity.
     const VARIABLE_ADDRESSES_INITIAL_CAPACITY: usize = 16;
 
-    /// The contract method hashmap default capacity.
-    const METHODS_INITIAL_CAPACITY: usize = 16;
+    /// The application entries hashmap default capacity.
+    const ENTRIES_INITIAL_CAPACITY: usize = 16;
+
+    /// The application unit tests hashmap default capacity.
+    const UNIT_TESTS_INITIAL_CAPACITY: usize = 16;
 
     ///
     /// Creates a new bytecode instance with the placeholders for the entry `Call` and
     /// `Exit` instructions.
     ///
-    pub fn new(name: String) -> Self {
+    pub fn new(manifest: Manifest) -> Self {
         Self {
-            name,
+            manifest,
 
             instructions: Vec::with_capacity(Self::INSTRUCTIONS_INITIAL_CAPACITY),
             contract_storage: None,
-            entries: HashMap::with_capacity(Self::METHODS_INITIAL_CAPACITY),
-            unit_tests: HashMap::with_capacity(Self::METHODS_INITIAL_CAPACITY),
+            entries: HashMap::with_capacity(Self::ENTRIES_INITIAL_CAPACITY),
+            unit_tests: HashMap::with_capacity(Self::UNIT_TESTS_INITIAL_CAPACITY),
 
             function_addresses: HashMap::with_capacity(Self::FUNCTION_ADDRESSES_INITIAL_CAPACITY),
             variable_addresses: HashMap::with_capacity(Self::VARIABLE_ADDRESSES_INITIAL_CAPACITY),
@@ -103,13 +107,6 @@ impl State {
     }
 
     ///
-    /// Returns the application name.
-    ///
-    pub fn name(&self) -> &str {
-        self.name.as_str()
-    }
-
-    ///
     /// Returns the variable address in the function data stack frame.
     ///
     pub fn get_variable_address(&self, name: &str) -> Option<usize> {
@@ -117,7 +114,7 @@ impl State {
     }
 
     ///
-    /// Sets the contract storage, which means the application is a contract.
+    /// Sets the contract storage field types.
     ///
     pub fn set_contract_storage(&mut self, fields: Vec<ContractFieldType>) {
         self.contract_storage = Some(fields);
@@ -166,6 +163,13 @@ impl State {
         self.entries.insert(type_id, method);
 
         self.start_function(location, type_id, identifier);
+
+        if let ProjectType::Contract = self.manifest.project.r#type {
+            self.define_variable(
+                Some(zinc_const::contract::TRANSACTION_VARIABLE_NAME.to_owned()),
+                zinc_const::contract::TRANSACTION_SIZE,
+            );
+        }
     }
 
     ///
@@ -229,17 +233,6 @@ impl State {
         }
 
         self.instructions.push(instruction)
-    }
-
-    ///
-    /// Returns the contract storage structure if the application is a contract.
-    ///
-    /// Converts the generator types to the VM ones.
-    ///
-    pub fn contract_storage(&self) -> Option<Vec<BuildContractFieldType>> {
-        self.contract_storage
-            .to_owned()
-            .map(|storage| storage.into_iter().map(|field| field.into()).collect())
     }
 
     ///
@@ -318,7 +311,7 @@ impl State {
                 Self::print_instructions(self.instructions.as_slice());
 
                 BuildApplication::new_contract(
-                    self.name,
+                    self.manifest.project.name,
                     storage,
                     methods,
                     unit_tests,
@@ -377,7 +370,7 @@ impl State {
                 Self::print_instructions(self.instructions.as_slice());
 
                 BuildApplication::new_circuit(
-                    self.name,
+                    self.manifest.project.name,
                     address,
                     input,
                     output,

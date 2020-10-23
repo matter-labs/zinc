@@ -5,9 +5,9 @@
 ///
 /// The contract resource PUT `fee` request query.
 ///
-pub type Query = zinc_data::FeeRequestQuery;
+pub type Query = zinc_zksync::FeeRequestQuery;
 
 ///
 /// The contract resource PUT `fee` request body.
 ///
-pub type Body = zinc_data::FeeRequestBody;
+pub type Body = zinc_zksync::FeeRequestBody;

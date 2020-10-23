@@ -2,8 +2,8 @@
 //! The Zinc VM bytecode circuit application unit test.
 //!
 
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use serde::Deserialize;
+use serde::Serialize;
 
 ///
 /// The circuit unit test.

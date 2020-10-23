@@ -25,7 +25,7 @@ type TestVirtualMachine = State<Bn256, TestConstraintSystem<Bn256>>;
 
 fn new_test_constrained_vm() -> TestVirtualMachine {
     let cs = TestConstraintSystem::new();
-    TestVirtualMachine::new(cs, true)
+    TestVirtualMachine::new(cs)
 }
 
 fn assert_stack_eq<VM, BI>(vm: &mut VM, expected_stack: &[BI])

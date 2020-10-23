@@ -10,17 +10,19 @@ use zinc_build::ScalarType;
 
 use crate::core::execution_state::ExecutionState;
 use crate::error::RuntimeError;
+use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_library::INativeCallable;
 use crate::IEngine;
 
 pub struct FromBitsField;
 
-impl<E: IEngine> INativeCallable<E> for FromBitsField {
+impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for FromBitsField {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
         state: &mut ExecutionState<E>,
+        _storage: Option<&mut S>,
     ) -> Result<(), RuntimeError> {
         let mut bits = Vec::with_capacity(E::Fr::NUM_BITS as usize);
         for i in 0..E::Fr::NUM_BITS {

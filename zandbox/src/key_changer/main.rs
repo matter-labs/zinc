@@ -31,7 +31,7 @@ async fn main() {
 
     let tx_info = wallet
         .start_change_pubkey()
-        .fee(0_u32)
+        .fee(1_000_000_000_000_000_u64)
         .fee_token(TOKEN_SYMBOL)
         .expect("Fee token resolving")
         .send()

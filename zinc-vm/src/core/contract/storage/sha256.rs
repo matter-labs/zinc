@@ -11,10 +11,6 @@ pub fn sha256<E: IEngine>(preimage: &[u8]) -> Vec<u8> {
     Sha256::digest(preimage).to_vec()
 }
 
-pub fn sha256_of_concat<E: IEngine>(left: &[u8], right: &[u8]) -> Vec<u8> {
-    sha256::<E>(&[left, right].concat())
-}
-
 pub fn leaf_value_hash<E: IEngine>(leaf_value: Vec<Scalar<E>>) -> Vec<u8> {
     let mut result = Vec::with_capacity(zinc_const::bitlength::SHA256_HASH * leaf_value.len());
 

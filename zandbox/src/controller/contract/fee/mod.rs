@@ -6,6 +6,7 @@ pub mod error;
 pub mod request;
 pub mod response;
 
+use std::convert::TryInto;
 use std::sync::Arc;
 use std::sync::RwLock;
 
@@ -18,8 +19,8 @@ use zksync_types::tx::ZkSyncTx;
 use zksync_types::TxFeeTypes;
 
 use zinc_build::Value as BuildValue;
-use zinc_data::Transfer;
 use zinc_vm::Bn256;
+use zinc_vm::ContractInput;
 
 use crate::database::model::field::select::Input as FieldSelectInput;
 use crate::response::Response;
@@ -37,13 +38,12 @@ use self::response::Body as ResponseBody;
 /// Sequence:
 /// 1. Get the contract from the in-memory cache.
 /// 2. Extract the called method from its metadata and check if it is mutable.
-/// 3. Check if the transactions in the contract method arguments match the signed ones.
-/// 4. Parse the method input arguments.
-/// 5. Get the contract storage from data sources and convert it to the Zinc VM representation.
-/// 6. Run the method on the Zinc VM.
-/// 7. Extract the transfer data from the Zinc VM.
-/// 8. Calculate the fee required for the transfers.
-/// 9. Send the calculated fee back to the client.
+/// 3. Parse the method input arguments.
+/// 4. Get the contract storage from data sources and convert it to the Zinc VM representation.
+/// 5. Run the method on the Zinc VM.
+/// 6. Extract the transfer data from the Zinc VM.
+/// 7. Calculate the fee required for the transfers.
+/// 8. Send the calculated fee back to the client.
 ///
 pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
@@ -100,9 +100,6 @@ pub async fn handle(
     .await?;
     let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
 
-    let argument_transfer = Transfer::try_from_json(&body.arguments)?;
-    argument_transfer.validate(&wallet, &body.transaction)?;
-
     let input_value = BuildValue::try_from_typed_json(body.arguments, method.input)
         .map_err(Error::InvalidInput)?;
 
@@ -121,13 +118,15 @@ pub async fn handle(
     log::debug!("Running the contract method on the virtual machine");
     let method = query.method;
     let contract_build = contract.build;
+    let transaction = (&body.transaction).try_into()?;
     let vm_time = std::time::Instant::now();
     let output = async_std::task::spawn_blocking(move || {
-        zinc_vm::ContractFacade::new(contract_build).run::<Bn256>(
+        zinc_vm::ContractFacade::new(contract_build).run::<Bn256>(ContractInput::new(
             input_value,
             storage.into_build(),
             method,
-        )
+            transaction,
+        ))
     })
     .await
     .map_err(Error::RuntimeError)?;

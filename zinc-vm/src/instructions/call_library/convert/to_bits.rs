@@ -13,17 +13,19 @@ use zinc_build::ScalarType;
 use crate::core::execution_state::ExecutionState;
 use crate::error::RuntimeError;
 use crate::gadgets;
+use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_library::INativeCallable;
 use crate::IEngine;
 
 pub struct ToBits;
 
-impl<E: IEngine> INativeCallable<E> for ToBits {
+impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for ToBits {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
         state: &mut ExecutionState<E>,
+        _storage: Option<&mut S>,
     ) -> Result<(), RuntimeError> {
         let scalar = state.evaluation_stack.pop()?.try_into_value()?;
         let expr = scalar.to_expression::<CS>();

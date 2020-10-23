@@ -46,8 +46,8 @@ impl VirtualMachine {
     pub fn run_circuit(
         verbosity: usize,
         binary_path: &PathBuf,
-        witness_path: &PathBuf,
-        public_data_path: &PathBuf,
+        input_path: &PathBuf,
+        output_path: &PathBuf,
     ) -> Result<(), Error> {
         eprintln!(
             "     {} `{}` {}",
@@ -60,15 +60,15 @@ impl VirtualMachine {
             },
         );
 
-        let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let mut process = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("run")
             .arg("--binary")
             .arg(binary_path)
-            .arg("--witness")
-            .arg(witness_path)
-            .arg("--public-data")
-            .arg(public_data_path)
+            .arg("--input")
+            .arg(input_path)
+            .arg("--output")
+            .arg(output_path)
             .spawn()
             .map_err(Error::Spawning)?;
 
@@ -87,9 +87,8 @@ impl VirtualMachine {
     pub fn run_contract(
         verbosity: usize,
         binary_path: &PathBuf,
-        witness_path: &PathBuf,
-        public_data_path: &PathBuf,
-        storage_path: &PathBuf,
+        input_path: &PathBuf,
+        output_path: &PathBuf,
         method: &str,
     ) -> Result<(), Error> {
         eprintln!(
@@ -103,85 +102,15 @@ impl VirtualMachine {
             },
         );
 
-        let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let mut process = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("run")
             .arg("--binary")
             .arg(binary_path)
-            .arg("--witness")
-            .arg(witness_path)
-            .arg("--public-data")
-            .arg(public_data_path)
-            .arg("--storage")
-            .arg(storage_path)
-            .arg("--method")
-            .arg(method)
-            .spawn()
-            .map_err(Error::Spawning)?;
-
-        let status = process.wait().map_err(Error::Waiting)?;
-
-        if !status.success() {
-            return Err(Error::Failure(status));
-        }
-
-        Ok(())
-    }
-
-    ///
-    /// Executes the virtual machine `debug` subcommand for circuit.
-    ///
-    #[allow(dead_code)]
-    pub fn debug_circuit(
-        verbosity: usize,
-        binary_path: &PathBuf,
-        witness_path: &PathBuf,
-        public_data_path: &PathBuf,
-    ) -> Result<(), Error> {
-        let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
-            .args(vec!["-v"; verbosity])
-            .arg("debug")
-            .arg("--binary")
-            .arg(binary_path)
-            .arg("--witness")
-            .arg(witness_path)
-            .arg("--public-data")
-            .arg(public_data_path)
-            .spawn()
-            .map_err(Error::Spawning)?;
-
-        let status = process.wait().map_err(Error::Waiting)?;
-
-        if !status.success() {
-            return Err(Error::Failure(status));
-        }
-
-        Ok(())
-    }
-
-    ///
-    /// Executes the virtual machine `debug` subcommand for contract.
-    ///
-    #[allow(dead_code)]
-    pub fn debug_contract(
-        verbosity: usize,
-        binary_path: &PathBuf,
-        witness_path: &PathBuf,
-        public_data_path: &PathBuf,
-        storage_path: &PathBuf,
-        method: &str,
-    ) -> Result<(), Error> {
-        let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
-            .args(vec!["-v"; verbosity])
-            .arg("debug")
-            .arg("--binary")
-            .arg(binary_path)
-            .arg("--witness")
-            .arg(witness_path)
-            .arg("--public-data")
-            .arg(public_data_path)
-            .arg("--storage")
-            .arg(storage_path)
+            .arg("--input")
+            .arg(input_path)
+            .arg("--output")
+            .arg(output_path)
             .arg("--method")
             .arg(method)
             .spawn()
@@ -200,7 +129,7 @@ impl VirtualMachine {
     /// Executes the virtual machine `test` subcommand.
     ///
     pub fn test(verbosity: usize, binary_path: &PathBuf) -> Result<ExitStatus, Error> {
-        let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let mut process = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("test")
             .arg("--binary")
@@ -229,7 +158,7 @@ impl VirtualMachine {
             verifying_key_path.to_string_lossy(),
         );
 
-        let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let mut process = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("setup")
             .arg("--binary")
@@ -267,7 +196,7 @@ impl VirtualMachine {
             verifying_key_path.to_string_lossy(),
         );
 
-        let mut process = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let mut process = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("setup")
             .arg("--binary")
@@ -297,8 +226,8 @@ impl VirtualMachine {
         verbosity: usize,
         binary_path: &PathBuf,
         proving_key_path: &PathBuf,
-        witness_path: &PathBuf,
-        public_data_path: &PathBuf,
+        input_path: &PathBuf,
+        output_path: &PathBuf,
     ) -> Result<(), Error> {
         eprintln!(
             "     {} `{}` with `{}`",
@@ -307,17 +236,17 @@ impl VirtualMachine {
             proving_key_path.to_string_lossy(),
         );
 
-        let mut child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let mut child = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("prove")
             .arg("--binary")
             .arg(binary_path)
             .arg("--proving-key")
             .arg(proving_key_path)
-            .arg("--witness")
-            .arg(witness_path)
-            .arg("--public-data")
-            .arg(public_data_path)
+            .arg("--input")
+            .arg(input_path)
+            .arg("--output")
+            .arg(output_path)
             .spawn()
             .map_err(Error::Spawning)?;
 
@@ -337,9 +266,8 @@ impl VirtualMachine {
         verbosity: usize,
         binary_path: &PathBuf,
         proving_key_path: &PathBuf,
-        witness_path: &PathBuf,
-        public_data_path: &PathBuf,
-        storage_path: &PathBuf,
+        input_path: &PathBuf,
+        output_path: &PathBuf,
         method: &str,
     ) -> Result<(), Error> {
         eprintln!(
@@ -349,19 +277,17 @@ impl VirtualMachine {
             proving_key_path.to_string_lossy(),
         );
 
-        let mut child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let mut child = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("prove")
             .arg("--binary")
             .arg(binary_path)
             .arg("--proving-key")
             .arg(proving_key_path)
-            .arg("--witness")
-            .arg(witness_path)
-            .arg("--public-data")
-            .arg(public_data_path)
-            .arg("--storage")
-            .arg(storage_path)
+            .arg("--input")
+            .arg(input_path)
+            .arg("--output")
+            .arg(output_path)
             .arg("--method")
             .arg(method)
             .spawn()
@@ -383,7 +309,7 @@ impl VirtualMachine {
         verbosity: usize,
         binary_path: &PathBuf,
         verifying_key_path: &PathBuf,
-        public_data_path: &PathBuf,
+        output_path: &PathBuf,
     ) -> Result<(), Error> {
         eprintln!(
             "   {} `{}` with `{}`",
@@ -392,15 +318,15 @@ impl VirtualMachine {
             verifying_key_path.to_string_lossy(),
         );
 
-        let mut child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let mut child = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("verify")
             .arg("--binary")
             .arg(binary_path)
             .arg("--verifying-key")
             .arg(verifying_key_path)
-            .arg("--public-data")
-            .arg(public_data_path)
+            .arg("--output")
+            .arg(output_path)
             .spawn()
             .map_err(Error::Spawning)?;
 
@@ -420,7 +346,7 @@ impl VirtualMachine {
         verbosity: usize,
         binary_path: &PathBuf,
         verifying_key_path: &PathBuf,
-        public_data_path: &PathBuf,
+        output_path: &PathBuf,
         method: &str,
     ) -> Result<(), Error> {
         eprintln!(
@@ -430,15 +356,15 @@ impl VirtualMachine {
             verifying_key_path.to_string_lossy(),
         );
 
-        let mut child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let mut child = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("verify")
             .arg("--binary")
             .arg(binary_path)
             .arg("--verifying-key")
             .arg(verifying_key_path)
-            .arg("--public-data")
-            .arg(public_data_path)
+            .arg("--output")
+            .arg(output_path)
             .arg("--method")
             .arg(method)
             .spawn()
@@ -461,8 +387,8 @@ impl VirtualMachine {
     pub fn prove_and_verify_circuit(
         verbosity: usize,
         binary_path: &PathBuf,
-        witness_path: &PathBuf,
-        public_data_path: &PathBuf,
+        input_path: &PathBuf,
+        output_path: &PathBuf,
         proving_key_path: &PathBuf,
         verifying_key_path: &PathBuf,
     ) -> Result<(), Error> {
@@ -473,17 +399,17 @@ impl VirtualMachine {
             proving_key_path.to_string_lossy(),
         );
 
-        let prover_output = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let prover_output = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("prove")
             .arg("--binary")
             .arg(binary_path)
             .arg("--proving-key")
             .arg(proving_key_path)
-            .arg("--witness")
-            .arg(witness_path)
-            .arg("--public-data")
-            .arg(public_data_path)
+            .arg("--input")
+            .arg(input_path)
+            .arg("--output")
+            .arg(output_path)
             .output()
             .map_err(Error::Spawning)?;
 
@@ -494,15 +420,15 @@ impl VirtualMachine {
             verifying_key_path.to_string_lossy(),
         );
 
-        let mut verifier_child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let mut verifier_child = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("verify")
             .arg("--binary")
             .arg(binary_path)
             .arg("--verifying-key")
             .arg(verifying_key_path)
-            .arg("--public-data")
-            .arg(public_data_path)
+            .arg("--output")
+            .arg(output_path)
             .stdin(Stdio::piped())
             .spawn()
             .map_err(Error::Spawning)?;
@@ -526,13 +452,11 @@ impl VirtualMachine {
     ///
     /// The `prove` command output is passed as the `verify` command input.
     ///
-    #[allow(clippy::too_many_arguments)]
     pub fn prove_and_verify_contract(
         verbosity: usize,
         binary_path: &PathBuf,
-        witness_path: &PathBuf,
-        public_data_path: &PathBuf,
-        storage_path: &PathBuf,
+        input_path: &PathBuf,
+        output_path: &PathBuf,
         method: &str,
         proving_key_path: &PathBuf,
         verifying_key_path: &PathBuf,
@@ -544,19 +468,17 @@ impl VirtualMachine {
             proving_key_path.to_string_lossy(),
         );
 
-        let prover_output = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let prover_output = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("prove")
             .arg("--binary")
             .arg(binary_path)
             .arg("--proving-key")
             .arg(proving_key_path)
-            .arg("--witness")
-            .arg(witness_path)
-            .arg("--public-data")
-            .arg(public_data_path)
-            .arg("--storage")
-            .arg(storage_path)
+            .arg("--input")
+            .arg(input_path)
+            .arg("--output")
+            .arg(output_path)
             .arg("--method")
             .arg(method)
             .output()
@@ -569,15 +491,15 @@ impl VirtualMachine {
             verifying_key_path.to_string_lossy(),
         );
 
-        let mut verifier_child = process::Command::new(zinc_const::app_name::ZINC_VIRTUAL_MACHINE)
+        let mut verifier_child = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("verify")
             .arg("--binary")
             .arg(binary_path)
             .arg("--verifying-key")
             .arg(verifying_key_path)
-            .arg("--public-data")
-            .arg(public_data_path)
+            .arg("--output")
+            .arg(output_path)
             .arg("--method")
             .arg(method)
             .stdin(Stdio::piped())

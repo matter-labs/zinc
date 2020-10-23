@@ -10,9 +10,10 @@ use std::io::Read;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use zinc_lexical::FILE_INDEX;
+use zinc_manifest::Manifest;
 use zinc_syntax::Module as SyntaxModule;
 use zinc_syntax::Parser;
-use zinc_utils::FILE_INDEX;
 
 use crate::error::Error as CompilerError;
 use crate::generator::module::Module;
@@ -43,7 +44,7 @@ impl File {
     ///
     /// `path` is used to set the virtual module path within a project.
     ///
-    pub fn try_from_string(file: zinc_data::File) -> Result<Self, SourceError> {
+    pub fn try_from_string(file: zinc_source::File) -> Result<Self, SourceError> {
         let path = PathBuf::from(file.path);
 
         let next_file_id = FILE_INDEX.next(&path, file.code);
@@ -134,13 +135,13 @@ impl File {
     /// Gets all the intermediate representation scattered around the application scope tree and
     /// writes it to the bytecode.
     ///
-    pub fn compile(self, name: String) -> Result<Rc<RefCell<State>>, SourceError> {
+    pub fn compile(self, manifest: Manifest) -> Result<Rc<RefCell<State>>, SourceError> {
         let scope = EntryAnalyzer::define(Source::File(self))
             .map_err(CompilerError::Semantic)
             .map_err(|error| error.format())
             .map_err(SourceError::Compiling)?;
 
-        let state = State::new(name).wrap();
+        let state = State::new(manifest).wrap();
         Module::new(scope.borrow().get_intermediate()).write_all(state.clone());
 
         Ok(state)

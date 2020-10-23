@@ -12,7 +12,7 @@ use self::transfer::Transfer;
 /// The virtual machine contract output.
 ///
 pub struct Output {
-    /// The contract method result, which is public data for now.
+    /// The contract method output result, which is public data for now.
     pub result: BuildValue,
     /// The contract storage after executing a method.
     pub storage: BuildValue,

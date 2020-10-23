@@ -3,30 +3,27 @@ pub mod hasher;
 
 use num::BigInt;
 
-use crate::core::contract::storage::leaf::Leaf as StorageLeaf;
+use crate::core::contract::storage::leaf::Leaf;
+use crate::core::contract::storage::leaf::LeafOutput;
+use crate::core::contract::storage::leaf::LeafVariant;
 use crate::error::RuntimeError;
-use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
 pub trait IMerkleTree<E: IEngine> {
     ///
     /// Loads a leaf value with authentication path at `index`.
     ///
-    fn load(&self, index: BigInt) -> Result<StorageLeaf<E>, RuntimeError>;
+    fn load(&self, index: BigInt) -> Result<Leaf<E>, RuntimeError>;
 
     ///
     /// Stores `values` to storage, returns the previous leaf value with authentication path.
     ///
-    fn store(
-        &mut self,
-        index: BigInt,
-        values: Vec<Scalar<E>>,
-    ) -> Result<StorageLeaf<E>, RuntimeError>;
+    fn store(&mut self, index: BigInt, values: LeafVariant<E>) -> Result<(), RuntimeError>;
 
     ///
     /// Returns the storage values.
     ///
-    fn into_values(self) -> Vec<Vec<BigInt>>;
+    fn into_values(self) -> Vec<LeafOutput>;
 
     ///
     /// Returns the Merkle tree root hash.

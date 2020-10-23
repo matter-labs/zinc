@@ -29,10 +29,10 @@ mod test {
     use num::BigInt;
     use num::One;
 
+    use zinc_build::IntegerType;
+
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
-
-    use zinc_build::IntegerType;
 
     #[test]
     fn test_gt() -> Result<(), TestingError> {

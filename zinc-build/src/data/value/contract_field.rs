@@ -2,8 +2,8 @@
 //! The Zinc VM contract value storage field.
 //!
 
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::data::r#type::contract_field::ContractField as ContractFieldType;
 use crate::data::value::Value;

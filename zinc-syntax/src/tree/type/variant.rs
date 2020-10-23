@@ -7,10 +7,10 @@ use crate::tree::r#type::Type;
 
 ///
 /// The syntax type variant which is parsed directly from the source code.
-/// The most important variant is the `Alias` one, which represents a path expression which is
+/// The most important and frequently used variant is `Alias`, which represents a path expression
 /// resolved in the source code scope hierarchy.
 ///
-/// The type is converted to a next phase semantic type during the semantic analysis.
+/// This entity is converted into the semantic type during the semantic analysis.
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Variant {
@@ -30,22 +30,24 @@ pub enum Variant {
     },
     /// `field` in the source code.
     Field,
-    /// `[ {type}; {expression} ]` in the source code.
+    /// `[{type}; {expression}]` in the source code.
     Array {
         /// The array element type.
         inner: Box<Type>,
         /// The array size expression.
         size: ExpressionTree,
     },
-    /// `( {type1}, {type2}, ... )` in the source code.
+    /// `({type1}, {type2}, ...)` in the source code.
     Tuple {
         /// The tuple element types.
         inners: Vec<Type>,
     },
-    /// `{namespace} :: {namespace} :: ... {type}` in the source code.
+    /// `{namespace1}::{namespace2}::...::{type}<generic1, generic2, ...>` in the source code.
     Alias {
         /// The path expression, which points to an aliased type.
         path: ExpressionTree,
+        /// The optional generic type arguments.
+        generics: Option<Vec<Type>>,
     },
 }
 
@@ -116,7 +118,7 @@ impl Variant {
     ///
     /// A shortcut constructor.
     ///
-    pub fn alias(path: ExpressionTree) -> Self {
-        Self::Alias { path }
+    pub fn alias(path: ExpressionTree, generics: Option<Vec<Type>>) -> Self {
+        Self::Alias { path, generics }
     }
 }
