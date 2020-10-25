@@ -13,6 +13,13 @@ use zinc_lexical::Location;
 ///
 #[derive(Debug, PartialEq)]
 pub enum Error {
+    /// The type must be explicitly specified for this binding.
+    TypeRequired {
+        /// The binding location.
+        location: Location,
+        /// The binding identifier.
+        identifier: String,
+    },
     /// The path expression must point to a type, but points to another kind of item.
     AliasDoesNotPointToType {
         /// The path expression location.

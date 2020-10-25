@@ -3,11 +3,12 @@
 //!
 
 pub mod attribute;
+pub mod binding;
+pub mod binding_list;
 pub mod expression;
 pub mod field;
 pub mod field_list;
 pub mod pattern_binding;
-pub mod pattern_binding_list;
 pub mod pattern_match;
 pub mod statement;
 pub mod r#type;

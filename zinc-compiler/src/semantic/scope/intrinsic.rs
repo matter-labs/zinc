@@ -444,8 +444,8 @@ impl IntrinsicScope {
                     Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS),
                 ),
                 (
-                    "token_id".to_owned(),
-                    Type::integer_unsigned(None, zinc_const::bitlength::TOKEN_ID),
+                    "token_address".to_owned(),
+                    Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS),
                 ),
                 (
                     "amount".to_owned(),

@@ -14,6 +14,7 @@ use actix_web::http::StatusCode;
 use actix_web::web;
 
 use zksync::operations::SyncTransactionHandle;
+use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::tx::ZkSyncTx;
 
 use crate::database::model::contract::insert_new::Input as ContractInsertNewInput;
@@ -70,7 +71,7 @@ pub async fn handle(
     let provider = zksync::Provider::new(query.network);
     let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
         query.address,
-        zksync_eth_signer::EthereumSigner::from_key(contract.eth_private_key),
+        PrivateKeySigner::new(contract.eth_private_key),
         query.network,
     )
     .await?;

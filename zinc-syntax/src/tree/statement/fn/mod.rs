@@ -7,9 +7,9 @@ pub mod builder;
 use zinc_lexical::Location;
 
 use crate::tree::attribute::Attribute;
+use crate::tree::binding::Binding;
 use crate::tree::expression::block::Expression as BlockExpression;
 use crate::tree::identifier::Identifier;
-use crate::tree::pattern_binding::Pattern as BindingPattern;
 use crate::tree::r#type::Type;
 
 ///
@@ -25,8 +25,8 @@ pub struct Statement {
     pub is_constant: bool,
     /// The function identifier.
     pub identifier: Identifier,
-    /// The function argument bindings.
-    pub argument_bindings: Vec<BindingPattern>,
+    /// The function argument bindings list.
+    pub argument_bindings: Vec<Binding>,
     /// The optional function return type, which is `()` if not specified.
     pub return_type: Option<Type>,
     /// The function block.
@@ -45,7 +45,7 @@ impl Statement {
         is_public: bool,
         is_constant: bool,
         identifier: Identifier,
-        argument_bindings: Vec<BindingPattern>,
+        argument_bindings: Vec<Binding>,
         return_type: Option<Type>,
         body: BlockExpression,
         attributes: Vec<Attribute>,

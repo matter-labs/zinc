@@ -11,8 +11,8 @@ use num::BigUint;
 pub struct Transfer {
     /// The recepient address.
     pub recipient: [u8; zinc_const::size::ETH_ADDRESS],
-    /// The ID of the token being transferred.
-    pub token_id: u16,
+    /// The zkSync address of the token being transferred.
+    pub token_address: BigUint,
     /// The amount of the tokens being sent.
     pub amount: BigUint,
 }
@@ -23,12 +23,12 @@ impl Transfer {
     ///
     pub fn new(
         recipient: [u8; zinc_const::size::ETH_ADDRESS],
-        token_id: u16,
+        token_address: BigUint,
         amount: BigUint,
     ) -> Self {
         Self {
             recipient,
-            token_id,
+            token_address,
             amount,
         }
     }

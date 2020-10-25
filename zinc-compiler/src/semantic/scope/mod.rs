@@ -27,6 +27,7 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
+use crate::semantic::scope::intrinsic::IntrinsicTypeId;
 use crate::source::Source;
 
 use self::error::Error;
@@ -190,7 +191,7 @@ impl Scope {
     ) -> Result<(), SemanticError> {
         if let Ok(item) = scope
             .borrow()
-            .resolve_item(&identifier, !identifier.is_self())
+            .resolve_item(&identifier, !identifier.is_self_lowercase())
         {
             return Err(SemanticError::Scope(Error::ItemRedeclared {
                 location: identifier.location,
@@ -563,6 +564,51 @@ impl Scope {
                     name: identifier.name.to_owned(),
                 })),
             },
+        }
+    }
+
+    ///
+    /// Resolves the `std::collections::MTreeMap` type.
+    ///
+    /// An error is considered a bug, since the type is declared by the developer in the
+    /// intrinsic module.
+    ///
+    pub fn resolve_mtreemap(location: Location, scope: Rc<RefCell<Scope>>) -> Type {
+        match &*Scope::resolve_path(
+            scope,
+            &Path::new_complex(
+                location,
+                vec![
+                    Identifier::new(location, "std".to_owned()),
+                    Identifier::new(location, "collections".to_owned()),
+                    Identifier::new(location, "MTreeMap".to_owned()),
+                ],
+            ),
+        )
+        .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+        .borrow()
+        {
+            Item::Type(r#type) => match r#type
+                .define()
+                .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+            {
+                Type::Structure(mut structure)
+                    if structure.type_id == IntrinsicTypeId::StdCollectionsMTreeMap as usize =>
+                {
+                    structure
+                        .set_generics(
+                            location,
+                            Some(vec![
+                                Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS),
+                                Type::integer_unsigned(None, zinc_const::bitlength::INTEGER_MAX),
+                            ]),
+                        )
+                        .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+                    Type::Structure(structure)
+                }
+                _type => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
+            },
+            _item => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
         }
     }
 

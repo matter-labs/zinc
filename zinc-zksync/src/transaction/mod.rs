@@ -5,13 +5,13 @@
 pub mod error;
 pub mod msg;
 
-use std::convert::TryInto;
-
 use serde::Deserialize;
 use serde::Serialize;
 
+use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::tx::PackedEthSignature;
 use zksync_types::tx::ZkSyncTx;
+use zksync_types::TokenLike;
 
 use self::error::Error;
 use self::msg::Msg;
@@ -38,19 +38,25 @@ impl Transaction {
             ethereum_signature: EthereumSignature::new(signature),
         }
     }
-}
 
-impl TryInto<Msg> for &Transaction {
-    type Error = Error;
-
-    fn try_into(self) -> Result<Msg, Self::Error> {
+    ///
+    /// Converts the transaction into an intrinsic `zksync::msg` variable representation.
+    ///
+    pub fn try_to_msg(&self, wallet: &zksync::Wallet<PrivateKeySigner>) -> Result<Msg, Error> {
         match self.tx {
-            ZkSyncTx::Transfer(ref transfer) => Ok(Msg::new(
-                transfer.from,
-                transfer.to,
-                transfer.token,
-                zksync::utils::closest_packable_token_amount(&transfer.amount),
-            )),
+            ZkSyncTx::Transfer(ref transfer) => {
+                let token = wallet
+                    .tokens
+                    .resolve(TokenLike::Id(transfer.token))
+                    .ok_or(Error::UnsupportedToken(transfer.token))?;
+
+                Ok(Msg::new(
+                    transfer.from,
+                    transfer.to,
+                    token.address,
+                    zksync::utils::closest_packable_token_amount(&transfer.amount),
+                ))
+            }
             ZkSyncTx::Withdraw(..) => Err(Error::UnsupportedTransaction("Withdraw")),
             ZkSyncTx::Close(..) => Err(Error::UnsupportedTransaction("Close")),
             ZkSyncTx::ChangePubKey(..) => Err(Error::UnsupportedTransaction("ChangePubKey")),

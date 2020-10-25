@@ -60,13 +60,15 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(ExpressionTree, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
                 State::CastingFirstOperand => {
                     let (expression, next) =
-                        CastingOperandParser::default().parse(stream.clone(), initial.take())?;
+                        CastingOperandParser::default().parse(stream.clone(), self.next.take())?;
                     self.next = next;
                     self.builder.eat(expression);
                     self.state = State::CastingOperator;
@@ -85,7 +87,8 @@ impl Parser {
                     }
                 }
                 State::CastingSecondOperand => {
-                    let (r#type, next) = TypeParser::default().parse(stream.clone(), None)?;
+                    let (r#type, next) =
+                        TypeParser::default().parse(stream.clone(), self.next.take())?;
                     let location = r#type.location;
                     self.next = next;
                     self.builder

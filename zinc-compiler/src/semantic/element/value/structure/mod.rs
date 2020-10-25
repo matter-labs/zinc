@@ -7,7 +7,9 @@ mod tests;
 
 pub mod error;
 
+use std::cell::RefCell;
 use std::fmt;
+use std::rc::Rc;
 
 use zinc_lexical::Location;
 use zinc_syntax::Identifier;
@@ -18,6 +20,7 @@ use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::contract::Contract as ContractValue;
 use crate::semantic::element::value::Value;
+use crate::semantic::scope::Scope;
 
 use self::error::Error;
 
@@ -67,8 +70,8 @@ impl Structure {
     ///
     /// Converts the structure value into a contract one, transferring all the fields one-by-one.
     ///
-    pub fn into_contract(self) -> ContractValue {
-        ContractValue::from_structure(self)
+    pub fn into_contract(self, scope: Rc<RefCell<Scope>>) -> ContractValue {
+        ContractValue::from_structure(self, scope)
     }
 
     ///

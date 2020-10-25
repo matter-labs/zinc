@@ -73,12 +73,14 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(EnumStatement, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
                 State::KeywordEnum => {
-                    match crate::parser::take_or_next(initial.take(), stream.clone())? {
+                    match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Enum),
                             location,
@@ -126,7 +128,7 @@ impl Parser {
                 }
                 State::VariantList => {
                     let (variants, next) =
-                        VariantListParser::default().parse(stream.clone(), None)?;
+                        VariantListParser::default().parse(stream.clone(), self.next.take())?;
                     self.builder.set_variants(variants);
                     self.next = next;
                     self.state = State::BracketCurlyRight;

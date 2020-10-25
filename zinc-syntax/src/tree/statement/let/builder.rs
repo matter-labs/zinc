@@ -4,9 +4,8 @@
 
 use zinc_lexical::Location;
 
+use crate::tree::binding::Binding;
 use crate::tree::expression::tree::Tree as ExpressionTree;
-use crate::tree::identifier::Identifier;
-use crate::tree::r#type::Type;
 use crate::tree::statement::r#let::Statement as LetStatement;
 
 ///
@@ -16,12 +15,8 @@ use crate::tree::statement::r#let::Statement as LetStatement;
 pub struct Builder {
     /// The location of the syntax construction.
     location: Option<Location>,
-    /// The variable identifier.
-    identifier: Option<Identifier>,
-    /// If the variable is mutable.
-    is_mutable: bool,
-    /// The optional variable type, which is inferred otherwise.
-    r#type: Option<Type>,
+    /// The binding.
+    binding: Option<Binding>,
     /// The expression assigned to the variable.
     expression: Option<ExpressionTree>,
 }
@@ -37,22 +32,8 @@ impl Builder {
     ///
     /// Sets the corresponding builder value.
     ///
-    pub fn set_identifier(&mut self, value: Identifier) {
-        self.identifier = Some(value);
-    }
-
-    ///
-    /// Sets the corresponding builder value.
-    ///
-    pub fn set_mutable(&mut self) {
-        self.is_mutable = true;
-    }
-
-    ///
-    /// Sets the corresponding builder value.
-    ///
-    pub fn set_type(&mut self, value: Type) {
-        self.r#type = Some(value);
+    pub fn set_binding(&mut self, value: Binding) {
+        self.binding = Some(value);
     }
 
     ///
@@ -77,15 +58,9 @@ impl Builder {
                     "location"
                 )
             }),
-            self.identifier.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    zinc_const::panic::BUILDER_REQUIRES_VALUE,
-                    "identifier"
-                )
+            self.binding.take().unwrap_or_else(|| {
+                panic!("{}{}", zinc_const::panic::BUILDER_REQUIRES_VALUE, "binding")
             }),
-            self.is_mutable,
-            self.r#type.take(),
             self.expression.take().unwrap_or_else(|| {
                 panic!(
                     "{}{}",

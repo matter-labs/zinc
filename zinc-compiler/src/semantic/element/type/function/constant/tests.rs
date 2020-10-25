@@ -208,35 +208,3 @@ fn main() {
 
     assert_eq!(result, expected);
 }
-
-#[test]
-fn error_function_method_self_not_first() {
-    let input = r#"
-struct Data {
-    value: u8,
-}
-
-impl Data {
-    const fn method(value: u8, self) -> u8 {
-        value
-    }
-}
-
-fn main() {
-    let data = Data { value: 42 };
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionError::FunctionMethodSelfNotFirst {
-            location: Location::test(7, 14),
-            function: "method".to_owned(),
-            position: 2,
-            reference: Location::test(7, 32),
-        }),
-    ))));
-
-    let result = crate::semantic::tests::compile_entry(input);
-
-    assert_eq!(result, expected);
-}

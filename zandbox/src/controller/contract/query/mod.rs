@@ -13,6 +13,8 @@ use actix_web::web;
 use serde_json::json;
 use serde_json::Value as JsonValue;
 
+use zksync_eth_signer::PrivateKeySigner;
+
 use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 use zinc_vm::ContractInput;
@@ -74,7 +76,7 @@ pub async fn handle(
     let provider = zksync::Provider::new(query.network);
     let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
         query.address,
-        zksync_eth_signer::EthereumSigner::from_key(contract.eth_private_key),
+        PrivateKeySigner::new(contract.eth_private_key),
         query.network,
     )
     .await?;

@@ -3,6 +3,7 @@
 //!
 
 pub mod attribute;
+pub mod binding;
 pub mod expression;
 pub mod field;
 pub mod identifier;

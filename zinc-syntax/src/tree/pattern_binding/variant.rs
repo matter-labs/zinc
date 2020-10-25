@@ -2,31 +2,28 @@
 //! The binding pattern variant.
 //!
 
-use zinc_lexical::Location;
-
 use crate::tree::identifier::Identifier;
+use crate::tree::pattern_binding::Pattern as BindingPattern;
 
 ///
 /// The binding pattern variant.
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Variant {
-    /// An ordinar function argument, like `a: u8` or `mut a: u8`.
+    /// An ordinar variable binding, like `a` or `mut a`.
     Binding {
         /// The argument name.
         identifier: Identifier,
         /// If the argument variable is mutable.
         is_mutable: bool,
     },
+    /// A variable list binding, like `(a, b, c)` or `(mut a, b, mut c)`.
+    BindingList {
+        /// The binding list elements.
+        bindings: Vec<BindingPattern>,
+    },
     /// A wildcard function argument, like `_`.
     Wildcard,
-    /// An object instance method argument, like `self` or `mut self`.
-    SelfAlias {
-        /// The `self` alias location.
-        location: Location,
-        /// If the instance is mutable.
-        is_mutable: bool,
-    },
 }
 
 impl Variant {
@@ -39,21 +36,17 @@ impl Variant {
             is_mutable,
         }
     }
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new_binding_list(bindings: Vec<BindingPattern>) -> Self {
+        Self::BindingList { bindings }
+    }
 
     ///
     /// A shortcut constructor.
     ///
     pub fn new_wildcard() -> Self {
         Self::Wildcard
-    }
-
-    ///
-    /// A shortcut constructor.
-    ///
-    pub fn new_self_alias(location: Location, is_mutable: bool) -> Self {
-        Self::SelfAlias {
-            location,
-            is_mutable,
-        }
     }
 }

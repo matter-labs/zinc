@@ -16,6 +16,7 @@ num = "0.3"
 
 zksync = { path = "../zksync/sdk/zksync-rs" }
 zksync_types = { path = "../zksync/core/lib/types" }
+zksync_eth_signer = { path = "../zksync/core/lib/eth_signer" }
 num_old = { package = "num", version = "0.2.1" }
 
 zinc-build = { path = "../zinc-build" }

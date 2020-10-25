@@ -10,6 +10,7 @@ use zinc_syntax::LetStatement;
 use crate::generator::statement::r#let::Statement as GeneratorDeclarationStatement;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
+use crate::semantic::binding::Binder;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
@@ -32,7 +33,7 @@ impl Analyzer {
         let (element, expression) = ExpressionAnalyzer::new(scope.clone(), TranslationRule::Value)
             .analyze(statement.expression)?;
 
-        let r#type = if let Some(r#type) = statement.r#type {
+        let r#type = if let Some(r#type) = statement.binding.r#type {
             let r#type = Type::try_from_syntax(r#type, scope.clone())?;
             element
                 .cast(Element::Type(r#type.clone()))
@@ -47,19 +48,16 @@ impl Analyzer {
             _ => MemoryType::Stack,
         };
 
-        Scope::define_variable(
-            scope,
-            statement.identifier.clone(),
-            statement.is_mutable,
-            r#type.clone(),
-            memory_type,
-        )?;
-
-        Ok(GeneratorDeclarationStatement::new(
-            statement.location,
-            statement.identifier.name,
-            r#type,
-            expression,
-        ))
+        let bindings =
+            Binder::bind_variables(statement.binding.pattern, r#type, memory_type, scope)?;
+        Ok(if bindings.is_empty() {
+            None
+        } else {
+            Some(GeneratorDeclarationStatement::new(
+                statement.location,
+                bindings,
+                expression,
+            ))
+        })
     }
 }

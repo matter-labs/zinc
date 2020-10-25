@@ -16,7 +16,7 @@ use crate::semantic::error::Error as SemanticError;
 fn error_transfer_argument_count_lesser() {
     let input = r#"
 fn main() {
-    zksync::transfer(0x42 as u160, 1);
+    zksync::transfer(0x42 as u160, 0x0);
 }
 "#;
 
@@ -39,7 +39,7 @@ fn main() {
 fn error_transfer_argument_count_greater() {
     let input = r#"
 fn main() {
-    zksync::transfer(0x42 as u160, 1, 500 as u248, 0x666);
+    zksync::transfer(0x42 as u160, 0x0, 500 as u248, 0x666);
 }
 "#;
 
@@ -83,7 +83,7 @@ fn main() {
 }
 
 #[test]
-fn error_transfer_argument_2_token_id_expected_unsigned_integer() {
+fn error_transfer_argument_2_token_address_expected_unsigned_integer() {
     let input = r#"
 fn main() {
     zksync::transfer(0x42 as u160, false, 500 as u248);
@@ -94,9 +94,9 @@ fn main() {
         TypeError::Function(FunctionError::ArgumentType {
             location: Location::test(3, 36),
             function: ZksyncTransferFunction::IDENTIFIER.to_owned(),
-            name: "token_id".to_owned(),
-            position: ZksyncTransferFunction::ARGUMENT_INDEX_TOKEN_ID + 1,
-            expected: "{unsigned integer}".to_owned(),
+            name: "token_address".to_owned(),
+            position: ZksyncTransferFunction::ARGUMENT_INDEX_TOKEN_ADDRESS + 1,
+            expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS).to_string(),
             found: Type::boolean(None).to_string(),
         }),
     ))));
@@ -110,13 +110,13 @@ fn main() {
 fn error_transfer_argument_3_amount_expected_u248() {
     let input = r#"
 fn main() {
-    zksync::transfer(0x42 as u160, 1, false);
+    zksync::transfer(0x42 as u160, 0x0, false);
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionError::ArgumentType {
-            location: Location::test(3, 39),
+            location: Location::test(3, 41),
             function: ZksyncTransferFunction::IDENTIFIER.to_owned(),
             name: "amount".to_owned(),
             position: ZksyncTransferFunction::ARGUMENT_INDEX_AMOUNT + 1,

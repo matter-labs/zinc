@@ -4,9 +4,14 @@
 
 use colored::Colorize;
 
+use zksync_eth_signer::PrivateKeySigner;
+
 static TOKEN_SYMBOL: &str = "ETH";
+const FEE: u64 = 100_000_000_000_000_000;
+
 static ETH_ADDRESS: &str = "36615Cf349d7F6344891B1e7CA7C72883F5dc049";
 static ETH_PRIVATE_KEY: &str = "7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
+
 const NETWORK: zksync::Network = zksync::Network::Localhost;
 
 ///
@@ -19,7 +24,7 @@ async fn main() {
         ETH_ADDRESS.parse().expect("ETH address parsing"),
         ETH_PRIVATE_KEY
             .parse()
-            .map(zksync_eth_signer::EthereumSigner::from_key)
+            .map(PrivateKeySigner::new)
             .expect("ETH private key parsing"),
         NETWORK,
     )
@@ -31,7 +36,7 @@ async fn main() {
 
     let tx_info = wallet
         .start_change_pubkey()
-        .fee(1_000_000_000_000_000_u64)
+        .fee(FEE)
         .fee_token(TOKEN_SYMBOL)
         .expect("Fee token resolving")
         .send()

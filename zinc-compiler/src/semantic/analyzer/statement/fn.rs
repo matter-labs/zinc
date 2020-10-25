@@ -6,22 +6,19 @@ use std::cell::RefCell;
 use std::convert::TryFrom;
 use std::rc::Rc;
 
-use zinc_lexical::Keyword;
-use zinc_syntax::BindingPatternVariant;
 use zinc_syntax::FnStatement;
-use zinc_syntax::Identifier;
 
 use crate::generator::statement::r#fn::Statement as GeneratorFunctionStatement;
 use crate::semantic::analyzer::attribute::Attribute;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
+use crate::semantic::binding::Binder;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
-use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 
@@ -88,92 +85,16 @@ impl Analyzer {
         context: Context,
         attributes: Vec<Attribute>,
     ) -> Result<(Type, GeneratorFunctionStatement), Error> {
-        let location = statement.location;
-
         let mut scope_stack = ScopeStack::new(scope);
+        scope_stack.push(Some(statement.identifier.name.clone()));
 
-        let mut arguments = Vec::with_capacity(statement.argument_bindings.len());
-        for (index, argument_binding) in statement.argument_bindings.iter().enumerate() {
-            let (identifier, is_mutable) = match argument_binding.variant {
-                BindingPatternVariant::Binding {
-                    ref identifier,
-                    is_mutable,
-                } => (identifier.name.to_owned(), is_mutable),
-                BindingPatternVariant::Wildcard => continue,
-                BindingPatternVariant::SelfAlias { is_mutable, .. } => {
-                    if index != 0 {
-                        return Err(Error::Element(ElementError::Type(TypeError::Function(
-                            FunctionError::FunctionMethodSelfNotFirst {
-                                location: statement.identifier.location,
-                                function: statement.identifier.name.clone(),
-                                position: index + 1,
-                                reference: argument_binding.location,
-                            },
-                        ))));
-                    }
-
-                    (Keyword::SelfLowercase.to_string(), is_mutable)
-                }
-            };
-
-            arguments.push((
-                identifier,
-                is_mutable,
-                Type::try_from_syntax(argument_binding.r#type.to_owned(), scope_stack.top())?,
-            ));
-        }
+        let bindings =
+            Binder::bind_arguments(statement.argument_bindings, context, scope_stack.top())?;
 
         let expected_type = match statement.return_type {
             Some(ref r#type) => Type::try_from_syntax(r#type.to_owned(), scope_stack.top())?,
             None => Type::unit(None),
         };
-
-        scope_stack.push(Some(statement.identifier.name.clone()));
-        for argument_binding in statement.argument_bindings.into_iter() {
-            match argument_binding.variant {
-                BindingPatternVariant::Binding {
-                    identifier,
-                    is_mutable,
-                } => {
-                    let r#type = Type::try_from_syntax(argument_binding.r#type, scope_stack.top())?;
-
-                    let memory_type = match r#type {
-                        Type::Contract(_) => MemoryType::ContractInstance,
-                        _ => MemoryType::Stack,
-                    };
-
-                    Scope::define_variable(
-                        scope_stack.top(),
-                        identifier,
-                        is_mutable,
-                        r#type,
-                        memory_type,
-                    )?;
-                }
-                BindingPatternVariant::Wildcard => continue,
-                BindingPatternVariant::SelfAlias {
-                    location,
-                    is_mutable,
-                } => {
-                    let identifier = Identifier::new(location, Keyword::SelfLowercase.to_string());
-                    let r#type = Type::try_from_syntax(argument_binding.r#type, scope_stack.top())?;
-
-                    let memory_type = match context {
-                        Context::Contract => MemoryType::ContractInstance,
-                        Context::Module => MemoryType::Stack,
-                        Context::Implementation => MemoryType::Stack,
-                    };
-
-                    Scope::define_variable(
-                        scope_stack.top(),
-                        identifier,
-                        is_mutable,
-                        r#type,
-                        memory_type,
-                    )?;
-                }
-            }
-        }
 
         let return_expression_location = match statement
             .body
@@ -219,23 +140,23 @@ impl Analyzer {
             )
         };
 
-        let is_mutable = arguments
-            .get(0)
-            .map(|argument| argument.1)
+        let is_mutable = bindings
+            .first()
+            .map(|binding| binding.is_mutable)
             .unwrap_or_default();
 
         let (r#type, type_id) = Type::runtime_function(
             statement.location,
             statement.identifier.name.clone(),
-            arguments.clone(),
+            bindings.clone(),
             expected_type.clone(),
         );
 
         let intermediate = GeneratorFunctionStatement::new(
-            location,
+            statement.location,
             statement.identifier.name,
             is_mutable,
-            arguments,
+            bindings,
             intermediate,
             expected_type,
             type_id,
@@ -257,85 +178,15 @@ impl Analyzer {
         _attributes: Vec<Attribute>,
     ) -> Result<Type, Error> {
         let mut scope_stack = ScopeStack::new(scope);
+        scope_stack.push(Some(statement.identifier.name.clone()));
 
-        let mut arguments = Vec::with_capacity(statement.argument_bindings.len());
-        for (index, argument_binding) in statement.argument_bindings.iter().enumerate() {
-            let identifier = match argument_binding.variant {
-                BindingPatternVariant::Binding { ref identifier, .. } => identifier.name.to_owned(),
-                BindingPatternVariant::Wildcard => continue,
-                BindingPatternVariant::SelfAlias { .. } => {
-                    if index != 0 {
-                        return Err(Error::Element(ElementError::Type(TypeError::Function(
-                            FunctionError::FunctionMethodSelfNotFirst {
-                                location: statement.identifier.location,
-                                function: statement.identifier.name.clone(),
-                                position: index + 1,
-                                reference: argument_binding.location,
-                            },
-                        ))));
-                    }
-
-                    Keyword::SelfLowercase.to_string()
-                }
-            };
-
-            arguments.push((
-                identifier,
-                Type::try_from_syntax(argument_binding.r#type.to_owned(), scope_stack.top())?,
-            ));
-        }
+        let bindings =
+            Binder::bind_arguments(statement.argument_bindings, context, scope_stack.top())?;
 
         let expected_type = match statement.return_type {
             Some(ref r#type) => Type::try_from_syntax(r#type.to_owned(), scope_stack.top())?,
             None => Type::unit(None),
         };
-
-        scope_stack.push(Some(statement.identifier.name.clone()));
-        for argument_binding in statement.argument_bindings.into_iter() {
-            match argument_binding.variant {
-                BindingPatternVariant::Binding {
-                    identifier,
-                    is_mutable,
-                } => {
-                    let r#type = Type::try_from_syntax(argument_binding.r#type, scope_stack.top())?;
-
-                    let memory_type = match r#type {
-                        Type::Contract(_) => MemoryType::ContractInstance,
-                        _ => MemoryType::Stack,
-                    };
-
-                    Scope::define_variable(
-                        scope_stack.top(),
-                        identifier,
-                        is_mutable,
-                        r#type,
-                        memory_type,
-                    )?;
-                }
-                BindingPatternVariant::Wildcard => continue,
-                BindingPatternVariant::SelfAlias {
-                    location,
-                    is_mutable,
-                } => {
-                    let identifier = Identifier::new(location, Keyword::SelfLowercase.to_string());
-                    let r#type = Type::try_from_syntax(argument_binding.r#type, scope_stack.top())?;
-
-                    let memory_type = match context {
-                        Context::Contract => MemoryType::ContractInstance,
-                        Context::Module => MemoryType::Stack,
-                        Context::Implementation => MemoryType::Stack,
-                    };
-
-                    Scope::define_variable(
-                        scope_stack.top(),
-                        identifier,
-                        is_mutable,
-                        r#type,
-                        memory_type,
-                    )?;
-                }
-            }
-        }
 
         let return_expression_location = match statement
             .body
@@ -378,7 +229,7 @@ impl Analyzer {
         Ok(Type::constant_function(
             statement.location,
             statement.identifier.name.clone(),
-            arguments,
+            bindings,
             expected_type,
             statement.body,
         ))

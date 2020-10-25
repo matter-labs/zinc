@@ -1,5 +1,5 @@
 //!
-//! The syntax parser.
+//! The Zinc syntax library.
 //!
 
 pub(crate) mod error;
@@ -10,6 +10,7 @@ pub use self::error::Error;
 pub use self::error::ParsingError;
 pub use self::parser::Parser;
 pub use self::tree::attribute::Attribute;
+pub use self::tree::binding::Binding;
 pub use self::tree::expression::array::variant::Variant as ArrayExpressionVariant;
 pub use self::tree::expression::array::Expression as ArrayExpression;
 pub use self::tree::expression::block::Expression as BlockExpression;
@@ -28,7 +29,9 @@ pub use self::tree::literal::integer::Literal as IntegerLiteral;
 pub use self::tree::literal::string::Literal as StringLiteral;
 pub use self::tree::module::Module;
 pub use self::tree::pattern_binding::variant::Variant as BindingPatternVariant;
+pub use self::tree::pattern_binding::Pattern as BindingPattern;
 pub use self::tree::pattern_match::variant::Variant as MatchPatternVariant;
+pub use self::tree::pattern_match::Pattern as MatchPattern;
 pub use self::tree::r#type::variant::Variant as TypeVariant;
 pub use self::tree::r#type::Type;
 pub use self::tree::statement::contract::Statement as ContractStatement;

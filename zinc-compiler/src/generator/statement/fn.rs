@@ -6,14 +6,15 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use zinc_build::Instruction;
+use zinc_lexical::Location;
 
 use crate::generator::expression::operand::block::Expression;
 use crate::generator::r#type::Type;
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::analyzer::attribute::Attribute;
+use crate::semantic::binding::Binding;
 use crate::semantic::element::r#type::Type as SemanticType;
-use zinc_lexical::Location;
 
 ///
 /// The Zinc VM function statement.
@@ -51,7 +52,7 @@ impl Statement {
         location: Location,
         identifier: String,
         is_mutable: bool,
-        input_arguments: Vec<(String, bool, SemanticType)>,
+        bindings: Vec<Binding>,
         body: Expression,
         output_type: SemanticType,
         type_id: usize,
@@ -59,14 +60,12 @@ impl Statement {
         is_contract_entry: bool,
         attributes: Vec<Attribute>,
     ) -> Self {
-        let input_arguments = input_arguments
+        let input_arguments = bindings
             .into_iter()
-            .filter_map(
-                |(name, is_mutable, r#type)| match Type::try_from_semantic(&r#type) {
-                    Some(r#type) => Some((name, is_mutable, r#type)),
-                    None => None,
-                },
-            )
+            .filter_map(|binding| match Type::try_from_semantic(&binding.r#type) {
+                Some(r#type) => Some((binding.identifier.name, binding.is_mutable, r#type)),
+                None => None,
+            })
             .collect();
 
         let output_type = Type::try_from_semantic(&output_type).unwrap_or_else(Type::unit);

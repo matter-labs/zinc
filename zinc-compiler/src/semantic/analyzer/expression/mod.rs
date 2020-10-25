@@ -1094,7 +1094,8 @@ impl Analyzer {
             TranslationRule::Type,
         )?;
 
-        let result = Element::structure(operand_1, operand_2).map_err(Error::Element)?;
+        let result = Element::structure(operand_1, operand_2, self.scope_stack.top())
+            .map_err(Error::Element)?;
         self.evaluation_stack.push(StackElement::Evaluated(result));
 
         Ok(())

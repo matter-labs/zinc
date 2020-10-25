@@ -5,7 +5,7 @@
 ///
 /// The virtual machine memory type descriptor.
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum MemoryType {
     /// Data allocated on the VM data stack.
     Stack,

@@ -5,7 +5,6 @@
 pub mod error;
 pub mod request;
 
-use std::convert::TryInto;
 use std::sync::Arc;
 use std::sync::RwLock;
 use std::time::Duration;
@@ -18,6 +17,7 @@ use serde_json::json;
 use serde_json::Value as JsonValue;
 
 use zksync::operations::SyncTransactionHandle;
+use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::tx::ZkSyncTx;
 
 use zinc_build::Value as BuildValue;
@@ -99,7 +99,7 @@ pub async fn handle(
     let provider = zksync::Provider::new(query.network);
     let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
         query.address,
-        zksync_eth_signer::EthereumSigner::from_key(contract.eth_private_key),
+        PrivateKeySigner::new(contract.eth_private_key),
         query.network,
     )
     .await?;
@@ -123,7 +123,7 @@ pub async fn handle(
     log::debug!("Running the contract method on the virtual machine");
     let method = query.method;
     let contract_build = contract.build;
-    let transaction = (&body.transaction).try_into()?;
+    let transaction = (&body.transaction).try_to_msg(&wallet)?;
     let vm_time = std::time::Instant::now();
     let output = async_std::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new(contract_build).run::<Bn256>(ContractInput::new(
@@ -146,7 +146,7 @@ pub async fn handle(
         let token = wallet
             .tokens
             .resolve(transfer.token.into())
-            .ok_or(Error::TokenNotFound(transfer.token))?;
+            .ok_or_else(|| Error::TokenNotFound(transfer.token.to_string()))?;
 
         log::debug!(
             "Sending {} {} from {} to {} with total batch fee {} {}",
@@ -169,8 +169,17 @@ pub async fn handle(
         let recipient = transfer.recipient.into();
         let token = wallet
             .tokens
-            .resolve(transfer.token_id.into())
-            .ok_or(Error::TokenNotFound(transfer.token_id))?;
+            .resolve(
+                zinc_zksync::eth_address_from_vec(transfer.token_address.to_bytes_be().to_vec())
+                    .into(),
+            )
+            .ok_or_else(|| {
+                Error::TokenNotFound(
+                    transfer
+                        .token_address
+                        .to_str_radix(zinc_const::base::HEXADECIMAL),
+                )
+            })?;
         let amount = zksync::utils::closest_packable_token_amount(
             &zinc_zksync::num_compat_backward(transfer.amount),
         );

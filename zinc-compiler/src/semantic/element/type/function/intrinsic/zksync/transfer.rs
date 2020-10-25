@@ -43,8 +43,8 @@ impl Function {
     /// The position of the `recipient` argument in the function argument list.
     pub const ARGUMENT_INDEX_RECIPIENT: usize = 0;
 
-    /// The position of the `token_id` argument in the function argument list.
-    pub const ARGUMENT_INDEX_TOKEN_ID: usize = 1;
+    /// The position of the `token_address` argument in the function argument list.
+    pub const ARGUMENT_INDEX_TOKEN_ADDRESS: usize = 1;
 
     /// The position of the `amount` argument in the function argument list.
     pub const ARGUMENT_INDEX_AMOUNT: usize = 2;
@@ -106,15 +106,16 @@ impl Function {
             }
         }
 
-        match actual_params.get(Self::ARGUMENT_INDEX_TOKEN_ID) {
+        match actual_params.get(Self::ARGUMENT_INDEX_TOKEN_ADDRESS) {
             Some((r#type, _location)) if r#type.is_integer_unsigned() => {}
             Some((r#type, location)) => {
                 return Err(Error::ArgumentType {
                     location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
-                    name: "token_id".to_owned(),
-                    position: Self::ARGUMENT_INDEX_TOKEN_ID + 1,
-                    expected: "{unsigned integer}".to_owned(),
+                    name: "token_address".to_owned(),
+                    position: Self::ARGUMENT_INDEX_TOKEN_ADDRESS + 1,
+                    expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS)
+                        .to_string(),
                     found: r#type.to_string(),
                 })
             }
@@ -171,7 +172,7 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{}(recipient: u160, token_id: u{{N}}, amount: u248)",
+            "{}(recipient: u160, token_address: u160, amount: u248)",
             self.identifier
         )
     }

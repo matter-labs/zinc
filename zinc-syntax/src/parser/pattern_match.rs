@@ -67,12 +67,14 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(MatchPattern, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
                 State::Start => {
-                    match crate::parser::take_or_next(initial.take(), stream.clone())? {
+                    match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Literal(LexicalLiteral::Boolean(boolean)),
                             location,

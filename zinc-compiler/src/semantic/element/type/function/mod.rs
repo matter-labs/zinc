@@ -14,6 +14,7 @@ use zinc_build::LibraryFunctionIdentifier;
 use zinc_lexical::Location;
 use zinc_syntax::BlockExpression;
 
+use crate::semantic::binding::Binding;
 use crate::semantic::element::r#type::Type;
 
 use self::constant::Function as ConstantFunction;
@@ -71,14 +72,14 @@ impl Function {
         location: Location,
         identifier: String,
         type_id: usize,
-        arguments: Vec<(String, bool, Type)>,
+        bindings: Vec<Binding>,
         return_type: Type,
     ) -> Self {
         Self::Runtime(RuntimeFunction::new(
             location,
             identifier,
             type_id,
-            arguments,
+            bindings,
             return_type,
         ))
     }
@@ -90,7 +91,7 @@ impl Function {
         location: Location,
         identifier: String,
         type_id: usize,
-        arguments: Vec<(String, Type)>,
+        bindings: Vec<Binding>,
         return_type: Type,
         body: BlockExpression,
     ) -> Self {
@@ -98,7 +99,7 @@ impl Function {
             location,
             identifier,
             type_id,
-            arguments,
+            bindings,
             return_type,
             body,
         ))

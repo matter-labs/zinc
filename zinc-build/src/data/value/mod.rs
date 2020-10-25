@@ -389,10 +389,11 @@ impl Value {
             found: value.to_string(),
         })?;
 
-        let bigint = match variants
-            .into_iter()
-            .find(|(name, value)| name == value_string || value.to_string() == value_string)
-        {
+        let bigint = match variants.into_iter().find(|(name, value)| {
+            name == value_string
+                || zinc_math::bigint_from_str(value.to_string().as_str())
+                    == zinc_math::bigint_from_str(value_string)
+        }) {
             Some((_name, bigint)) => bigint,
             None => {
                 return Err(Error::from(ErrorType::UnexpectedVariant(

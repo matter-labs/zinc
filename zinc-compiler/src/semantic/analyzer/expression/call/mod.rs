@@ -253,9 +253,9 @@ impl Analyzer {
                 } = call_type
                 {
                     let is_first_argument_mutable = function
-                        .formal_params
-                        .get(0)
-                        .map(|instance| instance.1)
+                        .bindings
+                        .first()
+                        .map(|instance| instance.is_mutable)
                         .unwrap_or_default();
 
                     if !is_instance_mutable && is_first_argument_mutable {

@@ -84,17 +84,6 @@ pub enum Error {
         /// The non-callable item identifier.
         name: String,
     },
-    /// The `self` argument of a method must be first in argument list, but it is not.
-    FunctionMethodSelfNotFirst {
-        /// The function location.
-        location: Location,
-        /// The function identifier.
-        function: String,
-        /// The invalid position of the `self` argument.
-        position: usize,
-        /// The invalid argument location.
-        reference: Location,
-    },
     /// A mutable method was called with an immutable instance.
     CallingMutableFromImmutable {
         /// The function location.

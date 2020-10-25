@@ -57,12 +57,14 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(Type, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
                 State::ParenthesisLeft => {
-                    match crate::parser::take_or_next(initial.take(), stream.clone())? {
+                    match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                             location,
@@ -199,7 +201,10 @@ mod tests {
                     Type::new(
                         Location::test(1, 13),
                         TypeVariant::array(
-                            Type::new(Location::test(1, 14), TypeVariant::integer_unsigned(8)),
+                            Type::new(
+                                Location::test(1, 14),
+                                TypeVariant::integer_unsigned(zinc_const::bitlength::BYTE),
+                            ),
                             ExpressionTree::new(
                                 Location::test(1, 18),
                                 ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(

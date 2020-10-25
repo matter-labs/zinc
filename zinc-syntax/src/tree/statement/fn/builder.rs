@@ -5,9 +5,9 @@
 use zinc_lexical::Location;
 
 use crate::tree::attribute::Attribute;
+use crate::tree::binding::Binding;
 use crate::tree::expression::block::Expression as BlockExpression;
 use crate::tree::identifier::Identifier;
-use crate::tree::pattern_binding::Pattern as BindingPattern;
 use crate::tree::r#type::Type;
 use crate::tree::statement::r#fn::Statement as FnStatement;
 
@@ -25,7 +25,7 @@ pub struct Builder {
     /// The function identifier.
     identifier: Option<Identifier>,
     /// The function argument bindings.
-    argument_bindings: Vec<BindingPattern>,
+    argument_bindings: Vec<Binding>,
     /// The optional function return type, which is `()` if not specified.
     return_type: Option<Type>,
     /// The function block.
@@ -66,7 +66,7 @@ impl Builder {
     ///
     /// Sets the corresponding builder value.
     ///
-    pub fn set_argument_bindings(&mut self, value: Vec<BindingPattern>) {
+    pub fn set_argument_bindings(&mut self, value: Vec<Binding>) {
         self.argument_bindings = value;
     }
 

@@ -6,7 +6,6 @@ pub mod error;
 pub mod request;
 pub mod response;
 
-use std::convert::TryInto;
 use std::sync::Arc;
 use std::sync::RwLock;
 
@@ -15,6 +14,7 @@ use actix_web::web;
 use num_old::BigUint;
 use num_old::Zero;
 
+use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::tx::ZkSyncTx;
 use zksync_types::TxFeeTypes;
 
@@ -94,7 +94,7 @@ pub async fn handle(
     let provider = zksync::Provider::new(query.network);
     let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
         query.address,
-        zksync_eth_signer::EthereumSigner::from_key(contract.eth_private_key),
+        PrivateKeySigner::new(contract.eth_private_key),
         query.network,
     )
     .await?;
@@ -118,7 +118,7 @@ pub async fn handle(
     log::debug!("Running the contract method on the virtual machine");
     let method = query.method;
     let contract_build = contract.build;
-    let transaction = (&body.transaction).try_into()?;
+    let transaction = (&body.transaction).try_to_msg(&wallet)?;
     let vm_time = std::time::Instant::now();
     let output = async_std::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new(contract_build).run::<Bn256>(ContractInput::new(

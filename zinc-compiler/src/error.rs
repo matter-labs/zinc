@@ -5,7 +5,6 @@
 use colored::Colorize;
 
 use zinc_lexical::Error as LexicalError;
-use zinc_lexical::Keyword;
 use zinc_lexical::Location;
 use zinc_lexical::FILE_INDEX;
 use zinc_math::InferenceError;
@@ -20,6 +19,7 @@ use crate::semantic::analyzer::statement::error::Error as StatementError;
 use crate::semantic::analyzer::statement::r#for::error::Error as ForStatementError;
 use crate::semantic::analyzer::statement::r#impl::error::Error as ImplStatementError;
 use crate::semantic::analyzer::statement::r#use::error::Error as UseStatementError;
+use crate::semantic::binding::error::Error as BindingError;
 use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::constant::array::error::Error as ArrayConstantError;
 use crate::semantic::element::constant::error::Error as ConstantError;
@@ -1576,7 +1576,17 @@ impl Error {
             Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Integer(IntegerConstantError::Parsing { location, inner: zinc_math::BigIntError::ExponentTooSmall(exponent) })))) => {
                 Self::format_line(format!("The exponent value `{}` is too small", exponent).as_str(),
                                    location,
-                                   Some("The exponent value must be equals or greater than the number of fractional digits"),
+                                   Some("the exponent value must be equal or greater than the number of fractional digits"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::TypeRequired { location, identifier }))) => {
+                Self::format_line( format!(
+                    "type is required for binding `{}`",
+                    identifier
+                )
+                                       .as_str(),
+                                   location,
+                                   Some(format!("consider giving the binding a type, e.g. `{}: u8`", identifier).as_str()),
                 )
             }
             Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::AliasDoesNotPointToType { location, found }))) => {
@@ -1713,19 +1723,6 @@ impl Error {
                         .as_str(),
                     location,
                     Some("only functions may be called"),
-                )
-            }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::FunctionMethodSelfNotFirst { location, function, position, reference })))) => {
-                Self::format_line_with_reference(format!(
-                        "method `{}` expected the `{}` binding to be at the first position, but found at the position #`{}`",
-                        function,
-                        Keyword::SelfLowercase.to_string(),
-                        position,
-                    )
-                        .as_str(),
-                    location,
-                    Some(reference),
-                    Some(format!("consider moving the `{}` binding to the first place", Keyword::SelfLowercase.to_string()).as_str()),
                 )
             }
             Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::Function(FunctionError::CallingMutableFromImmutable { location, function })))) => {
@@ -2030,6 +2027,35 @@ impl Error {
                                        .as_str(),
                                    location,
                                    Some("see the reference to get the list of allowed attributes"),
+                )
+            }
+
+            Self::Semantic(SemanticError::Binding(BindingError::ExpectedTuple { location, expected, found })) => {
+                Self::format_line( format!(
+                    "expected a tuple with {} elements, found `{}`",
+                    expected, found
+                )
+                                       .as_str(),
+                                   location,
+                                   None,
+                )
+            }
+            Self::Semantic(SemanticError::Binding(BindingError::FunctionMethodSelfNotFirst { location, name, position })) => {
+                Self::format_line(format!(
+                    "expected the `{}` binding to be at the first position, but found at the position #`{}`",
+                    name,
+                    position,
+                )
+                                      .as_str(),
+                                  location,
+                                  Some(format!("consider moving the `{}` binding to the first place", name).as_str()),
+                )
+            }
+            Self::Semantic(SemanticError::Binding(BindingError::FunctionArgumentDestructuringUnavailable { location })) => {
+                Self::format_line(
+                    "tuple function argument destructuring is not implemented yet",
+                      location,
+                      Some("consider passing the arguments separately for now"),
                 )
             }
 

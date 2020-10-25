@@ -11,6 +11,7 @@ use self::transfer::Transfer;
 ///
 /// The virtual machine contract output.
 ///
+#[derive(Debug)]
 pub struct Output {
     /// The contract method output result, which is public data for now.
     pub result: BuildValue,

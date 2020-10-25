@@ -67,12 +67,14 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(UseStatement, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
                 State::KeywordUse => {
-                    match crate::parser::take_or_next(initial.take(), stream.clone())? {
+                    match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Use),
                             location,
@@ -92,7 +94,7 @@ impl Parser {
                 }
                 State::Path => {
                     let (expression, next) =
-                        PathOperandParser::default().parse(stream.clone(), None)?;
+                        PathOperandParser::default().parse(stream.clone(), self.next.take())?;
                     self.builder.set_path(expression);
                     self.next = next;
                     self.state = State::AsOrNext;

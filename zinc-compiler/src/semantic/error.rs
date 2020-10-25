@@ -2,12 +2,14 @@
 //! The semantic analyzer error.
 //!
 
+use zinc_lexical::Location;
+
 use crate::semantic::analyzer::attribute::error::Error as AttributeError;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::statement::error::Error as StatementError;
+use crate::semantic::binding::error::Error as BindingError;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::scope::error::Error as ScopeError;
-use zinc_lexical::Location;
 
 ///
 /// The semantic analyzer error.
@@ -24,6 +26,8 @@ pub enum Error {
     Statement(StatementError),
     /// The attribute analysis error.
     Attribute(AttributeError),
+    /// The variable binding error.
+    Binding(BindingError),
 
     /// The application does not have an entry point function.
     EntryPointMissing,

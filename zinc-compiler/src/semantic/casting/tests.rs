@@ -2,13 +2,14 @@
 //! The type caster tests.
 //!
 
+use zinc_lexical::Location;
+
 use crate::error::Error;
 use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::error::Error as SemanticError;
-use zinc_lexical::Location;
 
 #[test]
 fn ok_integer_lesser_bitlength_same_sign() {

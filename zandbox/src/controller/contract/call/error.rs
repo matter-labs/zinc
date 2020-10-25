@@ -7,8 +7,6 @@ use std::fmt;
 use actix_web::http::StatusCode;
 use actix_web::ResponseError;
 
-use zksync_types::TokenId;
-
 use zinc_build::ValueError as BuildValueError;
 use zinc_vm::RuntimeError;
 use zinc_zksync::TransactionError;
@@ -30,8 +28,8 @@ pub enum Error {
     InvalidInput(BuildValueError),
     /// The contract method input transaction is invalid.
     Transaction(TransactionError),
-    /// Token ID cannot be resolved by zkSync.
-    TokenNotFound(TokenId),
+    /// Token with such identifier cannot be resolved by zkSync.
+    TokenNotFound(String),
 
     /// The virtual machine contract method runtime error.
     RuntimeError(RuntimeError),
@@ -111,7 +109,9 @@ impl fmt::Display for Error {
             }
             Self::InvalidInput(inner) => format!("Input: {}", inner),
             Self::Transaction(inner) => format!("Transaction: {}", inner),
-            Self::TokenNotFound(token_id) => format!("Token ID {} cannot be resolved", token_id),
+            Self::TokenNotFound(token_id) => {
+                format!("Token with identifier `{}` cannot be resolved", token_id)
+            }
 
             Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
             Self::Database(inner) => format!("Database: {:?}", inner),

@@ -31,6 +31,13 @@ impl Path {
     }
 
     ///
+    /// A shortcut constructor.
+    ///
+    pub fn new_complex(location: Location, elements: Vec<Identifier>) -> Self {
+        Self { location, elements }
+    }
+
+    ///
     /// Pushes another path identifier element.
     ///
     pub fn push_element(&mut self, element: Identifier) {

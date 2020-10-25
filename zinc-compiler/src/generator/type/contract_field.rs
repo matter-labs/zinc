@@ -39,7 +39,6 @@ impl ContractField {
     /// Tries to convert the semantic contract field to the IR generator contract field.
     ///
     pub fn try_from_semantic(field: &SemanticContractFieldType) -> Option<Self> {
-        log::debug!("{:?}", field.identifier);
         Type::try_from_semantic(&field.r#type).map(|r#type| {
             Self::new(
                 field.identifier.name.to_owned(),

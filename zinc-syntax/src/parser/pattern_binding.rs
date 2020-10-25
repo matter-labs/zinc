@@ -13,14 +13,9 @@ use zinc_lexical::TokenStream;
 
 use crate::error::Error as SyntaxError;
 use crate::error::ParsingError;
-use crate::parser::r#type::Parser as TypeParser;
 use crate::tree::identifier::Identifier;
 use crate::tree::pattern_binding::builder::Builder as BindingPatternBuilder;
 use crate::tree::pattern_binding::Pattern as BindingPattern;
-
-/// The missing type error hint.
-pub static HINT_EXPECTED_TYPE: &str =
-    "function argument must have a type, e.g. `fn sum(a: u8, b: u8) {}`";
 
 ///
 /// The parser state.
@@ -28,18 +23,18 @@ pub static HINT_EXPECTED_TYPE: &str =
 #[derive(Debug, Clone, Copy)]
 pub enum State {
     /// The initial state.
-    MutOrNext,
+    Initial,
     /// The optional `mut` has been parsed so far.
     Binding,
-    /// The `{identifier}` has been parsed so far.
-    Colon,
-    /// The `{identifier} :` has been parsed so far.
-    Type,
+    /// The list is being parsed here.
+    BindingOrParenthesisRight,
+    /// The `( {binding}` has been parsed so far.
+    CommaOrParenthesisRight,
 }
 
 impl Default for State {
     fn default() -> Self {
-        Self::MutOrNext
+        Self::Initial
     }
 }
 
@@ -60,21 +55,25 @@ impl Parser {
     ///
     /// Parses a binding pattern.
     ///
-    /// 'a: u8'
-    /// 'mut a: u8'
-    /// '_: u8'
+    /// 'a'
+    /// '(a, b, c)'
+    /// 'mut a'
+    /// '(mut a, b, mut c)'
+    /// '_'
     /// 'self'
     /// 'mut self'
     ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(BindingPattern, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
-                State::MutOrNext => {
-                    match crate::parser::take_or_next(initial.take(), stream.clone())? {
+                State::Initial => {
+                    match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Mut),
                             location,
@@ -82,6 +81,14 @@ impl Parser {
                             self.builder.set_location(location);
                             self.builder.set_mutable();
                             self.state = State::Binding;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
+                            location,
+                        } => {
+                            self.builder.set_location(location);
+
+                            self.state = State::BindingOrParenthesisRight;
                         }
                         token => {
                             self.builder.set_location(token.location);
@@ -98,22 +105,21 @@ impl Parser {
                         } => {
                             self.builder
                                 .set_identifier(Identifier::new(location, identifier.inner));
-                            self.state = State::Colon;
                         }
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Underscore),
                             ..
                         } => {
                             self.builder.set_wildcard();
-                            self.state = State::Colon;
                         }
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::SelfLowercase),
                             location,
                         } => {
-                            self.builder.set_self_location(location);
-                            self.builder.set_self_alias();
-                            return Ok((self.builder.finish(), None));
+                            self.builder.set_identifier(Identifier::new(
+                                location,
+                                Keyword::SelfLowercase.to_string(),
+                            ));
                         }
                         Token { lexeme, location } => {
                             return Err(ParsingError::Syntax(
@@ -121,26 +127,50 @@ impl Parser {
                             ));
                         }
                     }
+
+                    return Ok((self.builder.finish(), None));
                 }
-                State::Colon => {
+                State::BindingOrParenthesisRight => {
                     match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
-                            lexeme: Lexeme::Symbol(Symbol::Colon),
+                            lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                             ..
-                        } => self.state = State::Type,
-                        Token { lexeme, location } => {
-                            return Err(ParsingError::Syntax(SyntaxError::expected_type(
-                                location,
-                                lexeme,
-                                Some(HINT_EXPECTED_TYPE),
-                            )));
+                        } => {
+                            return Ok((self.builder.finish(), None));
+                        }
+                        token => {
+                            let (binding, next) =
+                                Self::default().parse(stream.clone(), Some(token))?;
+                            self.builder.push_binding(binding);
+                            self.next = next;
+
+                            self.state = State::CommaOrParenthesisRight;
                         }
                     }
                 }
-                State::Type => {
-                    let (r#type, next) = TypeParser::default().parse(stream, self.next.take())?;
-                    self.builder.set_type(r#type);
-                    return Ok((self.builder.finish(), next));
+                State::CommaOrParenthesisRight => {
+                    match crate::parser::take_or_next(self.next.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::Comma),
+                            ..
+                        } => {
+                            self.state = State::BindingOrParenthesisRight;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
+                            ..
+                        } => {
+                            return Ok((self.builder.finish(), None));
+                        }
+                        Token { lexeme, location } => {
+                            return Err(ParsingError::Syntax(SyntaxError::expected_one_of(
+                                location,
+                                vec![",", ")"],
+                                lexeme,
+                                None,
+                            )))
+                        }
+                    }
                 }
             }
         }
@@ -157,18 +187,13 @@ mod tests {
     use super::Parser;
     use crate::error::Error as SyntaxError;
     use crate::error::ParsingError;
-    use crate::tree::expression::tree::node::operand::Operand as ExpressionOperand;
-    use crate::tree::expression::tree::node::Node as ExpressionTreeNode;
-    use crate::tree::expression::tree::Tree as ExpressionTree;
     use crate::tree::identifier::Identifier;
     use crate::tree::pattern_binding::variant::Variant as BindingPatternVariant;
     use crate::tree::pattern_binding::Pattern as BindingPattern;
-    use crate::tree::r#type::variant::Variant as TypeVariant;
-    use crate::tree::r#type::Type;
 
     #[test]
-    fn ok_binding() {
-        let input = r#"value: u8"#;
+    fn ok() {
+        let input = r#"value"#;
 
         let expected = Ok((
             BindingPattern::new(
@@ -177,7 +202,6 @@ mod tests {
                     Identifier::new(Location::test(1, 1), "value".to_owned()),
                     false,
                 ),
-                Type::new(Location::test(1, 8), TypeVariant::integer_unsigned(8)),
             ),
             None,
         ));
@@ -188,8 +212,8 @@ mod tests {
     }
 
     #[test]
-    fn ok_binding_mutable() {
-        let input = r#"mut value: u8"#;
+    fn ok_mutable() {
+        let input = r#"mut value"#;
 
         let expected = Ok((
             BindingPattern::new(
@@ -198,7 +222,6 @@ mod tests {
                     Identifier::new(Location::test(1, 5), "value".to_owned()),
                     true,
                 ),
-                Type::new(Location::test(1, 12), TypeVariant::integer_unsigned(8)),
             ),
             None,
         ));
@@ -210,14 +233,10 @@ mod tests {
 
     #[test]
     fn ok_wildcard() {
-        let input = r#"_: u8"#;
+        let input = r#"_"#;
 
         let expected = Ok((
-            BindingPattern::new(
-                Location::test(1, 1),
-                BindingPatternVariant::new_wildcard(),
-                Type::new(Location::test(1, 4), TypeVariant::integer_unsigned(8)),
-            ),
+            BindingPattern::new(Location::test(1, 1), BindingPatternVariant::new_wildcard()),
             None,
         ));
 
@@ -233,21 +252,9 @@ mod tests {
         let expected = Ok((
             BindingPattern::new(
                 Location::test(1, 1),
-                BindingPatternVariant::new_self_alias(Location::test(1, 1), false),
-                Type::new(
-                    Location::test(1, 1),
-                    TypeVariant::alias(
-                        ExpressionTree::new(
-                            Location::test(1, 1),
-                            ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                                Identifier::new(
-                                    Location::test(1, 1),
-                                    Keyword::SelfUppercase.to_string(),
-                                ),
-                            )),
-                        ),
-                        None,
-                    ),
+                BindingPatternVariant::new_binding(
+                    Identifier::new(Location::test(1, 1), Keyword::SelfLowercase.to_string()),
+                    false,
                 ),
             ),
             None,
@@ -265,21 +272,9 @@ mod tests {
         let expected = Ok((
             BindingPattern::new(
                 Location::test(1, 1),
-                BindingPatternVariant::new_self_alias(Location::test(1, 5), true),
-                Type::new(
-                    Location::test(1, 5),
-                    TypeVariant::alias(
-                        ExpressionTree::new(
-                            Location::test(1, 5),
-                            ExpressionTreeNode::operand(ExpressionOperand::Identifier(
-                                Identifier::new(
-                                    Location::test(1, 5),
-                                    Keyword::SelfUppercase.to_string(),
-                                ),
-                            )),
-                        ),
-                        None,
-                    ),
+                BindingPatternVariant::new_binding(
+                    Identifier::new(Location::test(1, 5), Keyword::SelfLowercase.to_string()),
+                    true,
                 ),
             ),
             None,
@@ -297,21 +292,6 @@ mod tests {
         let expected = Err(ParsingError::Syntax(SyntaxError::expected_binding_pattern(
             Location::test(1, 5),
             Lexeme::Keyword(Keyword::Bool),
-        )));
-
-        let result = Parser::default().parse(TokenStream::test(input).wrap(), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn error_expected_type() {
-        let input = r#"mut value"#;
-
-        let expected = Err(ParsingError::Syntax(SyntaxError::expected_type(
-            Location::test(1, 10),
-            Lexeme::Eof,
-            Some(super::HINT_EXPECTED_TYPE),
         )));
 
         let result = Parser::default().parse(TokenStream::test(input).wrap(), None);

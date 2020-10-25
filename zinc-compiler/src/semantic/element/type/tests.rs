@@ -13,6 +13,26 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
+fn error_type_required() {
+    let input = r#"
+fn main(a: u8, b: field, mut c) -> u8 {
+    42
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::TypeRequired {
+            location: Location::test(2, 30),
+            identifier: "c".to_owned(),
+        },
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_alias_does_not_point_to_type() {
     let input = r#"
 fn main() {

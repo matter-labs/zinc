@@ -30,6 +30,7 @@ use zinc_syntax::Variant;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
+use crate::semantic::binding::Binding;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
@@ -241,7 +242,7 @@ impl Type {
     pub fn runtime_function(
         location: Location,
         identifier: String,
-        arguments: Vec<(String, bool, Self)>,
+        bindings: Vec<Binding>,
         return_type: Self,
     ) -> (Self, usize) {
         let type_id = TYPE_INDEX.next(format!("function {}", identifier));
@@ -251,7 +252,7 @@ impl Type {
                 location,
                 identifier,
                 type_id,
-                arguments,
+                bindings,
                 return_type,
             )),
             type_id,
@@ -264,7 +265,7 @@ impl Type {
     pub fn constant_function(
         location: Location,
         identifier: String,
-        arguments: Vec<(String, Self)>,
+        bindings: Vec<Binding>,
         return_type: Self,
         body: BlockExpression,
     ) -> Self {
@@ -274,7 +275,7 @@ impl Type {
             location,
             identifier,
             type_id,
-            arguments,
+            bindings,
             return_type,
             body,
         ))

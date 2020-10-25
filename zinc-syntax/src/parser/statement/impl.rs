@@ -71,12 +71,14 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(ImplStatement, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
                 State::KeywordImpl => {
-                    match crate::parser::take_or_next(initial.take(), stream.clone())? {
+                    match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Impl),
                             location,
@@ -154,6 +156,7 @@ mod tests {
     use super::Parser;
     use crate::error::Error as SyntaxError;
     use crate::error::ParsingError;
+    use crate::tree::binding::Binding;
     use crate::tree::expression::block::Expression as BlockExpression;
     use crate::tree::expression::tree::node::operand::Operand as ExpressionOperand;
     use crate::tree::expression::tree::node::Node as ExpressionTreeNode;
@@ -310,13 +313,16 @@ mod tests {
                     false,
                     false,
                     Identifier::new(Location::test(3, 12), "f".to_owned()),
-                    vec![BindingPattern::new(
+                    vec![Binding::new(
                         Location::test(3, 14),
-                        BindingPatternVariant::new_binding(
-                            Identifier::new(Location::test(3, 14), "a".to_owned()),
-                            false,
+                        BindingPattern::new(
+                            Location::test(3, 14),
+                            BindingPatternVariant::new_binding(
+                                Identifier::new(Location::test(3, 14), "a".to_owned()),
+                                false,
+                            ),
                         ),
-                        Type::new(Location::test(3, 17), TypeVariant::field()),
+                        Some(Type::new(Location::test(3, 17), TypeVariant::field())),
                     )],
                     Some(Type::new(Location::test(3, 27), TypeVariant::field())),
                     BlockExpression::new(Location::test(3, 33), vec![], None),
@@ -353,13 +359,16 @@ mod tests {
                         false,
                         false,
                         Identifier::new(Location::test(3, 12), "f1".to_owned()),
-                        vec![BindingPattern::new(
+                        vec![Binding::new(
                             Location::test(3, 15),
-                            BindingPatternVariant::new_binding(
-                                Identifier::new(Location::test(3, 15), "a".to_owned()),
-                                false,
+                            BindingPattern::new(
+                                Location::test(3, 15),
+                                BindingPatternVariant::new_binding(
+                                    Identifier::new(Location::test(3, 15), "a".to_owned()),
+                                    false,
+                                ),
                             ),
-                            Type::new(Location::test(3, 18), TypeVariant::field()),
+                            Some(Type::new(Location::test(3, 18), TypeVariant::field())),
                         )],
                         Some(Type::new(Location::test(3, 28), TypeVariant::field())),
                         BlockExpression::new(Location::test(3, 34), vec![], None),
@@ -370,13 +379,16 @@ mod tests {
                         false,
                         false,
                         Identifier::new(Location::test(5, 12), "f2".to_owned()),
-                        vec![BindingPattern::new(
+                        vec![Binding::new(
                             Location::test(5, 15),
-                            BindingPatternVariant::new_binding(
-                                Identifier::new(Location::test(5, 15), "a".to_owned()),
-                                false,
+                            BindingPattern::new(
+                                Location::test(5, 15),
+                                BindingPatternVariant::new_binding(
+                                    Identifier::new(Location::test(5, 15), "a".to_owned()),
+                                    false,
+                                ),
                             ),
-                            Type::new(Location::test(5, 18), TypeVariant::field()),
+                            Some(Type::new(Location::test(5, 18), TypeVariant::field())),
                         )],
                         Some(Type::new(Location::test(5, 28), TypeVariant::field())),
                         BlockExpression::new(Location::test(5, 34), vec![], None),
@@ -387,13 +399,16 @@ mod tests {
                         false,
                         false,
                         Identifier::new(Location::test(7, 12), "f3".to_owned()),
-                        vec![BindingPattern::new(
+                        vec![Binding::new(
                             Location::test(7, 15),
-                            BindingPatternVariant::new_binding(
-                                Identifier::new(Location::test(7, 15), "a".to_owned()),
-                                false,
+                            BindingPattern::new(
+                                Location::test(7, 15),
+                                BindingPatternVariant::new_binding(
+                                    Identifier::new(Location::test(7, 15), "a".to_owned()),
+                                    false,
+                                ),
                             ),
-                            Type::new(Location::test(7, 18), TypeVariant::field()),
+                            Some(Type::new(Location::test(7, 18), TypeVariant::field())),
                         )],
                         Some(Type::new(Location::test(7, 28), TypeVariant::field())),
                         BlockExpression::new(Location::test(7, 34), vec![], None),
@@ -443,13 +458,16 @@ mod tests {
                         false,
                         false,
                         Identifier::new(Location::test(5, 12), "f".to_owned()),
-                        vec![BindingPattern::new(
+                        vec![Binding::new(
                             Location::test(5, 14),
-                            BindingPatternVariant::new_binding(
-                                Identifier::new(Location::test(5, 14), "a".to_owned()),
-                                false,
+                            BindingPattern::new(
+                                Location::test(5, 14),
+                                BindingPatternVariant::new_binding(
+                                    Identifier::new(Location::test(5, 14), "a".to_owned()),
+                                    false,
+                                ),
                             ),
-                            Type::new(Location::test(5, 17), TypeVariant::field()),
+                            Some(Type::new(Location::test(5, 17), TypeVariant::field())),
                         )],
                         Some(Type::new(Location::test(5, 27), TypeVariant::field())),
                         BlockExpression::new(Location::test(5, 33), vec![], None),
@@ -535,13 +553,16 @@ mod tests {
                         false,
                         false,
                         Identifier::new(Location::test(9, 12), "f1".to_owned()),
-                        vec![BindingPattern::new(
+                        vec![Binding::new(
                             Location::test(9, 15),
-                            BindingPatternVariant::new_binding(
-                                Identifier::new(Location::test(9, 15), "a".to_owned()),
-                                false,
+                            BindingPattern::new(
+                                Location::test(9, 15),
+                                BindingPatternVariant::new_binding(
+                                    Identifier::new(Location::test(9, 15), "a".to_owned()),
+                                    false,
+                                ),
                             ),
-                            Type::new(Location::test(9, 18), TypeVariant::field()),
+                            Some(Type::new(Location::test(9, 18), TypeVariant::field())),
                         )],
                         Some(Type::new(Location::test(9, 28), TypeVariant::field())),
                         BlockExpression::new(Location::test(9, 34), vec![], None),
@@ -552,13 +573,16 @@ mod tests {
                         false,
                         false,
                         Identifier::new(Location::test(11, 12), "f2".to_owned()),
-                        vec![BindingPattern::new(
+                        vec![Binding::new(
                             Location::test(11, 15),
-                            BindingPatternVariant::new_binding(
-                                Identifier::new(Location::test(11, 15), "a".to_owned()),
-                                false,
+                            BindingPattern::new(
+                                Location::test(11, 15),
+                                BindingPatternVariant::new_binding(
+                                    Identifier::new(Location::test(11, 15), "a".to_owned()),
+                                    false,
+                                ),
                             ),
-                            Type::new(Location::test(11, 18), TypeVariant::field()),
+                            Some(Type::new(Location::test(11, 18), TypeVariant::field())),
                         )],
                         Some(Type::new(Location::test(11, 28), TypeVariant::field())),
                         BlockExpression::new(Location::test(11, 34), vec![], None),
@@ -569,13 +593,16 @@ mod tests {
                         false,
                         false,
                         Identifier::new(Location::test(13, 12), "f3".to_owned()),
-                        vec![BindingPattern::new(
+                        vec![Binding::new(
                             Location::test(13, 15),
-                            BindingPatternVariant::new_binding(
-                                Identifier::new(Location::test(13, 15), "a".to_owned()),
-                                false,
+                            BindingPattern::new(
+                                Location::test(13, 15),
+                                BindingPatternVariant::new_binding(
+                                    Identifier::new(Location::test(13, 15), "a".to_owned()),
+                                    false,
+                                ),
                             ),
-                            Type::new(Location::test(13, 18), TypeVariant::field()),
+                            Some(Type::new(Location::test(13, 18), TypeVariant::field())),
                         )],
                         Some(Type::new(Location::test(13, 28), TypeVariant::field())),
                         BlockExpression::new(Location::test(13, 34), vec![], None),

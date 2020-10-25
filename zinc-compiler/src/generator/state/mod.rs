@@ -139,6 +139,13 @@ impl State {
         self.instructions.push(Instruction::FunctionMarker(
             zinc_build::FunctionMarker::new(identifier),
         ));
+
+        if let ProjectType::Contract = self.manifest.project.r#type {
+            self.define_variable(
+                Some(zinc_const::contract::TRANSACTION_VARIABLE_NAME.to_owned()),
+                zinc_const::contract::TRANSACTION_SIZE,
+            );
+        }
     }
 
     ///
@@ -163,13 +170,6 @@ impl State {
         self.entries.insert(type_id, method);
 
         self.start_function(location, type_id, identifier);
-
-        if let ProjectType::Contract = self.manifest.project.r#type {
-            self.define_variable(
-                Some(zinc_const::contract::TRANSACTION_VARIABLE_NAME.to_owned()),
-                zinc_const::contract::TRANSACTION_SIZE,
-            );
-        }
     }
 
     ///

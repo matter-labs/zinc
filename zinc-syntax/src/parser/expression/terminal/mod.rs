@@ -39,7 +39,10 @@ use self::tuple::Parser as TupleExpressionParser;
 /// The terminal operand parser.
 ///
 #[derive(Default)]
-pub struct Parser {}
+pub struct Parser {
+    /// The token returned from a subparser.
+    next: Option<Token>,
+}
 
 impl Parser {
     ///
@@ -54,12 +57,14 @@ impl Parser {
     /// - literal (boolean, integer, string)
     ///
     pub fn parse(
-        self,
+        mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(ExpressionTree, Option<Token>), ParsingError> {
+        self.next = initial;
+
         let (operand, location, next) =
-            match crate::parser::take_or_next(initial.take(), stream.clone())? {
+            match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                 token
                 @
                 Token {

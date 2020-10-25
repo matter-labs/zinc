@@ -11,7 +11,6 @@ use serde_json::Map as JsonMap;
 use serde_json::Value as JsonValue;
 
 use zksync_types::Address;
-use zksync_types::TokenId;
 
 use self::error::Error;
 
@@ -26,8 +25,8 @@ pub struct Msg {
     pub sender: Address,
     /// The recipient address.
     pub recipient: Address,
-    /// The token ID to send.
-    pub token_id: TokenId,
+    /// The token address to send.
+    pub token_address: Address,
     /// The amount to send.
     pub amount: num_old::BigUint,
 }
@@ -37,7 +36,7 @@ impl Default for Msg {
         Self {
             sender: Address::default(),
             recipient: Address::default(),
-            token_id: 0,
+            token_address: Address::default(),
             amount: num_old::BigUint::default(),
         }
     }
@@ -50,8 +49,8 @@ impl Msg {
     /// The required recipient address field name in the transaction structure.
     const FIELD_NAME_RECIPIENT: &'static str = "recipient";
 
-    /// The required toked ID field name in the transaction structure.
-    const FIELD_NAME_TOKEN_ID: &'static str = "token_id";
+    /// The required toked address field name in the transaction structure.
+    const FIELD_NAME_TOKEN_ADDRESS: &'static str = "token_address";
 
     /// The required amount field name in the transaction structure.
     const FIELD_NAME_AMOUNT: &'static str = "amount";
@@ -62,13 +61,13 @@ impl Msg {
     pub fn new(
         sender: Address,
         recipient: Address,
-        token_id: TokenId,
+        token_address: Address,
         amount: num_old::BigUint,
     ) -> Self {
         Self {
             sender,
             recipient,
-            token_id,
+            token_address,
             amount,
         }
     }
@@ -113,13 +112,15 @@ impl TryFrom<JsonMap<String, JsonValue>> for Msg {
             .ok_or(Error::NotAString(Self::FIELD_NAME_RECIPIENT))?;
         let to: Address = to[2..].parse().map_err(Error::RecipientAddressInvalid)?;
 
-        let token_id = value
-            .remove(Self::FIELD_NAME_TOKEN_ID)
-            .ok_or(Error::FieldMissing(Self::FIELD_NAME_TOKEN_ID))?;
-        let token_id = token_id
+        let token_address = value
+            .remove(Self::FIELD_NAME_TOKEN_ADDRESS)
+            .ok_or(Error::FieldMissing(Self::FIELD_NAME_TOKEN_ADDRESS))?;
+        let token_address = token_address
             .as_str()
-            .ok_or(Error::NotAString(Self::FIELD_NAME_TOKEN_ID))?;
-        let token_id = token_id.parse().map_err(Error::TokenIdInvalid)?;
+            .ok_or(Error::NotAString(Self::FIELD_NAME_TOKEN_ADDRESS))?;
+        let token_address: Address = token_address[2..]
+            .parse()
+            .map_err(Error::TokenAddressInvalid)?;
 
         let amount = value
             .remove(Self::FIELD_NAME_AMOUNT)
@@ -136,7 +137,7 @@ impl TryFrom<JsonMap<String, JsonValue>> for Msg {
         Ok(Self {
             sender: from,
             recipient: to,
-            token_id,
+            token_address,
             amount,
         })
     }

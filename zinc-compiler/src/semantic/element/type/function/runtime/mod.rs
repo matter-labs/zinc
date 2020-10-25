@@ -9,6 +9,7 @@ use std::fmt;
 
 use zinc_lexical::Location;
 
+use crate::semantic::binding::Binding;
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::i_typed::ITyped;
@@ -27,7 +28,7 @@ pub struct Function {
     /// The unique function type ID.
     pub type_id: usize,
     /// The function formal parameters list.
-    pub formal_params: Vec<(String, bool, Type)>,
+    pub bindings: Vec<Binding>,
     /// The function return type.
     pub return_type: Box<Type>,
 }
@@ -40,13 +41,13 @@ impl Function {
         location: Location,
         identifier: String,
         type_id: usize,
-        arguments: Vec<(String, bool, Type)>,
+        bindings: Vec<Binding>,
         return_type: Type,
     ) -> Self {
         Self {
             location,
             identifier,
-            formal_params: arguments,
+            bindings,
             return_type: Box::new(return_type),
             type_id,
         }
@@ -56,9 +57,9 @@ impl Function {
     /// The function input arguments total size in the Zinc VM data stack.
     ///
     pub fn input_size(&self) -> usize {
-        self.formal_params
+        self.bindings
             .iter()
-            .map(|(_name, _is_mutable, r#type)| r#type.size())
+            .map(|binding| binding.r#type.size())
             .sum()
     }
 
@@ -93,27 +94,27 @@ impl Function {
             actual_params.push((r#type, location));
         }
 
-        if actual_params.len() != self.formal_params.len() {
+        if actual_params.len() != self.bindings.len() {
             return Err(Error::ArgumentCount {
                 location: self.location,
                 function: self.identifier.to_owned(),
-                expected: self.formal_params.len(),
+                expected: self.bindings.len(),
                 found: actual_params.len(),
                 reference: Some(argument_list.location),
             });
         }
 
-        let formal_params_length = self.formal_params.len();
-        for (index, (name, _is_mutable, r#type)) in self.formal_params.into_iter().enumerate() {
+        let bindings_length = self.bindings.len();
+        for (index, binding) in self.bindings.into_iter().enumerate() {
             match actual_params.get(index) {
-                Some((actual_type, _location)) if actual_type == &r#type => {}
+                Some((actual_type, _location)) if actual_type == &binding.r#type => {}
                 Some((actual_type, location)) => {
                     return Err(Error::ArgumentType {
                         location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
-                        name,
+                        name: binding.identifier.name,
                         position: index + 1,
-                        expected: r#type.to_string(),
+                        expected: binding.r#type.to_string(),
                         found: actual_type.to_string(),
                     })
                 }
@@ -121,7 +122,7 @@ impl Function {
                     return Err(Error::ArgumentCount {
                         location: self.location,
                         function: self.identifier.to_owned(),
-                        expected: formal_params_length,
+                        expected: bindings_length,
                         found: actual_params.len(),
                         reference: Some(argument_list.location),
                     })
@@ -139,13 +140,13 @@ impl fmt::Display for Function {
             f,
             "fn {}({}) -> {}",
             self.identifier,
-            self.formal_params
+            self.bindings
                 .iter()
-                .map(|(name, is_mutable, r#type)| format!(
+                .map(|binding| format!(
                     "{}{}: {}",
-                    if *is_mutable { "mut " } else { "" },
-                    name,
-                    r#type
+                    if binding.is_mutable { "mut " } else { "" },
+                    binding.identifier.name,
+                    binding.r#type
                 ))
                 .collect::<Vec<String>>()
                 .join(", "),

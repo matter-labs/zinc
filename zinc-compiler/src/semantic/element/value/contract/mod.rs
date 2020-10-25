@@ -7,7 +7,9 @@ mod tests;
 
 pub mod error;
 
+use std::cell::RefCell;
 use std::fmt;
+use std::rc::Rc;
 
 use zinc_lexical::Location;
 use zinc_syntax::Identifier;
@@ -18,6 +20,7 @@ use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::structure::Structure as StructureValue;
 use crate::semantic::element::value::Value;
+use crate::semantic::scope::Scope;
 
 use self::error::Error;
 
@@ -54,7 +57,7 @@ impl Contract {
     ///
     /// Converts the contract value into a structure one, transferring all the fields one-by-one.
     ///
-    pub fn from_structure(structure: StructureValue) -> Self {
+    pub fn from_structure(structure: StructureValue, scope: Rc<RefCell<Scope>>) -> Self {
         let mut fields = Vec::with_capacity(
             zinc_const::contract::IMPLICIT_FIELDS_COUNT + structure.fields.len(),
         );
@@ -66,10 +69,11 @@ impl Contract {
         fields.push((
             zinc_const::contract::FIELD_NAME_BALANCES.to_owned(),
             None,
-            Type::array(
-                None,
-                Type::integer_unsigned(None, zinc_const::bitlength::BALANCE),
-                zinc_const::contract::ARRAY_SIZE_BALANCES,
+            Scope::resolve_mtreemap(
+                structure
+                    .location
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                scope,
             ),
         ));
         fields.extend(structure.fields);

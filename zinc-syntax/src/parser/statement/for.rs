@@ -76,12 +76,14 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(ForStatement, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
                 State::KeywordFor => {
-                    match crate::parser::take_or_next(initial.take(), stream.clone())? {
+                    match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::For),
                             location,
@@ -174,7 +176,7 @@ impl Parser {
                 }
                 State::WhileConditionExpression => {
                     let (expression, next) =
-                        ExpressionParser::default().parse(stream.clone(), None)?;
+                        ExpressionParser::default().parse(stream.clone(), self.next.take())?;
                     self.next = next;
                     self.builder.set_while_condition(expression);
                     self.state = State::BlockExpression;

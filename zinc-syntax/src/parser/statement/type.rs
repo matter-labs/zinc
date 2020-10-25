@@ -70,12 +70,14 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(TypeStatement, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
                 State::KeywordType => {
-                    match crate::parser::take_or_next(initial.take(), stream.clone())? {
+                    match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Type),
                             location,
@@ -128,7 +130,8 @@ impl Parser {
                     }
                 }
                 State::Type => {
-                    let (r#type, next) = TypeParser::default().parse(stream.clone(), None)?;
+                    let (r#type, next) =
+                        TypeParser::default().parse(stream.clone(), self.next.take())?;
                     self.next = next;
                     self.builder.set_type(r#type);
                     self.state = State::Semicolon;

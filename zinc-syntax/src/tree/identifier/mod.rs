@@ -29,7 +29,7 @@ impl Identifier {
     ///
     /// Checks if the identifier is a `self` alias keyword.
     ///
-    pub fn is_self(&self) -> bool {
+    pub fn is_self_lowercase(&self) -> bool {
         self.name == Keyword::SelfLowercase.to_string()
     }
 }

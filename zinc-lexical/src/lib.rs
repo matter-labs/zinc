@@ -1,5 +1,5 @@
 //!
-//! The lexical analyzer.
+//! The Zinc lexical library.
 //!
 
 #[cfg(test)]

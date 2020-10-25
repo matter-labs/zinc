@@ -44,9 +44,11 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(Variant, Option<Token>), ParsingError> {
-        match crate::parser::take_or_next(initial.take(), stream.clone())? {
+        self.next = initial;
+
+        match crate::parser::take_or_next(self.next.take(), stream.clone())? {
             Token {
                 lexeme: Lexeme::Identifier(identifier),
                 location,

@@ -56,13 +56,15 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(ExpressionTree, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
                 State::MulDivRemOperand => {
-                    let (expression, next) =
-                        MulDivRemOperandParser::default().parse(stream.clone(), initial.take())?;
+                    let (expression, next) = MulDivRemOperandParser::default()
+                        .parse(stream.clone(), self.next.take())?;
                     self.next = next;
                     self.builder.eat(expression);
                     self.state = State::MulDivRemOperator;

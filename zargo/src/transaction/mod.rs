@@ -7,6 +7,7 @@ pub mod error;
 use num::BigUint;
 
 use zksync::web3::types::Address;
+use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::tx::ZkSyncTx;
 use zksync_types::TokenLike;
 use zksync_types::TxFeeTypes;
@@ -19,7 +20,7 @@ use self::error::Error;
 /// Initializes a new initial zero transfer to assign an account ID to a newly created contract.
 ///
 pub async fn new_initial(
-    wallet: &zksync::Wallet,
+    wallet: &zksync::Wallet<PrivateKeySigner>,
     recipient: Address,
     token_symbol: String,
     amount: BigUint,
@@ -64,12 +65,12 @@ pub async fn new_initial(
 ///
 pub async fn try_into_zksync(
     transaction: TransactionMsg,
-    wallet: &zksync::Wallet,
+    wallet: &zksync::Wallet<PrivateKeySigner>,
     contract_fee: Option<BigUint>,
 ) -> Result<zinc_zksync::Transaction, Error> {
     let token = wallet
         .tokens
-        .resolve(transaction.token_id.into())
+        .resolve(transaction.token_address.into())
         .ok_or(Error::TokenNotFound)?;
     let amount = zksync::utils::closest_packable_token_amount(&transaction.amount);
     let fee = wallet
@@ -77,7 +78,7 @@ pub async fn try_into_zksync(
         .get_tx_fee(
             TxFeeTypes::Transfer,
             wallet.signer.address,
-            transaction.token_id,
+            transaction.token_address,
         )
         .await
         .map_err(Error::FeeGetting)?

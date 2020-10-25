@@ -69,22 +69,17 @@ impl Contract {
             true,
             true,
         )?;
-
         Scope::define_field(
             scope.clone(),
             Identifier::new(
                 location,
                 zinc_const::contract::FIELD_NAME_BALANCES.to_owned(),
             ),
-            Type::array(
-                None,
-                Type::integer_unsigned(None, zinc_const::bitlength::BALANCE),
-                zinc_const::contract::ARRAY_SIZE_BALANCES,
-            ),
+            Scope::resolve_mtreemap(location, scope.clone()),
             zinc_const::contract::FIELD_INDEX_BALANCES,
             true,
             true,
-            true,
+            false,
         )?;
 
         let contract = Self {

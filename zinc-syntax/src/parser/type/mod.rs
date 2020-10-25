@@ -33,6 +33,8 @@ use self::tuple::Parser as TupleParser;
 pub struct Parser {
     /// The builder of the parsed value.
     builder: TypeBuilder,
+    /// The token returned from a subparser.
+    next: Option<Token>,
 }
 
 impl Parser {
@@ -47,9 +49,11 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(Type, Option<Token>), ParsingError> {
-        match crate::parser::take_or_next(initial.take(), stream.clone())? {
+        self.next = initial;
+
+        match crate::parser::take_or_next(self.next.take(), stream.clone())? {
             token
             @
             Token {

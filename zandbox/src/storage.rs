@@ -2,18 +2,15 @@
 //! The Zandbox server daemon contract storage utils.
 //!
 
-use num::BigInt;
-use num::BigUint;
-use num::ToPrimitive;
-use num::Zero;
 use serde_json::json;
+use serde_json::Value as JsonValue;
 
+use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::TokenLike;
 
 use zinc_build::ContractFieldType;
 use zinc_build::ContractFieldValue;
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
-use zinc_build::ScalarValue;
 use zinc_build::Value as BuildValue;
 
 use crate::database::model::field::insert::Input as FieldInsertInput;
@@ -30,9 +27,6 @@ pub struct Storage {
 }
 
 impl Storage {
-    /// The `tokens` field index, where the ordered token ID array is stored.
-    const TOKEN_ID_FIELD_INDEX: usize = 2;
-
     ///
     /// Populates the storage with the default data.
     ///
@@ -55,14 +49,13 @@ impl Storage {
     /// Populates the storage with the database data and data from other sources.
     ///
     /// The `address` field at the index `0` is taken from the Zandbox in-memory cache.
-    /// The `balances` field at the index `1` is built from the zkSync account info using the
-    /// `tokens` field at the index `2` to preserve the correct balance order.
+    /// The `balances` field at the index `1` is populated from the zkSync account info.
     ///
     pub async fn new_with_data(
         database_fields: Vec<FieldSelectOutput>,
         types: &[ContractFieldType],
         address: zksync_types::Address,
-        wallet: &zksync::Wallet,
+        wallet: &zksync::Wallet<PrivateKeySigner>,
     ) -> Result<Self, zksync::error::ClientError> {
         let mut fields = Vec::with_capacity(database_fields.len());
 
@@ -79,10 +72,22 @@ impl Storage {
             true,
         ));
 
+        let account_info = wallet.account_info().await?;
+        let mut balances = Vec::with_capacity(account_info.committed.balances.len());
+        for (symbol, balance) in account_info.committed.balances.into_iter() {
+            let token = wallet
+                .tokens
+                .resolve(TokenLike::Symbol(symbol))
+                .ok_or(zksync::error::ClientError::UnknownToken)?;
+            balances.push(json!({
+                "key": token.address,
+                "value": balance.0.to_string(),
+            }));
+        }
         fields.push(BuildContractFieldValue::new(
             zinc_const::contract::FIELD_NAME_BALANCES.to_owned(),
             BuildValue::try_from_typed_json(
-                json!(["0", "0"]),
+                JsonValue::Array(balances),
                 types[zinc_const::contract::FIELD_INDEX_BALANCES]
                     .r#type
                     .to_owned(),
@@ -106,66 +111,6 @@ impl Storage {
                 types[index].is_public,
                 types[index].is_implicit,
             ));
-        }
-
-        let token_ids = match fields
-            .get(Self::TOKEN_ID_FIELD_INDEX)
-            .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION)
-            .value
-        {
-            BuildValue::Array(ref array) => {
-                let mut token_ids = Vec::with_capacity(array.len());
-                for element in array.iter() {
-                    match element {
-                        BuildValue::Scalar(scalar) => token_ids.push(
-                            scalar
-                                .to_bigint()
-                                .to_u16()
-                                .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION),
-                        ),
-                        _ => panic!(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION),
-                    }
-                }
-                token_ids
-            }
-            _ => panic!(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION),
-        };
-
-        let account_info = wallet.account_info().await?;
-
-        match fields
-            .get_mut(zinc_const::contract::FIELD_INDEX_BALANCES)
-            .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION)
-            .value
-        {
-            BuildValue::Array(ref mut array) => {
-                for (index, element) in array.iter_mut().enumerate() {
-                    match element {
-                        BuildValue::Scalar(ref mut scalar) => match scalar {
-                            ScalarValue::Integer(ref mut value, _) => {
-                                let token = wallet
-                                    .tokens
-                                    .resolve(TokenLike::Id(token_ids[index]))
-                                    .expect(
-                                        zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION,
-                                    );
-                                let balance = account_info
-                                    .committed
-                                    .balances
-                                    .get(token.symbol.as_str())
-                                    .map(|balance| balance.0.to_owned())
-                                    .map(zinc_zksync::num_compat_forward)
-                                    .unwrap_or_else(BigUint::zero);
-
-                                *value = BigInt::from_biguint(num::bigint::Sign::Plus, balance);
-                            }
-                            _ => panic!(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION),
-                        },
-                        _ => panic!(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION),
-                    }
-                }
-            }
-            _ => panic!(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION),
         }
 
         Ok(Self { fields })

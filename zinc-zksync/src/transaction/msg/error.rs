@@ -36,9 +36,12 @@ pub enum Error {
         _0
     )]
     RecipientAddressInvalid(rustc_hex::FromHexError),
-    /// The token ID is invalid.
-    #[fail(display = "token ID is invalid: {} (expected a decimal number)", _0)]
-    TokenIdInvalid(::std::num::ParseIntError),
+    /// The token address is invalid.
+    #[fail(
+        display = "token address address is invalid: {} (expected `0x[0-9A-Fa-f]{{40}}`)",
+        _0
+    )]
+    TokenAddressInvalid(rustc_hex::FromHexError),
     /// The amount is invalid.
     #[fail(display = "amount is invalid: {} (expected a decimal number)", _0)]
     AmountInvalid(zinc_math::BigIntError),

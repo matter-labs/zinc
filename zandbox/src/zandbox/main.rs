@@ -16,6 +16,7 @@ use colored::Colorize;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
+use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::AccountId;
 
 use zinc_build::Application as BuildApplication;
@@ -81,7 +82,7 @@ async fn main() -> Result<(), Error> {
         let provider = zksync::Provider::new(network);
         let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
             eth_address,
-            zksync_eth_signer::EthereumSigner::from_key(eth_private_key),
+            PrivateKeySigner::new(eth_private_key),
             network,
         )
         .await?;

@@ -73,12 +73,14 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(StructStatement, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
                 State::KeywordStruct => {
-                    match crate::parser::take_or_next(initial.take(), stream.clone())? {
+                    match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Struct),
                             location,
@@ -127,7 +129,8 @@ impl Parser {
                     }
                 }
                 State::FieldList => {
-                    let (fields, next) = FieldListParser::default().parse(stream.clone(), None)?;
+                    let (fields, next) =
+                        FieldListParser::default().parse(stream.clone(), self.next.take())?;
                     self.builder.set_fields(fields);
                     self.next = next;
                     self.state = State::BracketCurlyRight;

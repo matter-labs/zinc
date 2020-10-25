@@ -16,6 +16,7 @@ use serde_json::Value as JsonValue;
 use structopt::StructOpt;
 
 use zksync::web3::types::H256;
+use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::tx::PackedEthSignature;
 
 use zinc_manifest::Manifest;
@@ -145,7 +146,7 @@ impl Command {
 
         let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
             signer_address,
-            zksync_eth_signer::EthereumSigner::from_key(signer_private_key),
+            PrivateKeySigner::new(signer_private_key),
             network.into(),
         )
         .await

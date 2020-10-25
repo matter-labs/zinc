@@ -3,7 +3,6 @@
 //!
 
 use num::bigint::ToBigInt;
-use num::ToPrimitive;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
@@ -27,13 +26,13 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Transfer {
         CS: ConstraintSystem<E>,
     {
         let amount = state.evaluation_stack.pop()?.try_into_value()?;
-        let token_id = state.evaluation_stack.pop()?.try_into_value()?;
+        let token_address = state.evaluation_stack.pop()?.try_into_value()?;
         let recipient = state.evaluation_stack.pop()?.try_into_value()?;
 
-        let token_id = token_id
+        let token_address = token_address
             .to_bigint()
             .expect(zinc_const::panic::DATA_CONVERSION)
-            .to_u16()
+            .to_biguint()
             .expect(zinc_const::panic::DATA_CONVERSION);
 
         let (_sign, recipient) = recipient
@@ -53,7 +52,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Transfer {
 
         state
             .transfers
-            .push(TransferOutput::new(recipient_array, token_id, amount));
+            .push(TransferOutput::new(recipient_array, token_address, amount));
 
         Ok(())
     }

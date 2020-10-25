@@ -15,6 +15,7 @@ use zinc_syntax::BlockExpression;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockExpressionAnalyzer;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
+use crate::semantic::binding::Binding;
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::function::error::Error;
@@ -38,7 +39,7 @@ pub struct Function {
     /// The unique function type ID.
     pub type_id: usize,
     /// The function formal parameters list.
-    pub formal_params: Vec<(String, Type)>,
+    pub bindings: Vec<Binding>,
     /// The function return type.
     pub return_type: Box<Type>,
     /// The function body, which is executed each time the function is called.
@@ -53,14 +54,14 @@ impl Function {
         location: Location,
         identifier: String,
         type_id: usize,
-        arguments: Vec<(String, Type)>,
+        bindings: Vec<Binding>,
         return_type: Type,
         body: BlockExpression,
     ) -> Self {
         Self {
             location,
             identifier,
-            formal_params: arguments,
+            bindings,
             return_type: Box::new(return_type),
             type_id,
             body,
@@ -71,9 +72,9 @@ impl Function {
     /// The function input arguments total size in the virtual compiler data stack.
     ///
     pub fn input_size(&self) -> usize {
-        self.formal_params
+        self.bindings
             .iter()
-            .map(|(_name, r#type)| r#type.size())
+            .map(|binding| binding.r#type.size())
             .sum()
     }
 
@@ -88,11 +89,11 @@ impl Function {
     /// Validates the function call with the `argument_list`.
     ///
     pub fn validate(&self, argument_list: ArgumentList) -> Result<Vec<(String, Constant)>, Error> {
-        if argument_list.arguments.len() != self.formal_params.len() {
+        if argument_list.arguments.len() != self.bindings.len() {
             return Err(Error::ArgumentCount {
                 location: self.location,
                 function: self.identifier.to_owned(),
-                expected: self.formal_params.len(),
+                expected: self.bindings.len(),
                 found: argument_list.arguments.len(),
                 reference: Some(argument_list.location),
             });
@@ -100,7 +101,7 @@ impl Function {
 
         let mut actual_params = Vec::with_capacity(argument_list.arguments.len());
         for (index, element) in argument_list.arguments.into_iter().enumerate() {
-            let name = self.formal_params[index].0.to_owned();
+            let name = self.bindings[index].identifier.name.to_owned();
 
             let constant = match element {
                 Element::Constant(constant) => constant,
@@ -130,17 +131,17 @@ impl Function {
             actual_params.push((name, constant));
         }
 
-        let formal_params_length = self.formal_params.len();
-        for (index, (name, r#type)) in self.formal_params.iter().enumerate() {
+        let bindings_length = self.bindings.len();
+        for (index, binding) in self.bindings.iter().enumerate() {
             match actual_params.get(index) {
-                Some((_name, constant)) if &constant.r#type() == r#type => {}
+                Some((_name, constant)) if constant.r#type() == binding.r#type => {}
                 Some((_name, constant)) => {
                     return Err(Error::ArgumentType {
                         location: constant.location(),
                         function: self.identifier.to_owned(),
-                        name: name.to_owned(),
+                        name: binding.identifier.name.to_owned(),
                         position: index + 1,
-                        expected: r#type.to_string(),
+                        expected: binding.r#type.to_string(),
                         found: constant.r#type().to_string(),
                     })
                 }
@@ -148,7 +149,7 @@ impl Function {
                     return Err(Error::ArgumentCount {
                         location: self.location,
                         function: self.identifier.to_owned(),
-                        expected: formal_params_length,
+                        expected: bindings_length,
                         found: actual_params.len(),
                         reference: Some(argument_list.location),
                     })
@@ -206,9 +207,9 @@ impl fmt::Display for Function {
             f,
             "const fn {}({}) -> {}",
             self.identifier,
-            self.formal_params
+            self.bindings
                 .iter()
-                .map(|(name, r#type)| format!("{}: {}", name, r#type))
+                .map(|binding| format!("{}: {}", binding.identifier.name, binding.r#type))
                 .collect::<Vec<String>>()
                 .join(", "),
             self.return_type,

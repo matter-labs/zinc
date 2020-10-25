@@ -36,12 +36,14 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
         location: Location,
     ) -> Result<(ListExpression, Option<Token>), ParsingError> {
+        self.next = initial;
+
         self.builder.set_location(location);
         loop {
-            match crate::parser::take_or_next(initial.take(), stream.clone())? {
+            match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                 token
                 @
                 Token {

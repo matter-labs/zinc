@@ -56,7 +56,7 @@ impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}
 
 const_statement = [ 'pub' ], 'const', identifier, ':', type, '=', expression, ';' ;
 
-let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression, ';' ;
+let_statement = 'let', pattern_binding, '=', expression, ';' ;
 
 loop_statement = 'for', identifier, 'in', expression, [ 'while', expression ], block_expression ;
 
@@ -148,11 +148,7 @@ pattern_match =
   | '_'
 ;
 
-pattern_binding =
-    [ 'mut' ], identifier, ':', type
-  | [ 'mut' ], 'self'
-  | '_', ':', type
-;
+pattern_binding = [ 'mut' ], identifier | '_', [ ':', type ] ;
 pattern_binding_list = [ pattern_binding, { ',', pattern_binding } | ',' ] ;
 
 field = identifier, ':', type ;
@@ -160,5 +156,4 @@ field_list = [ field, { ',', field } | ',' ] ;
 
 variant = identifier, '=', integer ;
 variant_list = [ variant, { ',', variant } | ',' ] ;
-
 ```

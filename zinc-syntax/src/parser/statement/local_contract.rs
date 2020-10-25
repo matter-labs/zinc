@@ -64,12 +64,14 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(ContractLocalStatement, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
                 State::AttributeOrNext => {
-                    match crate::parser::take_or_next(initial.take(), stream.clone())? {
+                    match crate::parser::take_or_next(self.next.take(), stream.clone())? {
                         token
                         @
                         Token {
@@ -189,6 +191,7 @@ mod tests {
 
     use super::Parser;
     use crate::tree::attribute::Attribute;
+    use crate::tree::binding::Binding;
     use crate::tree::expression::block::Expression as BlockExpression;
     use crate::tree::identifier::Identifier;
     use crate::tree::pattern_binding::variant::Variant as BindingPatternVariant;
@@ -208,13 +211,16 @@ mod tests {
                 true,
                 false,
                 Identifier::new(Location::test(1, 8), "f".to_owned()),
-                vec![BindingPattern::new(
+                vec![Binding::new(
                     Location::test(1, 10),
-                    BindingPatternVariant::new_binding(
-                        Identifier::new(Location::test(1, 10), "a".to_owned()),
-                        false,
+                    BindingPattern::new(
+                        Location::test(1, 10),
+                        BindingPatternVariant::new_binding(
+                            Identifier::new(Location::test(1, 10), "a".to_owned()),
+                            false,
+                        ),
                     ),
-                    Type::new(Location::test(1, 13), TypeVariant::field()),
+                    Some(Type::new(Location::test(1, 13), TypeVariant::field())),
                 )],
                 Some(Type::new(Location::test(1, 23), TypeVariant::field())),
                 BlockExpression::new(Location::test(1, 29), vec![], None),
@@ -238,13 +244,16 @@ mod tests {
                 false,
                 true,
                 Identifier::new(Location::test(1, 10), "f".to_owned()),
-                vec![BindingPattern::new(
+                vec![Binding::new(
                     Location::test(1, 12),
-                    BindingPatternVariant::new_binding(
-                        Identifier::new(Location::test(1, 12), "a".to_owned()),
-                        false,
+                    BindingPattern::new(
+                        Location::test(1, 12),
+                        BindingPatternVariant::new_binding(
+                            Identifier::new(Location::test(1, 12), "a".to_owned()),
+                            false,
+                        ),
                     ),
-                    Type::new(Location::test(1, 15), TypeVariant::field()),
+                    Some(Type::new(Location::test(1, 15), TypeVariant::field())),
                 )],
                 Some(Type::new(Location::test(1, 25), TypeVariant::field())),
                 BlockExpression::new(Location::test(1, 31), vec![], None),
@@ -268,13 +277,16 @@ mod tests {
                 true,
                 true,
                 Identifier::new(Location::test(1, 14), "f".to_owned()),
-                vec![BindingPattern::new(
+                vec![Binding::new(
                     Location::test(1, 16),
-                    BindingPatternVariant::new_binding(
-                        Identifier::new(Location::test(1, 16), "a".to_owned()),
-                        false,
+                    BindingPattern::new(
+                        Location::test(1, 16),
+                        BindingPatternVariant::new_binding(
+                            Identifier::new(Location::test(1, 16), "a".to_owned()),
+                            false,
+                        ),
                     ),
-                    Type::new(Location::test(1, 19), TypeVariant::field()),
+                    Some(Type::new(Location::test(1, 19), TypeVariant::field())),
                 )],
                 Some(Type::new(Location::test(1, 29), TypeVariant::field())),
                 BlockExpression::new(Location::test(1, 35), vec![], None),

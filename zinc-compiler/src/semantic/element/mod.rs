@@ -15,6 +15,7 @@ pub mod tuple_index;
 pub mod r#type;
 pub mod value;
 
+use std::cell::RefCell;
 use std::fmt;
 use std::ops::Add;
 use std::ops::BitAnd;
@@ -27,6 +28,7 @@ use std::ops::Rem;
 use std::ops::Shl;
 use std::ops::Shr;
 use std::ops::Sub;
+use std::rc::Rc;
 
 use zinc_lexical::Location;
 use zinc_syntax::Identifier;
@@ -37,6 +39,7 @@ use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::Scope;
 
 use self::access::dot::Dot as DotAccessVariant;
 use self::access::index::Index as IndexAccess;
@@ -1862,7 +1865,7 @@ impl Element {
     ///
     /// It is a special internal operator, which accepts the structure type and literal as operands.
     ///
-    pub fn structure(self, other: Self) -> Result<Self, Error> {
+    pub fn structure(self, other: Self, scope: Rc<RefCell<Scope>>) -> Result<Self, Error> {
         match self {
             Element::Type(Type::Structure(r#type)) => match other {
                 Element::Value(Value::Structure(mut structure)) => {
@@ -1890,7 +1893,7 @@ impl Element {
             },
             Element::Type(Type::Contract(r#type)) => match other {
                 Element::Value(Value::Structure(structure)) => {
-                    let mut contract = structure.into_contract();
+                    let mut contract = structure.into_contract(scope);
                     contract
                         .validate(r#type)
                         .map_err(ValueError::Contract)

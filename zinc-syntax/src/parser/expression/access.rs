@@ -74,13 +74,15 @@ impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-        mut initial: Option<Token>,
+        initial: Option<Token>,
     ) -> Result<(ExpressionTree, Option<Token>), ParsingError> {
+        self.next = initial;
+
         loop {
             match self.state {
                 State::PathOperand => {
                     let (expression, next) =
-                        PathOperandParser::default().parse(stream.clone(), initial.take())?;
+                        PathOperandParser::default().parse(stream.clone(), self.next.take())?;
                     self.next = next;
                     self.builder.eat(expression);
                     self.state = State::ExclamationMarkOrNext;
