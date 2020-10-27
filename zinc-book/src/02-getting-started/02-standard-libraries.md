@@ -25,7 +25,7 @@ fn main(preimage: [bool; 256]) -> ([bool; 256], (field, field)) {
 }
 ```
 
-# The zkSync library library
+# The zkSync library
 
 The zkSync library is an emerging library, which contains the only function to
 make transfers in the zkSync network.

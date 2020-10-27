@@ -22,7 +22,7 @@ pub struct Builder {
     /// If the binding pattern is a wildcard.
     is_wildcard: bool,
     /// If the binding pattern is a tuple-like list.
-    bindings: Option<Vec<BindingPattern>>,
+    bindings: Vec<BindingPattern>,
 }
 
 impl Builder {
@@ -60,11 +60,7 @@ impl Builder {
     /// Is used for parenthesized binding lists.
     ///
     pub fn push_binding(&mut self, value: BindingPattern) {
-        if let Some(bindings) = self.bindings.as_mut() {
-            bindings.push(value);
-        } else {
-            self.bindings = Some(vec![value]);
-        }
+        self.bindings.push(value);
     }
 
     ///
@@ -82,18 +78,12 @@ impl Builder {
             )
         });
 
-        let variant = if let Some(bindings) = self.bindings.take() {
-            BindingPatternVariant::new_binding_list(bindings)
-        } else if self.is_wildcard {
-            BindingPatternVariant::new_wildcard()
-        } else if let Some(identifier) = self.identifier.take() {
+        let variant = if let Some(identifier) = self.identifier.take() {
             BindingPatternVariant::new_binding(identifier, self.is_mutable)
+        } else if self.is_wildcard || self.bindings.is_empty() {
+            BindingPatternVariant::new_wildcard()
         } else {
-            panic!(
-                "{}{}",
-                zinc_const::panic::BUILDER_REQUIRES_VALUE,
-                "identifier | wildcard"
-            );
+            BindingPatternVariant::new_binding_list(self.bindings)
         };
 
         BindingPattern::new(location, variant)

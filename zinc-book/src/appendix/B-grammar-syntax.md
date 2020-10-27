@@ -46,7 +46,7 @@ struct_statement = [ 'pub' ], 'struct', '{', field_list, '}' ;
 
 enum_statement = [ 'pub' ], 'enum', '{', variant_list, '}' ;
 
-fn_statement = [ 'pub' ], [ 'const' ], 'fn', identifier, '(', pattern_binding_list, ')', [ '->', type ], block_expression ;
+fn_statement = [ 'pub' ], [ 'const' ], 'fn', identifier, '(', binding_list, ')', [ '->', type ], block_expression ;
 
 mod_statement = [ 'pub' ], 'mod', identifier, ';' ;
 
@@ -56,7 +56,7 @@ impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}
 
 const_statement = [ 'pub' ], 'const', identifier, ':', type, '=', expression, ';' ;
 
-let_statement = 'let', pattern_binding, '=', expression, ';' ;
+let_statement = 'let', binding, '=', expression, ';' ;
 
 loop_statement = 'for', identifier, 'in', expression, [ 'while', expression ], block_expression ;
 
@@ -148,8 +148,14 @@ pattern_match =
   | '_'
 ;
 
-pattern_binding = [ 'mut' ], identifier | '_', [ ':', type ] ;
-pattern_binding_list = [ pattern_binding, { ',', pattern_binding } | ',' ] ;
+binding = pattern_binding, [ ':', type ] ;
+binding_list = [ binding, { ',', binding } | ',' ] ;
+pattern_binding =
+    [ 'mut' ], identifier
+  | ( pattern_binding, { ',', pattern_binding } | ',' ) 
+  | '(', ')'
+  | '_'
+;
 
 field = identifier, ':', type ;
 field_list = [ field, { ',', field } | ',' ] ;

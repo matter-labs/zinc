@@ -182,6 +182,9 @@ and fill the constructor arguments you are going to pass:
 }
 ```
 
+> Also, put your account private key to the `./data/private_key` file. All deposits
+> and transfers to the newly created contract will be done from that account.
+
 To publish the contract, use this simple command with the network identifier
 and instance name:
 
