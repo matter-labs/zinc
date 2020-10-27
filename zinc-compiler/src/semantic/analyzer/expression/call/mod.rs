@@ -94,6 +94,21 @@ impl Analyzer {
             argument_list.arguments.insert(0, *instance.to_owned());
         }
 
+        if let CallType::Method {
+            instance: _,
+            is_mutable: is_instance_mutable,
+        } = call_type
+        {
+            if !is_instance_mutable && function.is_mutable() {
+                return Err(Error::Element(ElementError::Type(TypeError::Function(
+                    FunctionError::CallingMutableFromImmutable {
+                        location,
+                        function: function.identifier(),
+                    },
+                ))));
+            }
+        }
+
         let mut input_size = 0;
         for element in argument_list.arguments.iter() {
             input_size += Type::from_element(element, scope.clone())?.size();
@@ -245,27 +260,6 @@ impl Analyzer {
                             function: function.identifier,
                         }),
                     ))));
-                }
-
-                if let CallType::Method {
-                    instance: _,
-                    is_mutable: is_instance_mutable,
-                } = call_type
-                {
-                    let is_first_argument_mutable = function
-                        .bindings
-                        .first()
-                        .map(|instance| instance.is_mutable)
-                        .unwrap_or_default();
-
-                    if !is_instance_mutable && is_first_argument_mutable {
-                        return Err(Error::Element(ElementError::Type(TypeError::Function(
-                            FunctionError::CallingMutableFromImmutable {
-                                location,
-                                function: function.identifier,
-                            },
-                        ))));
-                    }
                 }
 
                 let location = function.location;

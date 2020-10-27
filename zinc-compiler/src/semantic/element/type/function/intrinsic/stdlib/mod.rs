@@ -171,6 +171,33 @@ impl Function {
     }
 
     ///
+    /// Whether the function must be called from mutable context.
+    ///
+    pub fn is_mutable(&self) -> bool {
+        match self {
+            Self::CryptoSha256(_) => false,
+            Self::CryptoPedersen(_) => false,
+            Self::CryptoSchnorrSignatureVerify(_) => false,
+
+            Self::ConvertToBits(_) => false,
+            Self::ConvertFromBitsUnsigned(_) => false,
+            Self::ConvertFromBitsSigned(_) => false,
+            Self::ConvertFromBitsField(_) => false,
+
+            Self::ArrayReverse(_) => false,
+            Self::ArrayTruncate(_) => false,
+            Self::ArrayPad(_) => false,
+
+            Self::FfInvert(_) => false,
+
+            Self::CollectionsMTreeMapGet(_) => false,
+            Self::CollectionsMTreeMapContains(_) => false,
+            Self::CollectionsMTreeMapInsert(_) => true,
+            Self::CollectionsMTreeMapRemove(_) => true,
+        }
+    }
+
+    ///
     /// Sets the function call location in the code.
     ///
     pub fn set_location(&mut self, location: Location) {

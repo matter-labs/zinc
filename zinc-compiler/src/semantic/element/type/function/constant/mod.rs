@@ -86,6 +86,16 @@ impl Function {
     }
 
     ///
+    /// Whether the function must be called from mutable context.
+    ///
+    pub fn is_mutable(&self) -> bool {
+        self.bindings
+            .first()
+            .map(|instance| instance.is_mutable)
+            .unwrap_or_default()
+    }
+
+    ///
     /// Validates the function call with the `argument_list`.
     ///
     pub fn validate(&self, argument_list: ArgumentList) -> Result<Vec<(String, Constant)>, Error> {

@@ -125,6 +125,18 @@ impl Function {
     }
 
     ///
+    /// Whether the function must be called from mutable context.
+    ///
+    pub fn is_mutable(&self) -> bool {
+        match self {
+            Self::Intrinsic(inner) => inner.is_mutable(),
+            Self::Runtime(inner) => inner.is_mutable(),
+            Self::Constant(inner) => inner.is_mutable(),
+            Self::Test(_) => false,
+        }
+    }
+
+    ///
     /// Sets the location for the function element.
     ///
     pub fn set_location(&mut self, value: Location) {

@@ -153,6 +153,18 @@ impl Function {
     }
 
     ///
+    /// Whether the function must be called from mutable context.
+    ///
+    pub fn is_mutable(&self) -> bool {
+        match self {
+            Self::Require(_) => false,
+            Self::Debug(_) => false,
+            Self::StandardLibrary(inner) => inner.is_mutable(),
+            Self::ZkSyncLibrary(inner) => inner.is_mutable(),
+        }
+    }
+
+    ///
     /// Returns the function identifier, which is known at compile time.
     ///
     pub fn identifier(&self) -> &'static str {

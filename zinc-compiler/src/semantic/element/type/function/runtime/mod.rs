@@ -71,6 +71,16 @@ impl Function {
     }
 
     ///
+    /// Whether the function must be called from mutable context.
+    ///
+    pub fn is_mutable(&self) -> bool {
+        self.bindings
+            .first()
+            .map(|instance| instance.is_mutable)
+            .unwrap_or_default()
+    }
+
+    ///
     /// Calls the function with the `argument_list`, validating the call.
     ///
     pub fn call(self, argument_list: ArgumentList) -> Result<Type, Error> {

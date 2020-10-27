@@ -35,6 +35,58 @@ use crate::semantic::element::Error as ElementError;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
+fn error_calling_mutable_from_immutable_contract_mtreemap_insert() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Data {
+    data: MTreeMap<u8, field>;
+
+    pub fn immutable(self) {
+        self.data.insert(42, 25 as field);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::CallingMutableFromImmutable {
+            location: Location::test(8, 25),
+            function: CollectionsMTreeMapInsertFunction::IDENTIFIER.to_owned(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_calling_mutable_from_immutable_contract_mtreemap_remove() {
+    let input = r#"
+use std::collections::MTreeMap;
+
+contract Data {
+    data: MTreeMap<u8, field>;
+
+    pub fn immutable(self) {
+        self.data.remove(42);
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionError::CallingMutableFromImmutable {
+            location: Location::test(8, 25),
+            function: CollectionsMTreeMapRemoveFunction::IDENTIFIER.to_owned(),
+        }),
+    ))));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_crypto_sha256_argument_count_lesser() {
     let input = r#"
 fn main() {
@@ -1787,7 +1839,7 @@ use std::collections::MTreeMap;
 contract Test {
     values: MTreeMap<u160, u248>;
 
-    pub fn test(self) -> u248 {
+    pub fn test(mut self) -> u248 {
         self.values.insert(0x0000000000000000000000000000000000000000 as u160);
     }
 }
@@ -1816,7 +1868,7 @@ use std::collections::MTreeMap;
 contract Test {
     values: MTreeMap<u160, u248>;
 
-    pub fn test(self) -> u248 {
+    pub fn test(mut self) -> u248 {
         self.values.insert(0 as u160, 1000 as u248, false);
     }
 }
@@ -1845,7 +1897,7 @@ use std::collections::MTreeMap;
 contract Test {
     values: MTreeMap<u160, u248>;
 
-    pub fn test(self) -> u248 {
+    pub fn test(mut self) -> u248 {
         MTreeMap::insert(false);
     }
 }
@@ -1875,7 +1927,7 @@ use std::collections::MTreeMap;
 contract Test {
     values: MTreeMap<u160, u248>;
 
-    pub fn test(self) -> u248 {
+    pub fn test(mut self) -> u248 {
         self.values.insert(false);
     }
 }
@@ -1898,14 +1950,14 @@ contract Test {
 }
 
 #[test]
-fn error_collections_mtreemap_insert_argument_2_key_expected_u248() {
+fn error_collections_mtreemap_insert_argument_3_value_expected_u248() {
     let input = r#"
 use std::collections::MTreeMap;
 
 contract Test {
     values: MTreeMap<u160, u248>;
 
-    pub fn test(self) -> u248 {
+    pub fn test(mut self) -> u248 {
         self.values.insert(0x0000000000000000000000000000000000000000 as u160, false);
     }
 }
@@ -1935,7 +1987,7 @@ use std::collections::MTreeMap;
 contract Test {
     values: MTreeMap<u160, u248>;
 
-    pub fn test(self) -> u248 {
+    pub fn test(mut self) -> u248 {
         self.values.remove();
     }
 }
@@ -1964,7 +2016,7 @@ use std::collections::MTreeMap;
 contract Test {
     values: MTreeMap<u160, u248>;
 
-    pub fn test(self) -> u248 {
+    pub fn test(mut self) -> u248 {
         self.values.remove(0 as u160, true);
     }
 }
@@ -1993,7 +2045,7 @@ use std::collections::MTreeMap;
 contract Test {
     values: MTreeMap<u160, u248>;
 
-    pub fn test(self) -> u248 {
+    pub fn test(mut self) -> u248 {
         MTreeMap::remove(false);
     }
 }
@@ -2023,7 +2075,7 @@ use std::collections::MTreeMap;
 contract Test {
     values: MTreeMap<u160, u248>;
 
-    pub fn test(self) -> u248 {
+    pub fn test(mut self) -> u248 {
         self.values.remove(false);
     }
 }

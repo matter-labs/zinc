@@ -332,6 +332,9 @@ impl Place {
 
                         self.r#type = field.r#type.to_owned();
                         self.total_size = self.r#type.size();
+                        if field.is_immutable {
+                            self.is_mutable = false;
+                        }
 
                         return Ok((self, access));
                     }

@@ -187,7 +187,7 @@ fn main() {
 }
 
 #[test]
-fn error_mutating_contract_implicit_field() {
+fn error_mutating_immutable_contract_field_address() {
     let input = r#"
 contract Test {
     pub fn mutator(mut self) {

@@ -696,6 +696,14 @@ impl Analyzer {
         let r#type = Type::from_element(&operand_2, self.scope_stack.top())?;
         let (place, operator) = callback(operand_1, operand_2).map_err(Error::Element)?;
 
+        if let Some(name) = place.check_immutable_field() {
+            return Err(Error::Element(ElementError::Place(
+                PlaceError::MutatingImmutableContractField {
+                    location: place.identifier.location,
+                    name,
+                },
+            )));
+        }
         if !place.is_mutable {
             let item_location = self
                 .scope_stack
@@ -719,14 +727,6 @@ impl Analyzer {
                     location: place.identifier.location,
                     expected: r#type.to_string(),
                     found: place.r#type.to_string(),
-                },
-            )));
-        }
-        if let Some(name) = place.check_immutable_field() {
-            return Err(Error::Element(ElementError::Place(
-                PlaceError::MutatingImmutableContractField {
-                    location: place.identifier.location,
-                    name,
                 },
             )));
         }

@@ -56,6 +56,15 @@ impl Function {
     }
 
     ///
+    /// Whether the function must be called from mutable context.
+    ///
+    pub fn is_mutable(&self) -> bool {
+        match self {
+            Self::Transfer(_) => true,
+        }
+    }
+
+    ///
     /// Sets the function call location in the code.
     ///
     pub fn set_location(&mut self, location: Location) {
