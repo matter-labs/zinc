@@ -33,7 +33,7 @@ use self::scalar::Value as ScalarValue;
 ///
 /// The Zinc VM template value.
 ///
-/// The representation of the witness and public data stored in JSON files.
+/// The representation of the input and output data stored in JSON template files.
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -255,7 +255,7 @@ impl Value {
     ///
     /// Converts the value to a JSON value.
     ///
-    /// Is used to write the value to a witness or public data JSON file.
+    /// Is used to write the values to the input and output JSON template files.
     ///
     pub fn into_json(self) -> JsonValue {
         match self {

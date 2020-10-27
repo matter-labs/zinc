@@ -39,7 +39,7 @@ fn main(gates: [bool; 3], mut mutated: u8) -> u8 {
         }
     } else {
         mutated *= 20;
-    };
+    }
 
     mutated
 }

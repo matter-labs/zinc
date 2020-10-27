@@ -92,7 +92,7 @@ impl Analyzer {
                 Scope::resolve_mtreemap(statement.location, scope.clone()),
                 true,
                 true,
-                false,
+                true,
             ),
         );
 

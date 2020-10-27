@@ -1,1 +1,12 @@
-target/
+# Zinc
+/.git/
+/target/
+
+# ZkSync
+/zksync/.git/
+/zksync/target/
+/zksync/keys/
+/zksync/volumes/
+
+# JS
+/**/node_modules/

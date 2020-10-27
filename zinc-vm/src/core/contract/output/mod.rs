@@ -13,7 +13,7 @@ use self::transfer::Transfer;
 ///
 #[derive(Debug)]
 pub struct Output {
-    /// The contract method output result, which is public data for now.
+    /// The contract method output result, which is the public data for now.
     pub result: BuildValue,
     /// The contract storage after executing a method.
     pub storage: BuildValue,

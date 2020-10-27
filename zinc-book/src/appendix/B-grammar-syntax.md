@@ -22,7 +22,7 @@ function_local_statement =
   | const_statement
   | loop_statement
   | empty_statement
-  | expression
+  | expression, [ ';' ]
 ;
 
 implementation_local_statement =

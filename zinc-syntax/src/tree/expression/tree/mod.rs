@@ -56,4 +56,16 @@ impl Tree {
             right: right.map(Box::new),
         }
     }
+
+    ///
+    /// Checks if the tree is a single block, conditional, or match expression.
+    ///
+    /// Is used to allow not terminating such expression with a semicolon.
+    ///
+    pub fn can_be_unterminated(&self) -> bool {
+        match *self.value {
+            Node::Operand(ref operand) => operand.can_be_unterminated(),
+            _ => false,
+        }
+    }
 }

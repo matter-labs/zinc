@@ -28,7 +28,9 @@
 - allowed bitwise operations on non-constant and witness values
 - forbidden bitwise operations on signed integers and fields
 - implemented the type inference for integer literals in expressions
-- added the exponent form to integer literals
+- added the exponent notation of integer literals
+- implemented declaration of multiple variables via tuple destructuring
+- removed the mandatory semicolon after block, conditional, and match expressions
 
 #### Compiler
 

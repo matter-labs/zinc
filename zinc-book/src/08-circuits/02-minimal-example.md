@@ -50,20 +50,20 @@ Now, you need to compile the circuit into Zinc bytecode:
 `zargo build`
 
 The command above will write the bytecode to the `build` directory located in
-the project root. There is also a file called `witness.json` in the
-`build` directory, which is used to provide the secret witness data to the circuit.
+the project root. There is also a file called `input.json` in the
+`data` directory, which is used to provide the secret witness data to the circuit.
 
 ### Running the circuit
 
-Before you run the circuit, open the `data/witness.json` file with
+Before you run the circuit, open the `./data/input.json` file with
 your favorite editor and fill it with some meaningful values.
 
-Now, execute `zargo run > data/public_data.json` to run the circuit and
+Now, execute `zargo run > ./data/output.json` to run the circuit and
 write the resulting public data to a file.
 
 > There is a useful tool called `jq`. You may use it together with `zargo run`
 > to highlight, edit, filter the output data before writing it to the file:
-> `zargo run | jq > data/public-data.json`.
+> `zargo run | jq > ./data/output.json`.
 > 
 > For more information on `jq`, visit the [official manual](https://stedolan.github.io/jq/manual/).
 

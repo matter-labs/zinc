@@ -84,6 +84,9 @@ impl<'a> TokenStream<'a> {
     /// Is used where there is a need to resolve an ambiguity like `if value {}`,
     /// where `value` is able to start both a variable or structure literal type name.
     ///
+    /// # Panics
+    /// If the `distance` is zero
+    ///
     pub fn look_ahead(&mut self, distance: usize) -> Result<&Token, Error> {
         while self.look_ahead.len() < distance {
             let token = self.advance()?;

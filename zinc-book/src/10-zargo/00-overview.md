@@ -21,8 +21,8 @@ Initializes a new project in an existing directory, creates missing files.
 
 Builds the project. The build consists of:
 - the bytecode file
-- witness input JSON template
-- public data JSON template
+- input JSON template
+- output JSON template
 
 ### `clean`
 

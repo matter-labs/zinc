@@ -2,24 +2,26 @@
 //! The `Not` instruction.
 //!
 
-use franklin_crypto::bellman::ConstraintSystem;
+use num::bigint::ToBigInt;
+use num::Zero;
 
 use zinc_build::Not;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
-use crate::gadgets;
+use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Not {
     fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let value = vm.pop()?.try_into_value()?;
+        let value = vm
+            .pop()?
+            .try_into_value()?
+            .to_bigint()
+            .expect(zinc_const::panic::DATA_CONVERSION);
 
-        let cs = vm.constraint_system();
-        let not = gadgets::logical::not::not(cs.namespace(|| "not"), &value)?;
-
-        vm.push(Cell::Value(not))
+        vm.push(Cell::Value(Scalar::new_constant_bool(value.is_zero())))
     }
 }
 

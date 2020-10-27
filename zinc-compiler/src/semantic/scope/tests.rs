@@ -219,14 +219,15 @@ fn error_item_undeclared_lower() {
 fn main() {
     {
         let result = 42;
-    };
+    }
+
     result = 64;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ItemUndeclared {
-            location: Location::test(6, 5),
+            location: Location::test(7, 5),
             name: "result".to_owned(),
         },
     )));

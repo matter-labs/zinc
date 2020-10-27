@@ -37,7 +37,7 @@ zargo run
 # generate the prover parameters
 zargo setup
 
-# edit the 'build/witness.json' and 'build/public-data.json' files
+# edit the './data/input.json' and './data/output.json' files
 
 # generate the proof
 zargo prove

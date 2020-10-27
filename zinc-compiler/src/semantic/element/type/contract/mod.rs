@@ -79,7 +79,7 @@ impl Contract {
             zinc_const::contract::FIELD_INDEX_BALANCES,
             true,
             true,
-            false,
+            true,
         )?;
 
         let contract = Self {

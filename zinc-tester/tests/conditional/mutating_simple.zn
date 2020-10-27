@@ -17,7 +17,7 @@ fn main(condition: bool) -> u8 {
 
     if condition {
         result += 5;
-    };
+    }
 
     result
 }

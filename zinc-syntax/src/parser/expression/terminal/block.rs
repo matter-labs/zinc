@@ -100,11 +100,23 @@ impl Parser {
                                 FunctionLocalStatementParser::default()
                                     .parse(stream.clone(), Some(token))?;
                             self.next = next;
+
                             match statement {
                                 FunctionLocalStatement::Expression(expression) => {
                                     if is_unterminated {
-                                        self.builder.set_expression(expression);
-                                        self.state = State::BracketCurlyRight;
+                                        let is_last = matches!(self.next.as_ref().unwrap_or(stream.borrow_mut().look_ahead(1)?), Token {
+                                            lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
+                                            ..
+                                        });
+
+                                        if !is_last && expression.can_be_unterminated() {
+                                            self.builder.push_statement(
+                                                FunctionLocalStatement::Expression(expression),
+                                            );
+                                        } else {
+                                            self.builder.set_expression(expression);
+                                            self.state = State::BracketCurlyRight;
+                                        }
                                     } else {
                                         self.builder.push_statement(
                                             FunctionLocalStatement::Expression(expression),

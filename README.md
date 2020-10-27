@@ -14,25 +14,13 @@ Please discuss here: https://gitter.im/matter-labs/zinc
 2. Unpack its contents to some folder and add the folder to your `PATH` environment variable.
 3. Use the binaries via your favorite terminal.
 
-#### Quick setup
-
-Download the Shell script for your OS and run it with `bash <name>.sh` to install
-all the binaries and generate a local folder with examples ready for hacking.
-
-[macos.sh](./install/macos.sh)
-
-[linux.sh](./install/linux.sh)
-
-On Windows, you must install the binaries manually.
-
 ## Example
 
 At first, you should install the following binaries to be available through your `PATH`:
-- `zargo` - the project management tool
+- `zargo` - the Zinc package manager
 - `znc` - the Zinc compiler
 - `zvm` - the Zinc virtual machine
-- `zandbox` - the Zinc smart contract Zandbox server (only for smart contracts)
-- `schnorr` - the Schnorr signature tool (optional)
+- `zandbox` - the Zinc smart contract server (mostly for local testing and development)
 
 Then, follow the example to create and use your first circuit:
 
@@ -46,7 +34,7 @@ cd zircuit/
 # build the circuit
 zargo build
 
-# fill the witness input JSON located at ./data/witness.json with values
+# fill the input JSON template ./data/input.json with values
 
 # runs the circuit to check it without input data
 zargo run
@@ -73,7 +61,7 @@ cd zircuit/
 # build & run & setup & prove & verify
 zargo proof-check
 
-# fill the witness input JSON located at ./data/witness.json with values
+# fill the input JSON template ./data/input.json with values
 
 # repeat the sequence
 zargo proof-check

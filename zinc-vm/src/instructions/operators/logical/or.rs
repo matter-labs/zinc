@@ -2,22 +2,33 @@
 //! The `Or` instruction.
 //!
 
+use num::bigint::ToBigInt;
+use num::One;
+
 use zinc_build::Or;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::RuntimeError;
-use crate::gadgets;
+use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Or {
     fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let right = vm.pop()?.try_into_value()?;
-        let left = vm.pop()?.try_into_value()?;
+        let right = vm
+            .pop()?
+            .try_into_value()?
+            .to_bigint()
+            .expect(zinc_const::panic::DATA_CONVERSION);
+        let left = vm
+            .pop()?
+            .try_into_value()?
+            .to_bigint()
+            .expect(zinc_const::panic::DATA_CONVERSION);
 
-        let or = gadgets::logical::or::or(vm.constraint_system(), &left, &right)?;
-
-        vm.push(Cell::Value(or))
+        vm.push(Cell::Value(Scalar::new_constant_bool(
+            left.is_one() || right.is_one(),
+        )))
     }
 }
 

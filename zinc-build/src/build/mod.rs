@@ -7,8 +7,8 @@ pub mod input;
 use self::input::Input;
 
 ///
-/// A compiled application data, which consists of the bytecode, witness template,
-/// and public data template files.
+/// A compiled application data, which consists of the bytecode, input and
+/// output template files.
 ///
 #[derive(Debug)]
 pub struct Build {

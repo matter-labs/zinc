@@ -8,7 +8,7 @@ use zinc_build::Value as BuildValue;
 /// The virtual machine circuit output.
 ///
 pub struct Output {
-    /// The circuit output result, which is public data for now.
+    /// The circuit output result, which is the public data for now.
     pub result: BuildValue,
 }
 

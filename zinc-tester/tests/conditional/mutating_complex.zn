@@ -27,7 +27,7 @@ fn main(mut witness: Data, condition: bool) -> Data {
             b: 255,
             c: 1_000_000 as field,
         };
-    };
+    }
 
     witness
 }

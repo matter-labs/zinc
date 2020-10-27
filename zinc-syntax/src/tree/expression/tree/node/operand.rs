@@ -52,3 +52,19 @@ pub enum Operand {
     /// A match expression `match value { 1 => 10, _ => 42 }`.
     Match(MatchExpression),
 }
+
+impl Operand {
+    ///
+    /// Checks if the tree is a single block, conditional, or match expression.
+    ///
+    /// Is used to allow not terminating such expression with a semicolon.
+    ///
+    pub fn can_be_unterminated(&self) -> bool {
+        match self {
+            Self::Block(_) => true,
+            Self::Conditional(_) => true,
+            Self::Match(_) => true,
+            _ => false,
+        }
+    }
+}
