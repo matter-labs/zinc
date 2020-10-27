@@ -51,3 +51,18 @@ fn test() {
     x = 25; // ok
 }
 ```
+
+### Tuple destructuring
+
+It is possible to declare multiple variables with a single `let` statement:
+
+```rust,no_run,noplaypen
+fn main() {
+    let (mut a, b) = (42, 25);
+
+    let (c, (mut d, e)) = (42, (25, 16));
+}
+```
+
+> This feature is identical to that of Rust, but it is only supported for the
+> `let` statement. Function arguments cannot be destructured.

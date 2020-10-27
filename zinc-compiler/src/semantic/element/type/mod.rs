@@ -427,6 +427,51 @@ impl Type {
     }
 
     ///
+    /// Checks if the type can be instantiated.
+    ///
+    /// Instantiation is currently impossible for strings, ranges, functions, and maps.
+    ///
+    pub fn is_instantiatable(&self, is_contract_field: bool) -> bool {
+        match self {
+            Self::Unit(_) => true,
+            Self::Boolean(_) => true,
+            Self::IntegerUnsigned { .. } => true,
+            Self::IntegerSigned { .. } => true,
+            Self::Field(_) => true,
+            Self::String(_) => false,
+            Self::Range(_) => false,
+            Self::RangeInclusive(_) => false,
+            Self::Array(inner) => inner.r#type.is_instantiatable(false),
+            Self::Tuple(inner) => inner
+                .types
+                .iter()
+                .all(|r#type| Self::is_instantiatable(r#type, false)),
+            Self::Structure(inner) => {
+                (is_contract_field || !self.is_mtreemap())
+                    && inner
+                        .fields
+                        .iter()
+                        .map(|(_name, r#type)| r#type)
+                        .all(|r#type| Self::is_instantiatable(r#type, false))
+                    && inner
+                        .params
+                        .to_owned()
+                        .unwrap_or_default()
+                        .iter()
+                        .map(|(_name, r#type)| r#type)
+                        .all(|r#type| Self::is_instantiatable(r#type, false))
+            }
+            Self::Enumeration(_) => true,
+            Self::Function(_) => false,
+            Self::Contract(inner) => inner
+                .fields
+                .iter()
+                .map(|field| &field.r#type)
+                .all(|r#type| Self::is_instantiatable(r#type, true)),
+        }
+    }
+
+    ///
     /// Checks if the type is an `std::collections::MTreeMap`, which is treated specially.
     ///
     pub fn is_mtreemap(&self) -> bool {

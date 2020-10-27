@@ -8,8 +8,9 @@ The library contains the following modules:
 - `convert` - bit array conversion functions
 - `array` - array processing functions
 - `ff` - finite field functions
+- `collections` - data collection types
 
-All the standard library contents are listed in [Appendix E](../appendix/E-standard-library.md).
+All the standard library contents are listed in the [Appendix E](../appendix/E-standard-library.md).
 
 Standard library items can be used directly or imported with `use`:
 
@@ -24,11 +25,20 @@ fn main(preimage: [bool; 256]) -> ([bool; 256], (field, field)) {
 }
 ```
 
-# ZkSync library
+# The zkSync library library
 
 The zkSync library is an emerging library, which contains the only function to
 make transfers in the zkSync network.
 
 ```rust,no_run,noplaypen
-zksync::transfer(tx.sender, TokenId::ETH, 1_000_000);
+zksync::transfer(tx.sender, 0xb51be8fafff98d7d2e3615610d08977ad513fc54, 1.0_E18);
 ```
+
+Smart contracts also have the global transaction `msg` variable, which is
+accessible via the `zksync` library:
+
+```rust,no_run,noplaypen
+let amount = zksync::msg.amount;
+```
+
+The zkSync library contents are listed in the [Appendix F](../appendix/F-zksync-library.md).

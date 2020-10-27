@@ -54,9 +54,14 @@ impl IBytecodeWritable for Statement {
             };
 
             let size = r#type.size();
-            let address = state
-                .borrow_mut()
-                .define_variable(Some(binding.identifier.name), size);
+            let address = state.borrow_mut().define_variable(
+                if !binding.is_wildcard {
+                    Some(binding.identifier.name)
+                } else {
+                    None
+                },
+                size,
+            );
 
             match r#type {
                 Type::Contract { fields } => {

@@ -1,21 +1,11 @@
-# Coming soon
-
-> This chapter describes the future release features, which will become publicly
-> available soon. If you are interested in trying it out for your project, please
-> [talk to us](https://zksync.io/contact.html).
-
 # Minimal example
 
 In this example we will implement the simplest exchange smart contract, where
 it will be possible to exchange between a pair of tokens with ever-constant price.
 
-This example will not use any means of transferring tokens between user accounts,
-since its point only to demonstrate the basics of working with Zinc smart
-contracts.
-
-Zargo is the Zinc package manager, which bundles smart contract projects and
-simplifies usage of contract methods, using input data JSON templates located
-in the project data directory.
+You will need `zargo`, which is the Zinc package manager, which bundles smart
+contract projects and simplifies usage of contract methods, using input data
+JSON template located in the project `data` directory.
 
 ## Project initialization
 
@@ -33,90 +23,162 @@ Zargo will create a project with some default template code:
 //!
 
 contract ConstantPrice {
-    balance: u248;
+    pub value: u8;
 
-    pub fn new(_balance: u248) -> Self {
+    pub fn new(_value: u248) -> Self {
         Self {
-            balance: _balance,
+            value: _value,
         }
     }
 }
 ```
 
-Let's change the code to have two balance fields, the `exchange` method, and
-two methods `get_x` and `get_y` to query the contract balances separately.
+Let's change the code by:
+
+- removing the redundant `value` auto-generated field
+- adding the `fee` parameter 
+- adding two mutable methods for making `exchange`s and `deposit`s
+- adding an immutable method for getting the contract fee value
+- declaring the `Address` and `Balance` type aliases
+- declaring the `TokenAddress` enumeration type with zkSync token addresses
+
+The `TokenAddress` enumeration lists the token address-like identifiers from
+the `Rinkeby` zkSync network. Addresses of tokens on the `Rinkeby` network
+should not change and may be taken from here for further usage.
 
 ```rust,no_run,noplaypen
-enum Token {
-    X = 1,
-    Y = 2,
-}
-
+type Address = u160;
 type Balance = u248;
 
-contract ConstantPrice {
-    balance_x: Balance;
-    balance_y: Balance;
+enum TokenAddress {
+    ETH = 0x0000000000000000000000000000000000000000,
+    DAI = 0x3bdfbbfdcf051c6ec5a741cc0fde89e30ff2f824,
+    // USDT = 0x3b00ef435fa4fcff5c209a37d1f3dcff37c705ad,
+    // USDC = 0xeb8f08a975ab53e34d8a0330e0d34de942c95926,
+    // LINK = 0x4da8d0795830f75be471f072a034d42c369b5d0a,
+    // TUSD = 0xd2255612f9b045e9c81244bb874abb413ca139a3,
+    // HT = 0x14700cae8b2943bad34c70bb76ae27ecf5bc5013,
+    // OMG = 0x2b203de02ad6109521e09985b3af9b8c62541cd6,
+    // TRB = 0x2655f3a9eeb7f960be83098457144813ffad07a4,
+    // ZRX = 0xdb7f2b9f6a0cb35fe5d236e5ed871d3ad4184290,
+    // BAT = 0xd2084ea2ae4bbe1424e4fe3cde25b713632fb988,
+    // REP = 0x9cac8508b9ff26501439590a24893d80e7e84d21,
+    // STORJ = 0x8098165d982765097e4aa17138816e5b95f9fdb5,
+    // NEXO = 0x02d01f0835b7fdfa5d801a8f5f74c37f2bb1ae6a,
+    // MCO = 0xd93addb2921b8061b697c2ab055979bbefe2b7ac,
+    // KNC = 0x290eba6ec56ecc9ff81c72e8eccc77d2c2bf63eb,
+    // LAMB = 0x9ecec4d48efdd96ae377af3ab868f99de865cff8,
+    // GNT = 0xd94e3dc39d4cad1dad634e7eb585a57a19dc7efe,
+    // MLTT = 0x690f4886c6911d81beb8130db30c825c27281f22,
+    // XEM = 0xc3904a7c3a95bc265066bb5bfc4d6664b2174774,
+    // DAI = 0x2e055eee18284513b993db7568a592679ab13188,
+}
 
-    pub fn new(
-        _balance_x: Balance,
-        _balance_y: Balance,
-    ) -> Self {
-        Self {
-            balance_x: _balance_x,
-            balance_y: _balance_y,
+impl TokenAddress {
+    pub fn is_known(address: Address) -> bool {
+        match address {
+            0x0000000000000000000000000000000000000000 => true,
+            0x3bdfbbfdcf051c6ec5a741cc0fde89e30ff2f824 => true,
+            // 0x3b00ef435fa4fcff5c209a37d1f3dcff37c705ad => true,
+            // 0xeb8f08a975ab53e34d8a0330e0d34de942c95926 => true,
+            // 0x4da8d0795830f75be471f072a034d42c369b5d0a => true,
+            // 0xd2255612f9b045e9c81244bb874abb413ca139a3 => true,
+            // 0x14700cae8b2943bad34c70bb76ae27ecf5bc5013 => true,
+            // 0x2b203de02ad6109521e09985b3af9b8c62541cd6 => true,
+            // 0x2655f3a9eeb7f960be83098457144813ffad07a4 => true,
+            // 0xdb7f2b9f6a0cb35fe5d236e5ed871d3ad4184290 => true,
+            // 0xd2084ea2ae4bbe1424e4fe3cde25b713632fb988 => true,
+            // 0x9cac8508b9ff26501439590a24893d80e7e84d21 => true,
+            // 0x8098165d982765097e4aa17138816e5b95f9fdb5 => true,
+            // 0x02d01f0835b7fdfa5d801a8f5f74c37f2bb1ae6a => true,
+            // 0xd93addb2921b8061b697c2ab055979bbefe2b7ac => true,
+            // 0x290eba6ec56ecc9ff81c72e8eccc77d2c2bf63eb => true,
+            // 0x9ecec4d48efdd96ae377af3ab868f99de865cff8 => true,
+            // 0xd94e3dc39d4cad1dad634e7eb585a57a19dc7efe => true,
+            // 0x690f4886c6911d81beb8130db30c825c27281f22 => true,
+            // 0xc3904a7c3a95bc265066bb5bfc4d6664b2174774 => true,
+            // 0x2e055eee18284513b993db7568a592679ab13188 => true,
+            _ => false,
         }
+    }
+}
+
+contract ConstantPrice {
+    const MAX_FEE: u16 = 10000;
+    const PRECISION_MUL: Balance = 1E3;
+
+    pub fee: u16;
+
+    pub fn new(_fee: u16) -> Self {
+        require(_fee <= Self::MAX_FEE, "The fee value must be between 0 and 10000");
+
+        Self {
+            fee: _fee,
+        }
+    }
+
+    pub fn deposit(mut self) {
+        require(zksync::msg.recipient == self.address, "The transfer recipient is not the contract");
+        require(TokenAddress::is_known(zksync::msg.token_address), "The deposited token is unknown");
+        require(zksync::msg.amount > 0, "Cannot deposit zero tokens");
     }
 
     pub fn exchange(
         mut self,
-        token: Token,
-        amount: Balance,
+        withdraw_token: Address,
     ) {
-        match token {
-            Token::X => {
-                require(self.balance_y >= amount, "Not enough Y tokens to withdraw");
-                self.balance_x += amount;
-                self.balance_y -= amount;
+        require(zksync::msg.recipient == self.address, "The transfer recipient is not the contract");
+        require(TokenAddress::is_known(zksync::msg.token_address), "The deposited token is unknown");
+        require(TokenAddress::is_known(withdraw_token), "The withdrawn token is unknown");
+        require(zksync::msg.amount > 0, "Cannot deposit zero tokens");
+        require(zksync::msg.token_address != withdraw_token, "Cannot withdraw the same token");
 
-                // transfer amount of Y to the user
-            },
-            Token::Y => {
-                require(self.balance_x >= amount, "Not enough X tokens to withdraw");
-                self.balance_y += amount;
-                self.balance_x -= amount;
+        let withdraw_token_amount = zksync::msg.amount *
+            ((Self::MAX_FEE - self.fee) as Balance * Self::PRECISION_MUL / Self::MAX_FEE as Balance) /
+            Self::PRECISION_MUL;
+        require(self.balances.get(withdraw_token).0 >= withdraw_token_amount, "Not enough tokens to withdraw");
 
-                // transfer amount of X to the user
-            },
-        };
+        zksync::transfer(zksync::msg.sender, withdraw_token, withdraw_token_amount);
     }
 
-    pub fn get_x(self) -> Balance {
-        self.balance_x
-    }
-
-    pub fn get_y(self) -> Balance {
-        self.balance_y
+    pub fn get_fee(self) -> u16 {
+        self.fee
     }
 }
 ```
 
-In the listing above we declared the `Balance` type alias and the `Token`
-enumeration type, which identifies the token deposited by user.
+> In our case, the `fee` is an integer value between `0` and `10000`, where the latter
+> represents `100%`. It is common practice to use integer values in this way, since there
+> are usually limited support of floating point numbers in safe smart contract languages.
+> We are also using some additional fractional digits to avoid getting zeros after
+> integer division. That is, instead of doing `amount * 9900 / 10000`, we do
+> `amount * 9900 * 1E3 / 10000 / 1E3`.
 
-The exchange function increases and decreases the contract balances depending
-on the token identifier, which can be either X or Y. When the balances are
-changed, some code is called to transfer the tokens to and from user accounts.
+The `deposit` function checks:
+
+- if the transaction recipient is the contract address
+- if the deposited token is known to the contract
+- if the deposited amount is not zero
+
+In addition, the `exchange` function checks:
+
+- if the withdrawn token is known to the contract
+- if the deposited and withdrawn token identifiers are different
+- if the is enough balance to withdraw
 
 ## Publishing the contract
 
-Before publishing, open the `./data/witness_new` constructor input template file
-and fill the values you are going to pass:
+Before publishing, open the `./data/input.json` constructor input template file
+and fill the constructor arguments you are going to pass:
 
 ```json
 {
-  "_balance_x": "100",
-  "_balance_y": "100"
+  "arguments": {
+    "new": {
+      "_fee": "100"
+    }
+    // ...
+  }
 }
 ```
 
@@ -127,10 +189,9 @@ and instance name:
 zargo publish --network rinkeby --instance default
 ```
 
-To see the available testnets, enter `zargo publish --help`. When the contract
-is successfully published, its ETH address and zkSync account ID will be returned.
-You will need the address to make the consequent calls. Let's assume it is
-`0x1234...1234`.
+When the contract is successfully published, its ETH address and zkSync account ID
+will be returned. You will need the address to make some further calls.
+Let's assume it is `0x1234...1234`.
 
 The instance name is used to uniquely identify your published contract without
 memorizing its ETH address.
@@ -140,7 +201,7 @@ The contract has been published!
 ## Querying the contract storage
 
 The `constant_price` contract is now published, and its dedicated storage
-instance is created. You may query the Zandbox server to see the current balances:
+instance is created. You may query the Zandbox server to see its zero balances:
 
 ```bash,no_run,noplaypen
 zargo query --network rinkeby --address 0x1234...1234
@@ -148,39 +209,46 @@ zargo query --network rinkeby --address 0x1234...1234
 
 ## Calling a non-mutable contract method
 
-A non-mutable contract method may be called with the same query as above, but
+A non-mutable contract method can be called with the same query as above, but
 with the `method` argument:
 
 ```bash,no_run,noplaypen
-zargo query --network rinkeby --address 0x1234...1234 --method get_x
+zargo query --network rinkeby --address 0x1234...1234 --method get_fee
 ```
 
 The output:
 ```json
 {
-  "output": "50"
+  "output": "100"
 }
 ```
 
 ## Calling a mutable contract method
 
-Let's now call our contract `exchange` method!
+Let's now call our contract `deposit` method!
 
-Open the method input template file `./data/witness_exchange.json` and specify
+Open the method input template file `./data/input.json` and specify
 the token identifier and amount you want to exchange:
 
 ```json
 {
-  "token": "Y",
-  "amount": "50"
+  "msg": {
+    "sender": "<your_address>",
+    "recipient": "0x1234...1234",
+    "token_address": "0x0000000000000000000000000000000000000000", // ETH
+    "amount": "0.1_E18"
+  }
 }
 ```
+
+> Be cautious when specifying the exponent value for token amounts, as it is
+> crucial to specify the correct number of decimal digits for each token.
 
 To call the contract method, use the following command with the method name and
 contract account ID:
 
 ```bash,no_run,noplaypen
-zargo call --network localhost --address 0x1234...1234 --method exchange
+zargo call --network rinkeby --address 0x1234...1234 --method deposit
 ```
 
 After the call has succeeded, query the contract storage again to see the
@@ -188,21 +256,23 @@ expected result:
 
 ```json
 {
-  "output": {
-    "balance_x": "50",
-    "balance_y": "150"
-  }
+  "address": "0x1234...1234",
+  "balances": [
+    {
+      "key": "0x0000000000000000000000000000000000000000",
+      "value": "100000000000000000" // 0.1_E18
+    }
+  ]
 }
 ```
 
-Congratulations! You have implemented and published a working smart contract!
+Now you may repeat the call for other tokens and when there is more than one token
+on the exchange, call the `exchange` method, specifying the token you want to withdraw.
 
 ## What's next
 
-You may play with the contract a little more, e.g. by adding some exchange fee.
+When you have a new smart contract version, just publish it with another instance
+name and it will get a separate storage instance, living its own life!
 
-When you have a new smart contract version, just publish it under another ID and
-it will get a separate storage instance, living its own life!
-
-There is a [Curve smart contract](./03-curve-implementation.md) implementation
+Also, there is a [Curve smart contract](./03-curve-implementation.md) implementation
 in Zinc. Check it out!

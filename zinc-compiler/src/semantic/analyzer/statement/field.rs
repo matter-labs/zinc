@@ -7,6 +7,8 @@ use std::rc::Rc;
 
 use zinc_syntax::FieldStatement;
 
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
@@ -26,6 +28,15 @@ impl Analyzer {
         index: usize,
     ) -> Result<(), Error> {
         let r#type = Type::try_from_syntax(statement.r#type, scope.clone())?;
+
+        if !r#type.is_instantiatable(true) {
+            return Err(Error::Element(ElementError::Type(
+                TypeError::InstantiationForbidden {
+                    location: statement.location,
+                    found: r#type.to_string(),
+                },
+            )));
+        }
 
         Scope::define_field(
             scope,

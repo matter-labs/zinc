@@ -2,14 +2,38 @@
 
 A typical contract consists of several groups of entities:
 
-- storage fields
-- public entry functions
-- private functions
+- implicit storage fields
+- explicit storage fields
+- public methods
+- private methods
+- global variables
 - constants
 
-## Storage fields
+## Implicit storage fields
 
-The storage fields are declared in the same way as in structure, but with
+There are several implicitly created fields, which are set upon the contract publishing:
+
+- the contract address (field `address` of type `u160`)
+- the contract balances (field `balances` of type `std::collections::MTreeMap<u160, u248>`),
+where the key is a zkSync token address, and the value is token amount.
+
+So, when you see an empty contract `contract Empty {}`, it actually looks like this:
+
+```rust,no_run,noplaypen
+// will not compile, because the fields are already there!
+contract Empty {
+    pub address: u160;
+
+    pub balances: std::collections::MTreeMap<u160, u248>;
+}
+```
+
+The public (`pub`) fields are visible when querying the contract storage state,
+whereas the private fields are internal and cannot be seen.
+
+## Explicit storage fields
+
+The explicit storage fields are declared in the same way as in structure, but with
 a semicolon in the end.
 
 ```rust,no_run,noplaypen
@@ -22,11 +46,8 @@ contract Example {
 }
 ```
 
-The public (`pub`) fields are visible when querying the contract storage state,
-whereas the private fields are internal and cannot be seen.
-
 Each smart contract instance gets its own storage, which is written to the
-database by the Zinc Zandbox server.
+persistent databases by the Zinc Zandbox server.
 
 ## Public methods
 
@@ -54,6 +75,12 @@ contract Example {
     fn get_balance(address: u160) -> bool { ... }
 }
 ```
+
+## Global variables
+
+Each contract includes the global `zksync::msg` variable, which contains the
+transfer data the contract has been called with. The variable description can
+be found in the [Appendix F](../appendix/F-zksync-library.md).
 
 ## Constants
 

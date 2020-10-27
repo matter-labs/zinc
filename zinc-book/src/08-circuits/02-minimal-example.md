@@ -5,7 +5,7 @@
 Let's create our first circuit, which will be able to prove knowledge of
 some `sha256` hash preimage:
 
-```
+```bash,no_run,noplaypen
 zargo new --type circuit preimage
 cd preimage
 ```

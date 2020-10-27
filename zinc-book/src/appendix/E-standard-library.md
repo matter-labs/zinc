@@ -181,3 +181,50 @@ Arguments:
 - value: `field`
 
 Returns: `field`
+
+## `std::collections` module
+
+### `std::collections::MTreeMap<K, V>`
+
+The map type, which can only be a contract storage field and accessed
+via the methods below.
+
+### `std::collections::MTreeMap::get`
+
+Gets the value from the map. Returns the value and presence flag.
+If the presence flag is `false`, the value is filled with zeros.
+
+Arguments:
+- key: `K`
+
+Returns: `(V, bool)`
+
+### `std::collections::MTreeMap::contains`
+
+Checks if the value exists in the map. Returns the presence flag.
+
+Arguments:
+- key: `K`
+
+Returns: `bool`
+
+### `std::collections::MTreeMap::insert`
+
+Inserts the value into the map. Returns the old value and presence flag.
+If the presence flag is `false`, the old value is filled with zeros.
+
+Arguments:
+- key: `K`
+- value: `V`
+
+Returns: `(V, bool)`
+
+### `std::collections::MTreeMap::remove`
+
+Removes the value from the map. Returns the removed value and presence flag.
+If the presence flag is `false`, the removed value is filled with zeros.
+
+Arguments:
+- key: `K`
+
+Returns: `(V, bool)`

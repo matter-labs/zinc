@@ -34,6 +34,13 @@ pub enum Error {
         /// The type which does not expect generics.
         r#type: String,
     },
+    /// Some built-in types cannot be instantiated.
+    InstantiationForbidden {
+        /// The error location.
+        location: Location,
+        /// The found type.
+        found: String,
+    },
 
     /// The function type error. See the inner element description.
     Function(FunctionError),

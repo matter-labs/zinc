@@ -77,11 +77,11 @@ impl Contract {
 //!
 
 contract {} {{
-    balance: u248;
+    pub value: u8;
 
-    pub fn new(_balance: u248) -> Self {{
+    pub fn new(_value: u248) -> Self {{
         Self {{
-            balance: _balance,
+            value: _value,
         }}
     }}
 }}

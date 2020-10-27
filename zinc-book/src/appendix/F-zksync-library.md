@@ -13,3 +13,13 @@ Arguments:
 - amount: `u248`
 
 Returns: `()`
+
+## `zksync::msg` variable
+
+The built-in global transaction variable.
+
+Fields:
+- sender: `u160`
+- recipient: `u160`
+- token_address: `u160`
+- amount: `u248`

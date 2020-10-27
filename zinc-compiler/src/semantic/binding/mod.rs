@@ -40,6 +40,8 @@ pub struct Binding {
     pub identifier: Identifier,
     /// Whether the bound variable is mutable.
     pub is_mutable: bool,
+    /// Whether the binding is a wildcard.
+    pub is_wildcard: bool,
     /// The bound variable r#type.
     pub r#type: Type,
 }
@@ -48,10 +50,11 @@ impl Binding {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(identifier: Identifier, is_mutable: bool, r#type: Type) -> Self {
+    pub fn new(identifier: Identifier, is_mutable: bool, is_wildcard: bool, r#type: Type) -> Self {
         Self {
             identifier,
             is_mutable,
+            is_wildcard,
             r#type,
         }
     }
@@ -80,7 +83,7 @@ impl Binder {
                     memory_type,
                 )?;
 
-                Ok(vec![Binding::new(identifier, is_mutable, r#type)])
+                Ok(vec![Binding::new(identifier, is_mutable, false, r#type)])
             }
             BindingPatternVariant::BindingList { bindings } => {
                 let types = match r#type {
@@ -105,7 +108,12 @@ impl Binder {
                 }
                 Ok(result)
             }
-            BindingPatternVariant::Wildcard => Ok(vec![]),
+            BindingPatternVariant::Wildcard => Ok(vec![Binding::new(
+                Identifier::new(pattern.location, "_".to_owned()),
+                false,
+                true,
+                r#type,
+            )]),
         }
     }
 
@@ -155,6 +163,15 @@ impl Binder {
                         }
                     };
 
+                    if !r#type.is_instantiatable(false) {
+                        return Err(SemanticError::Element(ElementError::Type(
+                            TypeError::InstantiationForbidden {
+                                location: identifier.location,
+                                found: r#type.to_string(),
+                            },
+                        )));
+                    }
+
                     let memory_type = match context {
                         FnAnalyzerContext::Contract => MemoryType::ContractInstance,
                         FnAnalyzerContext::Module => MemoryType::Stack,
@@ -169,7 +186,7 @@ impl Binder {
                         memory_type,
                     )?;
 
-                    result.push(Binding::new(identifier, is_mutable, r#type));
+                    result.push(Binding::new(identifier, is_mutable, false, r#type));
                 }
                 BindingPatternVariant::Binding {
                     identifier,
@@ -185,6 +202,15 @@ impl Binder {
                         .map_err(SemanticError::Element)?;
                     let r#type = Type::try_from_syntax(r#type, scope.clone())?;
 
+                    if !r#type.is_instantiatable(false) {
+                        return Err(SemanticError::Element(ElementError::Type(
+                            TypeError::InstantiationForbidden {
+                                location: identifier.location,
+                                found: r#type.to_string(),
+                            },
+                        )));
+                    }
+
                     let memory_type = match r#type {
                         Type::Contract(_) => MemoryType::ContractInstance,
                         _ => MemoryType::Stack,
@@ -198,7 +224,7 @@ impl Binder {
                         memory_type,
                     )?;
 
-                    result.push(Binding::new(identifier, is_mutable, r#type));
+                    result.push(Binding::new(identifier, is_mutable, false, r#type));
                 }
                 BindingPatternVariant::BindingList { .. } => {
                     return Err(SemanticError::Binding(
@@ -207,7 +233,33 @@ impl Binder {
                         },
                     ))
                 }
-                BindingPatternVariant::Wildcard => continue,
+                BindingPatternVariant::Wildcard => {
+                    let r#type = binding
+                        .r#type
+                        .ok_or(TypeError::TypeRequired {
+                            location: binding.location,
+                            identifier: "_".to_owned(),
+                        })
+                        .map_err(ElementError::Type)
+                        .map_err(SemanticError::Element)?;
+                    let r#type = Type::try_from_syntax(r#type, scope.clone())?;
+
+                    if !r#type.is_instantiatable(false) {
+                        return Err(SemanticError::Element(ElementError::Type(
+                            TypeError::InstantiationForbidden {
+                                location: binding.pattern.location,
+                                found: r#type.to_string(),
+                            },
+                        )));
+                    }
+
+                    result.push(Binding::new(
+                        Identifier::new(binding.pattern.location, "_".to_owned()),
+                        false,
+                        true,
+                        r#type,
+                    ));
+                }
             }
         }
 

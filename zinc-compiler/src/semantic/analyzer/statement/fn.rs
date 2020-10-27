@@ -96,6 +96,18 @@ impl Analyzer {
             None => Type::unit(None),
         };
 
+        if !expected_type.is_instantiatable(false) {
+            return Err(Error::Element(ElementError::Type(
+                TypeError::InstantiationForbidden {
+                    location: statement
+                        .return_type
+                        .map(|r#type| r#type.location)
+                        .unwrap_or(statement.location),
+                    found: expected_type.to_string(),
+                },
+            )));
+        }
+
         let return_expression_location = match statement
             .body
             .expression
@@ -187,6 +199,18 @@ impl Analyzer {
             Some(ref r#type) => Type::try_from_syntax(r#type.to_owned(), scope_stack.top())?,
             None => Type::unit(None),
         };
+
+        if !expected_type.is_instantiatable(false) {
+            return Err(Error::Element(ElementError::Type(
+                TypeError::InstantiationForbidden {
+                    location: statement
+                        .return_type
+                        .map(|r#type| r#type.location)
+                        .unwrap_or(statement.location),
+                    found: expected_type.to_string(),
+                },
+            )));
+        }
 
         let return_expression_location = match statement
             .body

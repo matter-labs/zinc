@@ -1609,6 +1609,16 @@ impl Error {
                                    None,
                 )
             }
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::InstantiationForbidden { location, found }))) => {
+                Self::format_line( format!(
+                    "type `{}` cannot be instantiated beyond the contract storage",
+                    found,
+                )
+                                       .as_str(),
+                                   location,
+                                   Some("consider removing strings, ranges, functions, and maps from the type declaration"),
+                )
+            }
             Self::Semantic(SemanticError::Scope(ScopeError::ItemRedeclared { location, name, reference })) => {
                 Self::format_line_with_reference(format!(
                         "item `{}` already declared here",

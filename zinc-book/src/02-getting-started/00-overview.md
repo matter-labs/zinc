@@ -1,9 +1,3 @@
-# Coming soon
-
-> This chapter describes the future release features, which will become publicly
-> available soon. If you are interested in trying it out for your project, please
-> [talk to us](https://zksync.io/contact.html).
-
 # Getting started
 
 ## Installation

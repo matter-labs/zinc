@@ -17,6 +17,9 @@ static POSTGRESQL_URL: &str = "postgres://postgres@localhost/zinc";
 
 static OWNER_ADDRESS: &str = "0x36615cf349d7f6344891b1e7ca7c72883f5dc049";
 
+static TOKEN_ADDRESS_ETH: &str = "0x0000000000000000000000000000000000000000";
+static TOKEN_ADDRESS_DAI: &str = "0x3bdfbbfdcf051c6ec5a741cc0fde89e30ff2f824";
+
 #[tokio::test]
 #[cfg_attr(not(feature = "integration-tests"), ignore)]
 async fn ok_curve() {
@@ -85,39 +88,39 @@ async fn ok_curve() {
                   "0"
                 ],
                 [
-                  "0",
-                  "1"
+                  "0x0",
+                  "0x1"
                 ],
                 "100"
               ],
               "msg": {
                 "sender": OWNER_ADDRESS,
                 "recipient": address,
-                "token_id": "0",
+                "token_address": TOKEN_ADDRESS_ETH,
                 "amount": "1E18"
               },
               "arguments": {
                 "get_dx": {
-                  "deposit_token_id": "DAI",
-                  "withdraw_token_id": "ETH",
+                  "deposit_token_address": TOKEN_ADDRESS_DAI,
+                  "withdraw_token_address": TOKEN_ADDRESS_ETH,
                   "to_withdraw": "0.1E18"
                 },
                 "new": {
                   "_tokens": [
-                    "ETH",
-                    "DAI"
+                    TOKEN_ADDRESS_ETH,
+                    TOKEN_ADDRESS_DAI
                   ],
                   "_amplifier": "100"
                 },
                 "get_dy": {
-                  "deposit_token_id": "ETH",
-                  "withdraw_token_id": "DAI",
+                  "deposit_token_address": TOKEN_ADDRESS_ETH,
+                  "withdraw_token_address": TOKEN_ADDRESS_DAI,
                   "to_deposit": "0.1E18"
                 },
                 "deposit": {},
                 "swap": {
                   "withdraw_address": OWNER_ADDRESS,
-                  "withdraw_token_id": "DAI",
+                  "withdraw_token_address": TOKEN_ADDRESS_DAI,
                   "min_withdraw": "0.05E18"
                 }
               }

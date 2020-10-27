@@ -53,6 +53,15 @@ impl Analyzer {
             Some(scope),
         );
 
+        if !r#type.is_instantiatable(false) {
+            return Err(Error::Element(ElementError::Type(
+                TypeError::InstantiationForbidden {
+                    location: statement.location,
+                    found: r#type.to_string(),
+                },
+            )));
+        }
+
         Ok(r#type)
     }
 }

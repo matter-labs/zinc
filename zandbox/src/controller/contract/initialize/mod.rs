@@ -129,8 +129,11 @@ pub async fn handle(
         .ok_or(Error::AccountId)?;
 
     log::debug!("Sending the change-pubkey transaction");
-    let mut handle = wallet
-        .start_change_pubkey()
+    let mut change_pubkey = wallet.start_change_pubkey();
+    if let zksync::Network::Rinkeby = query.network {
+        change_pubkey = change_pubkey.fee(0u64);
+    }
+    let mut handle = change_pubkey
         .fee_token(fee_token_id)?
         .send()
         .await?
