@@ -23,9 +23,9 @@ Zargo will create a project with some default template code:
 //!
 
 contract ConstantPrice {
-    pub value: u8;
+    pub value: u64;
 
-    pub fn new(_value: u248) -> Self {
+    pub fn new(_value: u64) -> Self {
         Self {
             value: _value,
         }
@@ -116,8 +116,13 @@ contract ConstantPrice {
     }
 
     pub fn deposit(mut self) {
+        // check if the transaction recipient is the contract address
         require(zksync::msg.recipient == self.address, "The transfer recipient is not the contract");
+
+        // check if the deposited token is known to the contract
         require(TokenAddress::is_known(zksync::msg.token_address), "The deposited token is unknown");
+
+        // check if the deposited amount is not zero
         require(zksync::msg.amount > 0, "Cannot deposit zero tokens");
     }
 
@@ -125,15 +130,25 @@ contract ConstantPrice {
         mut self,
         withdraw_token: Address,
     ) {
+        // check if the transaction recipient is the contract address
         require(zksync::msg.recipient == self.address, "The transfer recipient is not the contract");
+
+        // check if the deposited token is known to the contract
         require(TokenAddress::is_known(zksync::msg.token_address), "The deposited token is unknown");
+
+        // check if the withdrawn token is known to the contract
         require(TokenAddress::is_known(withdraw_token), "The withdrawn token is unknown");
+
+        // check if the deposited amount is not zero
         require(zksync::msg.amount > 0, "Cannot deposit zero tokens");
+
+        // check if the deposited and withdrawn token identifiers are different
         require(zksync::msg.token_address != withdraw_token, "Cannot withdraw the same token");
 
         let withdraw_token_amount = zksync::msg.amount *
             ((Self::MAX_FEE - self.fee) as Balance * Self::PRECISION_MUL / Self::MAX_FEE as Balance) /
             Self::PRECISION_MUL;
+        // check if the is enough balance to withdraw
         require(self.balances.get(withdraw_token).0 >= withdraw_token_amount, "Not enough tokens to withdraw");
 
         zksync::transfer(zksync::msg.sender, withdraw_token, withdraw_token_amount);
@@ -151,18 +166,6 @@ contract ConstantPrice {
 > We are also using some additional fractional digits to avoid getting zeros after
 > integer division. That is, instead of doing `amount * 9900 / 10000`, we do
 > `amount * 9900 * 1E3 / 10000 / 1E3`.
-
-The `deposit` function checks:
-
-- if the transaction recipient is the contract address
-- if the deposited token is known to the contract
-- if the deposited amount is not zero
-
-In addition, the `exchange` function checks:
-
-- if the withdrawn token is known to the contract
-- if the deposited and withdrawn token identifiers are different
-- if the is enough balance to withdraw
 
 ## Publishing the contract
 
@@ -183,6 +186,7 @@ and fill the constructor arguments you are going to pass:
 
 > Also, put your account private key to the `./data/private_key` file. All deposits
 > and transfers to the newly created contract will be done from that account.
+> Ensure that your account is unlocked and has enough balance to pay fees.
 
 To publish the contract, use this simple command with the network identifier
 and instance name:
@@ -261,7 +265,7 @@ expected result:
   "address": "0x1234...1234",
   "balances": [
     {
-      "key": "0x0000000000000000000000000000000000000000",
+      "key": "0x0",
       "value": "100000000000000000" // 0.1_E18
     }
   ]

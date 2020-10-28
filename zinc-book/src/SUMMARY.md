@@ -18,6 +18,7 @@
         - [Enumerations](03-variables-and-types/02-types/05-enumerations.md)
         - [Strings](03-variables-and-types/02-types/06-strings.md)
         - [Casting and conversions](03-variables-and-types/02-types/07-casting-and-conversions.md)
+        - [Maps](03-variables-and-types/02-types/08-maps.md)
     - [Functions](03-variables-and-types/03-functions.md)
 - [Operators](04-operators/00-overview.md)
     - [Arithmetic](04-operators/01-arithmetic.md)

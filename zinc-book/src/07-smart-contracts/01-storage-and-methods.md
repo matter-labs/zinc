@@ -4,6 +4,7 @@ A typical contract consists of several groups of entities:
 
 - implicit storage fields
 - explicit storage fields
+- the constructor
 - public methods
 - private methods
 - global variables
@@ -48,6 +49,24 @@ contract Example {
 
 Each smart contract instance gets its own storage, which is written to the
 persistent databases by the Zinc Zandbox server.
+
+## The constructor
+
+Each contract must have a constructor, a special function with the name `new`, which
+returns a `Self` contract instance. You must not initialize the implicit storage fields,
+since they are filled automatically.
+
+```rust,no_run,noplaypen
+contract Example {
+    pub value: u64;
+
+    pub fn new(_value: u64) -> Self {
+        Self {
+            value: _value,
+        }
+    }
+}
+```
 
 ## Public methods
 

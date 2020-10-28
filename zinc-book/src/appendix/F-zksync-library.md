@@ -9,7 +9,7 @@ Executes a transfer which is eventually sent to the zkSync platform.
 
 Arguments:
 - recipient: `u160`
-- token_id: `u16`
+- token_address: `u160`
 - amount: `u248`
 
 Returns: `()`

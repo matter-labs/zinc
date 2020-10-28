@@ -53,6 +53,9 @@ pub enum Error {
     /// The input file data is invalid.
     #[fail(display = "invalid input file data")]
     InvalidInputData,
+    /// The constructor arguments not found.
+    #[fail(display = "constructor arguments not found")]
+    ConstructorArgumentsNotFound,
     /// The verifying key file error.
     #[fail(display = "verifying key file {}", _0)]
     VerifyingKeyFile(FileError),

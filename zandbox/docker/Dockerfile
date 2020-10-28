@@ -3,7 +3,7 @@
 # from root directory:
 # DOCKER_BUILDKIT=1 docker build -t matterlabs/zandbox -f zandbox/docker/Dockerfile .
 # docker push matterlabs/zandbox
-FROM rust:1.46 as builder
+FROM rust:1.47 as builder
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo install sccache
 WORKDIR /usr/src/zandbox

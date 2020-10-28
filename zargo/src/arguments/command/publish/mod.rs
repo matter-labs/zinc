@@ -163,7 +163,7 @@ impl Command {
             .ok_or(Error::InvalidInputData)?
             .get(zinc_const::contract::CONSTRUCTOR_NAME)
             .cloned()
-            .ok_or(Error::InvalidInputData)?;
+            .ok_or(Error::ConstructorArgumentsNotFound)?;
 
         if !verifying_key_path.exists() {
             VirtualMachine::setup_contract(
