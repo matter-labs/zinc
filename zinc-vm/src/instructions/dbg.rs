@@ -43,11 +43,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                                 field.r#type.size(),
                             )?
                             .into_iter()
-                            .map(|scalar| {
-                                scalar
-                                    .to_bigint()
-                                    .expect(zinc_const::panic::DATA_CONVERSION)
-                            })
+                            .map(|scalar| scalar.to_bigint().unwrap_or_default())
                             .collect();
                         flat.extend(values);
                     }
@@ -73,8 +69,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
             if condition.is_positive() {
                 let mut buffer = self.format;
                 for value in values.into_iter().rev() {
-                    let json = serde_json::to_string(&value.into_json())
-                        .expect(zinc_const::panic::DATA_CONVERSION);
+                    let json = serde_json::to_string(&value.into_json()).unwrap_or_default();
                     buffer = buffer.replacen("{}", &json, 1);
                 }
                 eprintln!("{}", buffer);

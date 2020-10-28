@@ -51,7 +51,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Insert {
             .pop()?
             .try_into_value()?
             .to_bigint()
-            .expect(zinc_const::panic::DATA_CONVERSION);
+            .unwrap_or_default();
         let (mut data, key_size, value_size) = match storage.load(index.clone())?.leaf_values {
             LeafVariant::Map {
                 data,

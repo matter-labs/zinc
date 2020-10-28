@@ -14,16 +14,8 @@ use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Le {
     fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let right = vm
-            .pop()?
-            .try_into_value()?
-            .to_bigint()
-            .expect(zinc_const::panic::DATA_CONVERSION);
-        let left = vm
-            .pop()?
-            .try_into_value()?
-            .to_bigint()
-            .expect(zinc_const::panic::DATA_CONVERSION);
+        let right = vm.pop()?.try_into_value()?.to_bigint().unwrap_or_default();
+        let left = vm.pop()?.try_into_value()?.to_bigint().unwrap_or_default();
 
         vm.push(Cell::Value(Scalar::new_constant_bool(left <= right)))
     }

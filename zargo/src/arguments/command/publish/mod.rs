@@ -129,6 +129,14 @@ impl Command {
             zinc_const::extension::BINARY
         ));
 
+        if let ProjectType::Contract = manifest.project.r#type {
+            if !PrivateKeyFile::exists_at(&data_directory_path) {
+                PrivateKeyFile::default()
+                    .write_to(&data_directory_path)
+                    .map_err(Error::PrivateKeyFile)?;
+            }
+        }
+
         Compiler::build_release(
             self.verbosity,
             manifest.project.name.as_str(),

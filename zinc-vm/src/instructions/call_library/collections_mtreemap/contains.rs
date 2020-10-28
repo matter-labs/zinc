@@ -48,7 +48,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Contains {
             .pop()?
             .try_into_value()?
             .to_bigint()
-            .expect(zinc_const::panic::DATA_CONVERSION);
+            .unwrap_or_default();
         let data = match storage.load(index)?.leaf_values {
             LeafVariant::Map { data, .. } => data,
             LeafVariant::Array(_array) => return Err(RuntimeError::InvalidStorageValue),

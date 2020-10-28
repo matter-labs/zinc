@@ -31,14 +31,11 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Transfer {
 
         let token_address = token_address
             .to_bigint()
-            .expect(zinc_const::panic::DATA_CONVERSION)
+            .unwrap_or_default()
             .to_biguint()
-            .expect(zinc_const::panic::DATA_CONVERSION);
+            .unwrap_or_default();
 
-        let (_sign, recipient) = recipient
-            .to_bigint()
-            .expect(zinc_const::panic::DATA_CONVERSION)
-            .to_bytes_be();
+        let (_sign, recipient) = recipient.to_bigint().unwrap_or_default().to_bytes_be();
         let mut recipient_array = [0; zinc_const::size::ETH_ADDRESS];
         for (index, byte) in recipient.into_iter().enumerate() {
             recipient_array[index] = byte;
@@ -46,9 +43,9 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Transfer {
 
         let amount = amount
             .to_bigint()
-            .expect(zinc_const::panic::DATA_CONVERSION)
+            .unwrap_or_default()
             .to_biguint()
-            .expect(zinc_const::panic::DATA_CONVERSION);
+            .unwrap_or_default();
 
         state
             .transfers

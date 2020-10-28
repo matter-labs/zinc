@@ -15,11 +15,7 @@ use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Not {
     fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
-        let value = vm
-            .pop()?
-            .try_into_value()?
-            .to_bigint()
-            .expect(zinc_const::panic::DATA_CONVERSION);
+        let value = vm.pop()?.try_into_value()?.to_bigint().unwrap_or_default();
 
         vm.push(Cell::Value(Scalar::new_constant_bool(value.is_zero())))
     }
