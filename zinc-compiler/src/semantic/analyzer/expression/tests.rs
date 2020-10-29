@@ -96,6 +96,22 @@ fn main() {
 }
 
 #[test]
+fn ok_constant_element_enum_variant() {
+    let input = r#"
+enum List {
+    One = 1,
+    Two = 2,
+}
+
+fn main() {
+    const VALUE: List = List::Two;
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
 fn error_non_constant_element_simple() {
     let input = r#"
 fn main() {

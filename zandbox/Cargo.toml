@@ -34,10 +34,10 @@ actix-cors = "0.4"
 actix-web = "3.1"
 sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-async-std", "macros", "postgres", "json" ] }
 
-zksync = { path = "../zksync/sdk/zksync-rs" }
-zksync_types = { path = "../zksync/core/lib/types" }
-zksync_utils = { path = "../zksync/core/lib/utils" }
-zksync_eth_signer = { path = "../zksync/core/lib/eth_signer" }
+zksync = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
+zksync_types = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
+zksync_utils = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
+zksync_eth_signer = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
 num_old = { package = "num", version = "0.2.1" }
 
 zinc-logger = { path = "../zinc-logger" }

@@ -14,9 +14,9 @@ serde_json = "1.0"
 rustc-hex = "2.1"
 num = "0.3"
 
-zksync = { path = "../zksync/sdk/zksync-rs" }
-zksync_types = { path = "../zksync/core/lib/types" }
-zksync_eth_signer = { path = "../zksync/core/lib/eth_signer" }
+zksync = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
+zksync_types = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
+zksync_eth_signer = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
 num_old = { package = "num", version = "0.2.1" }
 
 zinc-build = { path = "../zinc-build" }

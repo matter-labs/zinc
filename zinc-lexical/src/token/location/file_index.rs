@@ -35,6 +35,9 @@ pub struct Data {
 }
 
 lazy_static! {
+    ///
+    /// The global file identifier index.
+    ///
     pub static ref FILE_INDEX: FileIndex = FileIndex::new();
 }
 

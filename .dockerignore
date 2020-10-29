@@ -1,12 +1,8 @@
-# Zinc
+# IDE
+/.idea/
+
+# Git
 /.git/
+
+# Rust build
 /target/
-
-# ZkSync
-/zksync/.git/
-/zksync/target/
-/zksync/keys/
-/zksync/volumes/
-
-# JS
-/**/node_modules/

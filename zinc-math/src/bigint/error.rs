@@ -12,10 +12,13 @@ use num::bigint::ParseBigIntError;
 ///
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
+    /// The integer or fractional number part is invalid.
     #[fail(display = "number parsing: {}", _0)]
     NumberParsing(ParseBigIntError),
+    /// The exponent is invalid.
     #[fail(display = "exponent parsing: {}", _0)]
     ExponentParsing(ParseIntError),
+    /// The exponent is lesser than the number of fractional digits.
     #[fail(
         display = "the exponent {} is too small, it must be bigger than the number of fractional digits",
         _0

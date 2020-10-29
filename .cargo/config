@@ -1,10 +1,10 @@
 [build]
 rustflags = [
-#    "-W", "missing_docs",
+    "-W", "missing_docs",
 ]
-#incremental = true
+incremental = true
 
 [tools.clippy]
 warn = [
-#    "missing_docs_in_private_items",
+    "missing_docs_in_private_items",
 ]

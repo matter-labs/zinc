@@ -29,9 +29,9 @@ Inflector = "0.11"
 tokio = "0.2"
 reqwest = "0.10"
 
-zksync = { path = "../zksync/sdk/zksync-rs" }
-zksync_types = { path = "../zksync/core/lib/types" }
-zksync_eth_signer = { path = "../zksync/core/lib/eth_signer" }
+zksync = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
+zksync_types = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
+zksync_eth_signer = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
 num_old = { package = "num", version = "0.2.1" }
 
 zinc-logger = { path = "../zinc-logger" }

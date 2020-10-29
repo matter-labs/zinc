@@ -32,7 +32,6 @@ mkdir --verbose "zinc-release-${VERSION_ZINC}"
 #    "target/${TARGET_WINDOWS}/release/zargo.exe" \
 #    "target/${TARGET_WINDOWS}/release/znc.exe" \
 #    "target/${TARGET_WINDOWS}/release/zvm.exe" \
-#    "target/${TARGET_WINDOWS}/release/zandbox.exe" \
 #    "zinc-${VERSION_ZINC}-windows"
 #zip --verbose -r \
 #    "zinc-release-${VERSION_ZINC}/zinc-${VERSION_ZINC}-windows.zip" \
@@ -87,7 +86,6 @@ mv --verbose --force \
     "target/${TARGET_LINUX}/release/zargo" \
     "target/${TARGET_LINUX}/release/znc" \
     "target/${TARGET_LINUX}/release/zvm" \
-    "target/${TARGET_LINUX}/release/zandbox" \
     "zinc-${VERSION_ZINC}-linux"
 tar --verbose \
     --create --gzip --file "zinc-release-${VERSION_ZINC}/zinc-${VERSION_ZINC}-linux.tar.gz" \
@@ -156,7 +154,6 @@ mv --verbose --force \
     "target/${TARGET_MACOS}/release/zargo" \
     "target/${TARGET_MACOS}/release/znc" \
     "target/${TARGET_MACOS}/release/zvm" \
-    "target/${TARGET_MACOS}/release/zandbox" \
     "zinc-${VERSION_ZINC}-macos"
 zip --verbose -r \
     "zinc-release-${VERSION_ZINC}/zinc-${VERSION_ZINC}-macos.zip" \

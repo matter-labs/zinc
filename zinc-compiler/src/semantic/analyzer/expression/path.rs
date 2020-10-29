@@ -185,6 +185,17 @@ impl Translator {
                     let element = Element::Constant(constant);
                     Ok((element, intermediate))
                 }
+                ScopeItem::Variant(ref variant) => {
+                    let mut constant = variant.constant.to_owned();
+                    constant.set_location(location);
+
+                    let intermediate = GeneratorConstant::try_from_semantic(&constant);
+
+                    Ok((
+                        Element::Constant(constant),
+                        intermediate.map(GeneratorExpressionOperand::Constant),
+                    ))
+                }
                 ref item => Err(Error::Expression(ExpressionError::NonConstantElement {
                     location: path.location,
                     found: item.to_string(),
