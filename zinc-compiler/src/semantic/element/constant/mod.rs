@@ -7,7 +7,6 @@ mod tests;
 
 pub mod array;
 pub mod boolean;
-pub mod error;
 pub mod integer;
 pub mod range;
 pub mod range_inclusive;
@@ -41,10 +40,10 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
+use crate::semantic::error::Error;
 
 use self::array::Array;
 use self::boolean::Boolean;
-use self::error::Error;
 use self::integer::Integer;
 use self::range::Range;
 use self::range_inclusive::RangeInclusive;
@@ -89,8 +88,7 @@ impl Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .range_inclusive(integer_2)
-                    .map(Self::RangeInclusive)
-                    .map_err(Error::Integer),
+                    .map(Self::RangeInclusive),
                 constant => Err(Error::OperatorRangeInclusiveSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -109,10 +107,7 @@ impl Constant {
     pub fn range(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
-                Self::Integer(integer_2) => integer_1
-                    .range(integer_2)
-                    .map(Self::Range)
-                    .map_err(Error::Integer),
+                Self::Integer(integer_2) => integer_1.range(integer_2).map(Self::Range),
                 constant => Err(Error::OperatorRangeSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -216,8 +211,7 @@ impl Constant {
             }
             (Self::Integer(constant_1), Self::Integer(constant_2)) => constant_1
                 .equals(constant_2)
-                .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
-                .map_err(Error::Integer),
+                .map(|(boolean, operator)| (Self::Boolean(boolean), operator)),
             (Self::Integer(_), constant_2) => {
                 Err(Error::OperatorEqualsSecondOperandExpectedInteger {
                     location: constant_2.location(),
@@ -256,8 +250,7 @@ impl Constant {
             }
             (Self::Integer(constant_1), Self::Integer(constant_2)) => constant_1
                 .not_equals(constant_2)
-                .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
-                .map_err(Error::Integer),
+                .map(|(boolean, operator)| (Self::Boolean(boolean), operator)),
             (Self::Integer(_), constant_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedInteger {
                     location: constant_2.location(),
@@ -279,8 +272,7 @@ impl Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .greater_equals(integer_2)
-                    .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
-                    .map_err(Error::Integer),
+                    .map(|(boolean, operator)| (Self::Boolean(boolean), operator)),
                 constant => Err(Error::OperatorGreaterEqualsSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -301,8 +293,7 @@ impl Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .lesser_equals(integer_2)
-                    .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
-                    .map_err(Error::Integer),
+                    .map(|(boolean, operator)| (Self::Boolean(boolean), operator)),
                 constant => Err(Error::OperatorLesserEqualsSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -323,8 +314,7 @@ impl Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .greater(integer_2)
-                    .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
-                    .map_err(Error::Integer),
+                    .map(|(boolean, operator)| (Self::Boolean(boolean), operator)),
                 constant => Err(Error::OperatorGreaterSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -345,8 +335,7 @@ impl Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .lesser(integer_2)
-                    .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
-                    .map_err(Error::Integer),
+                    .map(|(boolean, operator)| (Self::Boolean(boolean), operator)),
                 constant => Err(Error::OperatorLesserSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -368,8 +357,7 @@ impl BitOr for Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitor(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 constant => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -391,8 +379,7 @@ impl BitXor for Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitxor(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 constant => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -414,8 +401,7 @@ impl BitAnd for Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitand(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 constant => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -437,8 +423,7 @@ impl Shl<Self> for Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .shl(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 constant => Err(
                     Error::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
                         location: constant.location(),
@@ -462,8 +447,7 @@ impl Shr<Self> for Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .shr(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 constant => Err(
                     Error::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
                         location: constant.location(),
@@ -489,8 +473,7 @@ impl Add for Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .add(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 constant => Err(Error::OperatorAdditionSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -512,8 +495,7 @@ impl Sub for Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .sub(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 constant => Err(Error::OperatorSubtractionSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -535,8 +517,7 @@ impl Mul for Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .mul(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 constant => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -558,8 +539,7 @@ impl Div for Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .div(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 constant => Err(Error::OperatorDivisionSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -581,8 +561,7 @@ impl Rem for Constant {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .rem(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 constant => Err(Error::OperatorRemainderSecondOperandExpectedInteger {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -602,7 +581,7 @@ impl Constant {
     ///
     pub fn cast(self, to: Type) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         let from = self.r#type();
-        Caster::cast(&from, &to).map_err(|error| Error::Casting {
+        Caster::cast(&from, &to).map_err(|error| Error::OperatorCastingTypesMismatch {
             location: self.location(),
             inner: error,
             reference: to.location().expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
@@ -618,8 +597,7 @@ impl Constant {
         Ok(match self {
             Self::Integer(integer) => integer
                 .cast(is_signed, bitlength)
-                .map(|(integer, operator)| (Self::Integer(integer), operator))
-                .map_err(Error::Integer)?,
+                .map(|(integer, operator)| (Self::Integer(integer), operator))?,
             operand => (operand, None),
         })
     }
@@ -647,8 +625,7 @@ impl Constant {
         match self {
             Self::Integer(integer) => integer
                 .bitwise_not()
-                .map(|(integer, operator)| (Self::Integer(integer), operator))
-                .map_err(Error::Integer),
+                .map(|(integer, operator)| (Self::Integer(integer), operator)),
             constant => Err(Error::OperatorBitwiseNotExpectedInteger {
                 location: constant.location(),
                 found: constant.to_string(),
@@ -664,8 +641,7 @@ impl Neg for Constant {
         match self {
             Self::Integer(integer) => integer
                 .neg()
-                .map(|(integer, operator)| (Self::Integer(integer), operator))
-                .map_err(Error::Integer),
+                .map(|(integer, operator)| (Self::Integer(integer), operator)),
             constant => Err(Error::OperatorNegationExpectedInteger {
                 location: constant.location(),
                 found: constant.to_string(),
@@ -681,7 +657,7 @@ impl Constant {
     pub fn index_value(self, other: Value) -> Result<(Element, IndexAccess), Error> {
         match self {
             Constant::Array(array) => match other {
-                Value::Integer(_) => array.slice_single(None).map_err(Error::Array),
+                Value::Integer(_) => array.slice_single(None),
                 value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
                     location: value
                         .location()
@@ -702,17 +678,13 @@ impl Constant {
     pub fn index_constant(self, other: Constant) -> Result<(Element, IndexAccess), Error> {
         match self {
             Constant::Array(array) => match other {
-                Constant::Integer(integer) => {
-                    array.slice_single(Some(integer)).map_err(Error::Array)
-                }
+                Constant::Integer(integer) => array.slice_single(Some(integer)),
                 Constant::Range(range) => array
                     .slice_range(range)
-                    .map(|(constant, access)| (Element::Constant(constant), access))
-                    .map_err(Error::Array),
+                    .map(|(constant, access)| (Element::Constant(constant), access)),
                 Constant::RangeInclusive(range) => array
                     .slice_range_inclusive(range)
-                    .map(|(constant, access)| (Element::Constant(constant), access))
-                    .map_err(Error::Array),
+                    .map(|(constant, access)| (Element::Constant(constant), access)),
                 constant => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -730,7 +702,7 @@ impl Constant {
     ///
     pub fn tuple_field(self, index: TupleIndex) -> Result<(Self, StackFieldAccess), Error> {
         match self {
-            Constant::Tuple(tuple) => tuple.slice(index).map_err(Error::Tuple),
+            Constant::Tuple(tuple) => tuple.slice(index),
             constant => Err(Error::OperatorDotFirstOperandExpectedTuple {
                 location: constant.location(),
                 found: constant.to_string(),
@@ -746,7 +718,7 @@ impl Constant {
         identifier: Identifier,
     ) -> Result<(Self, StackFieldAccess), Error> {
         match self {
-            Constant::Structure(structure) => structure.slice(identifier).map_err(Error::Structure),
+            Constant::Structure(structure) => structure.slice(identifier),
             constant => Err(Error::OperatorDotFirstOperandExpectedInstance {
                 location: constant.location(),
                 found: constant.to_string(),

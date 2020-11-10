@@ -10,7 +10,6 @@ use colored::Colorize;
 
 use zinc_build::Application as BuildApplication;
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
-use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
@@ -181,7 +180,7 @@ impl IRunnable for Runner {
                         params.clone(),
                         ContractInput::new(
                             instance.input,
-                            BuildValue::Contract(storage),
+                            zinc_build::Value::Contract(storage),
                             case.method.unwrap_or_else(|| {
                                 zinc_const::source::FUNCTION_MAIN_IDENTIFIER.to_owned()
                             }),

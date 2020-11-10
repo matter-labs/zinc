@@ -7,12 +7,12 @@ use franklin_crypto::bellman::ConstraintSystem;
 use zinc_build::BitwiseShiftRight;
 
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for BitwiseShiftRight {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         let shift = vm.pop()?.try_into_value()?;
         let num = vm.pop()?.try_into_value()?;
 

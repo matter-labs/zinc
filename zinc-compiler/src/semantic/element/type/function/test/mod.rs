@@ -5,8 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::fmt;
 
 use zinc_lexical::Location;

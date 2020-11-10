@@ -3,14 +3,12 @@
 //!
 
 pub mod case;
-pub mod error;
 
 use std::str::FromStr;
 
 use serde::Deserialize;
 
 use self::case::Case;
-use self::error::Error;
 
 ///
 /// The test file metadata.
@@ -25,7 +23,7 @@ pub struct Metadata {
 }
 
 impl FromStr for Metadata {
-    type Err = Error;
+    type Err = anyhow::Error;
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         let json = string
@@ -35,6 +33,6 @@ impl FromStr for Metadata {
             .collect::<Vec<&str>>()
             .join("");
 
-        serde_json::from_str(&json).map_err(Error::Parsing)
+        Ok(serde_json::from_str(&json)?)
     }
 }

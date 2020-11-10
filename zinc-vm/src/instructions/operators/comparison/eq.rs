@@ -8,12 +8,12 @@ use zinc_build::Eq;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Eq {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         let right = vm.pop()?.try_into_value()?.to_bigint().unwrap_or_default();
         let left = vm.pop()?.try_into_value()?.to_bigint().unwrap_or_default();
 

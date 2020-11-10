@@ -5,8 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
@@ -20,9 +18,8 @@ use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::structure::Structure as StructureValue;
 use crate::semantic::element::value::Value;
+use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-
-use self::error::Error;
 
 ///
 /// Contracts are collections of named elements of different types.
@@ -93,10 +90,10 @@ impl Contract {
             match expected.fields.get(index) {
                 Some(expected_field) => {
                     if name != &expected_field.identifier.name {
-                        return Err(Error::FieldExpected {
+                        return Err(Error::StructureFieldExpected {
                             location: location
                                 .unwrap_or_else(|| expected_field.identifier.location),
-                            type_identifier: expected.identifier.to_owned(),
+                            r#type: expected.identifier.to_owned(),
                             position: index + 1,
                             expected: expected_field.identifier.name.to_owned(),
                             found: name.to_owned(),
@@ -104,10 +101,10 @@ impl Contract {
                     }
 
                     if r#type != &expected_field.r#type {
-                        return Err(Error::FieldInvalidType {
+                        return Err(Error::StructureFieldInvalidType {
                             location: location
                                 .unwrap_or_else(|| expected_field.identifier.location),
-                            type_identifier: expected.identifier.to_owned(),
+                            r#type: expected.identifier.to_owned(),
                             field_name: expected_field.identifier.name.to_owned(),
                             expected: expected_field.r#type.to_string(),
                             found: r#type.to_string(),
@@ -115,9 +112,9 @@ impl Contract {
                     }
                 }
                 None => {
-                    return Err(Error::FieldOutOfRange {
+                    return Err(Error::StructureFieldOutOfRange {
                         location: location.unwrap_or_else(|| expected.location),
-                        type_identifier: expected.identifier.to_owned(),
+                        r#type: expected.identifier.to_owned(),
                         expected: expected.fields.len(),
                         found: index + 1,
                     });
@@ -157,9 +154,9 @@ impl Contract {
             offset += r#type.size();
         }
 
-        Err(Error::FieldDoesNotExist {
+        Err(Error::StructureFieldDoesNotExist {
             location: expected.location,
-            type_identifier: self
+            r#type: self
                 .r#type
                 .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
                 .identifier,

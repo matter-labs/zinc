@@ -7,7 +7,7 @@ use num::One;
 use num::Zero;
 
 use crate::bigint;
-use crate::bigint::error::Error;
+use crate::error::Error;
 
 #[test]
 fn ok_from_str() {

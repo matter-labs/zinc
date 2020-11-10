@@ -9,10 +9,6 @@ use actix_web::ResponseError;
 
 use zksync_types::TokenId;
 
-use zinc_build::ValueError as BuildValueError;
-use zinc_vm::RuntimeError;
-use zinc_zksync::TransactionError;
-
 ///
 /// The contract resource PUT `fee` error.
 ///
@@ -27,23 +23,29 @@ pub enum Error {
     /// The immutable method must be called via the `query` endpoint.
     MethodIsImmutable(String),
     /// Invalid contract method arguments.
-    InvalidInput(BuildValueError),
+    InvalidInput(anyhow::Error),
     /// The contract method input transaction is invalid.
-    Transaction(TransactionError),
+    Transaction(zinc_zksync::TransactionError),
     /// Token ID cannot be resolved by zkSync.
     TokenNotFound(TokenId),
 
     /// The virtual machine contract method runtime error.
-    RuntimeError(RuntimeError),
+    VirtualMachine(zinc_vm::Error),
     /// The PostgreSQL database error.
     Database(sqlx::Error),
     /// The ZkSync server client error.
     ZkSyncClient(zksync::error::ClientError),
 }
 
-impl From<TransactionError> for Error {
-    fn from(inner: TransactionError) -> Self {
+impl From<zinc_zksync::TransactionError> for Error {
+    fn from(inner: zinc_zksync::TransactionError) -> Self {
         Self::Transaction(inner)
+    }
+}
+
+impl From<zinc_vm::Error> for Error {
+    fn from(inner: zinc_vm::Error) -> Self {
+        Self::VirtualMachine(inner)
     }
 }
 
@@ -70,7 +72,7 @@ impl ResponseError for Error {
             Self::Transaction(..) => StatusCode::BAD_REQUEST,
             Self::TokenNotFound(..) => StatusCode::UNPROCESSABLE_ENTITY,
 
-            Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::VirtualMachine(..) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Database(..) => StatusCode::SERVICE_UNAVAILABLE,
             Self::ZkSyncClient(..) => StatusCode::SERVICE_UNAVAILABLE,
         }
@@ -101,7 +103,7 @@ impl fmt::Display for Error {
             Self::Transaction(inner) => format!("Transaction: {}", inner),
             Self::TokenNotFound(token_id) => format!("Token ID {} cannot be resolved", token_id),
 
-            Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
+            Self::VirtualMachine(inner) => format!("Runtime: {:?}", inner),
             Self::Database(inner) => format!("Database: {:?}", inner),
             Self::ZkSyncClient(inner) => format!("ZkSync: {:?}", inner),
         };

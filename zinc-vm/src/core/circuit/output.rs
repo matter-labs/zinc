@@ -2,21 +2,19 @@
 //! The virtual machine circuit output.
 //!
 
-use zinc_build::Value as BuildValue;
-
 ///
 /// The virtual machine circuit output.
 ///
 pub struct Output {
     /// The circuit output result, which is the public data for now.
-    pub result: BuildValue,
+    pub result: zinc_build::Value,
 }
 
 impl Output {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(result: BuildValue) -> Self {
+    pub fn new(result: zinc_build::Value) -> Self {
         Self { result }
     }
 }

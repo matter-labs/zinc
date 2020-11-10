@@ -13,7 +13,6 @@ use actix_web::http::StatusCode;
 use actix_web::web;
 
 use zinc_build::Application as BuildApplication;
-use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 use zinc_vm::ContractInput;
 use zinc_zksync::TransactionMsg;
@@ -74,7 +73,7 @@ pub async fn handle(
         .cloned()
         .ok_or(Error::ConstructorNotFound)?;
 
-    let input_value = BuildValue::try_from_typed_json(body.arguments, constructor.input)
+    let input_value = zinc_build::Value::try_from_typed_json(body.arguments, constructor.input)
         .map_err(Error::InvalidInput)?;
 
     log::debug!("Initializing the contract storage");
@@ -91,7 +90,7 @@ pub async fn handle(
         ))
     })
     .await
-    .map_err(Error::RuntimeError)?;
+    .map_err(Error::VirtualMachine)?;
 
     log::debug!("Generating an ETH private key");
     let mut contract_private_key = H256::default();

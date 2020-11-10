@@ -2,41 +2,54 @@
 //! The source code module error.
 //!
 
-use std::fmt;
-use std::io;
-
-use crate::source::directory::error::Error as DirectoryError;
-use crate::source::file::error::Error as FileError;
+use thiserror::Error;
 
 ///
 /// The source code module error.
 ///
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum Error {
-    /// File metadata getting error.
-    FileMetadata(io::Error),
     /// Failed to get the file type, that is, file or directory.
+    #[error("file type is unknown")]
     FileTypeUnknown,
-
-    /// The source code file error.
-    File(FileError),
-    /// The source code directory error.
-    Directory(DirectoryError),
-
+    /// The file has no extension.
+    #[error("file extension not found")]
+    ExtensionNotFound,
+    /// The file extension is not the one we are looking for.
+    #[error("file extension {0:?} is invalid")]
+    ExtensionInvalid(std::ffi::OsString),
+    /// The file has no stem, that is, name without the extension.
+    #[error("file or directory stem not found")]
+    StemNotFound,
+    /// The module entry is in the root directory. Only the application entry allowed there.
+    #[error(
+        "the `{}.{}` file cannot be declared at the project root",
+        zinc_const::file_name::MODULE_ENTRY,
+        zinc_const::extension::SOURCE
+    )]
+    ModuleEntryInRoot,
+    /// The application entry file is deeper than the root directory.
+    #[error(
+        "the `{}.{}` file must be declared at the project root",
+        zinc_const::file_name::APPLICATION_ENTRY,
+        zinc_const::extension::SOURCE
+    )]
+    ApplicationEntryBeyondRoot,
+    /// The module entry not found.
+    #[error(
+        "the `{}.{}` file is missing",
+        zinc_const::file_name::MODULE_ENTRY,
+        zinc_const::extension::SOURCE
+    )]
+    ModuleEntryNotFound,
+    /// The application entry not found. Only for the root directory.
+    #[error(
+        "the `{}.{}` file is missing",
+        zinc_const::file_name::APPLICATION_ENTRY,
+        zinc_const::extension::SOURCE
+    )]
+    ApplicationEntryNotFound,
     /// The source code compiler analysis error, formatted as string.
+    #[error("{0}")]
     Compiling(String),
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::FileMetadata(inner) => write!(f, "file metadata: `{}`", inner),
-            Self::FileTypeUnknown => write!(f, "file type is neither file nor directory"),
-
-            Self::File(inner) => write!(f, "file: {}", inner),
-            Self::Directory(inner) => write!(f, "directory: {}", inner),
-
-            Self::Compiling(inner) => write!(f, "{}", inner),
-        }
-    }
 }

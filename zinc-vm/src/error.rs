@@ -2,75 +2,72 @@
 //! The Zinc virtual machine error.
 //!
 
-use failure::Fail;
 use num::BigInt;
-
-use franklin_crypto::bellman::SynthesisError;
+use thiserror::Error;
 
 use zinc_build::ScalarType;
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum TypeSizeError {
-    #[fail(display = "expected input value of size {}, got {}", expected, found)]
+    #[error("expected input value of size {expected}, found {found}")]
     Input { expected: usize, found: usize },
 
-    #[fail(display = "expected output value of size {}, got {}", expected, found)]
+    #[error("expected output value of size {expected}, found {found}")]
     Output { expected: usize, found: usize },
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum MalformedBytecode {
-    #[fail(display = "invalid arguments to an intrinsic function: {}", _0)]
+    #[error("invalid arguments to an intrinsic function: {0}")]
     InvalidArguments(String),
 
-    #[fail(display = "unexpected `loop_end` instruction")]
+    #[error("unexpected `loop_end` instruction")]
     UnexpectedLoopEnd,
 
-    #[fail(display = "unexpected `return` instruction")]
+    #[error("unexpected `return` instruction")]
     UnexpectedReturn,
 
-    #[fail(display = "unexpected `else` instruction")]
+    #[error("unexpected `else` instruction")]
     UnexpectedElse,
 
-    #[fail(display = "unexpected `end_if` instruction")]
+    #[error("unexpected `end_if` instruction")]
     UnexpectedEndIf,
 
-    #[fail(display = "stack underflow")]
+    #[error("stack underflow")]
     StackUnderflow,
 
-    #[fail(display = "reading uninitialized memory")]
+    #[error("reading uninitialized memory")]
     UninitializedStorageAccess,
 
-    #[fail(display = "conditional branches produced results of different sizes")]
+    #[error("conditional branches produced results of different sizes")]
     BranchStacksDoNotMatch,
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum VerificationError {
-    #[fail(display = "value overflow: value {} is not in the field", _0)]
+    #[error("value overflow: value {0} is not in the field")]
     ValueOverflow(BigInt),
 
-    #[fail(display = "failed to synthesize circuit: {}", _0)]
-    SynthesisError(SynthesisError),
+    #[error("failed to synthesize circuit: {0}")]
+    SynthesisError(franklin_crypto::bellman::SynthesisError),
 }
 
-#[derive(Debug, Fail)]
-pub enum RuntimeError {
-    #[fail(display = "synthesis error: {}", _0)]
-    SynthesisError(SynthesisError),
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("synthesis error: {0}")]
+    SynthesisError(#[from] franklin_crypto::bellman::SynthesisError),
 
-    #[fail(display = "internal error in virtual machine: {}", _0)]
+    #[error("internal error in virtual machine: {0}")]
     InternalError(String),
 
-    #[fail(display = "malformed bytecode: {}", _0)]
-    MalformedBytecode(MalformedBytecode),
+    #[error("malformed bytecode: {0}")]
+    MalformedBytecode(#[from] MalformedBytecode),
 
-    #[fail(display = "require error: {}", _0)]
+    #[error("require error: {0}")]
     RequireError(String),
 
-    #[fail(
-        display = "index out of bounds: expected index in range {}..{}, got {}",
-        lower_bound, upper_bound, found
+    #[error(
+        "index out of bounds: expected index in range {lower_bound}..{upper_bound}, found {found}"
     )]
     IndexOutOfBounds {
         lower_bound: usize,
@@ -78,63 +75,42 @@ pub enum RuntimeError {
         found: usize,
     },
 
-    #[fail(display = "type error: expected {}, got {}", expected, found)]
+    #[error("type error: expected {expected}, found {found}")]
     TypeError { expected: String, found: String },
 
-    #[fail(display = "constant value expected, got variable (witness)")]
+    #[error("constant value expected, found variable (witness)")]
     ExpectedConstant,
 
-    #[fail(display = "size is too large: {}", _0)]
+    #[error("size is too large: {0}")]
     ExpectedUsize(BigInt),
 
-    #[fail(display = "value overflow or constraint violation")]
+    #[error("value overflow or constraint violation")]
     UnsatisfiedConstraint,
 
-    #[fail(display = "division by zero")]
+    #[error("division by zero")]
     DivisionByZero,
 
-    #[fail(display = "inverting zero")]
+    #[error("inverting zero")]
     ZeroInversion,
 
-    #[fail(display = "type size mismatch: {}", _0)]
-    TypeSize(TypeSizeError),
+    #[error("type size mismatch: {0}")]
+    TypeSize(#[from] TypeSizeError),
 
-    #[fail(
-        display = "overflow: value {} is not in range of type {}",
-        value, scalar_type
-    )]
+    #[error("overflow: value {value} is not in range of type {scalar_type}")]
     ValueOverflow {
         value: BigInt,
         scalar_type: ScalarType,
     },
 
-    #[fail(display = "the unit test data is missing")]
+    #[error("the unit test data is missing")]
     UnitTestDataMissing,
 
-    #[fail(display = "the instruction is available only for contracts")]
+    #[error("the instruction is available only for contracts")]
     OnlyForContracts,
 
-    #[fail(display = "invalid storage value")]
+    #[error("invalid storage value")]
     InvalidStorageValue,
 
-    #[fail(display = "contract method `{}` does not exist", _0)]
+    #[error("contract method `{found}` does not exist")]
     MethodNotFound { found: String },
-}
-
-impl From<SynthesisError> for RuntimeError {
-    fn from(error: SynthesisError) -> Self {
-        RuntimeError::SynthesisError(error)
-    }
-}
-
-impl From<MalformedBytecode> for RuntimeError {
-    fn from(error: MalformedBytecode) -> Self {
-        RuntimeError::MalformedBytecode(error)
-    }
-}
-
-impl From<TypeSizeError> for RuntimeError {
-    fn from(error: TypeSizeError) -> Self {
-        RuntimeError::TypeSize(error)
-    }
 }

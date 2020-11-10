@@ -2,15 +2,14 @@
 //! The `for` statement tests.
 //!
 
+use zinc_lexical::Location;
+
 use crate::error::Error;
-use crate::semantic::analyzer::statement::error::Error as StatementError;
-use crate::semantic::analyzer::statement::r#for::error::Error as ForStatementError;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
-use zinc_lexical::Location;
 
 #[test]
 fn ok_ordinar() {
@@ -127,16 +126,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Statement(
-        StatementError::For(ForStatementError::BoundsExpectedConstantRangeExpression {
+    let expected = Err(Error::Semantic(
+        SemanticError::ForStatementBoundsExpectedConstantRangeExpression {
             location: Location::test(4, 14),
             found: Element::Constant(Constant::Boolean(BooleanConstant::new(
                 Location::test(4, 14),
                 true,
             )))
             .to_string(),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -154,12 +153,12 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Statement(
-        StatementError::For(ForStatementError::WhileExpectedBooleanCondition {
+    let expected = Err(Error::Semantic(
+        SemanticError::ForStatementWhileExpectedBooleanCondition {
             location: Location::test(4, 26),
             found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 

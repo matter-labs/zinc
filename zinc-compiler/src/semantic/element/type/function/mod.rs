@@ -3,7 +3,6 @@
 //!
 
 pub mod constant;
-pub mod error;
 pub mod intrinsic;
 pub mod runtime;
 pub mod test;

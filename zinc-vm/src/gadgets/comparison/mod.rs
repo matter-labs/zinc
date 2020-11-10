@@ -9,18 +9,14 @@ use franklin_crypto::circuit::num::AllocatedNum;
 use zinc_build::ScalarType;
 
 use crate::auto_const;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
-pub fn greater_than<E, CS>(
-    cs: CS,
-    left: &Scalar<E>,
-    right: &Scalar<E>,
-) -> Result<Scalar<E>, RuntimeError>
+pub fn greater_than<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -32,7 +28,7 @@ pub fn greater_or_equals<E, CS>(
     cs: CS,
     left: &Scalar<E>,
     right: &Scalar<E>,
-) -> Result<Scalar<E>, RuntimeError>
+) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -44,7 +40,7 @@ pub fn lesser_or_equals<E, CS>(
     mut cs: CS,
     left: &Scalar<E>,
     right: &Scalar<E>,
-) -> Result<Scalar<E>, RuntimeError>
+) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -53,20 +49,12 @@ where
     gadgets::logical::not::not(cs.namespace(|| "not"), &is_gt)
 }
 
-pub fn lesser_than<E, CS>(
-    cs: CS,
-    left: &Scalar<E>,
-    right: &Scalar<E>,
-) -> Result<Scalar<E>, RuntimeError>
+pub fn lesser_than<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    fn inner<E, CS>(
-        mut cs: CS,
-        left: &Scalar<E>,
-        right: &Scalar<E>,
-    ) -> Result<Scalar<E>, RuntimeError>
+    fn inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, Error>
     where
         E: IEngine,
         CS: ConstraintSystem<E>,
@@ -84,7 +72,7 @@ where
                 )?;
                 Scalar::from_boolean(cs.namespace(|| "from_boolean"), boolean)
             }
-            r#type @ ScalarType::Boolean => Err(RuntimeError::TypeError {
+            r#type @ ScalarType::Boolean => Err(Error::TypeError {
                 expected: "field or integer type".into(),
                 found: r#type.to_string(),
             }),
@@ -98,7 +86,7 @@ fn less_than_field<E, CS>(
     mut cs: CS,
     left: &Scalar<E>,
     right: &Scalar<E>,
-) -> Result<Scalar<E>, RuntimeError>
+) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -155,7 +143,7 @@ fn less_than_integer<E, CS>(
     length: usize,
     left: &Scalar<E>,
     right: &Scalar<E>,
-) -> Result<Boolean, RuntimeError>
+) -> Result<Boolean, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -175,16 +163,12 @@ where
         .clone())
 }
 
-pub fn equals<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
+pub fn equals<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    fn inner<E, CS>(
-        mut cs: CS,
-        left: &Scalar<E>,
-        right: &Scalar<E>,
-    ) -> Result<Scalar<E>, RuntimeError>
+    fn inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, Error>
     where
         E: IEngine,
         CS: ConstraintSystem<E>,
@@ -204,7 +188,7 @@ pub fn not_equals<E, CS>(
     mut cs: CS,
     left: &Scalar<E>,
     right: &Scalar<E>,
-) -> Result<Scalar<E>, RuntimeError>
+) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,

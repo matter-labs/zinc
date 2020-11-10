@@ -18,7 +18,6 @@ use franklin_crypto::bellman::ConstraintSystem;
 use zinc_build::Contract as BytecodeContract;
 use zinc_build::IntegerType;
 use zinc_build::ScalarType;
-use zinc_build::Type as BuildType;
 use zinc_zksync::TransactionMsg;
 
 use crate::core::contract::storage::leaf::LeafVariant;
@@ -31,8 +30,8 @@ use crate::core::execution_state::function_frame::Frame;
 use crate::core::execution_state::ExecutionState;
 use crate::core::location::Location;
 use crate::core::virtual_machine::IVirtualMachine;
+use crate::error::Error;
 use crate::error::MalformedBytecode;
-use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::contract::merkle_tree::hasher::IHasher as IMerkleTreeHasher;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
@@ -90,15 +89,15 @@ where
     pub fn run<CB, F>(
         &mut self,
         contract: BytecodeContract,
-        input_type: BuildType,
+        input_type: zinc_build::Type,
         input_values: Option<&[BigInt]>,
         mut instruction_callback: CB,
         mut check_cs: F,
         address: usize,
-    ) -> Result<Vec<Option<BigInt>>, RuntimeError>
+    ) -> Result<Vec<Option<BigInt>>, Error>
     where
         CB: FnMut(&CS),
-        F: FnMut(&CS) -> Result<(), RuntimeError>,
+        F: FnMut(&CS) -> Result<(), Error>,
     {
         self.counter.cs.enforce(
             || "ONE * ONE = ONE (do this to avoid `unconstrained` error)",
@@ -163,7 +162,7 @@ where
         self.get_outputs()
     }
 
-    fn init_storage(&mut self) -> Result<(), RuntimeError> {
+    fn init_storage(&mut self) -> Result<(), Error> {
         // Temporary fix to avoid "unconstrained" error
         let root_hash = self.storage.root_hash()?;
         let cs = self.constraint_system();
@@ -179,9 +178,9 @@ where
 
     fn init_root_frame(
         &mut self,
-        input_type: BuildType,
+        input_type: zinc_build::Type,
         inputs: Option<&[BigInt]>,
-    ) -> Result<(), RuntimeError> {
+    ) -> Result<(), Error> {
         self.execution_state
             .frames_stack
             .push(Frame::new(0, std::usize::MAX));
@@ -202,7 +201,7 @@ where
         Ok(())
     }
 
-    fn get_outputs(&mut self) -> Result<Vec<Option<BigInt>>, RuntimeError> {
+    fn get_outputs(&mut self) -> Result<Vec<Option<BigInt>>, Error> {
         let outputs_fr: Vec<_> = self.outputs.iter().map(|f| (*f).clone()).collect();
 
         let mut outputs_bigint = Vec::with_capacity(outputs_fr.len());
@@ -217,19 +216,19 @@ where
         Ok(outputs_bigint)
     }
 
-    pub fn condition_push(&mut self, element: Scalar<E>) -> Result<(), RuntimeError> {
+    pub fn condition_push(&mut self, element: Scalar<E>) -> Result<(), Error> {
         self.execution_state.conditions_stack.push(element);
         Ok(())
     }
 
-    pub fn condition_pop(&mut self) -> Result<Scalar<E>, RuntimeError> {
+    pub fn condition_pop(&mut self) -> Result<Scalar<E>, Error> {
         self.execution_state
             .conditions_stack
             .pop()
             .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 
-    fn top_frame(&mut self) -> Result<&mut Frame<E>, RuntimeError> {
+    fn top_frame(&mut self) -> Result<&mut Frame<E>, Error> {
         self.execution_state
             .frames_stack
             .last_mut()
@@ -248,20 +247,20 @@ where
     type CS = CS;
     type S = S;
 
-    fn push(&mut self, cell: Cell<E>) -> Result<(), RuntimeError> {
+    fn push(&mut self, cell: Cell<E>) -> Result<(), Error> {
         self.execution_state.evaluation_stack.push(cell)
     }
 
-    fn pop(&mut self) -> Result<Cell<E>, RuntimeError> {
+    fn pop(&mut self) -> Result<Cell<E>, Error> {
         self.execution_state.evaluation_stack.pop()
     }
 
-    fn load(&mut self, address: usize) -> Result<Cell<E>, RuntimeError> {
+    fn load(&mut self, address: usize) -> Result<Cell<E>, Error> {
         let frame_start = self.top_frame()?.stack_frame_start;
         self.execution_state.data_stack.get(frame_start + address)
     }
 
-    fn store(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError> {
+    fn store(&mut self, address: usize, cell: Cell<E>) -> Result<(), Error> {
         let frame = self.top_frame()?;
         frame.stack_frame_end =
             std::cmp::max(frame.stack_frame_end, frame.stack_frame_start + address + 1);
@@ -277,7 +276,7 @@ where
         &mut self,
         index: Scalar<Self::E>,
         size: usize,
-    ) -> Result<Vec<Scalar<Self::E>>, RuntimeError> {
+    ) -> Result<Vec<Scalar<Self::E>>, Error> {
         self.storage.load(self.counter.next(), size, index)
     }
 
@@ -285,16 +284,16 @@ where
         &mut self,
         index: Scalar<Self::E>,
         values: LeafVariant<Self::E>,
-    ) -> Result<(), RuntimeError> {
+    ) -> Result<(), Error> {
         self.storage.store(self.counter.next(), index, values)
     }
 
-    fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
+    fn loop_begin(&mut self, iterations: usize) -> Result<(), Error> {
         let frame = self
             .execution_state
             .frames_stack
             .last_mut()
-            .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
+            .ok_or_else(|| Error::InternalError("Root frame is missing".into()))?;
 
         frame.blocks.push(Block::Loop(Loop {
             first_instruction_index: self.execution_state.instruction_counter,
@@ -304,7 +303,7 @@ where
         Ok(())
     }
 
-    fn loop_end(&mut self) -> Result<(), RuntimeError> {
+    fn loop_end(&mut self) -> Result<(), Error> {
         let frame = self
             .execution_state
             .frames_stack
@@ -324,7 +323,7 @@ where
         }
     }
 
-    fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError> {
+    fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), Error> {
         let offset = self.top_frame()?.stack_frame_end;
         self.execution_state
             .frames_stack
@@ -409,7 +408,7 @@ where
         Ok(())
     }
 
-    fn r#return(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
+    fn r#return(&mut self, outputs_count: usize) -> Result<(), Error> {
         let mut outputs = Vec::new();
         for _ in 0..outputs_count {
             let output = self.pop()?;
@@ -435,7 +434,7 @@ where
         Ok(())
     }
 
-    fn branch_then(&mut self) -> Result<(), RuntimeError> {
+    fn branch_then(&mut self) -> Result<(), Error> {
         let condition = self.pop()?.try_into_value()?;
 
         let prev = self.condition_top()?;
@@ -457,18 +456,16 @@ where
         Ok(())
     }
 
-    fn branch_else(&mut self) -> Result<(), RuntimeError> {
+    fn branch_else(&mut self) -> Result<(), Error> {
         let frame = self
             .execution_state
             .frames_stack
             .last_mut()
-            .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
+            .ok_or_else(|| Error::InternalError("Root frame is missing".into()))?;
 
         let mut branch = match frame.blocks.pop() {
             Some(Block::Branch(branch)) => Ok(branch),
-            Some(_) | None => Err(RuntimeError::MalformedBytecode(
-                MalformedBytecode::UnexpectedElse,
-            )),
+            Some(_) | None => Err(Error::MalformedBytecode(MalformedBytecode::UnexpectedElse)),
         }?;
 
         if branch.is_else {
@@ -493,14 +490,14 @@ where
         Ok(())
     }
 
-    fn branch_end(&mut self) -> Result<(), RuntimeError> {
+    fn branch_end(&mut self) -> Result<(), Error> {
         self.condition_pop()?;
 
         let frame = self
             .execution_state
             .frames_stack
             .last_mut()
-            .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
+            .ok_or_else(|| Error::InternalError("Root frame is missing".into()))?;
 
         let branch = match frame.blocks.pop() {
             Some(Block::Branch(branch)) => Ok(branch),
@@ -522,7 +519,7 @@ where
         Ok(())
     }
 
-    fn exit(&mut self, mut outputs_count: usize) -> Result<(), RuntimeError> {
+    fn exit(&mut self, mut outputs_count: usize) -> Result<(), Error> {
         if self.method_name.as_str() == zinc_const::contract::CONSTRUCTOR_NAME {
             outputs_count -= zinc_const::contract::IMPLICIT_FIELDS_SIZE;
         }
@@ -548,7 +545,7 @@ where
         Ok(())
     }
 
-    fn call_native<F: INativeCallable<E, S>>(&mut self, function: F) -> Result<(), RuntimeError> {
+    fn call_native<F: INativeCallable<E, S>>(&mut self, function: F) -> Result<(), Error> {
         let state = &mut self.execution_state;
         let cs = &mut self.counter.cs;
 
@@ -559,7 +556,7 @@ where
         )
     }
 
-    fn condition_top(&mut self) -> Result<Scalar<E>, RuntimeError> {
+    fn condition_top(&mut self) -> Result<Scalar<E>, Error> {
         self.execution_state
             .conditions_stack
             .last()

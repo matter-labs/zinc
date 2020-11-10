@@ -15,12 +15,12 @@ use zinc_build::Circuit as BuildCircuit;
 use crate::constraint_systems::dedup::Dedup as DedupCS;
 use crate::constraint_systems::logging::Logging as LoggingCS;
 use crate::core::circuit::State;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::IEngine;
 
 pub struct Synthesizer<'a, E: IEngine> {
     pub inputs: Option<Vec<BigInt>>,
-    pub output: &'a mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
+    pub output: &'a mut Option<Result<Vec<Option<BigInt>>, Error>>,
     pub bytecode: BuildCircuit,
 
     pub _pd: PhantomData<E>,

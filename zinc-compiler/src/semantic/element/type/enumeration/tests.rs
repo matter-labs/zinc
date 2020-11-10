@@ -4,12 +4,10 @@
 
 use num::BigInt;
 
-use crate::error::Error;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::enumeration::error::Error as EnumerationTypeError;
-use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::error::Error as SemanticError;
 use zinc_lexical::Location;
+
+use crate::error::Error;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
 fn error_duplicate_field() {
@@ -25,14 +23,12 @@ fn main() -> u8 {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Enumeration(EnumerationTypeError::DuplicateVariantValue {
-            location: Location::test(4, 5),
-            type_identifier: "List".to_owned(),
-            variant_name: "B".to_owned(),
-            variant_value: BigInt::from(2),
-        }),
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::TypeDuplicateVariantValue {
+        location: Location::test(4, 5),
+        r#type: "List".to_owned(),
+        variant_name: "B".to_owned(),
+        variant_value: BigInt::from(2),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 

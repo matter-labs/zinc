@@ -8,6 +8,9 @@ edition = "2018"
 description = "The Zinc source code representation"
 
 [dependencies]
+anyhow = "1.0"
+thiserror = "1.0"
+
 serde = "1.0"
 
 zinc-const = { path = "../zinc-const" }

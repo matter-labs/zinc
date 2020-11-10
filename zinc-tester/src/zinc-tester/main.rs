@@ -2,8 +2,7 @@
 //! The Zinc tester binary.
 //!
 
-mod arguments;
-mod panic;
+pub(crate) mod arguments;
 
 use std::path::PathBuf;
 use std::process;
@@ -20,7 +19,7 @@ use self::arguments::Arguments;
 ///
 /// The application entry point.
 ///
-fn main() {
+fn main() -> anyhow::Result<()> {
     let args = Arguments::new();
 
     if true {
@@ -35,12 +34,10 @@ fn main() {
     );
 
     let result = if args.proof_check {
-        Directory::new(&PathBuf::from(zinc_const::tester::DEFAULT_DIRECTORY))
-            .expect(self::panic::TEST_DIRECTORY_INVALID)
+        Directory::new(&PathBuf::from(zinc_const::tester::DEFAULT_DIRECTORY))?
             .run(ProofCheckRunner::new(args.verbosity, args.filter))
     } else {
-        Directory::new(&PathBuf::from(zinc_const::tester::DEFAULT_DIRECTORY))
-            .expect(self::panic::TEST_DIRECTORY_INVALID)
+        Directory::new(&PathBuf::from(zinc_const::tester::DEFAULT_DIRECTORY))?
             .run(EvaluationRunner::new(args.verbosity, args.filter))
     };
 

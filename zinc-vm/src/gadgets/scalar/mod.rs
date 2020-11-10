@@ -23,7 +23,7 @@ use franklin_crypto::circuit::Assignment;
 use zinc_build::IntegerType;
 use zinc_build::ScalarType;
 
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::IEngine;
 
 use self::expectation::ITypeExpectation as ScalarTypeExpectation;
@@ -57,11 +57,8 @@ impl<E: IEngine> Scalar<E> {
         }
     }
 
-    pub fn new_constant_bigint(
-        value: BigInt,
-        scalar_type: ScalarType,
-    ) -> Result<Self, RuntimeError> {
-        let fr = fr_bigint::bigint_to_fr::<E>(&value).ok_or(RuntimeError::ValueOverflow {
+    pub fn new_constant_bigint(value: BigInt, scalar_type: ScalarType) -> Result<Self, Error> {
+        let fr = fr_bigint::bigint_to_fr::<E>(&value).ok_or(Error::ValueOverflow {
             value,
             scalar_type: scalar_type.clone(),
         })?;
@@ -79,7 +76,7 @@ impl<E: IEngine> Scalar<E> {
         }
     }
 
-    pub fn to_boolean<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Boolean, RuntimeError> {
+    pub fn to_boolean<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Boolean, Error> {
         self.scalar_type.assert_type(ScalarType::Boolean)?;
 
         match &self.variant {
@@ -116,7 +113,7 @@ impl<E: IEngine> Scalar<E> {
         }
     }
 
-    pub fn to_constant_unchecked(&self) -> Result<Self, RuntimeError> {
+    pub fn to_constant_unchecked(&self) -> Result<Self, Error> {
         Ok(Self::new_constant_fr(self.grab_value()?, self.get_type()))
     }
 
@@ -152,25 +149,22 @@ impl<E: IEngine> Scalar<E> {
         &self.variant
     }
 
-    pub fn get_constant(&self) -> Result<E::Fr, RuntimeError> {
+    pub fn get_constant(&self) -> Result<E::Fr, Error> {
         match &self.variant {
             ScalarVariant::Constant(constant) => Ok(constant.value.to_owned()),
-            _ => Err(RuntimeError::ExpectedConstant),
+            _ => Err(Error::ExpectedConstant),
         }
     }
 
-    pub fn get_constant_usize(&self) -> Result<usize, RuntimeError> {
+    pub fn get_constant_usize(&self) -> Result<usize, Error> {
         let fr = self.get_constant()?;
         let bigint = fr_bigint::fr_to_bigint::<E>(&fr, false);
         bigint
             .to_usize()
-            .ok_or_else(|| RuntimeError::ExpectedUsize(bigint))
+            .ok_or_else(|| Error::ExpectedUsize(bigint))
     }
 
-    pub fn get_bits_le<CS: ConstraintSystem<E>>(
-        &self,
-        mut cs: CS,
-    ) -> Result<Vec<Self>, RuntimeError> {
+    pub fn get_bits_le<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Vec<Self>, Error> {
         let num = self.to_expression::<CS>();
         let bits = match self.scalar_type {
             ScalarType::Field => num.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict")),
@@ -200,7 +194,7 @@ impl<E: IEngine> Scalar<E> {
     pub fn from_boolean<CS: ConstraintSystem<E>>(
         mut cs: CS,
         boolean: Boolean,
-    ) -> Result<Self, RuntimeError> {
+    ) -> Result<Self, Error> {
         match boolean {
             Boolean::Is(bit) => Ok(Self::new_unchecked_variable(
                 bit.get_value_field::<E>(),
@@ -216,7 +210,7 @@ impl<E: IEngine> Scalar<E> {
             Boolean::Constant(_) => Ok(Self::new_constant_fr(
                 boolean
                     .get_value_field::<E>()
-                    .ok_or(RuntimeError::ExpectedConstant)?,
+                    .ok_or(Error::ExpectedConstant)?,
                 ScalarType::Boolean,
             )),
         }
@@ -227,7 +221,7 @@ impl<E: IEngine> Scalar<E> {
         condition: &Self,
         scalar: &Self,
         scalar_type: ScalarType,
-    ) -> Result<Self, RuntimeError>
+    ) -> Result<Self, Error>
     where
         CS: ConstraintSystem<E>,
     {
@@ -255,7 +249,7 @@ impl<E: IEngine> Scalar<E> {
         condition: &Self,
         scalar: &Self,
         int_type: IntegerType,
-    ) -> Result<Self, RuntimeError>
+    ) -> Result<Self, Error>
     where
         CS: ConstraintSystem<E>,
     {
@@ -263,7 +257,7 @@ impl<E: IEngine> Scalar<E> {
         if let (Some(value_fr), Some(condition_fr)) = (scalar.get_value(), condition.get_value()) {
             let value = fr_bigint::fr_to_bigint::<E>(&value_fr, int_type.is_signed);
             if !condition_fr.is_zero() && (value < int_type.min() || value > int_type.max()) {
-                return Err(RuntimeError::ValueOverflow {
+                return Err(Error::ValueOverflow {
                     value,
                     scalar_type: int_type.into(),
                 });

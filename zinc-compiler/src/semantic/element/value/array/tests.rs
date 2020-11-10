@@ -4,13 +4,11 @@
 
 use num::BigInt;
 
-use crate::error::Error;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::array::error::Error as ArrayValueError;
-use crate::semantic::element::value::error::Error as ValueError;
-use crate::semantic::error::Error as SemanticError;
 use zinc_lexical::Location;
+
+use crate::error::Error;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
 fn error_pushing_invalid_type() {
@@ -20,13 +18,11 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType {
-            location: Location::test(3, 21),
-            expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
-            found: Type::boolean(None).to_string(),
-        })),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ArrayPushingInvalidType {
+        location: Location::test(3, 21),
+        expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
+        found: Type::boolean(None).to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -41,12 +37,10 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Array(ArrayValueError::SliceStartOutOfRange {
-            location: Location::test(3, 22),
-            start: BigInt::from(-1).to_string(),
-        })),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ArraySliceStartOutOfRange {
+        location: Location::test(3, 22),
+        start: BigInt::from(-1).to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -61,13 +55,11 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Array(ArrayValueError::SliceEndOutOfRange {
-            location: Location::test(3, 21),
-            end: BigInt::from(6).to_string(),
-            size: 5,
-        })),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ArraySliceEndOutOfRange {
+        location: Location::test(3, 21),
+        end: BigInt::from(6).to_string(),
+        size: 5,
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -82,15 +74,13 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Array(
-            ArrayValueError::SliceEndLesserThanStart {
-                location: Location::test(3, 21),
-                start: BigInt::from(2).to_string(),
-                end: BigInt::from(1).to_string(),
-            },
-        )),
-    )));
+    let expected = Err(Error::Semantic(
+        SemanticError::ArraySliceEndLesserThanStart {
+            location: Location::test(3, 21),
+            start: BigInt::from(2).to_string(),
+            end: BigInt::from(1).to_string(),
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 

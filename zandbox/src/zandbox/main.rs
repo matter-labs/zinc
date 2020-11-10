@@ -2,8 +2,7 @@
 //! The Zandbox server daemon binary.
 //!
 
-mod arguments;
-mod error;
+pub(crate) mod arguments;
 
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -29,21 +28,20 @@ use zandbox::SharedData;
 use zandbox::SharedDataContract;
 
 use self::arguments::Arguments;
-use self::error::Error;
 
 ///
 /// The application entry point.
 ///
 #[actix_rt::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> anyhow::Result<()> {
     let args = Arguments::new();
 
     zinc_logger::initialize(zinc_const::app_name::ZANDBOX, args.verbosity);
 
     log::info!("Zandbox server started");
 
-    let network =
-        zksync::Network::from_str(args.network.as_str()).map_err(Error::InvalidNetwork)?;
+    let network = zksync::Network::from_str(args.network.as_str())
+        .map_err(|network| anyhow::anyhow!(format!("Invalid network `{}`", network)))?;
 
     log::info!("Initializing the PostgreSQL client");
     let postgresql = DatabaseClient::new(args.postgresql_uri.as_str()).await?;
@@ -133,11 +131,9 @@ async fn main() -> Result<(), Error> {
         "{}:{}",
         zinc_const::zandbox::HOST,
         args.http_port.unwrap_or(zinc_const::zandbox::PORT)
-    ))
-    .map_err(Error::ServerBinding)?
+    ))?
     .run()
-    .await
-    .map_err(Error::ServerRuntime)?;
+    .await?;
 
     log::info!("Zandbox server finished");
     Ok(())

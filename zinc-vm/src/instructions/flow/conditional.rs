@@ -7,23 +7,23 @@ use zinc_build::EndIf;
 use zinc_build::If;
 
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for If {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         vm.branch_then()
     }
 }
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Else {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         vm.branch_else()
     }
 }
 
 impl<VM: IVirtualMachine> IExecutable<VM> for EndIf {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         vm.branch_end()
     }
 }

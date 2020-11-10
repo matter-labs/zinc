@@ -5,8 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -15,8 +13,6 @@ use zinc_syntax::ConditionalExpression;
 use crate::generator::expression::operand::conditional::builder::Builder as GeneratorConditionalExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
-use crate::semantic::analyzer::expression::conditional::error::Error as ConditionalExpressionError;
-use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::constant::unit::Unit as UnitConstant;
@@ -92,12 +88,10 @@ impl Analyzer {
         match Type::from_element(&condition_result, scope_stack.top())? {
             Type::Boolean(_) => {}
             r#type => {
-                return Err(Error::Expression(ExpressionError::Conditional(
-                    ConditionalExpressionError::ExpectedBooleanCondition {
-                        location: condition_location,
-                        found: r#type.to_string(),
-                    },
-                )));
+                return Err(Error::ConditionalExpectedBooleanCondition {
+                    location: condition_location,
+                    found: r#type.to_string(),
+                });
             }
         }
         builder.set_condition(condition);
@@ -126,14 +120,12 @@ impl Analyzer {
         };
 
         if main_type != else_type {
-            return Err(Error::Expression(ExpressionError::Conditional(
-                ConditionalExpressionError::BranchTypesMismatch {
-                    location: main_expression_location,
-                    expected: main_type.to_string(),
-                    found: else_type.to_string(),
-                    reference: else_expression_location,
-                },
-            )));
+            return Err(Error::ConditionalBranchTypesMismatch {
+                location: main_expression_location,
+                expected: main_type.to_string(),
+                found: else_type.to_string(),
+                reference: else_expression_location,
+            });
         }
 
         let element = main_result;
@@ -180,21 +172,19 @@ impl Analyzer {
         let condition_result = match condition_result {
             Element::Constant(constant) => constant,
             element => {
-                return Err(Error::Expression(ExpressionError::NonConstantElement {
+                return Err(Error::ExpressionNonConstantElement {
                     location: condition_location,
                     found: element.to_string(),
-                }))
+                });
             }
         };
         let condition_result = match condition_result {
             Constant::Boolean(boolean) => boolean,
             constant => {
-                return Err(Error::Expression(ExpressionError::Conditional(
-                    ConditionalExpressionError::ExpectedBooleanCondition {
-                        location: condition_location,
-                        found: constant.r#type().to_string(),
-                    },
-                )));
+                return Err(Error::ConditionalExpectedBooleanCondition {
+                    location: condition_location,
+                    found: constant.r#type().to_string(),
+                });
             }
         };
 
@@ -207,10 +197,10 @@ impl Analyzer {
         let main_result = match main_result {
             Element::Constant(constant) => constant,
             element => {
-                return Err(Error::Expression(ExpressionError::NonConstantElement {
+                return Err(Error::ExpressionNonConstantElement {
                     location: main_expression_location,
                     found: element.to_string(),
-                }))
+                });
             }
         };
         let main_type = main_result.r#type();
@@ -223,10 +213,10 @@ impl Analyzer {
             let else_result = match else_result {
                 Element::Constant(constant) => constant,
                 element => {
-                    return Err(Error::Expression(ExpressionError::NonConstantElement {
+                    return Err(Error::ExpressionNonConstantElement {
                         location: else_expression_location,
                         found: element.to_string(),
-                    }))
+                    });
                 }
             };
             let else_type = else_result.r#type();
@@ -241,14 +231,12 @@ impl Analyzer {
         };
 
         if main_type != else_type {
-            return Err(Error::Expression(ExpressionError::Conditional(
-                ConditionalExpressionError::BranchTypesMismatch {
-                    location: main_expression_location,
-                    expected: main_type.to_string(),
-                    found: else_type.to_string(),
-                    reference: else_expression_location,
-                },
-            )));
+            return Err(Error::ConditionalBranchTypesMismatch {
+                location: main_expression_location,
+                expected: main_type.to_string(),
+                found: else_type.to_string(),
+                reference: else_expression_location,
+            });
         }
 
         let element = Element::Constant(if condition_result.is_true() {

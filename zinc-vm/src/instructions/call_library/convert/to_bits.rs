@@ -11,7 +11,7 @@ use zinc_build::IntegerType;
 use zinc_build::ScalarType;
 
 use crate::core::execution_state::ExecutionState;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
@@ -26,7 +26,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for ToBits {
         mut cs: CS,
         state: &mut ExecutionState<E>,
         _storage: Option<&mut S>,
-    ) -> Result<(), RuntimeError> {
+    ) -> Result<(), Error> {
         let scalar = state.evaluation_stack.pop()?.try_into_value()?;
         let expr = scalar.to_expression::<CS>();
 
@@ -62,7 +62,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for ToBits {
     }
 }
 
-fn signed_to_bits<E, CS>(mut cs: CS, scalar: Scalar<E>) -> Result<Vec<Boolean>, RuntimeError>
+fn signed_to_bits<E, CS>(mut cs: CS, scalar: Scalar<E>) -> Result<Vec<Boolean>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -73,7 +73,7 @@ where
             is_signed: true,
         }) => bitlength,
         r#type => {
-            return Err(RuntimeError::TypeError {
+            return Err(Error::TypeError {
                 expected: "signed type".to_owned(),
                 found: r#type.to_string(),
             })

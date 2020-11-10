@@ -6,9 +6,8 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
+use anyhow::Context;
 use serde::Deserialize;
-
-use crate::error::file::Error as FileError;
 
 ///
 /// The circuit source code entry point file representation.
@@ -39,12 +38,13 @@ impl Circuit {
     ///
     /// Creates the file in the project at the given `path`.
     ///
-    pub fn write_to(self, path: &PathBuf) -> Result<(), FileError> {
+    pub fn write_to(self, path: &PathBuf) -> anyhow::Result<()> {
         let path = Self::append_default(path);
-        let mut file =
-            File::create(&path).map_err(|error| FileError::Creating(Self::file_name(), error))?;
+        let mut file = File::create(&path).with_context(|| path.to_string_lossy().to_string())?;
         file.write_all(self.template().as_bytes())
-            .map_err(|error| FileError::Writing(Self::file_name(), error))
+            .with_context(|| path.to_string_lossy().to_string())?;
+
+        Ok(())
     }
 
     ///
@@ -56,12 +56,7 @@ impl Circuit {
             if !path.ends_with(zinc_const::directory::SOURCE) {
                 path.push(PathBuf::from(zinc_const::directory::SOURCE));
             }
-            let file_name = format!(
-                "{}.{}",
-                zinc_const::file_name::APPLICATION_ENTRY,
-                zinc_const::extension::SOURCE,
-            );
-            path.push(PathBuf::from(file_name));
+            path.push(PathBuf::from(Self::file_name()));
         }
         path
     }

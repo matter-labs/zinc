@@ -5,12 +5,12 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::fmt;
 
 use num::Signed;
 use num::ToPrimitive;
+
+use zinc_lexical::Location;
 
 use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::range::Range as RangeConstant;
@@ -18,9 +18,7 @@ use crate::semantic::element::constant::range_inclusive::RangeInclusive as Range
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
-use zinc_lexical::Location;
-
-use self::error::Error;
+use crate::semantic::error::Error;
 
 ///
 /// Arrays are collections of elements of the same type.
@@ -85,7 +83,7 @@ impl Array {
         if self.is_empty() {
             self.r#type = r#type;
         } else if r#type != self.r#type {
-            return Err(Error::PushingInvalidType {
+            return Err(Error::ArrayPushingInvalidType {
                 location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 expected: self.r#type.to_string(),
                 found: r#type.to_string(),
@@ -108,7 +106,7 @@ impl Array {
         if self.is_empty() {
             self.r#type = r#type;
         } else if r#type != self.r#type {
-            return Err(Error::PushingInvalidType {
+            return Err(Error::ArrayPushingInvalidType {
                 location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 expected: self.r#type.to_string(),
                 found: r#type.to_string(),
@@ -136,7 +134,7 @@ impl Array {
     ///
     pub fn slice_range(self, range: RangeConstant) -> Result<(Value, IndexAccess), Error> {
         if range.start.is_negative() {
-            return Err(Error::SliceStartOutOfRange {
+            return Err(Error::ArraySliceStartOutOfRange {
                 location: range.location,
                 start: range.start.to_string(),
             });
@@ -145,7 +143,7 @@ impl Array {
         let start = range
             .start
             .to_usize()
-            .ok_or_else(|| Error::SliceStartOutOfRange {
+            .ok_or_else(|| Error::ArraySliceStartOutOfRange {
                 location: range.location,
                 start: range.start.to_string(),
             })?;
@@ -153,14 +151,14 @@ impl Array {
         let end = range
             .end
             .to_usize()
-            .ok_or_else(|| Error::SliceEndOutOfRange {
+            .ok_or_else(|| Error::ArraySliceEndOutOfRange {
                 location: range.location,
                 end: range.end.to_string(),
                 size: self.size,
             })?;
 
         if end < start {
-            return Err(Error::SliceEndLesserThanStart {
+            return Err(Error::ArraySliceEndLesserThanStart {
                 location: range.location,
                 start: start.to_string(),
                 end: end.to_string(),
@@ -168,7 +166,7 @@ impl Array {
         }
 
         if end > self.size {
-            return Err(Error::SliceEndOutOfRange {
+            return Err(Error::ArraySliceEndOutOfRange {
                 location: range.location,
                 end: end.to_string(),
                 size: self.size,
@@ -196,7 +194,7 @@ impl Array {
         range: RangeInclusiveConstant,
     ) -> Result<(Value, IndexAccess), Error> {
         if range.start.is_negative() {
-            return Err(Error::SliceStartOutOfRange {
+            return Err(Error::ArraySliceStartOutOfRange {
                 location: range.location,
                 start: range.start.to_string(),
             });
@@ -205,7 +203,7 @@ impl Array {
         let start = range
             .start
             .to_usize()
-            .ok_or_else(|| Error::SliceStartOutOfRange {
+            .ok_or_else(|| Error::ArraySliceStartOutOfRange {
                 location: range.location,
                 start: range.start.to_string(),
             })?;
@@ -213,14 +211,14 @@ impl Array {
         let end = range
             .end
             .to_usize()
-            .ok_or_else(|| Error::SliceEndOutOfRange {
+            .ok_or_else(|| Error::ArraySliceEndOutOfRange {
                 location: range.location,
                 end: range.end.to_string(),
                 size: self.size,
             })?;
 
         if end < start {
-            return Err(Error::SliceEndLesserThanStart {
+            return Err(Error::ArraySliceEndLesserThanStart {
                 location: range.location,
                 start: start.to_string(),
                 end: end.to_string(),
@@ -228,7 +226,7 @@ impl Array {
         }
 
         if end >= self.size {
-            return Err(Error::SliceEndOutOfRange {
+            return Err(Error::ArraySliceEndOutOfRange {
                 location: range.location,
                 end: end.to_string(),
                 size: self.size,

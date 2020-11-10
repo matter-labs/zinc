@@ -6,7 +6,6 @@ use std::collections::HashMap;
 
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::Value as JsonValue;
 
 ///
 /// The Zinc build input file representation.
@@ -17,16 +16,16 @@ pub enum Input {
     /// The circuit byte representation.
     Circuit {
         /// The circuit arguments JSON data.
-        arguments: JsonValue,
+        arguments: serde_json::Value,
     },
     /// The contract byte representation.
     Contract {
         /// The storage file JSON data.
-        storage: JsonValue,
+        storage: serde_json::Value,
         /// The contract input transaction, represented by the `zksync::msg` variable.
-        msg: JsonValue,
+        msg: serde_json::Value,
         /// The contract methods arguments JSON data.
-        arguments: HashMap<String, JsonValue>,
+        arguments: HashMap<String, serde_json::Value>,
     },
 }
 
@@ -34,7 +33,7 @@ impl Input {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_circuit(arguments: JsonValue) -> Self {
+    pub fn new_circuit(arguments: serde_json::Value) -> Self {
         Self::Circuit { arguments }
     }
 
@@ -42,9 +41,9 @@ impl Input {
     /// A shortcut constructor.
     ///
     pub fn new_contract(
-        storage: JsonValue,
-        msg: JsonValue,
-        arguments: HashMap<String, JsonValue>,
+        storage: serde_json::Value,
+        msg: serde_json::Value,
+        arguments: HashMap<String, serde_json::Value>,
     ) -> Self {
         Self::Contract {
             storage,

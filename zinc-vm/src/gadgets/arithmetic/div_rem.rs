@@ -4,7 +4,7 @@ use franklin_crypto::circuit::Assignment;
 use zinc_build::ScalarType;
 
 use crate::auto_const;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::scalar::Scalar;
@@ -15,7 +15,7 @@ pub fn div_rem_conditional<E, CS>(
     condition: &Scalar<E>,
     left: &Scalar<E>,
     right: &Scalar<E>,
-) -> Result<(Scalar<E>, Scalar<E>), RuntimeError>
+) -> Result<(Scalar<E>, Scalar<E>), Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -35,7 +35,7 @@ pub fn div_rem_enforce<E, CS>(
     mut cs: CS,
     left: &Scalar<E>,
     right: &Scalar<E>,
-) -> Result<(Scalar<E>, Scalar<E>), RuntimeError>
+) -> Result<(Scalar<E>, Scalar<E>), Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -52,7 +52,7 @@ where
             gadgets::scalar::fr_bigint::fr_to_bigint::<E>(&denom, denominator.is_signed());
 
         let (q, r) =
-            zinc_math::euclidean_div_rem(&nom_bi, &denom_bi).ok_or(RuntimeError::DivisionByZero)?;
+            zinc_math::euclidean_div_rem(&nom_bi, &denom_bi).ok_or(Error::DivisionByZero)?;
 
         quotient_value = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&q);
         remainder_value = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&r);

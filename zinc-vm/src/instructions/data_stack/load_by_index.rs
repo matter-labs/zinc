@@ -8,12 +8,12 @@ use zinc_build::LoadByIndex;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for LoadByIndex {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         let index = vm.pop()?.try_into_value()?;
 
         let mut array = Vec::with_capacity(self.total_size);

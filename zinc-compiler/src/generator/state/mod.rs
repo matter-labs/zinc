@@ -13,7 +13,6 @@ use std::rc::Rc;
 use zinc_build::Application as BuildApplication;
 use zinc_build::ContractMethod;
 use zinc_build::Instruction;
-use zinc_build::Type as BuildType;
 use zinc_build::UnitTest as BuildUnitTest;
 use zinc_lexical::Location;
 use zinc_lexical::FILE_INDEX;
@@ -279,7 +278,7 @@ impl State {
                         .get(&type_id)
                         .cloned()
                         .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
-                    let mut input: BuildType = method.input_fields_as_struct().into();
+                    let mut input: zinc_build::Type = method.input_fields_as_struct().into();
                     input.remove_contract_instance();
                     let output = method.output_type.into();
                     methods.insert(

@@ -4,7 +4,6 @@
 
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
-use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::Place;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
@@ -25,10 +24,7 @@ impl Translator {
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         match rule {
             TranslationRule::Value => {
-                let element = Value::try_from_place(&place)
-                    .map(Element::Value)
-                    .map_err(ElementError::Value)
-                    .map_err(Error::Element)?;
+                let element = Value::try_from_place(&place).map(Element::Value)?;
 
                 Ok((
                     element,

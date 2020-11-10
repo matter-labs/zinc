@@ -10,7 +10,7 @@ use franklin_crypto::circuit::Assignment;
 
 use zinc_build::ScalarType;
 
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
@@ -19,18 +19,18 @@ pub fn allocate<E, CS>(
     mut cs: CS,
     value: Option<&BigInt>,
     scalar_type: ScalarType,
-) -> Result<Scalar<E>, RuntimeError>
+) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
     let fr = if let Some(bigint) = value {
-        Some(gadgets::scalar::fr_bigint::bigint_to_fr::<E>(bigint).ok_or(
-            RuntimeError::ValueOverflow {
+        Some(
+            gadgets::scalar::fr_bigint::bigint_to_fr::<E>(bigint).ok_or(Error::ValueOverflow {
                 value: bigint.clone(),
                 scalar_type: scalar_type.clone(),
-            },
-        )?)
+            })?,
+        )
     } else {
         None
     };

@@ -2,16 +2,12 @@
 //! The Zandbox server daemon contract storage utils.
 //!
 
-use serde_json::json;
-use serde_json::Value as JsonValue;
-
 use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::TokenLike;
 
 use zinc_build::ContractFieldType;
 use zinc_build::ContractFieldValue;
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
-use zinc_build::Value as BuildValue;
 
 use crate::database::model::field::insert::Input as FieldInsertInput;
 use crate::database::model::field::select::Output as FieldSelectOutput;
@@ -36,7 +32,7 @@ impl Storage {
         for r#type in types.iter() {
             fields.push(BuildContractFieldValue::new(
                 r#type.name.to_owned(),
-                BuildValue::new(r#type.r#type.to_owned()),
+                zinc_build::Value::new(r#type.r#type.to_owned()),
                 r#type.is_public,
                 r#type.is_implicit,
             ));
@@ -61,7 +57,7 @@ impl Storage {
 
         fields.push(BuildContractFieldValue::new(
             zinc_const::contract::FIELD_NAME_ADDRESS.to_owned(),
-            BuildValue::try_from_typed_json(
+            zinc_build::Value::try_from_typed_json(
                 serde_json::to_value(address).expect(zinc_const::panic::DATA_CONVERSION),
                 types[zinc_const::contract::FIELD_INDEX_ADDRESS]
                     .r#type
@@ -79,15 +75,15 @@ impl Storage {
                 .tokens
                 .resolve(TokenLike::Symbol(symbol))
                 .ok_or(zksync::error::ClientError::UnknownToken)?;
-            balances.push(json!({
+            balances.push(serde_json::json!({
                 "key": token.address,
                 "value": balance.0.to_string(),
             }));
         }
         fields.push(BuildContractFieldValue::new(
             zinc_const::contract::FIELD_NAME_BALANCES.to_owned(),
-            BuildValue::try_from_typed_json(
-                JsonValue::Array(balances),
+            zinc_build::Value::try_from_typed_json(
+                serde_json::Value::Array(balances),
                 types[zinc_const::contract::FIELD_INDEX_BALANCES]
                     .r#type
                     .to_owned(),
@@ -103,7 +99,7 @@ impl Storage {
             index += zinc_const::contract::IMPLICIT_FIELDS_COUNT;
 
             let r#type = types[index].r#type.to_owned();
-            let value = BuildValue::try_from_typed_json(value, r#type)
+            let value = zinc_build::Value::try_from_typed_json(value, r#type)
                 .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
             fields.push(BuildContractFieldValue::new(
                 name,
@@ -119,9 +115,9 @@ impl Storage {
     ///
     /// The build type adapter.
     ///
-    pub fn from_build(build: BuildValue) -> Self {
+    pub fn from_build(build: zinc_build::Value) -> Self {
         match build {
-            BuildValue::Contract(fields) => Self { fields },
+            zinc_build::Value::Contract(fields) => Self { fields },
             _ => panic!(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION),
         }
     }
@@ -174,15 +170,15 @@ impl Storage {
     ///
     /// Wraps the fields with the VM value type.
     ///
-    pub fn into_build(self) -> BuildValue {
-        BuildValue::Contract(self.fields)
+    pub fn into_build(self) -> zinc_build::Value {
+        zinc_build::Value::Contract(self.fields)
     }
 
     ///
     /// Wraps the fields with the VM value type, filtering out the private fields.
     ///
-    pub fn into_public_build(self) -> BuildValue {
-        BuildValue::Contract(
+    pub fn into_public_build(self) -> zinc_build::Value {
+        zinc_build::Value::Contract(
             self.fields
                 .into_iter()
                 .filter(|field| field.is_public)

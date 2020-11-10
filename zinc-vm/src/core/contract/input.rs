@@ -2,7 +2,6 @@
 //! The virtual machine contract input.
 //!
 
-use zinc_build::Value as BuildValue;
 use zinc_zksync::TransactionMsg;
 
 ///
@@ -10,9 +9,9 @@ use zinc_zksync::TransactionMsg;
 ///
 pub struct Input {
     /// The contract method arguments, which is witness for now.
-    pub arguments: BuildValue,
+    pub arguments: zinc_build::Value,
     /// The contract storage after executing a method.
-    pub storage: BuildValue,
+    pub storage: zinc_build::Value,
     /// The contract method name which is called.
     pub method_name: String,
     /// The contract input transaction.
@@ -24,8 +23,8 @@ impl Input {
     /// A shortcut constructor.
     ///
     pub fn new(
-        arguments: BuildValue,
-        storage: BuildValue,
+        arguments: zinc_build::Value,
+        storage: zinc_build::Value,
         method_name: String,
         transaction: TransactionMsg,
     ) -> Self {

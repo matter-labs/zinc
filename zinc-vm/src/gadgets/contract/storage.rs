@@ -8,7 +8,7 @@ use franklin_crypto::bellman::SynthesisError;
 use zinc_build::ScalarType;
 
 use crate::core::contract::storage::leaf::LeafVariant;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::gadgets::contract::merkle_tree::allocated_leaf::AllocatedLeaf;
 use crate::gadgets::contract::merkle_tree::hasher::IHasher as IMerkleTreeHasher;
@@ -53,7 +53,7 @@ where
         mut cs: CS,
         _size: usize,
         index: Scalar<E>,
-    ) -> Result<Vec<Scalar<E>>, RuntimeError>
+    ) -> Result<Vec<Scalar<E>>, Error>
     where
         CS: ConstraintSystem<E>,
     {
@@ -75,7 +75,7 @@ where
             AllocatedLeaf::alloc_leaf_fields(cs.namespace(|| "alloc leaf fields"), leaf_value)?;
 
         // if leaf_fields.len() != size {
-        //     return Err(RuntimeError::RequireError(
+        //     return Err(Error::RequireError(
         //         "Incorrect number of slot fields returned from storage".into(),
         //     ));
         // }
@@ -116,7 +116,7 @@ where
         mut cs: CS,
         index: Scalar<E>,
         values: LeafVariant<E>,
-    ) -> Result<(), RuntimeError>
+    ) -> Result<(), Error>
     where
         CS: ConstraintSystem<E>,
     {
@@ -175,7 +175,7 @@ where
         Ok(())
     }
 
-    pub fn root_hash(&self) -> Result<Scalar<E>, RuntimeError> {
+    pub fn root_hash(&self) -> Result<Scalar<E>, Error> {
         Ok(self.root_hash.clone())
     }
 
@@ -203,7 +203,6 @@ mod tests {
     use franklin_crypto::circuit::test::TestConstraintSystem;
 
     use zinc_build::ScalarType;
-    use zinc_build::Type as BuildType;
 
     use crate::core::contract::storage::database::Storage as DatabaseStorage;
     use crate::core::contract::storage::leaf::LeafInput;
@@ -222,7 +221,7 @@ mod tests {
 
         let storage = DatabaseStorage::<Bn256>::new(vec![
             LeafInput::Array {
-                r#type: BuildType::Scalar(ScalarType::Field),
+                r#type: zinc_build::Type::Scalar(ScalarType::Field),
                 values: vec![BigInt::zero()],
             };
             STORAGE_ELEMENT_COUNT

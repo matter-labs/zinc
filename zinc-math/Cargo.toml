@@ -9,7 +9,8 @@ edition = "2018"
 description = "The Zinc math utilities"
 
 [dependencies]
-failure = "0.1"
+thiserror = "1.0"
+
 num = "0.3"
 
 zinc-const = { path = "../zinc-const" }

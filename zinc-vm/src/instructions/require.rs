@@ -7,12 +7,12 @@ use franklin_crypto::bellman::ConstraintSystem;
 use zinc_build::Require;
 
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Require {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         let value = vm.pop()?.try_into_value()?;
         let condition = vm.condition_top()?;
 
@@ -35,7 +35,7 @@ mod tests {
     use num::One;
     use num::Zero;
 
-    use crate::error::RuntimeError;
+    use crate::error::Error;
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
@@ -57,7 +57,7 @@ mod tests {
             .test::<i32>(&[]);
 
         match res {
-            Err(TestingError::RuntimeError(RuntimeError::RequireError(_))) => {}
+            Err(TestingError::Error(Error::RequireError(_))) => {}
             _ => panic!("Expected require error"),
         }
     }

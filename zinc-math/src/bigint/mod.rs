@@ -5,15 +5,13 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::str::FromStr;
 
 use num::BigInt;
 use num::Num;
 use num::Zero;
 
-use self::error::Error;
+use crate::error::Error;
 
 ///
 /// The extended BigInt parsing function, which supports:
@@ -22,7 +20,7 @@ use self::error::Error;
 /// - trimming out underscores
 /// - decimal numbers, where the exponent is not less than the number of fractional digits
 ///
-pub fn from_str(string: &str) -> Result<BigInt, Error> {
+pub fn from_str(string: &str) -> crate::Result<BigInt> {
     let string = string.replace("_", "");
 
     if string.starts_with("0b") {

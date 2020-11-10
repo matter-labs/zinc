@@ -2,13 +2,11 @@
 //! The contract value element tests.
 //!
 
-use crate::error::Error;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::contract::error::Error as ContractValueError;
-use crate::semantic::element::value::error::Error as ValueError;
-use crate::semantic::error::Error as SemanticError;
 use zinc_lexical::Location;
+
+use crate::error::Error;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
 fn error_field_does_not_exist() {
@@ -21,15 +19,11 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Contract(
-            ContractValueError::FieldDoesNotExist {
-                location: Location::test(6, 44),
-                type_identifier: "Test".to_owned(),
-                field_name: "c".to_owned(),
-            },
-        )),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldDoesNotExist {
+        location: Location::test(6, 44),
+        r#type: "Test".to_owned(),
+        field_name: "c".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -47,15 +41,13 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Contract(ContractValueError::FieldExpected {
-            location: Location::test(6, 38),
-            type_identifier: "Test".to_owned(),
-            position: 4,
-            expected: "b".to_owned(),
-            found: "c".to_owned(),
-        })),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldExpected {
+        location: Location::test(6, 38),
+        r#type: "Test".to_owned(),
+        position: 4,
+        expected: "b".to_owned(),
+        found: "c".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -73,15 +65,13 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Contract(ContractValueError::FieldInvalidType {
-            location: Location::test(6, 38),
-            type_identifier: "Test".to_owned(),
-            field_name: "b".to_owned(),
-            expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
-            found: Type::boolean(None).to_string(),
-        })),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldInvalidType {
+        location: Location::test(6, 38),
+        r#type: "Test".to_owned(),
+        field_name: "b".to_owned(),
+        expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
+        found: Type::boolean(None).to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -99,14 +89,12 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Contract(ContractValueError::FieldOutOfRange {
-            location: Location::test(6, 45),
-            type_identifier: "Test".to_owned(),
-            expected: 4,
-            found: 5,
-        })),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldOutOfRange {
+        location: Location::test(6, 45),
+        r#type: "Test".to_owned(),
+        expected: 4,
+        found: 5,
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 

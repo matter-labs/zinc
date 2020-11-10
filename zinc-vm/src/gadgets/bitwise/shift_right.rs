@@ -7,18 +7,14 @@ use franklin_crypto::circuit::num::AllocatedNum;
 
 use zinc_build::ScalarType;
 
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
-pub fn shift_right<E, CS>(
-    cs: CS,
-    num: &Scalar<E>,
-    shift: &Scalar<E>,
-) -> Result<Scalar<E>, RuntimeError>
+pub fn shift_right<E, CS>(cs: CS, num: &Scalar<E>, shift: &Scalar<E>) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -45,7 +41,7 @@ where
                 result_value &= &BigInt::from_bytes_le(Sign::Plus, mask.as_slice());
 
                 let result_fr = gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&result_value)
-                    .ok_or(RuntimeError::ValueOverflow {
+                    .ok_or(Error::ValueOverflow {
                         value: result_value,
                         scalar_type: scalar_type.clone(),
                     })?;
@@ -55,11 +51,7 @@ where
     }
 }
 
-fn variable_shift<E, CS>(
-    mut cs: CS,
-    num: &Scalar<E>,
-    shift: &Scalar<E>,
-) -> Result<Scalar<E>, RuntimeError>
+fn variable_shift<E, CS>(mut cs: CS, num: &Scalar<E>, shift: &Scalar<E>) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -96,14 +88,14 @@ where
         .rev()
         .enumerate()
         .map(|(i, b)| Scalar::from_boolean(cs.namespace(|| format!("bit {}", i)), b))
-        .collect::<Result<Vec<_>, RuntimeError>>()?;
+        .collect::<Result<Vec<_>, Error>>()?;
 
     let result = gadgets::select::recursive(cs, &shift_bits_be, &variants)?;
 
     Ok(result.to_type_unchecked(scalar_type))
 }
 
-fn variable_num<E, CS>(mut cs: CS, num: &Scalar<E>, shift: usize) -> Result<Scalar<E>, RuntimeError>
+fn variable_num<E, CS>(mut cs: CS, num: &Scalar<E>, shift: usize) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,

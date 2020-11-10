@@ -5,7 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
 pub mod intrinsic;
 pub mod item;
 pub mod memory_type;
@@ -26,11 +25,10 @@ use crate::generator::statement::Statement as GeneratorStatement;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::error::Error as SemanticError;
+use crate::semantic::error::Error;
 use crate::semantic::scope::intrinsic::IntrinsicTypeId;
 use crate::source::Source;
 
-use self::error::Error;
 use self::intrinsic::IntrinsicScope;
 use self::item::constant::Constant as ConstantItem;
 use self::item::field::Field as FieldItem;
@@ -128,7 +126,7 @@ impl Scope {
     ///
     /// Internally defines all the items in the order they have been declared.
     ///
-    pub fn define(&self) -> Result<(), SemanticError> {
+    pub fn define(&self) -> Result<(), Error> {
         let mut items: Vec<(String, Rc<RefCell<Item>>)> =
             self.items.clone().into_inner().into_iter().collect();
         items.sort_by_key(|(_name, item)| item.borrow().item_id());
@@ -158,13 +156,13 @@ impl Scope {
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
         item: Rc<RefCell<Item>>,
-    ) -> Result<(), SemanticError> {
+    ) -> Result<(), Error> {
         if let Ok(item) = scope.borrow().resolve_item(&identifier, true) {
-            return Err(SemanticError::Scope(Error::ItemRedeclared {
+            return Err(Error::ScopeItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
                 reference: item.borrow().location(),
-            }));
+            });
         }
 
         scope
@@ -188,16 +186,16 @@ impl Scope {
         is_mutable: bool,
         r#type: Type,
         memory_type: MemoryType,
-    ) -> Result<(), SemanticError> {
+    ) -> Result<(), Error> {
         if let Ok(item) = scope
             .borrow()
             .resolve_item(&identifier, !identifier.is_self_lowercase())
         {
-            return Err(SemanticError::Scope(Error::ItemRedeclared {
+            return Err(Error::ScopeItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
                 reference: item.borrow().location(),
-            }));
+            });
         }
 
         let name = identifier.name.clone();
@@ -225,13 +223,13 @@ impl Scope {
         is_public: bool,
         is_implicit: bool,
         is_immutable: bool,
-    ) -> Result<(), SemanticError> {
+    ) -> Result<(), Error> {
         if let Ok(item) = scope.borrow().resolve_item(&identifier, false) {
-            return Err(SemanticError::Scope(Error::ItemRedeclared {
+            return Err(Error::ScopeItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
                 reference: item.borrow().location(),
-            }));
+            });
         }
 
         let name = identifier.name.clone();
@@ -258,13 +256,13 @@ impl Scope {
         scope: Rc<RefCell<Scope>>,
         statement: ConstStatement,
         is_associated: bool,
-    ) -> Result<(), SemanticError> {
+    ) -> Result<(), Error> {
         if let Ok(item) = scope.borrow().resolve_item(&statement.identifier, true) {
-            return Err(SemanticError::Scope(Error::ItemRedeclared {
+            return Err(Error::ScopeItemRedeclared {
                 location: statement.location,
                 name: statement.identifier.name.clone(),
                 reference: item.borrow().location(),
-            }));
+            });
         }
 
         let name = statement.identifier.name.clone();
@@ -288,13 +286,13 @@ impl Scope {
         identifier: Identifier,
         constant: Constant,
         is_associated: bool,
-    ) -> Result<(), SemanticError> {
+    ) -> Result<(), Error> {
         if let Ok(item) = scope.borrow().resolve_item(&identifier, true) {
-            return Err(SemanticError::Scope(Error::ItemRedeclared {
+            return Err(Error::ScopeItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
                 reference: item.borrow().location(),
-            }));
+            });
         }
 
         let name = identifier.name;
@@ -316,13 +314,13 @@ impl Scope {
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
         constant: Constant,
-    ) -> Result<(), SemanticError> {
+    ) -> Result<(), Error> {
         if let Ok(item) = scope.borrow().resolve_item(&identifier, false) {
-            return Err(SemanticError::Scope(Error::ItemRedeclared {
+            return Err(Error::ScopeItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
                 reference: item.borrow().location(),
-            }));
+            });
         }
 
         let name = identifier.name;
@@ -345,13 +343,13 @@ impl Scope {
         scope: Rc<RefCell<Scope>>,
         statement: TypeStatementVariant,
         is_associated: bool,
-    ) -> Result<(), SemanticError> {
+    ) -> Result<(), Error> {
         if let Ok(item) = scope.borrow().resolve_item(&statement.identifier(), true) {
-            return Err(SemanticError::Scope(Error::ItemRedeclared {
+            return Err(Error::ScopeItemRedeclared {
                 location: statement.location(),
                 name: statement.identifier().name.to_owned(),
                 reference: item.borrow().location(),
-            }));
+            });
         }
 
         let name = statement.identifier().name.clone();
@@ -376,13 +374,13 @@ impl Scope {
         r#type: Type,
         is_associated: bool,
         intermediate: Option<GeneratorStatement>,
-    ) -> Result<(), SemanticError> {
+    ) -> Result<(), Error> {
         if let Ok(item) = scope.borrow().resolve_item(&identifier, true) {
-            return Err(SemanticError::Scope(Error::ItemRedeclared {
+            return Err(Error::ScopeItemRedeclared {
                 location: r#type.location().unwrap_or(identifier.location),
                 name: identifier.name.clone(),
                 reference: item.borrow().location(),
-            }));
+            });
         }
 
         let name = identifier.name;
@@ -405,12 +403,12 @@ impl Scope {
     pub fn declare_contract(
         scope: Rc<RefCell<Scope>>,
         statement: ContractStatement,
-    ) -> Result<(), SemanticError> {
+    ) -> Result<(), Error> {
         if let Some(location) = scope.borrow().get_contract_location() {
-            return Err(SemanticError::Scope(Error::ContractRedeclared {
+            return Err(Error::ScopeContractRedeclared {
                 location: statement.location,
                 reference: location,
-            }));
+            });
         }
 
         Scope::declare_type(scope, TypeStatementVariant::Contract(statement), false)
@@ -426,13 +424,13 @@ impl Scope {
         module: Source,
         scope_crate: Rc<RefCell<Scope>>,
         is_entry: bool,
-    ) -> Result<(), SemanticError> {
+    ) -> Result<(), Error> {
         if let Ok(item) = scope.borrow().resolve_item(&identifier, true) {
-            return Err(SemanticError::Scope(Error::ItemRedeclared {
+            return Err(Error::ScopeItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
                 reference: item.borrow().location(),
-            }));
+            });
         }
 
         let name = identifier.name.clone();
@@ -490,7 +488,7 @@ impl Scope {
     pub fn resolve_path(
         scope: Rc<RefCell<Scope>>,
         path: &Path,
-    ) -> Result<Rc<RefCell<Item>>, SemanticError> {
+    ) -> Result<Rc<RefCell<Item>>, Error> {
         let mut current_scope = scope;
 
         for (index, identifier) in path.elements.iter().enumerate() {
@@ -501,13 +499,6 @@ impl Scope {
                 .borrow()
                 .resolve_item(identifier, is_element_first)?;
             item.borrow().define()?;
-
-            if path.elements.len() == 1 && item.borrow().is_associated() {
-                return Err(SemanticError::Scope(Error::AssociatedItemWithoutOwner {
-                    location: path.location,
-                    name: path.to_string(),
-                }));
-            }
 
             if is_element_last {
                 return Ok(item);
@@ -522,26 +513,26 @@ impl Scope {
                         Type::Structure(ref inner) => inner.scope.to_owned(),
                         Type::Contract(ref inner) => inner.scope.to_owned(),
                         _ => {
-                            return Err(SemanticError::Scope(Error::ItemIsNotANamespace {
+                            return Err(Error::ScopeExpectedNamespace {
                                 location: identifier.location,
                                 name: identifier.name.to_owned(),
-                            }))
+                            });
                         }
                     }
                 }
                 _ => {
-                    return Err(SemanticError::Scope(Error::ItemIsNotANamespace {
+                    return Err(Error::ScopeExpectedNamespace {
                         location: identifier.location,
                         name: identifier.name.to_owned(),
-                    }))
+                    });
                 }
             };
         }
 
-        Err(SemanticError::Scope(Error::ItemUndeclared {
+        Err(Error::ScopeItemUndeclared {
             location: path.location,
             name: path.to_string(),
-        }))
+        })
     }
 
     ///
@@ -552,17 +543,17 @@ impl Scope {
         &self,
         identifier: &Identifier,
         recursive: bool,
-    ) -> Result<Rc<RefCell<Item>>, SemanticError> {
+    ) -> Result<Rc<RefCell<Item>>, Error> {
         match self.items.borrow().get(identifier.name.as_str()) {
             Some(item) => Ok(item.to_owned()),
             None => match self.parent {
                 Some(ref parent) if recursive => {
                     parent.borrow().resolve_item(identifier, recursive)
                 }
-                Some(_) | None => Err(SemanticError::Scope(Error::ItemUndeclared {
+                Some(_) | None => Err(Error::ScopeItemUndeclared {
                     location: identifier.location,
                     name: identifier.name.to_owned(),
-                })),
+                }),
             },
         }
     }

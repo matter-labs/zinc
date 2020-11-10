@@ -5,20 +5,16 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::fmt;
 
 use zinc_lexical::Location;
 
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::constant::Constant;
-use crate::semantic::element::r#type::function::error::Error;
-use crate::semantic::element::r#type::function::intrinsic::debug::error::Error as DebugFunctionError;
-use crate::semantic::element::r#type::function::intrinsic::error::Error as IntrinsicFunctionError;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
+use crate::semantic::error::Error;
 
 ///
 /// The semantic analyzer `dbg!` intrinsic function element.
@@ -69,7 +65,7 @@ impl Function {
                 }
                 Element::Constant(constant) => (constant.r#type(), true, None),
                 element => {
-                    return Err(Error::ArgumentNotEvaluable {
+                    return Err(Error::FunctionArgumentNotEvaluable {
                         location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         position: index + 1,
@@ -84,7 +80,7 @@ impl Function {
         let format_string = match actual_params.get(Self::ARGUMENT_INDEX_FORMAT) {
             Some((Type::String(_), true, Some(string), _location)) => string.to_owned(),
             Some((r#type, true, _string, location)) => {
-                return Err(Error::ArgumentType {
+                return Err(Error::FunctionArgumentType {
                     location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "format".to_owned(),
@@ -94,7 +90,7 @@ impl Function {
                 })
             }
             Some((r#type, false, _string, location)) => {
-                return Err(Error::ArgumentConstantness {
+                return Err(Error::FunctionArgumentConstantness {
                     location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "format".to_owned(),
@@ -103,7 +99,7 @@ impl Function {
                 })
             }
             None => {
-                return Err(Error::ArgumentCount {
+                return Err(Error::FunctionArgumentCount {
                     location,
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_INDEX_FORMAT + 1,
@@ -115,13 +111,11 @@ impl Function {
 
         let arguments_expected_count = format_string.matches("{}").count();
         if arguments_expected_count != actual_params.len() - 1 {
-            return Err(Error::Intrinsic(IntrinsicFunctionError::Debug(
-                DebugFunctionError::ArgumentCount {
-                    location,
-                    expected: arguments_expected_count + 1,
-                    found: actual_params.len(),
-                },
-            )));
+            return Err(Error::FunctionDebugArgumentCount {
+                location,
+                expected: arguments_expected_count + 1,
+                found: actual_params.len(),
+            });
         }
 
         let argument_types: Vec<Type> = actual_params

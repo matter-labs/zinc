@@ -5,11 +5,8 @@
 use zinc_lexical::Location;
 
 use crate::error::Error;
-use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::intrinsic::zksync::transfer::Function as ZksyncTransferFunction;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::Error as ElementError;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
@@ -20,15 +17,13 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionError::ArgumentCount {
-            location: Location::test(3, 5),
-            function: ZksyncTransferFunction::IDENTIFIER.to_owned(),
-            expected: ZksyncTransferFunction::ARGUMENT_COUNT,
-            found: ZksyncTransferFunction::ARGUMENT_COUNT - 1,
-            reference: None,
-        }),
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::FunctionArgumentCount {
+        location: Location::test(3, 5),
+        function: ZksyncTransferFunction::IDENTIFIER.to_owned(),
+        expected: ZksyncTransferFunction::ARGUMENT_COUNT,
+        found: ZksyncTransferFunction::ARGUMENT_COUNT - 1,
+        reference: None,
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -43,15 +38,13 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionError::ArgumentCount {
-            location: Location::test(3, 5),
-            function: ZksyncTransferFunction::IDENTIFIER.to_owned(),
-            expected: ZksyncTransferFunction::ARGUMENT_COUNT,
-            found: ZksyncTransferFunction::ARGUMENT_COUNT + 1,
-            reference: None,
-        }),
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::FunctionArgumentCount {
+        location: Location::test(3, 5),
+        function: ZksyncTransferFunction::IDENTIFIER.to_owned(),
+        expected: ZksyncTransferFunction::ARGUMENT_COUNT,
+        found: ZksyncTransferFunction::ARGUMENT_COUNT + 1,
+        reference: None,
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -66,16 +59,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionError::ArgumentType {
-            location: Location::test(3, 22),
-            function: ZksyncTransferFunction::IDENTIFIER.to_owned(),
-            name: "recipient".to_owned(),
-            position: ZksyncTransferFunction::ARGUMENT_INDEX_RECIPIENT + 1,
-            expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS).to_string(),
-            found: Type::boolean(None).to_string(),
-        }),
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::FunctionArgumentType {
+        location: Location::test(3, 22),
+        function: ZksyncTransferFunction::IDENTIFIER.to_owned(),
+        name: "recipient".to_owned(),
+        position: ZksyncTransferFunction::ARGUMENT_INDEX_RECIPIENT + 1,
+        expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS).to_string(),
+        found: Type::boolean(None).to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -90,16 +81,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionError::ArgumentType {
-            location: Location::test(3, 36),
-            function: ZksyncTransferFunction::IDENTIFIER.to_owned(),
-            name: "token_address".to_owned(),
-            position: ZksyncTransferFunction::ARGUMENT_INDEX_TOKEN_ADDRESS + 1,
-            expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS).to_string(),
-            found: Type::boolean(None).to_string(),
-        }),
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::FunctionArgumentType {
+        location: Location::test(3, 36),
+        function: ZksyncTransferFunction::IDENTIFIER.to_owned(),
+        name: "token_address".to_owned(),
+        position: ZksyncTransferFunction::ARGUMENT_INDEX_TOKEN_ADDRESS + 1,
+        expected: Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS).to_string(),
+        found: Type::boolean(None).to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -114,16 +103,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Function(FunctionError::ArgumentType {
-            location: Location::test(3, 41),
-            function: ZksyncTransferFunction::IDENTIFIER.to_owned(),
-            name: "amount".to_owned(),
-            position: ZksyncTransferFunction::ARGUMENT_INDEX_AMOUNT + 1,
-            expected: Type::integer_unsigned(None, zinc_const::bitlength::INTEGER_MAX).to_string(),
-            found: Type::boolean(None).to_string(),
-        }),
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::FunctionArgumentType {
+        location: Location::test(3, 41),
+        function: ZksyncTransferFunction::IDENTIFIER.to_owned(),
+        name: "amount".to_owned(),
+        position: ZksyncTransferFunction::ARGUMENT_INDEX_AMOUNT + 1,
+        expected: Type::integer_unsigned(None, zinc_const::bitlength::INTEGER_MAX).to_string(),
+        found: Type::boolean(None).to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 

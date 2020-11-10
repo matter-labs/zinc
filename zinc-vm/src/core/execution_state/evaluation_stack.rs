@@ -7,8 +7,8 @@ use std::fmt;
 use franklin_crypto::bellman::ConstraintSystem;
 
 use crate::core::execution_state::cell::Cell;
+use crate::error::Error;
 use crate::error::MalformedBytecode;
-use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
@@ -33,23 +33,19 @@ impl<E: IEngine> EvaluationStack<E> {
         }
     }
 
-    pub fn push(&mut self, value: Cell<E>) -> Result<(), RuntimeError> {
+    pub fn push(&mut self, value: Cell<E>) -> Result<(), Error> {
         self.stack
             .last_mut()
-            .ok_or_else(|| {
-                RuntimeError::InternalError("Evaluation stack root frame missing".into())
-            })?
+            .ok_or_else(|| Error::InternalError("Evaluation stack root frame missing".into()))?
             .push(value);
 
         Ok(())
     }
 
-    pub fn pop(&mut self) -> Result<Cell<E>, RuntimeError> {
+    pub fn pop(&mut self) -> Result<Cell<E>, Error> {
         self.stack
             .last_mut()
-            .ok_or_else(|| {
-                RuntimeError::InternalError("Evaluation stack root frame missing".into())
-            })?
+            .ok_or_else(|| Error::InternalError("Evaluation stack root frame missing".into()))?
             .pop()
             .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
@@ -59,16 +55,18 @@ impl<E: IEngine> EvaluationStack<E> {
             .push(Vec::with_capacity(Self::STACK_INITIAL_CAPACITY));
     }
 
-    pub fn merge<CS>(&mut self, mut cs: CS, condition: &Scalar<E>) -> Result<(), RuntimeError>
+    pub fn merge<CS>(&mut self, mut cs: CS, condition: &Scalar<E>) -> Result<(), Error>
     where
         CS: ConstraintSystem<E>,
     {
-        let else_case = self.stack.pop().ok_or_else(|| {
-            RuntimeError::InternalError("Evaluation stack root frame missing".into())
-        })?;
-        let then_case = self.stack.pop().ok_or_else(|| {
-            RuntimeError::InternalError("Evaluation stack root frame missing".into())
-        })?;
+        let else_case = self
+            .stack
+            .pop()
+            .ok_or_else(|| Error::InternalError("Evaluation stack root frame missing".into()))?;
+        let then_case = self
+            .stack
+            .pop()
+            .ok_or_else(|| Error::InternalError("Evaluation stack root frame missing".into()))?;
 
         if then_case.len() != else_case.len() {
             return Err(MalformedBytecode::BranchStacksDoNotMatch.into());
@@ -94,7 +92,7 @@ impl<E: IEngine> EvaluationStack<E> {
         Ok(())
     }
 
-    pub fn revert(&mut self) -> Result<(), RuntimeError> {
+    pub fn revert(&mut self) -> Result<(), Error> {
         self.stack.pop().ok_or(MalformedBytecode::StackUnderflow)?;
         Ok(())
     }

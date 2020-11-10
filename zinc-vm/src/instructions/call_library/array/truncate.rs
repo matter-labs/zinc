@@ -5,8 +5,8 @@
 use franklin_crypto::bellman::ConstraintSystem;
 
 use crate::core::execution_state::ExecutionState;
+use crate::error::Error;
 use crate::error::MalformedBytecode;
-use crate::error::RuntimeError;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::instructions::call_library::INativeCallable;
 use crate::IEngine;
@@ -16,7 +16,7 @@ pub struct Truncate {
 }
 
 impl Truncate {
-    pub fn new(inputs_count: usize) -> Result<Self, RuntimeError> {
+    pub fn new(inputs_count: usize) -> Result<Self, Error> {
         inputs_count
             .checked_sub(1)
             .map(|array_length| Self { array_length })
@@ -35,7 +35,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Truncate {
         _cs: CS,
         state: &mut ExecutionState<E>,
         _storage: Option<&mut S>,
-    ) -> Result<(), RuntimeError> {
+    ) -> Result<(), Error> {
         let new_length = state
             .evaluation_stack
             .pop()?

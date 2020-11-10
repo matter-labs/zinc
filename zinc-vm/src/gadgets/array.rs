@@ -1,6 +1,6 @@
 use franklin_crypto::bellman::ConstraintSystem;
 
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
@@ -11,7 +11,7 @@ pub fn conditional_get<E, CS>(
     _condition: &Scalar<E>,
     array: &[Scalar<E>],
     index: &Scalar<E>,
-) -> Result<Scalar<E>, RuntimeError>
+) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -26,7 +26,7 @@ pub fn enforcing_get<E, CS>(
     mut cs: CS,
     array: &[Scalar<E>],
     index: &Scalar<E>,
-) -> Result<Scalar<E>, RuntimeError>
+) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -39,7 +39,7 @@ where
 
     let i = index.to_constant_unchecked()?.get_constant_usize()?;
     if i >= array.len() {
-        return Err(RuntimeError::IndexOutOfBounds {
+        return Err(Error::IndexOutOfBounds {
             lower_bound: 0,
             upper_bound: array.len(),
             found: i,
@@ -57,7 +57,7 @@ where
     //                .rev()
     //                .enumerate()
     //                .map(|(i, bit)| Scalar::from_boolean(cs.namespace(|| format!("bit {}", i)), bit))
-    //                .collect::<Result<Vec<Scalar<E>>, RuntimeError>>()?;
+    //                .collect::<Result<Vec<Scalar<E>>, Error>>()?;
     //
     //            gadgets::select::recursive(cs.namespace(|| "recursive_select"), &bits_be, array)
     //        }
@@ -68,7 +68,7 @@ pub fn set<E, CS>(
     array: &[Scalar<E>],
     index: Scalar<E>,
     value: Scalar<E>,
-) -> Result<Vec<Scalar<E>>, RuntimeError>
+) -> Result<Vec<Scalar<E>>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -77,7 +77,7 @@ where
 
     let i = index.to_constant_unchecked()?.get_constant_usize()?;
     if i >= array.len() {
-        return Err(RuntimeError::IndexOutOfBounds {
+        return Err(Error::IndexOutOfBounds {
             lower_bound: 0,
             upper_bound: array.len(),
             found: i,

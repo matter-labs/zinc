@@ -3,13 +3,12 @@
 //!
 
 use std::fs::File;
+use std::io::Write;
 use std::process::Command;
 
 use num_old::BigUint;
-use serde_json::json;
 
 use crate::database::client::Client as DatabaseClient;
-use std::io::Write;
 
 static MANIFEST_PATH: &str = "/home/hedgar/src/curve-zinc/";
 
@@ -79,7 +78,7 @@ async fn ok_curve() {
     File::create(input_path)
         .expect("Input file creating")
         .write_all(
-            serde_json::to_string_pretty(&json!({
+            serde_json::to_string_pretty(&serde_json::json!({
               "type": "contract",
               "storage": [
                 address,

@@ -5,7 +5,7 @@
 use franklin_crypto::bellman::ConstraintSystem;
 
 use crate::core::execution_state::ExecutionState;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::instructions::call_library::INativeCallable;
@@ -19,7 +19,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Inverse {
         cs: CS,
         state: &mut ExecutionState<E>,
         _storage: Option<&mut S>,
-    ) -> Result<(), RuntimeError>
+    ) -> Result<(), Error>
     where
         CS: ConstraintSystem<E>,
     {

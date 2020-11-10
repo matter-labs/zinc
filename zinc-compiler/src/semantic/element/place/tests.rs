@@ -4,15 +4,14 @@
 
 use num::BigInt;
 
+use zinc_lexical::Location;
+
 use crate::error::Error;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::Constant;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
-use zinc_lexical::Location;
 
 #[test]
 fn ok_mutating_simple_variable() {
@@ -173,13 +172,11 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::MutatingImmutableMemory {
-            location: Location::test(4, 5),
-            name: "result".to_string(),
-            reference: Some(Location::test(3, 9)),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MutatingImmutableMemory {
+        location: Location::test(4, 5),
+        name: "result".to_string(),
+        reference: Some(Location::test(3, 9)),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -196,12 +193,12 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::MutatingImmutableContractField {
+    let expected = Err(Error::Semantic(
+        SemanticError::MutatingImmutableContractField {
             location: Location::test(4, 9),
             name: zinc_const::contract::FIELD_NAME_ADDRESS.to_string(),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -217,13 +214,11 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::MutatingWithDifferentType {
-            location: Location::test(4, 5),
-            expected: Type::boolean(None).to_string(),
-            found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MutatingWithDifferentType {
+        location: Location::test(4, 5),
+        expected: Type::boolean(None).to_string(),
+        found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -239,13 +234,13 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::OperatorIndexFirstOperandExpectedArray {
+    let expected = Err(Error::Semantic(
+        SemanticError::OperatorIndexFirstOperandExpectedArray {
             location: Location::test(4, 17),
             found: Type::tuple(Some(Location::test(4, 17)), vec![Type::boolean(None); 3])
                 .to_string(),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -261,18 +256,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(
-            PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange {
-                location: Location::test(4, 23),
-                found: Element::Constant(Constant::Boolean(BooleanConstant::new(
-                    Location::test(4, 23),
-                    true,
-                )))
-                .to_string(),
-            },
-        ),
-    )));
+    let expected = Err(Error::Semantic(
+        SemanticError::OperatorIndexSecondOperandExpectedIntegerOrRange {
+            location: Location::test(4, 23),
+            found: Element::Constant(Constant::Boolean(BooleanConstant::new(
+                Location::test(4, 23),
+                true,
+            )))
+            .to_string(),
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -294,8 +287,8 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::OperatorDotFirstOperandExpectedTuple {
+    let expected = Err(Error::Semantic(
+        SemanticError::OperatorDotFirstOperandExpectedTuple {
             location: Location::test(10, 17),
             found: Type::structure(
                 Some(Location::test(2, 1)),
@@ -308,8 +301,8 @@ fn main() {
                 None,
             )
             .to_string(),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -325,13 +318,13 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::OperatorDotFirstOperandExpectedInstance {
+    let expected = Err(Error::Semantic(
+        SemanticError::OperatorDotFirstOperandExpectedInstance {
             location: Location::test(4, 17),
             found: Type::tuple(Some(Location::test(4, 17)), vec![Type::boolean(None); 3])
                 .to_string(),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -347,12 +340,10 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::ArraySliceStartOutOfRange {
-            location: Location::test(4, 25),
-            start: BigInt::from(-1).to_string(),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ArraySliceStartOutOfRange {
+        location: Location::test(4, 25),
+        start: BigInt::from(-1).to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -368,13 +359,11 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::ArraySliceEndOutOfRange {
-            location: Location::test(4, 23),
-            end: BigInt::from(6).to_string(),
-            size: 5,
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ArraySliceEndOutOfRange {
+        location: Location::test(4, 23),
+        end: BigInt::from(6).to_string(),
+        size: 5,
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -390,13 +379,13 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::ArraySliceEndLesserThanStart {
+    let expected = Err(Error::Semantic(
+        SemanticError::ArraySliceEndLesserThanStart {
             location: Location::test(4, 23),
             start: BigInt::from(2).to_string(),
             end: BigInt::from(1).to_string(),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -412,17 +401,15 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::TupleFieldOutOfRange {
-            location: Location::test(4, 24),
-            type_identifier: Type::tuple(
-                Some(Location::test(4, 24)),
-                vec![Type::integer_unsigned(None, zinc_const::bitlength::BYTE); 3],
-            )
-            .to_string(),
-            field_index: 5,
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::TupleFieldOutOfRange {
+        location: Location::test(4, 24),
+        r#type: Type::tuple(
+            Some(Location::test(4, 24)),
+            vec![Type::integer_unsigned(None, zinc_const::bitlength::BYTE); 3],
+        )
+        .to_string(),
+        field_index: 5,
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -444,13 +431,11 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::StructureFieldDoesNotExist {
-            location: Location::test(10, 22),
-            type_identifier: "Data".to_owned(),
-            field_name: "b".to_owned(),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldDoesNotExist {
+        location: Location::test(10, 22),
+        r#type: "Data".to_owned(),
+        field_name: "b".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -469,13 +454,11 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::ContractFieldDoesNotExist {
-            location: Location::test(6, 14),
-            type_identifier: "Test".to_owned(),
-            field_name: "b".to_owned(),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldDoesNotExist {
+        location: Location::test(6, 14),
+        r#type: "Test".to_owned(),
+        field_name: "b".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 

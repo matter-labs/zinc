@@ -5,8 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::fmt;
 use std::ops::Add;
 use std::ops::BitAnd;
@@ -20,13 +18,13 @@ use std::ops::Shl;
 use std::ops::Shr;
 use std::ops::Sub;
 
+use zinc_lexical::Location;
+
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::semantic::element::r#type::enumeration::Enumeration;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
-use zinc_lexical::Location;
-
-use self::error::Error;
+use crate::semantic::error::Error;
 
 ///
 /// Integer values consist of the value, sign, and bitlength.
@@ -87,7 +85,7 @@ impl Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchEquals {
+            return Err(Error::OperatorEqualsTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -122,7 +120,7 @@ impl Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchNotEquals {
+            return Err(Error::OperatorNotEqualsTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -157,7 +155,7 @@ impl Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchGreaterEquals {
+            return Err(Error::OperatorGreaterEqualsTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -192,7 +190,7 @@ impl Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchLesserEquals {
+            return Err(Error::OperatorLesserEqualsTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -227,7 +225,7 @@ impl Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchGreater {
+            return Err(Error::OperatorGreaterTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -262,7 +260,7 @@ impl Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchLesser {
+            return Err(Error::OperatorLesserTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -298,7 +296,7 @@ impl BitOr for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchBitwiseOr {
+            return Err(Error::OperatorBitwiseOrTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -306,13 +304,13 @@ impl BitOr for Integer {
         }
 
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise {
+            return Err(Error::OperatorBitwiseSignedOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldBitwise {
+            return Err(Error::OperatorBitwiseFieldOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
@@ -347,7 +345,7 @@ impl BitXor for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchBitwiseXor {
+            return Err(Error::OperatorBitwiseXorTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -355,13 +353,13 @@ impl BitXor for Integer {
         }
 
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise {
+            return Err(Error::OperatorBitwiseSignedOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldBitwise {
+            return Err(Error::OperatorBitwiseFieldOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
@@ -396,7 +394,7 @@ impl BitAnd for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchBitwiseAnd {
+            return Err(Error::OperatorBitwiseAndTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -404,13 +402,13 @@ impl BitAnd for Integer {
         }
 
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise {
+            return Err(Error::OperatorBitwiseSignedOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldBitwise {
+            return Err(Error::OperatorBitwiseFieldOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
@@ -436,13 +434,13 @@ impl Shl<Self> for Integer {
 
     fn shl(mut self, other: Self) -> Self::Output {
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise {
+            return Err(Error::OperatorBitwiseSignedOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldBitwise {
+            return Err(Error::OperatorBitwiseFieldOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
@@ -472,13 +470,13 @@ impl Shr<Self> for Integer {
 
     fn shr(mut self, other: Self) -> Self::Output {
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise {
+            return Err(Error::OperatorBitwiseSignedOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldBitwise {
+            return Err(Error::OperatorBitwiseFieldOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
@@ -517,7 +515,7 @@ impl Add for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchAddition {
+            return Err(Error::OperatorAdditionTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -554,7 +552,7 @@ impl Sub for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchSubtraction {
+            return Err(Error::OperatorSubtractionTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -591,7 +589,7 @@ impl Mul for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchMultiplication {
+            return Err(Error::OperatorMultiplicationTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -628,7 +626,7 @@ impl Div for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchDivision {
+            return Err(Error::OperatorDivisionTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -636,7 +634,7 @@ impl Div for Integer {
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldDivision {
+            return Err(Error::OperatorDivisionFieldOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
@@ -671,7 +669,7 @@ impl Rem for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchRemainder {
+            return Err(Error::OperatorRemainderTypesMismatch {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -679,7 +677,7 @@ impl Rem for Integer {
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldRemainder {
+            return Err(Error::OperatorRemainderFieldOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
@@ -732,13 +730,13 @@ impl Integer {
     ///
     pub fn bitwise_not(mut self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise {
+            return Err(Error::OperatorBitwiseSignedOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldBitwise {
+            return Err(Error::OperatorBitwiseFieldOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }
@@ -757,7 +755,7 @@ impl Neg for Integer {
 
     fn neg(mut self) -> Self::Output {
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldNegation {
+            return Err(Error::OperatorNegationFieldOperandForbidden {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             });
         }

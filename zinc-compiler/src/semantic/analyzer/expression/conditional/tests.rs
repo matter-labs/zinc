@@ -2,12 +2,11 @@
 //! The conditional expression tests.
 //!
 
+use zinc_lexical::Location;
+
 use crate::error::Error;
-use crate::semantic::analyzer::expression::conditional::error::Error as ConditionalExpressionError;
-use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
-use zinc_lexical::Location;
 
 #[test]
 fn ok_simple() {
@@ -72,14 +71,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Conditional(ConditionalExpressionError::BranchTypesMismatch {
+    let expected = Err(Error::Semantic(
+        SemanticError::ConditionalBranchTypesMismatch {
             location: Location::test(3, 15),
             expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             found: Type::boolean(None).to_string(),
             reference: Location::test(3, 27),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -94,12 +93,12 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Conditional(ConditionalExpressionError::ExpectedBooleanCondition {
+    let expected = Err(Error::Semantic(
+        SemanticError::ConditionalExpectedBooleanCondition {
             location: Location::test(3, 8),
             found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 

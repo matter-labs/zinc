@@ -6,9 +6,7 @@ use zinc_lexical::Location;
 
 use crate::error::Error;
 use crate::semantic::casting::error::Error as CastingError;
-use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
@@ -192,16 +190,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Casting {
+    let expected = Err(Error::Semantic(
+        SemanticError::OperatorCastingTypesMismatch {
             location: Location::test(4, 18),
             inner: CastingError::CastingFromInvalidType {
                 from: Type::field(None).to_string(),
                 to: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             },
             reference: Location::test(4, 27),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -217,16 +215,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Casting {
+    let expected = Err(Error::Semantic(
+        SemanticError::OperatorCastingTypesMismatch {
             location: Location::test(4, 18),
             inner: CastingError::CastingToInvalidType {
                 from: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 to: Type::boolean(None).to_string(),
             },
             reference: Location::test(4, 27),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -242,16 +240,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Casting {
+    let expected = Err(Error::Semantic(
+        SemanticError::OperatorCastingTypesMismatch {
             location: Location::test(4, 24),
             inner: CastingError::CastingToInvalidType {
                 from: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
                 to: Type::boolean(None).to_string(),
             },
             reference: Location::test(4, 17),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 

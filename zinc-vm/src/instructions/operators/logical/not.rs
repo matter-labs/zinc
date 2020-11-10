@@ -9,12 +9,12 @@ use zinc_build::Not;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Not {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         let value = vm.pop()?.try_into_value()?.to_bigint().unwrap_or_default();
 
         vm.push(Cell::Value(Scalar::new_constant_bool(value.is_zero())))

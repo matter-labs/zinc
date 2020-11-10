@@ -5,6 +5,7 @@
 pub(crate) mod application;
 pub(crate) mod build;
 pub(crate) mod data;
+pub(crate) mod error;
 pub(crate) mod instructions;
 
 pub use self::application::circuit::Circuit;
@@ -19,9 +20,9 @@ pub use self::data::r#type::scalar::integer::Type as IntegerType;
 pub use self::data::r#type::scalar::Type as ScalarType;
 pub use self::data::r#type::Type;
 pub use self::data::value::contract_field::ContractField as ContractFieldValue;
-pub use self::data::value::error::Error as ValueError;
 pub use self::data::value::scalar::Value as ScalarValue;
 pub use self::data::value::Value;
+pub use self::error::Error;
 pub use self::instructions::call_library::function_identifier::LibraryFunctionIdentifier;
 pub use self::instructions::call_library::CallLibrary;
 pub use self::instructions::contract::load::StorageLoad;

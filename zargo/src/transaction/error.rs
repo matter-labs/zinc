@@ -2,32 +2,32 @@
 //! The transaction error.
 //!
 
-use failure::Fail;
+use thiserror::Error;
 
 ///
 /// The transaction error.
 ///
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum Error {
     /// A required transaction field is missing.
-    #[fail(display = "parsing: {}", _0)]
-    Parsing(zinc_zksync::TransactionMsgError),
+    #[error("parsing: {}", _0)]
+    Parsing(zinc_zksync::TransactionError),
     /// The transaction token is invalid.
-    #[fail(display = "token is invalid and cannot be resolved")]
+    #[error("token is invalid and cannot be resolved")]
     TokenNotFound,
     /// The transaction fee getting error.
-    #[fail(display = "transaction fee getting error: {}", _0)]
+    #[error("transaction fee getting error: {}", _0)]
     FeeGetting(zksync::error::ClientError),
     /// The account info retrieving error.
-    #[fail(display = "account info retrieving error: {}", _0)]
+    #[error("account info retrieving error: {}", _0)]
     AccountInfoRetrieving(zksync::error::ClientError),
     /// The transaction signing error.
-    #[fail(display = "signing error: {}", _0)]
+    #[error("signing error: {}", _0)]
     TransactionSigning(zksync_eth_signer::error::SignerError),
 }
 
-impl From<zinc_zksync::TransactionMsgError> for Error {
-    fn from(inner: zinc_zksync::TransactionMsgError) -> Self {
+impl From<zinc_zksync::TransactionError> for Error {
+    fn from(inner: zinc_zksync::TransactionError) -> Self {
         Self::Parsing(inner)
     }
 }

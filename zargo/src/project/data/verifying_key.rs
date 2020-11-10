@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
-use crate::error::file::Error as FileError;
+use anyhow::Context;
 
 ///
 /// The verifying key file representation.
@@ -27,7 +27,7 @@ impl VerifyingKey {
 }
 
 impl TryFrom<&PathBuf> for VerifyingKey {
-    type Error = FileError;
+    type Error = anyhow::Error;
 
     fn try_from(path: &PathBuf) -> Result<Self, Self::Error> {
         let mut path = path.to_owned();
@@ -38,16 +38,15 @@ impl TryFrom<&PathBuf> for VerifyingKey {
             path.push(PathBuf::from(Self::file_name()));
         }
 
-        let mut file =
-            File::open(path).map_err(|error| FileError::Opening(Self::file_name(), error))?;
+        let mut file = File::open(&path).with_context(|| path.to_string_lossy().to_string())?;
         let size = file
             .metadata()
-            .map_err(|error| FileError::Metadata(Self::file_name(), error))?
+            .with_context(|| path.to_string_lossy().to_string())?
             .len() as usize;
 
         let mut buffer = Vec::with_capacity(size);
         file.read_to_end(&mut buffer)
-            .map_err(|error| FileError::Reading(Self::file_name(), error))?;
+            .with_context(|| path.to_string_lossy().to_string())?;
 
         Ok(Self { inner: buffer })
     }

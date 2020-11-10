@@ -10,7 +10,7 @@ use zinc_build::IntegerType;
 use zinc_build::Push;
 use zinc_build::Sub;
 
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::tests::TestRunner;
 use crate::tests::TestingError;
 
@@ -23,7 +23,7 @@ fn unsigned_positive_overflow_fail() {
         .test(&[256]);
 
     match res.err().expect(zinc_const::panic::TEST_DATA_VALID) {
-        TestingError::RuntimeError(RuntimeError::ValueOverflow { .. }) => {}
+        TestingError::Error(Error::ValueOverflow { .. }) => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
 }
@@ -37,7 +37,7 @@ fn unsigned_negative_overflow_fail() {
         .test(&[-1]);
 
     match res.err().expect(zinc_const::panic::TEST_DATA_VALID) {
-        TestingError::RuntimeError(RuntimeError::ValueOverflow { .. }) => {}
+        TestingError::Error(Error::ValueOverflow { .. }) => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
 }
@@ -51,7 +51,7 @@ fn signed_positive_overflow_fail() {
         .test(&[128]);
 
     match res.err().expect(zinc_const::panic::TEST_DATA_VALID) {
-        TestingError::RuntimeError(RuntimeError::ValueOverflow { .. }) => {}
+        TestingError::Error(Error::ValueOverflow { .. }) => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
 }
@@ -65,7 +65,7 @@ fn signed_negative_overflow_fail() {
         .test(&[-129]);
 
     match res.err().expect(zinc_const::panic::TEST_DATA_VALID) {
-        TestingError::RuntimeError(RuntimeError::ValueOverflow { .. }) => {}
+        TestingError::Error(Error::ValueOverflow { .. }) => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
 }

@@ -15,11 +15,11 @@ path = "src/zvm/mod.rs"
 [dependencies]
 log = "0.4"
 structopt = "0.3"
-
-failure = "0.1"
+anyhow = "1.0"
+thiserror = "1.0"
 colored = "2.0"
-serde_json = "1.0"
 
+serde_json = "1.0"
 lazy_static = "1.4"
 rand = "0.4"
 hex = "0.4"

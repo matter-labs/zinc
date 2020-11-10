@@ -1,32 +1,20 @@
 //!
-//! The generic file error.
+//! The source code module error.
 //!
 
-use std::io;
+use thiserror::Error;
 
-use failure::Fail;
+// TODO: add path contexts
 
 ///
-/// The generic file error.
+/// The source code module error.
 ///
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum Error {
-    /// File opening error.
-    #[fail(display = "`{}` opening: {}", _0, _1)]
-    Opening(String, io::Error),
-    /// File metadata getting error.
-    #[fail(display = "`{}` metadata: {}", _0, _1)]
-    Metadata(String, io::Error),
-    /// File reading error.
-    #[fail(display = "`{}` reading: {}", _0, _1)]
-    Reading(String, io::Error),
-    /// File contents parsing error.
-    #[fail(display = "`{}` parsing: {}", _0, _1)]
-    Parsing(String, toml::de::Error),
-    /// File creating error.
-    #[fail(display = "`{}` creating: {}", _0, _1)]
-    Creating(String, io::Error),
-    /// File writing error.
-    #[fail(display = "`{}` writing: {}", _0, _1)]
-    Writing(String, io::Error),
+    /// The file system I/O error.
+    #[error("file system: {0}")]
+    FileSystem(#[from] std::io::Error),
+    /// The `*.toml` file parsing error.
+    #[error("parsing: {0}")]
+    Parsing(#[from] toml::de::Error),
 }

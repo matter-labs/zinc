@@ -2,10 +2,10 @@
 //! The semantic analyzer contract type element tests.
 //!
 
+use zinc_lexical::Location;
+
 use crate::error::Error;
 use crate::semantic::error::Error as SemanticError;
-use crate::semantic::scope::error::Error as ScopeError;
-use zinc_lexical::Location;
 
 #[test]
 fn error_duplicate_field() {
@@ -17,13 +17,11 @@ contract Contract {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemRedeclared {
-            location: Location::test(5, 5),
-            name: "b".to_owned(),
-            reference: Some(Location::test(4, 5)),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemRedeclared {
+        location: Location::test(5, 5),
+        name: "b".to_owned(),
+        reference: Some(Location::test(4, 5)),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 

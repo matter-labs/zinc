@@ -8,7 +8,6 @@ use num::BigInt;
 
 use zinc_build::IntegerType;
 use zinc_build::ScalarType;
-use zinc_build::Type as BuildType;
 
 use crate::semantic::element::r#type::Type as SemanticType;
 use crate::semantic::scope::intrinsic::IntrinsicTypeId;
@@ -279,54 +278,54 @@ impl Type {
     }
 }
 
-impl Into<BuildType> for Type {
-    fn into(self) -> BuildType {
+impl Into<zinc_build::Type> for Type {
+    fn into(self) -> zinc_build::Type {
         match self {
-            Self::Unit => BuildType::Unit,
-            Self::Boolean => BuildType::Scalar(ScalarType::Boolean),
+            Self::Unit => zinc_build::Type::Unit,
+            Self::Boolean => zinc_build::Type::Scalar(ScalarType::Boolean),
             Self::IntegerUnsigned { bitlength } => {
-                BuildType::Scalar(ScalarType::Integer(IntegerType {
+                zinc_build::Type::Scalar(ScalarType::Integer(IntegerType {
                     is_signed: false,
                     bitlength,
                 }))
             }
             Self::IntegerSigned { bitlength } => {
-                BuildType::Scalar(ScalarType::Integer(IntegerType {
+                zinc_build::Type::Scalar(ScalarType::Integer(IntegerType {
                     is_signed: true,
                     bitlength,
                 }))
             }
-            Self::Field => BuildType::Scalar(ScalarType::Field),
+            Self::Field => zinc_build::Type::Scalar(ScalarType::Field),
             Self::Enumeration {
                 bitlength,
                 variants,
-            } => BuildType::Enumeration {
+            } => zinc_build::Type::Enumeration {
                 bitlength,
                 variants,
             },
             Self::Array { r#type, size } => {
-                let element_type: BuildType = (*r#type).into();
-                BuildType::Array(Box::new(element_type), size)
+                let element_type: zinc_build::Type = (*r#type).into();
+                zinc_build::Type::Array(Box::new(element_type), size)
             }
             Self::Tuple { types } => {
-                BuildType::Tuple(types.into_iter().map(|r#type| r#type.into()).collect())
+                zinc_build::Type::Tuple(types.into_iter().map(|r#type| r#type.into()).collect())
             }
-            Self::Structure { fields } => BuildType::Structure(
+            Self::Structure { fields } => zinc_build::Type::Structure(
                 fields
                     .into_iter()
                     .map(|(name, r#type)| (name, r#type.into()))
                     .collect(),
             ),
             Self::Contract { fields } => {
-                BuildType::Contract(fields.into_iter().map(|field| field.into()).collect())
+                zinc_build::Type::Contract(fields.into_iter().map(|field| field.into()).collect())
             }
             Self::Map {
                 key_type,
                 value_type,
             } => {
-                let key_type: BuildType = (*key_type).into();
-                let value_type: BuildType = (*value_type).into();
-                BuildType::Map {
+                let key_type: zinc_build::Type = (*key_type).into();
+                let value_type: zinc_build::Type = (*value_type).into();
+                zinc_build::Type::Map {
                     key_type: Box::new(key_type),
                     value_type: Box::new(value_type),
                 }

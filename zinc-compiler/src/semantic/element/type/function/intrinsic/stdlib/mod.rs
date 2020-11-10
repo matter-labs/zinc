@@ -19,7 +19,6 @@ pub mod convert_to_bits;
 pub mod crypto_pedersen;
 pub mod crypto_schnorr_signature_verify;
 pub mod crypto_sha256;
-pub mod error;
 pub mod ff_invert;
 
 use std::fmt;
@@ -28,8 +27,8 @@ use zinc_build::LibraryFunctionIdentifier;
 use zinc_lexical::Location;
 
 use crate::semantic::element::argument_list::ArgumentList;
-use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::error::Error;
 
 use self::array_pad::Function as ArrayPadFunction;
 use self::array_reverse::Function as ArrayReverseFunction;

@@ -2,7 +2,7 @@
 //! The VM state cell.
 //!
 
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -12,7 +12,7 @@ pub enum Cell<E: IEngine> {
 }
 
 impl<E: IEngine> Cell<E> {
-    pub fn try_into_value(self) -> Result<Scalar<E>, RuntimeError> {
+    pub fn try_into_value(self) -> Result<Scalar<E>, Error> {
         match self {
             Cell::Value(value) => Ok(value),
         }

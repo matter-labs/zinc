@@ -6,17 +6,17 @@ use zinc_build::LoopBegin;
 use zinc_build::LoopEnd;
 
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for LoopBegin {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         vm.loop_begin(self.iterations)
     }
 }
 
 impl<VM: IVirtualMachine> IExecutable<VM> for LoopEnd {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         vm.loop_end()
     }
 }

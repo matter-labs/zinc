@@ -5,27 +5,19 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::cell::RefCell;
 use std::rc::Rc;
 
 use num::Signed;
 use num::ToPrimitive;
 
-use zinc_math::InferenceError;
 use zinc_syntax::ForStatement;
 
 use crate::generator::statement::r#for::Statement as GeneratorForLoopStatement;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
-use crate::semantic::analyzer::statement::error::Error as StatementError;
-use crate::semantic::analyzer::statement::r#for::error::Error as ForStatementError;
-use crate::semantic::element::constant::error::Error as ConstantError;
-use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::constant::Constant;
-use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
@@ -70,12 +62,10 @@ impl Analyzer {
                     false,
                 ),
                 (element, _intermediate) => {
-                    return Err(Error::Statement(StatementError::For(
-                        ForStatementError::BoundsExpectedConstantRangeExpression {
-                            location: bounds_expression_location,
-                            found: element.to_string(),
-                        },
-                    )));
+                    return Err(Error::ForStatementBoundsExpectedConstantRangeExpression {
+                        location: bounds_expression_location,
+                        found: element.to_string(),
+                    });
                 }
             };
 
@@ -100,12 +90,10 @@ impl Analyzer {
             match Type::from_element(&while_result, scope_stack.top())? {
                 Type::Boolean(_) => {}
                 r#type => {
-                    return Err(Error::Statement(StatementError::For(
-                        ForStatementError::WhileExpectedBooleanCondition {
-                            location,
-                            found: r#type.to_string(),
-                        },
-                    )));
+                    return Err(Error::ForStatementWhileExpectedBooleanCondition {
+                        location,
+                        found: r#type.to_string(),
+                    });
                 }
             }
 
@@ -125,16 +113,14 @@ impl Analyzer {
         let mut iterations_count =
             iterations_count
                 .to_usize()
-                .ok_or(Error::Element(ElementError::Constant(
-                    ConstantError::Integer(IntegerConstantError::IntegerTooLarge {
-                        location: bounds_expression_location,
-                        inner: InferenceError::Overflow {
-                            value: iterations_count,
-                            is_signed: false,
-                            bitlength: index_bitlength,
-                        },
-                    }),
-                )))?;
+                .ok_or_else(|| Error::InvalidInteger {
+                    location: bounds_expression_location,
+                    inner: zinc_math::Error::Overflow {
+                        value: iterations_count,
+                        is_signed: false,
+                        bitlength: index_bitlength,
+                    },
+                })?;
         if is_inclusive {
             iterations_count += 1;
         }

@@ -9,10 +9,10 @@ use zinc_build::LibraryFunctionIdentifier;
 use zinc_lexical::Location;
 
 use crate::semantic::element::argument_list::ArgumentList;
-use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
+use crate::semantic::error::Error;
 
 ///
 /// The semantic analyzer standard library `std::crypto::pedersen` function element.
@@ -65,7 +65,7 @@ impl Function {
                 Element::Value(value) => value.r#type(),
                 Element::Constant(constant) => constant.r#type(),
                 element => {
-                    return Err(Error::ArgumentNotEvaluable {
+                    return Err(Error::FunctionArgumentNotEvaluable {
                         location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         position: index + 1,
@@ -82,7 +82,7 @@ impl Function {
                 (Type::Boolean(_), size)
                     if 0 < size && size <= zinc_const::limit::PEDERSEN_HASH_INPUT_BITS => {}
                 (r#type, size) => {
-                    return Err(Error::ArgumentType {
+                    return Err(Error::FunctionArgumentType {
                         location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         name: "preimage".to_owned(),
@@ -96,7 +96,7 @@ impl Function {
                 }
             },
             Some((r#type, location)) => {
-                return Err(Error::ArgumentType {
+                return Err(Error::FunctionArgumentType {
                     location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "preimage".to_owned(),
@@ -109,7 +109,7 @@ impl Function {
                 })
             }
             None => {
-                return Err(Error::ArgumentCount {
+                return Err(Error::FunctionArgumentCount {
                     location,
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT,
@@ -120,7 +120,7 @@ impl Function {
         }
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
-            return Err(Error::ArgumentCount {
+            return Err(Error::FunctionArgumentCount {
                 location,
                 function: self.identifier.to_owned(),
                 expected: Self::ARGUMENT_COUNT,

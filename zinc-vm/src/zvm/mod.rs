@@ -2,8 +2,8 @@
 //! The Zinc virtual machine binary.
 //!
 
-mod arguments;
-mod error;
+pub(crate) mod arguments;
+pub(crate) mod error;
 
 use std::process;
 

@@ -5,7 +5,7 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::data::r#type::Type as BuildType;
+use crate::data::r#type::Type;
 
 ///
 /// The contract method.
@@ -21,9 +21,9 @@ pub struct Method {
     /// Whether the method can mutate the contract storage state.
     pub is_mutable: bool,
     /// The contract method input arguments as a structure.
-    pub input: BuildType,
+    pub input: Type,
     /// The contract method output type.
-    pub output: BuildType,
+    pub output: Type,
 }
 
 impl Method {
@@ -35,8 +35,8 @@ impl Method {
         name: String,
         address: usize,
         is_mutable: bool,
-        input: BuildType,
-        output: BuildType,
+        input: Type,
+        output: Type,
     ) -> Self {
         Self {
             type_id,

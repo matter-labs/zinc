@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde::Serialize;
 
 use crate::application::unit_test::UnitTest;
-use crate::data::r#type::Type as BuildType;
+use crate::data::r#type::Type;
 use crate::instructions::Instruction;
 
 ///
@@ -21,9 +21,9 @@ pub struct Circuit {
     /// The circuit entry address.
     pub address: usize,
     /// The circuit entry input arguments structure type.
-    pub input: BuildType,
+    pub input: Type,
     /// The circuit entry output type.
-    pub output: BuildType,
+    pub output: Type,
     /// The circuit unit tests.
     pub unit_tests: HashMap<String, UnitTest>,
     /// The circuit bytecode instructions.
@@ -37,8 +37,8 @@ impl Circuit {
     pub fn new(
         name: String,
         address: usize,
-        input: BuildType,
-        output: BuildType,
+        input: Type,
+        output: Type,
         unit_tests: HashMap<String, UnitTest>,
         instructions: Vec<Instruction>,
     ) -> Self {

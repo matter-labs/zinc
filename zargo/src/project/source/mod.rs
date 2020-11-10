@@ -8,7 +8,7 @@ pub mod contract;
 use std::fs;
 use std::path::PathBuf;
 
-use crate::error::directory::Error as DirectoryError;
+use anyhow::Context;
 
 ///
 /// The project `src` directory.
@@ -30,7 +30,8 @@ impl Directory {
     ///
     /// Creates a directory with all its parent directories if it does not exist.
     ///
-    pub fn create(path: &PathBuf) -> Result<(), DirectoryError> {
-        fs::create_dir_all(&Self::path(path)).map_err(DirectoryError::Creating)
+    pub fn create(path: &PathBuf) -> anyhow::Result<()> {
+        Ok(fs::create_dir_all(&Self::path(path))
+            .with_context(|| path.to_string_lossy().to_string())?)
     }
 }

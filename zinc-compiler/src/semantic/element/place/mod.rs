@@ -6,7 +6,6 @@
 mod tests;
 
 pub mod element;
-pub mod error;
 pub mod memory_type;
 
 use std::fmt;
@@ -27,10 +26,10 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
+use crate::semantic::error::Error;
 use crate::semantic::scope::item::Item as ScopeItem;
 
 use self::element::Element as PlaceElement;
-use self::error::Error;
 use self::memory_type::MemoryType;
 
 ///
@@ -245,7 +244,7 @@ impl Place {
                 if index >= tuple.types.len() {
                     return Err(Error::TupleFieldOutOfRange {
                         location,
-                        type_identifier: self.r#type.to_string(),
+                        r#type: self.r#type.to_string(),
                         field_index: index,
                     });
                 }
@@ -309,7 +308,7 @@ impl Place {
 
                 Err(Error::StructureFieldDoesNotExist {
                     location: identifier.location,
-                    type_identifier: structure.identifier.to_owned(),
+                    r#type: structure.identifier.to_owned(),
                     field_name: identifier.name,
                 })
             }
@@ -340,9 +339,9 @@ impl Place {
                     }
                 }
 
-                Err(Error::ContractFieldDoesNotExist {
+                Err(Error::StructureFieldDoesNotExist {
                     location: identifier.location,
-                    type_identifier: contract.identifier.to_owned(),
+                    r#type: contract.identifier.to_owned(),
                     field_name: identifier.name,
                 })
             }

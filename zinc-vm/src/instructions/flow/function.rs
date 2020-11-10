@@ -6,17 +6,17 @@ use zinc_build::Call;
 use zinc_build::Return;
 
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Call {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         vm.call(self.address, self.input_size)
     }
 }
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Return {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         vm.r#return(self.output_size)
     }
 }

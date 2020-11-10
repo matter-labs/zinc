@@ -14,7 +14,6 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_build::Circuit as BuildCircuit;
-use zinc_build::Value as BuildValue;
 use zinc_const::UnitTestExitCode;
 
 use crate::constraint_systems::main::Main as MainCS;
@@ -22,7 +21,7 @@ use crate::core::circuit::output::Output as CircuitOutput;
 use crate::core::circuit::synthesizer::Synthesizer as CircuitSynthesizer;
 use crate::core::circuit::State as CircuitState;
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::IEngine;
 
 pub struct Facade {
@@ -34,7 +33,7 @@ impl Facade {
         Self { inner }
     }
 
-    pub fn run<E: IEngine>(self, input: BuildValue) -> Result<CircuitOutput, RuntimeError> {
+    pub fn run<E: IEngine>(self, input: zinc_build::Value) -> Result<CircuitOutput, Error> {
         let cs = MainCS::<Bn256>::new();
 
         let inputs_flat = input.into_flat_values();
@@ -53,7 +52,7 @@ impl Facade {
             },
             |cs| {
                 if !cs.is_satisfied() {
-                    return Err(RuntimeError::UnsatisfiedConstraint);
+                    return Err(Error::UnsatisfiedConstraint);
                 }
 
                 Ok(())
@@ -62,16 +61,16 @@ impl Facade {
 
         let cs = state.constraint_system();
         if !cs.is_satisfied() {
-            return Err(RuntimeError::UnsatisfiedConstraint);
+            return Err(Error::UnsatisfiedConstraint);
         }
 
         let output_flat: Vec<BigInt> = result.into_iter().filter_map(|value| value).collect();
-        let output_value = BuildValue::from_flat_values(output_type, &output_flat);
+        let output_value = zinc_build::Value::from_flat_values(output_type, &output_flat);
 
         Ok(CircuitOutput::new(output_value))
     }
 
-    pub fn test<E: IEngine>(self) -> Result<UnitTestExitCode, RuntimeError> {
+    pub fn test<E: IEngine>(self) -> Result<UnitTestExitCode, Error> {
         let mut exit_code = UnitTestExitCode::Passed;
 
         for (name, unit_test) in self.inner.unit_tests.clone().into_iter() {
@@ -111,7 +110,7 @@ impl Facade {
         Ok(exit_code)
     }
 
-    pub fn setup<E: IEngine>(self) -> Result<Parameters<E>, RuntimeError> {
+    pub fn setup<E: IEngine>(self) -> Result<Parameters<E>, Error> {
         let rng = &mut rand::thread_rng();
         let mut result = None;
 
@@ -134,8 +133,8 @@ impl Facade {
     pub fn prove<E: IEngine>(
         self,
         params: Parameters<E>,
-        input: BuildValue,
-    ) -> Result<(BuildValue, Proof<E>), RuntimeError> {
+        input: zinc_build::Value,
+    ) -> Result<(zinc_build::Value, Proof<E>), Error> {
         let mut result = None;
         let rng = &mut rand::thread_rng();
 
@@ -151,17 +150,18 @@ impl Facade {
         };
 
         let proof = groth16::create_random_proof(synthesizable, &params, rng)
-            .map_err(RuntimeError::SynthesisError)?;
+            .map_err(Error::SynthesisError)?;
 
         match result {
-            None => Err(RuntimeError::InternalError(
+            None => Err(Error::InternalError(
                 "circuit hasn't generate outputs".into(),
             )),
             Some(result) => match result {
                 Ok(result) => {
                     let output_flat: Vec<BigInt> =
                         result.into_iter().filter_map(|value| value).collect();
-                    let output_value = BuildValue::from_flat_values(output_type, &output_flat);
+                    let output_value =
+                        zinc_build::Value::from_flat_values(output_type, &output_flat);
 
                     Ok((output_value, proof))
                 }

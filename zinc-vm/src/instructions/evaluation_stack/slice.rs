@@ -11,12 +11,12 @@ use zinc_build::Slice;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Slice {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         let offset = vm.pop()?.try_into_value()?;
 
         let mut array = Vec::with_capacity(self.total_size);
@@ -32,7 +32,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Slice {
             .to_usize()
             .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
         if offset_usize + self.slice_length > self.total_size {
-            return Err(RuntimeError::IndexOutOfBounds {
+            return Err(Error::IndexOutOfBounds {
                 lower_bound: 0,
                 upper_bound: self.total_size,
                 found: offset_usize + self.slice_length,

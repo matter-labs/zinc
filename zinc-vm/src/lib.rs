@@ -22,7 +22,7 @@ pub use self::core::contract::facade::Facade as ContractFacade;
 pub use self::core::contract::input::Input as ContractInput;
 pub use self::core::contract::output::Output as ContractOutput;
 pub use self::core::facade::Facade;
-pub use self::error::RuntimeError;
+pub use self::error::Error;
 pub use self::error::VerificationError;
 
 use std::fmt;

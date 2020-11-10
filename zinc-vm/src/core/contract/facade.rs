@@ -16,8 +16,6 @@ use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_build::Contract as BuildContract;
 use zinc_build::ContractFieldValue;
-use zinc_build::Type as BuildType;
-use zinc_build::Value as BuildValue;
 use zinc_const::UnitTestExitCode;
 use zinc_zksync::TransactionMsg;
 
@@ -31,7 +29,7 @@ use crate::core::contract::storage::setup::Storage as SetupStorage;
 use crate::core::contract::synthesizer::Synthesizer as ContractSynthesizer;
 use crate::core::contract::State as ContractState;
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::contract::storage::StorageGadget;
@@ -49,7 +47,7 @@ impl Facade {
         Self { inner }
     }
 
-    pub fn run<E: IEngine>(self, input: ContractInput) -> Result<ContractOutput, RuntimeError> {
+    pub fn run<E: IEngine>(self, input: ContractInput) -> Result<ContractOutput, Error> {
         let mut cs = ConstantCS {};
 
         let method = self
@@ -57,7 +55,7 @@ impl Facade {
             .methods
             .get(input.method_name.as_str())
             .cloned()
-            .ok_or(RuntimeError::MethodNotFound {
+            .ok_or(Error::MethodNotFound {
                 found: input.method_name.clone(),
             })?;
 
@@ -74,16 +72,16 @@ impl Facade {
             storage_types.push(field.r#type.to_owned());
         }
         let storage_leaves = match input.storage {
-            BuildValue::Contract(fields) => fields
+            zinc_build::Value::Contract(fields) => fields
                 .into_iter()
                 .enumerate()
                 .map(|(index, field)| {
                     let r#type = storage_types[index].to_owned();
 
                     match field.value {
-                        BuildValue::Map(map) => {
+                        zinc_build::Value::Map(map) => {
                             let (key_type, value_type) = match r#type {
-                                BuildType::Map {
+                                zinc_build::Type::Map {
                                     key_type,
                                     value_type,
                                 } => (*key_type, *value_type),
@@ -110,7 +108,7 @@ impl Facade {
                     }
                 })
                 .collect::<Vec<LeafInput>>(),
-            _ => return Err(RuntimeError::InvalidStorageValue),
+            _ => return Err(Error::InvalidStorageValue),
         };
         let storage = DatabaseStorage::<Bn256>::new(storage_leaves);
         let storage_gadget =
@@ -131,7 +129,7 @@ impl Facade {
             },
             |cs| {
                 if !cs.is_satisfied() {
-                    return Err(RuntimeError::UnsatisfiedConstraint);
+                    return Err(Error::UnsatisfiedConstraint);
                 }
 
                 Ok(())
@@ -141,13 +139,13 @@ impl Facade {
 
         let cs = state.constraint_system();
         if !cs.is_satisfied() {
-            return Err(RuntimeError::UnsatisfiedConstraint);
+            return Err(Error::UnsatisfiedConstraint);
         }
 
         let output_value: Vec<BigInt> = result.into_iter().filter_map(|value| value).collect();
-        let output_value = BuildValue::from_flat_values(output_type, &output_value);
+        let output_value = zinc_build::Value::from_flat_values(output_type, &output_value);
 
-        let storage_value = BuildValue::Contract(
+        let storage_value = zinc_build::Value::Contract(
             state
                 .storage
                 .into_inner()
@@ -163,11 +161,11 @@ impl Facade {
 
                     let value = match leaf {
                         LeafOutput::Array(array) => {
-                            BuildValue::from_flat_values(r#type, array.as_slice())
+                            zinc_build::Value::from_flat_values(r#type, array.as_slice())
                         }
                         LeafOutput::Map(entries) => {
                             let (key_type, value_type) = match r#type {
-                                BuildType::Map {
+                                zinc_build::Type::Map {
                                     key_type,
                                     value_type,
                                 } => (*key_type, *value_type),
@@ -176,15 +174,17 @@ impl Facade {
 
                             let mut values = Vec::with_capacity(entries.len());
                             for (key, value) in entries.into_iter() {
-                                let key =
-                                    BuildValue::from_flat_values(key_type.clone(), key.as_slice());
-                                let value = BuildValue::from_flat_values(
+                                let key = zinc_build::Value::from_flat_values(
+                                    key_type.clone(),
+                                    key.as_slice(),
+                                );
+                                let value = zinc_build::Value::from_flat_values(
                                     value_type.clone(),
                                     value.as_slice(),
                                 );
                                 values.push((key, value));
                             }
-                            BuildValue::Map(values)
+                            zinc_build::Value::Map(values)
                         }
                     };
 
@@ -198,7 +198,7 @@ impl Facade {
         Ok(ContractOutput::new(output_value, storage_value, transfers))
     }
 
-    pub fn test<E: IEngine>(self) -> Result<UnitTestExitCode, RuntimeError> {
+    pub fn test<E: IEngine>(self) -> Result<UnitTestExitCode, Error> {
         let mut exit_code = UnitTestExitCode::Passed;
 
         for (name, unit_test) in self.inner.unit_tests.clone().into_iter() {
@@ -215,7 +215,7 @@ impl Facade {
                 .clone()
                 .into_iter()
                 .map(|field| field.r#type)
-                .collect::<Vec<BuildType>>();
+                .collect::<Vec<zinc_build::Type>>();
             let storage = SetupStorage::new(storage_types);
             let storage_gadget =
                 StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
@@ -225,7 +225,7 @@ impl Facade {
 
             let result = state.run(
                 self.inner.clone(),
-                BuildType::new_empty_structure(),
+                zinc_build::Type::new_empty_structure(),
                 Some(&[]),
                 |_| {},
                 |_| Ok(()),
@@ -258,7 +258,7 @@ impl Facade {
         Ok(exit_code)
     }
 
-    pub fn setup<E: IEngine>(self, method_name: String) -> Result<Parameters<E>, RuntimeError> {
+    pub fn setup<E: IEngine>(self, method_name: String) -> Result<Parameters<E>, Error> {
         let rng = &mut rand::thread_rng();
         let mut result = None;
 
@@ -267,7 +267,7 @@ impl Facade {
             .methods
             .get(method_name.as_str())
             .cloned()
-            .ok_or(RuntimeError::MethodNotFound {
+            .ok_or(Error::MethodNotFound {
                 found: method_name.clone(),
             })?;
 
@@ -302,13 +302,13 @@ impl Facade {
         self,
         params: Parameters<E>,
         input: ContractInput,
-    ) -> Result<(BuildValue, Proof<E>), RuntimeError> {
+    ) -> Result<(zinc_build::Value, Proof<E>), Error> {
         let method = self
             .inner
             .methods
             .get(input.method_name.as_str())
             .cloned()
-            .ok_or(RuntimeError::MethodNotFound {
+            .ok_or(Error::MethodNotFound {
                 found: input.method_name.clone(),
             })?;
 
@@ -327,16 +327,16 @@ impl Facade {
             storage_types.push(field.r#type.to_owned());
         }
         let storage_leaves = match input.storage {
-            BuildValue::Contract(fields) => fields
+            zinc_build::Value::Contract(fields) => fields
                 .into_iter()
                 .enumerate()
                 .map(|(index, field)| {
                     let r#type = storage_types[index].to_owned();
 
                     match field.value {
-                        BuildValue::Map(map) => {
+                        zinc_build::Value::Map(map) => {
                             let (key_type, value_type) = match r#type {
-                                BuildType::Map {
+                                zinc_build::Type::Map {
                                     key_type,
                                     value_type,
                                 } => (*key_type, *value_type),
@@ -363,7 +363,7 @@ impl Facade {
                     }
                 })
                 .collect::<Vec<LeafInput>>(),
-            _ => return Err(RuntimeError::InvalidStorageValue),
+            _ => return Err(Error::InvalidStorageValue),
         };
         let storage = DatabaseStorage::new(storage_leaves);
 
@@ -379,17 +379,18 @@ impl Facade {
         };
 
         let proof = groth16::create_random_proof(synthesizable, &params, rng)
-            .map_err(RuntimeError::SynthesisError)?;
+            .map_err(Error::SynthesisError)?;
 
         match result {
-            None => Err(RuntimeError::InternalError(
+            None => Err(Error::InternalError(
                 "contract hasn't generate outputs".into(),
             )),
             Some(result) => match result {
                 Ok(result) => {
                     let output_flat: Vec<BigInt> =
                         result.into_iter().filter_map(|value| value).collect();
-                    let output_value = BuildValue::from_flat_values(output_type, &output_flat);
+                    let output_value =
+                        zinc_build::Value::from_flat_values(output_type, &output_flat);
 
                     Ok((output_value, proof))
                 }

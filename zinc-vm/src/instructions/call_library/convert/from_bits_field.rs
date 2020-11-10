@@ -9,7 +9,7 @@ use franklin_crypto::circuit::num::AllocatedNum;
 use zinc_build::ScalarType;
 
 use crate::core::execution_state::ExecutionState;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_library::INativeCallable;
@@ -23,7 +23,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for FromBitsField {
         mut cs: CS,
         state: &mut ExecutionState<E>,
         _storage: Option<&mut S>,
-    ) -> Result<(), RuntimeError> {
+    ) -> Result<(), Error> {
         let mut bits = Vec::with_capacity(E::Fr::NUM_BITS as usize);
         for i in 0..E::Fr::NUM_BITS {
             let bit = state.evaluation_stack.pop()?.try_into_value()?;

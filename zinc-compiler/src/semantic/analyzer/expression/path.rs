@@ -8,15 +8,11 @@ use std::rc::Rc;
 use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::generator::r#type::Type as GeneratorType;
-use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
-use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::place::Place;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::error::Error as ValueError;
-use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
@@ -93,9 +89,7 @@ impl Translator {
             },
             TranslationRule::Value => match *Scope::resolve_path(scope, &path)?.borrow() {
                 ScopeItem::Variable(ref variable) => {
-                    let value = Value::try_from_type(&variable.r#type, false, Some(location))
-                        .map_err(ElementError::Value)
-                        .map_err(Error::Element)?;
+                    let value = Value::try_from_type(&variable.r#type, false, Some(location))?;
                     let r#type = value.r#type();
                     let element = Element::Value(value);
 
@@ -114,9 +108,7 @@ impl Translator {
                     Ok((element, intermediate))
                 }
                 ScopeItem::Field(ref field) => {
-                    let value = Value::try_from_type(&field.r#type, false, Some(location))
-                        .map_err(ElementError::Value)
-                        .map_err(Error::Element)?;
+                    let value = Value::try_from_type(&field.r#type, false, Some(location))?;
                     let r#type = value.r#type();
                     let element = Element::Value(value);
 
@@ -160,12 +152,10 @@ impl Translator {
 
                     match r#type {
                         Type::Structure(structure) if !structure.fields.is_empty() => {
-                            return Err(Error::Element(ElementError::Value(ValueError::Structure(
-                                StructureValueError::NotInitialized {
-                                    location,
-                                    type_identifier: structure.identifier,
-                                },
-                            ))))
+                            return Err(Error::StructureNotInitialized {
+                                location,
+                                r#type: structure.identifier,
+                            });
                         }
                         _ => {}
                     }
@@ -196,10 +186,10 @@ impl Translator {
                         intermediate.map(GeneratorExpressionOperand::Constant),
                     ))
                 }
-                ref item => Err(Error::Expression(ExpressionError::NonConstantElement {
+                ref item => Err(Error::ExpressionNonConstantElement {
                     location: path.location,
                     found: item.to_string(),
-                })),
+                }),
             },
 
             TranslationRule::Type => match *Scope::resolve_path(scope, &path)?.borrow() {

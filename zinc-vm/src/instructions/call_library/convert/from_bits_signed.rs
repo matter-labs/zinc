@@ -12,8 +12,8 @@ use franklin_crypto::circuit::num::AllocatedNum;
 use zinc_build::IntegerType;
 
 use crate::core::execution_state::ExecutionState;
+use crate::error::Error;
 use crate::error::MalformedBytecode;
-use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
@@ -38,7 +38,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for FromBitsSigned {
         mut cs: CS,
         state: &mut ExecutionState<E>,
         _storage: Option<&mut S>,
-    ) -> Result<(), RuntimeError> {
+    ) -> Result<(), Error> {
         if self.bitlength >= E::Fr::CAPACITY as usize {
             return Err(MalformedBytecode::InvalidArguments(format!(
                 "signed_from_bits: integer type with length {} is not supported",

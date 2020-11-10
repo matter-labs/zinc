@@ -2,69 +2,55 @@
 //! The Zinc virtual machine binary error.
 //!
 
-use std::io;
-
-use failure::Fail;
-use hex::FromHexError;
-use serde_json::Value as JsonValue;
-
-use zinc_build::ValueError as BuildValueError;
-use zinc_zksync::TransactionMsgError;
-
-use zinc_vm::RuntimeError;
-use zinc_vm::VerificationError;
+use thiserror::Error;
 
 ///
 /// The Zinc virtual machine error.
 ///
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum Error {
     /// The file input output error.
-    #[fail(display = "{}: {}", path, error)]
+    #[error("{path}: {error}")]
     IO {
         /// The inner `std` error.
-        error: io::Error,
+        error: std::io::Error,
         /// The path where the error has happened.
         path: String,
     },
 
     /// The bytecode execution runtime error.
-    #[fail(display = "runtime error: {}", _0)]
-    Runtime(RuntimeError),
+    #[error("runtime error: {0}")]
+    Runtime(#[from] zinc_vm::Error),
 
     /// The proof verification error.
-    #[fail(display = "failed to verify")]
-    Verification(VerificationError),
+    #[error("failed to verify")]
+    Verification(#[from] zinc_vm::VerificationError),
 
     /// The JSON template file decoding error.
-    #[fail(display = "failed to parse json: {}", _0)]
-    JsonDecoding(serde_json::Error),
+    #[error("failed to parse json: {0}")]
+    JsonDecoding(#[from] serde_json::Error),
 
     /// The JSON template file data does not match the bytecode application input/output types metadata.
-    #[fail(
-        display = "invalid json structure: {}\nNote: remove the JSON file so the compiler may recreate it",
-        _0
+    #[error(
+        "invalid json structure: {0}\nNote: remove the JSON file so the compiler may recreate it"
     )]
-    JsonValue(BuildValueError),
+    JsonInput(#[from] anyhow::Error),
 
     /// The bytecode deserialization error.
-    #[fail(display = "failed to decode an application: {}", _0)]
+    #[error("failed to decode an application: {0}")]
     ApplicationDecoding(String),
 
     /// The hexadecimal data decoding error. Is caused by invalid proofs and keys.
-    #[fail(display = "failed to decode {} hex-code: {}", context, error)]
+    #[error("failed to decode {context} hex-code: {error}")]
     HexDecoding {
         /// The hexadecimal content description.
         context: String,
         /// The inner `hex` error.
-        error: FromHexError,
+        error: hex::FromHexError,
     },
 
     /// The input data is invalid.
-    #[fail(
-        display = "the input data is invalid: expected for `{}`, found for `{}`",
-        expected, found
-    )]
+    #[error("the input data is invalid: expected `{expected}`, found `{found}`")]
     InputDataInvalid {
         /// The expected project type.
         expected: String,
@@ -73,51 +59,27 @@ pub enum Error {
     },
 
     /// The method name is not specified.
-    #[fail(display = "method name is missing")]
+    #[error("method name is missing")]
     MethodNameNotFound,
 
     /// The method does not exist in the contract.
-    #[fail(display = "method `{}` not found", _0)]
+    #[error("method `{name}` not found")]
     MethodNotFound { name: String },
 
     /// The method arguments are not present in the input data.
-    #[fail(display = "method `{}` arguments not found", _0)]
+    #[error("method `{name}` arguments not found")]
     MethodArgumentsNotFound { name: String },
 
     /// The transaction JSON is invalid.
-    #[fail(display = "transaction is invalid")]
+    #[error("transaction `{found}` is invalid: {inner}")]
     InvalidTransaction {
-        inner: TransactionMsgError,
-        found: JsonValue,
+        inner: zinc_zksync::TransactionError,
+        found: serde_json::Value,
     },
 
     /// The contract storage JSON is invalid.
-    #[fail(display = "contract storage must be an array, but found `{}`", found)]
-    InvalidContractStorageFormat { found: JsonValue },
-}
-
-impl From<RuntimeError> for Error {
-    fn from(error: RuntimeError) -> Self {
-        Error::Runtime(error)
-    }
-}
-
-impl From<VerificationError> for Error {
-    fn from(error: VerificationError) -> Self {
-        Error::Verification(error)
-    }
-}
-
-impl From<serde_json::Error> for Error {
-    fn from(error: serde_json::Error) -> Self {
-        Error::JsonDecoding(error)
-    }
-}
-
-impl From<BuildValueError> for Error {
-    fn from(error: BuildValueError) -> Self {
-        Error::JsonValue(error)
-    }
+    #[error("contract storage must be an array, but found `{found}`")]
+    InvalidContractStorageFormat { found: serde_json::Value },
 }
 
 ///
@@ -133,7 +95,7 @@ pub trait IErrorPath<T> {
         F: FnOnce() -> P;
 }
 
-impl<T> IErrorPath<T> for Result<T, io::Error> {
+impl<T> IErrorPath<T> for Result<T, std::io::Error> {
     fn error_with_path<P, F>(self, path_fn: F) -> Result<T, Error>
     where
         P: Into<String>,

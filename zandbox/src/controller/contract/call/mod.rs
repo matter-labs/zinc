@@ -13,14 +13,11 @@ use actix_web::http::StatusCode;
 use actix_web::web;
 use num_old::BigUint;
 use num_old::Zero;
-use serde_json::json;
-use serde_json::Value as JsonValue;
 
 use zksync::operations::SyncTransactionHandle;
 use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::tx::ZkSyncTx;
 
-use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 use zinc_vm::ContractInput;
 use zinc_zksync::Transaction;
@@ -54,7 +51,7 @@ pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
     query: web::Query<RequestQuery>,
     body: web::Json<RequestBody>,
-) -> crate::Result<JsonValue, Error> {
+) -> crate::Result<serde_json::Value, Error> {
     let query = query.into_inner();
     let body = body.into_inner();
 
@@ -105,7 +102,7 @@ pub async fn handle(
     .await?;
     let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
 
-    let input_value = BuildValue::try_from_typed_json(body.arguments, method.input)
+    let input_value = zinc_build::Value::try_from_typed_json(body.arguments, method.input)
         .map_err(Error::InvalidInput)?;
 
     log::debug!("Loading the pre-transaction contract storage");
@@ -134,7 +131,7 @@ pub async fn handle(
         ))
     })
     .await
-    .map_err(Error::RuntimeError)?;
+    .map_err(Error::VirtualMachine)?;
     log::debug!("VM executed in {} ms", vm_time.elapsed().as_millis());
 
     log::debug!("Loading the post-transaction contract storage");
@@ -142,6 +139,7 @@ pub async fn handle(
 
     log::debug!("Building the transaction list");
     let mut transactions = Vec::with_capacity(1 + output.transfers.len());
+    let client_eth_signature = body.transaction.ethereum_signature.signature.clone();
     if let ZkSyncTx::Transfer(ref transfer) = body.transaction.tx {
         let token = wallet
             .tokens
@@ -221,6 +219,7 @@ pub async fn handle(
                     )
                 })
                 .collect(),
+            Some(client_eth_signature),
         )
         .await?
         .into_iter()
@@ -250,7 +249,7 @@ pub async fn handle(
     log::debug!("Committing the contract storage state to the database");
     postgresql.update_fields(storage).await?;
 
-    let response = json!({
+    let response = serde_json::json!({
         "output": output.result.into_json(),
     });
 

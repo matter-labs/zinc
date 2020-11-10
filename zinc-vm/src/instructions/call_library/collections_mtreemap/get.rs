@@ -9,7 +9,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use crate::core::contract::storage::leaf::LeafVariant;
 use crate::core::execution_state::cell::Cell;
 use crate::core::execution_state::ExecutionState;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_library::INativeCallable;
@@ -35,11 +35,11 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Get {
         _cs: CS,
         state: &mut ExecutionState<E>,
         storage: Option<&mut S>,
-    ) -> Result<(), RuntimeError>
+    ) -> Result<(), Error>
     where
         CS: ConstraintSystem<E>,
     {
-        let storage = storage.ok_or(RuntimeError::OnlyForContracts)?;
+        let storage = storage.ok_or(Error::OnlyForContracts)?;
 
         let mut input = Vec::with_capacity(self.input_size);
         for _ in 0..self.input_size {
@@ -55,7 +55,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Get {
             .unwrap_or_default();
         let data = match storage.load(index)?.leaf_values {
             LeafVariant::Map { data, .. } => data,
-            LeafVariant::Array(_array) => return Err(RuntimeError::InvalidStorageValue),
+            LeafVariant::Array(_array) => return Err(Error::InvalidStorageValue),
         };
         let (output, found) = data
             .into_iter()

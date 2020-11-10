@@ -14,9 +14,8 @@ path = "src/main.rs"
 [dependencies]
 log = "0.4"
 structopt = "0.3"
-
-failure = "0.1"
 anyhow = "1.0"
+thiserror = "1.0"
 colored = "2.0"
 
 serde = "1.0"
@@ -38,4 +37,5 @@ zinc-logger = { path = "../zinc-logger" }
 zinc-manifest = { path = "../zinc-manifest" }
 zinc-const = { path = "../zinc-const" }
 zinc-math = { path = "../zinc-math" }
+zinc-source = { path = "../zinc-source" }
 zinc-zksync = { path = "../zinc-zksync" }

@@ -5,8 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -16,15 +14,11 @@ use zinc_syntax::BindingPatternVariant;
 use zinc_syntax::Identifier;
 
 use crate::semantic::analyzer::statement::r#fn::Context as FnAnalyzerContext;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::error::Error as SemanticError;
+use crate::semantic::error::Error;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::Scope;
-
-use self::error::Error;
 
 ///
 /// The binding object namespace.
@@ -69,7 +63,7 @@ impl Binder {
         r#type: Type,
         memory_type: MemoryType,
         scope: Rc<RefCell<Scope>>,
-    ) -> Result<Vec<Binding>, SemanticError> {
+    ) -> Result<Vec<Binding>, Error> {
         match pattern.variant {
             BindingPatternVariant::Binding {
                 identifier,
@@ -89,11 +83,11 @@ impl Binder {
                 let types = match r#type {
                     Type::Tuple(tuple) if tuple.types.len() == bindings.len() => tuple.types,
                     r#type => {
-                        return Err(SemanticError::Binding(Error::ExpectedTuple {
+                        return Err(Error::BindingExpectedTuple {
                             location: pattern.location,
                             expected: bindings.len(),
                             found: r#type.to_string(),
-                        }));
+                        });
                     }
                 };
 
@@ -124,7 +118,7 @@ impl Binder {
         bindings: Vec<zinc_syntax::Binding>,
         context: FnAnalyzerContext,
         scope: Rc<RefCell<Scope>>,
-    ) -> Result<Vec<Binding>, SemanticError> {
+    ) -> Result<Vec<Binding>, Error> {
         let mut result = Vec::with_capacity(bindings.len());
 
         for (index, binding) in bindings.into_iter().enumerate() {
@@ -134,11 +128,11 @@ impl Binder {
                     is_mutable,
                 } if identifier.is_self_lowercase() => {
                     if index != 0 {
-                        return Err(SemanticError::Binding(Error::FunctionMethodSelfNotFirst {
+                        return Err(Error::BindingSelfNotFirstMethodArgument {
                             location: identifier.location,
                             name: identifier.name,
                             position: index + 1,
-                        }));
+                        });
                     }
 
                     let r#type = match &*scope
@@ -154,22 +148,18 @@ impl Binder {
                     {
                         ScopeItem::Type(r#type) => r#type.define()?,
                         item => {
-                            return Err(SemanticError::Element(ElementError::Type(
-                                TypeError::AliasDoesNotPointToType {
-                                    location: identifier.location,
-                                    found: item.to_string(),
-                                },
-                            )))
+                            return Err(Error::TypeAliasExpectedType {
+                                location: identifier.location,
+                                found: item.to_string(),
+                            });
                         }
                     };
 
                     if !r#type.is_instantiatable(false) {
-                        return Err(SemanticError::Element(ElementError::Type(
-                            TypeError::InstantiationForbidden {
-                                location: identifier.location,
-                                found: r#type.to_string(),
-                            },
-                        )));
+                        return Err(Error::TypeInstantiationForbidden {
+                            location: identifier.location,
+                            found: r#type.to_string(),
+                        });
                     }
 
                     let memory_type = match context {
@@ -192,23 +182,17 @@ impl Binder {
                     identifier,
                     is_mutable,
                 } => {
-                    let r#type = binding
-                        .r#type
-                        .ok_or(TypeError::TypeRequired {
-                            location: identifier.location,
-                            identifier: identifier.name.to_owned(),
-                        })
-                        .map_err(ElementError::Type)
-                        .map_err(SemanticError::Element)?;
+                    let r#type = binding.r#type.ok_or(Error::BindingTypeRequired {
+                        location: identifier.location,
+                        identifier: identifier.name.to_owned(),
+                    })?;
                     let r#type = Type::try_from_syntax(r#type, scope.clone())?;
 
                     if !r#type.is_instantiatable(false) {
-                        return Err(SemanticError::Element(ElementError::Type(
-                            TypeError::InstantiationForbidden {
-                                location: identifier.location,
-                                found: r#type.to_string(),
-                            },
-                        )));
+                        return Err(Error::TypeInstantiationForbidden {
+                            location: identifier.location,
+                            found: r#type.to_string(),
+                        });
                     }
 
                     let memory_type = match r#type {
@@ -227,30 +211,22 @@ impl Binder {
                     result.push(Binding::new(identifier, is_mutable, false, r#type));
                 }
                 BindingPatternVariant::BindingList { .. } => {
-                    return Err(SemanticError::Binding(
-                        Error::FunctionArgumentDestructuringUnavailable {
-                            location: binding.location,
-                        },
-                    ))
+                    return Err(Error::BindingFunctionArgumentDestructuringUnavailable {
+                        location: binding.location,
+                    })
                 }
                 BindingPatternVariant::Wildcard => {
-                    let r#type = binding
-                        .r#type
-                        .ok_or(TypeError::TypeRequired {
-                            location: binding.location,
-                            identifier: "_".to_owned(),
-                        })
-                        .map_err(ElementError::Type)
-                        .map_err(SemanticError::Element)?;
+                    let r#type = binding.r#type.ok_or(Error::BindingTypeRequired {
+                        location: binding.location,
+                        identifier: "_".to_owned(),
+                    })?;
                     let r#type = Type::try_from_syntax(r#type, scope.clone())?;
 
                     if !r#type.is_instantiatable(false) {
-                        return Err(SemanticError::Element(ElementError::Type(
-                            TypeError::InstantiationForbidden {
-                                location: binding.pattern.location,
-                                found: r#type.to_string(),
-                            },
-                        )));
+                        return Err(Error::TypeInstantiationForbidden {
+                            location: binding.pattern.location,
+                            found: r#type.to_string(),
+                        });
                     }
 
                     result.push(Binding::new(

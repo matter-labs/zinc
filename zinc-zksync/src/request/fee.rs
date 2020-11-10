@@ -6,7 +6,6 @@ use std::iter::IntoIterator;
 
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::Value as JsonValue;
 
 use zksync::Network;
 use zksync_types::Address;
@@ -65,7 +64,7 @@ impl IntoIterator for Query {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Body {
     /// The JSON method input.
-    pub arguments: JsonValue,
+    pub arguments: serde_json::Value,
     /// The signed transaction which must be sent directly to zkSync.
     pub transaction: Transaction,
 }
@@ -74,7 +73,7 @@ impl Body {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(arguments: JsonValue, transaction: Transaction) -> Self {
+    pub fn new(arguments: serde_json::Value, transaction: Transaction) -> Self {
         Self {
             arguments,
             transaction,

@@ -2,8 +2,6 @@
 //! The database contract INSERT new model.
 //!
 
-use serde_json::Value as JsonValue;
-
 use zksync::web3::types::Address;
 use zksync::web3::types::H256;
 use zksync_types::AccountId;
@@ -26,7 +24,7 @@ pub struct Input {
     /// The Zinc compiler version.
     pub zinc_version: String,
     /// The contract source code tree JSON representation.
-    pub source_code: JsonValue,
+    pub source_code: serde_json::Value,
     /// The contract bytecode.
     pub bytecode: Vec<u8>,
     /// The contract verifying key as a byte array.
@@ -51,7 +49,7 @@ impl Input {
         instance: String,
 
         zinc_version: String,
-        source_code: JsonValue,
+        source_code: serde_json::Value,
         bytecode: Vec<u8>,
         verifying_key: Vec<u8>,
 

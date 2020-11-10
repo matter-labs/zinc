@@ -2,11 +2,10 @@
 //! The `impl` statement tests.
 //!
 
-use crate::error::Error;
-use crate::semantic::analyzer::statement::error::Error as StatementError;
-use crate::semantic::analyzer::statement::r#impl::error::Error as ImplStatementError;
-use crate::semantic::error::Error as SemanticError;
 use zinc_lexical::Location;
+
+use crate::error::Error;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
 fn ok_structure_constructor() {
@@ -64,12 +63,12 @@ impl X {
 fn main() {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Statement(
-        StatementError::Impl(ImplStatementError::ExpectedStructureOrEnumeration {
+    let expected = Err(Error::Semantic(
+        SemanticError::ImplStatementExpectedStructureOrEnumeration {
             location: Location::test(4, 6),
             found: "X".to_owned(),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 

@@ -10,8 +10,8 @@ use franklin_crypto::jubjub::FixedGenerators;
 use franklin_crypto::jubjub::JubjubParams;
 
 use crate::core::execution_state::ExecutionState;
+use crate::error::Error;
 use crate::error::MalformedBytecode;
-use crate::error::RuntimeError;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_library::INativeCallable;
@@ -22,7 +22,7 @@ pub struct SchnorrSignatureVerify {
 }
 
 impl SchnorrSignatureVerify {
-    pub fn new(args_count: usize) -> Result<Self, RuntimeError> {
+    pub fn new(args_count: usize) -> Result<Self, Error> {
         if args_count < 6 {
             return Err(MalformedBytecode::InvalidArguments(
                 "schnorr::verify needs at least 6 arguments".into(),
@@ -42,7 +42,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for SchnorrSignatureVe
         mut cs: CS,
         state: &mut ExecutionState<E>,
         _storage: Option<&mut S>,
-    ) -> Result<(), RuntimeError>
+    ) -> Result<(), Error>
     where
         CS: ConstraintSystem<E>,
     {
@@ -112,7 +112,7 @@ pub fn verify_signature<E, CS>(
     message: &[Scalar<E>],
     signature: &EddsaSignature<E>,
     params: &E::Params,
-) -> Result<Scalar<E>, RuntimeError>
+) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -121,7 +121,7 @@ where
         .iter()
         .enumerate()
         .map(|(i, bit)| bit.to_boolean(cs.namespace(|| format!("message bit {}", i))))
-        .collect::<Result<Vec<_>, RuntimeError>>()?;
+        .collect::<Result<Vec<_>, Error>>()?;
 
     let public_generator = params
         .generator(FixedGenerators::SpendingKeyGenerator)

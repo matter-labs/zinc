@@ -12,8 +12,8 @@ use std::fmt;
 use franklin_crypto::bellman::ConstraintSystem;
 
 use crate::core::execution_state::cell::Cell;
+use crate::error::Error;
 use crate::error::MalformedBytecode;
-use crate::error::RuntimeError;
 use crate::gadgets;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
@@ -39,17 +39,17 @@ impl<E: IEngine> DataStack<E> {
         }
     }
 
-    pub fn get(&mut self, address: usize) -> Result<Cell<E>, RuntimeError> {
+    pub fn get(&mut self, address: usize) -> Result<Cell<E>, Error> {
         self.memory
             .get(address)
             .ok_or(MalformedBytecode::UninitializedStorageAccess)
-            .map_err(RuntimeError::MalformedBytecode)?
+            .map_err(Error::MalformedBytecode)?
             .to_owned()
             .ok_or(MalformedBytecode::UninitializedStorageAccess)
-            .map_err(RuntimeError::MalformedBytecode)
+            .map_err(Error::MalformedBytecode)
     }
 
-    pub fn set(&mut self, address: usize, value: Cell<E>) -> Result<(), RuntimeError> {
+    pub fn set(&mut self, address: usize, value: Cell<E>) -> Result<(), Error> {
         if self.memory.len() <= address {
             let mut extra = vec![None; address + 1 - self.memory.len()];
             self.memory.append(&mut extra);
@@ -86,7 +86,7 @@ impl<E: IEngine> DataStack<E> {
     ///
     /// Create an alternative branch (same parent as current one).
     ///
-    pub fn switch_branch(&mut self) -> Result<(), RuntimeError> {
+    pub fn switch_branch(&mut self) -> Result<(), Error> {
         let mut branch = self
             .branches
             .pop()
@@ -102,7 +102,7 @@ impl<E: IEngine> DataStack<E> {
         &mut self,
         cs: CS,
         condition: Scalar<E>,
-    ) -> Result<(), RuntimeError> {
+    ) -> Result<(), Error> {
         let mut branch = self
             .branches
             .pop()
@@ -131,7 +131,7 @@ impl<E: IEngine> DataStack<E> {
         mut cs: CS,
         condition: Scalar<E>,
         delta: &DataStackDelta<E>,
-    ) -> Result<(), RuntimeError> {
+    ) -> Result<(), Error> {
         for (&addr, diff) in delta.iter() {
             if let (Some(Some(Cell::Value(old))), Cell::Value(new)) =
                 (&self.memory.get(addr), &diff.new)
@@ -152,7 +152,7 @@ impl<E: IEngine> DataStack<E> {
         condition: Scalar<E>,
         delta_then: &DataStackDelta<E>,
         delta_else: &DataStackDelta<E>,
-    ) -> Result<(), RuntimeError>
+    ) -> Result<(), Error>
     where
         CS: ConstraintSystem<E>,
     {

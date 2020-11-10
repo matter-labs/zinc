@@ -14,7 +14,6 @@ use zinc_syntax::ConstStatement;
 use crate::semantic::analyzer::statement::r#const::Analyzer as ConstStatementAnalyzer;
 use crate::semantic::element::constant::Constant as ConstantElement;
 use crate::semantic::error::Error;
-use crate::semantic::scope::error::Error as ScopeError;
 use crate::semantic::scope::item::index::INDEX as ITEM_INDEX;
 use crate::semantic::scope::Scope;
 
@@ -98,9 +97,9 @@ impl Constant {
 
                 Ok(inner)
             }
-            None => Err(Error::Scope(ScopeError::ReferenceLoop {
+            None => Err(Error::ScopeReferenceLoop {
                 location: self.location,
-            })),
+            }),
         }
     }
 }

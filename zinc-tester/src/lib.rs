@@ -3,6 +3,7 @@
 //!
 
 pub(crate) mod directory;
+pub(crate) mod error;
 pub(crate) mod file;
 pub(crate) mod instance;
 pub(crate) mod metadata;

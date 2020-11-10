@@ -4,7 +4,6 @@
 
 pub(crate) mod request;
 pub(crate) mod response;
-pub(crate) mod source;
 pub(crate) mod transaction;
 pub(crate) mod utils;
 
@@ -21,12 +20,7 @@ pub use self::request::query::Query as QueryRequestQuery;
 pub use self::response::fee::Body as FeeResponseBody;
 pub use self::response::initialize::Body as InitializeResponseBody;
 pub use self::response::publish::Body as PublishResponseBody;
-pub use self::source::directory::Directory;
-pub use self::source::error::Error as SourceError;
-pub use self::source::file::File;
-pub use self::source::Source;
 pub use self::transaction::error::Error as TransactionError;
-pub use self::transaction::msg::error::Error as TransactionMsgError;
 pub use self::transaction::msg::Msg as TransactionMsg;
 pub use self::transaction::Transaction;
 pub use self::utils::eth_address_from_vec;

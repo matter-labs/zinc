@@ -5,8 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::fmt;
 
 use zinc_lexical::Location;
@@ -17,8 +15,7 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
-
-use self::error::Error;
+use crate::semantic::error::Error;
 
 ///
 /// Structures are collections of named elements of different types.
@@ -62,9 +59,9 @@ impl Structure {
             match expected.fields.get(index) {
                 Some((expected_name, expected_type)) => {
                     if &identifier.name != expected_name {
-                        return Err(Error::FieldExpected {
+                        return Err(Error::StructureFieldExpected {
                             location: identifier.location,
-                            type_identifier: expected.identifier.to_owned(),
+                            r#type: expected.identifier.to_owned(),
                             position: index + 1,
                             expected: expected_name.to_owned(),
                             found: identifier.name.to_owned(),
@@ -73,9 +70,9 @@ impl Structure {
 
                     let r#type = constant.r#type();
                     if &r#type != expected_type {
-                        return Err(Error::FieldInvalidType {
+                        return Err(Error::StructureFieldInvalidType {
                             location: constant.location(),
-                            type_identifier: expected.identifier.to_owned(),
+                            r#type: expected.identifier.to_owned(),
                             field_name: expected_name.to_owned(),
                             expected: expected_type.to_string(),
                             found: r#type.to_string(),
@@ -83,9 +80,9 @@ impl Structure {
                     }
                 }
                 None => {
-                    return Err(Error::FieldOutOfRange {
+                    return Err(Error::StructureFieldOutOfRange {
                         location: identifier.location,
-                        type_identifier: expected.identifier.to_owned(),
+                        r#type: expected.identifier.to_owned(),
                         expected: expected.fields.len(),
                         found: index + 1,
                     });
@@ -118,9 +115,9 @@ impl Structure {
             offset += element_size;
         }
 
-        Err(Error::FieldDoesNotExist {
+        Err(Error::StructureFieldDoesNotExist {
             location: identifier.location,
-            type_identifier: self
+            r#type: self
                 .r#type
                 .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
                 .identifier,

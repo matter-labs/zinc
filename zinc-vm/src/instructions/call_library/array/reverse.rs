@@ -5,7 +5,7 @@
 use franklin_crypto::bellman::ConstraintSystem;
 
 use crate::core::execution_state::ExecutionState;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::instructions::call_library::INativeCallable;
 use crate::IEngine;
@@ -15,7 +15,7 @@ pub struct Reverse {
 }
 
 impl Reverse {
-    pub fn new(inputs_count: usize) -> Result<Self, RuntimeError> {
+    pub fn new(inputs_count: usize) -> Result<Self, Error> {
         Ok(Self {
             array_length: inputs_count,
         })
@@ -28,7 +28,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Reverse {
         _cs: CS,
         state: &mut ExecutionState<E>,
         _storage: Option<&mut S>,
-    ) -> Result<(), RuntimeError> {
+    ) -> Result<(), Error> {
         let mut array = Vec::with_capacity(self.array_length);
 
         for _ in 0..self.array_length {

@@ -5,14 +5,13 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use zinc_lexical::Location;
+
 use crate::error::Error;
-use crate::semantic::analyzer::expression::error::Error as ExpressionError;
-use crate::semantic::analyzer::expression::r#match::error::Error as MatchExpressionError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
 use crate::source::Source;
-use zinc_lexical::Location;
 
 #[test]
 fn ok_boolean() {
@@ -104,12 +103,10 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Match(MatchExpressionError::ScrutineeInvalidType {
-            location: Location::test(4, 24),
-            found: Type::unit(None).to_string(),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MatchScrutineeInvalidType {
+        location: Location::test(4, 24),
+        found: Type::unit(None).to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -128,11 +125,9 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Match(MatchExpressionError::NotExhausted {
-            location: Location::test(4, 18),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MatchNotExhausted {
+        location: Location::test(4, 18),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -150,11 +145,9 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Match(MatchExpressionError::LessThanTwoBranches {
-            location: Location::test(4, 18),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MatchLessThanTwoBranches {
+        location: Location::test(4, 18),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -174,11 +167,9 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Match(MatchExpressionError::BranchUnreachable {
-            location: Location::test(7, 9),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MatchBranchUnreachable {
+        location: Location::test(7, 9),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -198,11 +189,9 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Match(MatchExpressionError::BranchUnreachable {
-            location: Location::test(7, 9),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MatchBranchUnreachable {
+        location: Location::test(7, 9),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -229,11 +218,9 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Match(MatchExpressionError::BranchUnreachable {
-            location: Location::test(14, 9),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MatchBranchUnreachable {
+        location: Location::test(14, 9),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -258,12 +245,13 @@ fn main() -> u8 {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Match(MatchExpressionError::BranchPatternPathExpectedConstant {
+    let expected = Err(Error::Semantic(
+        SemanticError::MatchBranchPatternPathExpectedConstant {
             location: Location::test(7, 17),
             found: Element::Type(Type::field(None)).to_string(),
-        }),
-    )));
+        },
+    ));
+
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
@@ -290,14 +278,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Match(MatchExpressionError::BranchPatternInvalidType {
+    let expected = Err(Error::Semantic(
+        SemanticError::MatchBranchPatternInvalidType {
             location: Location::test(5, 9),
             expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             found: Type::boolean(None).to_string(),
             reference: Location::test(4, 24),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -329,14 +317,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Match(MatchExpressionError::BranchPatternInvalidType {
+    let expected = Err(Error::Semantic(
+        SemanticError::MatchBranchPatternInvalidType {
             location: Location::test(18, 9),
             expected: "enumeration ListOne".to_owned(),
             found: "enumeration ListTwo".to_owned(),
             reference: Location::test(16, 24),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -355,14 +343,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Match(MatchExpressionError::BranchExpressionInvalidType {
+    let expected = Err(Error::Semantic(
+        SemanticError::MatchBranchExpressionInvalidType {
             location: Location::test(6, 14),
             expected: Type::boolean(None).to_string(),
             found: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
             reference: Location::test(5, 14),
-        }),
-    )));
+        },
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -381,12 +369,10 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Match(MatchExpressionError::BranchDuplicate {
-            location: Location::test(6, 9),
-            reference: Location::test(5, 9),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MatchBranchDuplicate {
+        location: Location::test(6, 9),
+        reference: Location::test(5, 9),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -405,12 +391,10 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::Match(MatchExpressionError::BranchDuplicate {
-            location: Location::test(6, 9),
-            reference: Location::test(5, 9),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MatchBranchDuplicate {
+        location: Location::test(6, 9),
+        reference: Location::test(5, 9),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 

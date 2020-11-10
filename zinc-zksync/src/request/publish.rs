@@ -6,11 +6,10 @@ use std::iter::IntoIterator;
 
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::Value as JsonValue;
+
+use zinc_source::Source;
 
 use zksync::Network;
-
-use crate::source::Source;
 
 ///
 /// The contract resource POST request query.
@@ -67,7 +66,7 @@ pub struct Body {
     /// The contract bytecode.
     pub bytecode: Vec<u8>,
     /// The JSON constructor input.
-    pub arguments: JsonValue,
+    pub arguments: serde_json::Value,
     /// The verifying key.
     pub verifying_key: Vec<u8>,
 }
@@ -79,7 +78,7 @@ impl Body {
     pub fn new(
         source: Source,
         bytecode: Vec<u8>,
-        arguments: JsonValue,
+        arguments: serde_json::Value,
         verifying_key: Vec<u8>,
     ) -> Self {
         Self {

@@ -7,21 +7,21 @@ pub mod prelude {
     pub use crate::gadgets::scalar::variant::Variant as ScalarVariant;
     pub use crate::gadgets::scalar::Scalar;
 
-    use crate::error::RuntimeError;
+    use crate::error::Error;
     use crate::IEngine;
 
     pub trait ToConstant: Sized {
-        fn to_constant(&self) -> Result<Self, RuntimeError>;
+        fn to_constant(&self) -> Result<Self, Error>;
     }
 
     impl<E: IEngine> ToConstant for Scalar<E> {
-        fn to_constant(&self) -> Result<Self, RuntimeError> {
+        fn to_constant(&self) -> Result<Self, Error> {
             self.to_constant_unchecked()
         }
     }
 
     impl<E: IEngine> ToConstant for (Scalar<E>, Scalar<E>) {
-        fn to_constant(&self) -> Result<Self, RuntimeError> {
+        fn to_constant(&self) -> Result<Self, Error> {
             Ok((
                 self.0.to_constant_unchecked()?,
                 self.1.to_constant_unchecked()?,

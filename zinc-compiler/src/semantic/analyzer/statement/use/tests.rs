@@ -4,14 +4,13 @@
 
 use num::BigInt;
 
+use zinc_lexical::Location;
+
 use crate::error::Error;
-use crate::semantic::analyzer::statement::error::Error as StatementError;
-use crate::semantic::analyzer::statement::r#use::error::Error as UseStatementError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
-use zinc_lexical::Location;
 
 #[test]
 fn ok_associated_constant() {
@@ -85,19 +84,17 @@ use 5;
 fn main() {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Statement(
-        StatementError::Use(UseStatementError::ExpectedPath {
-            location: Location::test(2, 5),
-            found: Element::Constant(Constant::Integer(IntegerConstant::new(
-                Location::test(2, 5),
-                BigInt::from(5),
-                false,
-                zinc_const::bitlength::BYTE,
-                true,
-            )))
-            .to_string(),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::UseStatementExpectedPath {
+        location: Location::test(2, 5),
+        found: Element::Constant(Constant::Integer(IntegerConstant::new(
+            Location::test(2, 5),
+            BigInt::from(5),
+            false,
+            zinc_const::bitlength::BYTE,
+            true,
+        )))
+        .to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 

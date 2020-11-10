@@ -26,7 +26,9 @@ pub(crate) fn compile_entry_with_dependencies(
     dependencies: HashMap<String, Source>,
 ) -> Result<(), Error> {
     let path = PathBuf::from("test.zn");
-    EntryAnalyzer::define(Source::test(code, path, dependencies)?).map_err(Error::Semantic)?;
+    let source = Source::test(code, path, dependencies).expect(zinc_const::panic::TEST_DATA_VALID);
+
+    EntryAnalyzer::define(source).map_err(Error::Semantic)?;
 
     Ok(())
 }

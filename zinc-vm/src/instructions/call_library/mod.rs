@@ -16,7 +16,7 @@ use zinc_build::LibraryFunctionIdentifier;
 
 use crate::core::execution_state::ExecutionState;
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::instructions::IExecutable;
 use crate::IEngine;
@@ -44,11 +44,11 @@ pub trait INativeCallable<E: IEngine, S: IMerkleTree<E>> {
         cs: CS,
         state: &mut ExecutionState<E>,
         storage: Option<&mut S>,
-    ) -> Result<(), RuntimeError>;
+    ) -> Result<(), Error>;
 }
 
 impl<VM: IVirtualMachine> IExecutable<VM> for CallLibrary {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         match self.identifier {
             LibraryFunctionIdentifier::CryptoSha256 => {
                 vm.call_native(CryptoSha256::new(self.input_size)?)

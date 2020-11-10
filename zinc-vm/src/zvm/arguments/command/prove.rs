@@ -6,7 +6,6 @@ use std::convert::TryFrom;
 use std::fs;
 use std::path::PathBuf;
 
-use serde_json::Value as JsonValue;
 use structopt::StructOpt;
 
 use franklin_crypto::bellman::groth16::Parameters;
@@ -15,7 +14,6 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 use zinc_build::Application as BuildApplication;
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::InputBuild;
-use zinc_build::Value as BuildValue;
 use zinc_zksync::TransactionMsg;
 
 use zinc_vm::CircuitFacade;
@@ -79,7 +77,7 @@ impl IExecutable for Command {
             BuildApplication::Circuit(circuit) => match input {
                 InputBuild::Circuit { arguments } => {
                     let input_type = circuit.input.clone();
-                    let arguments = BuildValue::try_from_typed_json(arguments, input_type)?;
+                    let arguments = zinc_build::Value::try_from_typed_json(arguments, input_type)?;
 
                     let (_output, proof) =
                         CircuitFacade::new(circuit).prove::<Bn256>(params, arguments)?;
@@ -118,15 +116,15 @@ impl IExecutable for Command {
                         },
                     )?;
                     let method_arguments =
-                        BuildValue::try_from_typed_json(method_arguments, method.input)?;
+                        zinc_build::Value::try_from_typed_json(method_arguments, method.input)?;
 
                     let storage_values = match storage {
-                        JsonValue::Array(array) => {
+                        serde_json::Value::Array(array) => {
                             let mut storage_values = Vec::with_capacity(contract.storage.len());
                             for (field, value) in contract.storage.clone().into_iter().zip(array) {
                                 storage_values.push(BuildContractFieldValue::new(
                                     field.name,
-                                    BuildValue::try_from_typed_json(value, field.r#type)?,
+                                    zinc_build::Value::try_from_typed_json(value, field.r#type)?,
                                     field.is_public,
                                     field.is_implicit,
                                 ));
@@ -140,7 +138,7 @@ impl IExecutable for Command {
                         params,
                         ContractInput::new(
                             method_arguments,
-                            BuildValue::Contract(storage_values),
+                            zinc_build::Value::Contract(storage_values),
                             method_name,
                             TransactionMsg::try_from(&transaction).map_err(|error| {
                                 Error::InvalidTransaction {

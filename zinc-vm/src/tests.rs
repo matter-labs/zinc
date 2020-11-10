@@ -5,9 +5,9 @@
 use std::collections::HashMap;
 
 use colored::Colorize;
-use failure::Fail;
 use num::bigint::ToBigInt;
 use num::BigInt;
+use thiserror::Error;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
@@ -15,11 +15,10 @@ use franklin_crypto::circuit::test::TestConstraintSystem;
 use zinc_build::Call;
 use zinc_build::Circuit as BuildCircuit;
 use zinc_build::Instruction;
-use zinc_build::Type as BuildType;
 
 use crate::core::circuit::State;
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 
 type TestVirtualMachine = State<Bn256, TestConstraintSystem<Bn256>>;
 
@@ -49,15 +48,15 @@ where
     }
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum TestingError {
-    #[fail(display = "{}", _0)]
-    RuntimeError(RuntimeError),
+    #[error("{0}")]
+    Error(Error),
 
-    #[fail(display = "unconstrained: {}", _0)]
+    #[error("unconstrained: {0}")]
     Unconstrained(String),
 
-    #[fail(display = "unsatisfied")]
+    #[error("unsatisfied")]
     Unsatisfied,
 }
 
@@ -93,14 +92,14 @@ impl TestRunner {
         let circuit = BuildCircuit::new(
             "test".to_owned(),
             0,
-            BuildType::Unit,
-            BuildType::Unit,
+            zinc_build::Type::Unit,
+            zinc_build::Type::Unit,
             HashMap::new(),
             self.instructions,
         );
 
         vm.run(circuit, Some(&[]), |_| {}, |_| Ok(()))
-            .map_err(TestingError::RuntimeError)?;
+            .map_err(TestingError::Error)?;
 
         let cs = vm.constraint_system();
 

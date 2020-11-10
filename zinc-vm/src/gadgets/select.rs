@@ -8,7 +8,7 @@ use franklin_crypto::circuit::num::AllocatedNum;
 
 use zinc_build::ScalarType;
 
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::variant::Variant as ScalarVariant;
 use crate::gadgets::scalar::Scalar;
@@ -23,7 +23,7 @@ pub fn recursive<E, CS>(
     mut cs: CS,
     index_bits_be: &[Scalar<E>],
     array: &[Scalar<E>],
-) -> Result<Scalar<E>, RuntimeError>
+) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
@@ -63,7 +63,7 @@ pub fn conditional<E, CS>(
     condition: &Scalar<E>,
     if_true: &Scalar<E>,
     if_false: &Scalar<E>,
-) -> Result<Scalar<E>, RuntimeError>
+) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,

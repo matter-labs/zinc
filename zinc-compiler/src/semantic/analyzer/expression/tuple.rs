@@ -9,7 +9,6 @@ use zinc_syntax::TupleExpression;
 
 use crate::generator::expression::operand::group::builder::Builder as GeneratorGroupExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
-use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::constant::tuple::Tuple as TupleConstant;
@@ -89,10 +88,10 @@ impl Analyzer {
             match element {
                 Element::Constant(constant) => result.push(constant),
                 element => {
-                    return Err(Error::Expression(ExpressionError::NonConstantElement {
+                    return Err(Error::ExpressionNonConstantElement {
                         location: expression_location,
                         found: element.to_string(),
-                    }))
+                    });
                 }
             }
         }

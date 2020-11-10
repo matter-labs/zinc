@@ -2,8 +2,6 @@
 //! The database contract storage field UPDATE model.
 //!
 
-use serde_json::Value as JsonValue;
-
 use zksync_types::AccountId;
 
 ///
@@ -16,14 +14,14 @@ pub struct Input {
     /// The field index in the contract storage.
     pub index: i16,
     /// The field value in JSON representation.
-    pub value: JsonValue,
+    pub value: serde_json::Value,
 }
 
 impl Input {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(account_id: AccountId, index: i16, value: JsonValue) -> Self {
+    pub fn new(account_id: AccountId, index: i16, value: serde_json::Value) -> Self {
         Self {
             account_id,
             index,

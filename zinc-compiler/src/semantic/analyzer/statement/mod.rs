@@ -5,7 +5,6 @@
 pub mod r#const;
 pub mod contract;
 pub mod r#enum;
-pub mod error;
 pub mod field;
 pub mod r#fn;
 pub mod r#for;

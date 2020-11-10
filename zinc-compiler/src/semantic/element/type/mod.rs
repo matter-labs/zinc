@@ -8,7 +8,6 @@ mod tests;
 pub mod array;
 pub mod contract;
 pub mod enumeration;
-pub mod error;
 pub mod function;
 pub mod i_typed;
 pub mod range;
@@ -27,14 +26,10 @@ use zinc_syntax::Type as SyntaxType;
 use zinc_syntax::TypeVariant as SyntaxTypeVariant;
 use zinc_syntax::Variant;
 
-use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::binding::Binding;
-use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::Constant;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::intrinsic::IntrinsicTypeId;
@@ -493,17 +488,11 @@ impl Type {
         generics: Option<Vec<Type>>,
     ) -> Result<(), Error> {
         match self {
-            Self::Structure(inner) => inner
-                .set_generics(location, generics)
-                .map_err(TypeError::Structure)
-                .map_err(ElementError::Type)
-                .map_err(Error::Element),
-            ref r#type if generics.is_some() => Err(Error::Element(ElementError::Type(
-                TypeError::UnexpectedGenerics {
-                    location: self.location().unwrap_or(location),
-                    r#type: r#type.to_string(),
-                },
-            ))),
+            Self::Structure(inner) => inner.set_generics(location, generics),
+            ref r#type if generics.is_some() => Err(Error::TypeUnexpectedGenerics {
+                location: self.location().unwrap_or(location),
+                r#type: r#type.to_string(),
+            }),
             _ => Ok(()),
         }
     }
@@ -535,15 +524,13 @@ impl Type {
                     .analyze(size)?
                 {
                     (Element::Constant(Constant::Integer(integer)), _intermediate) => {
-                        integer.to_usize().map_err(|error| {
-                            Error::Element(ElementError::Constant(ConstantError::Integer(error)))
-                        })?
+                        integer.to_usize()?
                     }
                     (element, _intermediate) => {
-                        return Err(Error::Expression(ExpressionError::NonConstantElement {
+                        return Err(Error::ExpressionNonConstantElement {
                             location: size_location,
                             found: element.to_string(),
-                        }));
+                        });
                     }
                 };
 
@@ -575,12 +562,10 @@ impl Type {
                         r#type
                     }
                     (element, _intermediate) => {
-                        return Err(Error::Element(ElementError::Type(
-                            TypeError::AliasDoesNotPointToType {
-                                location,
-                                found: element.to_string(),
-                            },
-                        )));
+                        return Err(Error::TypeAliasExpectedType {
+                            location,
+                            found: element.to_string(),
+                        });
                     }
                 }
             }

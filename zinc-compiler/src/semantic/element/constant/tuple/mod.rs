@@ -5,18 +5,16 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::fmt;
+
+use zinc_lexical::Location;
 
 use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
-use zinc_lexical::Location;
-
-use self::error::Error;
+use crate::semantic::error::Error;
 
 ///
 /// Tuples are collections of elements of different types.
@@ -91,9 +89,9 @@ impl Tuple {
         let total_size = self.r#type().size();
 
         if index >= self.values.len() {
-            return Err(Error::FieldOutOrRange {
+            return Err(Error::TupleFieldOutOfRange {
                 location,
-                type_identifier: self.r#type().to_string(),
+                r#type: self.r#type().to_string(),
                 field_index: index,
             });
         }

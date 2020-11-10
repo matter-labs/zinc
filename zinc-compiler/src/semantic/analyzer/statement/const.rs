@@ -7,12 +7,9 @@ use std::rc::Rc;
 
 use zinc_syntax::ConstStatement;
 
-use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::constant::Constant;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
@@ -36,24 +33,19 @@ impl Analyzer {
 
         let const_type = Type::try_from_syntax(statement.r#type, scope)?;
         if !const_type.is_instantiatable(false) {
-            return Err(Error::Element(ElementError::Type(
-                TypeError::InstantiationForbidden {
-                    location: statement.location,
-                    found: const_type.to_string(),
-                },
-            )));
+            return Err(Error::TypeInstantiationForbidden {
+                location: statement.location,
+                found: const_type.to_string(),
+            });
         }
 
         let (constant, _intermediate) = match element {
-            Element::Constant(constant) => constant
-                .cast(const_type)
-                .map_err(ElementError::Constant)
-                .map_err(Error::Element)?,
+            Element::Constant(constant) => constant.cast(const_type)?,
             element => {
-                return Err(Error::Expression(ExpressionError::NonConstantElement {
+                return Err(Error::ExpressionNonConstantElement {
                     location: expression_location,
                     found: element.to_string(),
-                }));
+                });
             }
         };
 

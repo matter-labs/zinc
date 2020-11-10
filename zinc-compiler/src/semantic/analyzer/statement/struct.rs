@@ -7,9 +7,6 @@ use std::rc::Rc;
 
 use zinc_syntax::StructStatement;
 
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::structure::error::Error as StructureTypeError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
@@ -30,13 +27,11 @@ impl Analyzer {
                 .iter()
                 .any(|(name, _type)| name == &field.identifier.name)
             {
-                return Err(Error::Element(ElementError::Type(TypeError::Structure(
-                    StructureTypeError::DuplicateField {
-                        location: field.location,
-                        type_identifier: statement.identifier.name,
-                        field_name: field.identifier.name,
-                    },
-                ))));
+                return Err(Error::TypeDuplicateField {
+                    location: field.location,
+                    r#type: statement.identifier.name,
+                    field_name: field.identifier.name,
+                });
             }
 
             fields.push((
@@ -54,12 +49,10 @@ impl Analyzer {
         );
 
         if !r#type.is_instantiatable(false) {
-            return Err(Error::Element(ElementError::Type(
-                TypeError::InstantiationForbidden {
-                    location: statement.location,
-                    found: r#type.to_string(),
-                },
-            )));
+            return Err(Error::TypeInstantiationForbidden {
+                location: statement.location,
+                found: r#type.to_string(),
+            });
         }
 
         Ok(r#type)

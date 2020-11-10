@@ -13,16 +13,14 @@ use zinc_lexical::Location;
 use zinc_syntax::BlockExpression;
 
 use crate::semantic::analyzer::expression::block::Analyzer as BlockExpressionAnalyzer;
-use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::binding::Binding;
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::constant::Constant;
-use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
-use crate::semantic::error::Error as SemanticError;
+use crate::semantic::error::Error;
 use crate::semantic::scope::item::constant::Constant as ScopeConstantItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
@@ -100,7 +98,7 @@ impl Function {
     ///
     pub fn validate(&self, argument_list: ArgumentList) -> Result<Vec<(String, Constant)>, Error> {
         if argument_list.arguments.len() != self.bindings.len() {
-            return Err(Error::ArgumentCount {
+            return Err(Error::FunctionArgumentCount {
                 location: self.location,
                 function: self.identifier.to_owned(),
                 expected: self.bindings.len(),
@@ -116,7 +114,7 @@ impl Function {
             let constant = match element {
                 Element::Constant(constant) => constant,
                 Element::Value(value) => {
-                    return Err(Error::ArgumentConstantness {
+                    return Err(Error::FunctionArgumentConstantness {
                         location: value
                             .location()
                             .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
@@ -127,7 +125,7 @@ impl Function {
                     })
                 }
                 element => {
-                    return Err(Error::ArgumentNotEvaluable {
+                    return Err(Error::FunctionArgumentNotEvaluable {
                         location: element
                             .location()
                             .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
@@ -146,7 +144,7 @@ impl Function {
             match actual_params.get(index) {
                 Some((_name, constant)) if constant.r#type() == binding.r#type => {}
                 Some((_name, constant)) => {
-                    return Err(Error::ArgumentType {
+                    return Err(Error::FunctionArgumentType {
                         location: constant.location(),
                         function: self.identifier.to_owned(),
                         name: binding.identifier.name.to_owned(),
@@ -156,7 +154,7 @@ impl Function {
                     })
                 }
                 None => {
-                    return Err(Error::ArgumentCount {
+                    return Err(Error::FunctionArgumentCount {
                         location: self.location,
                         function: self.identifier.to_owned(),
                         expected: bindings_length,
@@ -179,7 +177,7 @@ impl Function {
         self,
         arguments: Vec<(String, Constant)>,
         scope: Rc<RefCell<Scope>>,
-    ) -> Result<Constant, SemanticError> {
+    ) -> Result<Constant, Error> {
         let location = self.location;
 
         let scope = Scope::new_child(self.identifier, scope);
@@ -201,12 +199,10 @@ impl Function {
             BlockExpressionAnalyzer::analyze(scope, self.body, TranslationRule::Constant)?;
         match element {
             Element::Constant(constant) => Ok(constant),
-            element => Err(SemanticError::Expression(
-                ExpressionError::NonConstantElement {
-                    location: element.location().unwrap_or(location),
-                    found: element.to_string(),
-                },
-            )),
+            element => Err(Error::ExpressionNonConstantElement {
+                location: element.location().unwrap_or(location),
+                found: element.to_string(),
+            }),
         }
     }
 }

@@ -5,7 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
 pub mod result;
 pub mod r#type;
 
@@ -14,7 +13,8 @@ use std::cmp;
 use num::BigInt;
 use num::Signed;
 
-use self::error::Error;
+use crate::error::Error;
+
 use self::r#type::Type;
 use self::result::Binary as BinaryResult;
 
@@ -22,7 +22,7 @@ use self::result::Binary as BinaryResult;
 /// Infers the minimal bitlength enough to represent the `value` with sign specified
 /// as `is_signed`.
 ///
-pub fn minimal_bitlength(value: &BigInt, is_signed: bool) -> Result<usize, Error> {
+pub fn minimal_bitlength(value: &BigInt, is_signed: bool) -> crate::Result<usize> {
     let mut bitlength = zinc_const::bitlength::BYTE;
     let mut exponent = BigInt::from(1 << zinc_const::bitlength::BYTE);
 

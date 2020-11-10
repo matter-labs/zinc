@@ -7,16 +7,13 @@ pub mod r#type;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use zinc_lexical::Location;
+
 use crate::generator::expression::element::Element as GeneratorExpressionElement;
 use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::function::error::Error as FunctionError;
-use crate::semantic::element::r#type::function::intrinsic::error::Error as IntrinsicFunctionError;
 use crate::semantic::element::r#type::function::intrinsic::Function as IntrinsicFunctionType;
-use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
@@ -24,7 +21,6 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
-use zinc_lexical::Location;
 
 use self::r#type::Type as CallType;
 
@@ -57,31 +53,25 @@ impl Analyzer {
                     match r#type {
                         Type::Function(function) => function,
                         r#type => {
-                            return Err(Error::Element(ElementError::Type(TypeError::Function(
-                                FunctionError::NonCallable {
-                                    location: function_location.unwrap_or(location),
-                                    name: r#type.to_string(),
-                                },
-                            ))))
+                            return Err(Error::FunctionNonCallable {
+                                location: function_location.unwrap_or(location),
+                                name: r#type.to_string(),
+                            })
                         }
                     }
                 }
                 ref item => {
-                    return Err(Error::Element(ElementError::Type(TypeError::Function(
-                        FunctionError::NonCallable {
-                            location: function_location.unwrap_or(location),
-                            name: item.to_string(),
-                        },
-                    ))));
+                    return Err(Error::FunctionNonCallable {
+                        location: function_location.unwrap_or(location),
+                        name: item.to_string(),
+                    });
                 }
             },
             operand => {
-                return Err(Error::Element(ElementError::Type(TypeError::Function(
-                    FunctionError::NonCallable {
-                        location: function_location.unwrap_or(location),
-                        name: operand.to_string(),
-                    },
-                ))));
+                return Err(Error::FunctionNonCallable {
+                    location: function_location.unwrap_or(location),
+                    name: operand.to_string(),
+                });
             }
         };
 
@@ -100,12 +90,10 @@ impl Analyzer {
         } = call_type
         {
             if !is_instance_mutable && function.is_mutable() {
-                return Err(Error::Element(ElementError::Type(TypeError::Function(
-                    FunctionError::CallingMutableFromImmutable {
-                        location,
-                        function: function.identifier(),
-                    },
-                ))));
+                return Err(Error::FunctionCallMutableFromImmutable {
+                    location,
+                    function: function.identifier(),
+                });
             }
         }
 
@@ -118,27 +106,19 @@ impl Analyzer {
             FunctionType::Intrinsic(function) => {
                 if function.requires_exclamation_mark() && !matches!(call_type, CallType::MacroLike)
                 {
-                    return Err(Error::Element(ElementError::Type(TypeError::Function(
-                        FunctionError::Intrinsic(IntrinsicFunctionError::ExclamationMarkMissing {
-                            location: function_location.unwrap_or(location),
-                            function: function.identifier(),
-                        }),
-                    ))));
+                    return Err(Error::FunctionExpectedExclamationMark {
+                        location: function_location.unwrap_or(location),
+                        function: function.identifier(),
+                    });
                 }
 
                 match function {
                     IntrinsicFunctionType::Debug(function) => {
-                        let (return_type, format, argument_types) = function
-                            .call(function_location.unwrap_or(location), argument_list)
-                            .map_err(|error| {
-                                Error::Element(ElementError::Type(TypeError::Function(error)))
-                            })?;
+                        let (return_type, format, argument_types) =
+                            function.call(function_location.unwrap_or(location), argument_list)?;
 
-                        let element = Element::Value(
-                            Value::try_from_type(&return_type, false, None)
-                                .map_err(ElementError::Value)
-                                .map_err(Error::Element)?,
-                        );
+                        let element =
+                            Value::try_from_type(&return_type, false, None).map(Element::Value)?;
 
                         let intermediate =
                             GeneratorExpressionOperator::call_debug(format, argument_types);
@@ -152,17 +132,11 @@ impl Analyzer {
                         )
                     }
                     IntrinsicFunctionType::Require(function) => {
-                        let (return_type, message) = function
-                            .call(function_location.unwrap_or(location), argument_list)
-                            .map_err(|error| {
-                                Error::Element(ElementError::Type(TypeError::Function(error)))
-                            })?;
+                        let (return_type, message) =
+                            function.call(function_location.unwrap_or(location), argument_list)?;
 
-                        let element = Element::Value(
-                            Value::try_from_type(&return_type, false, None)
-                                .map_err(ElementError::Value)
-                                .map_err(Error::Element)?,
-                        );
+                        let element =
+                            Value::try_from_type(&return_type, false, None).map(Element::Value)?;
 
                         let intermediate = GeneratorExpressionOperator::call_assert(message);
 
@@ -176,27 +150,19 @@ impl Analyzer {
                     }
                     IntrinsicFunctionType::StandardLibrary(function) => {
                         if let CallType::MacroLike = call_type {
-                            return Err(Error::Element(ElementError::Type(TypeError::Function(
-                                FunctionError::Intrinsic(IntrinsicFunctionError::Unknown {
-                                    location: function_location.unwrap_or(location),
-                                    function: function.identifier().to_owned(),
-                                }),
-                            ))));
+                            return Err(Error::FunctionUnexpectedExclamationMark {
+                                location: function_location.unwrap_or(location),
+                                function: function.identifier().to_owned(),
+                            });
                         }
 
                         let intrinsic_identifier = function.library_identifier();
 
-                        let return_type = function
-                            .call(function_location.unwrap_or(location), argument_list)
-                            .map_err(|error| {
-                                Error::Element(ElementError::Type(TypeError::Function(error)))
-                            })?;
+                        let return_type =
+                            function.call(function_location.unwrap_or(location), argument_list)?;
 
-                        let element = Element::Value(
-                            Value::try_from_type(&return_type, false, None)
-                                .map_err(ElementError::Value)
-                                .map_err(Error::Element)?,
-                        );
+                        let element =
+                            Value::try_from_type(&return_type, false, None).map(Element::Value)?;
 
                         let intermediate = GeneratorExpressionOperator::call_library(
                             intrinsic_identifier,
@@ -214,27 +180,19 @@ impl Analyzer {
                     }
                     IntrinsicFunctionType::ZkSyncLibrary(function) => {
                         if let CallType::MacroLike = call_type {
-                            return Err(Error::Element(ElementError::Type(TypeError::Function(
-                                FunctionError::Intrinsic(IntrinsicFunctionError::Unknown {
-                                    location: function_location.unwrap_or(location),
-                                    function: function.identifier().to_owned(),
-                                }),
-                            ))));
+                            return Err(Error::FunctionUnexpectedExclamationMark {
+                                location: function_location.unwrap_or(location),
+                                function: function.identifier().to_owned(),
+                            });
                         }
 
                         let intrinsic_identifier = function.library_identifier();
 
-                        let return_type = function
-                            .call(function_location.unwrap_or(location), argument_list)
-                            .map_err(|error| {
-                                Error::Element(ElementError::Type(TypeError::Function(error)))
-                            })?;
+                        let return_type =
+                            function.call(function_location.unwrap_or(location), argument_list)?;
 
-                        let element = Element::Value(
-                            Value::try_from_type(&return_type, false, None)
-                                .map_err(ElementError::Value)
-                                .map_err(Error::Element)?,
-                        );
+                        let element =
+                            Value::try_from_type(&return_type, false, None).map(Element::Value)?;
 
                         let intermediate = GeneratorExpressionOperator::call_library(
                             intrinsic_identifier,
@@ -254,26 +212,19 @@ impl Analyzer {
             }
             FunctionType::Runtime(function) => {
                 if let CallType::MacroLike = call_type {
-                    return Err(Error::Element(ElementError::Type(TypeError::Function(
-                        FunctionError::Intrinsic(IntrinsicFunctionError::Unknown {
-                            location,
-                            function: function.identifier,
-                        }),
-                    ))));
+                    return Err(Error::FunctionUnexpectedExclamationMark {
+                        location,
+                        function: function.identifier,
+                    });
                 }
 
                 let location = function.location;
                 let type_id = function.type_id;
 
-                let return_type = function.call(argument_list).map_err(|error| {
-                    Error::Element(ElementError::Type(TypeError::Function(error)))
-                })?;
+                let return_type = function.call(argument_list)?;
 
-                let element = Element::Value(
-                    Value::try_from_type(&return_type, false, None)
-                        .map_err(ElementError::Value)
-                        .map_err(Error::Element)?,
-                );
+                let element =
+                    Value::try_from_type(&return_type, false, None).map(Element::Value)?;
 
                 let intermediate = GeneratorExpressionOperator::call(type_id, input_size);
 
@@ -287,17 +238,13 @@ impl Analyzer {
             }
             FunctionType::Constant(function) => {
                 if let CallType::MacroLike = call_type {
-                    return Err(Error::Element(ElementError::Type(TypeError::Function(
-                        FunctionError::Intrinsic(IntrinsicFunctionError::Unknown {
-                            location,
-                            function: function.identifier,
-                        }),
-                    ))));
+                    return Err(Error::FunctionUnexpectedExclamationMark {
+                        location,
+                        function: function.identifier,
+                    });
                 }
 
-                let arguments = function.validate(argument_list).map_err(|error| {
-                    Error::Element(ElementError::Type(TypeError::Function(error)))
-                })?;
+                let arguments = function.validate(argument_list)?;
 
                 let constant = function.call(arguments, scope)?;
 
@@ -311,12 +258,10 @@ impl Analyzer {
                 )
             }
             FunctionType::Test(function) => {
-                return Err(Error::Element(ElementError::Type(TypeError::Function(
-                    FunctionError::Test(TestFunctionError::CallForbidden {
-                        location: function_location.unwrap_or(location),
-                        function: function.identifier,
-                    }),
-                ))));
+                return Err(Error::UnitTestCallForbidden {
+                    location: function_location.unwrap_or(location),
+                    function: function.identifier,
+                });
             }
         };
 

@@ -5,7 +5,6 @@
 pub mod build;
 pub mod call;
 pub mod clean;
-pub mod error;
 pub mod init;
 pub mod new;
 pub mod proof_check;
@@ -22,7 +21,6 @@ use structopt::StructOpt;
 use self::build::Command as BuildCommand;
 use self::call::Command as CallCommand;
 use self::clean::Command as CleanCommand;
-use self::error::Error;
 use self::init::Command as InitCommand;
 use self::new::Command as NewCommand;
 use self::proof_check::Command as ProofCheckCommand;
@@ -72,7 +70,7 @@ impl Command {
     ///
     /// Executes the command.
     ///
-    pub async fn execute(self) -> Result<(), Error> {
+    pub async fn execute(self) -> anyhow::Result<()> {
         match self {
             Self::New(inner) => inner.execute()?,
             Self::Init(inner) => inner.execute()?,

@@ -11,11 +11,9 @@ use zinc_syntax::StringLiteral;
 use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
-use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::string::String as StringConstant;
 use crate::semantic::element::constant::Constant;
-use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 
@@ -50,11 +48,7 @@ impl Analyzer {
     pub fn integer(
         literal: IntegerLiteral,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
-        let constant = IntegerConstant::try_from(&literal)
-            .map(Constant::Integer)
-            .map_err(|error| {
-                Error::Element(ElementError::Constant(ConstantError::Integer(error)))
-            })?;
+        let constant = IntegerConstant::try_from(&literal).map(Constant::Integer)?;
 
         let intermediate = GeneratorConstant::try_from_semantic(&constant)
             .map(GeneratorExpressionOperand::Constant);

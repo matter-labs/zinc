@@ -11,10 +11,10 @@ use zinc_lexical::Location;
 
 use crate::semantic::binding::Binding;
 use crate::semantic::element::argument_list::ArgumentList;
-use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
+use crate::semantic::error::Error;
 
 ///
 /// The semantic analyzer runtime function element.
@@ -92,7 +92,7 @@ impl Function {
                 Element::Value(value) => value.r#type(),
                 Element::Constant(constant) => constant.r#type(),
                 element => {
-                    return Err(Error::ArgumentNotEvaluable {
+                    return Err(Error::FunctionArgumentNotEvaluable {
                         location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         position: index + 1,
@@ -105,7 +105,7 @@ impl Function {
         }
 
         if actual_params.len() != self.bindings.len() {
-            return Err(Error::ArgumentCount {
+            return Err(Error::FunctionArgumentCount {
                 location: self.location,
                 function: self.identifier.to_owned(),
                 expected: self.bindings.len(),
@@ -119,7 +119,7 @@ impl Function {
             match actual_params.get(index) {
                 Some((actual_type, _location)) if actual_type == &binding.r#type => {}
                 Some((actual_type, location)) => {
-                    return Err(Error::ArgumentType {
+                    return Err(Error::FunctionArgumentType {
                         location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         name: binding.identifier.name,
@@ -129,7 +129,7 @@ impl Function {
                     })
                 }
                 None => {
-                    return Err(Error::ArgumentCount {
+                    return Err(Error::FunctionArgumentCount {
                         location: self.location,
                         function: self.identifier.to_owned(),
                         expected: bindings_length,

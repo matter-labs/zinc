@@ -18,7 +18,6 @@ use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::tx::ZkSyncTx;
 use zksync_types::TxFeeTypes;
 
-use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 use zinc_vm::ContractInput;
 
@@ -100,7 +99,7 @@ pub async fn handle(
     .await?;
     let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
 
-    let input_value = BuildValue::try_from_typed_json(body.arguments, method.input)
+    let input_value = zinc_build::Value::try_from_typed_json(body.arguments, method.input)
         .map_err(Error::InvalidInput)?;
 
     log::debug!("Loading the pre-transaction contract storage");
@@ -129,7 +128,7 @@ pub async fn handle(
         ))
     })
     .await
-    .map_err(Error::RuntimeError)?;
+    .map_err(Error::VirtualMachine)?;
     log::debug!("VM executed in {} ms", vm_time.elapsed().as_millis());
 
     log::debug!("Calculating the fee for the method transfers");

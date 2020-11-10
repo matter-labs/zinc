@@ -6,7 +6,6 @@ use std::iter::IntoIterator;
 
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::Value as JsonValue;
 
 use zksync::Network;
 use zksync_types::Address;
@@ -64,14 +63,14 @@ impl IntoIterator for Query {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Body {
     /// The JSON method input. Required for querying methods.
-    pub arguments: Option<JsonValue>,
+    pub arguments: Option<serde_json::Value>,
 }
 
 impl Body {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(arguments: Option<JsonValue>) -> Self {
+    pub fn new(arguments: Option<serde_json::Value>) -> Self {
         Self { arguments }
     }
 }

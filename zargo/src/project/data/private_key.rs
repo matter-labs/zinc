@@ -8,7 +8,7 @@ use std::io::Read;
 use std::io::Write;
 use std::path::PathBuf;
 
-use crate::error::file::Error as FileError;
+use anyhow::Context;
 
 ///
 /// The private key file representation.
@@ -44,7 +44,7 @@ impl PrivateKey {
     ///
     /// Writes the contents to a file in the project at the given `path`.
     ///
-    pub fn write_to(self, path: &PathBuf) -> Result<(), FileError> {
+    pub fn write_to(self, path: &PathBuf) -> anyhow::Result<()> {
         let mut path = path.to_owned();
         if path.is_dir() {
             if !path.ends_with(zinc_const::directory::DATA) {
@@ -53,10 +53,11 @@ impl PrivateKey {
             path.push(PathBuf::from(Self::file_name()));
         }
 
-        let mut file =
-            File::create(&path).map_err(|error| FileError::Creating(Self::file_name(), error))?;
+        let mut file = File::create(&path).with_context(|| path.to_string_lossy().to_string())?;
         file.write_all(self.inner.as_bytes())
-            .map_err(|error| FileError::Writing(Self::file_name(), error))
+            .with_context(|| path.to_string_lossy().to_string())?;
+
+        Ok(())
     }
 
     ///
@@ -75,7 +76,7 @@ impl PrivateKey {
 }
 
 impl TryFrom<&PathBuf> for PrivateKey {
-    type Error = FileError;
+    type Error = anyhow::Error;
 
     fn try_from(path: &PathBuf) -> Result<Self, Self::Error> {
         let mut path = path.to_owned();
@@ -86,16 +87,15 @@ impl TryFrom<&PathBuf> for PrivateKey {
             path.push(PathBuf::from(Self::file_name()));
         }
 
-        let mut file =
-            File::open(path).map_err(|error| FileError::Opening(Self::file_name(), error))?;
+        let mut file = File::open(&path).with_context(|| path.to_string_lossy().to_string())?;
         let size = file
             .metadata()
-            .map_err(|error| FileError::Metadata(Self::file_name(), error))?
+            .with_context(|| path.to_string_lossy().to_string())?
             .len() as usize;
 
         let mut buffer = String::with_capacity(size);
         file.read_to_string(&mut buffer)
-            .map_err(|error| FileError::Reading(Self::file_name(), error))?;
+            .with_context(|| path.to_string_lossy().to_string())?;
 
         Ok(Self { inner: buffer })
     }

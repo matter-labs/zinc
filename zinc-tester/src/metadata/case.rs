@@ -3,7 +3,6 @@
 //!
 
 use serde::Deserialize;
-use serde_json::Value as JsonValue;
 
 ///
 /// The test file case.
@@ -15,9 +14,9 @@ pub struct Case {
     /// The entry or method which must be run for the case.
     pub method: Option<String>,
     /// The entry or method input data.
-    pub input: JsonValue,
+    pub input: serde_json::Value,
     /// The entry or method expected output data.
-    pub output: JsonValue,
+    pub output: serde_json::Value,
     /// If the test case must return an error to be successful.
     #[serde(default)]
     pub should_panic: bool,

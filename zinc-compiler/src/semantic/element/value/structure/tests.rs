@@ -2,13 +2,11 @@
 //! The structure value element tests.
 //!
 
-use crate::error::Error;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::error::Error as ValueError;
-use crate::semantic::element::value::structure::error::Error as StructureValueError;
-use crate::semantic::error::Error as SemanticError;
 use zinc_lexical::Location;
+
+use crate::error::Error;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
 fn ok_not_initialized() {
@@ -31,12 +29,10 @@ struct Data {
 fn main() -> Data { Data }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Structure(StructureValueError::NotInitialized {
-            location: Location::test(6, 21),
-            type_identifier: "Data".to_owned(),
-        })),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::StructureNotInitialized {
+        location: Location::test(6, 21),
+        r#type: "Data".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -57,15 +53,11 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Structure(
-            StructureValueError::FieldDoesNotExist {
-                location: Location::test(9, 7),
-                type_identifier: "Data".to_owned(),
-                field_name: "b".to_owned(),
-            },
-        )),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldDoesNotExist {
+        location: Location::test(9, 7),
+        r#type: "Data".to_owned(),
+        field_name: "b".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -88,15 +80,13 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Structure(StructureValueError::FieldExpected {
-            location: Location::test(10, 9),
-            type_identifier: "Data".to_owned(),
-            position: 2,
-            expected: "b".to_owned(),
-            found: "c".to_owned(),
-        })),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldExpected {
+        location: Location::test(10, 9),
+        r#type: "Data".to_owned(),
+        position: 2,
+        expected: "b".to_owned(),
+        found: "c".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -117,17 +107,13 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Structure(
-            StructureValueError::FieldInvalidType {
-                location: Location::test(8, 9),
-                type_identifier: "Data".to_owned(),
-                field_name: "a".to_owned(),
-                expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
-                found: Type::boolean(None).to_string(),
-            },
-        )),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldInvalidType {
+        location: Location::test(8, 9),
+        r#type: "Data".to_owned(),
+        field_name: "a".to_owned(),
+        expected: Type::integer_unsigned(None, zinc_const::bitlength::BYTE).to_string(),
+        found: Type::boolean(None).to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -151,16 +137,12 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Value(ValueError::Structure(
-            StructureValueError::FieldOutOfRange {
-                location: Location::test(11, 9),
-                type_identifier: "Data".to_owned(),
-                expected: 2,
-                found: 3,
-            },
-        )),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldOutOfRange {
+        location: Location::test(11, 9),
+        r#type: "Data".to_owned(),
+        expected: 2,
+        found: 3,
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 

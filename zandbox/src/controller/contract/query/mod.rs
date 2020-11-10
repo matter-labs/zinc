@@ -10,12 +10,9 @@ use std::sync::RwLock;
 
 use actix_web::http::StatusCode;
 use actix_web::web;
-use serde_json::json;
-use serde_json::Value as JsonValue;
 
 use zksync_eth_signer::PrivateKeySigner;
 
-use zinc_build::Value as BuildValue;
 use zinc_vm::Bn256;
 use zinc_vm::ContractInput;
 use zinc_zksync::TransactionMsg;
@@ -45,7 +42,7 @@ pub async fn handle(
     app_data: web::Data<Arc<RwLock<SharedData>>>,
     query: web::Query<RequestQuery>,
     body: web::Json<RequestBody>,
-) -> crate::Result<JsonValue, Error> {
+) -> crate::Result<serde_json::Value, Error> {
     let query = query.into_inner();
     let body = body.into_inner();
 
@@ -127,8 +124,8 @@ pub async fn handle(
         Some(arguments) => arguments,
         None => return Err(Error::MethodArgumentsNotFound(method_name)),
     };
-    let input_value =
-        BuildValue::try_from_typed_json(arguments, method.input).map_err(Error::InvalidInput)?;
+    let input_value = zinc_build::Value::try_from_typed_json(arguments, method.input)
+        .map_err(Error::InvalidInput)?;
 
     log::debug!("Running the contract method on the virtual machine");
     let vm_time = std::time::Instant::now();
@@ -141,10 +138,10 @@ pub async fn handle(
         ))
     })
     .await
-    .map_err(Error::RuntimeError)?;
+    .map_err(Error::VirtualMachine)?;
     log::debug!("VM executed in {} ms", vm_time.elapsed().as_millis());
 
-    let response = json!({
+    let response = serde_json::json!({
         "output": output.result.into_json(),
     });
 

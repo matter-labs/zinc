@@ -7,7 +7,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use crate::core::contract::storage::leaf::LeafVariant;
 use crate::core::execution_state::cell::Cell;
 use crate::core::location::Location;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_library::INativeCallable;
@@ -23,13 +23,13 @@ pub trait IVirtualMachine {
 
     // Operations with evaluation stack
 
-    fn push(&mut self, cell: Cell<Self::E>) -> Result<(), RuntimeError>;
-    fn pop(&mut self) -> Result<Cell<Self::E>, RuntimeError>;
+    fn push(&mut self, cell: Cell<Self::E>) -> Result<(), Error>;
+    fn pop(&mut self) -> Result<Cell<Self::E>, Error>;
 
     // Operations with data stack
 
-    fn load(&mut self, address: usize) -> Result<Cell<Self::E>, RuntimeError>;
-    fn store(&mut self, address: usize, cell: Cell<Self::E>) -> Result<(), RuntimeError>;
+    fn load(&mut self, address: usize) -> Result<Cell<Self::E>, Error>;
+    fn store(&mut self, address: usize, cell: Cell<Self::E>) -> Result<(), Error>;
 
     // Operations with contract storage
 
@@ -37,31 +37,31 @@ pub trait IVirtualMachine {
         &mut self,
         index: Scalar<Self::E>,
         size: usize,
-    ) -> Result<Vec<Scalar<Self::E>>, RuntimeError>;
+    ) -> Result<Vec<Scalar<Self::E>>, Error>;
     fn storage_store(
         &mut self,
         index: Scalar<Self::E>,
         values: LeafVariant<Self::E>,
-    ) -> Result<(), RuntimeError>;
+    ) -> Result<(), Error>;
 
-    fn loop_begin(&mut self, iter_count: usize) -> Result<(), RuntimeError>;
-    fn loop_end(&mut self) -> Result<(), RuntimeError>;
+    fn loop_begin(&mut self, iter_count: usize) -> Result<(), Error>;
+    fn loop_end(&mut self) -> Result<(), Error>;
 
-    fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError>;
-    fn r#return(&mut self, outputs_count: usize) -> Result<(), RuntimeError>;
+    fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), Error>;
+    fn r#return(&mut self, outputs_count: usize) -> Result<(), Error>;
 
-    fn branch_then(&mut self) -> Result<(), RuntimeError>;
-    fn branch_else(&mut self) -> Result<(), RuntimeError>;
-    fn branch_end(&mut self) -> Result<(), RuntimeError>;
+    fn branch_then(&mut self) -> Result<(), Error>;
+    fn branch_else(&mut self) -> Result<(), Error>;
+    fn branch_end(&mut self) -> Result<(), Error>;
 
-    fn exit(&mut self, values_count: usize) -> Result<(), RuntimeError>;
+    fn exit(&mut self, values_count: usize) -> Result<(), Error>;
 
     fn call_native<F: INativeCallable<Self::E, Self::S>>(
         &mut self,
         function: F,
-    ) -> Result<(), RuntimeError>;
+    ) -> Result<(), Error>;
 
-    fn condition_top(&mut self) -> Result<Scalar<Self::E>, RuntimeError>;
+    fn condition_top(&mut self) -> Result<Scalar<Self::E>, Error>;
 
     fn constraint_system(&mut self) -> &mut Self::CS;
 

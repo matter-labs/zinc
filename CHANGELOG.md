@@ -1,5 +1,13 @@
 # The Zinc changelog
 
+## Version 0.2.1 (2020-XX-XX)
+
+#### Compiler
+
+- fixed the bug with invalid scope for contract fields and methods
+- fixed the bug where enum variants were not treated as constants
+- performed an inventory of compiler errors and created a reference thereof
+
 ## Version 0.2.0 (2020-10-28)
 
 #### Language

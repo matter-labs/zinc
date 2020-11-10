@@ -17,7 +17,7 @@ use zinc_zksync::TransactionMsg;
 use crate::constraint_systems::dedup::Dedup as DedupCS;
 use crate::constraint_systems::logging::Logging as LoggingCS;
 use crate::core::contract::State;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::contract::storage::StorageGadget;
@@ -25,7 +25,7 @@ use crate::IEngine;
 
 pub struct Synthesizer<'a, E: IEngine, S: IMerkleTree<E>> {
     pub inputs: Option<Vec<BigInt>>,
-    pub output: &'a mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
+    pub output: &'a mut Option<Result<Vec<Option<BigInt>>, Error>>,
     pub bytecode: BytecodeContract,
     pub method: ContractMethod,
     pub storage: S,

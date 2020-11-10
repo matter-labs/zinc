@@ -10,16 +10,12 @@ use zinc_syntax::ArrayExpressionVariant;
 
 use crate::generator::expression::operand::array::builder::Builder as GeneratorArrayExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
-use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::constant::array::Array as ArrayConstant;
-use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::Constant;
-use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::array::Array as ArrayValue;
-use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
@@ -70,11 +66,7 @@ impl Analyzer {
                         ExpressionAnalyzer::new(scope.clone(), TranslationRule::Value)
                             .analyze(expression)?;
                     let element_type = Type::from_element(&element, scope.clone())?;
-                    result
-                        .push(element_type, element.location())
-                        .map_err(|error| {
-                            Error::Element(ElementError::Value(ValueError::Array(error)))
-                        })?;
+                    result.push(element_type, element.location())?;
 
                     builder.push_expression(expression);
                 }
@@ -89,15 +81,13 @@ impl Analyzer {
                     .analyze(size_expression)?
                 {
                     (Element::Constant(Constant::Integer(integer)), _intermediate) => {
-                        integer.to_usize().map_err(|error| {
-                            Error::Element(ElementError::Constant(ConstantError::Integer(error)))
-                        })?
+                        integer.to_usize()?
                     }
                     (element, _intermediate) => {
-                        return Err(Error::Expression(ExpressionError::NonConstantElement {
+                        return Err(Error::ExpressionNonConstantElement {
                             location: size_expression_location,
                             found: element.to_string(),
-                        }));
+                        });
                     }
                 };
 
@@ -105,11 +95,7 @@ impl Analyzer {
                     ExpressionAnalyzer::new(scope.clone(), TranslationRule::Value)
                         .analyze(expression)?;
                 let element_type = Type::from_element(&element, scope)?;
-                result
-                    .extend(element_type, size, element.location())
-                    .map_err(|error| {
-                        Error::Element(ElementError::Value(ValueError::Array(error)))
-                    })?;
+                result.extend(element_type, size, element.location())?;
 
                 builder.push_expression(expression);
                 builder.set_size(size);
@@ -137,14 +123,12 @@ impl Analyzer {
                         ExpressionAnalyzer::new(scope.clone(), TranslationRule::Constant)
                             .analyze(expression)?;
                     match element {
-                        Element::Constant(constant) => result.push(constant).map_err(|error| {
-                            Error::Element(ElementError::Constant(ConstantError::Array(error)))
-                        })?,
+                        Element::Constant(constant) => result.push(constant)?,
                         element => {
-                            return Err(Error::Expression(ExpressionError::NonConstantElement {
+                            return Err(Error::ExpressionNonConstantElement {
                                 location: expression_location,
                                 found: element.to_string(),
-                            }))
+                            });
                         }
                     }
                 }
@@ -160,31 +144,25 @@ impl Analyzer {
                     .analyze(size_expression)?
                 {
                     (Element::Constant(Constant::Integer(integer)), _intermediate) => {
-                        integer.to_usize().map_err(|error| {
-                            Error::Element(ElementError::Constant(ConstantError::Integer(error)))
-                        })?
+                        integer.to_usize()?
                     }
                     (element, _intermediate) => {
-                        return Err(Error::Expression(ExpressionError::NonConstantElement {
+                        return Err(Error::ExpressionNonConstantElement {
                             location: size_expression_location,
                             found: element.to_string(),
-                        }));
+                        });
                     }
                 };
 
                 let (element, _) = ExpressionAnalyzer::new(scope, TranslationRule::Constant)
                     .analyze(expression)?;
                 match element {
-                    Element::Constant(constant) => {
-                        result.extend(vec![constant; size]).map_err(|error| {
-                            Error::Element(ElementError::Constant(ConstantError::Array(error)))
-                        })?
-                    }
+                    Element::Constant(constant) => result.extend(vec![constant; size])?,
                     element => {
-                        return Err(Error::Expression(ExpressionError::NonConstantElement {
+                        return Err(Error::ExpressionNonConstantElement {
                             location: expression_location,
                             found: element.to_string(),
-                        }))
+                        });
                     }
                 }
             }

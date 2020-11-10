@@ -10,12 +10,10 @@ use zinc_lexical::Location;
 
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::constant::Constant;
-use crate::semantic::element::r#type::function::error::Error;
-use crate::semantic::element::r#type::function::intrinsic::error::Error as IntrinsicError;
-use crate::semantic::element::r#type::function::intrinsic::stdlib::error::Error as StdlibError;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
+use crate::semantic::error::Error;
 
 ///
 /// The semantic analyzer standard library `std::array::pad` function element.
@@ -67,20 +65,18 @@ impl Function {
             let (r#type, is_constant, number) = match element {
                 Element::Value(value) => (value.r#type(), false, None),
                 Element::Constant(Constant::Integer(integer)) => {
-                    let number = integer
-                        .to_usize()
-                        .map_err(|_error| StdlibError::ArrayNewLengthInvalid {
+                    let number = integer.to_usize().map_err(|_error| {
+                        Error::FunctionStdlibArrayNewLengthInvalid {
                             location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                             value: integer.to_string(),
-                        })
-                        .map_err(IntrinsicError::StandardLibrary)
-                        .map_err(Error::Intrinsic)?;
+                        }
+                    })?;
 
                     (integer.r#type(), true, Some(number))
                 }
                 Element::Constant(constant) => (constant.r#type(), true, None),
                 element => {
-                    return Err(Error::ArgumentNotEvaluable {
+                    return Err(Error::FunctionArgumentNotEvaluable {
                         location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         position: index + 1,
@@ -100,7 +96,7 @@ impl Function {
                     (array.r#type.deref().to_owned(), array.size)
                 }
                 Some((r#type, _is_constant, _number, location)) => {
-                    return Err(Error::ArgumentType {
+                    return Err(Error::FunctionArgumentType {
                         location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         name: "array".to_owned(),
@@ -110,7 +106,7 @@ impl Function {
                     })
                 }
                 None => {
-                    return Err(Error::ArgumentCount {
+                    return Err(Error::FunctionArgumentCount {
                         location,
                         function: self.identifier.to_owned(),
                         expected: Self::ARGUMENT_COUNT,
@@ -123,7 +119,7 @@ impl Function {
         let new_length = match actual_params.get(Self::ARGUMENT_INDEX_NEW_LENGTH) {
             Some((r#type, true, Some(number), _location)) if r#type.is_scalar_unsigned() => *number,
             Some((r#type, true, _number, location)) => {
-                return Err(Error::ArgumentType {
+                return Err(Error::FunctionArgumentType {
                     location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "new_length".to_owned(),
@@ -133,7 +129,7 @@ impl Function {
                 })
             }
             Some((r#type, false, _number, location)) => {
-                return Err(Error::ArgumentConstantness {
+                return Err(Error::FunctionArgumentConstantness {
                     location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "new_length".to_owned(),
@@ -142,7 +138,7 @@ impl Function {
                 })
             }
             None => {
-                return Err(Error::ArgumentCount {
+                return Err(Error::FunctionArgumentCount {
                     location,
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT,
@@ -156,7 +152,7 @@ impl Function {
             Some((r#type, _is_constant, _number, _location))
                 if r#type.is_scalar() && r#type == &input_array_type => {}
             Some((r#type, _is_constant, _number, location)) => {
-                return Err(Error::ArgumentType {
+                return Err(Error::FunctionArgumentType {
                     location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "fill_value".to_owned(),
@@ -166,7 +162,7 @@ impl Function {
                 })
             }
             None => {
-                return Err(Error::ArgumentCount {
+                return Err(Error::FunctionArgumentCount {
                     location,
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT,
@@ -177,7 +173,7 @@ impl Function {
         }
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
-            return Err(Error::ArgumentCount {
+            return Err(Error::FunctionArgumentCount {
                 location,
                 function: self.identifier.to_owned(),
                 expected: Self::ARGUMENT_COUNT,
@@ -187,13 +183,11 @@ impl Function {
         }
 
         if new_length < input_array_size {
-            return Err(Error::Intrinsic(IntrinsicError::StandardLibrary(
-                StdlibError::ArrayPaddingToLesserSize {
-                    location,
-                    from: input_array_size,
-                    to: new_length,
-                },
-            )));
+            return Err(Error::FunctionStdlibArrayPaddingToLesserSize {
+                location,
+                from: input_array_size,
+                to: new_length,
+            });
         }
 
         Ok(Type::array(Some(location), input_array_type, new_length))

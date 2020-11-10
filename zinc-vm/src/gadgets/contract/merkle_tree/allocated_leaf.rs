@@ -4,7 +4,7 @@ use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::Assignment;
 
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets;
 use crate::gadgets::contract::merkle_tree::hasher::IHasher as IMerkleTreeHasher;
 use crate::gadgets::scalar::Scalar;
@@ -29,7 +29,7 @@ impl<E: IEngine> AllocatedLeaf<E> {
         hasher: &H,
         index_bits: &[Scalar<E>],
         authentication_path: &[Vec<Scalar<E>>],
-    ) -> Result<Scalar<E>, RuntimeError>
+    ) -> Result<Scalar<E>, Error>
     where
         CS: ConstraintSystem<E>,
         H: IMerkleTreeHasher<E>,
@@ -132,7 +132,7 @@ impl<E: IEngine> AllocatedLeaf<E> {
     pub fn alloc_leaf_fields<CS>(
         mut cs: CS,
         leaf_value: Vec<Scalar<E>>,
-    ) -> Result<Vec<Scalar<E>>, RuntimeError>
+    ) -> Result<Vec<Scalar<E>>, Error>
     where
         E: IEngine,
         CS: ConstraintSystem<E>,
@@ -154,10 +154,7 @@ impl<E: IEngine> AllocatedLeaf<E> {
         Ok(leaf_fields)
     }
 
-    pub fn alloc_leaf_hash<CS>(
-        mut cs: CS,
-        leaf_hash_value: &[bool],
-    ) -> Result<Vec<Boolean>, RuntimeError>
+    pub fn alloc_leaf_hash<CS>(mut cs: CS, leaf_hash_value: &[bool]) -> Result<Vec<Boolean>, Error>
     where
         E: IEngine,
         CS: ConstraintSystem<E>,
@@ -176,7 +173,7 @@ impl<E: IEngine> AllocatedLeaf<E> {
         mut cs: CS,
         depth: usize,
         authentication_path: Vec<Vec<bool>>,
-    ) -> Result<Vec<Vec<Scalar<E>>>, RuntimeError>
+    ) -> Result<Vec<Vec<Scalar<E>>>, Error>
     where
         CS: ConstraintSystem<E>,
     {

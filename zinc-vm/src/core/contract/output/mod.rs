@@ -4,8 +4,6 @@
 
 pub mod transfer;
 
-use zinc_build::Value as BuildValue;
-
 use self::transfer::Transfer;
 
 ///
@@ -14,9 +12,9 @@ use self::transfer::Transfer;
 #[derive(Debug)]
 pub struct Output {
     /// The contract method output result, which is the public data for now.
-    pub result: BuildValue,
+    pub result: zinc_build::Value,
     /// The contract storage after executing a method.
-    pub storage: BuildValue,
+    pub storage: zinc_build::Value,
     /// The transfers executed in the contract method.
     pub transfers: Vec<Transfer>,
 }
@@ -25,7 +23,11 @@ impl Output {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(result: BuildValue, storage: BuildValue, transfers: Vec<Transfer>) -> Self {
+    pub fn new(
+        result: zinc_build::Value,
+        storage: zinc_build::Value,
+        transfers: Vec<Transfer>,
+    ) -> Self {
         Self {
             result,
             storage,

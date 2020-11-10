@@ -63,16 +63,16 @@ impl Manifest {
     ///
     /// Writes the manifest to a file in the project at the given `path`.
     ///
-    pub fn write_to(self, path: &PathBuf) -> Result<(), Error> {
+    pub fn write_to(self, path: &PathBuf) -> crate::Result<()> {
         let mut path = path.to_owned();
         if path.is_dir() {
             path.push(PathBuf::from(Self::file_name()));
         }
 
-        let mut file =
-            File::create(&path).map_err(|error| Error::Creating(Self::file_name(), error))?;
-        file.write_all(self.template().as_bytes())
-            .map_err(|error| Error::Writing(Self::file_name(), error))
+        let mut file = File::create(&path)?;
+        file.write_all(self.template().as_bytes())?;
+
+        Ok(())
     }
 
     ///
@@ -110,18 +110,12 @@ impl TryFrom<&PathBuf> for Manifest {
             path.push(PathBuf::from(Self::file_name()));
         }
 
-        let mut file =
-            File::open(path).map_err(|error| Error::Opening(Self::file_name(), error))?;
-        let size = file
-            .metadata()
-            .map_err(|error| Error::Metadata(Self::file_name(), error))?
-            .len() as usize;
+        let mut file = File::open(&path)?;
+        let size = file.metadata()?.len() as usize;
 
         let mut buffer = String::with_capacity(size);
-        file.read_to_string(&mut buffer)
-            .map_err(|error| Error::Reading(Self::file_name(), error))?;
+        file.read_to_string(&mut buffer)?;
 
-        Ok(toml::from_str(buffer.as_str())
-            .map_err(|error| Error::Parsing(Self::file_name(), error))?)
+        Ok(toml::from_str(buffer.as_str())?)
     }
 }

@@ -7,9 +7,6 @@ use std::fmt;
 use actix_web::http::StatusCode;
 use actix_web::ResponseError;
 
-use zinc_build::ValueError as BuildValueError;
-use zinc_vm::RuntimeError;
-
 ///
 /// The contract resource POST response error.
 ///
@@ -22,10 +19,10 @@ pub enum Error {
     /// The contract has no constructor.
     ConstructorNotFound,
     /// Invalid contract method arguments.
-    InvalidInput(BuildValueError),
+    InvalidInput(anyhow::Error),
 
     /// The virtual machine constructor runtime error.
-    RuntimeError(RuntimeError),
+    VirtualMachine(zinc_vm::Error),
     /// The PostgreSQL database error.
     Database(sqlx::Error),
 }
@@ -44,7 +41,7 @@ impl ResponseError for Error {
             Self::ConstructorNotFound => StatusCode::UNPROCESSABLE_ENTITY,
             Self::InvalidInput(..) => StatusCode::BAD_REQUEST,
 
-            Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::VirtualMachine(..) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Database(..) => StatusCode::SERVICE_UNAVAILABLE,
         }
     }
@@ -67,7 +64,7 @@ impl fmt::Display for Error {
             Self::ConstructorNotFound => "Constructor not found".to_owned(),
             Self::InvalidInput(inner) => format!("Input: {}", inner),
 
-            Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
+            Self::VirtualMachine(inner) => format!("Runtime: {:?}", inner),
             Self::Database(inner) => format!("Database: {:?}", inner),
         };
 

@@ -9,7 +9,7 @@ use crate::core::contract::storage::leaf::Leaf;
 use crate::core::contract::storage::leaf::LeafInput;
 use crate::core::contract::storage::leaf::LeafOutput;
 use crate::core::contract::storage::leaf::LeafVariant;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
@@ -90,8 +90,8 @@ impl<E: IEngine> Storage<E> {
 }
 
 impl<E: IEngine> IMerkleTree<E> for Storage<E> {
-    fn load(&self, index: BigInt) -> Result<Leaf<E>, RuntimeError> {
-        let index = index.to_usize().ok_or(RuntimeError::ExpectedUsize(index))?;
+    fn load(&self, index: BigInt) -> Result<Leaf<E>, Error> {
+        let index = index.to_usize().ok_or(Error::ExpectedUsize(index))?;
 
         Ok(Leaf::new(
             self.leaf_values[index].to_owned(),
@@ -100,8 +100,8 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
         ))
     }
 
-    fn store(&mut self, index: BigInt, value: LeafVariant<E>) -> Result<(), RuntimeError> {
-        let index = index.to_usize().ok_or(RuntimeError::ExpectedUsize(index))?;
+    fn store(&mut self, index: BigInt, value: LeafVariant<E>) -> Result<(), Error> {
+        let index = index.to_usize().ok_or(Error::ExpectedUsize(index))?;
 
         self.leaf_values[index] = value;
 

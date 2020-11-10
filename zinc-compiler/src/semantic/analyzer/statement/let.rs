@@ -11,8 +11,6 @@ use crate::generator::statement::r#let::Statement as GeneratorDeclarationStateme
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::binding::Binder;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
@@ -37,21 +35,17 @@ impl Analyzer {
 
         let r#type = if let Some(r#type) = statement.binding.r#type {
             let r#type = Type::try_from_syntax(r#type, scope.clone())?;
-            element
-                .cast(Element::Type(r#type.clone()))
-                .map_err(Error::Element)?;
+            element.cast(Element::Type(r#type.clone()))?;
             r#type
         } else {
             Type::from_element(&element, scope.clone())?
         };
 
         if !r#type.is_instantiatable(false) {
-            return Err(Error::Element(ElementError::Type(
-                TypeError::InstantiationForbidden {
-                    location: statement.binding.location,
-                    found: r#type.to_string(),
-                },
-            )));
+            return Err(Error::TypeInstantiationForbidden {
+                location: statement.binding.location,
+                found: r#type.to_string(),
+            });
         }
 
         let memory_type = match r#type {

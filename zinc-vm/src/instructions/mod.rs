@@ -16,14 +16,14 @@ pub mod require;
 use zinc_build::Instruction;
 
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 
 pub trait IExecutable<VM: IVirtualMachine> {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError>;
+    fn execute(self, vm: &mut VM) -> Result<(), Error>;
 }
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Instruction {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         match self {
             Self::NoOperation(inner) => inner.execute(vm),
 

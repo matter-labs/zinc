@@ -7,10 +7,6 @@ use std::fmt;
 use actix_web::http::StatusCode;
 use actix_web::ResponseError;
 
-use zinc_build::ValueError as BuildValueError;
-use zinc_vm::RuntimeError;
-use zinc_zksync::TransactionError;
-
 ///
 /// The contract resource POST `call` error.
 ///
@@ -25,14 +21,14 @@ pub enum Error {
     /// The immutable method must be called via the `query` endpoint.
     MethodIsImmutable(String),
     /// Invalid contract method arguments.
-    InvalidInput(BuildValueError),
+    InvalidInput(anyhow::Error),
     /// The contract method input transaction is invalid.
-    Transaction(TransactionError),
+    Transaction(zinc_zksync::TransactionError),
     /// Token with such identifier cannot be resolved by zkSync.
     TokenNotFound(String),
 
     /// The virtual machine contract method runtime error.
-    RuntimeError(RuntimeError),
+    VirtualMachine(zinc_vm::Error),
     /// The PostgreSQL database error.
     Database(sqlx::Error),
     /// The ZkSync server client error.
@@ -43,8 +39,8 @@ pub enum Error {
     TransferFailure(String),
 }
 
-impl From<TransactionError> for Error {
-    fn from(inner: TransactionError) -> Self {
+impl From<zinc_zksync::TransactionError> for Error {
+    fn from(inner: zinc_zksync::TransactionError) -> Self {
         Self::Transaction(inner)
     }
 }
@@ -78,7 +74,7 @@ impl ResponseError for Error {
             Self::Transaction(..) => StatusCode::BAD_REQUEST,
             Self::TokenNotFound(..) => StatusCode::UNPROCESSABLE_ENTITY,
 
-            Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::VirtualMachine(..) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Database(..) => StatusCode::SERVICE_UNAVAILABLE,
             Self::ZkSyncClient(..) => StatusCode::SERVICE_UNAVAILABLE,
             Self::ZkSyncSigner(..) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -113,7 +109,7 @@ impl fmt::Display for Error {
                 format!("Token with identifier `{}` cannot be resolved", token_id)
             }
 
-            Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
+            Self::VirtualMachine(inner) => format!("Runtime: {:?}", inner),
             Self::Database(inner) => format!("Database: {:?}", inner),
             Self::ZkSyncClient(inner) => format!("ZkSync: {:?}", inner),
             Self::ZkSyncSigner(inner) => format!("ZkSync: {:?}", inner),

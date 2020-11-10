@@ -2,14 +2,14 @@
 //! The expression tests.
 //!
 
+use zinc_lexical::Location;
+
 use crate::error::Error;
-use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::memory_type::MemoryType;
-use zinc_lexical::Location;
 
 #[test]
 fn ok_constant_element_simple() {
@@ -121,8 +121,8 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::NonConstantElement {
+    let expected = Err(Error::Semantic(
+        SemanticError::ExpressionNonConstantElement {
             location: Location::test(5, 26),
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Some(Location::test(3, 9)),
@@ -133,7 +133,7 @@ fn main() {
             ))
             .to_string(),
         },
-    )));
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -155,8 +155,8 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::NonConstantElement {
+    let expected = Err(Error::Semantic(
+        SemanticError::ExpressionNonConstantElement {
             location: Location::test(10, 46),
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Some(Location::test(3, 9)),
@@ -167,7 +167,7 @@ fn main() {
             ))
             .to_string(),
         },
-    )));
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -191,8 +191,8 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::NonConstantElement {
+    let expected = Err(Error::Semantic(
+        SemanticError::ExpressionNonConstantElement {
             location: Location::test(11, 29),
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Some(Location::test(3, 9)),
@@ -203,7 +203,7 @@ fn main() {
             ))
             .to_string(),
         },
-    )));
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -229,8 +229,8 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::NonConstantElement {
+    let expected = Err(Error::Semantic(
+        SemanticError::ExpressionNonConstantElement {
             location: Location::test(10, 29),
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Some(Location::test(3, 9)),
@@ -241,7 +241,7 @@ fn main() {
             ))
             .to_string(),
         },
-    )));
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -267,8 +267,8 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::NonConstantElement {
+    let expected = Err(Error::Semantic(
+        SemanticError::ExpressionNonConstantElement {
             location: Location::test(11, 29),
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Some(Location::test(3, 9)),
@@ -279,7 +279,7 @@ fn main() {
             ))
             .to_string(),
         },
-    )));
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -305,8 +305,8 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::NonConstantElement {
+    let expected = Err(Error::Semantic(
+        SemanticError::ExpressionNonConstantElement {
             location: Location::test(13, 29),
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Some(Location::test(3, 9)),
@@ -317,7 +317,7 @@ fn main() {
             ))
             .to_string(),
         },
-    )));
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -342,8 +342,8 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::NonConstantElement {
+    let expected = Err(Error::Semantic(
+        SemanticError::ExpressionNonConstantElement {
             location: Location::test(10, 32),
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Some(Location::test(3, 9)),
@@ -354,7 +354,7 @@ fn main() {
             ))
             .to_string(),
         },
-    )));
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -379,8 +379,8 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::NonConstantElement {
+    let expected = Err(Error::Semantic(
+        SemanticError::ExpressionNonConstantElement {
             location: Location::test(11, 35),
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Some(Location::test(3, 9)),
@@ -391,7 +391,7 @@ fn main() {
             ))
             .to_string(),
         },
-    )));
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -416,8 +416,8 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Expression(
-        ExpressionError::NonConstantElement {
+    let expected = Err(Error::Semantic(
+        SemanticError::ExpressionNonConstantElement {
             location: Location::test(12, 34),
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Some(Location::test(3, 9)),
@@ -428,7 +428,7 @@ fn main() {
             ))
             .to_string(),
         },
-    )));
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 

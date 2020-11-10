@@ -6,8 +6,8 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::sha256;
 
 use crate::core::execution_state::ExecutionState;
+use crate::error::Error;
 use crate::error::MalformedBytecode;
-use crate::error::RuntimeError;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_library::INativeCallable;
@@ -18,7 +18,7 @@ pub struct Sha256 {
 }
 
 impl Sha256 {
-    pub fn new(message_length: usize) -> Result<Self, RuntimeError> {
+    pub fn new(message_length: usize) -> Result<Self, Error> {
         if message_length % 8 == 0 {
             Ok(Self { message_length })
         } else {
@@ -37,7 +37,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Sha256 {
         mut cs: CS,
         state: &mut ExecutionState<E>,
         _storage: Option<&mut S>,
-    ) -> Result<(), RuntimeError> {
+    ) -> Result<(), Error> {
         let mut bits = Vec::new();
         for i in 0..self.message_length {
             let bit = state

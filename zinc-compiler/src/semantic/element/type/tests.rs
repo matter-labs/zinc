@@ -6,9 +6,7 @@ use zinc_lexical::Location;
 use zinc_syntax::Identifier;
 
 use crate::error::Error;
-use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
-use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
@@ -21,12 +19,10 @@ fn main(a: u8, b: field, mut c) -> u8 {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::TypeRequired {
-            location: Location::test(2, 30),
-            identifier: "c".to_owned(),
-        },
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::BindingTypeRequired {
+        location: Location::test(2, 30),
+        identifier: "c".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -42,16 +38,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::AliasDoesNotPointToType {
-            location: Location::test(4, 24),
-            found: Element::Path(Path::new(
-                Location::test(4, 24),
-                Identifier::new(Location::test(4, 24), "unknown".to_owned()),
-            ))
-            .to_string(),
-        },
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::TypeAliasExpectedType {
+        location: Location::test(4, 24),
+        found: Element::Path(Path::new(
+            Location::test(4, 24),
+            Identifier::new(Location::test(4, 24), "unknown".to_owned()),
+        ))
+        .to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -68,12 +62,10 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::InstantiationForbidden {
-            location: Location::test(5, 9),
-            found: "structure MTreeMap".to_owned(),
-        },
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::TypeInstantiationForbidden {
+        location: Location::test(5, 9),
+        found: "structure MTreeMap".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -98,12 +90,10 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::InstantiationForbidden {
-            location: Location::test(4, 1),
-            found: "structure MapWrapper".to_owned(),
-        },
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::TypeInstantiationForbidden {
+        location: Location::test(4, 1),
+        found: "structure MapWrapper".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -118,12 +108,10 @@ use std::collections::MTreeMap;
 fn main(map: MTreeMap<u8, field>) {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::InstantiationForbidden {
-            location: Location::test(4, 9),
-            found: "structure MTreeMap".to_owned(),
-        },
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::TypeInstantiationForbidden {
+        location: Location::test(4, 9),
+        found: "structure MTreeMap".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -138,12 +126,10 @@ use std::collections::MTreeMap;
 fn main() -> MTreeMap<u8, field> { MTreeMap }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::InstantiationForbidden {
-            location: Location::test(4, 14),
-            found: "structure MTreeMap".to_owned(),
-        },
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::TypeInstantiationForbidden {
+        location: Location::test(4, 14),
+        found: "structure MTreeMap".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -164,12 +150,10 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::InstantiationForbidden {
-            location: Location::test(5, 5),
-            found: "structure MTreeMap".to_owned(),
-        },
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::TypeInstantiationForbidden {
+        location: Location::test(5, 5),
+        found: "structure MTreeMap".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -186,17 +170,15 @@ type Invalid = Array<bool>;
 fn main() {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::UnexpectedGenerics {
-            location: Location::test(4, 16),
-            r#type: Type::array(
-                None,
-                Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
-                42,
-            )
-            .to_string(),
-        },
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::TypeUnexpectedGenerics {
+        location: Location::test(4, 16),
+        r#type: Type::array(
+            None,
+            Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
+            42,
+        )
+        .to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 

@@ -7,7 +7,7 @@ use franklin_crypto::circuit::pedersen_hash;
 use franklin_crypto::circuit::pedersen_hash::Personalization;
 
 use crate::core::execution_state::ExecutionState;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::call_library::INativeCallable;
@@ -18,7 +18,7 @@ pub struct Pedersen {
 }
 
 impl Pedersen {
-    pub fn new(message_length: usize) -> Result<Self, RuntimeError> {
+    pub fn new(message_length: usize) -> Result<Self, Error> {
         Ok(Self { message_length })
     }
 }
@@ -29,7 +29,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Pedersen {
         mut cs: CS,
         state: &mut ExecutionState<E>,
         _storage: Option<&mut S>,
-    ) -> Result<(), RuntimeError> {
+    ) -> Result<(), Error> {
         let mut bits = Vec::new();
         for i in 0..self.message_length {
             let bit = state

@@ -10,8 +10,6 @@ use std::collections::HashMap;
 
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::json;
-use serde_json::Value as JsonValue;
 
 use crate::application::unit_test::UnitTest;
 use crate::build::input::Input as InputBuild;
@@ -108,15 +106,15 @@ impl Application {
                     );
                 }
 
-                let fields: Vec<JsonValue> = contract
+                let fields: Vec<serde_json::Value> = contract
                     .storage
                     .clone()
                     .into_iter()
                     .map(|field| Value::new(field.r#type).into_json())
                     .collect();
-                let storage = JsonValue::Array(fields);
+                let storage = serde_json::Value::Array(fields);
 
-                let transaction = json!({
+                let transaction = serde_json::json!({
                     "sender": "0x0000000000000000000000000000000000000000",
                     "recipient": "0x0000000000000000000000000000000000000000",
                     "token_address": "0x0000000000000000000000000000000000000000",

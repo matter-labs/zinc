@@ -11,16 +11,14 @@ use franklin_crypto::bellman::SynthesisError;
 use zinc_build::Dbg;
 use zinc_build::IntegerType;
 use zinc_build::ScalarType;
-use zinc_build::Type as BuildType;
-use zinc_build::Value as BuildValue;
 
 use crate::core::virtual_machine::IVirtualMachine;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::scalar::Scalar;
 use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
-    fn execute(self, vm: &mut VM) -> Result<(), RuntimeError> {
+    fn execute(self, vm: &mut VM) -> Result<(), Error> {
         let mut values = Vec::with_capacity(self.argument_types.len());
 
         for argument_type in self.argument_types.into_iter().rev() {
@@ -28,7 +26,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
             let mut flat = Vec::with_capacity(size);
 
             match argument_type {
-                BuildType::Contract(fields) => {
+                zinc_build::Type::Contract(fields) => {
                     let mut flat = Vec::with_capacity(size);
                     for (index, field) in fields.iter().enumerate() {
                         let values: Vec<BigInt> = vm
@@ -47,20 +45,20 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                             .collect();
                         flat.extend(values);
                     }
-                    values.push(BuildValue::from_flat_values(
-                        BuildType::Contract(fields),
+                    values.push(zinc_build::Value::from_flat_values(
+                        zinc_build::Type::Contract(fields),
                         flat.as_slice(),
                     ));
                 }
                 r#type => {
                     for _ in 0..size {
                         let value = vm.pop()?.try_into_value()?.to_bigint().ok_or_else(|| {
-                            RuntimeError::SynthesisError(SynthesisError::AssignmentMissing)
+                            Error::SynthesisError(SynthesisError::AssignmentMissing)
                         })?;
                         flat.push(value);
                     }
                     flat.reverse();
-                    values.push(BuildValue::from_flat_values(r#type, flat.as_slice()));
+                    values.push(zinc_build::Value::from_flat_values(r#type, flat.as_slice()));
                 }
             }
         }

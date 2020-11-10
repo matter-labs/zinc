@@ -2,8 +2,6 @@
 //! The cached contract data.
 //!
 
-use serde_json::Value as JsonValue;
-
 use zksync::web3::types::H160;
 use zksync::web3::types::H256;
 use zksync_types::AccountId;
@@ -28,7 +26,7 @@ pub struct Contract {
     pub instance: String,
 
     /// The contract source code.
-    pub source_code: JsonValue,
+    pub source_code: serde_json::Value,
     /// The contract bytecode.
     pub bytecode: Vec<u8>,
     /// The contract verifying key.
@@ -57,7 +55,7 @@ impl Contract {
         version: String,
         instance: String,
 
-        source_code: JsonValue,
+        source_code: serde_json::Value,
         bytecode: Vec<u8>,
         verifying_key: Vec<u8>,
 

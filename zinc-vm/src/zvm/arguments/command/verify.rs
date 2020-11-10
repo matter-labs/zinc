@@ -14,7 +14,6 @@ use franklin_crypto::bellman::groth16::VerifyingKey;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
 use zinc_build::Application as BuildApplication;
-use zinc_build::Value as BuildValue;
 
 use zinc_vm::Facade;
 
@@ -96,7 +95,7 @@ impl IExecutable for Command {
                 }
             }
         };
-        let output_value = BuildValue::try_from_typed_json(output_json, output_type)?;
+        let output_value = zinc_build::Value::try_from_typed_json(output_json, output_type)?;
 
         // Verify the proof
         let verified = Facade::verify::<Bn256>(verifying_key, proof, output_value)?;

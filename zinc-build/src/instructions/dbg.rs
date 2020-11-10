@@ -7,7 +7,7 @@ use std::fmt;
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::data::r#type::Type as BuildType;
+use crate::data::r#type::Type;
 use crate::instructions::Instruction;
 
 ///
@@ -19,14 +19,14 @@ pub struct Dbg {
     pub format: String,
     /// The types of the values that must be formatted by the instruction execution environment.
     /// The types help the environment to choose the way of formatting.
-    pub argument_types: Vec<BuildType>,
+    pub argument_types: Vec<Type>,
 }
 
 impl Dbg {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(format: String, arg_types: Vec<BuildType>) -> Self {
+    pub fn new(format: String, arg_types: Vec<Type>) -> Self {
         Self {
             format,
             argument_types: arg_types,

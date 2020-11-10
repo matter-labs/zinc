@@ -2,8 +2,6 @@
 
 use num::BigInt;
 
-use zinc_build::Type as BuildType;
-
 use crate::core::contract::storage::sha256;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
@@ -28,12 +26,12 @@ pub enum LeafVariant<E: IEngine> {
 #[derive(Debug, Clone)]
 pub enum LeafInput {
     Array {
-        r#type: BuildType,
+        r#type: zinc_build::Type,
         values: Vec<BigInt>,
     },
     Map {
-        key_type: BuildType,
-        value_type: BuildType,
+        key_type: zinc_build::Type,
+        value_type: zinc_build::Type,
         entries: Vec<(Vec<BigInt>, Vec<BigInt>)>,
     },
 }

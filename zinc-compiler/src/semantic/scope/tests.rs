@@ -5,12 +5,12 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use crate::error::Error;
-use crate::semantic::error::Error as SemanticError;
-use crate::semantic::scope::error::Error as ScopeError;
-use crate::source::Source;
 use zinc_lexical::Keyword;
 use zinc_lexical::Location;
+
+use crate::error::Error;
+use crate::semantic::error::Error as SemanticError;
+use crate::source::Source;
 
 #[test]
 fn ok_current_scope() {
@@ -121,6 +121,154 @@ fn main() -> u8 { first() }
 }
 
 #[test]
+fn ok_variable_constant_same_name_structure() {
+    let input = r#"
+struct Data {
+    a: u8,
+}
+
+impl Data {
+    const A: u8 = 42;
+
+    pub fn default(self) {
+        let A = 42;
+    }
+}
+
+fn main() {}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_variable_method_same_name_structure() {
+    let input = r#"
+struct Data {
+    a: u8,
+}
+
+impl Data {
+    pub fn default(self) {
+        let next = 42;
+    }
+
+    pub fn next() {}
+}
+
+fn main() {}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_variable_constant_same_name_enumeration() {
+    let input = r#"
+enum Data {
+    A = 1,
+}
+
+impl Data {
+    const B: u8 = 42;
+
+    pub fn default(self) {
+        let B = 42;
+    }
+}
+
+fn main() {}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_variable_variant_same_name_enumeration() {
+    let input = r#"
+enum Data {
+    A = 1,
+}
+
+impl Data {
+    pub fn default(self) {
+        let A = 42;
+    }
+}
+
+fn main() {}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_variable_method_same_name_enumeration() {
+    let input = r#"
+enum Data {
+    A = 1,
+}
+
+impl Data {
+    pub fn default(self) {
+        let next = 42;
+    }
+
+    pub fn next() {}
+}
+
+fn main() {}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_variable_method_same_name_contract() {
+    let input = r#"
+contract Test {
+    pub fn default(self) {
+        let next = 42;
+    }
+
+    pub fn next() {}
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_variable_constant_same_name_contract() {
+    let input = r#"
+contract Test {
+    const A: u8 = 42;
+
+    pub fn default(self) {
+        let A = 42;
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_variable_field_same_name_contract() {
+    let input = r#"
+contract Test {
+    a: u8;
+
+    pub fn default(self) {
+        let a = 42;
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
 fn error_item_redeclared() {
     let input = r#"
 fn main() {
@@ -129,13 +277,11 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemRedeclared {
-            location: Location::test(4, 9),
-            name: "result".to_owned(),
-            reference: Some(Location::test(3, 9)),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemRedeclared {
+        location: Location::test(4, 9),
+        name: "result".to_owned(),
+        reference: Some(Location::test(3, 9)),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -154,13 +300,11 @@ fn main() -> X {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemRedeclared {
-            location: Location::test(4, 5),
-            name: "X".to_owned(),
-            reference: Some(Location::test(2, 1)),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemRedeclared {
+        location: Location::test(4, 5),
+        name: "X".to_owned(),
+        reference: Some(Location::test(2, 1)),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -180,13 +324,11 @@ fn main() -> Y {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemRedeclared {
-            location: Location::test(5, 10),
-            name: "Y".to_owned(),
-            reference: Some(Location::test(3, 1)),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemRedeclared {
+        location: Location::test(5, 10),
+        name: "Y".to_owned(),
+        reference: Some(Location::test(3, 1)),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -201,12 +343,10 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemUndeclared {
-            location: Location::test(3, 5),
-            name: "result".to_owned(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(3, 5),
+        name: "result".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -225,12 +365,10 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemUndeclared {
-            location: Location::test(7, 5),
-            name: "result".to_owned(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(7, 5),
+        name: "result".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -249,12 +387,10 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemUndeclared {
-            location: Location::test(7, 31),
-            name: "Exists".to_owned(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(7, 31),
+        name: "Exists".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -273,12 +409,10 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemUndeclared {
-            location: Location::test(7, 31),
-            name: "Gone".to_owned(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(7, 31),
+        name: "Gone".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -297,12 +431,10 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemUndeclared {
-            location: Location::test(2, 15),
-            name: Keyword::SelfUppercase.to_string(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(2, 15),
+        name: Keyword::SelfUppercase.to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -321,12 +453,10 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemUndeclared {
-            location: Location::test(2, 22),
-            name: Keyword::SelfUppercase.to_string(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(2, 22),
+        name: Keyword::SelfUppercase.to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -350,12 +480,10 @@ impl Data {
 fn main() {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemUndeclared {
-            location: Location::test(9, 9),
-            name: "a".to_owned(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(9, 9),
+        name: "a".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -363,29 +491,7 @@ fn main() {}
 }
 
 #[test]
-fn error_item_is_not_a_namespace() {
-    let input = r#"
-const NOT_NAMESPACE: u8 = 42;
-
-fn main() {
-    let result = NOT_NAMESPACE::UNDEFINED;
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ItemIsNotANamespace {
-            location: Location::test(5, 18),
-            name: "NOT_NAMESPACE".to_owned(),
-        },
-    )));
-
-    let result = crate::semantic::tests::compile_entry(input);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn error_associated_item_without_owner_constant() {
+fn error_item_undeclared_missing_self_constant() {
     let input = r#"
 enum Data {
     A = 1,
@@ -403,12 +509,10 @@ impl Data {
 fn main() {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::AssociatedItemWithoutOwner {
-            location: Location::test(11, 29),
-            name: "C".to_owned(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(11, 29),
+        name: "C".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -416,7 +520,7 @@ fn main() {}
 }
 
 #[test]
-fn error_associated_item_without_owner_variant() {
+fn error_item_undeclared_missing_self_variant() {
     let input = r#"
 enum Data {
     A = 1,
@@ -432,12 +536,10 @@ impl Data {
 fn main() {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::AssociatedItemWithoutOwner {
-            location: Location::test(9, 19),
-            name: "B".to_owned(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(9, 19),
+        name: "B".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -445,7 +547,7 @@ fn main() {}
 }
 
 #[test]
-fn error_associated_item_without_owner_method() {
+fn error_item_undeclared_missing_self_method() {
     let input = r#"
 struct Data {
     a: u8,
@@ -465,12 +567,10 @@ impl Data {
 fn main() {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::AssociatedItemWithoutOwner {
-            location: Location::test(13, 24),
-            name: "get_b".to_owned(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(13, 24),
+        name: "get_b".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -478,7 +578,7 @@ fn main() {}
 }
 
 #[test]
-fn error_associated_item_without_owner_contract_constant() {
+fn error_item_undeclared_missing_self_contract_constant() {
     let input = r#"
 contract Test {
     const A: u8 = 42;
@@ -489,12 +589,10 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::AssociatedItemWithoutOwner {
-            location: Location::test(6, 9),
-            name: "A".to_owned(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(6, 9),
+        name: "A".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -502,7 +600,7 @@ contract Test {
 }
 
 #[test]
-fn error_associated_item_without_owner_contract_method() {
+fn error_item_undeclared_missing_self_contract_method() {
     let input = r#"
 contract Test {
     a: u8;
@@ -517,12 +615,10 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::AssociatedItemWithoutOwner {
-            location: Location::test(6, 9),
-            name: "get_a".to_owned(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(6, 9),
+        name: "get_a".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -530,7 +626,7 @@ contract Test {
 }
 
 #[test]
-fn error_associated_item_without_owner_contract_field() {
+fn error_item_undeclared_missing_self_contract_field() {
     let input = r#"
 contract Test {
     a: u8;
@@ -541,12 +637,30 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::AssociatedItemWithoutOwner {
-            location: Location::test(6, 9),
-            name: "a".to_owned(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeItemUndeclared {
+        location: Location::test(6, 9),
+        name: "a".to_owned(),
+    }));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_item_is_not_a_namespace() {
+    let input = r#"
+const NOT_NAMESPACE: u8 = 42;
+
+fn main() {
+    let result = NOT_NAMESPACE::UNDEFINED;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::ScopeExpectedNamespace {
+        location: Location::test(5, 18),
+        name: "NOT_NAMESPACE".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -565,12 +679,10 @@ contract Multiswap {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ContractRedeclared {
-            location: Location::test(6, 1),
-            reference: Location::test(2, 1),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeContractRedeclared {
+        location: Location::test(6, 1),
+        reference: Location::test(2, 1),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -586,11 +698,9 @@ const B: u8 = A;
 fn main() -> u8 { B }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(2, 7),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(2, 7),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -608,11 +718,9 @@ const D: u8 = A;
 fn main() -> u8 { D }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(2, 7),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(2, 7),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -628,11 +736,9 @@ type B = A;
 fn main() -> A {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(2, 1),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(2, 1),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -659,11 +765,9 @@ fn main() -> bool {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(2, 1),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(2, 1),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -680,11 +784,9 @@ const SIZE: Array = [1, 2, 3, 4];
 fn main() {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(2, 1),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(2, 1),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -708,11 +810,9 @@ fn main() -> Array {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(2, 1),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(2, 1),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -729,11 +829,9 @@ fn second() -> u8 { first() }
 fn main() -> u8 { first() }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(2, 1),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(2, 1),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -754,11 +852,9 @@ fn third() -> u8 { fourth() }
 fn main() -> u8 { first() }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(2, 1),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(2, 1),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -787,11 +883,9 @@ fn main() -> Data {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(7, 5),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(7, 5),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -828,11 +922,9 @@ fn main() -> Data {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(7, 5),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(7, 5),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -855,11 +947,9 @@ contract Data {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(5, 5),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(5, 5),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -890,11 +980,9 @@ contract Data {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(5, 5),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(5, 5),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -915,11 +1003,10 @@ fn call() -> u8 { other::call() }
 fn main() -> u8 { call() }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(2, 1),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(2, 1),
+    }));
+
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
@@ -960,11 +1047,10 @@ fn call() -> u8 { first::call() }
 fn main() -> u8 { call() }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(2, 1),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(2, 1),
+    }));
+
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
@@ -1027,11 +1113,10 @@ impl Call {
 fn main() -> u8 { Call { value: 42 }.call() }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(5, 5),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(5, 5),
+    }));
+
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(
@@ -1090,11 +1175,10 @@ impl Call {
 fn main() -> u8 { Call { value: 42 }.call() }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Scope(
-        ScopeError::ReferenceLoop {
-            location: Location::test(7, 5),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ScopeReferenceLoop {
+        location: Location::test(7, 5),
+    }));
+
     let result = crate::semantic::tests::compile_entry_with_dependencies(
         entry,
         vec![(

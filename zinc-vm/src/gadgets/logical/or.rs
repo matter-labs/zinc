@@ -5,22 +5,18 @@ use franklin_crypto::circuit::num::AllocatedNum;
 use zinc_build::ScalarType;
 
 use crate::auto_const;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
-pub fn or<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
+pub fn or<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    fn inner<E, CS>(
-        mut cs: CS,
-        left: &Scalar<E>,
-        right: &Scalar<E>,
-    ) -> Result<Scalar<E>, RuntimeError>
+    fn inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>, Error>
     where
         E: IEngine,
         CS: ConstraintSystem<E>,

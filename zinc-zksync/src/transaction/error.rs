@@ -2,19 +2,34 @@
 //! The transaction error.
 //!
 
-use failure::Fail;
+use thiserror::Error;
 
 use zksync_types::TokenId;
 
 ///
 /// The transaction error.
 ///
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum Error {
-    /// The transaction type in unsupported.
-    #[fail(display = "the transaction type `{}` is not supported", _0)]
+    /// The transaction argument is invalid.
+    #[error("expected a JSON object, found {0}")]
+    ArgumentInvalidFormat(serde_json::Value),
+    /// The BigInt string field parsing error.
+    #[error("parsing {0}: {1}")]
+    FieldParsingLongInteger(&'static str, zinc_math::Error),
+    /// The hexadecimal string field parsing error.
+    #[error("parsing {0}: {1}")]
+    FieldParsingHex(&'static str, rustc_hex::FromHexError),
+    /// A transaction field is missing.
+    #[error("field is missing")]
+    FieldMissing(&'static str),
+    /// A transaction field is not a string.
+    #[error("field must be a string")]
+    FieldNotAString(&'static str),
+    /// Unsupported transaction type..
+    #[error("the transaction type `{0}` is not supported")]
     UnsupportedTransaction(&'static str),
-    /// The token ID is unknown.
-    #[fail(display = "the token ID {} is not supported", _0)]
+    /// The token is unknown or unsupported.
+    #[error("the token ID {0} is not supported")]
     UnsupportedToken(TokenId),
 }

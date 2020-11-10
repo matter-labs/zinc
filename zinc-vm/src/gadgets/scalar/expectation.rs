@@ -2,23 +2,23 @@ use franklin_crypto::bellman::pairing::ff::PrimeField;
 
 use zinc_build::ScalarType;
 
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::IEngine;
 
 pub trait ITypeExpectation: Sized {
-    fn expect_same(left: Self, right: Self) -> Result<Self, RuntimeError>;
+    fn expect_same(left: Self, right: Self) -> Result<Self, Error>;
 
-    fn assert_type(&self, expected: Self) -> Result<(), RuntimeError>;
+    fn assert_type(&self, expected: Self) -> Result<(), Error>;
 
-    fn assert_signed(&self, is_signed: bool) -> Result<(), RuntimeError>;
+    fn assert_signed(&self, is_signed: bool) -> Result<(), Error>;
 
     fn bitlength<E: IEngine>(&self) -> usize;
 }
 
 impl ITypeExpectation for ScalarType {
-    fn expect_same(left: Self, right: Self) -> Result<Self, RuntimeError> {
+    fn expect_same(left: Self, right: Self) -> Result<Self, Error> {
         if left != right {
-            return Err(RuntimeError::TypeError {
+            return Err(Error::TypeError {
                 expected: left.to_string(),
                 found: right.to_string(),
             });
@@ -27,9 +27,9 @@ impl ITypeExpectation for ScalarType {
         Ok(left)
     }
 
-    fn assert_type(&self, expected: Self) -> Result<(), RuntimeError> {
+    fn assert_type(&self, expected: Self) -> Result<(), Error> {
         if self != &expected {
-            return Err(RuntimeError::TypeError {
+            return Err(Error::TypeError {
                 expected: expected.to_string(),
                 found: self.to_string(),
             });
@@ -38,14 +38,14 @@ impl ITypeExpectation for ScalarType {
         Ok(())
     }
 
-    fn assert_signed(&self, is_signed: bool) -> Result<(), RuntimeError> {
+    fn assert_signed(&self, is_signed: bool) -> Result<(), Error> {
         let is_signed = match self {
             ScalarType::Field | ScalarType::Boolean => false,
             ScalarType::Integer(int_type) => int_type.is_signed == is_signed,
         };
 
         if !is_signed {
-            return Err(RuntimeError::TypeError {
+            return Err(Error::TypeError {
                 expected: if is_signed {
                     "signed integer".to_owned()
                 } else {

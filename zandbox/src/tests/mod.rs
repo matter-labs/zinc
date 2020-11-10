@@ -9,4 +9,4 @@
 //! `zargo`
 //!
 
-mod curve;
+pub mod curve;

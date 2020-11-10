@@ -5,8 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
@@ -15,9 +13,8 @@ use std::rc::Rc;
 use zinc_lexical::Location;
 
 use crate::semantic::element::r#type::Type;
+use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-
-use self::error::Error;
 
 ///
 /// Describes a structure type.
@@ -81,9 +78,9 @@ impl Structure {
         match (self.generics.as_ref(), generics) {
             (Some(formal), Some(actual)) => {
                 if formal.len() != actual.len() {
-                    return Err(Error::InvalidGenericsNumber {
+                    return Err(Error::TypeInvalidGenericsNumber {
                         location,
-                        type_identifier: self.identifier.to_owned(),
+                        r#type: self.identifier.to_owned(),
                         expected: formal.len(),
                         found: actual.len(),
                     });
@@ -97,14 +94,14 @@ impl Structure {
 
                 Ok(())
             }
-            (Some(names), None) => Err(Error::ExpectedGenerics {
+            (Some(names), None) => Err(Error::TypeExpectedGenerics {
                 location,
-                type_identifier: self.identifier.to_owned(),
+                r#type: self.identifier.to_owned(),
                 expected: names.len(),
             }),
-            (None, Some(_types)) => Err(Error::UnexpectedGenerics {
+            (None, Some(_types)) => Err(Error::TypeUnexpectedGenerics {
                 location,
-                type_identifier: self.identifier.to_owned(),
+                r#type: self.identifier.to_owned(),
             }),
             (None, None) => Ok(()),
         }

@@ -9,7 +9,6 @@ pub mod array;
 pub mod block;
 pub mod call;
 pub mod conditional;
-pub mod error;
 pub mod identifier;
 pub mod list;
 pub mod literal;
@@ -52,9 +51,7 @@ use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::access::dot::Dot as DotAccess;
 use crate::semantic::element::constant::unit::Unit as UnitConstant;
 use crate::semantic::element::constant::Constant;
-use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::element::Element as PlaceElement;
-use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::place::Place;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
@@ -678,7 +675,7 @@ impl Analyzer {
     ///
     fn assignment<F>(&mut self, callback: F) -> Result<(Place, GeneratorExpressionOperator), Error>
     where
-        F: FnOnce(Element, Element) -> Result<(Place, GeneratorExpressionOperator), ElementError>,
+        F: FnOnce(Element, Element) -> Result<(Place, GeneratorExpressionOperator), Error>,
     {
         let (operand_2, _) = Self::evaluate(
             self.scope_stack.top(),
@@ -694,15 +691,13 @@ impl Analyzer {
         let location = operand_1.location();
 
         let r#type = Type::from_element(&operand_2, self.scope_stack.top())?;
-        let (place, operator) = callback(operand_1, operand_2).map_err(Error::Element)?;
+        let (place, operator) = callback(operand_1, operand_2)?;
 
         if let Some(name) = place.check_immutable_field() {
-            return Err(Error::Element(ElementError::Place(
-                PlaceError::MutatingImmutableContractField {
-                    location: place.identifier.location,
-                    name,
-                },
-            )));
+            return Err(Error::MutatingImmutableContractField {
+                location: place.identifier.location,
+                name,
+            });
         }
         if !place.is_mutable {
             let item_location = self
@@ -713,22 +708,18 @@ impl Analyzer {
                 .borrow()
                 .location();
 
-            return Err(Error::Element(ElementError::Place(
-                PlaceError::MutatingImmutableMemory {
-                    location: place.identifier.location,
-                    name: place.identifier.name,
-                    reference: item_location,
-                },
-            )));
+            return Err(Error::MutatingImmutableMemory {
+                location: place.identifier.location,
+                name: place.identifier.name,
+                reference: item_location,
+            });
         }
         if place.r#type != r#type {
-            return Err(Error::Element(ElementError::Place(
-                PlaceError::MutatingWithDifferentType {
-                    location: place.identifier.location,
-                    expected: r#type.to_string(),
-                    found: place.r#type.to_string(),
-                },
-            )));
+            return Err(Error::MutatingWithDifferentType {
+                location: place.identifier.location,
+                expected: r#type.to_string(),
+                found: place.r#type.to_string(),
+            });
         }
 
         self.evaluation_stack
@@ -750,7 +741,7 @@ impl Analyzer {
         intermediate_2: GeneratorExpression,
     ) -> Result<(), Error>
     where
-        F: FnOnce(Element, Element) -> Result<(Element, GeneratorExpressionOperator), ElementError>,
+        F: FnOnce(Element, Element) -> Result<(Element, GeneratorExpressionOperator), Error>,
     {
         let (operand_2, _) = Self::evaluate(
             self.scope_stack.top(),
@@ -763,7 +754,7 @@ impl Analyzer {
             self.rule,
         )?;
 
-        let (result, operator) = callback(operand_1, operand_2).map_err(Error::Element)?;
+        let (result, operator) = callback(operand_1, operand_2)?;
         self.evaluation_stack.push(StackElement::Evaluated(result));
 
         self.intermediate.append_expression(intermediate_1);
@@ -807,7 +798,7 @@ impl Analyzer {
     ///
     fn range<F>(&mut self, callback: F) -> Result<GeneratorExpressionOperand, Error>
     where
-        F: FnOnce(Element, Element) -> Result<Element, ElementError>,
+        F: FnOnce(Element, Element) -> Result<Element, Error>,
     {
         let (operand_2, _) = Self::evaluate(
             self.scope_stack.top(),
@@ -820,7 +811,7 @@ impl Analyzer {
             self.rule,
         )?;
 
-        let result = callback(operand_1, operand_2).map_err(Error::Element)?;
+        let result = callback(operand_1, operand_2)?;
         let start = match result {
             Element::Constant(Constant::Range(ref range)) => range.start.to_owned(),
             Element::Constant(Constant::RangeInclusive(ref range)) => range.start.to_owned(),
@@ -855,7 +846,7 @@ impl Analyzer {
             self.rule,
         )?;
 
-        let (result, operator) = Element::cast(operand_1, operand_2).map_err(Error::Element)?;
+        let (result, operator) = Element::cast(operand_1, operand_2)?;
         self.evaluation_stack.push(StackElement::Evaluated(result));
 
         self.intermediate.append_expression(intermediate_1);
@@ -876,7 +867,7 @@ impl Analyzer {
         intermediate_1: GeneratorExpression,
     ) -> Result<(), Error>
     where
-        F: FnOnce(Element) -> Result<(Element, GeneratorExpressionOperator), ElementError>,
+        F: FnOnce(Element) -> Result<(Element, GeneratorExpressionOperator), Error>,
     {
         let (operand, _) = Self::evaluate(
             self.scope_stack.top(),
@@ -884,7 +875,7 @@ impl Analyzer {
             self.rule,
         )?;
 
-        let (result, operator) = callback(operand).map_err(Error::Element)?;
+        let (result, operator) = callback(operand)?;
         self.evaluation_stack.push(StackElement::Evaluated(result));
 
         self.intermediate.append_expression(intermediate_1);
@@ -911,8 +902,7 @@ impl Analyzer {
             TranslationRule::Place,
         )?;
 
-        let (result, access) =
-            Element::index(operand_1, operand_2.clone()).map_err(Error::Element)?;
+        let (result, access) = Element::index(operand_1, operand_2.clone())?;
 
         match result {
             Element::Place(mut place) => {
@@ -1073,7 +1063,7 @@ impl Analyzer {
             TranslationRule::Path,
         )?;
 
-        let result = Element::path(operand_1, operand_2).map_err(Error::Element)?;
+        let result = Element::path(operand_1, operand_2)?;
         self.evaluation_stack.push(StackElement::Evaluated(result));
 
         Ok(())
@@ -1094,8 +1084,7 @@ impl Analyzer {
             TranslationRule::Type,
         )?;
 
-        let result = Element::structure(operand_1, operand_2, self.scope_stack.top())
-            .map_err(Error::Element)?;
+        let result = Element::structure(operand_1, operand_2, self.scope_stack.top())?;
         self.evaluation_stack.push(StackElement::Evaluated(result));
 
         Ok(())

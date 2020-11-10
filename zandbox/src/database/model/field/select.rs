@@ -2,8 +2,6 @@
 //! The database contract storage field SELECT model.
 //!
 
-use serde_json::Value as JsonValue;
-
 use zksync_types::AccountId;
 
 ///
@@ -32,5 +30,5 @@ pub struct Output {
     /// The field name.
     pub name: String,
     /// The field value in JSON representation.
-    pub value: JsonValue,
+    pub value: serde_json::Value,
 }

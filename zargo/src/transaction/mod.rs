@@ -24,7 +24,7 @@ pub async fn new_initial(
     recipient: Address,
     token_symbol: String,
     amount: BigUint,
-) -> Result<zinc_zksync::Transaction, Error> {
+) -> anyhow::Result<zinc_zksync::Transaction> {
     let token_like = TokenLike::Symbol(token_symbol);
     let token = wallet
         .tokens
@@ -67,7 +67,7 @@ pub async fn try_into_zksync(
     transaction: TransactionMsg,
     wallet: &zksync::Wallet<PrivateKeySigner>,
     contract_fee: Option<BigUint>,
-) -> Result<zinc_zksync::Transaction, Error> {
+) -> anyhow::Result<zinc_zksync::Transaction> {
     let token = wallet
         .tokens
         .resolve(transaction.token_address.into())

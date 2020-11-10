@@ -5,9 +5,6 @@
 use zinc_lexical::Location;
 
 use crate::error::Error;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::structure::error::Error as StructureTypeError;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
@@ -24,13 +21,11 @@ fn main() -> u8 {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Structure(StructureTypeError::DuplicateField {
-            location: Location::test(5, 5),
-            type_identifier: "Data".to_owned(),
-            field_name: "b".to_owned(),
-        }),
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::TypeDuplicateField {
+        location: Location::test(5, 5),
+        r#type: "Data".to_owned(),
+        field_name: "b".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -47,13 +42,11 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Structure(StructureTypeError::ExpectedGenerics {
-            location: Location::test(5, 13),
-            type_identifier: "MTreeMap".to_owned(),
-            expected: 2,
-        }),
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::TypeExpectedGenerics {
+        location: Location::test(5, 13),
+        r#type: "MTreeMap".to_owned(),
+        expected: 2,
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -76,12 +69,10 @@ struct Data {
 fn main() {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Structure(StructureTypeError::UnexpectedGenerics {
-            location: Location::test(9, 8),
-            type_identifier: "Unexpected".to_owned(),
-        }),
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::TypeUnexpectedGenerics {
+        location: Location::test(9, 8),
+        r#type: "Unexpected".to_owned(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -98,14 +89,12 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::Structure(StructureTypeError::InvalidGenericsNumber {
-            location: Location::test(5, 13),
-            type_identifier: "MTreeMap".to_owned(),
-            expected: 2,
-            found: 3,
-        }),
-    ))));
+    let expected = Err(Error::Semantic(SemanticError::TypeInvalidGenericsNumber {
+        location: Location::test(5, 13),
+        r#type: "MTreeMap".to_owned(),
+        expected: 2,
+        found: 3,
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 

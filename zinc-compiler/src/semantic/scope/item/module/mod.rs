@@ -9,16 +9,16 @@ use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 
+use zinc_lexical::Keyword;
+use zinc_lexical::Location;
+
 use crate::generator::statement::Statement as GeneratorStatement;
 use crate::semantic::analyzer::module::Analyzer as ModuleAnalyzer;
 use crate::semantic::error::Error;
-use crate::semantic::scope::error::Error as ScopeError;
 use crate::semantic::scope::item::index::INDEX as ITEM_INDEX;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::source::Source;
-use zinc_lexical::Keyword;
-use zinc_lexical::Location;
 
 use self::state::State;
 
@@ -191,9 +191,9 @@ impl Module {
 
                 Ok(scope)
             }
-            None => Err(Error::Scope(ScopeError::ReferenceLoop {
+            None => Err(Error::ScopeReferenceLoop {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-            })),
+            }),
         }
     }
 
@@ -203,9 +203,9 @@ impl Module {
     pub fn scope(&self) -> Result<Rc<RefCell<Scope>>, Error> {
         match self.state.borrow().as_ref() {
             Some(state) => Ok(state.scope()),
-            None => Err(Error::Scope(ScopeError::ReferenceLoop {
+            None => Err(Error::ScopeReferenceLoop {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-            })),
+            }),
         }
     }
 

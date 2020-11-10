@@ -6,7 +6,6 @@
 mod tests;
 
 pub mod debug;
-pub mod error;
 pub mod require;
 pub mod stdlib;
 pub mod zksync;

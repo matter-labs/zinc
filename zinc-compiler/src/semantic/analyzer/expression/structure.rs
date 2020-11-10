@@ -9,7 +9,6 @@ use zinc_syntax::StructureExpression;
 
 use crate::generator::expression::operand::group::builder::Builder as GeneratorGroupExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
-use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::constant::structure::Structure as StructureConstant;
@@ -100,10 +99,10 @@ impl Analyzer {
                     result.push(identifier, constant);
                 }
                 element => {
-                    return Err(Error::Expression(ExpressionError::NonConstantElement {
+                    return Err(Error::ExpressionNonConstantElement {
                         location: expression_location,
                         found: element.to_string(),
-                    }))
+                    });
                 }
             }
         }

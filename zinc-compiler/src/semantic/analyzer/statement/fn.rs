@@ -6,17 +6,15 @@ use std::cell::RefCell;
 use std::convert::TryFrom;
 use std::rc::Rc;
 
+use zinc_lexical::Keyword;
 use zinc_syntax::FnStatement;
+use zinc_syntax::Identifier;
 
 use crate::generator::statement::r#fn::Statement as GeneratorFunctionStatement;
 use crate::semantic::analyzer::attribute::Attribute;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::binding::Binder;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::function::error::Error as FunctionError;
-use crate::semantic::element::r#type::function::test::error::Error as TestFunctionError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::stack::Stack as ScopeStack;
@@ -59,7 +57,7 @@ impl Analyzer {
 
         let mut attributes = Vec::with_capacity(statement.attributes.len());
         for attribute in statement.attributes.drain(..).into_iter() {
-            let attribute = Attribute::try_from(attribute).map_err(Error::Attribute)?;
+            let attribute = Attribute::try_from(attribute)?;
             attributes.push(attribute);
         }
 
@@ -85,8 +83,28 @@ impl Analyzer {
         context: Context,
         attributes: Vec<Attribute>,
     ) -> Result<(Type, GeneratorFunctionStatement), Error> {
-        let mut scope_stack = ScopeStack::new(scope);
-        scope_stack.push(Some(statement.identifier.name.clone()));
+        let mut scope_stack = match context {
+            Context::Module => {
+                let mut scope_stack = ScopeStack::new(scope);
+                scope_stack.push(Some(statement.identifier.name.clone()));
+                scope_stack
+            }
+            Context::Implementation | Context::Contract => {
+                let alias_identifier =
+                    Identifier::new(statement.location, Keyword::SelfUppercase.to_string());
+                let item = scope.borrow().resolve_item(&alias_identifier, false)?;
+
+                let mut scope_stack = ScopeStack::new(
+                    scope
+                        .borrow()
+                        .parent()
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                );
+                scope_stack.push(Some(statement.identifier.name.clone()));
+                Scope::define_item(scope_stack.top(), alias_identifier, item)?;
+                scope_stack
+            }
+        };
 
         let bindings =
             Binder::bind_arguments(statement.argument_bindings, context, scope_stack.top())?;
@@ -97,15 +115,13 @@ impl Analyzer {
         };
 
         if !expected_type.is_instantiatable(false) {
-            return Err(Error::Element(ElementError::Type(
-                TypeError::InstantiationForbidden {
-                    location: statement
-                        .return_type
-                        .map(|r#type| r#type.location)
-                        .unwrap_or(statement.location),
-                    found: expected_type.to_string(),
-                },
-            )));
+            return Err(Error::TypeInstantiationForbidden {
+                location: statement
+                    .return_type
+                    .map(|r#type| r#type.location)
+                    .unwrap_or(statement.location),
+                found: expected_type.to_string(),
+            });
         }
 
         let return_expression_location = match statement
@@ -129,18 +145,16 @@ impl Analyzer {
 
         let result_type = Type::from_element(&result, scope_stack.top())?;
         if expected_type != result_type {
-            return Err(Error::Element(ElementError::Type(TypeError::Function(
-                FunctionError::ReturnType {
-                    location: return_expression_location,
-                    function: statement.identifier.name.clone(),
-                    expected: expected_type.to_string(),
-                    found: result_type.to_string(),
-                    reference: statement
-                        .return_type
-                        .map(|r#type| r#type.location)
-                        .unwrap_or(statement.location),
-                },
-            ))));
+            return Err(Error::FunctionReturnType {
+                location: return_expression_location,
+                function: statement.identifier.name.clone(),
+                expected: expected_type.to_string(),
+                found: result_type.to_string(),
+                reference: statement
+                    .return_type
+                    .map(|r#type| r#type.location)
+                    .unwrap_or(statement.location),
+            });
         }
 
         let (is_main, is_contract_entry) = if let Context::Contract = context {
@@ -201,15 +215,13 @@ impl Analyzer {
         };
 
         if !expected_type.is_instantiatable(false) {
-            return Err(Error::Element(ElementError::Type(
-                TypeError::InstantiationForbidden {
-                    location: statement
-                        .return_type
-                        .map(|r#type| r#type.location)
-                        .unwrap_or(statement.location),
-                    found: expected_type.to_string(),
-                },
-            )));
+            return Err(Error::TypeInstantiationForbidden {
+                location: statement
+                    .return_type
+                    .map(|r#type| r#type.location)
+                    .unwrap_or(statement.location),
+                found: expected_type.to_string(),
+            });
         }
 
         let return_expression_location = match statement
@@ -236,18 +248,16 @@ impl Analyzer {
 
         let result_type = Type::from_element(&result, scope_stack.top())?;
         if expected_type != result_type {
-            return Err(Error::Element(ElementError::Type(TypeError::Function(
-                FunctionError::ReturnType {
-                    location: return_expression_location,
-                    function: statement.identifier.name.clone(),
-                    expected: expected_type.to_string(),
-                    found: result_type.to_string(),
-                    reference: statement
-                        .return_type
-                        .map(|r#type| r#type.location)
-                        .unwrap_or(statement.location),
-                },
-            ))));
+            return Err(Error::FunctionReturnType {
+                location: return_expression_location,
+                function: statement.identifier.name.clone(),
+                expected: expected_type.to_string(),
+                found: result_type.to_string(),
+                reference: statement
+                    .return_type
+                    .map(|r#type| r#type.location)
+                    .unwrap_or(statement.location),
+            });
         }
 
         Ok(Type::constant_function(
@@ -275,49 +285,39 @@ impl Analyzer {
         match context {
             Context::Module => {}
             _context => {
-                return Err(Error::Element(ElementError::Type(TypeError::Function(
-                    FunctionError::Test(TestFunctionError::BeyondModuleScope {
-                        location,
-                        function: statement.identifier.name,
-                    }),
-                ))))
+                return Err(Error::UnitTestBeyondModuleScope {
+                    location,
+                    function: statement.identifier.name,
+                });
             }
         }
 
         if statement.is_public {
-            return Err(Error::Element(ElementError::Type(TypeError::Function(
-                FunctionError::Test(TestFunctionError::PublicForbidden {
-                    location,
-                    function: statement.identifier.name,
-                }),
-            ))));
+            return Err(Error::UnitTestPublicForbidden {
+                location,
+                function: statement.identifier.name,
+            });
         }
 
         if statement.is_constant {
-            return Err(Error::Element(ElementError::Type(TypeError::Function(
-                FunctionError::Test(TestFunctionError::ConstantForbidden {
-                    location,
-                    function: statement.identifier.name,
-                }),
-            ))));
+            return Err(Error::UnitTestConstantForbidden {
+                location,
+                function: statement.identifier.name,
+            });
         }
 
         if !statement.argument_bindings.is_empty() {
-            return Err(Error::Element(ElementError::Type(TypeError::Function(
-                FunctionError::Test(TestFunctionError::CannotHaveArguments {
-                    location,
-                    function: statement.identifier.name,
-                }),
-            ))));
+            return Err(Error::UnitTestCannotHaveArguments {
+                location,
+                function: statement.identifier.name,
+            });
         }
 
         if statement.return_type.is_some() {
-            return Err(Error::Element(ElementError::Type(TypeError::Function(
-                FunctionError::Test(TestFunctionError::CannotReturnValue {
-                    location,
-                    function: statement.identifier.name,
-                }),
-            ))));
+            return Err(Error::UnitTestCannotReturnValue {
+                location,
+                function: statement.identifier.name,
+            });
         }
 
         scope_stack.push(Some(statement.identifier.name.clone()));

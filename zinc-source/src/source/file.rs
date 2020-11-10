@@ -1,0 +1,87 @@
+//!
+//! The source code file string representation.
+//!
+
+use std::fs;
+use std::io::Read;
+use std::path::PathBuf;
+
+use serde::Deserialize;
+use serde::Serialize;
+
+use crate::error::Error;
+use anyhow::Context;
+
+///
+/// The Zinc virtual source code file, which consists of its name and source code string.
+///
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct File {
+    /// The virtual file name without the extension.
+    pub name: String,
+    /// The virtual file subpath.
+    pub path: String,
+    /// The source code string data.
+    pub code: String,
+}
+
+impl File {
+    ///
+    /// Initializes a virtual application module from a hard disk file.
+    ///
+    pub fn try_from_path(path: &PathBuf) -> anyhow::Result<Self> {
+        let mut file = fs::File::open(path).with_context(|| path.to_string_lossy().to_string())?;
+
+        let size = file
+            .metadata()
+            .with_context(|| path.to_string_lossy().to_string())?
+            .len() as usize;
+
+        let mut code = String::with_capacity(size);
+        file.read_to_string(&mut code)
+            .with_context(|| path.to_string_lossy().to_string())?;
+
+        let source_file_extension = path
+            .extension()
+            .ok_or(Error::ExtensionNotFound)
+            .with_context(|| path.to_string_lossy().to_string())?;
+        if source_file_extension != zinc_const::extension::SOURCE {
+            return Err(Error::ExtensionInvalid(source_file_extension.to_owned()))
+                .with_context(|| path.to_string_lossy().to_string());
+        }
+
+        let name = path
+            .file_stem()
+            .ok_or(Error::StemNotFound)
+            .with_context(|| path.to_string_lossy().to_string())?
+            .to_string_lossy()
+            .to_string();
+
+        Ok(Self {
+            name,
+            path: path.to_string_lossy().to_string(),
+            code,
+        })
+    }
+
+    ///
+    /// Checks whether the file is the entry point.
+    ///
+    pub fn is_entry(&self) -> bool {
+        self.is_application_entry() || self.is_module_entry()
+    }
+
+    ///
+    /// Checks whether the file is the application entry point.
+    ///
+    pub fn is_application_entry(&self) -> bool {
+        self.name.as_str() == zinc_const::file_name::APPLICATION_ENTRY
+    }
+
+    ///
+    /// Checks whether the file is the module entry point.
+    ///
+    pub fn is_module_entry(&self) -> bool {
+        self.name.as_str() == zinc_const::file_name::MODULE_ENTRY
+    }
+}

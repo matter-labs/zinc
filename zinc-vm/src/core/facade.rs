@@ -6,8 +6,6 @@ use franklin_crypto::bellman::groth16;
 use franklin_crypto::bellman::groth16::Proof;
 use franklin_crypto::bellman::groth16::VerifyingKey;
 
-use zinc_build::Value as BuildValue;
-
 use crate::error::VerificationError;
 use crate::gadgets;
 use crate::IEngine;
@@ -18,7 +16,7 @@ impl Facade {
     pub fn verify<E: IEngine>(
         verifying_key: VerifyingKey<E>,
         proof: Proof<E>,
-        public_input: BuildValue,
+        public_input: zinc_build::Value,
     ) -> Result<bool, VerificationError> {
         let public_input_flat = public_input
             .into_flat_values()

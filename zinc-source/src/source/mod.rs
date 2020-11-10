@@ -3,17 +3,18 @@
 //!
 
 pub mod directory;
-pub mod error;
 pub mod file;
 
 use std::fs;
 use std::path::PathBuf;
 
+use anyhow::Context;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::error::Error;
+
 pub use self::directory::Directory;
-pub use self::error::Error;
 pub use self::file::File;
 
 ///
@@ -38,18 +39,16 @@ impl Source {
     ///
     /// Initializes a virtual application module representation from the file system.
     ///
-    pub fn try_from_path(path: &PathBuf, is_entry: bool) -> Result<Self, Error> {
-        let file_type = fs::metadata(path).map_err(Error::FileMetadata)?.file_type();
+    pub fn try_from_path(path: &PathBuf, is_entry: bool) -> anyhow::Result<Self> {
+        let file_type = fs::metadata(&path)?.file_type();
 
         if file_type.is_dir() {
-            return Directory::try_from_path(path, is_entry).map(Self::Directory);
+            Directory::try_from_path(path, is_entry).map(Self::Directory)
+        } else if file_type.is_file() {
+            File::try_from_path(path).map(Self::File)
+        } else {
+            Err(Error::FileTypeUnknown).with_context(|| path.to_string_lossy().to_string())
         }
-
-        if file_type.is_file() {
-            return File::try_from_path(path).map(Self::File);
-        }
-
-        Err(Error::FileTypeUnknown)
     }
 
     ///

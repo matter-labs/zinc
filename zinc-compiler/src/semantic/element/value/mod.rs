@@ -8,7 +8,6 @@ mod tests;
 pub mod array;
 pub mod boolean;
 pub mod contract;
-pub mod error;
 pub mod integer;
 pub mod structure;
 pub mod tuple;
@@ -40,11 +39,11 @@ use crate::semantic::element::place::Place;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
+use crate::semantic::error::Error;
 
 use self::array::Array;
 use self::boolean::Boolean;
 use self::contract::Contract;
-use self::error::Error;
 use self::integer::Integer;
 use self::structure::Structure;
 use self::tuple::Tuple;
@@ -175,7 +174,6 @@ impl Value {
                 integer_1
                     .equals(integer_2)
                     .map(|operator| (Self::Boolean(Boolean::new(location)), operator))
-                    .map_err(Error::Integer)
             }
             (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger {
                 location: value_2
@@ -225,7 +223,6 @@ impl Value {
                 integer_1
                     .not_equals(integer_2)
                     .map(|operator| (Self::Boolean(Boolean::new(location)), operator))
-                    .map_err(Error::Integer)
             }
             (Self::Integer(_), value_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedInteger {
@@ -256,7 +253,6 @@ impl Value {
                     integer_1
                         .greater_equals(integer_2)
                         .map(|operator| (Self::Boolean(Boolean::new(location)), operator))
-                        .map_err(Error::Integer)
                 }
                 value => Err(Error::OperatorGreaterEqualsSecondOperandExpectedInteger {
                     location: value
@@ -286,7 +282,6 @@ impl Value {
                     integer_1
                         .lesser_equals(integer_2)
                         .map(|operator| (Self::Boolean(Boolean::new(location)), operator))
-                        .map_err(Error::Integer)
                 }
                 value => Err(Error::OperatorLesserEqualsSecondOperandExpectedInteger {
                     location: value
@@ -316,7 +311,6 @@ impl Value {
                     integer_1
                         .greater(integer_2)
                         .map(|operator| (Self::Boolean(Boolean::new(location)), operator))
-                        .map_err(Error::Integer)
                 }
                 value => Err(Error::OperatorGreaterSecondOperandExpectedInteger {
                     location: value
@@ -346,7 +340,6 @@ impl Value {
                     integer_1
                         .lesser(integer_2)
                         .map(|operator| (Self::Boolean(Boolean::new(location)), operator))
-                        .map_err(Error::Integer)
                 }
                 value => Err(Error::OperatorLesserSecondOperandExpectedInteger {
                     location: value
@@ -373,8 +366,7 @@ impl BitOr for Value {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitor(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 value => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
                     location: value
                         .location()
@@ -400,8 +392,7 @@ impl BitXor for Value {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitxor(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 value => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
                     location: value
                         .location()
@@ -427,8 +418,7 @@ impl BitAnd for Value {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitand(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 value => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
                     location: value
                         .location()
@@ -454,8 +444,7 @@ impl Shl<Self> for Value {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .shl(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 value => Err(
                     Error::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
                         location: value
@@ -483,8 +472,7 @@ impl Shr<Self> for Value {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .shr(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 value => Err(
                     Error::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
                         location: value
@@ -514,8 +502,7 @@ impl Add for Value {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .add(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 value => Err(Error::OperatorAdditionSecondOperandExpectedInteger {
                     location: value
                         .location()
@@ -541,8 +528,7 @@ impl Sub for Value {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .sub(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 value => Err(Error::OperatorSubtractionSecondOperandExpectedInteger {
                     location: value
                         .location()
@@ -568,8 +554,7 @@ impl Mul for Value {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .mul(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 value => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger {
                     location: value
                         .location()
@@ -595,8 +580,7 @@ impl Div for Value {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .div(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 value => Err(Error::OperatorDivisionSecondOperandExpectedInteger {
                     location: value
                         .location()
@@ -622,8 +606,7 @@ impl Rem for Value {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .rem(integer_2)
-                    .map(|(integer, operator)| (Self::Integer(integer), operator))
-                    .map_err(Error::Integer),
+                    .map(|(integer, operator)| (Self::Integer(integer), operator)),
                 value => Err(Error::OperatorRemainderSecondOperandExpectedInteger {
                     location: value
                         .location()
@@ -647,7 +630,7 @@ impl Value {
     ///
     pub fn cast(self, to: Type) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         let from = self.r#type();
-        Caster::cast(&from, &to).map_err(|error| Error::Casting {
+        Caster::cast(&from, &to).map_err(|error| Error::OperatorCastingTypesMismatch {
             location: self
                 .location()
                 .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
@@ -665,8 +648,7 @@ impl Value {
         Ok(match self {
             Self::Integer(integer) => integer
                 .cast(is_signed, bitlength)
-                .map(|(integer, operator)| (Self::Integer(integer), operator))
-                .map_err(Error::Integer)?,
+                .map(|(integer, operator)| (Self::Integer(integer), operator))?,
             operand => (operand, None),
         })
     }
@@ -693,8 +675,7 @@ impl Value {
         match self {
             Self::Integer(integer) => integer
                 .bitwise_not()
-                .map(|(integer, operator)| (Self::Integer(integer), operator))
-                .map_err(Error::Integer),
+                .map(|(integer, operator)| (Self::Integer(integer), operator)),
             value => Err(Error::OperatorBitwiseNotExpectedInteger {
                 location: value
                     .location()
@@ -712,8 +693,7 @@ impl Neg for Value {
         match self {
             Self::Integer(integer) => integer
                 .neg()
-                .map(|(integer, operator)| (Self::Integer(integer), operator))
-                .map_err(Error::Integer),
+                .map(|(integer, operator)| (Self::Integer(integer), operator)),
             value => Err(Error::OperatorNegationExpectedInteger {
                 location: value
                     .location()
@@ -757,12 +737,10 @@ impl Value {
                 Constant::Integer(_) => Ok(array.slice_single()),
                 Constant::Range(range) => array
                     .slice_range(range)
-                    .map(|(value, access)| (value, access))
-                    .map_err(Error::Array),
+                    .map(|(value, access)| (value, access)),
                 Constant::RangeInclusive(range) => array
                     .slice_range_inclusive(range)
-                    .map(|(value, access)| (value, access))
-                    .map_err(Error::Array),
+                    .map(|(value, access)| (value, access)),
                 constant => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
                     location: constant.location(),
                     found: constant.to_string(),
@@ -782,7 +760,7 @@ impl Value {
     ///
     pub fn tuple_field(self, tuple_index: TupleIndex) -> Result<(Self, StackFieldAccess), Error> {
         match self {
-            Value::Tuple(tuple) => tuple.slice(tuple_index).map_err(Error::Tuple),
+            Value::Tuple(tuple) => tuple.slice(tuple_index),
             value => Err(Error::OperatorDotFirstOperandExpectedTuple {
                 location: value
                     .location()
@@ -802,12 +780,10 @@ impl Value {
         match self {
             Value::Structure(structure) => structure
                 .slice(identifier)
-                .map(|(value, access)| (value, DotAccessVariant::StackField(access)))
-                .map_err(Error::Structure),
+                .map(|(value, access)| (value, DotAccessVariant::StackField(access))),
             Value::Contract(contract) => contract
                 .slice(identifier)
-                .map(|(value, access)| (value, DotAccessVariant::ContractField(access)))
-                .map_err(Error::Contract),
+                .map(|(value, access)| (value, DotAccessVariant::ContractField(access))),
             value => Err(Error::OperatorDotFirstOperandExpectedInstance {
                 location: value
                     .location()

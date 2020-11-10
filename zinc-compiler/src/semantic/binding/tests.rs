@@ -6,7 +6,6 @@ use zinc_lexical::Keyword;
 use zinc_lexical::Location;
 
 use crate::error::Error;
-use crate::semantic::binding::error::Error as BindingError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
 
@@ -18,17 +17,15 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Binding(
-        BindingError::ExpectedTuple {
-            location: Location::test(3, 9),
-            expected: 3,
-            found: Type::tuple(
-                None,
-                vec![Type::integer_unsigned(None, zinc_const::bitlength::BYTE); 2],
-            )
-            .to_string(),
-        },
-    )));
+    let expected = Err(Error::Semantic(SemanticError::BindingExpectedTuple {
+        location: Location::test(3, 9),
+        expected: 3,
+        found: Type::tuple(
+            None,
+            vec![Type::integer_unsigned(None, zinc_const::bitlength::BYTE); 2],
+        )
+        .to_string(),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -53,13 +50,13 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Binding(
-        BindingError::FunctionMethodSelfNotFirst {
+    let expected = Err(Error::Semantic(
+        SemanticError::BindingSelfNotFirstMethodArgument {
             location: Location::test(7, 26),
             name: Keyword::SelfLowercase.to_string(),
             position: 2,
         },
-    )));
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -72,11 +69,11 @@ fn error_function_argument_destructuring_unavailable() {
 fn main((a, b): (u8, u8)) {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Binding(
-        BindingError::FunctionArgumentDestructuringUnavailable {
+    let expected = Err(Error::Semantic(
+        SemanticError::BindingFunctionArgumentDestructuringUnavailable {
             location: Location::test(2, 9),
         },
-    )));
+    ));
 
     let result = crate::semantic::tests::compile_entry(input);
 

@@ -2,17 +2,17 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::expression::Expression;
 
 use crate::auto_const;
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
-pub fn neg<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
+pub fn neg<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, RuntimeError>
+    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>, Error>
     where
         E: IEngine,
         CS: ConstraintSystem<E>,

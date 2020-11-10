@@ -2,34 +2,17 @@
 //! The compiler executable.
 //!
 
-use std::io;
 use std::path::PathBuf;
 use std::process;
-use std::process::ExitStatus;
 
 use colored::Colorize;
-use failure::Fail;
+
+use crate::error::Error;
 
 ///
 /// The Zinc compiler process representation.
 ///
 pub struct Compiler {}
-
-///
-/// The Zinc virtual machine process error.
-///
-#[derive(Debug, Fail)]
-pub enum Error {
-    /// The process spawning error.
-    #[fail(display = "spawning: {}", _0)]
-    Spawning(io::Error),
-    /// The process waiting error.
-    #[fail(display = "waiting: {}", _0)]
-    Waiting(io::Error),
-    /// The process returned a non-success exit code.
-    #[fail(display = "failure: {}", _0)]
-    Failure(ExitStatus),
-}
 
 impl Compiler {
     ///
@@ -47,7 +30,7 @@ impl Compiler {
         source_path: &PathBuf,
         binary_path: &PathBuf,
         is_test_only: bool,
-    ) -> Result<(), Error> {
+    ) -> anyhow::Result<()> {
         eprintln!("   {} {} v{}", "Compiling".bright_green(), name, version);
 
         let mut child = process::Command::new(zinc_const::app_name::COMPILER)
@@ -64,13 +47,12 @@ impl Compiler {
                 vec![]
             })
             .arg(source_path)
-            .spawn()
-            .map_err(Error::Spawning)?;
+            .spawn()?;
 
-        let status = child.wait().map_err(Error::Waiting)?;
+        let status = child.wait()?;
 
         if !status.success() {
-            return Err(Error::Failure(status));
+            anyhow::bail!(Error::SubprocessFailure(status));
         }
 
         eprintln!("    {} dev [unoptimized] target", "Finished".bright_green(),);
@@ -93,7 +75,7 @@ impl Compiler {
         source_path: &PathBuf,
         binary_path: &PathBuf,
         is_test_only: bool,
-    ) -> Result<(), Error> {
+    ) -> anyhow::Result<()> {
         eprintln!("   {} {} v{}", "Compiling".bright_green(), name, version);
 
         let mut child = process::Command::new(zinc_const::app_name::COMPILER)
@@ -111,13 +93,12 @@ impl Compiler {
             })
             .arg("--opt-dfe")
             .arg(source_path)
-            .spawn()
-            .map_err(Error::Spawning)?;
+            .spawn()?;
 
-        let status = child.wait().map_err(Error::Waiting)?;
+        let status = child.wait()?;
 
         if !status.success() {
-            return Err(Error::Failure(status));
+            anyhow::bail!(Error::SubprocessFailure(status));
         }
 
         eprintln!(

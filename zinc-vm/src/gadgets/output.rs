@@ -4,18 +4,18 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use crate::error::RuntimeError;
+use crate::error::Error;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
-pub fn output<E, CS>(mut cs: CS, element: Scalar<E>) -> Result<Scalar<E>, RuntimeError>
+pub fn output<E, CS>(mut cs: CS, element: Scalar<E>) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
     let variable = cs
         .alloc_input(|| "output value", || element.grab_value())
-        .map_err(RuntimeError::SynthesisError)?;
+        .map_err(Error::SynthesisError)?;
 
     cs.enforce(
         || "enforce output equality",

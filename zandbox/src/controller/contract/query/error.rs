@@ -7,9 +7,6 @@ use std::fmt;
 use actix_web::http::StatusCode;
 use actix_web::ResponseError;
 
-use zinc_build::ValueError as BuildValueError;
-use zinc_vm::RuntimeError;
-
 ///
 /// The contract run feature PUT `query` error.
 ///
@@ -26,14 +23,20 @@ pub enum Error {
     /// The method was specified in the query, but its arguments was not sent in the body.
     MethodArgumentsNotFound(String),
     /// Invalid contract method arguments.
-    InvalidInput(BuildValueError),
+    InvalidInput(anyhow::Error),
 
     /// The virtual machine contract method runtime error.
-    RuntimeError(RuntimeError),
+    VirtualMachine(zinc_vm::Error),
     /// The PostgreSQL database error.
     Database(sqlx::Error),
     /// The ZkSync server client error.
     ZkSyncClient(zksync::error::ClientError),
+}
+
+impl From<zinc_vm::Error> for Error {
+    fn from(inner: zinc_vm::Error) -> Self {
+        Self::VirtualMachine(inner)
+    }
 }
 
 impl From<sqlx::Error> for Error {
@@ -58,7 +61,7 @@ impl ResponseError for Error {
             Self::MethodArgumentsNotFound(..) => StatusCode::BAD_REQUEST,
             Self::InvalidInput(..) => StatusCode::BAD_REQUEST,
 
-            Self::RuntimeError(..) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::VirtualMachine(..) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Database(..) => StatusCode::SERVICE_UNAVAILABLE,
             Self::ZkSyncClient(..) => StatusCode::SERVICE_UNAVAILABLE,
         }
@@ -90,7 +93,7 @@ impl fmt::Display for Error {
             }
             Self::InvalidInput(inner) => format!("Input: {}", inner),
 
-            Self::RuntimeError(inner) => format!("Runtime: {:?}", inner),
+            Self::VirtualMachine(inner) => format!("Runtime: {:?}", inner),
             Self::Database(inner) => format!("Database: {:?}", inner),
             Self::ZkSyncClient(inner) => format!("ZkSync: {:?}", inner),
         };

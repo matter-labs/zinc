@@ -5,8 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -14,12 +12,9 @@ use zinc_lexical::Keyword;
 use zinc_syntax::ImplStatement;
 use zinc_syntax::ImplementationLocalStatement;
 
-use crate::semantic::analyzer::statement::error::Error as StatementError;
 use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
-use crate::semantic::analyzer::statement::r#impl::error::Error as ImplStatementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
-use crate::semantic::scope::error::Error as ScopeError;
 use crate::semantic::scope::item::r#type::state::State as ScopeTypeItemState;
 use crate::semantic::scope::item::r#type::statement::Statement as TypeStatementVariant;
 use crate::semantic::scope::item::r#type::statement::Statement as ScopeTypeItemStatement;
@@ -55,12 +50,10 @@ impl Analyzer {
                     ScopeTypeItemStatement::Struct(_) => scope.to_owned(),
                     ScopeTypeItemStatement::Enum(_) => scope.to_owned(),
                     ref _statement => {
-                        return Err(Error::Statement(StatementError::Impl(
-                            ImplStatementError::ExpectedStructureOrEnumeration {
-                                location: identifier_location,
-                                found: statement.identifier.name,
-                            },
-                        )))
+                        return Err(Error::ImplStatementExpectedStructureOrEnumeration {
+                            location: identifier_location,
+                            found: statement.identifier.name,
+                        })
                     }
                 },
                 Some(ScopeTypeItemState::Defined {
@@ -69,27 +62,23 @@ impl Analyzer {
                     Type::Structure(ref inner) => inner.scope.to_owned(),
                     Type::Enumeration(ref inner) => inner.scope.to_owned(),
                     ref _type => {
-                        return Err(Error::Statement(StatementError::Impl(
-                            ImplStatementError::ExpectedStructureOrEnumeration {
-                                location: identifier_location,
-                                found: statement.identifier.name,
-                            },
-                        )))
+                        return Err(Error::ImplStatementExpectedStructureOrEnumeration {
+                            location: identifier_location,
+                            found: statement.identifier.name,
+                        })
                     }
                 },
                 None => {
-                    return Err(Error::Scope(ScopeError::ReferenceLoop {
+                    return Err(Error::ScopeReferenceLoop {
                         location: identifier_location,
-                    }))
+                    });
                 }
             },
             ref _item => {
-                return Err(Error::Statement(StatementError::Impl(
-                    ImplStatementError::ExpectedStructureOrEnumeration {
-                        location: identifier_location,
-                        found: statement.identifier.name,
-                    },
-                )));
+                return Err(Error::ImplStatementExpectedStructureOrEnumeration {
+                    location: identifier_location,
+                    found: statement.identifier.name,
+                });
             }
         };
 

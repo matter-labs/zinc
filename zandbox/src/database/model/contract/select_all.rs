@@ -2,8 +2,6 @@
 //! The database contract SELECT all model.
 //!
 
-use serde_json::Value as JsonValue;
-
 ///
 /// The database contract SELECT all output model.
 ///
@@ -20,7 +18,7 @@ pub struct Output {
     pub instance: String,
 
     /// The contract source code.
-    pub source_code: JsonValue,
+    pub source_code: serde_json::Value,
     /// The contract bytecode.
     pub bytecode: Vec<u8>,
     /// The contract verifying key.

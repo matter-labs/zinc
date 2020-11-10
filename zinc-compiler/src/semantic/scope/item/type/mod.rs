@@ -10,6 +10,9 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
+use zinc_lexical::Keyword;
+use zinc_lexical::Location;
+
 use crate::generator::statement::Statement as GeneratorStatement;
 use crate::semantic::analyzer::statement::contract::Analyzer as ContractStatementAnalyzer;
 use crate::semantic::analyzer::statement::r#enum::Analyzer as EnumStatementAnalyzer;
@@ -18,11 +21,8 @@ use crate::semantic::analyzer::statement::r#struct::Analyzer as StructStatementA
 use crate::semantic::analyzer::statement::r#type::Analyzer as TypeStatementAnalyzer;
 use crate::semantic::element::r#type::Type as TypeElement;
 use crate::semantic::error::Error;
-use crate::semantic::scope::error::Error as ScopeError;
 use crate::semantic::scope::item::index::INDEX as ITEM_INDEX;
 use crate::semantic::scope::Scope;
-use zinc_lexical::Keyword;
-use zinc_lexical::Location;
 
 use self::state::State;
 use self::statement::Statement as TypeStatementVariant;
@@ -189,9 +189,9 @@ impl Type {
 
                 Ok(inner)
             }
-            None => Err(Error::Scope(ScopeError::ReferenceLoop {
+            None => Err(Error::ScopeReferenceLoop {
                 location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-            })),
+            }),
         }
     }
 

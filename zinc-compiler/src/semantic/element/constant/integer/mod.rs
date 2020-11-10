@@ -5,8 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod error;
-
 use std::cmp;
 use std::convert::TryFrom;
 use std::fmt;
@@ -28,7 +26,6 @@ use num::ToPrimitive;
 
 use zinc_lexical::IntegerLiteral as LexicalIntegerLiteral;
 use zinc_lexical::Location;
-use zinc_math::InferenceError;
 use zinc_syntax::IntegerLiteral;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
@@ -38,8 +35,7 @@ use crate::semantic::element::constant::range_inclusive::RangeInclusive;
 use crate::semantic::element::r#type::enumeration::Enumeration;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
-
-use self::error::Error;
+use crate::semantic::error::Error;
 
 ///
 /// Integer constants consist of the value, sign, and bitlength.
@@ -160,7 +156,7 @@ impl Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchEquals {
+            return Err(Error::OperatorEqualsTypesMismatch {
                 location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -198,7 +194,7 @@ impl Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchNotEquals {
+            return Err(Error::OperatorNotEqualsTypesMismatch {
                 location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -236,7 +232,7 @@ impl Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchGreaterEquals {
+            return Err(Error::OperatorGreaterEqualsTypesMismatch {
                 location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -274,7 +270,7 @@ impl Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchLesserEquals {
+            return Err(Error::OperatorLesserEqualsTypesMismatch {
                 location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -312,7 +308,7 @@ impl Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchGreater {
+            return Err(Error::OperatorGreaterTypesMismatch {
                 location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -350,7 +346,7 @@ impl Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchLesser {
+            return Err(Error::OperatorLesserTypesMismatch {
                 location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -389,7 +385,7 @@ impl BitOr for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchBitwiseOr {
+            return Err(Error::OperatorBitwiseOrTypesMismatch {
                 location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -397,13 +393,13 @@ impl BitOr for Integer {
         }
 
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise {
+            return Err(Error::OperatorBitwiseSignedOperandForbidden {
                 location: self.location,
             });
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldBitwise {
+            return Err(Error::OperatorBitwiseFieldOperandForbidden {
                 location: self.location,
             });
         }
@@ -447,7 +443,7 @@ impl BitXor for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchBitwiseXor {
+            return Err(Error::OperatorBitwiseXorTypesMismatch {
                 location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -455,13 +451,13 @@ impl BitXor for Integer {
         }
 
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise {
+            return Err(Error::OperatorBitwiseSignedOperandForbidden {
                 location: self.location,
             });
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldBitwise {
+            return Err(Error::OperatorBitwiseFieldOperandForbidden {
                 location: self.location,
             });
         }
@@ -505,7 +501,7 @@ impl BitAnd for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchBitwiseAnd {
+            return Err(Error::OperatorBitwiseAndTypesMismatch {
                 location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -513,13 +509,13 @@ impl BitAnd for Integer {
         }
 
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise {
+            return Err(Error::OperatorBitwiseSignedOperandForbidden {
                 location: self.location,
             });
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldBitwise {
+            return Err(Error::OperatorBitwiseFieldOperandForbidden {
                 location: self.location,
             });
         }
@@ -551,13 +547,13 @@ impl Shl<Self> for Integer {
 
     fn shl(self, other: Self) -> Self::Output {
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise {
+            return Err(Error::OperatorBitwiseSignedOperandForbidden {
                 location: self.location,
             });
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldBitwise {
+            return Err(Error::OperatorBitwiseFieldOperandForbidden {
                 location: self.location,
             });
         }
@@ -574,9 +570,9 @@ impl Shl<Self> for Integer {
         let other = other
             .value
             .to_usize()
-            .ok_or_else(|| Error::IntegerTooLarge {
+            .ok_or_else(|| Error::InvalidInteger {
                 location: other.location,
-                inner: InferenceError::Overflow {
+                inner: zinc_math::Error::Overflow {
                     value: other.value,
                     is_signed: other.is_signed,
                     bitlength: other.bitlength,
@@ -603,13 +599,13 @@ impl Shr<Self> for Integer {
 
     fn shr(self, other: Self) -> Self::Output {
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise {
+            return Err(Error::OperatorBitwiseSignedOperandForbidden {
                 location: self.location,
             });
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldBitwise {
+            return Err(Error::OperatorBitwiseFieldOperandForbidden {
                 location: self.location,
             });
         }
@@ -626,9 +622,9 @@ impl Shr<Self> for Integer {
         let other = other
             .value
             .to_usize()
-            .ok_or_else(|| Error::IntegerTooLarge {
+            .ok_or_else(|| Error::InvalidInteger {
                 location: other.location,
-                inner: InferenceError::Overflow {
+                inner: zinc_math::Error::Overflow {
                     value: other.value,
                     is_signed: other.is_signed,
                     bitlength: other.bitlength,
@@ -667,7 +663,7 @@ impl Add for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchAddition {
+            return Err(Error::OperatorAdditionTypesMismatch {
                 location: location_1,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -676,7 +672,7 @@ impl Add for Integer {
 
         let result = self.value + other.value;
         if result.is_negative() && !self.is_signed {
-            return Err(Error::OverflowAddition {
+            return Err(Error::OperatorAdditionOverflow {
                 location: location_1,
                 value: result,
                 r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
@@ -686,13 +682,13 @@ impl Add for Integer {
 
         let bitlength =
             zinc_math::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
-                Error::IntegerTooLarge {
+                Error::InvalidInteger {
                     location: location_1,
                     inner: error,
                 }
             })?;
         if bitlength > self.bitlength {
-            return Err(Error::OverflowAddition {
+            return Err(Error::OperatorAdditionOverflow {
                 location: location_1,
                 value: result,
                 r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
@@ -741,7 +737,7 @@ impl Sub for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchSubtraction {
+            return Err(Error::OperatorSubtractionTypesMismatch {
                 location: location_1,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -750,7 +746,7 @@ impl Sub for Integer {
 
         let result = self.value - other.value;
         if result.is_negative() && !self.is_signed {
-            return Err(Error::OverflowSubtraction {
+            return Err(Error::OperatorSubtractionOverflow {
                 location: location_1,
                 value: result,
                 r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
@@ -760,13 +756,13 @@ impl Sub for Integer {
 
         let bitlength =
             zinc_math::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
-                Error::IntegerTooLarge {
+                Error::InvalidInteger {
                     location: location_1,
                     inner: error,
                 }
             })?;
         if bitlength > self.bitlength {
-            return Err(Error::OverflowSubtraction {
+            return Err(Error::OperatorSubtractionOverflow {
                 location: location_1,
                 value: result,
                 r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
@@ -815,7 +811,7 @@ impl Mul for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchMultiplication {
+            return Err(Error::OperatorMultiplicationTypesMismatch {
                 location: location_1,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -824,7 +820,7 @@ impl Mul for Integer {
 
         let result = self.value * other.value;
         if result.is_negative() && !self.is_signed {
-            return Err(Error::OverflowMultiplication {
+            return Err(Error::OperatorMultiplicationOverflow {
                 location: location_1,
                 value: result,
                 r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
@@ -834,13 +830,13 @@ impl Mul for Integer {
 
         let bitlength =
             zinc_math::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
-                Error::IntegerTooLarge {
+                Error::InvalidInteger {
                     location: location_1,
                     inner: error,
                 }
             })?;
         if bitlength > self.bitlength {
-            return Err(Error::OverflowMultiplication {
+            return Err(Error::OperatorMultiplicationOverflow {
                 location: location_1,
                 value: result,
                 r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
@@ -889,7 +885,7 @@ impl Div for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchDivision {
+            return Err(Error::OperatorDivisionTypesMismatch {
                 location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -897,17 +893,18 @@ impl Div for Integer {
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldDivision {
+            return Err(Error::OperatorDivisionFieldOperandForbidden {
                 location: self.location,
             });
         }
 
-        let (result, _remainder) =
-            zinc_math::euclidean_div_rem(&self.value, &other.value).ok_or(Error::ZeroDivision {
+        let (result, _remainder) = zinc_math::euclidean_div_rem(&self.value, &other.value).ok_or(
+            Error::OperatorDivisionByZero {
                 location: other.location,
-            })?;
+            },
+        )?;
         if result.is_negative() && !self.is_signed {
-            return Err(Error::OverflowDivision {
+            return Err(Error::OperatorDivisionOverflow {
                 location: self.location,
                 value: result,
                 r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
@@ -917,13 +914,13 @@ impl Div for Integer {
 
         let bitlength =
             zinc_math::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
-                Error::IntegerTooLarge {
+                Error::InvalidInteger {
                     location: self.location,
                     inner: error,
                 }
             })?;
         if bitlength > self.bitlength {
-            return Err(Error::OverflowDivision {
+            return Err(Error::OperatorDivisionOverflow {
                 location: self.location,
                 value: result,
                 r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
@@ -972,7 +969,7 @@ impl Rem for Integer {
         );
 
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchRemainder {
+            return Err(Error::OperatorRemainderTypesMismatch {
                 location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
@@ -980,18 +977,18 @@ impl Rem for Integer {
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldRemainder {
+            return Err(Error::OperatorRemainderFieldOperandForbidden {
                 location: self.location,
             });
         }
 
         let (_quotient, result) = zinc_math::euclidean_div_rem(&self.value, &other.value).ok_or(
-            Error::ZeroRemainder {
+            Error::OperatorRemainderOfDivisionByZero {
                 location: other.location,
             },
         )?;
         if result.is_negative() && !self.is_signed {
-            return Err(Error::OverflowRemainder {
+            return Err(Error::OperatorRemainderOverflow {
                 location: self.location,
                 value: result,
                 r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
@@ -1001,13 +998,13 @@ impl Rem for Integer {
 
         let bitlength =
             zinc_math::infer_minimal_bitlength(&result, self.is_signed).map_err(|error| {
-                Error::IntegerTooLarge {
+                Error::InvalidInteger {
                     location: self.location,
                     inner: error,
                 }
             })?;
         if bitlength > self.bitlength {
-            return Err(Error::OverflowRemainder {
+            return Err(Error::OperatorRemainderOverflow {
                 location: self.location,
                 value: result,
                 r#type: Type::scalar(Some(self.location), self.is_signed, self.bitlength)
@@ -1049,7 +1046,7 @@ impl Integer {
         bitlength: usize,
     ) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         if self.value.is_negative() && !is_signed {
-            return Err(Error::OverflowCasting {
+            return Err(Error::OperatorCastingOverflow {
                 location: self.location,
                 value: self.value,
                 r#type: Type::scalar(Some(self.location), is_signed, bitlength).to_string(),
@@ -1057,12 +1054,12 @@ impl Integer {
         }
 
         let inferred_bitlength = zinc_math::infer_minimal_bitlength(&self.value, is_signed)
-            .map_err(|error| Error::IntegerTooLarge {
+            .map_err(|error| Error::InvalidInteger {
                 location: self.location,
                 inner: error,
             })?;
         if inferred_bitlength > bitlength {
-            return Err(Error::OverflowCasting {
+            return Err(Error::OperatorCastingOverflow {
                 location: self.location,
                 value: self.value,
                 r#type: Type::scalar(Some(self.location), is_signed, bitlength).to_string(),
@@ -1096,13 +1093,13 @@ impl Integer {
     ///
     pub fn bitwise_not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise {
+            return Err(Error::OperatorBitwiseSignedOperandForbidden {
                 location: self.location,
             });
         }
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldBitwise {
+            return Err(Error::OperatorBitwiseFieldOperandForbidden {
                 location: self.location,
             });
         }
@@ -1129,7 +1126,7 @@ impl Neg for Integer {
         let location = self.location;
 
         if self.bitlength == zinc_const::bitlength::FIELD {
-            return Err(Error::ForbiddenFieldNegation {
+            return Err(Error::OperatorNegationFieldOperandForbidden {
                 location: self.location,
             });
         }
@@ -1139,13 +1136,13 @@ impl Neg for Integer {
         let result = -self.value;
         let bitlength =
             zinc_math::infer_minimal_bitlength(&result, is_signed).map_err(|error| {
-                Error::IntegerTooLarge {
+                Error::InvalidInteger {
                     location,
                     inner: error,
                 }
             })?;
         if bitlength > self.bitlength {
-            return Err(Error::OverflowNegation {
+            return Err(Error::OperatorNegationOverflow {
                 location,
                 value: result,
                 r#type: Type::scalar(Some(self.location), is_signed, self.bitlength).to_string(),
@@ -1174,9 +1171,9 @@ impl Integer {
     /// Returns an error, if the constant is too big or negative.
     ///
     pub fn to_usize(&self) -> Result<usize, Error> {
-        self.value.to_usize().ok_or_else(|| Error::IntegerTooLarge {
+        self.value.to_usize().ok_or_else(|| Error::InvalidInteger {
             location: self.location,
-            inner: InferenceError::Overflow {
+            inner: zinc_math::Error::Overflow {
                 value: self.value.to_owned(),
                 is_signed: false,
                 bitlength: zinc_const::bitlength::INDEX,
@@ -1214,7 +1211,7 @@ impl Integer {
         for value in values.iter() {
             let bitlength =
                 zinc_math::infer_minimal_bitlength(value, is_signed).map_err(|error| {
-                    Error::IntegerTooLarge {
+                    Error::InvalidInteger {
                         location,
                         inner: error,
                     }
@@ -1277,14 +1274,15 @@ impl TryFrom<&IntegerLiteral> for Integer {
             LexicalIntegerLiteral::Hexadecimal { ref inner } => format!("0x{}", inner.to_owned()),
         };
 
-        let value =
-            zinc_math::bigint_from_str(value_string.as_str()).map_err(|error| Error::Parsing {
+        let value = zinc_math::bigint_from_str(value_string.as_str()).map_err(|error| {
+            Error::InvalidInteger {
                 location: literal.location,
                 inner: error,
-            })?;
+            }
+        })?;
 
         let bitlength = zinc_math::infer_minimal_bitlength(&value, false).map_err(|error| {
-            Error::IntegerTooLarge {
+            Error::InvalidInteger {
                 location: literal.location,
                 inner: error,
             }
