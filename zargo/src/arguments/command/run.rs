@@ -13,10 +13,10 @@ use zinc_manifest::ProjectType;
 use crate::error::Error;
 use crate::executable::compiler::Compiler;
 use crate::executable::virtual_machine::VirtualMachine;
-use crate::project::build::Directory as BuildDirectory;
 use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
 use crate::project::data::Directory as DataDirectory;
-use crate::project::source::Directory as SourceDirectory;
+use crate::project::target::deps::Directory as TargetDependenciesDirectory;
+use crate::project::target::Directory as TargetDirectory;
 
 ///
 /// The Zargo package manager `run` subcommand.
@@ -40,7 +40,7 @@ pub struct Command {
     #[structopt(long = "method")]
     pub method: Option<String>,
 
-    /// Runs the release build.
+    /// Uses the release build.
     #[structopt(long = "release")]
     pub is_release: bool,
 }
@@ -62,8 +62,6 @@ impl Command {
             manifest_path.pop();
         }
 
-        let source_directory_path = SourceDirectory::path(&manifest_path);
-
         DataDirectory::create(&manifest_path)?;
         let data_directory_path = DataDirectory::path(&manifest_path);
         let mut input_path = data_directory_path.clone();
@@ -82,35 +80,30 @@ impl Command {
             PrivateKeyFile::default().write_to(&data_directory_path)?;
         }
 
-        BuildDirectory::create(&manifest_path)?;
-        let build_directory_path = BuildDirectory::path(&manifest_path);
-        let mut binary_path = build_directory_path;
+        TargetDirectory::create(&manifest_path, self.is_release)?;
+        let target_directory_path = TargetDirectory::path(&manifest_path, self.is_release);
+        let mut binary_path = target_directory_path;
         binary_path.push(format!(
             "{}.{}",
             zinc_const::file_name::BINARY,
             zinc_const::extension::BINARY
         ));
+        TargetDependenciesDirectory::create(&manifest_path)?;
 
         if self.is_release {
             Compiler::build_release(
                 self.verbosity,
                 manifest.project.name.as_str(),
-                manifest.project.version.as_str(),
+                &manifest.project.version,
                 &manifest_path,
-                &data_directory_path,
-                &source_directory_path,
-                &binary_path,
                 false,
             )?;
         } else {
             Compiler::build_debug(
                 self.verbosity,
                 manifest.project.name.as_str(),
-                manifest.project.version.as_str(),
+                &manifest.project.version,
                 &manifest_path,
-                &data_directory_path,
-                &source_directory_path,
-                &binary_path,
                 false,
             )?;
         }

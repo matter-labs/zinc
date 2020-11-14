@@ -1,5 +1,5 @@
 //!
-//! The contract instance resource.
+//! The contract resource.
 //!
 
 pub mod call;

@@ -53,7 +53,7 @@ impl Instance {
         let application = thread::Builder::new()
             .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
             .spawn(move || -> anyhow::Result<BuildApplication> {
-                let scope = EntryAnalyzer::define(source)
+                let scope = EntryAnalyzer::define(source, HashMap::new())
                     .map_err(CompilerError::Semantic)
                     .map_err(|error| anyhow::anyhow!(error.format()))?;
 

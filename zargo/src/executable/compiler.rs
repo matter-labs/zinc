@@ -24,11 +24,8 @@ impl Compiler {
     pub fn build_debug(
         verbosity: usize,
         name: &str,
-        version: &str,
+        version: &semver::Version,
         manifest_path: &PathBuf,
-        data_path: &PathBuf,
-        source_path: &PathBuf,
-        binary_path: &PathBuf,
         is_test_only: bool,
     ) -> anyhow::Result<()> {
         eprintln!("   {} {} v{}", "Compiling".bright_green(), name, version);
@@ -37,16 +34,11 @@ impl Compiler {
             .args(vec!["-v"; verbosity])
             .arg("--manifest-path")
             .arg(manifest_path)
-            .arg("--data")
-            .arg(data_path)
-            .arg("--binary")
-            .arg(binary_path)
             .args(if is_test_only {
                 vec!["--test-only"]
             } else {
                 vec![]
             })
-            .arg(source_path)
             .spawn()?;
 
         let status = child.wait()?;
@@ -55,7 +47,7 @@ impl Compiler {
             anyhow::bail!(Error::SubprocessFailure(status));
         }
 
-        eprintln!("    {} dev [unoptimized] target", "Finished".bright_green(),);
+        eprintln!("    {} dev [unoptimized] target", "Finished".bright_green());
 
         Ok(())
     }
@@ -69,11 +61,8 @@ impl Compiler {
     pub fn build_release(
         verbosity: usize,
         name: &str,
-        version: &str,
+        version: &semver::Version,
         manifest_path: &PathBuf,
-        data_path: &PathBuf,
-        source_path: &PathBuf,
-        binary_path: &PathBuf,
         is_test_only: bool,
     ) -> anyhow::Result<()> {
         eprintln!("   {} {} v{}", "Compiling".bright_green(), name, version);
@@ -82,17 +71,12 @@ impl Compiler {
             .args(vec!["-v"; verbosity])
             .arg("--manifest-path")
             .arg(manifest_path)
-            .arg("--data")
-            .arg(data_path)
-            .arg("--binary")
-            .arg(binary_path)
             .args(if is_test_only {
                 vec!["--test-only"]
             } else {
                 vec![]
             })
             .arg("--opt-dfe")
-            .arg(source_path)
             .spawn()?;
 
         let status = child.wait()?;

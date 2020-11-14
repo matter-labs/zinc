@@ -12,8 +12,9 @@ use zinc_manifest::ProjectType;
 
 use crate::error::Error;
 use crate::executable::virtual_machine::VirtualMachine;
-use crate::project::build::Directory as BuildDirectory;
 use crate::project::data::Directory as DataDirectory;
+use crate::project::target::deps::Directory as TargetDependenciesDirectory;
+use crate::project::target::Directory as TargetDirectory;
 
 ///
 /// The Zargo package manager `setup` subcommand.
@@ -36,6 +37,10 @@ pub struct Command {
     /// The contract method to do the setup for. Only for contracts.
     #[structopt(long = "method")]
     pub method: Option<String>,
+
+    /// Uses the release build.
+    #[structopt(long = "release")]
+    pub is_release: bool,
 }
 
 impl Command {
@@ -61,13 +66,14 @@ impl Command {
         let mut verifying_key_path = data_directory_path;
         verifying_key_path.push(zinc_const::file_name::VERIFYING_KEY.to_owned());
 
-        let build_directory_path = BuildDirectory::path(&manifest_path);
-        let mut binary_path = build_directory_path;
+        let target_directory_path = TargetDirectory::path(&manifest_path, self.is_release);
+        let mut binary_path = target_directory_path;
         binary_path.push(format!(
             "{}.{}",
             zinc_const::file_name::BINARY,
             zinc_const::extension::BINARY
         ));
+        TargetDependenciesDirectory::create(&manifest_path)?;
 
         match self.method {
             Some(method) => VirtualMachine::setup_contract(

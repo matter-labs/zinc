@@ -17,6 +17,5 @@ pub mod size;
 pub mod source;
 pub mod tester;
 pub mod zandbox;
-pub mod zargo;
 
 pub use self::exit_code::unit_test::ExitCode as UnitTestExitCode;

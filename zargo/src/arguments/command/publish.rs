@@ -8,9 +8,6 @@ use std::str::FromStr;
 
 use colored::Colorize;
 use num::BigUint;
-use reqwest::Client as HttpClient;
-use reqwest::Method;
-use reqwest::Url;
 use structopt::StructOpt;
 
 use zksync::web3::types::H256;
@@ -19,25 +16,19 @@ use zksync_types::tx::PackedEthSignature;
 
 use zinc_manifest::Manifest;
 use zinc_manifest::ProjectType;
-use zinc_source::Source;
-use zinc_zksync::InitializeRequestBody;
-use zinc_zksync::InitializeRequestQuery;
-use zinc_zksync::InitializeResponseBody;
-use zinc_zksync::PublishRequestBody;
-use zinc_zksync::PublishRequestQuery;
-use zinc_zksync::PublishResponseBody;
 
 use crate::error::Error;
 use crate::executable::compiler::Compiler;
 use crate::executable::virtual_machine::VirtualMachine;
+use crate::http::Client as HttpClient;
 use crate::network::Network;
-use crate::project::build::bytecode::Bytecode as BytecodeFile;
-use crate::project::build::Directory as BuildDirectory;
 use crate::project::data::input::Input as InputFile;
 use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
 use crate::project::data::verifying_key::VerifyingKey as VerifyingKeyFile;
 use crate::project::data::Directory as DataDirectory;
-use crate::project::source::Directory as SourceDirectory;
+use crate::project::src::Directory as SourceDirectory;
+use crate::project::target::bytecode::Bytecode as BytecodeFile;
+use crate::project::target::Directory as TargetDirectory;
 
 ///
 /// The Zargo package manager `publish` subcommand.
@@ -82,10 +73,10 @@ impl Command {
         let network = zksync::Network::from_str(self.network.as_str())
             .map(Network::from)
             .map_err(Error::NetworkInvalid)?;
-
         let url = network
             .try_into_url()
             .map_err(Error::NetworkUnimplemented)?;
+        let http_client = HttpClient::new(url);
 
         let manifest = Manifest::try_from(&self.manifest_path)?;
 
@@ -100,7 +91,8 @@ impl Command {
         }
 
         let source_directory_path = SourceDirectory::path(&manifest_path);
-        let source = Source::try_from_path(&source_directory_path, true)?;
+        let source = zinc_source::Source::try_from_path(&source_directory_path, true)?;
+        let project = zinc_source::Project::new(manifest.clone(), source);
 
         DataDirectory::create(&manifest_path)?;
         let data_directory_path = DataDirectory::path(&manifest_path);
@@ -117,9 +109,9 @@ impl Command {
         let mut private_key_path = data_directory_path.clone();
         private_key_path.push(zinc_const::file_name::PRIVATE_KEY.to_owned());
 
-        BuildDirectory::create(&manifest_path)?;
-        let build_directory_path = BuildDirectory::path(&manifest_path);
-        let mut binary_path = build_directory_path;
+        TargetDirectory::create(&manifest_path, true)?;
+        let target_directory_path = TargetDirectory::path(&manifest_path, true);
+        let mut binary_path = target_directory_path;
         binary_path.push(format!(
             "{}.{}",
             zinc_const::file_name::BINARY,
@@ -135,15 +127,12 @@ impl Command {
         Compiler::build_release(
             self.verbosity,
             manifest.project.name.as_str(),
-            manifest.project.version.as_str(),
+            &manifest.project.version,
             &manifest_path,
-            &data_directory_path,
-            &source_directory_path,
-            &binary_path,
             false,
         )?;
 
-        let bytecode = BytecodeFile::try_from(&binary_path)?;
+        let bytecode = BytecodeFile::try_from_path(&binary_path, true)?;
 
         let input = InputFile::try_from_path(&input_path)?;
         let arguments = input
@@ -180,51 +169,21 @@ impl Command {
             network,
         );
 
-        let http_client = HttpClient::new();
-
-        let http_response = http_client
-            .execute(
-                http_client
-                    .request(
-                        Method::POST,
-                        Url::parse_with_params(
-                            format!("{}{}", url, zinc_const::zandbox::CONTRACT_PUBLISH_URL)
-                                .as_str(),
-                            PublishRequestQuery::new(
-                                manifest.project.name,
-                                manifest.project.version,
-                                self.instance,
-                                network.into(),
-                            ),
-                        )
-                        .expect(zinc_const::panic::DATA_CONVERSION),
-                    )
-                    .json(&PublishRequestBody::new(
-                        source,
-                        bytecode.inner,
-                        arguments,
-                        verifying_key.inner,
-                    ))
-                    .build()
-                    .expect(zinc_const::panic::DATA_CONVERSION),
+        let response = http_client
+            .publish(
+                zinc_zksync::PublishRequestQuery::new(
+                    manifest.project.name,
+                    manifest.project.version,
+                    self.instance,
+                ),
+                zinc_zksync::PublishRequestBody::new(
+                    project,
+                    bytecode.inner,
+                    arguments,
+                    verifying_key.inner,
+                ),
             )
             .await?;
-
-        if !http_response.status().is_success() {
-            anyhow::bail!(Error::ActionFailed(format!(
-                "HTTP error ({}) {}",
-                http_response.status(),
-                http_response
-                    .text()
-                    .await
-                    .expect(zinc_const::panic::DATA_CONVERSION),
-            )));
-        }
-
-        let response = http_response
-            .json::<PublishResponseBody>()
-            .await
-            .expect(zinc_const::panic::DATA_CONVERSION);
         println!(
             "     {} {}",
             "Address".bright_green(),
@@ -260,39 +219,12 @@ impl Command {
         )
         .await?;
 
-        let http_response = http_client
-            .execute(
-                http_client
-                    .request(
-                        Method::PUT,
-                        Url::parse_with_params(
-                            format!("{}{}", url, zinc_const::zandbox::CONTRACT_INITIALIZE_URL)
-                                .as_str(),
-                            InitializeRequestQuery::new(response.address, network.into()),
-                        )
-                        .expect(zinc_const::panic::DATA_CONVERSION),
-                    )
-                    .json(&InitializeRequestBody::new(initial_transfer))
-                    .build()
-                    .expect(zinc_const::panic::DATA_CONVERSION),
+        let response = http_client
+            .initialize(
+                zinc_zksync::InitializeRequestQuery::new(response.address),
+                zinc_zksync::InitializeRequestBody::new(initial_transfer),
             )
             .await?;
-
-        if !http_response.status().is_success() {
-            anyhow::bail!(Error::ActionFailed(format!(
-                "HTTP error ({}) {}",
-                http_response.status(),
-                http_response
-                    .text()
-                    .await
-                    .expect(zinc_const::panic::DATA_CONVERSION),
-            )));
-        }
-
-        let response = http_response
-            .json::<InitializeResponseBody>()
-            .await
-            .expect(zinc_const::panic::DATA_CONVERSION);
         println!("  {} {}", "Account ID".bright_green(), response.account_id);
 
         Ok(())

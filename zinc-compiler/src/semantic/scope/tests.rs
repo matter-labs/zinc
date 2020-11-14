@@ -1007,7 +1007,7 @@ fn main() -> u8 { call() }
         location: Location::test(2, 1),
     }));
 
-    let result = crate::semantic::tests::compile_entry_with_dependencies(
+    let result = crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![(
             "other".to_owned(),
@@ -1051,7 +1051,7 @@ fn main() -> u8 { call() }
         location: Location::test(2, 1),
     }));
 
-    let result = crate::semantic::tests::compile_entry_with_dependencies(
+    let result = crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![(
             "first".to_owned(),
@@ -1117,7 +1117,7 @@ fn main() -> u8 { Call { value: 42 }.call() }
         location: Location::test(5, 5),
     }));
 
-    let result = crate::semantic::tests::compile_entry_with_dependencies(
+    let result = crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![(
             "other".to_owned(),
@@ -1179,7 +1179,7 @@ fn main() -> u8 { Call { value: 42 }.call() }
         location: Location::test(7, 5),
     }));
 
-    let result = crate::semantic::tests::compile_entry_with_dependencies(
+    let result = crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![(
             "first".to_owned(),

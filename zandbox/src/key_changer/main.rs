@@ -4,13 +4,11 @@
 
 use colored::Colorize;
 
+use zksync::web3::types::H256;
 use zksync_eth_signer::PrivateKeySigner;
+use zksync_types::tx::PackedEthSignature;
 
-static TOKEN_SYMBOL: &str = "ETH";
-const FEE: u64 = 100_000_000_000_000_000;
-
-static ETH_ADDRESS: &str = "36615Cf349d7F6344891B1e7CA7C72883F5dc049";
-static ETH_PRIVATE_KEY: &str = "7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
+static PRIVATE_KEY: &str = "7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
 
 const NETWORK: zksync::Network = zksync::Network::Localhost;
 
@@ -20,12 +18,14 @@ const NETWORK: zksync::Network = zksync::Network::Localhost;
 #[actix_rt::main]
 async fn main() {
     let provider = zksync::Provider::new(NETWORK);
+    let private_key: H256 = PRIVATE_KEY
+        .parse()
+        .expect(zinc_const::panic::DATA_CONVERSION);
+    let address = PackedEthSignature::address_from_private_key(&private_key)
+        .expect(zinc_const::panic::DATA_CONVERSION);
     let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
-        ETH_ADDRESS.parse().expect("ETH address parsing"),
-        ETH_PRIVATE_KEY
-            .parse()
-            .map(PrivateKeySigner::new)
-            .expect("ETH private key parsing"),
+        address,
+        PrivateKeySigner::new(private_key),
         NETWORK,
     )
     .await
@@ -36,8 +36,8 @@ async fn main() {
 
     let tx_info = wallet
         .start_change_pubkey()
-        .fee(FEE)
-        .fee_token(TOKEN_SYMBOL)
+        .fee(1_000_000_000_000_000_000_u64)
+        .fee_token("ETH")
         .expect("Fee token resolving")
         .send()
         .await
@@ -48,7 +48,7 @@ async fn main() {
     if !tx_info.success.unwrap_or_default() {
         panic!(tx_info
             .fail_reason
-            .unwrap_or_else(|| "Unknown error".to_owned()),);
+            .unwrap_or_else(|| "Unknown error".to_owned()));
     }
 
     println!("{}", "OK".bright_green());

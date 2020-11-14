@@ -7,18 +7,13 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use colored::Colorize;
-use reqwest::Client as HttpClient;
-use reqwest::Method;
-use reqwest::Url;
-
 use structopt::StructOpt;
 
 use zinc_manifest::Manifest;
 use zinc_manifest::ProjectType;
-use zinc_zksync::QueryRequestBody;
-use zinc_zksync::QueryRequestQuery;
 
 use crate::error::Error;
+use crate::http::Client as HttpClient;
 use crate::network::Network;
 use crate::project::data::input::Input as InputFile;
 use crate::project::data::Directory as DataDirectory;
@@ -64,10 +59,10 @@ impl Command {
         let network = zksync::Network::from_str(self.network.as_str())
             .map(Network::from)
             .map_err(Error::NetworkInvalid)?;
-
         let url = network
             .try_into_url()
             .map_err(Error::NetworkUnimplemented)?;
+        let http_client = HttpClient::new(url);
 
         let manifest = Manifest::try_from(&self.manifest_path)?;
 
@@ -131,44 +126,15 @@ impl Command {
             }
         };
 
-        let http_client = HttpClient::new();
-        let http_response = http_client
-            .execute(
-                http_client
-                    .request(
-                        Method::PUT,
-                        Url::parse_with_params(
-                            format!("{}{}", url, zinc_const::zandbox::CONTRACT_QUERY_URL).as_str(),
-                            QueryRequestQuery::new(address, self.method, network.into()),
-                        )
-                        .expect(zinc_const::panic::DATA_CONVERSION),
-                    )
-                    .json(&QueryRequestBody::new(arguments))
-                    .build()
-                    .expect(zinc_const::panic::DATA_CONVERSION),
+        let response = http_client
+            .query(
+                zinc_zksync::QueryRequestQuery::new(address, self.method),
+                zinc_zksync::QueryRequestBody::new(arguments),
             )
             .await?;
-
-        if !http_response.status().is_success() {
-            anyhow::bail!(Error::ActionFailed(format!(
-                "HTTP error ({}) {}",
-                http_response.status(),
-                http_response
-                    .text()
-                    .await
-                    .expect(zinc_const::panic::DATA_CONVERSION),
-            )));
-        }
-
         println!(
             "{}",
-            serde_json::to_string_pretty(
-                &http_response
-                    .json::<serde_json::Value>()
-                    .await
-                    .expect(zinc_const::panic::DATA_CONVERSION)
-            )
-            .expect(zinc_const::panic::DATA_CONVERSION)
+            serde_json::to_string_pretty(&response).expect(zinc_const::panic::DATA_CONVERSION)
         );
 
         Ok(())

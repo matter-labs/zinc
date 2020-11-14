@@ -80,16 +80,16 @@ impl Analyzer {
             _ => panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
 
-        if let CallType::Method { ref instance, .. } = call_type {
-            argument_list.arguments.insert(0, *instance.to_owned());
-        }
+        let is_called_with_exclamation_mark = matches!(call_type, CallType::MacroLike);
 
         if let CallType::Method {
-            instance: _,
-            is_mutable: is_instance_mutable,
+            instance,
+            is_mutable,
         } = call_type
         {
-            if !is_instance_mutable && function.is_mutable() {
+            argument_list.arguments.insert(0, *instance);
+
+            if !is_mutable && function.is_mutable() {
                 return Err(Error::FunctionCallMutableFromImmutable {
                     location,
                     function: function.identifier(),
@@ -104,8 +104,7 @@ impl Analyzer {
 
         let (element, intermediate) = match function {
             FunctionType::Intrinsic(function) => {
-                if function.requires_exclamation_mark() && !matches!(call_type, CallType::MacroLike)
-                {
+                if function.requires_exclamation_mark() && !is_called_with_exclamation_mark {
                     return Err(Error::FunctionExpectedExclamationMark {
                         location: function_location.unwrap_or(location),
                         function: function.identifier(),
@@ -149,7 +148,7 @@ impl Analyzer {
                         )
                     }
                     IntrinsicFunctionType::StandardLibrary(function) => {
-                        if let CallType::MacroLike = call_type {
+                        if is_called_with_exclamation_mark {
                             return Err(Error::FunctionUnexpectedExclamationMark {
                                 location: function_location.unwrap_or(location),
                                 function: function.identifier().to_owned(),
@@ -179,7 +178,7 @@ impl Analyzer {
                         )
                     }
                     IntrinsicFunctionType::ZkSyncLibrary(function) => {
-                        if let CallType::MacroLike = call_type {
+                        if is_called_with_exclamation_mark {
                             return Err(Error::FunctionUnexpectedExclamationMark {
                                 location: function_location.unwrap_or(location),
                                 function: function.identifier().to_owned(),
@@ -211,7 +210,7 @@ impl Analyzer {
                 }
             }
             FunctionType::Runtime(function) => {
-                if let CallType::MacroLike = call_type {
+                if is_called_with_exclamation_mark {
                     return Err(Error::FunctionUnexpectedExclamationMark {
                         location,
                         function: function.identifier,
@@ -237,7 +236,7 @@ impl Analyzer {
                 )
             }
             FunctionType::Constant(function) => {
-                if let CallType::MacroLike = call_type {
+                if is_called_with_exclamation_mark {
                     return Err(Error::FunctionUnexpectedExclamationMark {
                         location,
                         function: function.identifier,

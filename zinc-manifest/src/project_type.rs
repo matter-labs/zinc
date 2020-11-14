@@ -6,11 +6,12 @@ use std::fmt;
 use std::str::FromStr;
 
 use serde::Deserialize;
+use serde::Serialize;
 
 ///
 /// The Zinc project type.
 ///
-#[derive(Debug, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum ProjectType {
     /// The zero-knowledge circuit.
     #[serde(rename = "circuit")]

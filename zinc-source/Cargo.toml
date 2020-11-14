@@ -1,6 +1,6 @@
 [package]
 name = "zinc-source"
-version = "0.2.0"
+version = "0.2.1"
 authors = [
     "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
 ]
@@ -13,4 +13,5 @@ thiserror = "1.0"
 
 serde = "1.0"
 
+zinc-manifest = { path = "../zinc-manifest" }
 zinc-const = { path = "../zinc-const" }

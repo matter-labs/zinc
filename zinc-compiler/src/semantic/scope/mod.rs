@@ -79,13 +79,20 @@ impl Scope {
     }
 
     ///
-    /// Initializes a global scope without the intrinsic one as its parent.
+    /// Initializes a global scope with the intrinsic one as its parent and the dependency modules.
     ///
-    pub fn new_global(name: String) -> Self {
+    pub fn new_global(name: String, dependencies: HashMap<String, Rc<RefCell<Scope>>>) -> Self {
+        let mut items = HashMap::with_capacity(Self::ITEMS_INITIAL_CAPACITY + dependencies.len());
+        for (name, scope) in dependencies.into_iter() {
+            let module = ModuleItem::new_defined(None, name.clone(), scope, false);
+
+            items.insert(name, Item::Module(module).wrap());
+        }
+
         Self {
             name,
             parent: Some(IntrinsicScope::initialize()),
-            items: RefCell::new(HashMap::with_capacity(Self::ITEMS_INITIAL_CAPACITY)),
+            items: RefCell::new(items),
             is_built_in: false,
         }
     }
@@ -121,6 +128,15 @@ impl Scope {
     ///
     pub fn wrap(self) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(self))
+    }
+
+    ///
+    /// Extracts the scope from `Rc<RefCell<_>>`.
+    ///
+    pub fn unwrap_rc(scope: Rc<RefCell<Self>>) -> Self {
+        Rc::try_unwrap(scope)
+            .expect(zinc_const::panic::LAST_SHARED_REFERENCE)
+            .into_inner()
     }
 
     ///
@@ -434,7 +450,7 @@ impl Scope {
         }
 
         let name = identifier.name.clone();
-        let module_scope = Self::new_global(identifier.name.clone()).wrap();
+        let module_scope = Self::new_global(identifier.name.clone(), HashMap::new()).wrap();
         let module = ModuleItem::new_declared(
             Some(identifier.location),
             module_scope.clone(),

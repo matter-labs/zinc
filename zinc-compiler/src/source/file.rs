@@ -3,6 +3,7 @@
 //!
 
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fs;
 use std::io::Read;
 use std::path::PathBuf;
@@ -20,6 +21,7 @@ use crate::generator::module::Module;
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
+use crate::semantic::scope::Scope;
 use crate::source::error::Error;
 use crate::source::Source;
 
@@ -60,8 +62,7 @@ impl File {
             )
             .map_err(CompilerError::from)
             .map_err(|error| error.format())
-            .map_err(Error::Compiling)
-            .with_context(|| path.to_string_lossy().to_string())?;
+            .map_err(Error::Compiling)?;
 
         Ok(Self {
             path,
@@ -116,8 +117,7 @@ impl File {
             )
             .map_err(CompilerError::from)
             .map_err(|error| error.format())
-            .map_err(Error::Compiling)
-            .with_context(|| path.to_string_lossy().to_string())?;
+            .map_err(Error::Compiling)?;
 
         Ok(Self {
             path: path.to_owned(),
@@ -127,11 +127,27 @@ impl File {
     }
 
     ///
+    /// Runs the semantic analyzer on the syntax tree and returns the module scope.
+    ///
+    /// Used mostly for analyzing dependencies before attaching them to the main scope tree.
+    ///
+    pub fn modularize(self) -> anyhow::Result<Rc<RefCell<Scope>>> {
+        Ok(EntryAnalyzer::define(Source::File(self), HashMap::new())
+            .map_err(CompilerError::Semantic)
+            .map_err(|error| error.format())
+            .map_err(Error::Compiling)?)
+    }
+
+    ///
     /// Gets all the intermediate representation scattered around the application scope tree and
     /// writes it to the bytecode.
     ///
-    pub fn compile(self, manifest: Manifest) -> anyhow::Result<Rc<RefCell<State>>> {
-        let scope = EntryAnalyzer::define(Source::File(self))
+    pub fn compile(
+        self,
+        manifest: Manifest,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+    ) -> anyhow::Result<Rc<RefCell<State>>> {
+        let scope = EntryAnalyzer::define(Source::File(self), dependencies)
             .map_err(CompilerError::Semantic)
             .map_err(|error| error.format())
             .map_err(Error::Compiling)?;

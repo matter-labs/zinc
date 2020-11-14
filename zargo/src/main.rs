@@ -5,6 +5,7 @@
 pub(crate) mod arguments;
 pub(crate) mod error;
 pub(crate) mod executable;
+pub(crate) mod http;
 pub(crate) mod network;
 pub(crate) mod project;
 pub(crate) mod transaction;
@@ -25,7 +26,7 @@ async fn main() {
     process::exit(match args.command.execute().await {
         Ok(()) => zinc_const::exit_code::SUCCESS,
         Err(error) => {
-            log::error!("{}", error);
+            log::error!("{:?}", error);
             zinc_const::exit_code::FAILURE
         }
     })

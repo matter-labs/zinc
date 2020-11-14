@@ -1,5 +1,5 @@
 //!
-//! The database contract INSERT new model.
+//! The database contract INSERT one model.
 //!
 
 use zksync::web3::types::Address;
@@ -7,7 +7,7 @@ use zksync::web3::types::H256;
 use zksync_types::AccountId;
 
 ///
-/// The database contract INSERT new input model.
+/// The database contract INSERT one input model.
 ///
 #[derive(Debug)]
 pub struct Input {
@@ -17,18 +17,9 @@ pub struct Input {
     /// The contract project name.
     pub name: String,
     /// The contract version.
-    pub version: String,
+    pub version: semver::Version,
     /// The contract instance name.
     pub instance: String,
-
-    /// The Zinc compiler version.
-    pub zinc_version: String,
-    /// The contract source code tree JSON representation.
-    pub source_code: serde_json::Value,
-    /// The contract bytecode.
-    pub bytecode: Vec<u8>,
-    /// The contract verifying key as a byte array.
-    pub verifying_key: Vec<u8>,
 
     /// The contract ETH address.
     pub eth_address: Address,
@@ -40,18 +31,12 @@ impl Input {
     ///
     /// A shortcut constructor.
     ///
-    #[allow(clippy::too_many_arguments)]
     pub fn new(
         account_id: AccountId,
 
         name: String,
-        version: String,
+        version: semver::Version,
         instance: String,
-
-        zinc_version: String,
-        source_code: serde_json::Value,
-        bytecode: Vec<u8>,
-        verifying_key: Vec<u8>,
 
         eth_address: Address,
         eth_private_key: H256,
@@ -62,11 +47,6 @@ impl Input {
             name,
             version,
             instance,
-
-            zinc_version,
-            source_code,
-            bytecode,
-            verifying_key,
 
             eth_address,
             eth_private_key,

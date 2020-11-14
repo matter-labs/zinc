@@ -7,10 +7,6 @@ use std::iter::IntoIterator;
 use serde::Deserialize;
 use serde::Serialize;
 
-use zinc_source::Source;
-
-use zksync::Network;
-
 ///
 /// The contract resource POST request query.
 ///
@@ -19,23 +15,20 @@ pub struct Query {
     /// The name of the uploaded contract.
     pub name: String,
     /// The version of the uploaded contract.
-    pub version: String,
+    pub version: semver::Version,
     /// The uploaded contract instance name.
     pub instance: String,
-    /// The network where the contract must be uploaded to.
-    pub network: Network,
 }
 
 impl Query {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(name: String, version: String, instance: String, network: Network) -> Self {
+    pub fn new(name: String, version: semver::Version, instance: String) -> Self {
         Self {
             name,
             version,
             instance,
-            network,
         }
     }
 }
@@ -48,9 +41,8 @@ impl IntoIterator for Query {
     fn into_iter(self) -> Self::IntoIter {
         vec![
             ("name", self.name),
-            ("version", self.version),
+            ("version", self.version.to_string()),
             ("instance", self.instance),
-            ("network", self.network.to_string()),
         ]
         .into_iter()
     }
@@ -61,8 +53,8 @@ impl IntoIterator for Query {
 ///
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Body {
-    /// The JSON source code tree.
-    pub source: Source,
+    /// The project data.
+    pub project: zinc_source::Project,
     /// The contract bytecode.
     pub bytecode: Vec<u8>,
     /// The JSON constructor input.
@@ -76,13 +68,13 @@ impl Body {
     /// A shortcut constructor.
     ///
     pub fn new(
-        source: Source,
+        project: zinc_source::Project,
         bytecode: Vec<u8>,
         arguments: serde_json::Value,
         verifying_key: Vec<u8>,
     ) -> Self {
         Self {
-            source,
+            project,
             bytecode,
             arguments,
             verifying_key,

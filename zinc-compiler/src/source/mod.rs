@@ -17,6 +17,7 @@ use anyhow::Context;
 use zinc_manifest::Manifest;
 
 use crate::generator::state::State;
+use crate::semantic::scope::Scope;
 use crate::source::error::Error;
 
 use self::directory::Directory;
@@ -85,13 +86,27 @@ impl Source {
     }
 
     ///
+    /// Runs the semantic analyzer on the syntax tree and returns the module scope.
+    ///
+    pub fn modularize(self) -> anyhow::Result<Rc<RefCell<Scope>>> {
+        match self {
+            Self::File(inner) => inner.modularize(),
+            Self::Directory(inner) => inner.modularize(),
+        }
+    }
+
+    ///
     /// Gets all the intermediate representation scattered around the application scope tree and
     /// writes it to the bytecode.
     ///
-    pub fn compile(self, manifest: Manifest) -> anyhow::Result<Rc<RefCell<State>>> {
+    pub fn compile(
+        self,
+        manifest: Manifest,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+    ) -> anyhow::Result<Rc<RefCell<State>>> {
         match self {
-            Self::File(inner) => inner.compile(manifest),
-            Self::Directory(inner) => inner.compile(manifest),
+            Self::File(inner) => inner.compile(manifest, dependencies),
+            Self::Directory(inner) => inner.compile(manifest, dependencies),
         }
     }
 
@@ -131,12 +146,12 @@ impl Source {
     pub fn test(
         code: &str,
         path: PathBuf,
-        dependencies: HashMap<String, Source>,
+        modules: HashMap<String, Source>,
     ) -> anyhow::Result<Self> {
-        if dependencies.is_empty() {
+        if modules.is_empty() {
             File::test(code, path).map(Self::File)
         } else {
-            Directory::test(code, path, dependencies).map(Self::Directory)
+            Directory::test(code, path, modules).map(Self::Directory)
         }
     }
 }

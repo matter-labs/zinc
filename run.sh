@@ -50,7 +50,7 @@ cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
 
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_FLAG}
 
-#source './zandbox/.env'
-#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zandbox' -- ${LOG_LEVEL} \
-#  --network "${NETWORK}" \
-#  --postgresql "${DATABASE_URL}"
+source './zandbox/.env'
+cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zandbox' -- ${LOG_LEVEL} \
+  --network "${NETWORK}" \
+  --postgresql "${DATABASE_URL}"

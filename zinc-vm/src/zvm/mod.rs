@@ -18,7 +18,7 @@ fn main() {
     match args.command.execute() {
         Ok(exit_code) => process::exit(exit_code),
         Err(error) => {
-            eprintln!("{}", error);
+            log::error!("{:?}", error);
             process::exit(zinc_const::exit_code::FAILURE);
         }
     }

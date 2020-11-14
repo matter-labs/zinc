@@ -28,11 +28,11 @@ async fn ok_curve() {
         .await
         .expect("Database client initialization");
     database_client
-        .delete_fields()
+        .delete_fields(None)
         .await
         .expect("Database contract storage deleting");
     database_client
-        .delete_contracts()
+        .delete_contracts(None)
         .await
         .expect("Database contracts deleting");
 

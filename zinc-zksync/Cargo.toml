@@ -1,6 +1,6 @@
 [package]
 name = "zinc-zksync"
-version = "0.2.0"
+version = "0.2.1"
 authors = [
     "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
 ]
@@ -14,12 +14,14 @@ serde = "1.0"
 serde_json = "1.0"
 rustc-hex = "2.1"
 num = "0.3"
+semver = "0.11"
 
 zksync = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
 zksync_types = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
 zksync_eth_signer = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
 num_old = { package = "num", version = "0.2.1" }
 
+zinc-manifest = { path = "../zinc-manifest" }
 zinc-source = { path = "../zinc-source" }
 zinc-build = { path = "../zinc-build" }
 zinc-math = { path = "../zinc-math" }

@@ -1,8 +1,6 @@
 //!
-//! The project `build` directory.
+//! The project `target/deps` directory.
 //!
-
-pub mod bytecode;
 
 use std::fs;
 use std::path::PathBuf;
@@ -10,7 +8,7 @@ use std::path::PathBuf;
 use anyhow::Context;
 
 ///
-/// The project `build` directory.
+/// The project `target/deps` directory.
 ///
 pub struct Directory {}
 
@@ -20,8 +18,8 @@ impl Directory {
     ///
     pub fn path(path: &PathBuf) -> PathBuf {
         let mut path = path.to_owned();
-        if path.is_dir() && !path.ends_with(zinc_const::directory::BUILD) {
-            path.push(PathBuf::from(zinc_const::directory::BUILD));
+        if path.is_dir() && !path.ends_with(zinc_const::directory::TARGET_DEPS) {
+            path.push(PathBuf::from(zinc_const::directory::TARGET_DEPS));
         }
         path
     }
@@ -39,8 +37,8 @@ impl Directory {
     ///
     pub fn remove(path: &PathBuf) -> anyhow::Result<()> {
         let mut path = path.to_owned();
-        if path.is_dir() && !path.ends_with(zinc_const::directory::BUILD) {
-            path.push(PathBuf::from(zinc_const::directory::BUILD));
+        if path.is_dir() && !path.ends_with(zinc_const::directory::TARGET_DEPS) {
+            path.push(PathBuf::from(zinc_const::directory::TARGET_DEPS));
         }
 
         if path.exists() {

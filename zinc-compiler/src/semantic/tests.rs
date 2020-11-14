@@ -18,17 +18,17 @@ use crate::semantic::scope::Scope;
 use crate::source::Source;
 
 pub(crate) fn compile_entry(code: &str) -> Result<(), Error> {
-    compile_entry_with_dependencies(code, HashMap::new())
+    compile_entry_with_modules(code, HashMap::new())
 }
 
-pub(crate) fn compile_entry_with_dependencies(
+pub(crate) fn compile_entry_with_modules(
     code: &str,
-    dependencies: HashMap<String, Source>,
+    modules: HashMap<String, Source>,
 ) -> Result<(), Error> {
     let path = PathBuf::from("test.zn");
-    let source = Source::test(code, path, dependencies).expect(zinc_const::panic::TEST_DATA_VALID);
+    let source = Source::test(code, path, modules).expect(zinc_const::panic::TEST_DATA_VALID);
 
-    EntryAnalyzer::define(source).map_err(Error::Semantic)?;
+    EntryAnalyzer::define(source, HashMap::new()).map_err(Error::Semantic)?;
 
     Ok(())
 }
@@ -40,25 +40,20 @@ pub(crate) fn compile_module(
     scope_crate: Rc<RefCell<Scope>>,
     scope_super: Rc<RefCell<Scope>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
-    compile_module_with_dependencies(code, file, scope, HashMap::new(), scope_crate, scope_super)
+    compile_module_with_modules(code, file, scope, HashMap::new(), scope_crate, scope_super)
 }
 
-pub(crate) fn compile_module_with_dependencies(
+pub(crate) fn compile_module_with_modules(
     code: &str,
     file: usize,
     scope: Rc<RefCell<Scope>>,
-    dependencies: HashMap<String, Source>,
+    modules: HashMap<String, Source>,
     scope_crate: Rc<RefCell<Scope>>,
     scope_super: Rc<RefCell<Scope>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
     let module = Parser::default().parse(code, file)?;
-    let (module, implementation_scopes) = ModuleAnalyzer::declare(
-        scope.clone(),
-        module,
-        dependencies,
-        scope_crate.clone(),
-        false,
-    )?;
+    let (module, implementation_scopes) =
+        ModuleAnalyzer::declare(scope.clone(), module, modules, scope_crate.clone(), false)?;
 
     let crate_item = Scope::get_module_self_alias(scope_crate);
     let super_item = Scope::get_module_self_alias(scope_super);
@@ -157,14 +152,14 @@ fn main() -> u8 {
         location: Location::test(2, 1),
     });
 
-    let result = crate::semantic::tests::compile_module(
-        code,
-        0,
-        Scope::new_global(zinc_const::file_name::APPLICATION_ENTRY.to_owned()).wrap(),
-        Scope::new_global(zinc_const::file_name::APPLICATION_ENTRY.to_owned()).wrap(),
-        Scope::new_global(zinc_const::file_name::APPLICATION_ENTRY.to_owned()).wrap(),
+    let scope = Scope::new_global(
+        zinc_const::file_name::APPLICATION_ENTRY.to_owned(),
+        HashMap::new(),
     )
-    .unwrap_err();
+    .wrap();
+    let result =
+        crate::semantic::tests::compile_module(code, 0, scope.clone(), scope.clone(), scope)
+            .unwrap_err();
 
     assert_eq!(result, expected);
 }
@@ -181,14 +176,14 @@ contract Uniswap {
         location: Location::test(2, 1),
     });
 
-    let result = crate::semantic::tests::compile_module(
-        code,
-        0,
-        Scope::new_global(zinc_const::file_name::APPLICATION_ENTRY.to_owned()).wrap(),
-        Scope::new_global(zinc_const::file_name::APPLICATION_ENTRY.to_owned()).wrap(),
-        Scope::new_global(zinc_const::file_name::APPLICATION_ENTRY.to_owned()).wrap(),
+    let scope = Scope::new_global(
+        zinc_const::file_name::APPLICATION_ENTRY.to_owned(),
+        HashMap::new(),
     )
-    .unwrap_err();
+    .wrap();
+    let result =
+        crate::semantic::tests::compile_module(code, 0, scope.clone(), scope.clone(), scope)
+            .unwrap_err();
 
     assert_eq!(result, expected);
 }

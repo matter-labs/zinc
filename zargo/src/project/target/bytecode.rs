@@ -2,7 +2,6 @@
 //! The bytecode binary file.
 //!
 
-use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
@@ -19,21 +18,19 @@ pub struct Bytecode {
 
 impl Bytecode {
     ///
-    /// Creates a string with the default file name.
+    /// Reads the bytecode from the project at `path`.
     ///
-    fn file_name() -> String {
-        zinc_const::file_name::BINARY.to_owned()
-    }
-}
+    pub fn try_from_path(path: &PathBuf, is_release: bool) -> anyhow::Result<Self> {
+        let target = if is_release {
+            zinc_const::directory::TARGET_RELEASE
+        } else {
+            zinc_const::directory::TARGET_DEBUG
+        };
 
-impl TryFrom<&PathBuf> for Bytecode {
-    type Error = anyhow::Error;
-
-    fn try_from(path: &PathBuf) -> Result<Self, Self::Error> {
         let mut path = path.to_owned();
         if path.is_dir() {
-            if !path.ends_with(zinc_const::directory::BUILD) {
-                path.push(PathBuf::from(zinc_const::directory::BUILD));
+            if !path.ends_with(target) {
+                path.push(PathBuf::from(target));
             }
             path.push(PathBuf::from(Self::file_name()));
         }
@@ -49,5 +46,12 @@ impl TryFrom<&PathBuf> for Bytecode {
             .with_context(|| path.to_string_lossy().to_string())?;
 
         Ok(Self { inner: buffer })
+    }
+
+    ///
+    /// Creates a string with the default file name.
+    ///
+    fn file_name() -> String {
+        zinc_const::file_name::BINARY.to_owned()
     }
 }

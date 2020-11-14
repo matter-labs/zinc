@@ -22,3 +22,6 @@ pub static CONTRACT_FEE_URL: &str = "/api/v1/contract/fee";
 
 /// The contract call URL.
 pub static CONTRACT_CALL_URL: &str = "/api/v1/contract/call";
+
+/// The project source URL.
+pub static PROJECT_SOURCE_URL: &str = "/api/v1/project/source";

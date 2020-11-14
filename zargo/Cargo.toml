@@ -1,6 +1,6 @@
 [package]
 name = "zargo"
-version = "0.2.0"
+version = "0.2.1"
 authors = [
     "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
 ]
@@ -23,9 +23,10 @@ serde_json = "1.0"
 num = "0.3"
 rustc-hex = "2.1"
 toml = "0.5"
+semver = "0.11"
 Inflector = "0.11"
 
-tokio = "0.2"
+tokio = { version = "0.2", features = [ "macros" ] }
 reqwest = "0.10"
 
 zksync = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }

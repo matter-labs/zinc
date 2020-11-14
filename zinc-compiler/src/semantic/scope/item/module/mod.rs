@@ -41,8 +41,11 @@ impl Module {
     ///
     /// Initializes an application entry module scope.
     ///
-    pub fn new_entry(module: Source) -> Result<Rc<RefCell<ScopeItem>>, Error> {
-        let scope = Scope::new_global(module.name().to_owned()).wrap();
+    pub fn new_entry(
+        module: Source,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+    ) -> Result<Rc<RefCell<ScopeItem>>, Error> {
+        let scope = Scope::new_global(module.name().to_owned(), dependencies).wrap();
 
         let module = Self::new_declared(
             None,
@@ -86,15 +89,15 @@ impl Module {
     ) -> Result<Self, Error> {
         let item_id = ITEM_INDEX.next(format!("module {}", identifier));
 
-        let (module, dependencies) = match module {
+        let (module, modules) = match module {
             Source::File(file) => (file.tree, HashMap::new()),
-            Source::Directory(directory) => (directory.entry.tree, directory.dependencies),
+            Source::Directory(directory) => (directory.entry.tree, directory.modules),
         };
 
         let (module, implementation_scopes) = ModuleAnalyzer::declare(
             scope.clone(),
             module,
-            dependencies,
+            modules,
             scope_crate.clone(),
             is_entry,
         )?;

@@ -74,7 +74,7 @@ impl Command {
         match self {
             Self::New(inner) => inner.execute()?,
             Self::Init(inner) => inner.execute()?,
-            Self::Build(inner) => inner.execute()?,
+            Self::Build(inner) => inner.execute().await?,
             Self::Clean(inner) => inner.execute()?,
             Self::Run(inner) => inner.execute()?,
             Self::Test(inner) => inner.execute()?,

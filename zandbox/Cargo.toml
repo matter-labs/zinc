@@ -1,6 +1,6 @@
 [package]
 name = "zandbox"
-version = "0.2.0"
+version = "0.2.1"
 authors = [
     "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
 ]
@@ -26,14 +26,15 @@ serde = "1.0"
 serde_json = "1.0"
 rustc-hex = "2.1"
 num = "0.3"
+semver = "0.11"
 
-rayon = "1.4"
+rayon = "1.5"
 futures = "0.3"
-async-std = "1.6"
+async-std = "1.7"
 actix-rt = "1.1"
-actix-cors = "0.4"
-actix-web = "3.1"
-sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-async-std", "macros", "postgres", "json" ] }
+actix-cors = "0.5"
+actix-web = "3.2"
+sqlx = { version = "0.4", default-features = false, features = [ "runtime-async-std-native-tls", "macros", "postgres", "json" ] }
 
 zksync = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
 zksync_types = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
@@ -44,6 +45,7 @@ num_old = { package = "num", version = "0.2.1" }
 zinc-logger = { path = "../zinc-logger" }
 zinc-const = { path = "../zinc-const" }
 zinc-math = { path = "../zinc-math" }
+zinc-source = { path = "../zinc-source" }
 zinc-build = { path = "../zinc-build" }
 zinc-zksync = { path = "../zinc-zksync" }
 zinc-vm = { path = "../zinc-vm" }

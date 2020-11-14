@@ -3,6 +3,7 @@
 //!
 
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::semantic::error::Error;
@@ -18,13 +19,13 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// 1. Defines the entry module aliases.
-    /// 2. Calls the module statements analyzer.
-    /// 3. Defines the module items forcibly.
-    /// 4. Validates entry points.
+    /// Forcibly and recursively defines the entry module.
     ///
-    pub fn define(module: Source) -> Result<Rc<RefCell<Scope>>, Error> {
-        let entry = ScopeModuleItem::new_entry(module)?;
+    pub fn define(
+        module: Source,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+    ) -> Result<Rc<RefCell<Scope>>, Error> {
+        let entry = ScopeModuleItem::new_entry(module, dependencies)?;
         entry.borrow().define()?;
 
         let entry = entry.borrow();

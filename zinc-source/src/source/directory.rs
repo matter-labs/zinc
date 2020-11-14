@@ -87,4 +87,20 @@ impl Directory {
             Err(Error::ModuleEntryNotFound).with_context(|| path.to_string_lossy().to_string())
         }
     }
+
+    ///
+    /// Writes the directory with all inner elements to the disk.
+    ///
+    pub fn write_to(self, path: &PathBuf) -> anyhow::Result<()> {
+        let mut dir_path = path.to_owned();
+        dir_path.push(self.path);
+        fs::create_dir_all(&dir_path).with_context(|| dir_path.to_string_lossy().to_string())?;
+
+        for (_name, file) in self.modules.into_iter() {
+            file.write_to(path)
+                .with_context(|| path.to_string_lossy().to_string())?;
+        }
+
+        Ok(())
+    }
 }

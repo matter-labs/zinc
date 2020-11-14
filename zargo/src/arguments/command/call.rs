@@ -7,10 +7,6 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use colored::Colorize;
-use reqwest::Client as HttpClient;
-use reqwest::Method;
-use reqwest::Url;
-
 use structopt::StructOpt;
 
 use zksync::web3::types::H256;
@@ -19,14 +15,9 @@ use zksync_types::tx::PackedEthSignature;
 
 use zinc_manifest::Manifest;
 use zinc_manifest::ProjectType;
-use zinc_zksync::CallRequestBody;
-use zinc_zksync::CallRequestQuery;
-use zinc_zksync::FeeRequestBody;
-use zinc_zksync::FeeRequestQuery;
-use zinc_zksync::FeeResponseBody;
-use zinc_zksync::TransactionMsg;
 
 use crate::error::Error;
+use crate::http::Client as HttpClient;
 use crate::network::Network;
 use crate::project::data::input::Input as InputFile;
 use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
@@ -78,10 +69,10 @@ impl Command {
         let network = zksync::Network::from_str(self.network.as_str())
             .map(Network::from)
             .map_err(Error::NetworkInvalid)?;
-
         let url = network
             .try_into_url()
             .map_err(Error::NetworkUnimplemented)?;
+        let http_client = HttpClient::new(url);
 
         let manifest = Manifest::try_from(&self.manifest_path)?;
 
@@ -151,42 +142,15 @@ impl Command {
             .get("msg")
             .cloned()
             .ok_or(Error::InvalidInputData)?;
-        let msg = TransactionMsg::try_from(&msg).map_err(TransactionError::Parsing)?;
+        let msg = zinc_zksync::TransactionMsg::try_from(&msg).map_err(TransactionError::Parsing)?;
         let transaction = crate::transaction::try_into_zksync(msg.clone(), &wallet, None).await?;
 
-        let http_client = HttpClient::new();
-        let http_response = http_client
-            .execute(
-                http_client
-                    .request(
-                        Method::PUT,
-                        Url::parse_with_params(
-                            format!("{}{}", url, zinc_const::zandbox::CONTRACT_FEE_URL).as_str(),
-                            FeeRequestQuery::new(address, self.method.clone(), network.into()),
-                        )
-                        .expect(zinc_const::panic::DATA_CONVERSION),
-                    )
-                    .json(&FeeRequestBody::new(arguments.clone(), transaction))
-                    .build()
-                    .expect(zinc_const::panic::DATA_CONVERSION),
+        let response = http_client
+            .fee(
+                zinc_zksync::FeeRequestQuery::new(address, self.method.clone()),
+                zinc_zksync::FeeRequestBody::new(arguments.clone(), transaction),
             )
             .await?;
-
-        if !http_response.status().is_success() {
-            anyhow::bail!(Error::ActionFailed(format!(
-                "HTTP error ({}) {}",
-                http_response.status(),
-                http_response
-                    .text()
-                    .await
-                    .expect(zinc_const::panic::DATA_CONVERSION),
-            )));
-        }
-
-        let response = http_response
-            .json::<FeeResponseBody>()
-            .await
-            .expect(zinc_const::panic::DATA_CONVERSION);
         let contract_fee = response.fee;
         let transaction = crate::transaction::try_into_zksync(
             msg,
@@ -195,44 +159,15 @@ impl Command {
         )
         .await?;
 
-        let http_client = HttpClient::new();
-        let http_response = http_client
-            .execute(
-                http_client
-                    .request(
-                        Method::POST,
-                        Url::parse_with_params(
-                            format!("{}{}", url, zinc_const::zandbox::CONTRACT_CALL_URL).as_str(),
-                            CallRequestQuery::new(address, self.method, network.into()),
-                        )
-                        .expect(zinc_const::panic::DATA_CONVERSION),
-                    )
-                    .json(&CallRequestBody::new(arguments, transaction))
-                    .build()
-                    .expect(zinc_const::panic::DATA_CONVERSION),
+        let response = http_client
+            .call(
+                zinc_zksync::CallRequestQuery::new(address, self.method),
+                zinc_zksync::CallRequestBody::new(arguments, transaction),
             )
             .await?;
-
-        if !http_response.status().is_success() {
-            anyhow::bail!(Error::ActionFailed(format!(
-                "HTTP error ({}) {}",
-                http_response.status(),
-                http_response
-                    .text()
-                    .await
-                    .expect(zinc_const::panic::DATA_CONVERSION),
-            )));
-        }
-
         println!(
             "{}",
-            serde_json::to_string_pretty(
-                &http_response
-                    .json::<serde_json::Value>()
-                    .await
-                    .expect(zinc_const::panic::DATA_CONVERSION)
-            )
-            .expect(zinc_const::panic::DATA_CONVERSION)
+            serde_json::to_string_pretty(&response).expect(zinc_const::panic::DATA_CONVERSION)
         );
 
         Ok(())

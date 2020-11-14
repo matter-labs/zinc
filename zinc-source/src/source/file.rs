@@ -3,7 +3,7 @@
 //!
 
 use std::fs;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::PathBuf;
 
 use serde::Deserialize;
@@ -62,6 +62,21 @@ impl File {
             path: path.to_string_lossy().to_string(),
             code,
         })
+    }
+
+    ///
+    /// Writes the directory with all inner elements to the disk.
+    ///
+    pub fn write_to(self, path: &PathBuf) -> anyhow::Result<()> {
+        let mut path = path.to_owned();
+        path.push(self.path);
+
+        let mut file =
+            fs::File::create(&path).with_context(|| path.to_string_lossy().to_string())?;
+        file.write_all(self.code.as_bytes())
+            .with_context(|| path.to_string_lossy().to_string())?;
+
+        Ok(())
     }
 
     ///

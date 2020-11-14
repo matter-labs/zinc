@@ -3,18 +3,24 @@
 //!
 
 use std::convert::TryFrom;
+use std::fs;
 use std::path::PathBuf;
+use std::str::FromStr;
 
+use colored::Colorize;
 use structopt::StructOpt;
 
 use zinc_manifest::Manifest;
 use zinc_manifest::ProjectType;
 
+use crate::error::Error;
 use crate::executable::compiler::Compiler;
-use crate::project::build::Directory as BuildDirectory;
+use crate::http::Client as HttpClient;
+use crate::network::Network;
 use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
 use crate::project::data::Directory as DataDirectory;
-use crate::project::source::Directory as SourceDirectory;
+use crate::project::target::deps::Directory as TargetDependenciesDirectory;
+use crate::project::target::Directory as TargetDirectory;
 
 ///
 /// The Zargo package manager `build` subcommand.
@@ -37,13 +43,25 @@ pub struct Command {
     /// Builds the release version.
     #[structopt(long = "release")]
     pub is_release: bool,
+
+    /// Sets the network name, where the contract must be published to.
+    #[structopt(long = "network", default_value = "localhost")]
+    pub network: String,
 }
 
 impl Command {
     ///
     /// Executes the command.
     ///
-    pub fn execute(self) -> anyhow::Result<()> {
+    pub async fn execute(self) -> anyhow::Result<()> {
+        let network = zksync::Network::from_str(self.network.as_str())
+            .map(Network::from)
+            .map_err(Error::NetworkInvalid)?;
+        let url = network
+            .try_into_url()
+            .map_err(Error::NetworkUnimplemented)?;
+        let http_client = HttpClient::new(url);
+
         let manifest = Manifest::try_from(&self.manifest_path)?;
 
         let mut manifest_path = self.manifest_path.clone();
@@ -51,23 +69,42 @@ impl Command {
             manifest_path.pop();
         }
 
-        let source_directory_path = SourceDirectory::path(&manifest_path);
+        TargetDirectory::create(&manifest_path, self.is_release)?;
+        TargetDependenciesDirectory::remove(&manifest_path)?;
+        TargetDependenciesDirectory::create(&manifest_path)?;
+        let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
 
         DataDirectory::create(&manifest_path)?;
         let data_directory_path = DataDirectory::path(&manifest_path);
-
-        BuildDirectory::create(&manifest_path)?;
-        let build_directory_path = BuildDirectory::path(&manifest_path);
-        let mut binary_path = build_directory_path;
-        binary_path.push(format!(
-            "{}.{}",
-            zinc_const::file_name::BINARY,
-            zinc_const::extension::BINARY
-        ));
-
         if let ProjectType::Contract = manifest.project.r#type {
             if !PrivateKeyFile::exists_at(&data_directory_path) {
                 PrivateKeyFile::default().write_to(&data_directory_path)?;
+            }
+        }
+
+        if let Some(dependencies) = manifest.dependencies {
+            for (name, version) in dependencies.into_iter() {
+                let dependency_name = format!("{}-{}", name, version);
+                eprintln!(" {} {} v{}", "Downloading".bright_green(), name, version);
+
+                let response = http_client
+                    .source(zinc_zksync::SourceRequestQuery::new(name, version))
+                    .await?;
+
+                if response.zinc_version != env!("CARGO_PKG_VERSION") {
+                    anyhow::bail!(Error::DependencyCompilerVersionMismatch(
+                        dependency_name,
+                        env!("CARGO_PKG_VERSION").to_string(),
+                        response.zinc_version,
+                    ));
+                }
+
+                let mut dependency_path = target_deps_directory_path.clone();
+                dependency_path.push(dependency_name);
+                fs::create_dir_all(&dependency_path)?;
+
+                response.project.manifest.write_to(&dependency_path)?;
+                response.project.source.write_to(&dependency_path)?;
             }
         }
 
@@ -75,22 +112,16 @@ impl Command {
             Compiler::build_release(
                 self.verbosity,
                 manifest.project.name.as_str(),
-                manifest.project.version.as_str(),
+                &manifest.project.version,
                 &manifest_path,
-                &data_directory_path,
-                &source_directory_path,
-                &binary_path,
                 false,
             )?;
         } else {
             Compiler::build_debug(
                 self.verbosity,
                 manifest.project.name.as_str(),
-                manifest.project.version.as_str(),
+                &manifest.project.version,
                 &manifest_path,
-                &data_directory_path,
-                &source_directory_path,
-                &binary_path,
                 false,
             )?;
         }

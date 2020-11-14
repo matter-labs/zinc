@@ -252,7 +252,7 @@ fn main() -> u8 {
         },
     ));
 
-    let result = crate::semantic::tests::compile_entry_with_dependencies(
+    let result = crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![(
             "module_1".to_owned(),

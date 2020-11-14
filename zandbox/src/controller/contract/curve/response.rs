@@ -1,5 +1,5 @@
 //!
-//! The contract resource GET `Curve` response.
+//! The contract resource GET `curve` response.
 //!
 
 use serde::Serialize;
@@ -7,20 +7,20 @@ use serde::Serialize;
 use zksync::web3::types::Address;
 
 ///
-/// The contract resource GET `Curve` response body.
+/// The contract resource GET `curve` response body.
 ///
 pub type Body = Vec<Instance>;
 
 ///
-/// The contract resource GET `Curve` response instance.
+/// The contract resource GET `curve` response instance.
 ///
 #[derive(Debug, Serialize)]
 pub struct Instance {
     /// The contract ETH address.
     pub address: Address,
-    /// The contract project name.
+    /// The project name.
     pub name: String,
-    /// The contract version.
+    /// The project version.
     pub version: String,
     /// The contract instance name.
     pub instance: String,

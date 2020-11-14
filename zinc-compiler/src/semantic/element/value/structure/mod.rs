@@ -169,7 +169,7 @@ impl fmt::Display for Structure {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "<runtime> '{}' with fields {}",
+            "<runtime> '{}' with fields {{ {} }}",
             self.r#type
                 .as_ref()
                 .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)

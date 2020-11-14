@@ -12,9 +12,9 @@ use zinc_manifest::Manifest;
 use zinc_manifest::ProjectType;
 
 use crate::error::Error;
-use crate::project::source::circuit::Circuit as CircuitFile;
-use crate::project::source::contract::Contract as ContractFile;
-use crate::project::source::Directory as SourceDirectory;
+use crate::project::src::circuit::Circuit as CircuitFile;
+use crate::project::src::contract::Contract as ContractFile;
+use crate::project::src::Directory as SourceDirectory;
 
 ///
 /// The Zargo package manager `init` subcommand.

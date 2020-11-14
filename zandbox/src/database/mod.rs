@@ -1,5 +1,5 @@
 //!
-//! The Zinc database library.
+//! The Zandbox database utils.
 //!
 
 pub mod client;

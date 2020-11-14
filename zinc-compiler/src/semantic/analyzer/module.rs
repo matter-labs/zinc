@@ -29,7 +29,7 @@ impl Analyzer {
     ///
     /// Declares the `module` with all the inner statements in the `scope`.
     ///
-    /// `dependencies` contain the modules located in the directory of the module being analyzed.
+    /// `modules` contain the modules located in the directory of the module being analyzed.
     /// If the module is not a directory with `mod.zn`, but a standalone file, the dependency map
     /// is empty. Each module, declared using a `mod` statement, must have a corresponding file
     /// `<module>.zn` in the module directory. For example, `mod foo;` will look for a file called
@@ -42,7 +42,7 @@ impl Analyzer {
     pub fn declare(
         scope: Rc<RefCell<Scope>>,
         mut module: SyntaxModule,
-        mut dependencies: HashMap<String, Source>,
+        mut modules: HashMap<String, Source>,
         scope_crate: Rc<RefCell<Scope>>,
         is_entry: bool,
     ) -> Result<(SyntaxModule, Vec<Rc<RefCell<Scope>>>), Error> {
@@ -102,7 +102,7 @@ impl Analyzer {
                     )?;
                 }
                 ModuleLocalStatement::Mod(statement) => {
-                    let module = match dependencies.remove(statement.identifier.name.as_str()) {
+                    let module = match modules.remove(statement.identifier.name.as_str()) {
                         Some(module) => module,
                         None => {
                             return Err(Error::ModuleFileNotFound {

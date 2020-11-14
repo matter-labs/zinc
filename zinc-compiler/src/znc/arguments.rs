@@ -24,21 +24,9 @@ pub struct Arguments {
     )]
     pub manifest_path: PathBuf,
 
-    /// The path to the source code directory.
-    #[structopt(parse(from_os_str), default_value = "./src/")]
-    pub source_directory_path: PathBuf,
-
-    /// The path to the keys, template, and other auxiliary data directory.
-    #[structopt(long = "data", parse(from_os_str), default_value = "./data/")]
-    pub data_directory_path: PathBuf,
-
-    /// The path to the bytecode file.
-    #[structopt(
-        long = "binary",
-        parse(from_os_str),
-        default_value = "./build/main.znb"
-    )]
-    pub binary_path: PathBuf,
+    /// The paths to the dependency manifest files.
+    #[structopt(long = "dependencies", parse(from_os_str))]
+    pub dependency_paths: Vec<PathBuf>,
 
     /// Builds only the unit tests.
     #[structopt(long = "test-only")]

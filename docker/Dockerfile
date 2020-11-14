@@ -16,4 +16,4 @@ RUN apt-get install --yes \
 RUN dos2unix 'docker/build.sh'
 
 # Main build script, expects the Zinc version
-RUN /bin/bash 'docker/build.sh' '0.2.0'
+RUN /bin/bash 'docker/build.sh' '0.2.1'

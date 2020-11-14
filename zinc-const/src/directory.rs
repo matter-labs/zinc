@@ -2,11 +2,20 @@
 //! The Zinc directory paths.
 //!
 
-/// The default source code directory within a project.
+/// The default source code directory.
 pub static SOURCE: &str = "src/";
 
-/// The default template, keys, and other auxiliary data directory within a project.
+/// The default template, keys, and other auxiliary data directory.
 pub static DATA: &str = "data/";
 
-/// The default binary build directory within a project.
-pub static BUILD: &str = "build/";
+/// The target build directory.
+pub static TARGET: &str = "target/";
+
+/// The debug target build directory.
+pub static TARGET_DEBUG: &str = "target/debug/";
+
+/// The release target build directory.
+pub static TARGET_RELEASE: &str = "target/release/";
+
+/// The target dependencies directory.
+pub static TARGET_DEPS: &str = "target/deps/";

@@ -7,7 +7,6 @@ use std::iter::IntoIterator;
 use serde::Deserialize;
 use serde::Serialize;
 
-use zksync::Network;
 use zksync_types::Address;
 
 ///
@@ -19,20 +18,14 @@ pub struct Query {
     pub address: Address,
     /// The name of the queried method. If not specified, the storage is returned.
     pub method: Option<String>,
-    /// The network where the contract resides.
-    pub network: Network,
 }
 
 impl Query {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(address: Address, method: Option<String>, network: Network) -> Self {
-        Self {
-            address,
-            method,
-            network,
-        }
+    pub fn new(address: Address, method: Option<String>) -> Self {
+        Self { address, method }
     }
 }
 
@@ -42,7 +35,7 @@ impl IntoIterator for Query {
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
-        let mut result = Vec::with_capacity(3);
+        let mut result = Vec::with_capacity(2);
         result.push((
             "address",
             serde_json::to_string(&self.address)
@@ -52,7 +45,6 @@ impl IntoIterator for Query {
         if let Some(method) = self.method {
             result.push(("method", method));
         }
-        result.push(("network", self.network.to_string()));
         result.into_iter()
     }
 }

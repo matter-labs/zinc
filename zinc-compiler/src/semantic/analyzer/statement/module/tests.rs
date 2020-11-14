@@ -31,7 +31,7 @@ fn main() -> u8 {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![
             (
@@ -82,7 +82,7 @@ fn main() -> u8 {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![(
             "level_1".to_owned(),
@@ -180,7 +180,7 @@ fn main() -> u8 {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![
             (
@@ -326,7 +326,7 @@ fn main() -> Together {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![
             (
@@ -401,7 +401,7 @@ fn main() -> Together {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![
             (
@@ -470,7 +470,7 @@ fn main() -> Together {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![(
             "one".to_owned(),
@@ -555,7 +555,7 @@ fn main() -> Together {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![(
             "one".to_owned(),
@@ -616,7 +616,7 @@ fn main() -> Other {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![(
             "other".to_owned(),
@@ -657,7 +657,7 @@ fn main() -> Other {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![(
             "other".to_owned(),
@@ -702,7 +702,7 @@ contract Test {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![(
             "other".to_owned(),
@@ -747,7 +747,7 @@ contract Test {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![(
             "other".to_owned(),
@@ -792,7 +792,7 @@ fn main() -> Other {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![
             (
@@ -844,7 +844,7 @@ fn main() -> Other {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![
             (
@@ -912,7 +912,7 @@ fn main() -> Other {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![
             (
@@ -1030,7 +1030,7 @@ fn main() -> Other {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![
             (
@@ -1144,7 +1144,7 @@ fn main() -> Other {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![
             (
@@ -1208,7 +1208,7 @@ fn main() -> Other {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![
             (
@@ -1288,7 +1288,7 @@ fn main() -> Other {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![
             (
@@ -1418,7 +1418,7 @@ fn main() -> Other {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry_with_dependencies(
+    assert!(crate::semantic::tests::compile_entry_with_modules(
         entry,
         vec![
             (

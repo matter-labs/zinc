@@ -2,7 +2,7 @@
 //! The Zandbox server daemon shared application data.
 //!
 
-pub mod contract;
+pub mod locked_contract;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -12,7 +12,7 @@ use zksync::web3::types::Address;
 
 use crate::database::client::Client as DatabaseClient;
 
-use self::contract::Contract;
+use self::locked_contract::LockedContract;
 
 ///
 /// The Zandbox server daemon shared application data.
@@ -20,18 +20,23 @@ use self::contract::Contract;
 pub struct SharedData {
     /// The PostgreSQL asynchronous client.
     pub postgresql: DatabaseClient,
-    /// The precompiled contracts written at application startup.
-    pub contracts: HashMap<Address, Contract>,
+    /// The zkSync network identifier.
+    pub network: zksync::Network,
+    /// The contracts waiting to be unlocked by `initialize` endpoint.
+    pub locked_contracts: HashMap<Address, LockedContract>,
 }
 
 impl SharedData {
+    const LOCKED_CONTRACTS_INITIAL_CAPACITY: usize = 64;
+
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(postgresql: DatabaseClient, contracts: HashMap<Address, Contract>) -> Self {
+    pub fn new(postgresql: DatabaseClient, network: zksync::Network) -> Self {
         Self {
             postgresql,
-            contracts,
+            network,
+            locked_contracts: HashMap::with_capacity(Self::LOCKED_CONTRACTS_INITIAL_CAPACITY),
         }
     }
 

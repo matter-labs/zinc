@@ -11,9 +11,8 @@ use zinc_manifest::Manifest;
 
 use crate::executable::compiler::Compiler;
 use crate::executable::virtual_machine::VirtualMachine;
-use crate::project::build::Directory as BuildDirectory;
-use crate::project::data::Directory as DataDirectory;
-use crate::project::source::Directory as SourceDirectory;
+use crate::project::target::deps::Directory as TargetDependenciesDirectory;
+use crate::project::target::Directory as TargetDirectory;
 
 ///
 /// The Zargo package manager `test` subcommand.
@@ -57,27 +56,21 @@ impl Command {
             manifest_path.pop();
         }
 
-        let source_directory_path = SourceDirectory::path(&manifest_path);
-
-        let data_directory_path = DataDirectory::path(&manifest_path);
-
-        BuildDirectory::create(&manifest_path)?;
-        let build_directory_path = BuildDirectory::path(&manifest_path);
-        let mut binary_path = build_directory_path;
+        TargetDirectory::create(&manifest_path, true)?;
+        let target_directory_path = TargetDirectory::path(&manifest_path, true);
+        let mut binary_path = target_directory_path;
         binary_path.push(format!(
             "{}.{}",
             zinc_const::file_name::BINARY,
             zinc_const::extension::BINARY
         ));
+        TargetDependenciesDirectory::create(&manifest_path)?;
 
         Compiler::build_release(
             self.verbosity,
             manifest.project.name.as_str(),
-            manifest.project.version.as_str(),
+            &manifest.project.version,
             &manifest_path,
-            &data_directory_path,
-            &source_directory_path,
-            &binary_path,
             true,
         )?;
 

@@ -61,7 +61,31 @@ pub enum Error {
     #[error("invalid input file data")]
     InvalidInputData,
 
-    /// The smart contract server failure.
-    #[error("action failed: {0}")]
-    ActionFailed(String),
+    /// The smart contract uploading request failure.
+    #[error("contract uploading request: {0}")]
+    ContractUploading(String),
+
+    /// The smart contract unlocking request failure.
+    #[error("contract unlocking request: {0}")]
+    ContractUnlocking(String),
+
+    /// The smart contract querying request failure.
+    #[error("contract querying request: {0}")]
+    ContractQuerying(String),
+
+    /// The smart contract fee calculating request failure.
+    #[error("contract fee calculating request: {0}")]
+    ContractFeeCalculating(String),
+
+    /// The smart contract calling request failure.
+    #[error("contract calling request: {0}")]
+    ContractCalling(String),
+
+    /// The smart contract project downloading request failure.
+    #[error("contract project downloading request: {0}")]
+    ContractProjectDownloading(String),
+
+    /// The dependency requires different version of the compiler.
+    #[error("dependency {0}: compiler version mismatch: expected {1}, found {2}")]
+    DependencyCompilerVersionMismatch(String, String, String),
 }

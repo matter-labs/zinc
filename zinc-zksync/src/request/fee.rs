@@ -7,7 +7,6 @@ use std::iter::IntoIterator;
 use serde::Deserialize;
 use serde::Serialize;
 
-use zksync::Network;
 use zksync_types::Address;
 
 use crate::transaction::Transaction;
@@ -21,20 +20,14 @@ pub struct Query {
     pub address: Address,
     /// The name of the queried method.
     pub method: String,
-    /// The network where the contract resides.
-    pub network: Network,
 }
 
 impl Query {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(address: Address, method: String, network: Network) -> Self {
-        Self {
-            address,
-            method,
-            network,
-        }
+    pub fn new(address: Address, method: String) -> Self {
+        Self { address, method }
     }
 }
 
@@ -52,7 +45,6 @@ impl IntoIterator for Query {
                     .replace("\"", ""),
             ),
             ("method", self.method),
-            ("network", self.network.to_string()),
         ]
         .into_iter()
     }

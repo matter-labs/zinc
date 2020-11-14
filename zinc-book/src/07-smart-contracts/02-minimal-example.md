@@ -148,7 +148,7 @@ contract ConstantPrice {
         let withdraw_token_amount = zksync::msg.amount *
             ((Self::MAX_FEE - self.fee) as Balance * Self::PRECISION_MUL / Self::MAX_FEE as Balance) /
             Self::PRECISION_MUL;
-        // check if the is enough balance to withdraw
+        // check if there is enough balance to withdraw
         require(self.balances.get(withdraw_token).0 >= withdraw_token_amount, "Not enough tokens to withdraw");
 
         zksync::transfer(zksync::msg.sender, withdraw_token, withdraw_token_amount);

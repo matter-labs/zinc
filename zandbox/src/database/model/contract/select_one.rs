@@ -1,9 +1,29 @@
 //!
-//! The database contract SELECT all model.
+//! The database contract SELECT one model.
 //!
 
+use zksync::web3::types::Address;
+
 ///
-/// The database contract SELECT all output model.
+/// The database contract SELECT one input model.
+///
+#[derive(Debug)]
+pub struct Input {
+    /// The contract ETH address.
+    pub eth_address: Address,
+}
+
+impl Input {
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new(eth_address: Address) -> Self {
+        Self { eth_address }
+    }
+}
+
+///
+/// The database contract SELECT one output model.
 ///
 #[derive(Debug, sqlx::FromRow)]
 pub struct Output {
@@ -16,13 +36,6 @@ pub struct Output {
     pub version: String,
     /// The contract instance name.
     pub instance: String,
-
-    /// The contract source code.
-    pub source_code: serde_json::Value,
-    /// The contract bytecode.
-    pub bytecode: Vec<u8>,
-    /// The contract verifying key.
-    pub verifying_key: Vec<u8>,
 
     /// The contract ETH address.
     pub eth_address: Vec<u8>,

@@ -7,7 +7,6 @@ use std::iter::IntoIterator;
 use serde::Deserialize;
 use serde::Serialize;
 
-use zksync::Network;
 use zksync_types::Address;
 
 use crate::transaction::Transaction;
@@ -19,16 +18,14 @@ use crate::transaction::Transaction;
 pub struct Query {
     /// The contract ETH address.
     pub address: Address,
-    /// The network where the contract resides.
-    pub network: Network,
 }
 
 impl Query {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(address: Address, network: Network) -> Self {
-        Self { address, network }
+    pub fn new(address: Address) -> Self {
+        Self { address }
     }
 }
 
@@ -38,15 +35,12 @@ impl IntoIterator for Query {
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
-        vec![
-            (
-                "address",
-                serde_json::to_string(&self.address)
-                    .expect(zinc_const::panic::DATA_CONVERSION)
-                    .replace("\"", ""),
-            ),
-            ("network", self.network.to_string()),
-        ]
+        vec![(
+            "address",
+            serde_json::to_string(&self.address)
+                .expect(zinc_const::panic::DATA_CONVERSION)
+                .replace("\"", ""),
+        )]
         .into_iter()
     }
 }

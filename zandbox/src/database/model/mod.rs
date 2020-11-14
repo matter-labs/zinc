@@ -4,3 +4,4 @@
 
 pub mod contract;
 pub mod field;
+pub mod project;

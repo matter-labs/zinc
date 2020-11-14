@@ -9,8 +9,8 @@ use structopt::StructOpt;
 
 use zinc_manifest::Manifest;
 
-use crate::project::build::Directory as BuildDirectory;
 use crate::project::data::Directory as DataDirectory;
+use crate::project::target::Directory as TargetDirectory;
 
 ///
 /// The Zargo package manager `clean` subcommand.
@@ -44,7 +44,7 @@ impl Command {
         }
 
         DataDirectory::remove(&manifest_path)?;
-        BuildDirectory::remove(&manifest_path)?;
+        TargetDirectory::remove(&manifest_path)?;
 
         Ok(())
     }
