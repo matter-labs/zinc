@@ -23,10 +23,10 @@ impl Analyzer {
     pub fn define(scope: Rc<RefCell<Scope>>, statement: EnumStatement) -> Result<Type, Error> {
         let r#type = Type::enumeration(
             statement.location,
-            statement.identifier.name.clone(),
+            statement.identifier.name,
             statement.variants,
             vec![],
-            Some(scope),
+            scope,
         )?;
 
         Ok(r#type)

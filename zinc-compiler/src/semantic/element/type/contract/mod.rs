@@ -52,10 +52,8 @@ impl Contract {
         identifier: String,
         type_id: usize,
         fields: Vec<Field>,
-        scope: Option<Rc<RefCell<Scope>>>,
+        scope: Rc<RefCell<Scope>>,
     ) -> Result<Self, Error> {
-        let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());
-
         Scope::define_field(
             scope.clone(),
             Identifier::new(
@@ -96,7 +94,6 @@ impl Contract {
                 Some(location),
                 Type::Contract(contract.clone()),
                 true,
-                false,
                 None,
             ))
             .wrap(),

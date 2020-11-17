@@ -2,6 +2,11 @@
 
 ## Version 0.2.1 (2020-XX-XX)
 
+#### Language
+
+- implemented the dependency and library system
+- allowed to call other smart contract instances through the dependency system
+
 #### Compiler
 
 - fixed the bug with invalid scope for contract fields and methods

@@ -5,6 +5,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::semantic::scope::r#type::Type as ScopeType;
 use crate::semantic::scope::Scope;
 
 ///
@@ -44,13 +45,14 @@ impl Stack {
     ///
     /// Pushes the current scope deeper and initializes a new one with it as the parent.
     ///
-    pub fn push(&mut self, name: Option<String>) {
+    pub fn push(&mut self, name: Option<String>, r#type: ScopeType) {
         let name = match name {
             Some(name) => format!("{} {}", self.top().borrow().name, name),
             None => format!("{} => {}", self.top().borrow().name, "child"),
         };
 
-        self.elements.push(Scope::new_child(name, self.top()));
+        self.elements
+            .push(Scope::new_child(name, r#type, self.top()));
     }
 
     ///

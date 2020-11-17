@@ -104,37 +104,6 @@ impl Item {
     }
 
     ///
-    /// Removes the associated flag from the item, which is useful for imports, after which the
-    /// item must not be accessed with its namespace anymore.
-    ///
-    pub fn set_not_associated(&mut self) {
-        match self {
-            Self::Constant(inner) => inner.is_associated = false,
-            Self::Variant(inner) => inner.is_associated = false,
-            Self::Type(inner) => inner.is_associated = false,
-            _ => {}
-        }
-    }
-
-    ///
-    /// Whether the item is associated with some data entity, like structure, enumeration,
-    /// contract, and so on.
-    ///
-    /// This flag helps to identify items, which can only be accessed via their namespace, e.g.
-    /// `Data::Item` or `Self::Item`.
-    ///
-    pub fn is_associated(&self) -> bool {
-        match self {
-            Self::Variable(_) => false,
-            Self::Field(_) => true,
-            Self::Constant(inner) => inner.is_associated,
-            Self::Variant(inner) => inner.is_associated,
-            Self::Type(inner) => inner.is_associated,
-            Self::Module(_) => false,
-        }
-    }
-
-    ///
     /// The location where the item has been declared.
     ///
     pub fn location(&self) -> Option<Location> {

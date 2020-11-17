@@ -45,7 +45,7 @@ impl Analyzer {
             statement.identifier.name,
             fields,
             None,
-            Some(scope),
+            scope,
         );
 
         if !r#type.is_instantiatable(false) {

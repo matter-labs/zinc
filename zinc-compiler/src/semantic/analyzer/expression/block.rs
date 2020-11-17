@@ -20,6 +20,7 @@ use crate::semantic::element::value::unit::Unit as UnitValue;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
+use crate::semantic::scope::r#type::Type as ScopeType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 
@@ -42,7 +43,7 @@ impl Analyzer {
         let mut builder = GeneratorBlockExpressionBuilder::default();
 
         let mut scope_stack = ScopeStack::new(scope);
-        scope_stack.push(None);
+        scope_stack.push(None, ScopeType::Block);
 
         for statement in block.statements.into_iter() {
             let intermediate = match statement {
@@ -53,7 +54,7 @@ impl Analyzer {
                 FunctionLocalStatement::Const(statement) => {
                     let identifier = statement.identifier.clone();
                     let constant = ConstStatementAnalyzer::define(scope_stack.top(), statement)?;
-                    Scope::define_constant(scope_stack.top(), identifier, constant, false)?;
+                    Scope::define_constant(scope_stack.top(), identifier, constant)?;
                     None
                 }
                 FunctionLocalStatement::For(statement) => Some(GeneratorStatement::For(

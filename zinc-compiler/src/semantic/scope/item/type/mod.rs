@@ -22,6 +22,7 @@ use crate::semantic::analyzer::statement::r#type::Analyzer as TypeStatementAnaly
 use crate::semantic::element::r#type::Type as TypeElement;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::index::INDEX as ITEM_INDEX;
+use crate::semantic::scope::r#type::Type as ScopeType;
 use crate::semantic::scope::Scope;
 
 use self::state::State;
@@ -38,8 +39,6 @@ pub struct Type {
     pub item_id: usize,
     /// The definition state, which is either `declared` or `defined`.
     pub state: RefCell<Option<State>>,
-    /// Whether the type is associated with some implementation or smart contract definition.
-    pub is_associated: bool,
 }
 
 impl Type {
@@ -55,22 +54,33 @@ impl Type {
         location: Option<Location>,
         inner: TypeStatementVariant,
         scope: Rc<RefCell<Scope>>,
-        is_associated: bool,
     ) -> Result<Self, Error> {
         let item_id = ITEM_INDEX.next(format!("type {}", inner.identifier().name));
 
         let (inner, scope) = match inner {
             TypeStatementVariant::Contract(statement) => {
-                let scope = Scope::new_child(statement.identifier.name.clone(), scope);
+                let scope = Scope::new_child(
+                    statement.identifier.name.clone(),
+                    ScopeType::Contract,
+                    scope,
+                );
                 ContractStatementAnalyzer::declare(scope, statement)
                     .map(|(statement, scope)| (TypeStatementVariant::Contract(statement), scope))?
             }
             TypeStatementVariant::Struct(statement) => {
-                let scope = Scope::new_child(statement.identifier.name.clone(), scope);
+                let scope = Scope::new_child(
+                    statement.identifier.name.clone(),
+                    ScopeType::Structure,
+                    scope,
+                );
                 (TypeStatementVariant::Struct(statement), scope)
             }
             TypeStatementVariant::Enum(statement) => {
-                let scope = Scope::new_child(statement.identifier.name.clone(), scope);
+                let scope = Scope::new_child(
+                    statement.identifier.name.clone(),
+                    ScopeType::Enumeration,
+                    scope,
+                );
                 (TypeStatementVariant::Enum(statement), scope)
             }
             inner => (inner, scope),
@@ -80,7 +90,6 @@ impl Type {
             location,
             item_id,
             state: RefCell::new(Some(State::Declared { inner, scope })),
-            is_associated,
         })
     }
 
@@ -93,7 +102,6 @@ impl Type {
         location: Option<Location>,
         inner: TypeElement,
         is_alias: bool,
-        is_associated: bool,
         intermediate: Option<GeneratorStatement>,
     ) -> Self {
         let title = format!(
@@ -114,14 +122,13 @@ impl Type {
                 inner,
                 intermediate,
             })),
-            is_associated,
         }
     }
 
     ///
     /// Useful method to declare an intrinsic type without a `location` or `intermediate` representation.
     ///
-    pub fn new_built_in(inner: TypeElement, is_associated: bool) -> Self {
+    pub fn new_built_in(inner: TypeElement) -> Self {
         let item_id = ITEM_INDEX.next(inner.to_string());
 
         Self {
@@ -131,7 +138,6 @@ impl Type {
                 inner,
                 intermediate: None,
             })),
-            is_associated,
         }
     }
 
@@ -157,12 +163,10 @@ impl Type {
                     TypeStatementVariant::Enum(inner) => {
                         (EnumStatementAnalyzer::define(scope, inner)?, None)
                     }
-                    TypeStatementVariant::Fn(inner, context) => FnStatementAnalyzer::define(
-                        scope, inner, context,
-                    )
-                    .map(|(r#type, intermediate)| {
-                        (r#type, intermediate.map(GeneratorStatement::Fn))
-                    })?,
+                    TypeStatementVariant::Fn(inner) => FnStatementAnalyzer::define(scope, inner)
+                        .map(|(r#type, intermediate)| {
+                            (r#type, intermediate.map(GeneratorStatement::Fn))
+                        })?,
                     TypeStatementVariant::Contract(inner) => ContractStatementAnalyzer::define(
                         scope, inner,
                     )

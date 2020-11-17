@@ -131,11 +131,16 @@ impl File {
     ///
     /// Used mostly for analyzing dependencies before attaching them to the main scope tree.
     ///
-    pub fn modularize(self) -> anyhow::Result<Rc<RefCell<Scope>>> {
-        Ok(EntryAnalyzer::define(Source::File(self), HashMap::new())
-            .map_err(CompilerError::Semantic)
-            .map_err(|error| error.format())
-            .map_err(Error::Compiling)?)
+    pub fn modularize(
+        self,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+    ) -> anyhow::Result<Rc<RefCell<Scope>>> {
+        Ok(
+            EntryAnalyzer::define(Source::File(self), dependencies, true)
+                .map_err(CompilerError::Semantic)
+                .map_err(|error| error.format())
+                .map_err(Error::Compiling)?,
+        )
     }
 
     ///
@@ -147,7 +152,7 @@ impl File {
         manifest: Manifest,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
     ) -> anyhow::Result<Rc<RefCell<State>>> {
-        let scope = EntryAnalyzer::define(Source::File(self), dependencies)
+        let scope = EntryAnalyzer::define(Source::File(self), dependencies, false)
             .map_err(CompilerError::Semantic)
             .map_err(|error| error.format())
             .map_err(Error::Compiling)?;

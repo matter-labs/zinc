@@ -23,6 +23,7 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::constant::Constant as ScopeConstantItem;
 use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::r#type::Type as ScopeType;
 use crate::semantic::scope::Scope;
 
 ///
@@ -180,7 +181,7 @@ impl Function {
     ) -> Result<Constant, Error> {
         let location = self.location;
 
-        let scope = Scope::new_child(self.identifier, scope);
+        let scope = Scope::new_child(self.identifier, ScopeType::Function, scope);
 
         for (name, constant) in arguments.into_iter() {
             Scope::insert_item(
@@ -189,7 +190,6 @@ impl Function {
                 ScopeItem::Constant(ScopeConstantItem::new_defined(
                     constant.location(),
                     constant,
-                    false,
                 ))
                 .wrap(),
             );

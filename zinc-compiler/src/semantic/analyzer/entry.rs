@@ -24,8 +24,9 @@ impl Analyzer {
     pub fn define(
         module: Source,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+        is_dependency_entry: bool,
     ) -> Result<Rc<RefCell<Scope>>, Error> {
-        let entry = ScopeModuleItem::new_entry(module, dependencies)?;
+        let entry = ScopeModuleItem::new_entry(module, dependencies, is_dependency_entry)?;
         entry.borrow().define()?;
 
         let entry = entry.borrow();

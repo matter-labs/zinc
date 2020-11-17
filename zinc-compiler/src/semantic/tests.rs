@@ -28,7 +28,7 @@ pub(crate) fn compile_entry_with_modules(
     let path = PathBuf::from("test.zn");
     let source = Source::test(code, path, modules).expect(zinc_const::panic::TEST_DATA_VALID);
 
-    EntryAnalyzer::define(source, HashMap::new()).map_err(Error::Semantic)?;
+    EntryAnalyzer::define(source, HashMap::new(), false).map_err(Error::Semantic)?;
 
     Ok(())
 }
@@ -52,8 +52,14 @@ pub(crate) fn compile_module_with_modules(
     scope_super: Rc<RefCell<Scope>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
     let module = Parser::default().parse(code, file)?;
-    let (module, implementation_scopes) =
-        ModuleAnalyzer::declare(scope.clone(), module, modules, scope_crate.clone(), false)?;
+    let (module, implementation_scopes) = ModuleAnalyzer::declare(
+        scope.clone(),
+        module,
+        modules,
+        scope_crate.clone(),
+        HashMap::new(),
+        false,
+    )?;
 
     let crate_item = Scope::get_module_self_alias(scope_crate);
     let super_item = Scope::get_module_self_alias(scope_super);
@@ -152,9 +158,11 @@ fn main() -> u8 {
         location: Location::test(2, 1),
     });
 
-    let scope = Scope::new_global(
+    let scope = Scope::new_module(
         zinc_const::file_name::APPLICATION_ENTRY.to_owned(),
         HashMap::new(),
+        false,
+        false,
     )
     .wrap();
     let result =
@@ -176,9 +184,11 @@ contract Uniswap {
         location: Location::test(2, 1),
     });
 
-    let scope = Scope::new_global(
+    let scope = Scope::new_module(
         zinc_const::file_name::APPLICATION_ENTRY.to_owned(),
         HashMap::new(),
+        false,
+        false,
     )
     .wrap();
     let result =

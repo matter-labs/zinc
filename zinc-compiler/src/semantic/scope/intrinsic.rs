@@ -50,21 +50,16 @@ impl IntrinsicScope {
         Scope::insert_item(
             scope.clone(),
             function_dbg.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(function_dbg),
-                false,
-            ))
-            .wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(function_dbg))).wrap(),
         );
 
         let function_require = FunctionType::new_require();
         Scope::insert_item(
             scope.clone(),
             function_require.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(function_require),
-                false,
-            ))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                function_require,
+            )))
             .wrap(),
         );
 
@@ -162,11 +157,7 @@ impl IntrinsicScope {
         Scope::insert_item(
             schnorr_signature_scope.clone(),
             schnorr_verify.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(schnorr_verify),
-                true,
-            ))
-            .wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(schnorr_verify))).wrap(),
         );
         let ecc_point = StructureType::new(
             None,
@@ -178,7 +169,7 @@ impl IntrinsicScope {
             ],
             None,
             None,
-            None,
+            schnorr_scope.clone(),
         );
         let schnorr_signature = StructureType::new(
             None,
@@ -191,15 +182,14 @@ impl IntrinsicScope {
             ],
             None,
             None,
-            Some(schnorr_signature_scope.clone()),
+            schnorr_signature_scope.clone(),
         );
         Scope::insert_item(
             schnorr_scope.clone(),
             schnorr_signature_scope.borrow().name(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Structure(schnorr_signature),
-                false,
-            ))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Structure(
+                schnorr_signature,
+            )))
             .wrap(),
         );
 
@@ -207,22 +197,18 @@ impl IntrinsicScope {
         Scope::insert_item(
             ecc_scope.clone(),
             ecc_point.identifier.clone(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Structure(ecc_point),
-                false,
-            ))
-            .wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Structure(ecc_point))).wrap(),
         );
 
         Scope::insert_item(
             scope.clone(),
             sha256.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(sha256), false)).wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(sha256))).wrap(),
         );
         Scope::insert_item(
             scope.clone(),
             pedersen.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(pedersen), false)).wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(pedersen))).wrap(),
         );
         Scope::insert_item(
             scope.clone(),
@@ -263,34 +249,28 @@ impl IntrinsicScope {
         Scope::insert_item(
             scope.clone(),
             to_bits.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(to_bits), false)).wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(to_bits))).wrap(),
         );
         Scope::insert_item(
             scope.clone(),
             from_bits_unsigned.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(from_bits_unsigned),
-                false,
-            ))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                from_bits_unsigned,
+            )))
             .wrap(),
         );
         Scope::insert_item(
             scope.clone(),
             from_bits_signed.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(from_bits_signed),
-                false,
-            ))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                from_bits_signed,
+            )))
             .wrap(),
         );
         Scope::insert_item(
             scope.clone(),
             from_bits_field.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(from_bits_field),
-                false,
-            ))
-            .wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(from_bits_field))).wrap(),
         );
 
         scope
@@ -309,17 +289,17 @@ impl IntrinsicScope {
         Scope::insert_item(
             scope.clone(),
             reverse.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(reverse), false)).wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(reverse))).wrap(),
         );
         Scope::insert_item(
             scope.clone(),
             truncate.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(truncate), false)).wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(truncate))).wrap(),
         );
         Scope::insert_item(
             scope.clone(),
             pad.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(pad), false)).wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(pad))).wrap(),
         );
 
         scope
@@ -336,7 +316,7 @@ impl IntrinsicScope {
         Scope::insert_item(
             scope.clone(),
             invert.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(invert), false)).wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(invert))).wrap(),
         );
 
         scope
@@ -356,17 +336,16 @@ impl IntrinsicScope {
             vec![],
             Some(vec!["K".to_owned(), "V".to_owned()]),
             None,
-            Some(merkle_tree_map_scope.clone()),
+            merkle_tree_map_scope.clone(),
         );
         let merkle_tree_map_get =
             FunctionType::new_library(LibraryFunctionIdentifier::CollectionsMTreeMapGet);
         Scope::insert_item(
             merkle_tree_map_scope.clone(),
             merkle_tree_map_get.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(merkle_tree_map_get),
-                true,
-            ))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                merkle_tree_map_get,
+            )))
             .wrap(),
         );
         let merkle_tree_map_contains =
@@ -374,10 +353,9 @@ impl IntrinsicScope {
         Scope::insert_item(
             merkle_tree_map_scope.clone(),
             merkle_tree_map_contains.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(merkle_tree_map_contains),
-                true,
-            ))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                merkle_tree_map_contains,
+            )))
             .wrap(),
         );
         let merkle_tree_map_insert =
@@ -385,10 +363,9 @@ impl IntrinsicScope {
         Scope::insert_item(
             merkle_tree_map_scope.clone(),
             merkle_tree_map_insert.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(merkle_tree_map_insert),
-                true,
-            ))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                merkle_tree_map_insert,
+            )))
             .wrap(),
         );
         let merkle_tree_map_remove =
@@ -396,20 +373,18 @@ impl IntrinsicScope {
         Scope::insert_item(
             merkle_tree_map_scope,
             merkle_tree_map_remove.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Function(merkle_tree_map_remove),
-                true,
-            ))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                merkle_tree_map_remove,
+            )))
             .wrap(),
         );
 
         Scope::insert_item(
             scope.clone(),
             merkle_tree_map.identifier.clone(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Structure(merkle_tree_map),
-                false,
-            ))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Structure(
+                merkle_tree_map,
+            )))
             .wrap(),
         );
 
@@ -427,7 +402,7 @@ impl IntrinsicScope {
         Scope::insert_item(
             scope.clone(),
             transfer.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(transfer), false)).wrap(),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(transfer))).wrap(),
         );
 
         let transaction_type = StructureType::new(
@@ -454,15 +429,14 @@ impl IntrinsicScope {
             ],
             None,
             None,
-            None,
+            scope.clone(),
         );
         Scope::insert_item(
             scope.clone(),
             transaction_type.identifier.clone(),
-            ScopeItem::Type(ScopeTypeItem::new_built_in(
-                Type::Structure(transaction_type.clone()),
-                false,
-            ))
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Structure(
+                transaction_type.clone(),
+            )))
             .wrap(),
         );
 

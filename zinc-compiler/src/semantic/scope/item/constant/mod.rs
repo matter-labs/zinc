@@ -30,8 +30,6 @@ pub struct Constant {
     pub item_id: usize,
     /// The definition state, which is either `declared` or `defined`.
     pub state: RefCell<Option<State>>,
-    /// Whether the constant is associated with some implementation or smart contract definition.
-    pub is_associated: bool,
 }
 
 impl Constant {
@@ -45,7 +43,6 @@ impl Constant {
         location: Location,
         inner: ConstStatement,
         scope: Rc<RefCell<Scope>>,
-        is_associated: bool,
     ) -> Self {
         let item_id = ITEM_INDEX.next(format!("constant {}", inner.identifier.name));
 
@@ -53,21 +50,19 @@ impl Constant {
             location,
             item_id,
             state: RefCell::new(Some(State::Declared { inner, scope })),
-            is_associated,
         }
     }
 
     ///
     /// Creates a defined constant, which is ready to be used from anywhere.
     ///
-    pub fn new_defined(location: Location, inner: ConstantElement, is_associated: bool) -> Self {
+    pub fn new_defined(location: Location, inner: ConstantElement) -> Self {
         let item_id = ITEM_INDEX.next(inner.to_string());
 
         Self {
             location,
             item_id,
             state: RefCell::new(Some(State::Defined { inner })),
-            is_associated,
         }
     }
 

@@ -12,6 +12,8 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
+use crate::semantic::scope::r#type::Type as ScopeType;
+use crate::semantic::scope::Scope;
 
 #[test]
 fn ok_mutating_simple_variable() {
@@ -298,7 +300,7 @@ fn main() {
                     Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
                 )],
                 None,
-                None,
+                Scope::new("Data".to_owned(), ScopeType::Structure, None).wrap(),
             )
             .to_string(),
         },

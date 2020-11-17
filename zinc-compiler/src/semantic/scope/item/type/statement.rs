@@ -10,8 +10,6 @@ use zinc_syntax::Identifier;
 use zinc_syntax::StructStatement;
 use zinc_syntax::TypeStatement;
 
-use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
-
 ///
 /// The item declaration statement, which may be resolved
 ///
@@ -24,7 +22,7 @@ pub enum Statement {
     /// The `enum` statement.
     Enum(EnumStatement),
     /// The `fn` statement.
-    Fn(FnStatement, FnStatementAnalyzerContext),
+    Fn(FnStatement),
     /// The `contract` statement.
     Contract(ContractStatement),
 }
@@ -38,7 +36,7 @@ impl Statement {
             Self::Type(inner) => inner.location,
             Self::Struct(inner) => inner.location,
             Self::Enum(inner) => inner.location,
-            Self::Fn(inner, _context) => inner.location,
+            Self::Fn(inner) => inner.location,
             Self::Contract(inner) => inner.location,
         }
     }
@@ -51,7 +49,7 @@ impl Statement {
             Self::Type(inner) => &inner.identifier,
             Self::Struct(inner) => &inner.identifier,
             Self::Enum(inner) => &inner.identifier,
-            Self::Fn(inner, _context) => &inner.identifier,
+            Self::Fn(inner) => &inner.identifier,
             Self::Contract(inner) => &inner.identifier,
         }
     }

@@ -2,11 +2,13 @@
 //! The Zinc compiler library.
 //!
 
+pub(crate) mod bundler;
 pub(crate) mod error;
 pub(crate) mod generator;
 pub(crate) mod semantic;
 pub(crate) mod source;
 
+pub use self::bundler::Bundler;
 pub use self::error::Error;
 pub use self::generator::module::Module;
 pub use self::generator::state::State;

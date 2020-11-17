@@ -3,11 +3,9 @@
 //!
 
 use std::convert::TryFrom;
-use std::fs;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use colored::Colorize;
 use structopt::StructOpt;
 
 use zinc_manifest::Manifest;
@@ -15,6 +13,7 @@ use zinc_manifest::ProjectType;
 
 use crate::error::Error;
 use crate::executable::compiler::Compiler;
+use crate::http::downloader::Downloader;
 use crate::http::Client as HttpClient;
 use crate::network::Network;
 use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
@@ -83,29 +82,8 @@ impl Command {
         }
 
         if let Some(dependencies) = manifest.dependencies {
-            for (name, version) in dependencies.into_iter() {
-                let dependency_name = format!("{}-{}", name, version);
-                eprintln!(" {} {} v{}", "Downloading".bright_green(), name, version);
-
-                let response = http_client
-                    .source(zinc_zksync::SourceRequestQuery::new(name, version))
-                    .await?;
-
-                if response.zinc_version != env!("CARGO_PKG_VERSION") {
-                    anyhow::bail!(Error::DependencyCompilerVersionMismatch(
-                        dependency_name,
-                        env!("CARGO_PKG_VERSION").to_string(),
-                        response.zinc_version,
-                    ));
-                }
-
-                let mut dependency_path = target_deps_directory_path.clone();
-                dependency_path.push(dependency_name);
-                fs::create_dir_all(&dependency_path)?;
-
-                response.project.manifest.write_to(&dependency_path)?;
-                response.project.source.write_to(&dependency_path)?;
-            }
+            let mut downloader = Downloader::new(&http_client, target_deps_directory_path);
+            downloader.download_list(dependencies).await?;
         }
 
         if self.is_release {

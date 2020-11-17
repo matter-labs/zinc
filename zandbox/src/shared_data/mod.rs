@@ -5,8 +5,9 @@
 pub mod locked_contract;
 
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::sync::RwLock;
+
+use actix_web::web::Data;
 
 use zksync::web3::types::Address;
 
@@ -43,7 +44,7 @@ impl SharedData {
     ///
     /// Wraps the data into `Arc<Mutex<_>>`.
     ///
-    pub fn wrap(self) -> Arc<RwLock<Self>> {
-        Arc::new(RwLock::new(self))
+    pub fn wrap(self) -> Data<RwLock<Self>> {
+        Data::new(RwLock::new(self))
     }
 }

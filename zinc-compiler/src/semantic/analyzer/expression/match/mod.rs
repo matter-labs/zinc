@@ -30,6 +30,7 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::memory_type::MemoryType;
+use crate::semantic::scope::r#type::Type as ScopeType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 
@@ -251,7 +252,7 @@ impl Analyzer {
                 MatchPatternVariant::Binding(identifier) => {
                     is_exhausted = true;
 
-                    scope_stack.push(None);
+                    scope_stack.push(None, ScopeType::Block);
                     Scope::define_variable(
                         scope_stack.top(),
                         identifier.clone(),
@@ -521,12 +522,11 @@ impl Analyzer {
                 MatchPatternVariant::Binding(identifier) => {
                     is_exhausted = true;
 
-                    scope_stack.push(None);
+                    scope_stack.push(None, ScopeType::Block);
                     Scope::define_constant(
                         scope_stack.top(),
                         identifier.clone(),
                         scrutinee_result.clone(),
-                        false,
                     )?;
                     let expression_location = expression.location;
                     let (result, _) =

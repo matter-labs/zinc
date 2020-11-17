@@ -26,4 +26,4 @@ pub(crate) type Result<T, E> = ::std::result::Result<self::response::Response<T,
 ///
 /// The Actix shared data anti-boilerplate wrapper.
 ///
-pub(crate) type WebData = actix_web::web::Data<std::sync::Arc<std::sync::RwLock<SharedData>>>;
+pub(crate) type WebData = actix_web::web::Data<std::sync::RwLock<SharedData>>;

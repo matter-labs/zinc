@@ -19,8 +19,12 @@ use crate::semantic::scope::Scope;
 ///
 /// Describes a structure type.
 ///
-/// Consists of the local structure `identifier` within its scope, global `type_id`, `fields`,
-/// and the implementation `scope`, which contains the reference to its parent scope.
+/// Consists of:
+/// - structure `identifier`
+/// - global `type_id`
+/// - data `fields`
+/// - the implementation `scope`, which contains the reference to its parent scope
+/// - the generic formal and actual arguments
 ///
 #[derive(Debug, Clone)]
 pub struct Structure {
@@ -52,10 +56,8 @@ impl Structure {
         fields: Vec<(String, Type)>,
         generics: Option<Vec<String>>,
         params: Option<HashMap<String, Type>>,
-        scope: Option<Rc<RefCell<Scope>>>,
+        scope: Rc<RefCell<Scope>>,
     ) -> Self {
-        let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());
-
         Self {
             location,
             identifier,

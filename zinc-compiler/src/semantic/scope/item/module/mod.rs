@@ -44,8 +44,15 @@ impl Module {
     pub fn new_entry(
         module: Source,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+        is_dependency_entry: bool,
     ) -> Result<Rc<RefCell<ScopeItem>>, Error> {
-        let scope = Scope::new_global(module.name().to_owned(), dependencies).wrap();
+        let scope = Scope::new_module(
+            module.name().to_owned(),
+            dependencies.clone(),
+            true,
+            is_dependency_entry,
+        )
+        .wrap();
 
         let module = Self::new_declared(
             None,
@@ -54,6 +61,7 @@ impl Module {
             module,
             scope.clone(),
             None,
+            dependencies,
             true,
         )?;
         let item = ScopeItem::Module(module).wrap();
@@ -78,6 +86,7 @@ impl Module {
     ///
     /// Is used during module items hoisting.
     ///
+    #[allow(clippy::too_many_arguments)]
     pub fn new_declared(
         location: Option<Location>,
         scope: Rc<RefCell<Scope>>,
@@ -85,6 +94,7 @@ impl Module {
         module: Source,
         scope_crate: Rc<RefCell<Scope>>,
         scope_super: Option<Rc<RefCell<Scope>>>,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
         is_entry: bool,
     ) -> Result<Self, Error> {
         let item_id = ITEM_INDEX.next(format!("module {}", identifier));
@@ -99,6 +109,7 @@ impl Module {
             module,
             modules,
             scope_crate.clone(),
+            dependencies,
             is_entry,
         )?;
 

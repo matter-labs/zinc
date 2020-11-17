@@ -13,7 +13,6 @@ use zinc_syntax::BindingPattern;
 use zinc_syntax::BindingPatternVariant;
 use zinc_syntax::Identifier;
 
-use crate::semantic::analyzer::statement::r#fn::Context as FnAnalyzerContext;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::Item as ScopeItem;
@@ -116,7 +115,6 @@ impl Binder {
     ///
     pub fn bind_arguments(
         bindings: Vec<zinc_syntax::Binding>,
-        context: FnAnalyzerContext,
         scope: Rc<RefCell<Scope>>,
     ) -> Result<Vec<Binding>, Error> {
         let mut result = Vec::with_capacity(bindings.len());
@@ -162,10 +160,10 @@ impl Binder {
                         });
                     }
 
-                    let memory_type = match context {
-                        FnAnalyzerContext::Contract => MemoryType::ContractInstance,
-                        FnAnalyzerContext::Module => MemoryType::Stack,
-                        FnAnalyzerContext::Implementation => MemoryType::Stack,
+                    let memory_type = if matches!(r#type, Type::Contract(_)) {
+                        MemoryType::ContractInstance
+                    } else {
+                        MemoryType::Stack
                     };
 
                     Scope::define_variable(

@@ -68,7 +68,7 @@ impl Manifest {
     ///
     /// Writes the manifest to a file in the project at the given `path`.
     ///
-    pub fn write_to(self, path: &PathBuf) -> anyhow::Result<()> {
+    pub fn write_to(&self, path: &PathBuf) -> anyhow::Result<()> {
         let mut path = path.to_owned();
         if path.is_dir() || !path.ends_with(Self::file_name()) {
             path.push(PathBuf::from(Self::file_name()));
@@ -76,7 +76,7 @@ impl Manifest {
 
         let mut file = File::create(&path).with_context(|| path.to_string_lossy().to_string())?;
         file.write_all(
-            toml::to_string_pretty(&self)
+            toml::to_string_pretty(self)
                 .expect(zinc_const::panic::DATA_CONVERSION)
                 .as_bytes(),
         )

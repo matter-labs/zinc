@@ -17,21 +17,9 @@ use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::binding::Binder;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
+use crate::semantic::scope::r#type::Type as ScopeType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-
-///
-/// The context lets the analyzer know where the function is declared.
-///
-#[derive(Debug, Clone, Copy)]
-pub enum Context {
-    /// The module root namespace.
-    Module,
-    /// The type implementation namespace.
-    Implementation,
-    /// The contract definition namespace.
-    Contract,
-}
 
 ///
 /// The `fn` statement semantic analyzer.
@@ -45,9 +33,8 @@ impl Analyzer {
     pub fn define(
         scope: Rc<RefCell<Scope>>,
         mut statement: FnStatement,
-        context: Context,
     ) -> Result<(Type, Option<GeneratorFunctionStatement>), Error> {
-        if let Context::Contract = context {
+        if let ScopeType::Contract = RefCell::borrow(&scope).r#type() {
             if statement.is_public && statement.is_constant {
                 return Err(Error::EntryPointConstant {
                     location: statement.location,
@@ -62,14 +49,14 @@ impl Analyzer {
         }
 
         if attributes.contains(&Attribute::Test) {
-            return Self::test(scope, statement, context, attributes)
+            return Self::test(scope, statement, attributes)
                 .map(|(r#type, intermediate)| (r#type, Some(intermediate)));
         }
 
         if statement.is_constant {
-            Self::constant(scope, statement, context, attributes).map(|r#type| (r#type, None))
+            Self::constant(scope, statement, attributes).map(|r#type| (r#type, None))
         } else {
-            Self::runtime(scope, statement, context, attributes)
+            Self::runtime(scope, statement, attributes)
                 .map(|(r#type, intermediate)| (r#type, Some(intermediate)))
         }
     }
@@ -80,34 +67,29 @@ impl Analyzer {
     fn runtime(
         scope: Rc<RefCell<Scope>>,
         statement: FnStatement,
-        context: Context,
         attributes: Vec<Attribute>,
     ) -> Result<(Type, GeneratorFunctionStatement), Error> {
-        let mut scope_stack = match context {
-            Context::Module => {
-                let mut scope_stack = ScopeStack::new(scope);
-                scope_stack.push(Some(statement.identifier.name.clone()));
-                scope_stack
-            }
-            Context::Implementation | Context::Contract => {
-                let alias_identifier =
-                    Identifier::new(statement.location, Keyword::SelfUppercase.to_string());
-                let item = scope.borrow().resolve_item(&alias_identifier, false)?;
+        let scope_type = RefCell::borrow(&scope).r#type();
+        let mut scope_stack = if scope_type.is_implementation() {
+            let alias_identifier =
+                Identifier::new(statement.location, Keyword::SelfUppercase.to_string());
+            let item = RefCell::borrow(&scope).resolve_item(&alias_identifier, false)?;
 
-                let mut scope_stack = ScopeStack::new(
-                    scope
-                        .borrow()
-                        .parent()
-                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-                );
-                scope_stack.push(Some(statement.identifier.name.clone()));
-                Scope::define_item(scope_stack.top(), alias_identifier, item)?;
-                scope_stack
-            }
+            let mut scope_stack = ScopeStack::new(
+                RefCell::borrow(&scope)
+                    .parent()
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+            );
+            scope_stack.push(Some(statement.identifier.name.clone()), ScopeType::Function);
+            Scope::define_item(scope_stack.top(), alias_identifier, item)?;
+            scope_stack
+        } else {
+            let mut scope_stack = ScopeStack::new(scope);
+            scope_stack.push(Some(statement.identifier.name.clone()), ScopeType::Function);
+            scope_stack
         };
 
-        let bindings =
-            Binder::bind_arguments(statement.argument_bindings, context, scope_stack.top())?;
+        let bindings = Binder::bind_arguments(statement.argument_bindings, scope_stack.top())?;
 
         let expected_type = match statement.return_type {
             Some(ref r#type) => Type::try_from_syntax(r#type.to_owned(), scope_stack.top())?,
@@ -157,13 +139,19 @@ impl Analyzer {
             });
         }
 
-        let (is_main, is_contract_entry) = if let Context::Contract = context {
-            (false, statement.is_public)
-        } else {
-            (
-                statement.identifier.name.as_str() == zinc_const::source::FUNCTION_MAIN_IDENTIFIER,
-                false,
-            )
+        let is_main = match scope_type {
+            ScopeType::Contract => false,
+            _ => statement.identifier.name.as_str() == zinc_const::source::FUNCTION_MAIN_IDENTIFIER,
+        };
+        let is_contract_entry = match scope_type {
+            ScopeType::Contract => {
+                let is_dependency =
+                    RefCell::borrow(&scope_stack.top()).is_within(ScopeType::Entry {
+                        is_dependency: true,
+                    });
+                !is_dependency && statement.is_public
+            }
+            _ => false,
         };
 
         let is_mutable = bindings
@@ -200,14 +188,12 @@ impl Analyzer {
     fn constant(
         scope: Rc<RefCell<Scope>>,
         statement: FnStatement,
-        context: Context,
         _attributes: Vec<Attribute>,
     ) -> Result<Type, Error> {
         let mut scope_stack = ScopeStack::new(scope);
-        scope_stack.push(Some(statement.identifier.name.clone()));
+        scope_stack.push(Some(statement.identifier.name.clone()), ScopeType::Function);
 
-        let bindings =
-            Binder::bind_arguments(statement.argument_bindings, context, scope_stack.top())?;
+        let bindings = Binder::bind_arguments(statement.argument_bindings, scope_stack.top())?;
 
         let expected_type = match statement.return_type {
             Some(ref r#type) => Type::try_from_syntax(r#type.to_owned(), scope_stack.top())?,
@@ -275,21 +261,17 @@ impl Analyzer {
     fn test(
         scope: Rc<RefCell<Scope>>,
         statement: FnStatement,
-        context: Context,
         attributes: Vec<Attribute>,
     ) -> Result<(Type, GeneratorFunctionStatement), Error> {
         let location = statement.location;
 
         let mut scope_stack = ScopeStack::new(scope);
 
-        match context {
-            Context::Module => {}
-            _context => {
-                return Err(Error::UnitTestBeyondModuleScope {
-                    location,
-                    function: statement.identifier.name,
-                });
-            }
+        if !RefCell::borrow(&scope_stack.top()).r#type().is_module() {
+            return Err(Error::UnitTestBeyondModuleScope {
+                location,
+                function: statement.identifier.name,
+            });
         }
 
         if statement.is_public {
@@ -320,7 +302,7 @@ impl Analyzer {
             });
         }
 
-        scope_stack.push(Some(statement.identifier.name.clone()));
+        scope_stack.push(Some(statement.identifier.name.clone()), ScopeType::Function);
         let (_result, intermediate) =
             BlockAnalyzer::analyze(scope_stack.top(), statement.body, TranslationRule::Value)?;
         scope_stack.pop();

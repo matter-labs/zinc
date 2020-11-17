@@ -14,11 +14,11 @@ use zinc_syntax::Identifier;
 
 use crate::generator::statement::contract::Statement as GeneratorContractStatement;
 use crate::semantic::analyzer::statement::field::Analyzer as FieldStatementAnalyzer;
-use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
 use crate::semantic::element::r#type::contract::field::Field as ContractFieldType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::r#type::statement::Statement as TypeStatementVariant;
+use crate::semantic::scope::r#type::Type as ScopeType;
 use crate::semantic::scope::Scope;
 
 ///
@@ -40,14 +40,10 @@ impl Analyzer {
         for hoisted_statement in statement.statements.into_iter() {
             match hoisted_statement {
                 ContractLocalStatement::Const(statement) => {
-                    Scope::declare_constant(scope.clone(), statement, true)?;
+                    Scope::declare_constant(scope.clone(), statement)?;
                 }
                 ContractLocalStatement::Fn(statement) => {
-                    Scope::declare_type(
-                        scope.clone(),
-                        TypeStatementVariant::Fn(statement, FnStatementAnalyzerContext::Contract),
-                        true,
-                    )?;
+                    Scope::declare_type(scope.clone(), TypeStatementVariant::Fn(statement))?;
                 }
                 ContractLocalStatement::Empty(_location) => {}
                 statement => instant_statements.push(statement),
@@ -114,12 +110,16 @@ impl Analyzer {
             statement.location,
             statement.identifier.name,
             storage_fields.clone(),
-            Some(scope.clone()),
+            scope.clone(),
         )?;
 
         scope.borrow().define()?;
 
-        let intermediate = GeneratorContractStatement::new(location, storage_fields);
+        let is_dependency = RefCell::borrow(&scope).is_within(ScopeType::Entry {
+            is_dependency: true,
+        });
+
+        let intermediate = GeneratorContractStatement::new(location, storage_fields, is_dependency);
 
         Ok((r#type, intermediate))
     }

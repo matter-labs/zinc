@@ -19,8 +19,6 @@ pub struct Variant {
     pub item_id: usize,
     /// The semantic constant element.
     pub constant: ConstantElement,
-    /// Whether the variant is a part of its enumeration type, and not imported outwards with a `use` statement.
-    pub is_associated: bool,
 }
 
 impl Variant {
@@ -34,7 +32,6 @@ impl Variant {
             location,
             item_id,
             constant,
-            is_associated: true,
         }
     }
 }

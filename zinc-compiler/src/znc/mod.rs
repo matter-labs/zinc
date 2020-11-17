@@ -4,8 +4,6 @@
 
 pub(crate) mod arguments;
 
-use std::collections::HashMap;
-use std::convert::TryFrom;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
@@ -14,10 +12,7 @@ use std::thread;
 
 use anyhow::Context;
 
-use zinc_build::Build;
-use zinc_compiler::Source;
-use zinc_compiler::State;
-use zinc_manifest::Manifest;
+use zinc_compiler::Bundler;
 
 use self::arguments::Arguments;
 
@@ -44,9 +39,6 @@ fn main_inner() -> anyhow::Result<()> {
 
     let optimize_dead_function_elimination = args.optimize_dead_function_elimination;
 
-    let manifest = Manifest::try_from(&args.manifest_path)
-        .with_context(|| args.manifest_path.to_string_lossy().to_string())?;
-
     let mut data_directory_path = args.manifest_path.clone();
     data_directory_path.push(zinc_const::directory::DATA);
     fs::create_dir_all(&data_directory_path)
@@ -66,46 +58,15 @@ fn main_inner() -> anyhow::Result<()> {
     fs::create_dir_all(&dependencies_directory_path)
         .with_context(|| dependencies_directory_path.to_string_lossy().to_string())?;
 
-    let mut source_directory_path = args.manifest_path;
-    source_directory_path.push(zinc_const::directory::SOURCE);
     let build = thread::Builder::new()
         .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
-        .spawn(move || -> anyhow::Result<Build> {
-            let dependencies_directory = fs::read_dir(dependencies_directory_path)?;
-            let mut dependencies = HashMap::with_capacity(
-                manifest
-                    .dependencies
-                    .as_ref()
-                    .map(HashMap::len)
-                    .unwrap_or_default(),
-            );
-            for entry in dependencies_directory.into_iter() {
-                let entry = entry?;
-                let path = entry.path();
-                let entry_type = entry
-                    .file_type()
-                    .with_context(|| path.to_string_lossy().to_string())?;
-                if !entry_type.is_dir() {
-                    continue;
-                }
-
-                let manifest = Manifest::try_from(&path)
-                    .with_context(|| path.to_string_lossy().to_string())?;
-                let name = manifest.project.name.clone();
-
-                let mut source_directory_path = path.clone();
-                source_directory_path.push(zinc_const::directory::SOURCE);
-                let source = Source::try_from_entry(&source_directory_path)?;
-                let scope = source.modularize()?;
-
-                dependencies.insert(name, scope);
-            }
-
-            let source = Source::try_from_entry(&source_directory_path)?;
-            let state = source.compile(manifest, dependencies)?;
-            let application =
-                State::unwrap_rc(state).into_application(optimize_dead_function_elimination);
-            Ok(application.into_build())
+        .spawn(move || {
+            Bundler::new(
+                args.manifest_path,
+                dependencies_directory_path,
+                optimize_dead_function_elimination,
+            )
+            .bundle()
         })
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .join()

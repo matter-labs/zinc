@@ -97,7 +97,7 @@ impl LockedContract {
         })
         .await
         .map_err(Error::VirtualMachine)?;
-        let storage = Storage::from_build(output.storage);
+        let storage = Storage::from_build(output.result);
 
         let provider = zksync::Provider::new(network);
         let wallet_credentials = zksync::WalletCredentials::from_eth_signer(

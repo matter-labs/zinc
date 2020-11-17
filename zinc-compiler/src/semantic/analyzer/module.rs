@@ -11,7 +11,6 @@ use zinc_syntax::Module as SyntaxModule;
 use zinc_syntax::ModuleLocalStatement;
 
 use crate::semantic::analyzer::statement::module::Analyzer as ModStatementAnalyzer;
-use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
 use crate::semantic::analyzer::statement::r#impl::Analyzer as ImplStatementAnalyzer;
 use crate::semantic::analyzer::statement::r#use::Analyzer as UseStatementAnalyzer;
 use crate::semantic::error::Error;
@@ -44,36 +43,25 @@ impl Analyzer {
         mut module: SyntaxModule,
         mut modules: HashMap<String, Source>,
         scope_crate: Rc<RefCell<Scope>>,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
         is_entry: bool,
     ) -> Result<(SyntaxModule, Vec<Rc<RefCell<Scope>>>), Error> {
-        let mut instant_statement = Vec::with_capacity(module.statements.len());
+        let mut instant_statements = Vec::with_capacity(module.statements.len());
         let mut implementation_scopes = Vec::with_capacity(module.statements.len());
 
         for hoisted_statement in module.statements.into_iter() {
             match hoisted_statement {
                 ModuleLocalStatement::Const(statement) => {
-                    Scope::declare_constant(scope.clone(), statement, false)?;
+                    Scope::declare_constant(scope.clone(), statement)?;
                 }
                 ModuleLocalStatement::Type(statement) => {
-                    Scope::declare_type(
-                        scope.clone(),
-                        TypeStatementVariant::Type(statement),
-                        false,
-                    )?;
+                    Scope::declare_type(scope.clone(), TypeStatementVariant::Type(statement))?;
                 }
                 ModuleLocalStatement::Struct(statement) => {
-                    Scope::declare_type(
-                        scope.clone(),
-                        TypeStatementVariant::Struct(statement),
-                        false,
-                    )?;
+                    Scope::declare_type(scope.clone(), TypeStatementVariant::Struct(statement))?;
                 }
                 ModuleLocalStatement::Enum(statement) => {
-                    Scope::declare_type(
-                        scope.clone(),
-                        TypeStatementVariant::Enum(statement),
-                        false,
-                    )?;
+                    Scope::declare_type(scope.clone(), TypeStatementVariant::Enum(statement))?;
                 }
                 ModuleLocalStatement::Fn(statement) => {
                     if !is_entry
@@ -95,11 +83,7 @@ impl Analyzer {
                         });
                     }
 
-                    Scope::declare_type(
-                        scope.clone(),
-                        TypeStatementVariant::Fn(statement, FnStatementAnalyzerContext::Module),
-                        false,
-                    )?;
+                    Scope::declare_type(scope.clone(), TypeStatementVariant::Fn(statement))?;
                 }
                 ModuleLocalStatement::Mod(statement) => {
                     let module = match modules.remove(statement.identifier.name.as_str()) {
@@ -119,7 +103,9 @@ impl Analyzer {
                         identifier,
                         module,
                         scope_crate.clone(),
-                        is_entry,
+                        dependencies.clone(),
+                        false,
+                        false,
                     )?;
                 }
                 ModuleLocalStatement::Contract(statement) => {
@@ -136,13 +122,13 @@ impl Analyzer {
                     implementation_scopes.push(scope);
                 }
                 ModuleLocalStatement::Use(statement) => {
-                    instant_statement.push(ModuleLocalStatement::Use(statement))
+                    instant_statements.push(ModuleLocalStatement::Use(statement))
                 }
                 ModuleLocalStatement::Empty(_location) => {}
             }
         }
 
-        module.statements = instant_statement;
+        module.statements = instant_statements;
 
         Ok((module, implementation_scopes))
     }

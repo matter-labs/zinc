@@ -21,6 +21,7 @@ use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
+use crate::semantic::scope::r#type::Type as ScopeType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 
@@ -96,7 +97,7 @@ impl Analyzer {
         }
         builder.set_condition(condition);
 
-        scope_stack.push(None);
+        scope_stack.push(None, ScopeType::Conditional);
         let (main_result, main_block) = BlockAnalyzer::analyze(
             scope_stack.top(),
             conditional.main_block,
@@ -107,7 +108,7 @@ impl Analyzer {
         builder.set_main_block(main_block);
 
         let else_type = if let Some(else_block) = conditional.else_block {
-            scope_stack.push(None);
+            scope_stack.push(None, ScopeType::Conditional);
             let (else_result, else_block) =
                 BlockAnalyzer::analyze(scope_stack.top(), else_block, TranslationRule::Value)?;
             let else_type = Type::from_element(&else_result, scope_stack.top())?;
@@ -188,7 +189,7 @@ impl Analyzer {
             }
         };
 
-        scope_stack.push(None);
+        scope_stack.push(None, ScopeType::Conditional);
         let (main_result, _) = BlockAnalyzer::analyze(
             scope_stack.top(),
             conditional.main_block,
@@ -207,7 +208,7 @@ impl Analyzer {
         scope_stack.pop();
 
         let (else_type, else_result) = if let Some(else_block) = conditional.else_block {
-            scope_stack.push(None);
+            scope_stack.push(None, ScopeType::Conditional);
             let (else_result, _) =
                 BlockAnalyzer::analyze(scope_stack.top(), else_block, TranslationRule::Constant)?;
             let else_result = match else_result {

@@ -40,8 +40,7 @@ impl Analyzer {
             }
         };
 
-        let mut item = Scope::resolve_path(scope.clone(), &path)?.borrow().clone();
-        item.set_not_associated();
+        let item = Scope::resolve_path(scope.clone(), &path)?.borrow().clone();
         let identifier = match statement.alias_identifier {
             Some(alias_identifier) => alias_identifier,
             None => path.last().to_owned(),

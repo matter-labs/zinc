@@ -88,10 +88,13 @@ impl Source {
     ///
     /// Runs the semantic analyzer on the syntax tree and returns the module scope.
     ///
-    pub fn modularize(self) -> anyhow::Result<Rc<RefCell<Scope>>> {
+    pub fn modularize(
+        self,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+    ) -> anyhow::Result<Rc<RefCell<Scope>>> {
         match self {
-            Self::File(inner) => inner.modularize(),
-            Self::Directory(inner) => inner.modularize(),
+            Self::File(inner) => inner.modularize(dependencies),
+            Self::Directory(inner) => inner.modularize(dependencies),
         }
     }
 

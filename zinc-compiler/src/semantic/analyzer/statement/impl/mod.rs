@@ -12,7 +12,6 @@ use zinc_lexical::Keyword;
 use zinc_syntax::ImplStatement;
 use zinc_syntax::ImplementationLocalStatement;
 
-use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::r#type::state::State as ScopeTypeItemState;
@@ -87,17 +86,10 @@ impl Analyzer {
         for hoisted_statement in statement.statements.into_iter() {
             match hoisted_statement {
                 ImplementationLocalStatement::Const(statement) => {
-                    Scope::declare_constant(scope.clone(), statement, true)?;
+                    Scope::declare_constant(scope.clone(), statement)?;
                 }
                 ImplementationLocalStatement::Fn(statement) => {
-                    Scope::declare_type(
-                        scope.clone(),
-                        TypeStatementVariant::Fn(
-                            statement,
-                            FnStatementAnalyzerContext::Implementation,
-                        ),
-                        true,
-                    )?;
+                    Scope::declare_type(scope.clone(), TypeStatementVariant::Fn(statement))?;
                 }
                 ImplementationLocalStatement::Empty(_location) => {}
             }

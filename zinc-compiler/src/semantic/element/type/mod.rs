@@ -206,7 +206,7 @@ impl Type {
         identifier: String,
         fields: Vec<(String, Self)>,
         generics: Option<Vec<String>>,
-        scope: Option<Rc<RefCell<Scope>>>,
+        scope: Rc<RefCell<Scope>>,
     ) -> Self {
         let type_id = TYPE_INDEX.next(format!("structure {}", identifier));
 
@@ -223,7 +223,7 @@ impl Type {
         identifier: String,
         variants: Vec<Variant>,
         generics: Vec<String>,
-        scope: Option<Rc<RefCell<Scope>>>,
+        scope: Rc<RefCell<Scope>>,
     ) -> Result<Self, Error> {
         let type_id = TYPE_INDEX.next(format!("enumeration {}", identifier));
 
@@ -295,7 +295,7 @@ impl Type {
         location: Location,
         identifier: String,
         fields: Vec<ContractField>,
-        scope: Option<Rc<RefCell<Scope>>>,
+        scope: Rc<RefCell<Scope>>,
     ) -> Result<Self, Error> {
         let type_id = TYPE_INDEX.next(format!("contract {}", identifier));
 

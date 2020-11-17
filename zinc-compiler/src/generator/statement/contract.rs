@@ -20,25 +20,34 @@ pub struct Statement {
     pub location: Location,
     /// The contract storage fields ordered array.
     pub fields: Vec<ContractFieldType>,
+    /// Whether the contract is declared within a dependency project.
+    pub is_dependency: bool,
 }
 
 impl Statement {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(location: Location, fields: Vec<SemanticContractFieldType>) -> Self {
+    pub fn new(
+        location: Location,
+        fields: Vec<SemanticContractFieldType>,
+        is_dependency: bool,
+    ) -> Self {
         Self {
             location,
             fields: fields
                 .into_iter()
                 .filter_map(|field| ContractFieldType::try_from_semantic(&field))
                 .collect(),
+            is_dependency,
         }
     }
 }
 
 impl IBytecodeWritable for Statement {
     fn write_all(self, state: Rc<RefCell<State>>) {
-        state.borrow_mut().set_contract_storage(self.fields);
+        if !self.is_dependency {
+            state.borrow_mut().set_contract_storage(self.fields);
+        }
     }
 }

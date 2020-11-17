@@ -54,7 +54,7 @@ impl Source {
     ///
     /// Writes the module with all inner elements to the disk.
     ///
-    pub fn write_to(self, path: &PathBuf) -> anyhow::Result<()> {
+    pub fn write_to(&self, path: &PathBuf) -> anyhow::Result<()> {
         match self {
             Self::File(inner) => inner.write_to(path),
             Self::Directory(inner) => inner.write_to(path),

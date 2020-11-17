@@ -57,10 +57,8 @@ impl Enumeration {
         type_id: usize,
         variants: Vec<Variant>,
         generics: Vec<String>,
-        scope: Option<Rc<RefCell<Scope>>>,
+        scope: Rc<RefCell<Scope>>,
     ) -> Result<Self, Error> {
-        let scope = scope.unwrap_or_else(|| Scope::new(identifier.clone(), None).wrap());
-
         let mut variants_bigint = Vec::with_capacity(variants.len());
         for variant in variants.iter() {
             let value = IntegerConstant::try_from(&variant.literal)?;

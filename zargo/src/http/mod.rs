@@ -2,6 +2,8 @@
 //! The Zandbox HTTP client.
 //!
 
+pub mod downloader;
+
 use reqwest::Method;
 use reqwest::Url;
 

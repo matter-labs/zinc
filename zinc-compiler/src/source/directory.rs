@@ -164,9 +164,12 @@ impl Directory {
     ///
     /// Used mostly for analyzing dependencies before attaching them to the main scope tree.
     ///
-    pub fn modularize(self) -> anyhow::Result<Rc<RefCell<Scope>>> {
+    pub fn modularize(
+        self,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+    ) -> anyhow::Result<Rc<RefCell<Scope>>> {
         Ok(
-            EntryAnalyzer::define(Source::Directory(self), HashMap::new())
+            EntryAnalyzer::define(Source::Directory(self), dependencies, true)
                 .map_err(CompilerError::Semantic)
                 .map_err(|error| error.format())
                 .map_err(Error::Compiling)?,
@@ -182,7 +185,7 @@ impl Directory {
         manifest: Manifest,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
     ) -> anyhow::Result<Rc<RefCell<State>>> {
-        let scope = EntryAnalyzer::define(Source::Directory(self), dependencies)
+        let scope = EntryAnalyzer::define(Source::Directory(self), dependencies, false)
             .map_err(CompilerError::Semantic)
             .map_err(|error| error.format())
             .map_err(Error::Compiling)?;

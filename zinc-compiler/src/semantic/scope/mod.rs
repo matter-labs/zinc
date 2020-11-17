@@ -9,6 +9,7 @@ pub mod intrinsic;
 pub mod item;
 pub mod memory_type;
 pub mod stack;
+pub mod r#type;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -24,7 +25,7 @@ use zinc_syntax::Identifier;
 use crate::generator::statement::Statement as GeneratorStatement;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::path::Path;
-use crate::semantic::element::r#type::Type;
+use crate::semantic::element::r#type::Type as SemanticType;
 use crate::semantic::error::Error;
 use crate::semantic::scope::intrinsic::IntrinsicTypeId;
 use crate::source::Source;
@@ -39,6 +40,7 @@ use self::item::variable::Variable as VariableItem;
 use self::item::variant::Variant as VariantItem;
 use self::item::Item;
 use self::memory_type::MemoryType;
+use self::r#type::Type as ScopeType;
 
 ///
 /// A scope consists of a hashmap of the declared items and a reference to its parent.
@@ -49,19 +51,19 @@ use self::memory_type::MemoryType;
 ///
 #[derive(Debug, Clone)]
 pub struct Scope {
-    /// The scope name, that is, namespace name like module name, structure name, etc.
+    /// The scope name, e.g. module name, structure name, etc.
     name: String,
+    /// The scope type, e.g. module, implementation, function, etc.
+    r#type: ScopeType,
     /// The vertical parent scope, which the current one has access to.
     parent: Option<Rc<RefCell<Self>>>,
     /// The hashmap with items declared at the current scope level, with item names as keys.
     items: RefCell<HashMap<String, Rc<RefCell<Item>>>>,
-    /// Whether the scope is the intrinsic one, that is, the root scope with intrinsic items.
-    is_built_in: bool,
 }
 
 impl Scope {
     /// The scope items hashmap default capacity.
-    const ITEMS_INITIAL_CAPACITY: usize = 1024;
+    const ITEMS_INITIAL_CAPACITY: usize = 64;
 
     ///
     /// Initializes a scope with an explicit optional parent.
@@ -69,19 +71,24 @@ impl Scope {
     /// Beware that if you omit the `parent`, intrinsic functions and `std` will not be available
     /// throughout the scope stack. To create a scope with such items available, use `new_global`.
     ///
-    pub fn new(name: String, parent: Option<Rc<RefCell<Self>>>) -> Self {
+    pub fn new(name: String, r#type: ScopeType, parent: Option<Rc<RefCell<Self>>>) -> Self {
         Self {
             name,
+            r#type,
             parent,
             items: RefCell::new(HashMap::with_capacity(Self::ITEMS_INITIAL_CAPACITY)),
-            is_built_in: false,
         }
     }
 
     ///
     /// Initializes a global scope with the intrinsic one as its parent and the dependency modules.
     ///
-    pub fn new_global(name: String, dependencies: HashMap<String, Rc<RefCell<Scope>>>) -> Self {
+    pub fn new_module(
+        name: String,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+        is_entry: bool,
+        is_dependency_entry: bool,
+    ) -> Self {
         let mut items = HashMap::with_capacity(Self::ITEMS_INITIAL_CAPACITY + dependencies.len());
         for (name, scope) in dependencies.into_iter() {
             let module = ModuleItem::new_defined(None, name.clone(), scope, false);
@@ -89,11 +96,21 @@ impl Scope {
             items.insert(name, Item::Module(module).wrap());
         }
 
+        let r#type = if is_entry {
+            ScopeType::Entry {
+                is_dependency: is_dependency_entry,
+            }
+        } else {
+            ScopeType::Module {
+                is_dependency: is_dependency_entry,
+            }
+        };
+
         Self {
             name,
+            r#type,
             parent: Some(IntrinsicScope::initialize()),
             items: RefCell::new(items),
-            is_built_in: false,
         }
     }
 
@@ -103,17 +120,35 @@ impl Scope {
     pub fn new_intrinsic(name: &'static str) -> Self {
         Self {
             name: name.to_owned(),
+            r#type: ScopeType::Intrinsic,
             parent: None,
             items: RefCell::new(HashMap::with_capacity(Self::ITEMS_INITIAL_CAPACITY)),
-            is_built_in: true,
         }
     }
 
     ///
     /// Creates a child scope with `parent` as its parent.
     ///
-    pub fn new_child(name: String, parent: Rc<RefCell<Scope>>) -> Rc<RefCell<Self>> {
-        Self::new(name, Some(parent)).wrap()
+    pub fn new_child(
+        name: String,
+        r#type: ScopeType,
+        parent: Rc<RefCell<Scope>>,
+    ) -> Rc<RefCell<Self>> {
+        Self::new(name, r#type, Some(parent)).wrap()
+    }
+
+    ///
+    /// Returns the scope name.
+    ///
+    pub fn name(&self) -> String {
+        self.name.to_owned()
+    }
+
+    ///
+    /// Returns the scope type.
+    ///
+    pub fn r#type(&self) -> ScopeType {
+        self.r#type
     }
 
     ///
@@ -140,19 +175,33 @@ impl Scope {
     }
 
     ///
+    /// Whether the scope is located within a scope with the specified type.
+    ///
+    pub fn is_within(&self, r#type: ScopeType) -> bool {
+        if self.r#type == r#type {
+            true
+        } else {
+            match self.parent {
+                Some(ref parent) => parent.borrow().is_within(r#type),
+                None => false,
+            }
+        }
+    }
+
+    ///
     /// Internally defines all the items in the order they have been declared.
     ///
     pub fn define(&self) -> Result<(), Error> {
         let mut items: Vec<(String, Rc<RefCell<Item>>)> =
             self.items.clone().into_inner().into_iter().collect();
-        items.sort_by_key(|(_name, item)| item.borrow().item_id());
+        items.sort_by_key(|(_name, item)| RefCell::borrow(&item).item_id());
 
         for (name, item) in items.into_iter() {
             if Keyword::is_alias(name.as_str()) {
                 continue;
             }
 
-            item.borrow().define()?;
+            RefCell::borrow(&item).define()?;
         }
 
         Ok(())
@@ -162,7 +211,10 @@ impl Scope {
     /// Inserts an item, does not check if the item has been already declared.
     ///
     pub fn insert_item(scope: Rc<RefCell<Scope>>, name: String, item: Rc<RefCell<Item>>) {
-        scope.borrow().items.borrow_mut().insert(name, item);
+        RefCell::borrow(&scope)
+            .items
+            .borrow_mut()
+            .insert(name, item);
     }
 
     ///
@@ -173,16 +225,15 @@ impl Scope {
         identifier: Identifier,
         item: Rc<RefCell<Item>>,
     ) -> Result<(), Error> {
-        if let Ok(item) = scope.borrow().resolve_item(&identifier, true) {
+        if let Ok(item) = RefCell::borrow(&scope).resolve_item(&identifier, true) {
             return Err(Error::ScopeItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
-                reference: item.borrow().location(),
+                reference: RefCell::borrow(&item).location(),
             });
         }
 
-        scope
-            .borrow()
+        RefCell::borrow(&scope)
             .items
             .borrow_mut()
             .insert(identifier.name, item);
@@ -200,17 +251,16 @@ impl Scope {
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
         is_mutable: bool,
-        r#type: Type,
+        r#type: SemanticType,
         memory_type: MemoryType,
     ) -> Result<(), Error> {
-        if let Ok(item) = scope
-            .borrow()
-            .resolve_item(&identifier, !identifier.is_self_lowercase())
+        if let Ok(item) =
+            RefCell::borrow(&scope).resolve_item(&identifier, !identifier.is_self_lowercase())
         {
             return Err(Error::ScopeItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
-                reference: item.borrow().location(),
+                reference: RefCell::borrow(&item).location(),
             });
         }
 
@@ -223,7 +273,10 @@ impl Scope {
             memory_type,
         ));
 
-        scope.borrow().items.borrow_mut().insert(name, item.wrap());
+        RefCell::borrow(&scope)
+            .items
+            .borrow_mut()
+            .insert(name, item.wrap());
 
         Ok(())
     }
@@ -234,17 +287,17 @@ impl Scope {
     pub fn define_field(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
-        r#type: Type,
+        r#type: SemanticType,
         index: usize,
         is_public: bool,
         is_implicit: bool,
         is_immutable: bool,
     ) -> Result<(), Error> {
-        if let Ok(item) = scope.borrow().resolve_item(&identifier, false) {
+        if let Ok(item) = RefCell::borrow(&scope).resolve_item(&identifier, false) {
             return Err(Error::ScopeItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
-                reference: item.borrow().location(),
+                reference: RefCell::borrow(&item).location(),
             });
         }
 
@@ -259,7 +312,10 @@ impl Scope {
             is_immutable,
         ));
 
-        scope.borrow().items.borrow_mut().insert(name, item.wrap());
+        RefCell::borrow(&scope)
+            .items
+            .borrow_mut()
+            .insert(name, item.wrap());
 
         Ok(())
     }
@@ -271,13 +327,12 @@ impl Scope {
     pub fn declare_constant(
         scope: Rc<RefCell<Scope>>,
         statement: ConstStatement,
-        is_associated: bool,
     ) -> Result<(), Error> {
-        if let Ok(item) = scope.borrow().resolve_item(&statement.identifier, true) {
+        if let Ok(item) = RefCell::borrow(&scope).resolve_item(&statement.identifier, true) {
             return Err(Error::ScopeItemRedeclared {
                 location: statement.location,
                 name: statement.identifier.name.clone(),
-                reference: item.borrow().location(),
+                reference: RefCell::borrow(&item).location(),
             });
         }
 
@@ -286,10 +341,12 @@ impl Scope {
             statement.identifier.location,
             statement,
             scope.clone(),
-            is_associated,
         ));
 
-        scope.borrow().items.borrow_mut().insert(name, item.wrap());
+        RefCell::borrow(&scope)
+            .items
+            .borrow_mut()
+            .insert(name, item.wrap());
 
         Ok(())
     }
@@ -301,24 +358,22 @@ impl Scope {
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
         constant: Constant,
-        is_associated: bool,
     ) -> Result<(), Error> {
-        if let Ok(item) = scope.borrow().resolve_item(&identifier, true) {
+        if let Ok(item) = RefCell::borrow(&scope).resolve_item(&identifier, true) {
             return Err(Error::ScopeItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
-                reference: item.borrow().location(),
+                reference: RefCell::borrow(&item).location(),
             });
         }
 
         let name = identifier.name;
-        let item = Item::Constant(ConstantItem::new_defined(
-            identifier.location,
-            constant,
-            is_associated,
-        ));
+        let item = Item::Constant(ConstantItem::new_defined(identifier.location, constant));
 
-        scope.borrow().items.borrow_mut().insert(name, item.wrap());
+        RefCell::borrow(&scope)
+            .items
+            .borrow_mut()
+            .insert(name, item.wrap());
 
         Ok(())
     }
@@ -331,11 +386,11 @@ impl Scope {
         identifier: Identifier,
         constant: Constant,
     ) -> Result<(), Error> {
-        if let Ok(item) = scope.borrow().resolve_item(&identifier, false) {
+        if let Ok(item) = RefCell::borrow(&scope).resolve_item(&identifier, false) {
             return Err(Error::ScopeItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
-                reference: item.borrow().location(),
+                reference: RefCell::borrow(&item).location(),
             });
         }
 
@@ -346,7 +401,10 @@ impl Scope {
             constant,
         ));
 
-        scope.borrow().items.borrow_mut().insert(name, item.wrap());
+        RefCell::borrow(&scope)
+            .items
+            .borrow_mut()
+            .insert(name, item.wrap());
 
         Ok(())
     }
@@ -358,13 +416,12 @@ impl Scope {
     pub fn declare_type(
         scope: Rc<RefCell<Scope>>,
         statement: TypeStatementVariant,
-        is_associated: bool,
     ) -> Result<(), Error> {
-        if let Ok(item) = scope.borrow().resolve_item(&statement.identifier(), true) {
+        if let Ok(item) = RefCell::borrow(&scope).resolve_item(&statement.identifier(), true) {
             return Err(Error::ScopeItemRedeclared {
                 location: statement.location(),
                 name: statement.identifier().name.to_owned(),
-                reference: item.borrow().location(),
+                reference: RefCell::borrow(&item).location(),
             });
         }
 
@@ -373,10 +430,12 @@ impl Scope {
             Some(statement.location()),
             statement,
             scope.clone(),
-            is_associated,
         )?);
 
-        scope.borrow().items.borrow_mut().insert(name, item.wrap());
+        RefCell::borrow(&scope)
+            .items
+            .borrow_mut()
+            .insert(name, item.wrap());
 
         Ok(())
     }
@@ -387,15 +446,14 @@ impl Scope {
     pub fn define_type(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
-        r#type: Type,
-        is_associated: bool,
+        r#type: SemanticType,
         intermediate: Option<GeneratorStatement>,
     ) -> Result<(), Error> {
-        if let Ok(item) = scope.borrow().resolve_item(&identifier, true) {
+        if let Ok(item) = RefCell::borrow(&scope).resolve_item(&identifier, true) {
             return Err(Error::ScopeItemRedeclared {
                 location: r#type.location().unwrap_or(identifier.location),
                 name: identifier.name.clone(),
-                reference: item.borrow().location(),
+                reference: RefCell::borrow(&item).location(),
             });
         }
 
@@ -404,11 +462,13 @@ impl Scope {
             Some(identifier.location),
             r#type,
             false,
-            is_associated,
             intermediate,
         ));
 
-        scope.borrow().items.borrow_mut().insert(name, item.wrap());
+        RefCell::borrow(&scope)
+            .items
+            .borrow_mut()
+            .insert(name, item.wrap());
 
         Ok(())
     }
@@ -420,14 +480,14 @@ impl Scope {
         scope: Rc<RefCell<Scope>>,
         statement: ContractStatement,
     ) -> Result<(), Error> {
-        if let Some(location) = scope.borrow().get_contract_location() {
+        if let Some(location) = RefCell::borrow(&scope).get_contract_location() {
             return Err(Error::ScopeContractRedeclared {
                 location: statement.location,
                 reference: location,
             });
         }
 
-        Scope::declare_type(scope, TypeStatementVariant::Contract(statement), false)
+        Scope::declare_type(scope, TypeStatementVariant::Contract(statement))
     }
 
     ///
@@ -439,18 +499,26 @@ impl Scope {
         identifier: Identifier,
         module: Source,
         scope_crate: Rc<RefCell<Scope>>,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
         is_entry: bool,
+        is_dependency_entry: bool,
     ) -> Result<(), Error> {
-        if let Ok(item) = scope.borrow().resolve_item(&identifier, true) {
+        if let Ok(item) = RefCell::borrow(&scope).resolve_item(&identifier, true) {
             return Err(Error::ScopeItemRedeclared {
                 location: identifier.location,
                 name: identifier.name.clone(),
-                reference: item.borrow().location(),
+                reference: RefCell::borrow(&item).location(),
             });
         }
 
         let name = identifier.name.clone();
-        let module_scope = Self::new_global(identifier.name.clone(), HashMap::new()).wrap();
+        let module_scope = Self::new_module(
+            identifier.name.clone(),
+            dependencies.clone(),
+            is_entry,
+            is_dependency_entry,
+        )
+        .wrap();
         let module = ModuleItem::new_declared(
             Some(identifier.location),
             module_scope.clone(),
@@ -458,16 +526,19 @@ impl Scope {
             module,
             scope_crate,
             Some(scope.clone()),
+            dependencies,
             is_entry,
         )?;
         let item = Item::Module(module).wrap();
 
-        module_scope
-            .borrow()
+        RefCell::borrow(&module_scope)
             .items
             .borrow_mut()
             .insert(Keyword::SelfLowercase.to_string(), item.clone());
-        scope.borrow().items.borrow_mut().insert(name, item);
+        RefCell::borrow(&scope)
+            .items
+            .borrow_mut()
+            .insert(name, item);
 
         Ok(())
     }
@@ -477,8 +548,7 @@ impl Scope {
     /// the alias has not been declared yet.
     ///
     pub fn get_module_self_alias(scope: Rc<RefCell<Scope>>) -> Rc<RefCell<Item>> {
-        scope
-            .borrow()
+        RefCell::borrow(&scope)
             .items
             .borrow()
             .get(&Keyword::SelfLowercase.to_string())
@@ -495,12 +565,6 @@ impl Scope {
     /// If the `path` consists if more than one element, the elements starting from the 2nd are
     /// resolved non-recursively, that is, looking only at the first-level scope of the path element.
     ///
-    /// Associated items are declared not in the namespace itself, but in the `Self` alias of it.
-    /// So, if a path element's position is greater than 1 and the element is a namespace,
-    /// the algorithm looks for the item in the `Self`-alias scope. It prevents the situation, when
-    /// an item can be accessed from within other implementation items (e.g. methods) without
-    /// specifying the `Self::` prefix.
-    ///
     pub fn resolve_path(
         scope: Rc<RefCell<Scope>>,
         path: &Path,
@@ -511,23 +575,22 @@ impl Scope {
             let is_element_first = index == 0;
             let is_element_last = index == path.elements.len() - 1;
 
-            let item = current_scope
-                .borrow()
-                .resolve_item(identifier, is_element_first)?;
-            item.borrow().define()?;
+            let item =
+                RefCell::borrow(&current_scope).resolve_item(identifier, is_element_first)?;
+            RefCell::borrow(&item).define()?;
 
             if is_element_last {
                 return Ok(item);
             }
 
-            current_scope = match *item.borrow() {
+            current_scope = match *RefCell::borrow(&item) {
                 Item::Module(ref module) => module.define()?,
                 Item::Type(ref r#type) => {
                     let r#type = r#type.define()?;
                     match r#type {
-                        Type::Enumeration(ref inner) => inner.scope.to_owned(),
-                        Type::Structure(ref inner) => inner.scope.to_owned(),
-                        Type::Contract(ref inner) => inner.scope.to_owned(),
+                        SemanticType::Enumeration(ref inner) => inner.scope.to_owned(),
+                        SemanticType::Structure(ref inner) => inner.scope.to_owned(),
+                        SemanticType::Contract(ref inner) => inner.scope.to_owned(),
                         _ => {
                             return Err(Error::ScopeExpectedNamespace {
                                 location: identifier.location,
@@ -564,7 +627,7 @@ impl Scope {
             Some(item) => Ok(item.to_owned()),
             None => match self.parent {
                 Some(ref parent) if recursive => {
-                    parent.borrow().resolve_item(identifier, recursive)
+                    RefCell::borrow(&parent).resolve_item(identifier, recursive)
                 }
                 Some(_) | None => Err(Error::ScopeItemUndeclared {
                     location: identifier.location,
@@ -577,11 +640,10 @@ impl Scope {
     ///
     /// Resolves the `std::collections::MTreeMap` type.
     ///
-    /// An error is considered a bug, since the type is declared by the developer in the
-    /// intrinsic module.
+    /// Cannot panic, since the type is declared by the developer in the intrinsic module.
     ///
-    pub fn resolve_mtreemap(location: Location, scope: Rc<RefCell<Scope>>) -> Type {
-        match &*Scope::resolve_path(
+    pub fn resolve_mtreemap(location: Location, scope: Rc<RefCell<Scope>>) -> SemanticType {
+        let item = Scope::resolve_path(
             scope,
             &Path::new_complex(
                 location,
@@ -592,26 +654,33 @@ impl Scope {
                 ],
             ),
         )
-        .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
-        .borrow()
-        {
-            Item::Type(r#type) => match r#type
+        .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+
+        let item = RefCell::borrow(&item);
+        match &*item {
+            Item::Type(ref r#type) => match r#type
                 .define()
                 .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
             {
-                Type::Structure(mut structure)
+                SemanticType::Structure(mut structure)
                     if structure.type_id == IntrinsicTypeId::StdCollectionsMTreeMap as usize =>
                 {
                     structure
                         .set_generics(
                             location,
                             Some(vec![
-                                Type::integer_unsigned(None, zinc_const::bitlength::ETH_ADDRESS),
-                                Type::integer_unsigned(None, zinc_const::bitlength::INTEGER_MAX),
+                                SemanticType::integer_unsigned(
+                                    None,
+                                    zinc_const::bitlength::ETH_ADDRESS,
+                                ),
+                                SemanticType::integer_unsigned(
+                                    None,
+                                    zinc_const::bitlength::INTEGER_MAX,
+                                ),
                             ]),
                         )
                         .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
-                    Type::Structure(structure)
+                    SemanticType::Structure(structure)
                 }
                 _type => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
             },
@@ -626,7 +695,7 @@ impl Scope {
         self.items
             .borrow()
             .get(zinc_const::source::FUNCTION_MAIN_IDENTIFIER)
-            .and_then(|main| main.borrow().location())
+            .and_then(|main| RefCell::borrow(main).location())
     }
 
     ///
@@ -634,8 +703,10 @@ impl Scope {
     ///
     pub fn get_contract_location(&self) -> Option<Location> {
         for (_name, item) in self.items.borrow().iter() {
-            match *item.borrow() {
-                Item::Type(ref r#type) if r#type.is_contract() => return item.borrow().location(),
+            match *RefCell::borrow(item) {
+                Item::Type(ref r#type) if r#type.is_contract() => {
+                    return RefCell::borrow(item).location()
+                }
                 _ => {}
             }
         }
@@ -655,17 +726,10 @@ impl Scope {
                     return None;
                 }
 
-                Some(item.borrow().get_intermediate())
+                Some(RefCell::borrow(item).get_intermediate())
             })
             .flatten()
             .collect()
-    }
-
-    ///
-    /// Returns the scope name.
-    ///
-    pub fn name(&self) -> String {
-        self.name.to_owned()
     }
 
     ///
@@ -674,29 +738,39 @@ impl Scope {
     /// Is used for testing purposes.
     ///
     pub fn show(&self, level: usize) {
-        println!("{}==== Scope <{}> ====", "    ".repeat(level), self.name);
+        println!(
+            "{}==== {:?} `{}` ====",
+            "    ".repeat(level),
+            self.r#type,
+            self.name
+        );
 
         for (name, item) in self.items.borrow().iter() {
-            println!("{}{}: {}", "    ".repeat(level), name, item.borrow());
+            println!(
+                "{}{}: {}",
+                "    ".repeat(level),
+                name,
+                RefCell::borrow(&item)
+            );
 
             if Keyword::is_alias(name.as_str()) {
                 continue;
             }
 
-            if let Item::Module(ref module) = *item.borrow() {
+            if let Item::Module(ref module) = *RefCell::borrow(item) {
                 match module.scope() {
-                    Ok(scope) => scope.borrow().show(level + 1),
-                    Err(error) => log::warn!("SCOPE IS UNAVAILABLE: {:?}", error),
+                    Ok(scope) => RefCell::borrow(&scope).show(level + 1),
+                    Err(error) => log::warn!("During definition: {:?}", error),
                 }
             }
         }
 
         if let Some(parent) = self.parent.as_ref() {
-            if parent.borrow().is_built_in {
+            if matches!(RefCell::borrow(parent).r#type(), ScopeType::Intrinsic) {
                 return;
             }
 
-            parent.borrow().show(level + 1);
+            RefCell::borrow(parent).show(level + 1);
         }
     }
 }

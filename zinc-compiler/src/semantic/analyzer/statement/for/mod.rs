@@ -22,6 +22,7 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::memory_type::MemoryType;
+use crate::semantic::scope::r#type::Type as ScopeType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 
@@ -69,7 +70,7 @@ impl Analyzer {
                 }
             };
 
-        scope_stack.push(None);
+        scope_stack.push(None, ScopeType::Loop);
 
         let index_location = statement.index_identifier.location;
         let index_identifier = statement.index_identifier.name.to_owned();
