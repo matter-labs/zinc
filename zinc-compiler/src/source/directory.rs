@@ -9,7 +9,6 @@ use std::path::PathBuf;
 use std::rc::Rc;
 
 use anyhow::Context;
-use zinc_manifest::Manifest;
 
 use crate::error::Error as CompilerError;
 use crate::generator::module::Module;
@@ -182,7 +181,7 @@ impl Directory {
     ///
     pub fn compile(
         self,
-        manifest: Manifest,
+        manifest: zinc_manifest::Manifest,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
     ) -> anyhow::Result<Rc<RefCell<State>>> {
         let scope = EntryAnalyzer::define(Source::Directory(self), dependencies, false)

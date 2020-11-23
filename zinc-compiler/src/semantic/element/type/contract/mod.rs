@@ -15,6 +15,10 @@ use zinc_lexical::Keyword;
 use zinc_lexical::Location;
 use zinc_syntax::Identifier;
 
+use crate::semantic::element::r#type::function::intrinsic::contract_fetch::Function as ContractFetchFunction;
+use crate::semantic::element::r#type::function::intrinsic::contract_transfer::Function as ContractTransferFunction;
+use crate::semantic::element::r#type::function::intrinsic::Function as IntrinsicFunction;
+use crate::semantic::element::r#type::Function;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
@@ -86,6 +90,23 @@ impl Contract {
             fields,
             scope: scope.clone(),
         };
+
+        Scope::define_type(
+            scope.clone(),
+            Identifier::new(location, ContractFetchFunction::IDENTIFIER.to_owned()),
+            Type::Function(Function::Intrinsic(IntrinsicFunction::new_contract_fetch(
+                contract.clone(),
+            ))),
+            None,
+        )?;
+        Scope::define_type(
+            scope.clone(),
+            Identifier::new(location, ContractTransferFunction::IDENTIFIER.to_owned()),
+            Type::Function(Function::Intrinsic(IntrinsicFunction::ContractTransfer(
+                ContractTransferFunction::default(),
+            ))),
+            None,
+        )?;
 
         Scope::insert_item(
             scope,

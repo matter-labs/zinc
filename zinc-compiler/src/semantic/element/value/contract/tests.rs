@@ -44,7 +44,7 @@ contract Test {
     let expected = Err(Error::Semantic(SemanticError::StructureFieldExpected {
         location: Location::test(6, 38),
         r#type: "Test".to_owned(),
-        position: 4,
+        position: 2,
         expected: "b".to_owned(),
         found: "c".to_owned(),
     }));
@@ -79,7 +79,30 @@ contract Test {
 }
 
 #[test]
-fn error_field_out_of_range() {
+fn error_field_count_lesser() {
+    let input = r#"
+contract Test {
+    a: u8;
+    b: u8;
+
+    fn main() -> Self { Self { a: 5 } }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldCount {
+        location: Location::test(6, 30),
+        r#type: "Test".to_owned(),
+        expected: 2,
+        found: 1,
+    }));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_field_count_bigger() {
     let input = r#"
 contract Test {
     a: u8;
@@ -89,11 +112,11 @@ contract Test {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::StructureFieldOutOfRange {
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldCount {
         location: Location::test(6, 45),
         r#type: "Test".to_owned(),
-        expected: 4,
-        found: 5,
+        expected: 2,
+        found: 3,
     }));
 
     let result = crate::semantic::tests::compile_entry(input);

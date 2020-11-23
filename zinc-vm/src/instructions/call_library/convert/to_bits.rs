@@ -2,6 +2,8 @@
 //! The `std::convert::to_bits` function call.
 //!
 
+use std::collections::HashMap;
+
 use num::BigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
@@ -25,7 +27,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for ToBits {
         &self,
         mut cs: CS,
         state: &mut ExecutionState<E>,
-        _storage: Option<&mut S>,
+        _storages: Option<HashMap<BigInt, &mut S>>,
     ) -> Result<(), Error> {
         let scalar = state.evaluation_stack.pop()?.try_into_value()?;
         let expr = scalar.to_expression::<CS>();

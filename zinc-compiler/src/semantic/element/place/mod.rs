@@ -334,6 +334,7 @@ impl Place {
                         if field.is_immutable {
                             self.is_mutable = false;
                         }
+                        self.memory_type = MemoryType::ContractStorage { index: field.index };
 
                         return Ok((self, access));
                     }

@@ -5,7 +5,7 @@
 use actix_web::http::StatusCode;
 use actix_web::web;
 
-use crate::database::model::project::select_source::Input as ProjectSelectSourceInput;
+use crate::database::model;
 use crate::error::Error;
 use crate::response::Response;
 
@@ -30,7 +30,7 @@ pub async fn handle(
 
     let response = postgresql
         .select_project_source(
-            ProjectSelectSourceInput::new(query.name, query.version),
+            model::project::select_source::Input::new(query.name, query.version),
             None,
         )
         .await

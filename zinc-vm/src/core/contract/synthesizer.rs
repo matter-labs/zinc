@@ -2,6 +2,7 @@
 //! The virtual machine contract synthesizer.
 //!
 
+use std::collections::HashMap;
 use std::marker::PhantomData;
 
 use num::BigInt;
@@ -10,12 +11,9 @@ use franklin_crypto::bellman;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::SynthesisError;
 
-use zinc_build::Contract as BytecodeContract;
-use zinc_build::ContractMethod;
-use zinc_zksync::TransactionMsg;
-
 use crate::constraint_systems::dedup::Dedup as DedupCS;
 use crate::constraint_systems::logging::Logging as LoggingCS;
+use crate::core::contract::storage::keeper::IKeeper;
 use crate::core::contract::State;
 use crate::error::Error;
 use crate::gadgets::contract::merkle_tree::hasher::sha256::Hasher as Sha256Hasher;
@@ -26,10 +24,11 @@ use crate::IEngine;
 pub struct Synthesizer<'a, E: IEngine, S: IMerkleTree<E>> {
     pub inputs: Option<Vec<BigInt>>,
     pub output: &'a mut Option<Result<Vec<Option<BigInt>>, Error>>,
-    pub bytecode: BytecodeContract,
-    pub method: ContractMethod,
+    pub bytecode: zinc_build::Contract,
+    pub method: zinc_build::ContractMethod,
     pub storage: S,
-    pub transaction: TransactionMsg,
+    pub keeper: Box<dyn IKeeper>,
+    pub transaction: zinc_zksync::TransactionMsg,
 
     pub _pd: PhantomData<E>,
 }
@@ -44,10 +43,19 @@ where
             cs.namespace(|| "storage init"),
             self.storage,
         )?;
+        let mut storages = HashMap::with_capacity(1);
+        storages.insert(
+            self.inputs
+                .as_ref()
+                .map(|inputs| inputs[0].to_owned())
+                .unwrap_or_default(),
+            storage,
+        );
 
         let mut contract = State::new(
             DedupCS::new(LoggingCS::new(cs)),
-            storage,
+            storages,
+            self.keeper,
             self.method.name,
             self.transaction,
         );

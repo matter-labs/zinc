@@ -10,6 +10,7 @@ use crate::generator::expression::operand::Operand as GeneratorExpressionOperand
 use crate::generator::r#type::Type as GeneratorType;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::path::Path;
+use crate::semantic::element::place::memory_type::MemoryType;
 use crate::semantic::element::place::Place;
 use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
@@ -17,7 +18,6 @@ use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::Item as ScopeItem;
-use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::Scope;
 
 ///
@@ -44,16 +44,7 @@ impl Translator {
                         path_last_identifier,
                         variable.r#type.to_owned(),
                         variable.is_mutable,
-                        variable.memory_type.to_owned().into(),
-                    )),
-                    None,
-                )),
-                ScopeItem::Field(ref field) => Ok((
-                    Element::Place(Place::new(
-                        path_last_identifier,
-                        field.r#type.to_owned(),
-                        false,
-                        MemoryType::ContractStorage { index: field.index }.into(),
+                        MemoryType::Stack,
                     )),
                     None,
                 )),
@@ -86,6 +77,10 @@ impl Translator {
                     Ok((Element::Type(r#type), None))
                 }
                 ScopeItem::Module(_) => Ok((Element::Module(path_last_identifier), None)),
+                ScopeItem::Field(ref field) => Err(Error::ContractStorageFieldWithoutInstance {
+                    location,
+                    found: field.identifier.to_owned(),
+                }),
             },
             TranslationRule::Value => match *Scope::resolve_path(scope, &path)?.borrow() {
                 ScopeItem::Variable(ref variable) => {
@@ -99,26 +94,7 @@ impl Translator {
                                 path_last_identifier,
                                 r#type,
                                 variable.is_mutable,
-                                variable.memory_type.to_owned().into(),
-                            )
-                            .into()
-                        })
-                        .map(GeneratorExpressionOperand::Place);
-
-                    Ok((element, intermediate))
-                }
-                ScopeItem::Field(ref field) => {
-                    let value = Value::try_from_type(&field.r#type, false, Some(location))?;
-                    let r#type = value.r#type();
-                    let element = Element::Value(value);
-
-                    let intermediate = GeneratorType::try_from_semantic(&r#type)
-                        .map(|_| {
-                            Place::new(
-                                path_last_identifier,
-                                r#type,
-                                false,
-                                MemoryType::ContractStorage { index: field.index }.into(),
+                                MemoryType::Stack,
                             )
                             .into()
                         })
@@ -163,6 +139,10 @@ impl Translator {
                     Ok((Element::Type(r#type), None))
                 }
                 ScopeItem::Module(_) => Ok((Element::Module(path_last_identifier), None)),
+                ScopeItem::Field(ref field) => Err(Error::ContractStorageFieldWithoutInstance {
+                    location,
+                    found: field.identifier.to_owned(),
+                }),
             },
             TranslationRule::Constant => match *Scope::resolve_path(scope, &path)?.borrow() {
                 ScopeItem::Constant(ref constant) => {
@@ -186,6 +166,10 @@ impl Translator {
                         intermediate.map(GeneratorExpressionOperand::Constant),
                     ))
                 }
+                ScopeItem::Field(ref field) => Err(Error::ContractStorageFieldWithoutInstance {
+                    location,
+                    found: field.identifier.to_owned(),
+                }),
                 ref item => Err(Error::ExpressionNonConstantElement {
                     location: path.location,
                     found: item.to_string(),

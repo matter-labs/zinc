@@ -15,17 +15,17 @@ use num::Zero;
 
 use zinc_build::Instruction;
 use zinc_build::LibraryFunctionIdentifier;
-use zinc_build::ScalarType;
-use zinc_build::Type as BuildType;
+use zinc_lexical::Location;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::operand::place::Place;
+use crate::generator::r#type::contract_field::ContractField;
+use crate::generator::r#type::Type;
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
 use crate::semantic::element::place::memory_type::MemoryType;
-use zinc_lexical::Location;
 
 use self::element::Element;
 use self::operand::Operand;
@@ -119,10 +119,14 @@ impl Expression {
                     Some(location),
                 );
             }
-            MemoryType::ContractStorage => {
+            MemoryType::ContractStorage { .. } => {
                 let element_size = place.element_size;
                 let total_size = place.total_size;
                 let address = state.borrow_mut().define_variable(None, total_size);
+                let reference_address = state
+                    .borrow()
+                    .get_variable_address(place.identifier.name.as_str())
+                    .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
 
                 let storage_index = if let Some(SemanticPlaceElement::ContractField {
                     access:
@@ -135,6 +139,13 @@ impl Expression {
                 {
                     let position = *position;
 
+                    state.borrow_mut().push_instruction(
+                        Instruction::Load(zinc_build::Load::new(
+                            reference_address,
+                            Type::integer_unsigned(zinc_const::bitlength::ETH_ADDRESS).size(),
+                        )),
+                        Some(location),
+                    );
                     IntegerConstant::new(
                         BigInt::from(position),
                         false,
@@ -184,6 +195,13 @@ impl Expression {
                     Some(location),
                 );
 
+                state.borrow_mut().push_instruction(
+                    Instruction::Load(zinc_build::Load::new(
+                        reference_address,
+                        Type::integer_unsigned(zinc_const::bitlength::ETH_ADDRESS).size(),
+                    )),
+                    Some(location),
+                );
                 IntegerConstant::new(
                     BigInt::from(storage_index),
                     false,
@@ -257,10 +275,14 @@ impl Expression {
                     Some(location),
                 );
             }
-            MemoryType::ContractStorage => {
+            MemoryType::ContractStorage { .. } => {
                 let element_size = place.element_size;
                 let total_size = place.total_size;
                 let address = state.borrow_mut().define_variable(None, total_size);
+                let reference_address = state
+                    .borrow()
+                    .get_variable_address(place.identifier.name.as_str())
+                    .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
 
                 let storage_index = if let Some(SemanticPlaceElement::ContractField {
                     access:
@@ -273,6 +295,13 @@ impl Expression {
                 {
                     let position = *position;
 
+                    state.borrow_mut().push_instruction(
+                        Instruction::Load(zinc_build::Load::new(
+                            reference_address,
+                            Type::integer_unsigned(zinc_const::bitlength::ETH_ADDRESS).size(),
+                        )),
+                        Some(location),
+                    );
                     IntegerConstant::new(
                         BigInt::from(position),
                         false,
@@ -342,6 +371,13 @@ impl Expression {
                     Some(location),
                 );
 
+                state.borrow_mut().push_instruction(
+                    Instruction::Load(zinc_build::Load::new(
+                        reference_address,
+                        Type::integer_unsigned(zinc_const::bitlength::ETH_ADDRESS).size(),
+                    )),
+                    Some(location),
+                );
                 IntegerConstant::new(
                     BigInt::from(storage_index),
                     false,
@@ -390,7 +426,7 @@ impl Expression {
     fn call_debug(
         state: Rc<RefCell<State>>,
         format: String,
-        input_types: Vec<BuildType>,
+        input_types: Vec<zinc_build::Type>,
         location: Location,
     ) {
         state.borrow_mut().push_instruction(
@@ -402,9 +438,25 @@ impl Expression {
     ///
     /// Translates an `require(...)` function call into the bytecode.
     ///
-    fn call_assert(state: Rc<RefCell<State>>, message: Option<String>, location: Location) {
+    fn call_require(state: Rc<RefCell<State>>, message: Option<String>, location: Location) {
         state.borrow_mut().push_instruction(
             Instruction::Require(zinc_build::Require::new(message)),
+            Some(location),
+        );
+    }
+
+    ///
+    /// Translates an `<Contract>::fetch(...)` function call into the bytecode.
+    ///
+    fn call_contract_fetch(
+        state: Rc<RefCell<State>>,
+        fields: Vec<ContractField>,
+        location: Location,
+    ) {
+        state.borrow_mut().push_instruction(
+            Instruction::StorageFetch(zinc_build::StorageFetch::new(
+                fields.into_iter().map(|field| field.into()).collect(),
+            )),
             Some(location),
         );
     }
@@ -573,7 +625,7 @@ impl IBytecodeWritable for Expression {
                         state.borrow_mut().push_instruction(
                             Instruction::Push(zinc_build::Push::new(
                                 BigInt::one(),
-                                ScalarType::Boolean,
+                                zinc_build::ScalarType::Boolean,
                             )),
                             None,
                         );
@@ -599,7 +651,7 @@ impl IBytecodeWritable for Expression {
                         state.borrow_mut().push_instruction(
                             Instruction::Push(zinc_build::Push::new(
                                 BigInt::zero(),
-                                ScalarType::Boolean,
+                                zinc_build::ScalarType::Boolean,
                             )),
                             None,
                         );
@@ -702,7 +754,9 @@ impl IBytecodeWritable for Expression {
                         } else {
                             expression.write_all(state.clone());
                             state.borrow_mut().push_instruction(
-                                Instruction::Cast(zinc_build::Cast::new(ScalarType::Field)),
+                                Instruction::Cast(zinc_build::Cast::new(
+                                    zinc_build::ScalarType::Field,
+                                )),
                                 Some(location),
                             );
                             if access.slice_length == 1 {
@@ -759,7 +813,10 @@ impl IBytecodeWritable for Expression {
                         location,
                     ),
                     Operator::CallRequire { message } => {
-                        Self::call_assert(state.clone(), message, location)
+                        Self::call_require(state.clone(), message, location)
+                    }
+                    Operator::CallContractFetch { fields } => {
+                        Self::call_contract_fetch(state.clone(), fields, location)
                     }
                     Operator::CallLibrary {
                         identifier,

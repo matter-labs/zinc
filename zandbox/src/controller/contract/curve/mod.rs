@@ -32,7 +32,7 @@ pub async fn handle(app_data: crate::WebData) -> crate::Result<ResponseBody, Err
         .into_iter()
         .map(|instance| {
             ResponseInstance::new(
-                zinc_zksync::eth_address_from_vec(instance.eth_address),
+                zinc_zksync::address_from_slice(instance.eth_address.as_slice()),
                 instance.name,
                 instance.version,
                 instance.instance,

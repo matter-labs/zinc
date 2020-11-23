@@ -25,6 +25,7 @@ pub use self::data::value::Value;
 pub use self::error::Error;
 pub use self::instructions::call_library::function_identifier::LibraryFunctionIdentifier;
 pub use self::instructions::call_library::CallLibrary;
+pub use self::instructions::contract::fetch::StorageFetch;
 pub use self::instructions::contract::load::StorageLoad;
 pub use self::instructions::contract::store::StorageStore;
 pub use self::instructions::data_stack::load::Load;

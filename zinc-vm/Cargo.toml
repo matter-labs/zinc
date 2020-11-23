@@ -26,6 +26,10 @@ hex = "0.4"
 sha2 = "0.9"
 num = "0.3"
 
+sqlx = { version = "0.4", default-features = false, features = [ "runtime-async-std-native-tls", "macros", "postgres", "json" ] }
+
+zksync = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
+zksync_types = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
 franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc" }
 
 zinc-const = { path = "../zinc-const" }

@@ -4,16 +4,9 @@
 
 use zksync::web3::types::Address;
 use zksync::web3::types::H256;
-use zksync_eth_signer::PrivateKeySigner;
-use zksync_types::AccountId;
-
-use zinc_build::Application as BuildApplication;
-use zinc_build::Contract as BuildContract;
 
 use crate::database::client::Client as DatabaseClient;
-use crate::database::model::contract::select_one::Input as ContractSelectOneInput;
-use crate::database::model::field::select::Input as FieldSelectInput;
-use crate::database::model::project::select_one::Input as ProjectSelectOneInput;
+use crate::database::model;
 use crate::error::Error;
 use crate::storage::Storage;
 
@@ -27,7 +20,7 @@ pub struct Contract {
     /// The contract ETH private key.
     pub eth_private_key: H256,
     /// The contract zkSync account ID.
-    pub account_id: AccountId,
+    pub account_id: zksync_types::AccountId,
 
     /// The contract name.
     pub name: String,
@@ -37,9 +30,9 @@ pub struct Contract {
     pub instance: String,
 
     /// The contract wallet.
-    pub wallet: zksync::Wallet<PrivateKeySigner>,
+    pub wallet: zksync::Wallet<zksync_eth_signer::PrivateKeySigner>,
     /// The pre-built contract ready to be called.
-    pub build: BuildContract,
+    pub build: zinc_build::Contract,
     /// The contract storage.
     pub storage: Storage,
 }
@@ -54,11 +47,11 @@ impl Contract {
         eth_address: Address,
     ) -> Result<Self, Error> {
         let contract = postgresql
-            .select_contract(ContractSelectOneInput::new(eth_address), None)
+            .select_contract(model::contract::select_one::Input::new(eth_address), None)
             .await?;
         let project = postgresql
             .select_project(
-                ProjectSelectOneInput::new(
+                model::project::select_one::Input::new(
                     contract.name.clone(),
                     semver::Version::parse(contract.version.as_str())
                         .expect(zinc_const::panic::DATA_CONVERSION),
@@ -67,29 +60,30 @@ impl Contract {
             )
             .await?;
 
-        let eth_private_key = zinc_zksync::eth_private_key_from_vec(contract.eth_private_key);
+        let eth_private_key =
+            zinc_zksync::private_key_from_slice(contract.eth_private_key.as_slice());
 
         let provider = zksync::Provider::new(network);
         let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
             eth_address,
-            PrivateKeySigner::new(eth_private_key),
+            zksync_eth_signer::PrivateKeySigner::new(eth_private_key),
             network,
         )
         .await?;
         let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
 
-        let application = BuildApplication::try_from_slice(project.bytecode.as_slice())
+        let application = zinc_build::Application::try_from_slice(project.bytecode.as_slice())
             .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
         let build = match application {
-            BuildApplication::Circuit(_circuit) => {
+            zinc_build::Application::Circuit(_circuit) => {
                 panic!(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION)
             }
-            BuildApplication::Contract(contract) => contract,
+            zinc_build::Application::Contract(contract) => contract,
         };
 
         let database_fields = postgresql
             .select_fields(
-                FieldSelectInput::new(contract.account_id as AccountId),
+                model::field::select::Input::new(contract.account_id as zksync_types::AccountId),
                 None,
             )
             .await?;
@@ -104,7 +98,7 @@ impl Contract {
         Ok(Self {
             eth_address,
             eth_private_key,
-            account_id: contract.account_id as AccountId,
+            account_id: contract.account_id as zksync_types::AccountId,
 
             name: contract.name,
             version: semver::Version::parse(contract.version.as_str())

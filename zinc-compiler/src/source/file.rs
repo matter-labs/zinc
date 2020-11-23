@@ -12,7 +12,6 @@ use std::rc::Rc;
 use anyhow::Context;
 
 use zinc_lexical::FILE_INDEX;
-use zinc_manifest::Manifest;
 use zinc_syntax::Module as SyntaxModule;
 use zinc_syntax::Parser;
 
@@ -149,7 +148,7 @@ impl File {
     ///
     pub fn compile(
         self,
-        manifest: Manifest,
+        manifest: zinc_manifest::Manifest,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
     ) -> anyhow::Result<Rc<RefCell<State>>> {
         let scope = EntryAnalyzer::define(Source::File(self), dependencies, false)

@@ -13,8 +13,6 @@ use franklin_crypto::bellman::groth16::Proof;
 use franklin_crypto::bellman::groth16::VerifyingKey;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
-use zinc_build::Application as BuildApplication;
-
 use zinc_vm::Facade;
 
 use crate::arguments::command::IExecutable;
@@ -62,7 +60,7 @@ impl IExecutable for Command {
         // Read the application
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let application = BuildApplication::try_from_slice(bytes.as_slice())
+        let application = zinc_build::Application::try_from_slice(bytes.as_slice())
             .map_err(Error::ApplicationDecoding)?;
 
         // Read the verification key
@@ -80,8 +78,8 @@ impl IExecutable for Command {
             .error_with_path(|| self.output_path.to_string_lossy())?;
         let output_json = serde_json::from_str(output_text.as_str())?;
         let output_type = match application {
-            BuildApplication::Circuit(circuit) => circuit.output,
-            BuildApplication::Contract(contract) => {
+            zinc_build::Application::Circuit(circuit) => circuit.output,
+            zinc_build::Application::Contract(contract) => {
                 let method_name = self.method.ok_or(Error::MethodNameNotFound)?;
                 let method = contract
                     .methods

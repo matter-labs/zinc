@@ -835,30 +835,26 @@ impl Value {
                 is_literal,
             )),
             Type::Array(inner) => Self::Array(Array::new_with_values(
-                location.or_else(|| inner.location.to_owned()),
+                location.or(inner.location),
                 *inner.r#type.to_owned(),
                 inner.size,
             )),
             Type::Tuple(inner) => Self::Tuple(Tuple::new_with_values(
-                location.or_else(|| inner.location),
+                location.or(inner.location),
                 inner.types.to_owned(),
             )),
             Type::Structure(inner) => Self::Structure(Structure::new_with_type(
-                location.or_else(|| inner.location),
+                location.or(inner.location),
                 inner.to_owned(),
             )),
             Type::Enumeration(inner) => {
-                let mut integer = Integer::new(
-                    location.or_else(|| inner.location),
-                    false,
-                    inner.bitlength,
-                    false,
-                );
+                let mut integer =
+                    Integer::new(location.or(inner.location), false, inner.bitlength, false);
                 integer.set_enumeration(inner.to_owned());
                 Self::Integer(integer)
             }
             Type::Contract(inner) => Self::Contract(Contract::new_with_type(
-                location.or_else(|| Some(inner.location)),
+                Some(location.unwrap_or(inner.location)),
                 inner.to_owned(),
             )),
             _ => panic!(zinc_const::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),

@@ -262,7 +262,10 @@ contract Data {
 }
 "#;
 
-    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+    let result = crate::semantic::tests::compile_entry(input);
+    dbg!(&result);
+
+    assert!(result.is_ok());
 }
 
 #[test]

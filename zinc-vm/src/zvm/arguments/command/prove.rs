@@ -11,7 +11,6 @@ use structopt::StructOpt;
 use franklin_crypto::bellman::groth16::Parameters;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
-use zinc_build::Application as BuildApplication;
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::InputBuild;
 use zinc_zksync::TransactionMsg;
@@ -58,7 +57,7 @@ impl IExecutable for Command {
         // Read the bytecode
         let bytecode =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let application = BuildApplication::try_from_slice(bytecode.as_slice())
+        let application = zinc_build::Application::try_from_slice(bytecode.as_slice())
             .map_err(Error::ApplicationDecoding)?;
 
         // Read the input file
@@ -74,7 +73,7 @@ impl IExecutable for Command {
             .error_with_path(|| proving_key_path.to_string_lossy())?;
 
         let proof = match application {
-            BuildApplication::Circuit(circuit) => match input {
+            zinc_build::Application::Circuit(circuit) => match input {
                 InputBuild::Circuit { arguments } => {
                     let input_type = circuit.input.clone();
                     let arguments = zinc_build::Value::try_from_typed_json(arguments, input_type)?;
@@ -91,7 +90,7 @@ impl IExecutable for Command {
                     })
                 }
             },
-            BuildApplication::Contract(contract) => match input {
+            zinc_build::Application::Contract(contract) => match input {
                 InputBuild::Circuit { .. } => {
                     return Err(Error::InputDataInvalid {
                         expected: "contract".to_owned(),

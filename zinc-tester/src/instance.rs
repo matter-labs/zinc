@@ -8,15 +8,12 @@ use std::thread;
 
 use anyhow::Context;
 
-use zinc_build::Application as BuildApplication;
 use zinc_compiler::EntryAnalyzer;
 use zinc_compiler::Error as CompilerError;
 use zinc_compiler::IBytecodeWritable;
 use zinc_compiler::Module as IntermediateApplication;
 use zinc_compiler::Source;
 use zinc_compiler::State;
-use zinc_manifest::Manifest;
-use zinc_manifest::ProjectType;
 
 use crate::error::Error;
 
@@ -27,7 +24,7 @@ pub struct Instance {
     /// The input data template value.
     pub input: zinc_build::Value,
     /// The instance bytecode with metadata.
-    pub application: BuildApplication,
+    pub application: zinc_build::Application,
 }
 
 impl Instance {
@@ -42,9 +39,9 @@ impl Instance {
         input: serde_json::Value,
     ) -> anyhow::Result<Self> {
         let project_type = if method.is_some() {
-            ProjectType::Contract
+            zinc_manifest::ProjectType::Contract
         } else {
-            ProjectType::Circuit
+            zinc_manifest::ProjectType::Circuit
         };
 
         let source = Source::test(code, path.clone(), HashMap::new())
@@ -52,12 +49,13 @@ impl Instance {
 
         let application = thread::Builder::new()
             .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
-            .spawn(move || -> anyhow::Result<BuildApplication> {
+            .spawn(move || -> anyhow::Result<zinc_build::Application> {
                 let scope = EntryAnalyzer::define(source, HashMap::new(), false)
                     .map_err(CompilerError::Semantic)
                     .map_err(|error| anyhow::anyhow!(error.format()))?;
 
-                let state = State::new(Manifest::new(name.as_str(), project_type)).wrap();
+                let state =
+                    State::new(zinc_manifest::Manifest::new(name.as_str(), project_type)).wrap();
                 IntermediateApplication::new(scope.borrow().get_intermediate())
                     .write_all(state.clone());
 
@@ -68,8 +66,8 @@ impl Instance {
             .expect(zinc_const::panic::SYNCHRONIZATION)?;
 
         let input_type = match application {
-            BuildApplication::Circuit(ref circuit) => circuit.input.to_owned(),
-            BuildApplication::Contract(ref contract) => {
+            zinc_build::Application::Circuit(ref circuit) => circuit.input.to_owned(),
+            zinc_build::Application::Contract(ref contract) => {
                 let method = method
                     .ok_or(Error::MethodMissing)
                     .with_context(|| path.to_string_lossy().to_string())?;

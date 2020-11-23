@@ -5,12 +5,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use num::BigInt;
-
 use zinc_build::Instruction;
 use zinc_lexical::Location;
 
-use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::Expression;
 use crate::generator::r#type::Type;
 use crate::generator::state::State;
@@ -53,34 +50,32 @@ impl IBytecodeWritable for Statement {
                 None => continue,
             };
 
-            let size = r#type.size();
-            let address = state.borrow_mut().define_variable(
-                if !binding.is_wildcard {
-                    Some(binding.identifier.name)
-                } else {
-                    None
-                },
-                size,
-            );
-
             match r#type {
                 Type::Contract { fields } => {
-                    for (index, field) in fields.into_iter().enumerate().rev() {
-                        IntegerConstant::new(
-                            BigInt::from(index),
-                            false,
-                            zinc_const::bitlength::FIELD,
-                        )
-                        .write_all(state.clone());
-                        state.borrow_mut().push_instruction(
-                            Instruction::StorageStore(zinc_build::StorageStore::new(
-                                field.r#type.size(),
-                            )),
-                            Some(self.location),
-                        );
-                    }
+                    let size = fields
+                        .first()
+                        .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+                        .r#type
+                        .size();
+                    let address = state
+                        .borrow_mut()
+                        .define_variable(Some(binding.identifier.name), size);
+                    state.borrow_mut().push_instruction(
+                        Instruction::Store(zinc_build::Store::new(address, size)),
+                        Some(self.location),
+                    );
                 }
                 r#type => {
+                    let size = r#type.size();
+                    let address = state.borrow_mut().define_variable(
+                        if !binding.is_wildcard {
+                            Some(binding.identifier.name)
+                        } else {
+                            None
+                        },
+                        size,
+                    );
+
                     if let Some(scalar_type) = r#type.into() {
                         state.borrow_mut().push_instruction(
                             Instruction::Cast(zinc_build::Cast::new(scalar_type)),

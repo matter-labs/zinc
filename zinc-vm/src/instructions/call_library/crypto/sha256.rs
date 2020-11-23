@@ -2,6 +2,10 @@
 //! The `std::crypto::sha256` function call.
 //!
 
+use std::collections::HashMap;
+
+use num::BigInt;
+
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::sha256;
 
@@ -36,7 +40,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Sha256 {
         &self,
         mut cs: CS,
         state: &mut ExecutionState<E>,
-        _storage: Option<&mut S>,
+        _storages: Option<HashMap<BigInt, &mut S>>,
     ) -> Result<(), Error> {
         let mut bits = Vec::new();
         for i in 0..self.message_length {

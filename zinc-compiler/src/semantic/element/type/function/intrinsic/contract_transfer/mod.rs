@@ -1,6 +1,9 @@
 //!
-//! The semantic analyzer `zksync` library `transfer` function element.
+//! The semantic analyzer `<Contract>::transfer` intrinsic function element.
 //!
+
+#[cfg(test)]
+mod tests;
 
 use std::fmt;
 
@@ -14,7 +17,7 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 
 ///
-/// The semantic analyzer `zksync` library `transfer` function element.
+/// The semantic analyzer `<Contract>::transfer` intrinsic function element.
 ///
 #[derive(Debug, Clone)]
 pub struct Function {
@@ -30,7 +33,7 @@ impl Default for Function {
     fn default() -> Self {
         Self {
             location: None,
-            library_identifier: LibraryFunctionIdentifier::ZksyncTransfer,
+            library_identifier: LibraryFunctionIdentifier::ContractTransfer,
             identifier: Self::IDENTIFIER,
         }
     }
@@ -40,17 +43,20 @@ impl Function {
     /// The function identifier.
     pub const IDENTIFIER: &'static str = "transfer";
 
+    /// The position of the `sender` argument in the function argument list.
+    pub const ARGUMENT_INDEX_SENDER: usize = 0;
+
     /// The position of the `recipient` argument in the function argument list.
-    pub const ARGUMENT_INDEX_RECIPIENT: usize = 0;
+    pub const ARGUMENT_INDEX_RECIPIENT: usize = 1;
 
     /// The position of the `token_address` argument in the function argument list.
-    pub const ARGUMENT_INDEX_TOKEN_ADDRESS: usize = 1;
+    pub const ARGUMENT_INDEX_TOKEN_ADDRESS: usize = 2;
 
     /// The position of the `amount` argument in the function argument list.
-    pub const ARGUMENT_INDEX_AMOUNT: usize = 2;
+    pub const ARGUMENT_INDEX_AMOUNT: usize = 3;
 
     /// The expected number of the function arguments.
-    pub const ARGUMENT_COUNT: usize = 3;
+    pub const ARGUMENT_COUNT: usize = 4;
 
     ///
     /// Calls the function with the `argument_list`, validating the call.
@@ -74,6 +80,29 @@ impl Function {
             };
 
             actual_params.push((r#type, location));
+        }
+
+        match actual_params.get(Self::ARGUMENT_INDEX_SENDER) {
+            Some((Type::Contract(_), _location)) => {}
+            Some((r#type, location)) => {
+                return Err(Error::FunctionArgumentType {
+                    location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                    function: self.identifier.to_owned(),
+                    name: "sender".to_owned(),
+                    position: Self::ARGUMENT_INDEX_SENDER + 1,
+                    expected: "{contract}".to_owned(),
+                    found: r#type.to_string(),
+                })
+            }
+            None => {
+                return Err(Error::FunctionArgumentCount {
+                    location,
+                    function: self.identifier.to_owned(),
+                    expected: Self::ARGUMENT_COUNT,
+                    found: actual_params.len(),
+                    reference: None,
+                })
+            }
         }
 
         match actual_params.get(Self::ARGUMENT_INDEX_RECIPIENT) {
@@ -172,7 +201,7 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{}(recipient: u160, token_address: u160, amount: u248)",
+            "{}(sender: u160, recipient: u160, token_address: u160, amount: u248)",
             self.identifier
         )
     }

@@ -11,6 +11,16 @@ use crate::IEngine;
 
 pub trait IMerkleTree<E: IEngine> {
     ///
+    /// Creates a contract storage from the specified values.
+    ///
+    fn from_build(
+        field_types: Vec<zinc_build::ContractFieldType>,
+        value: zinc_build::Value,
+    ) -> Result<Self, Error>
+    where
+        Self: Sized;
+
+    ///
     /// Loads a leaf value with authentication path at `index`.
     ///
     fn load(&self, index: BigInt) -> Result<Leaf<E>, Error>;
@@ -24,6 +34,11 @@ pub trait IMerkleTree<E: IEngine> {
     /// Returns the storage values.
     ///
     fn into_values(self) -> Vec<LeafOutput>;
+
+    ///
+    /// Returns the storage field types.
+    ///
+    fn types(&self) -> &[zinc_build::ContractFieldType];
 
     ///
     /// Returns the Merkle tree root hash.

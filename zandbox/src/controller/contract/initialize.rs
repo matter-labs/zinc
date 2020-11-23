@@ -10,9 +10,7 @@ use actix_web::web;
 use zksync::operations::SyncTransactionHandle;
 use zksync_types::tx::ZkSyncTx;
 
-use crate::database::model::contract::insert_one::Input as ContractInsertOneInput;
-use crate::database::model::project::insert_one::Input as ProjectInsertOneInput;
-use crate::database::model::project::select_one::Input as ProjectSelectOneInput;
+use crate::database::model;
 use crate::error::Error;
 use crate::response::Response;
 
@@ -138,8 +136,11 @@ pub async fn handle(
 
         match postgresql
             .select_project(
-                ProjectSelectOneInput::new(contract.name.clone(), contract.version.clone()),
-                None,
+                model::project::select_one::Input::new(
+                    contract.name.clone(),
+                    contract.version.clone(),
+                ),
+                Some(&mut transaction),
             )
             .await
         {
@@ -154,7 +155,7 @@ pub async fn handle(
             Err(sqlx::Error::RowNotFound) => {
                 postgresql
                     .insert_project(
-                        ProjectInsertOneInput::new(
+                        model::project::insert_one::Input::new(
                             contract.name.clone(),
                             contract.version.clone(),
                             semver::Version::parse(env!("CARGO_PKG_VERSION"))
@@ -172,7 +173,7 @@ pub async fn handle(
 
         postgresql
             .insert_contract(
-                ContractInsertOneInput::new(
+                model::contract::insert_one::Input::new(
                     account_id,
                     contract.name,
                     contract.version,

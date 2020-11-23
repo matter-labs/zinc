@@ -15,18 +15,62 @@ use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
 pub struct Storage<E: IEngine> {
+    field_types: Vec<zinc_build::ContractFieldType>,
     hash_tree: Vec<Vec<u8>>,
     leaf_values: Vec<LeafVariant<E>>,
     depth: usize,
 }
 
-impl<E: IEngine> Storage<E> {
-    pub fn new(input: Vec<LeafInput>) -> Self {
-        let depth = (input.len() as f64).log2().ceil() as usize;
+impl<E: IEngine> IMerkleTree<E> for Storage<E> {
+    fn from_build(
+        field_types: Vec<zinc_build::ContractFieldType>,
+        value: zinc_build::Value,
+    ) -> Result<Self, Error> {
+        let storage_leaves = match value {
+            zinc_build::Value::Contract(fields) => fields
+                .into_iter()
+                .enumerate()
+                .map(|(index, field)| {
+                    let r#type = field_types[index].r#type.to_owned();
+
+                    match field.value {
+                        zinc_build::Value::Map(map) => {
+                            let (key_type, value_type) = match r#type {
+                                zinc_build::Type::Map {
+                                    key_type,
+                                    value_type,
+                                } => (*key_type, *value_type),
+                                _ => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
+                            };
+
+                            let entries = map
+                                .into_iter()
+                                .map(|(key, value)| {
+                                    (key.into_flat_values(), value.into_flat_values())
+                                })
+                                .collect();
+                            LeafInput::Map {
+                                key_type,
+                                value_type,
+                                entries,
+                            }
+                        }
+                        value => {
+                            let mut values = value.into_flat_values();
+                            values.reverse();
+                            LeafInput::Array { r#type, values }
+                        }
+                    }
+                })
+                .collect::<Vec<LeafInput>>(),
+            _ => return Err(Error::InvalidStorageValue),
+        };
+
+        let depth = (storage_leaves.len() as f64).log2().ceil() as usize;
         let hash_tree_size = 1 << (depth + 1);
         let leaf_values_size = 1 << depth;
 
-        let mut leaf_values = input
+        let mut leaf_values = storage_leaves
             .into_iter()
             .map(|leaf| match leaf {
                 LeafInput::Array { r#type, values } => LeafVariant::Array(
@@ -81,15 +125,14 @@ impl<E: IEngine> Storage<E> {
             .collect::<Vec<LeafVariant<E>>>();
         leaf_values.resize(leaf_values_size, LeafVariant::Array(vec![]));
 
-        Self {
+        Ok(Self {
+            field_types,
             hash_tree: vec![vec![]; hash_tree_size],
             leaf_values,
             depth,
-        }
+        })
     }
-}
 
-impl<E: IEngine> IMerkleTree<E> for Storage<E> {
     fn load(&self, index: BigInt) -> Result<Leaf<E>, Error> {
         let index = index.to_usize().ok_or(Error::ExpectedUsize(index))?;
 
@@ -144,6 +187,10 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
                 ),
             })
             .collect()
+    }
+
+    fn types(&self) -> &[zinc_build::ContractFieldType] {
+        self.field_types.as_slice()
     }
 
     fn root_hash(&self) -> E::Fr {

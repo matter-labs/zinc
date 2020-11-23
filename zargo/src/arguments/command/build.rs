@@ -8,9 +8,6 @@ use std::str::FromStr;
 
 use structopt::StructOpt;
 
-use zinc_manifest::Manifest;
-use zinc_manifest::ProjectType;
-
 use crate::error::Error;
 use crate::executable::compiler::Compiler;
 use crate::http::downloader::Downloader;
@@ -53,15 +50,7 @@ impl Command {
     /// Executes the command.
     ///
     pub async fn execute(self) -> anyhow::Result<()> {
-        let network = zksync::Network::from_str(self.network.as_str())
-            .map(Network::from)
-            .map_err(Error::NetworkInvalid)?;
-        let url = network
-            .try_into_url()
-            .map_err(Error::NetworkUnimplemented)?;
-        let http_client = HttpClient::new(url);
-
-        let manifest = Manifest::try_from(&self.manifest_path)?;
+        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
 
         let mut manifest_path = self.manifest_path.clone();
         if manifest_path.is_file() {
@@ -69,19 +58,27 @@ impl Command {
         }
 
         TargetDirectory::create(&manifest_path, self.is_release)?;
+
         TargetDependenciesDirectory::remove(&manifest_path)?;
         TargetDependenciesDirectory::create(&manifest_path)?;
         let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
 
         DataDirectory::create(&manifest_path)?;
         let data_directory_path = DataDirectory::path(&manifest_path);
-        if let ProjectType::Contract = manifest.project.r#type {
+        if let zinc_manifest::ProjectType::Contract = manifest.project.r#type {
             if !PrivateKeyFile::exists_at(&data_directory_path) {
                 PrivateKeyFile::default().write_to(&data_directory_path)?;
             }
         }
 
         if let Some(dependencies) = manifest.dependencies {
+            let network = zksync::Network::from_str(self.network.as_str())
+                .map(Network::from)
+                .map_err(Error::NetworkInvalid)?;
+            let url = network
+                .try_into_url()
+                .map_err(Error::NetworkUnimplemented)?;
+            let http_client = HttpClient::new(url);
             let mut downloader = Downloader::new(&http_client, target_deps_directory_path);
             downloader.download_list(dependencies).await?;
         }

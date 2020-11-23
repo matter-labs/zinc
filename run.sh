@@ -43,10 +43,10 @@ case "${2}" in
         ;;
 esac
 
-#cargo fmt --all
-#cargo clippy
-#cargo test
-#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
+cargo fmt --all
+cargo clippy
+cargo test
+cargo run ${CARGO_LOG_LEVEL} ${RELEASE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
 
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_FLAG}
 

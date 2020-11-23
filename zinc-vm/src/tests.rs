@@ -13,7 +13,6 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_build::Call;
-use zinc_build::Circuit as BuildCircuit;
 use zinc_build::Instruction;
 
 use crate::core::circuit::State;
@@ -89,7 +88,7 @@ impl TestRunner {
     ) -> Result<(), TestingError> {
         let mut vm = new_test_constrained_vm();
 
-        let circuit = BuildCircuit::new(
+        let circuit = zinc_build::Circuit::new(
             "test".to_owned(),
             0,
             zinc_build::Type::Unit,

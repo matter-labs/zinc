@@ -21,7 +21,6 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::r#type::Type as ScopeType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
@@ -79,7 +78,6 @@ impl Analyzer {
             statement.index_identifier,
             false,
             Type::scalar(Some(index_location), is_index_signed, index_bitlength),
-            MemoryType::Stack,
         )?;
 
         let while_condition = if let Some(expression) = statement.while_condition {
@@ -111,17 +109,14 @@ impl Analyzer {
         let is_reversed = range_start > range_end;
 
         let iterations_count = (range_end - range_start.clone()).abs();
-        let mut iterations_count =
-            iterations_count
-                .to_usize()
-                .ok_or_else(|| Error::InvalidInteger {
-                    location: bounds_expression_location,
-                    inner: zinc_math::Error::Overflow {
-                        value: iterations_count,
-                        is_signed: false,
-                        bitlength: index_bitlength,
-                    },
-                })?;
+        let mut iterations_count = iterations_count.to_usize().ok_or(Error::InvalidInteger {
+            location: bounds_expression_location,
+            inner: zinc_math::Error::Overflow {
+                value: iterations_count,
+                is_signed: false,
+                bitlength: index_bitlength,
+            },
+        })?;
         if is_inclusive {
             iterations_count += 1;
         }

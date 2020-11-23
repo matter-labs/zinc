@@ -14,6 +14,7 @@ use zinc_lexical::Location;
 use zinc_syntax::BlockExpression;
 
 use crate::semantic::binding::Binding;
+use crate::semantic::element::r#type::contract::Contract as ContractType;
 use crate::semantic::element::r#type::Type;
 
 use self::constant::Function as ConstantFunction;
@@ -30,6 +31,7 @@ pub enum Function {
     /// These correspond to some special VM instructions.
     /// Also, standard library and zkSync library functions, which are declared in a virtual intrinsic
     /// scope and implemented in the VM as intrinsic function calls.
+    /// The contract storage loading function is also considered an intrinsic one.
     Intrinsic(IntrinsicFunction),
     /// Runtime functions declared anywhere within a project. There is a special `main` function,
     /// which is also declared by user, but serves as the circuit entry point.
@@ -55,6 +57,13 @@ impl Function {
     ///
     pub fn new_require() -> Self {
         Self::Intrinsic(IntrinsicFunction::new_require())
+    }
+
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new_contract_fetch(contract_type: ContractType) -> Self {
+        Self::Intrinsic(IntrinsicFunction::new_contract_fetch(contract_type))
     }
 
     ///

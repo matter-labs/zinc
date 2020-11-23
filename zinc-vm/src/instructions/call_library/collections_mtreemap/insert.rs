@@ -2,7 +2,10 @@
 //! The `std::collections::MTreeMap::insert` function call.
 //!
 
+use std::collections::HashMap;
+
 use num::bigint::ToBigInt;
+use num::BigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
@@ -34,12 +37,12 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Insert {
         &self,
         _cs: CS,
         state: &mut ExecutionState<E>,
-        storage: Option<&mut S>,
+        storages: Option<HashMap<BigInt, &mut S>>,
     ) -> Result<(), Error>
     where
         CS: ConstraintSystem<E>,
     {
-        let storage = storage.ok_or(Error::OnlyForContracts)?;
+        let mut storages = storages.ok_or(Error::OnlyForContracts)?;
 
         let mut input = Vec::with_capacity(self.input_size);
         for _ in 0..self.input_size {
@@ -51,8 +54,20 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Insert {
             .pop()?
             .try_into_value()?
             .to_bigint()
-            .unwrap_or_default();
-        let (mut data, key_size, value_size) = match storage.load(index.clone())?.leaf_values {
+            .expect(zinc_const::panic::DATA_CONVERSION);
+        let eth_address = state
+            .evaluation_stack
+            .pop()?
+            .try_into_value()?
+            .to_bigint()
+            .expect(zinc_const::panic::DATA_CONVERSION);
+
+        let (mut data, key_size, value_size) = match storages
+            .get(&eth_address)
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+            .load(index.clone())?
+            .leaf_values
+        {
             LeafVariant::Map {
                 data,
                 key_size,
@@ -85,14 +100,17 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Insert {
             Some(position) => data[position].1 = value,
             None => data.push((key, value)),
         }
-        storage.store(
-            index,
-            LeafVariant::Map {
-                data,
-                key_size,
-                value_size,
-            },
-        )?;
+        storages
+            .get_mut(&eth_address)
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+            .store(
+                index,
+                LeafVariant::Map {
+                    data,
+                    key_size,
+                    value_size,
+                },
+            )?;
 
         Ok(())
     }

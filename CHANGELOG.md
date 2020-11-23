@@ -5,13 +5,16 @@
 #### Language
 
 - implemented the dependency and library system
-- allowed to call other smart contract instances through the dependency system
+- allowed to use other smart contract instances through the dependency system
+- turned the `zksync::transfer` function into a built-in contract method
 
 #### Compiler
 
 - fixed the bug with invalid scope for contract fields and methods
 - fixed the bug where enum variants were not treated as constants
-- performed an inventory of compiler errors and created a reference thereof
+- fixed the bug where contract storage fields could be addressed without an instance
+- fixed the bug where structures and contracts could be initialized with fewer fields than needed
+- performed an inventory of compiler errors and created an error reference
 
 ## Version 0.2.0 (2020-10-28)
 

@@ -6,9 +6,6 @@ pub mod contract_field;
 
 use num::BigInt;
 
-use zinc_build::IntegerType;
-use zinc_build::ScalarType;
-
 use crate::semantic::element::r#type::Type as SemanticType;
 use crate::semantic::scope::intrinsic::IntrinsicTypeId;
 
@@ -282,20 +279,20 @@ impl Into<zinc_build::Type> for Type {
     fn into(self) -> zinc_build::Type {
         match self {
             Self::Unit => zinc_build::Type::Unit,
-            Self::Boolean => zinc_build::Type::Scalar(ScalarType::Boolean),
+            Self::Boolean => zinc_build::Type::Scalar(zinc_build::ScalarType::Boolean),
             Self::IntegerUnsigned { bitlength } => {
-                zinc_build::Type::Scalar(ScalarType::Integer(IntegerType {
+                zinc_build::Type::Scalar(zinc_build::ScalarType::Integer(zinc_build::IntegerType {
                     is_signed: false,
                     bitlength,
                 }))
             }
             Self::IntegerSigned { bitlength } => {
-                zinc_build::Type::Scalar(ScalarType::Integer(IntegerType {
+                zinc_build::Type::Scalar(zinc_build::ScalarType::Integer(zinc_build::IntegerType {
                     is_signed: true,
                     bitlength,
                 }))
             }
-            Self::Field => zinc_build::Type::Scalar(ScalarType::Field),
+            Self::Field => zinc_build::Type::Scalar(zinc_build::ScalarType::Field),
             Self::Enumeration {
                 bitlength,
                 variants,
@@ -334,19 +331,23 @@ impl Into<zinc_build::Type> for Type {
     }
 }
 
-impl Into<Option<ScalarType>> for Type {
-    fn into(self) -> Option<ScalarType> {
+impl Into<Option<zinc_build::ScalarType>> for Type {
+    fn into(self) -> Option<zinc_build::ScalarType> {
         match self {
-            Self::Boolean => Some(ScalarType::Boolean),
-            Self::IntegerUnsigned { bitlength } => Some(ScalarType::Integer(IntegerType {
-                is_signed: false,
-                bitlength,
-            })),
-            Self::IntegerSigned { bitlength } => Some(ScalarType::Integer(IntegerType {
-                is_signed: true,
-                bitlength,
-            })),
-            Self::Field => Some(ScalarType::Field),
+            Self::Boolean => Some(zinc_build::ScalarType::Boolean),
+            Self::IntegerUnsigned { bitlength } => {
+                Some(zinc_build::ScalarType::Integer(zinc_build::IntegerType {
+                    is_signed: false,
+                    bitlength,
+                }))
+            }
+            Self::IntegerSigned { bitlength } => {
+                Some(zinc_build::ScalarType::Integer(zinc_build::IntegerType {
+                    is_signed: true,
+                    bitlength,
+                }))
+            }
+            Self::Field => Some(zinc_build::ScalarType::Field),
             _ => None,
         }
     }

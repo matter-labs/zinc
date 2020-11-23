@@ -20,29 +20,29 @@ pub fn num_compat_forward(value: num_old::BigUint) -> num::BigUint {
 }
 
 ///
-/// Converts a vector into an ETH address.
+/// Converts a slice into an ETH address.
 ///
 /// # Panics
-/// If the `vector` size is less than that of the ETH address.
+/// If the `slice` size is less than that of the ETH address.
 ///
-pub fn eth_address_from_vec(vector: Vec<u8>) -> Address {
+pub fn address_from_slice(slice: &[u8]) -> Address {
     let mut array = [0; zinc_const::size::ETH_ADDRESS];
-    for (index, byte) in vector.into_iter().enumerate() {
-        array[index] = byte;
+    for (index, byte) in slice.iter().enumerate() {
+        array[index] = *byte;
     }
     array.into()
 }
 
 ///
-/// Converts a vector into an ETH private key.
+/// Converts a slice into an ETH private key.
 ///
 /// # Panics
-/// If the `vector` size is less than that of the ETH private key.
+/// If the `slice` size is less than that of the ETH private key.
 ///
-pub fn eth_private_key_from_vec(vector: Vec<u8>) -> H256 {
+pub fn private_key_from_slice(slice: &[u8]) -> H256 {
     let mut array = [0; zinc_const::size::ETH_PRIVATE_KEY];
-    for (index, byte) in vector.into_iter().enumerate() {
-        array[index] = byte;
+    for (index, byte) in slice.iter().enumerate() {
+        array[index] = *byte;
     }
     array.into()
 }

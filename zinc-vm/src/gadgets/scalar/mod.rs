@@ -159,9 +159,7 @@ impl<E: IEngine> Scalar<E> {
     pub fn get_constant_usize(&self) -> Result<usize, Error> {
         let fr = self.get_constant()?;
         let bigint = fr_bigint::fr_to_bigint::<E>(&fr, false);
-        bigint
-            .to_usize()
-            .ok_or_else(|| Error::ExpectedUsize(bigint))
+        bigint.to_usize().ok_or(Error::ExpectedUsize(bigint))
     }
 
     pub fn get_bits_le<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Vec<Self>, Error> {

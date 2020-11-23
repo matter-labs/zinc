@@ -13,6 +13,7 @@ use crate::generator::expression::element::Element as GeneratorExpressionElement
 use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
+use crate::generator::r#type::contract_field::ContractField as GeneratorContractField;
 use crate::semantic::element::r#type::function::intrinsic::Function as IntrinsicFunctionType;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
@@ -137,7 +138,7 @@ impl Analyzer {
                         let element =
                             Value::try_from_type(&return_type, false, None).map(Element::Value)?;
 
-                        let intermediate = GeneratorExpressionOperator::call_assert(message);
+                        let intermediate = GeneratorExpressionOperator::call_require(message);
 
                         (
                             element,
@@ -147,15 +148,35 @@ impl Analyzer {
                             },
                         )
                     }
-                    IntrinsicFunctionType::StandardLibrary(function) => {
-                        if is_called_with_exclamation_mark {
-                            return Err(Error::FunctionUnexpectedExclamationMark {
-                                location: function_location.unwrap_or(location),
-                                function: function.identifier().to_owned(),
-                            });
-                        }
+                    IntrinsicFunctionType::ContractFetch(function) => {
+                        let return_type =
+                            function.call(function_location.unwrap_or(location), argument_list)?;
 
-                        let intrinsic_identifier = function.library_identifier();
+                        let element =
+                            Value::try_from_type(&return_type, false, None).map(Element::Value)?;
+
+                        let contract_fields: Vec<GeneratorContractField> = match return_type {
+                            Type::Contract(contract) => contract
+                                .fields
+                                .iter()
+                                .filter_map(GeneratorContractField::try_from_semantic)
+                                .collect(),
+                            _type => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
+                        };
+
+                        let intermediate =
+                            GeneratorExpressionOperator::call_contract_fetch(contract_fields);
+
+                        (
+                            element,
+                            GeneratorExpressionElement::Operator {
+                                location: function_location.unwrap_or(location),
+                                operator: intermediate,
+                            },
+                        )
+                    }
+                    IntrinsicFunctionType::ContractTransfer(function) => {
+                        let intrinsic_identifier = function.library_identifier;
 
                         let return_type =
                             function.call(function_location.unwrap_or(location), argument_list)?;
@@ -177,7 +198,7 @@ impl Analyzer {
                             },
                         )
                     }
-                    IntrinsicFunctionType::ZkSyncLibrary(function) => {
+                    IntrinsicFunctionType::StandardLibrary(function) => {
                         if is_called_with_exclamation_mark {
                             return Err(Error::FunctionUnexpectedExclamationMark {
                                 location: function_location.unwrap_or(location),

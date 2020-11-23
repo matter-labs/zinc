@@ -7,8 +7,6 @@ use std::path::PathBuf;
 
 use structopt::StructOpt;
 
-use zinc_manifest::Manifest;
-
 use crate::project::data::Directory as DataDirectory;
 use crate::project::target::Directory as TargetDirectory;
 
@@ -36,7 +34,7 @@ impl Command {
     /// Executes the command.
     ///
     pub fn execute(self) -> anyhow::Result<()> {
-        let _manifest = Manifest::try_from(&self.manifest_path)?;
+        let _manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
 
         let mut manifest_path = self.manifest_path;
         if manifest_path.is_file() {

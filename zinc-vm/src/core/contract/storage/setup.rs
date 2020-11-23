@@ -13,22 +13,28 @@ use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
 pub struct Storage<E: IEngine> {
+    field_types: Vec<zinc_build::ContractFieldType>,
     leaf_values: Vec<Vec<Scalar<E>>>,
     depth: usize,
 }
 
-impl<E: IEngine> Storage<E> {
-    pub fn new(values: Vec<zinc_build::Type>) -> Self {
-        let depth = (values.len() as f64).log2().ceil() as usize;
+impl<E: IEngine> IMerkleTree<E> for Storage<E> {
+    fn from_build(
+        field_types: Vec<zinc_build::ContractFieldType>,
+        _value: zinc_build::Value,
+    ) -> Result<Self, Error> {
+        let depth = (field_types.len() as f64).log2().ceil() as usize;
         let leaf_values_count = 1 << depth;
 
         let mut result = Self {
+            field_types: field_types.clone(),
             leaf_values: vec![vec![]; leaf_values_count],
             depth,
         };
 
-        for (index, r#type) in values.into_iter().enumerate() {
-            let values = r#type
+        for (index, field) in field_types.into_iter().enumerate() {
+            let values = field
+                .r#type
                 .into_flat_scalar_types()
                 .into_iter()
                 .map(|r#type| Scalar::<E>::new_constant_usize(0, r#type))
@@ -36,11 +42,9 @@ impl<E: IEngine> Storage<E> {
             result.leaf_values[index] = values;
         }
 
-        result
+        Ok(result)
     }
-}
 
-impl<E: IEngine> IMerkleTree<E> for Storage<E> {
     fn load(&self, index: BigInt) -> Result<Leaf<E>, Error> {
         let index = index.to_usize().ok_or(Error::ExpectedUsize(index))?;
 
@@ -77,6 +81,10 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
                 )
             })
             .collect()
+    }
+
+    fn types(&self) -> &[zinc_build::ContractFieldType] {
+        self.field_types.as_slice()
     }
 
     fn root_hash(&self) -> E::Fr {

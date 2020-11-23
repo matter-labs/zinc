@@ -56,9 +56,9 @@ impl IExecutable for Command {
         match self {
             Command::Run(inner) => inner.execute(),
             Command::Test(inner) => inner.execute(),
-            Command::Setup(inner) => inner.execute(),
-            Command::Prove(inner) => inner.execute(),
-            Command::Verify(inner) => inner.execute(),
+            Command::Setup(_inner) => Err(Error::ProofVerificationUnavailable),
+            Command::Prove(_inner) => Err(Error::ProofVerificationUnavailable),
+            Command::Verify(_inner) => Err(Error::ProofVerificationUnavailable),
         }
     }
 }

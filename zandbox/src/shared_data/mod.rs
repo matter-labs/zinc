@@ -9,8 +9,6 @@ use std::sync::RwLock;
 
 use actix_web::web::Data;
 
-use zksync::web3::types::Address;
-
 use crate::database::client::Client as DatabaseClient;
 
 use self::locked_contract::LockedContract;
@@ -24,7 +22,7 @@ pub struct SharedData {
     /// The zkSync network identifier.
     pub network: zksync::Network,
     /// The contracts waiting to be unlocked by `initialize` endpoint.
-    pub locked_contracts: HashMap<Address, LockedContract>,
+    pub locked_contracts: HashMap<zksync_types::Address, LockedContract>,
 }
 
 impl SharedData {

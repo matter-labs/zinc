@@ -14,8 +14,6 @@ use std::rc::Rc;
 
 use anyhow::Context;
 
-use zinc_manifest::Manifest;
-
 use crate::generator::state::State;
 use crate::semantic::scope::Scope;
 use crate::source::error::Error;
@@ -104,7 +102,7 @@ impl Source {
     ///
     pub fn compile(
         self,
-        manifest: Manifest,
+        manifest: zinc_manifest::Manifest,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
     ) -> anyhow::Result<Rc<RefCell<State>>> {
         match self {

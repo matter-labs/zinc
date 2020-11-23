@@ -276,6 +276,10 @@ impl Value {
                 let mut object =
                     serde_json::Map::<String, serde_json::Value>::with_capacity(fields.len());
                 for (name, value) in fields.into_iter() {
+                    if name == zinc_lexical::Keyword::SelfLowercase.to_string() {
+                        continue;
+                    }
+
                     object.insert(name, Self::into_json(value));
                 }
                 serde_json::Value::Object(object)
@@ -303,17 +307,32 @@ impl Value {
     }
 
     ///
+    /// Inserts a contract address `self` argument into the function arguments structure.
+    ///
+    pub fn insert_contract_instance(&mut self, value: BigInt) {
+        if let Self::Structure(arguments) = self {
+            arguments.insert(
+                0,
+                (
+                    zinc_lexical::Keyword::SelfLowercase.to_string(),
+                    Self::Scalar(ScalarValue::Integer(value, IntegerType::ETH_ADDRESS)),
+                ),
+            );
+        }
+    }
+
+    ///
     /// Creates a unit value from the JSON `value`.
     ///
     fn unit_from_json(value: serde_json::Value) -> anyhow::Result<Self> {
-        if value.is_null() {
-            return Ok(Self::Unit);
+        if !value.is_null() {
+            anyhow::bail!(Error::TypeError {
+                expected: "null".to_owned(),
+                found: value.to_string(),
+            });
         }
 
-        anyhow::bail!(Error::TypeError {
-            expected: "null".to_owned(),
-            found: value.to_string(),
-        });
+        Ok(Self::Unit)
     }
 
     ///
@@ -505,6 +524,10 @@ impl Value {
         let mut used_fields = HashSet::with_capacity(field_types.len());
         let mut field_values = Vec::with_capacity(field_types.len());
         for (name, r#type) in field_types.into_iter() {
+            if name == zinc_lexical::Keyword::SelfLowercase.to_string() {
+                continue;
+            }
+
             used_fields.insert(name.clone());
 
             let json_value = object

@@ -27,10 +27,13 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
 
             match argument_type {
                 zinc_build::Type::Contract(fields) => {
+                    let eth_address = vm.pop()?.try_into_value()?;
+
                     let mut flat = Vec::with_capacity(size);
                     for (index, field) in fields.iter().enumerate() {
                         let values: Vec<BigInt> = vm
                             .storage_load(
+                                eth_address.clone(),
                                 Scalar::new_constant_usize(
                                     index,
                                     ScalarType::Integer(IntegerType::new(
@@ -52,9 +55,11 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                 }
                 r#type => {
                     for _ in 0..size {
-                        let value = vm.pop()?.try_into_value()?.to_bigint().ok_or_else(|| {
-                            Error::SynthesisError(SynthesisError::AssignmentMissing)
-                        })?;
+                        let value = vm
+                            .pop()?
+                            .try_into_value()?
+                            .to_bigint()
+                            .ok_or(Error::SynthesisError(SynthesisError::AssignmentMissing))?;
                         flat.push(value);
                     }
                     flat.reverse();

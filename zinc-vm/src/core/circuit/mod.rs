@@ -12,9 +12,6 @@ use num::BigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::Circuit as BuildCircuit;
-use zinc_build::ScalarType;
-
 use crate::core::contract::storage::leaf::LeafVariant;
 use crate::core::contract::storage::setup::Storage as SetupStorage;
 use crate::core::counter::NamespaceCounter;
@@ -63,7 +60,7 @@ where
 
     pub fn run<CB, F>(
         &mut self,
-        circuit: BuildCircuit,
+        circuit: zinc_build::Circuit,
         input_values: Option<&[BigInt]>,
         mut instruction_callback: CB,
         mut check_cs: F,
@@ -78,7 +75,7 @@ where
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
         );
-        let one = Scalar::new_constant_usize(1, ScalarType::Boolean);
+        let one = Scalar::new_constant_usize(1, zinc_build::ScalarType::Boolean);
         self.condition_push(one)?;
 
         let input_size = circuit.input.size();
@@ -213,8 +210,17 @@ where
             .set(frame_start + address, cell)
     }
 
+    fn storage_fetch(
+        &mut self,
+        _eth_address: Scalar<Self::E>,
+        _field_types: Vec<zinc_build::ContractFieldType>,
+    ) -> Result<(), Error> {
+        Err(Error::OnlyForContracts)
+    }
+
     fn storage_load(
         &mut self,
+        _eth_address: Scalar<Self::E>,
         _address: Scalar<Self::E>,
         _size: usize,
     ) -> Result<Vec<Scalar<Self::E>>, Error> {
@@ -223,6 +229,7 @@ where
 
     fn storage_store(
         &mut self,
+        _eth_address: Scalar<Self::E>,
         _address: Scalar<Self::E>,
         _value: LeafVariant<Self::E>,
     ) -> Result<(), Error> {

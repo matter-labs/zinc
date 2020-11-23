@@ -55,6 +55,15 @@ impl Structure {
     /// Sets the structure type and checks if the pushed field types match it.
     ///
     pub fn validate(&mut self, expected: StructureType) -> Result<(), Error> {
+        if self.values.len() < expected.fields.len() {
+            return Err(Error::StructureFieldCount {
+                location: self.location,
+                r#type: expected.identifier.to_owned(),
+                expected: expected.fields.len(),
+                found: self.values.len(),
+            });
+        }
+
         for (index, (identifier, constant)) in self.values.iter().enumerate() {
             match expected.fields.get(index) {
                 Some((expected_name, expected_type)) => {
@@ -80,7 +89,7 @@ impl Structure {
                     }
                 }
                 None => {
-                    return Err(Error::StructureFieldOutOfRange {
+                    return Err(Error::StructureFieldCount {
                         location: identifier.location,
                         r#type: expected.identifier.to_owned(),
                         expected: expected.fields.len(),

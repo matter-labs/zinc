@@ -2,16 +2,8 @@
 //! The cached contract data.
 //!
 
-use zksync::web3::types::Address;
-use zksync::web3::types::H256;
-use zksync_eth_signer::PrivateKeySigner;
-use zksync_types::tx::PackedEthSignature;
-
-use zinc_build::Application as BuildApplication;
-use zinc_build::Contract as BuildContract;
 use zinc_vm::Bn256;
 use zinc_vm::ContractInput;
-use zinc_zksync::TransactionMsg;
 
 use crate::error::Error;
 use crate::storage::Storage;
@@ -22,9 +14,9 @@ use crate::storage::Storage;
 #[derive(Debug)]
 pub struct LockedContract {
     /// The contract ETH address.
-    pub eth_address: Address,
+    pub eth_address: zksync_types::Address,
     /// The contract ETH private key.
-    pub eth_private_key: H256,
+    pub eth_private_key: zksync_types::H256,
 
     /// The project name.
     pub name: String,
@@ -41,11 +33,11 @@ pub struct LockedContract {
     pub verifying_key: Vec<u8>,
 
     /// The pre-built contract ready to be called.
-    pub build: BuildContract,
+    pub build: zinc_build::Contract,
     /// The contract storage.
     pub storage: Storage,
     /// The contract wallet.
-    pub wallet: zksync::Wallet<PrivateKeySigner>,
+    pub wallet: zksync::Wallet<zksync_eth_signer::PrivateKeySigner>,
 }
 
 impl LockedContract {
@@ -66,16 +58,17 @@ impl LockedContract {
         bytecode: Vec<u8>,
         verifying_key: Vec<u8>,
     ) -> Result<Self, Error> {
-        let mut eth_private_key = H256::default();
+        let mut eth_private_key = zksync_types::H256::default();
         eth_private_key.randomize();
-        let eth_address: Address = PackedEthSignature::address_from_private_key(&eth_private_key)
-            .expect(zinc_const::panic::DATA_CONVERSION);
+        let eth_address: zksync_types::Address =
+            zksync_types::tx::PackedEthSignature::address_from_private_key(&eth_private_key)
+                .expect(zinc_const::panic::DATA_CONVERSION);
 
-        let application = BuildApplication::try_from_slice(bytecode.as_slice())
+        let application = zinc_build::Application::try_from_slice(bytecode.as_slice())
             .map_err(Error::InvalidBytecode)?;
         let build = match application.clone() {
-            BuildApplication::Circuit(_circuit) => return Err(Error::NotAContract),
-            BuildApplication::Contract(contract) => contract,
+            zinc_build::Application::Circuit(_circuit) => return Err(Error::NotAContract),
+            zinc_build::Application::Contract(contract) => contract,
         };
         let constructor = build
             .methods
@@ -92,7 +85,7 @@ impl LockedContract {
                 input_value,
                 storage,
                 zinc_const::contract::CONSTRUCTOR_NAME.to_owned(),
-                TransactionMsg::default(),
+                zinc_zksync::TransactionMsg::default(),
             ))
         })
         .await
@@ -102,7 +95,7 @@ impl LockedContract {
         let provider = zksync::Provider::new(network);
         let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
             eth_address,
-            PrivateKeySigner::new(eth_private_key),
+            zksync_eth_signer::PrivateKeySigner::new(eth_private_key),
             network,
         )
         .await?;

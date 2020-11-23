@@ -1,5 +1,5 @@
 //!
-//! The intrinsic function tests.
+//! The `require` intrinsic function tests.
 //!
 
 use zinc_lexical::Location;

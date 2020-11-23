@@ -6,8 +6,6 @@ use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_build::ScalarType;
-
 use crate::error::Error;
 use crate::gadgets::scalar::expectation::ITypeExpectation;
 use crate::gadgets::scalar::variant::Variant as ScalarVariant;
@@ -68,8 +66,10 @@ where
     E: IEngine,
     CS: ConstraintSystem<E>,
 {
-    condition.get_type().assert_type(ScalarType::Boolean)?;
-    let scalar_type = ScalarType::expect_same(if_true.get_type(), if_false.get_type())?;
+    condition
+        .get_type()
+        .assert_type(zinc_build::ScalarType::Boolean)?;
+    let scalar_type = zinc_build::ScalarType::expect_same(if_true.get_type(), if_false.get_type())?;
 
     match condition.get_variant() {
         ScalarVariant::Constant(constant) => {

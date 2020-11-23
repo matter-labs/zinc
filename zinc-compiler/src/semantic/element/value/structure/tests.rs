@@ -121,7 +121,34 @@ fn main() {
 }
 
 #[test]
-fn error_field_out_of_range() {
+fn error_field_count_lesser() {
+    let input = r#"
+struct Data {
+    a: u8,
+    b: u8,
+}
+
+fn main() {
+    let result = Data {
+        a: 42,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldCount {
+        location: Location::test(8, 23),
+        r#type: "Data".to_owned(),
+        expected: 2,
+        found: 1,
+    }));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_field_count_bigger() {
     let input = r#"
 struct Data {
     a: u8,
@@ -137,7 +164,7 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::StructureFieldOutOfRange {
+    let expected = Err(Error::Semantic(SemanticError::StructureFieldCount {
         location: Location::test(11, 9),
         r#type: "Data".to_owned(),
         expected: 2,

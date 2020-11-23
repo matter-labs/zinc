@@ -6,6 +6,7 @@ use zinc_build::LibraryFunctionIdentifier;
 
 use crate::generator::expression::operand::place::Place;
 use crate::generator::expression::Expression;
+use crate::generator::r#type::contract_field::ContractField;
 use crate::generator::r#type::Type;
 use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::access::index::Index as IndexAccess;
@@ -284,6 +285,11 @@ pub enum Operator {
     CallRequire {
         /// The optional error description message.
         message: Option<String>,
+    },
+    /// The `<Contract>::fetch(...)` function call operator.
+    CallContractFetch {
+        /// The contract storage fields.
+        fields: Vec<ContractField>,
     },
     /// The standard library function call.
     CallLibrary {
@@ -760,8 +766,15 @@ impl Operator {
     ///
     /// A shortcut constructor.
     ///
-    pub fn call_assert(message: Option<String>) -> Self {
+    pub fn call_require(message: Option<String>) -> Self {
         Self::CallRequire { message }
+    }
+
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn call_contract_fetch(fields: Vec<ContractField>) -> Self {
+        Self::CallContractFetch { fields }
     }
 
     ///

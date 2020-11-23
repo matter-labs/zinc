@@ -14,7 +14,8 @@ use crate::instructions::IExecutable;
 
 impl<VM: IVirtualMachine> IExecutable<VM> for StorageStore {
     fn execute(self, vm: &mut VM) -> Result<(), Error> {
-        let address = vm.pop()?.try_into_value()?;
+        let index = vm.pop()?.try_into_value()?;
+        let eth_address = vm.pop()?.try_into_value()?;
 
         let mut values = Vec::with_capacity(self.size);
         for _ in 0..self.size {
@@ -23,7 +24,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for StorageStore {
 
         if let Some(condition) = vm.condition_top()?.to_bigint() {
             if condition.is_positive() {
-                vm.storage_store(address, LeafVariant::Array(values))?;
+                vm.storage_store(eth_address, index, LeafVariant::Array(values))?;
             }
         }
 

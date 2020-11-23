@@ -19,6 +19,7 @@ use num::BigInt;
 use zinc_build::Instruction;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
+use crate::generator::r#type::Type;
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
@@ -90,7 +91,7 @@ impl IBytecodeWritable for Operand {
                         );
                     }
                 }
-                MemoryType::ContractStorage => {
+                MemoryType::ContractStorage { .. } => {
                     let location = inner.identifier.location;
                     let element_size = inner.element_size;
                     let total_size = inner.total_size;
@@ -105,6 +106,17 @@ impl IBytecodeWritable for Operand {
                             },
                     }) = inner.elements.first()
                     {
+                        let address = state
+                            .borrow()
+                            .get_variable_address(inner.identifier.name.as_str())
+                            .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+                        state.borrow_mut().push_instruction(
+                            Instruction::Load(zinc_build::Load::new(
+                                address,
+                                Type::integer_unsigned(zinc_const::bitlength::ETH_ADDRESS).size(),
+                            )),
+                            Some(location),
+                        );
                         IntegerConstant::new(
                             BigInt::from(*position),
                             false,
@@ -112,7 +124,7 @@ impl IBytecodeWritable for Operand {
                         )
                         .write_all(state.clone());
 
-                        if !is_mtreemap {
+                        if !*is_mtreemap {
                             state.borrow_mut().push_instruction(
                                 Instruction::StorageLoad(zinc_build::StorageLoad::new(
                                     *element_size,
@@ -124,9 +136,7 @@ impl IBytecodeWritable for Operand {
                         inner.elements.remove(0);
                     }
 
-                    let is_indexed = !inner.elements.is_empty();
-
-                    if is_indexed {
+                    if !inner.elements.is_empty() {
                         inner.write_all(state.clone());
                         state.borrow_mut().push_instruction(
                             Instruction::Slice(zinc_build::Slice::new(element_size, total_size)),

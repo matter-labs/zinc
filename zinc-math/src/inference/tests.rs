@@ -99,6 +99,7 @@ fn ok_minimal_bitlength() {
 }
 
 #[test]
+#[allow(const_item_mutation)]
 fn ok_literal_types() {
     // none of the operands are literals
     assert_eq!(

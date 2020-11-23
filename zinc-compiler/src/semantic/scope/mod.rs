@@ -7,7 +7,6 @@ mod tests;
 
 pub mod intrinsic;
 pub mod item;
-pub mod memory_type;
 pub mod stack;
 pub mod r#type;
 
@@ -39,7 +38,6 @@ use self::item::r#type::Type as TypeItem;
 use self::item::variable::Variable as VariableItem;
 use self::item::variant::Variant as VariantItem;
 use self::item::Item;
-use self::memory_type::MemoryType;
 use self::r#type::Type as ScopeType;
 
 ///
@@ -252,7 +250,6 @@ impl Scope {
         identifier: Identifier,
         is_mutable: bool,
         r#type: SemanticType,
-        memory_type: MemoryType,
     ) -> Result<(), Error> {
         if let Ok(item) =
             RefCell::borrow(&scope).resolve_item(&identifier, !identifier.is_self_lowercase())
@@ -270,7 +267,6 @@ impl Scope {
             is_mutable,
             identifier.name,
             r#type,
-            memory_type,
         ));
 
         RefCell::borrow(&scope)

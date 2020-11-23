@@ -7,9 +7,6 @@ use std::path::PathBuf;
 
 use structopt::StructOpt;
 
-use zinc_manifest::Manifest;
-use zinc_manifest::ProjectType;
-
 use crate::error::Error;
 use crate::executable::compiler::Compiler;
 use crate::executable::virtual_machine::VirtualMachine;
@@ -51,11 +48,14 @@ impl Command {
     ///
     /// Executes the command.
     ///
+    #[allow(dead_code)]
     pub fn execute(self) -> anyhow::Result<()> {
-        let manifest = Manifest::try_from(&self.manifest_path)?;
+        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
 
         match manifest.project.r#type {
-            ProjectType::Contract if self.method.is_none() => anyhow::bail!(Error::MethodMissing),
+            zinc_manifest::ProjectType::Contract if self.method.is_none() => {
+                anyhow::bail!(Error::MethodMissing)
+            }
             _ => {}
         }
 

@@ -64,6 +64,14 @@ impl<'a> Downloader<'a> {
         }
 
         let dependency_name = format!("{}-{}", name, version);
+        let mut dependency_path = self.directory.clone();
+        dependency_path.push(dependency_name.as_str());
+        if dependency_path.exists() {
+            return Ok(());
+        }
+
+        fs::create_dir_all(&dependency_path)?;
+
         eprintln!(" {} {} v{}", "Downloading".bright_green(), name, version);
 
         let response = self
@@ -81,13 +89,6 @@ impl<'a> Downloader<'a> {
                 response.zinc_version,
             ));
         }
-
-        let mut dependency_path = self.directory.clone();
-        dependency_path.push(dependency_name);
-        if dependency_path.exists() {
-            fs::remove_dir(&dependency_path)?;
-        }
-        fs::create_dir_all(&dependency_path)?;
 
         response.project.manifest.write_to(&dependency_path)?;
         response.project.source.write_to(&dependency_path)?;

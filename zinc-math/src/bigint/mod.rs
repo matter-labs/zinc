@@ -23,19 +23,13 @@ use crate::error::Error;
 pub fn from_str(string: &str) -> crate::Result<BigInt> {
     let string = string.replace("_", "");
 
-    if string.starts_with("0b") {
+    if let Some(string) = string.strip_prefix("0b") {
+        Ok(BigInt::from_str_radix(string, zinc_const::base::BINARY)?)
+    } else if let Some(string) = string.strip_prefix("0o") {
+        Ok(BigInt::from_str_radix(string, zinc_const::base::OCTAL)?)
+    } else if let Some(string) = string.strip_prefix("0x") {
         Ok(BigInt::from_str_radix(
-            &string["0b".len()..],
-            zinc_const::base::BINARY,
-        )?)
-    } else if string.starts_with("0o") {
-        Ok(BigInt::from_str_radix(
-            &string["0o".len()..],
-            zinc_const::base::OCTAL,
-        )?)
-    } else if string.starts_with("0x") {
-        Ok(BigInt::from_str_radix(
-            &string["0x".len()..],
+            string,
             zinc_const::base::HEXADECIMAL,
         )?)
     } else {

@@ -10,7 +10,6 @@ use structopt::StructOpt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
-use zinc_build::Application as BuildApplication;
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_build::InputBuild;
 use zinc_zksync::TransactionMsg;
@@ -53,7 +52,7 @@ impl IExecutable for Command {
         // Read the bytecode
         let bytecode =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let application = BuildApplication::try_from_slice(bytecode.as_slice())
+        let application = zinc_build::Application::try_from_slice(bytecode.as_slice())
             .map_err(Error::ApplicationDecoding)?;
 
         // Read the input file
@@ -63,7 +62,7 @@ impl IExecutable for Command {
         let input: InputBuild = serde_json::from_str(input_template.as_str())?;
 
         let output = match application {
-            BuildApplication::Circuit(circuit) => match input {
+            zinc_build::Application::Circuit(circuit) => match input {
                 InputBuild::Circuit { arguments } => {
                     let input_type = circuit.input.clone();
                     let arguments = zinc_build::Value::try_from_typed_json(arguments, input_type)?;
@@ -77,7 +76,7 @@ impl IExecutable for Command {
                     })
                 }
             },
-            BuildApplication::Contract(contract) => match input {
+            zinc_build::Application::Contract(contract) => match input {
                 InputBuild::Circuit { .. } => {
                     return Err(Error::InputDataInvalid {
                         expected: "contract".to_owned(),
@@ -104,7 +103,6 @@ impl IExecutable for Command {
                     let method_arguments =
                         zinc_build::Value::try_from_typed_json(method_arguments, method.input)?;
 
-                    let storage_size = contract.storage.len();
                     let storage_values = match storage {
                         serde_json::Value::Array(array) => {
                             let mut storage_values = Vec::with_capacity(contract.storage.len());
@@ -133,22 +131,29 @@ impl IExecutable for Command {
                         })?,
                     ))?;
 
-                    let mut storage_values = Vec::with_capacity(storage_size);
-                    match output.storage {
-                        zinc_build::Value::Contract(fields) => {
-                            for field in fields.into_iter() {
-                                storage_values.push(field.value.into_json());
+                    let mut storages = serde_json::Map::with_capacity(output.storages.len());
+                    for (eth_address, value) in output.storages.into_iter() {
+                        match value {
+                            zinc_build::Value::Contract(fields) => {
+                                let mut storage_values = Vec::with_capacity(fields.len());
+                                for field in fields.into_iter() {
+                                    storage_values.push(field.value.into_json());
+                                }
+                                storages.insert(
+                                    eth_address.to_str_radix(zinc_const::base::HEXADECIMAL),
+                                    serde_json::Value::Array(storage_values),
+                                );
                             }
-                        }
-                        value => {
-                            return Err(Error::InvalidContractStorageFormat {
-                                found: value.into_json(),
-                            })
+                            value => {
+                                return Err(Error::InvalidContractStorageFormat {
+                                    found: value.into_json(),
+                                })
+                            }
                         }
                     }
 
                     let input_str = serde_json::to_string_pretty(&InputBuild::new_contract(
-                        serde_json::Value::Array(storage_values),
+                        serde_json::Value::Object(storages),
                         transaction,
                         arguments,
                     ))

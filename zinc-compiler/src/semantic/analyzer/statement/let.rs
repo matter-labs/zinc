@@ -14,7 +14,6 @@ use crate::semantic::binding::Binder;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::Scope;
 
 ///
@@ -48,13 +47,7 @@ impl Analyzer {
             });
         }
 
-        let memory_type = match r#type {
-            Type::Contract(_) => MemoryType::ContractInstance,
-            _ => MemoryType::Stack,
-        };
-
-        let bindings =
-            Binder::bind_variables(statement.binding.pattern, r#type, memory_type, scope)?;
+        let bindings = Binder::bind_variables(statement.binding.pattern, r#type, scope)?;
         Ok(if bindings.is_empty() {
             None
         } else {

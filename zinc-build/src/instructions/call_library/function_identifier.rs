@@ -36,8 +36,8 @@ pub enum LibraryFunctionIdentifier {
     /// The `std::ff::invert` function identifier.
     FfInvert,
 
-    /// The `zksync::transfer` function identifier.
-    ZksyncTransfer,
+    /// The `<Contract>::transfer` function identifier.
+    ContractTransfer,
 
     /// The `std::collections::MTreeMap::get` function identifier.
     CollectionsMTreeMapGet,

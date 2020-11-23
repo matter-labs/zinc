@@ -6,6 +6,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use zinc_build::Instruction;
+use zinc_lexical::Location;
 
 use crate::generator::expression::operand::block::Expression as BlockExpression;
 use crate::generator::expression::operand::constant::boolean::Boolean as BooleanConstant;
@@ -14,7 +15,6 @@ use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::r#type::Type;
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
-use zinc_lexical::Location;
 
 use num::BigInt;
 use num::One;

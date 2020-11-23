@@ -10,7 +10,6 @@ pub mod function_frame;
 
 use std::fmt;
 
-use crate::core::contract::output::transfer::Transfer;
 use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
@@ -25,7 +24,7 @@ pub struct ExecutionState<E: IEngine> {
     pub data_stack: DataStack<E>,
     pub conditions_stack: Vec<Scalar<E>>,
     pub frames_stack: Vec<Frame<E>>,
-    pub transfers: Vec<Transfer>,
+    pub transfers: Vec<zinc_zksync::TransactionMsg>,
 }
 
 impl<E: IEngine> ExecutionState<E> {

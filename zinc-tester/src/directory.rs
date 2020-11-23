@@ -55,7 +55,7 @@ impl Directory {
 
             let file_extension = path
                 .extension()
-                .ok_or_else(|| Error::GettingFileExtension)
+                .ok_or(Error::GettingFileExtension)
                 .with_context(|| path.to_string_lossy().to_string())?;
             if file_extension != zinc_const::extension::SOURCE {
                 return Err(Error::InvalidFileExtension(

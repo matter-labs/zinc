@@ -2,8 +2,6 @@
 //! The generator type contract storage field.
 //!
 
-use zinc_build::ContractFieldType as BuildContractFieldType;
-
 use crate::generator::r#type::Type;
 use crate::semantic::element::r#type::contract::field::Field as SemanticContractFieldType;
 
@@ -50,9 +48,9 @@ impl ContractField {
     }
 }
 
-impl Into<BuildContractFieldType> for ContractField {
-    fn into(self) -> BuildContractFieldType {
-        BuildContractFieldType::new(
+impl Into<zinc_build::ContractFieldType> for ContractField {
+    fn into(self) -> zinc_build::ContractFieldType {
+        zinc_build::ContractFieldType::new(
             self.name,
             self.r#type.into(),
             self.is_public,

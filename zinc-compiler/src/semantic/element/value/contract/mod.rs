@@ -86,6 +86,15 @@ impl Contract {
     /// Sets the contract type and checks if the pushed field types match it.
     ///
     pub fn validate(&mut self, expected: ContractType) -> Result<(), Error> {
+        if self.fields.len() < expected.fields.len() {
+            return Err(Error::StructureFieldCount {
+                location: self.location.unwrap_or(expected.location),
+                r#type: expected.identifier.to_owned(),
+                expected: expected.fields.len() - zinc_const::contract::IMPLICIT_FIELDS_COUNT,
+                found: self.fields.len() - zinc_const::contract::IMPLICIT_FIELDS_COUNT,
+            });
+        }
+
         for (index, (name, location, r#type)) in self.fields.iter().enumerate() {
             match expected.fields.get(index) {
                 Some(expected_field) => {
@@ -94,7 +103,7 @@ impl Contract {
                             location: location
                                 .unwrap_or_else(|| expected_field.identifier.location),
                             r#type: expected.identifier.to_owned(),
-                            position: index + 1,
+                            position: index + 1 - zinc_const::contract::IMPLICIT_FIELDS_COUNT,
                             expected: expected_field.identifier.name.to_owned(),
                             found: name.to_owned(),
                         });
@@ -112,11 +121,12 @@ impl Contract {
                     }
                 }
                 None => {
-                    return Err(Error::StructureFieldOutOfRange {
+                    return Err(Error::StructureFieldCount {
                         location: location.unwrap_or_else(|| expected.location),
                         r#type: expected.identifier.to_owned(),
-                        expected: expected.fields.len(),
-                        found: index + 1,
+                        expected: expected.fields.len()
+                            - zinc_const::contract::IMPLICIT_FIELDS_COUNT,
+                        found: index + 1 - zinc_const::contract::IMPLICIT_FIELDS_COUNT,
                     });
                 }
             }

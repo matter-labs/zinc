@@ -16,7 +16,6 @@ use zinc_syntax::Identifier;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::Item as ScopeItem;
-use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::Scope;
 
 ///
@@ -60,7 +59,6 @@ impl Binder {
     pub fn bind_variables(
         pattern: BindingPattern,
         r#type: Type,
-        memory_type: MemoryType,
         scope: Rc<RefCell<Scope>>,
     ) -> Result<Vec<Binding>, Error> {
         match pattern.variant {
@@ -68,13 +66,7 @@ impl Binder {
                 identifier,
                 is_mutable,
             } => {
-                Scope::define_variable(
-                    scope,
-                    identifier.clone(),
-                    is_mutable,
-                    r#type.clone(),
-                    memory_type,
-                )?;
+                Scope::define_variable(scope, identifier.clone(), is_mutable, r#type.clone())?;
 
                 Ok(vec![Binding::new(identifier, is_mutable, false, r#type)])
             }
@@ -92,12 +84,7 @@ impl Binder {
 
                 let mut result = Vec::with_capacity(bindings.len());
                 for (pattern, r#type) in bindings.into_iter().zip(types.into_iter()) {
-                    result.extend(Self::bind_variables(
-                        pattern,
-                        r#type,
-                        memory_type,
-                        scope.clone(),
-                    )?);
+                    result.extend(Self::bind_variables(pattern, r#type, scope.clone())?);
                 }
                 Ok(result)
             }
@@ -160,18 +147,11 @@ impl Binder {
                         });
                     }
 
-                    let memory_type = if matches!(r#type, Type::Contract(_)) {
-                        MemoryType::ContractInstance
-                    } else {
-                        MemoryType::Stack
-                    };
-
                     Scope::define_variable(
                         scope.clone(),
                         identifier.clone(),
                         is_mutable,
                         r#type.clone(),
-                        memory_type,
                     )?;
 
                     result.push(Binding::new(identifier, is_mutable, false, r#type));
@@ -193,17 +173,11 @@ impl Binder {
                         });
                     }
 
-                    let memory_type = match r#type {
-                        Type::Contract(_) => MemoryType::ContractInstance,
-                        _ => MemoryType::Stack,
-                    };
-
                     Scope::define_variable(
                         scope.clone(),
                         identifier.clone(),
                         is_mutable,
                         r#type.clone(),
-                        memory_type,
                     )?;
 
                     result.push(Binding::new(identifier, is_mutable, false, r#type));

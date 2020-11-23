@@ -38,6 +38,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Instruction {
 
             Self::StorageStore(inner) => inner.execute(vm),
             Self::StorageLoad(inner) => inner.execute(vm),
+            Self::StorageFetch(inner) => inner.execute(vm),
 
             Self::Add(inner) => inner.execute(vm),
             Self::Sub(inner) => inner.execute(vm),

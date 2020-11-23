@@ -113,14 +113,16 @@ impl IBytecodeWritable for Statement {
         }
 
         for (name, _is_mutable, r#type) in self.input_arguments.into_iter() {
-            match r#type {
-                Type::Contract { .. } => {}
-                argument_type => {
-                    state
-                        .borrow_mut()
-                        .define_variable(Some(name), argument_type.size());
-                }
-            }
+            let size = match r#type {
+                Type::Contract { fields } => fields
+                    .first()
+                    .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
+                    .r#type
+                    .size(),
+                argument_type => argument_type.size(),
+            };
+
+            state.borrow_mut().define_variable(Some(name), size);
         }
 
         self.body.write_all(state.clone());

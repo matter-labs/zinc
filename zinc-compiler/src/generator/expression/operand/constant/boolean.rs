@@ -11,7 +11,6 @@ use num::Zero;
 
 use zinc_build::Instruction;
 use zinc_build::Push;
-use zinc_build::ScalarType;
 
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
@@ -51,7 +50,7 @@ impl IBytecodeWritable for Boolean {
         };
 
         state.borrow_mut().push_instruction(
-            Instruction::Push(Push::new(value, ScalarType::Boolean)),
+            Instruction::Push(Push::new(value, zinc_build::ScalarType::Boolean)),
             None,
         );
     }

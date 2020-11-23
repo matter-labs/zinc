@@ -8,6 +8,8 @@ pub mod output;
 pub mod storage;
 pub mod synthesizer;
 
+use std::collections::HashMap;
+
 use colored::Colorize;
 use num::bigint::Sign;
 use num::bigint::ToBigInt;
@@ -20,6 +22,7 @@ use zinc_build::IntegerType;
 use zinc_build::ScalarType;
 use zinc_zksync::TransactionMsg;
 
+use crate::core::contract::storage::keeper::IKeeper;
 use crate::core::contract::storage::leaf::LeafVariant;
 use crate::core::counter::NamespaceCounter;
 use crate::core::execution_state::block::branch::Branch;
@@ -52,7 +55,8 @@ where
     execution_state: ExecutionState<E>,
     outputs: Vec<Scalar<E>>,
 
-    storage: StorageGadget<E, S, H>,
+    storages: HashMap<BigInt, StorageGadget<E, S, H>>,
+    keeper: Box<dyn IKeeper>,
     method_name: String,
     transaction: TransactionMsg,
 
@@ -68,7 +72,8 @@ where
 {
     pub fn new(
         cs: CS,
-        storage: StorageGadget<E, S, H>,
+        storages: HashMap<BigInt, StorageGadget<E, S, H>>,
+        keeper: Box<dyn IKeeper>,
         method_name: String,
         transaction: TransactionMsg,
     ) -> Self {
@@ -77,7 +82,8 @@ where
             execution_state: ExecutionState::new(),
             outputs: vec![],
 
-            storage,
+            storages,
+            keeper,
             method_name,
             transaction,
 
@@ -122,8 +128,6 @@ where
             return Err(error);
         }
 
-        self.init_storage()?;
-
         let mut step = 0;
         let execution_time = std::time::Instant::now();
         while self.execution_state.instruction_counter < contract.instructions.len() {
@@ -162,20 +166,6 @@ where
         self.get_outputs()
     }
 
-    fn init_storage(&mut self) -> Result<(), Error> {
-        // Temporary fix to avoid "unconstrained" error
-        let root_hash = self.storage.root_hash()?;
-        let cs = self.constraint_system();
-
-        gadgets::arithmetic::add::add(
-            cs.namespace(|| "root_hash constraint"),
-            &root_hash,
-            &Scalar::new_constant_usize(0, ScalarType::Field),
-        )?;
-
-        Ok(())
-    }
-
     fn init_root_frame(
         &mut self,
         input_type: zinc_build::Type,
@@ -209,9 +199,15 @@ where
             let output = gadgets::output::output(self.counter.next(), output)?;
             outputs_bigint.push(output.to_bigint());
         }
-        let root_hash = self.storage.root_hash()?;
-        let root_hash = gadgets::output::output(self.counter.next(), root_hash)?;
-        outputs_bigint.push(root_hash.to_bigint());
+        let root_hash = gadgets::output::output(
+            self.counter.next(),
+            Scalar::new_constant_usize(0, ScalarType::Field),
+        )?;
+        outputs_bigint.push(Some(
+            root_hash
+                .to_bigint()
+                .expect(zinc_const::panic::DATA_CONVERSION),
+        ));
 
         Ok(outputs_bigint)
     }
@@ -272,20 +268,55 @@ where
             .set(frame_start + address, cell)
     }
 
+    fn storage_fetch(
+        &mut self,
+        eth_address: Scalar<Self::E>,
+        field_types: Vec<zinc_build::ContractFieldType>,
+    ) -> Result<(), Error> {
+        let eth_address = eth_address
+            .to_bigint()
+            .expect(zinc_const::panic::DATA_CONVERSION);
+
+        let storage = self
+            .keeper
+            .fetch(eth_address.clone(), field_types.clone())?;
+        let storage = Self::S::from_build(field_types, storage)?;
+        let storage_gadget = StorageGadget::new(self.counter.next(), storage)?;
+        self.storages.insert(eth_address, storage_gadget);
+
+        Ok(())
+    }
+
     fn storage_load(
         &mut self,
+        eth_address: Scalar<Self::E>,
         index: Scalar<Self::E>,
         size: usize,
     ) -> Result<Vec<Scalar<Self::E>>, Error> {
-        self.storage.load(self.counter.next(), size, index)
+        self.storages
+            .get_mut(
+                &eth_address
+                    .to_bigint()
+                    .expect(zinc_const::panic::DATA_CONVERSION),
+            )
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+            .load(self.counter.next(), index, size)
     }
 
     fn storage_store(
         &mut self,
+        eth_address: Scalar<Self::E>,
         index: Scalar<Self::E>,
         values: LeafVariant<Self::E>,
     ) -> Result<(), Error> {
-        self.storage.store(self.counter.next(), index, values)
+        self.storages
+            .get_mut(
+                &eth_address
+                    .to_bigint()
+                    .expect(zinc_const::panic::DATA_CONVERSION),
+            )
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+            .store(self.counter.next(), index, values)
     }
 
     fn loop_begin(&mut self, iterations: usize) -> Result<(), Error> {
@@ -552,7 +583,12 @@ where
         function.call(
             cs.namespace(|| "native function"),
             state,
-            Some(self.storage.as_mut()),
+            Some(
+                self.storages
+                    .iter_mut()
+                    .map(|(key, value)| (key.to_owned(), value.as_mut()))
+                    .collect(),
+            ),
         )
     }
 

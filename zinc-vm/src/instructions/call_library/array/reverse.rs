@@ -2,6 +2,10 @@
 //! The `std::array::reverse` function call.
 //!
 
+use std::collections::HashMap;
+
+use num::BigInt;
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use crate::core::execution_state::ExecutionState;
@@ -27,7 +31,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Reverse {
         &self,
         _cs: CS,
         state: &mut ExecutionState<E>,
-        _storage: Option<&mut S>,
+        _storages: Option<HashMap<BigInt, &mut S>>,
     ) -> Result<(), Error> {
         let mut array = Vec::with_capacity(self.array_length);
 

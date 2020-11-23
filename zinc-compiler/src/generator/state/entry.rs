@@ -48,10 +48,7 @@ impl Entry {
         Type::structure(
             self.input_fields
                 .iter()
-                .filter_map(|(name, _is_mutable, r#type)| match r#type {
-                    Type::Contract { .. } => None,
-                    r#type => Some((name.to_owned(), r#type.to_owned())),
-                })
+                .map(|(name, _is_mutable, r#type)| (name.to_owned(), r#type.to_owned()))
                 .collect(),
         )
     }

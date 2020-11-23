@@ -4,10 +4,14 @@
 
 pub mod array;
 pub mod collections_mtreemap;
+pub mod contract;
 pub mod convert;
 pub mod crypto;
 pub mod ff;
-pub mod zksync;
+
+use std::collections::HashMap;
+
+use num::BigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
@@ -28,6 +32,7 @@ use self::collections_mtreemap::contains::Contains as CollectionsMTreeMapContain
 use self::collections_mtreemap::get::Get as CollectionsMTreeMapGet;
 use self::collections_mtreemap::insert::Insert as CollectionsMTreeMapInsert;
 use self::collections_mtreemap::remove::Remove as CollectionsMTreeMapRemove;
+use self::contract::transfer::Transfer as ZksyncTransfer;
 use self::convert::from_bits_field::FromBitsField as ConvertFromBitsField;
 use self::convert::from_bits_signed::FromBitsSigned as ConvertFromBitsSigned;
 use self::convert::from_bits_unsigned::FromBitsUnsigned as ConvertFromBitsUnsigned;
@@ -36,14 +41,13 @@ use self::crypto::pedersen::Pedersen as CryptoPedersen;
 use self::crypto::schnorr_verify::SchnorrSignatureVerify as CryptoSchnorrSignatureVerify;
 use self::crypto::sha256::Sha256 as CryptoSha256;
 use self::ff::invert::Inverse as FfInverse;
-use self::zksync::transfer::Transfer as ZksyncTransfer;
 
 pub trait INativeCallable<E: IEngine, S: IMerkleTree<E>> {
     fn call<CS: ConstraintSystem<E>>(
         &self,
         cs: CS,
         state: &mut ExecutionState<E>,
-        storage: Option<&mut S>,
+        storages: Option<HashMap<BigInt, &mut S>>,
     ) -> Result<(), Error>;
 }
 
@@ -79,7 +83,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for CallLibrary {
 
             LibraryFunctionIdentifier::FfInvert => vm.call_native(FfInverse),
 
-            LibraryFunctionIdentifier::ZksyncTransfer => vm.call_native(ZksyncTransfer),
+            LibraryFunctionIdentifier::ContractTransfer => vm.call_native(ZksyncTransfer),
 
             LibraryFunctionIdentifier::CollectionsMTreeMapGet => vm.call_native(
                 CollectionsMTreeMapGet::new(self.input_size, self.output_size),

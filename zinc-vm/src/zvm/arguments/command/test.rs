@@ -9,8 +9,6 @@ use structopt::StructOpt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
-use zinc_build::Application as BuildApplication;
-
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
 
@@ -35,12 +33,14 @@ impl IExecutable for Command {
     fn execute(self) -> Result<i32, Self::Error> {
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let application = BuildApplication::try_from_slice(bytes.as_slice())
+        let application = zinc_build::Application::try_from_slice(bytes.as_slice())
             .map_err(Error::ApplicationDecoding)?;
 
         let status = match application {
-            BuildApplication::Circuit(circuit) => CircuitFacade::new(circuit).test::<Bn256>()?,
-            BuildApplication::Contract(contract) => {
+            zinc_build::Application::Circuit(circuit) => {
+                CircuitFacade::new(circuit).test::<Bn256>()?
+            }
+            zinc_build::Application::Contract(contract) => {
                 ContractFacade::new(contract).test::<Bn256>()?
             }
         };

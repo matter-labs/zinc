@@ -2,6 +2,8 @@
 //! The Zinc VM contract type storage field.
 //!
 
+use std::fmt;
+
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -33,5 +35,17 @@ impl ContractField {
             is_public,
             is_implicit,
         }
+    }
+}
+
+impl fmt::Display for ContractField {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}{}: {}",
+            if self.is_public { "pub " } else { "" },
+            self.name,
+            self.r#type,
+        )
     }
 }

@@ -9,9 +9,6 @@ use std::str::FromStr;
 use colored::Colorize;
 use structopt::StructOpt;
 
-use zinc_manifest::Manifest;
-use zinc_manifest::ProjectType;
-
 use crate::error::Error;
 use crate::http::Client as HttpClient;
 use crate::network::Network;
@@ -64,10 +61,10 @@ impl Command {
             .map_err(Error::NetworkUnimplemented)?;
         let http_client = HttpClient::new(url);
 
-        let manifest = Manifest::try_from(&self.manifest_path)?;
+        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
 
         match manifest.project.r#type {
-            ProjectType::Contract => {}
+            zinc_manifest::ProjectType::Contract => {}
             _ => anyhow::bail!(Error::NotAContract),
         }
 

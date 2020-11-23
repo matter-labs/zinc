@@ -9,9 +9,6 @@ use std::str::FromStr;
 use colored::Colorize;
 use structopt::StructOpt;
 
-use zinc_manifest::Manifest;
-use zinc_manifest::ProjectType;
-
 use crate::error::Error;
 use crate::project::src::circuit::Circuit as CircuitFile;
 use crate::project::src::contract::Contract as ContractFile;
@@ -53,8 +50,8 @@ impl Command {
                 .to_string(),
         );
 
-        let project_type =
-            ProjectType::from_str(self.r#type.as_str()).map_err(Error::ProjectTypeInvalid)?;
+        let project_type = zinc_manifest::ProjectType::from_str(self.r#type.as_str())
+            .map_err(Error::ProjectTypeInvalid)?;
 
         if self.path.exists() {
             anyhow::bail!(Error::DirectoryAlreadyExists(
@@ -63,17 +60,17 @@ impl Command {
         }
         fs::create_dir_all(&self.path)?;
 
-        Manifest::new(&project_name, project_type).write_to(&self.path)?;
+        zinc_manifest::Manifest::new(&project_name, project_type).write_to(&self.path)?;
 
         SourceDirectory::create(&self.path)?;
 
         match project_type {
-            ProjectType::Circuit => {
+            zinc_manifest::ProjectType::Circuit => {
                 if !CircuitFile::exists_at(&self.path) {
                     CircuitFile::new(&project_name).write_to(&self.path)?;
                 }
             }
-            ProjectType::Contract => {
+            zinc_manifest::ProjectType::Contract => {
                 if !ContractFile::exists_at(&self.path) {
                     ContractFile::new(&project_name).write_to(&self.path)?;
                 }

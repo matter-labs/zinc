@@ -1,5 +1,5 @@
 //!
-//! The intrinsic function tests.
+//! The standard library intrinsic functions tests.
 //!
 
 use std::str::FromStr;

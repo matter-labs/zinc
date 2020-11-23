@@ -4,15 +4,16 @@
 
 use std::convert::TryFrom;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use structopt::StructOpt;
-
-use zinc_manifest::Manifest;
-use zinc_manifest::ProjectType;
 
 use crate::error::Error;
 use crate::executable::compiler::Compiler;
 use crate::executable::virtual_machine::VirtualMachine;
+use crate::http::downloader::Downloader;
+use crate::http::Client as HttpClient;
+use crate::network::Network;
 use crate::project::data::private_key::PrivateKey as PrivateKeyFile;
 use crate::project::data::Directory as DataDirectory;
 use crate::project::target::deps::Directory as TargetDependenciesDirectory;
@@ -43,17 +44,23 @@ pub struct Command {
     /// Uses the release build.
     #[structopt(long = "release")]
     pub is_release: bool,
+
+    /// Sets the network name, where the contract must be published to.
+    #[structopt(long = "network", default_value = "localhost")]
+    pub network: String,
 }
 
 impl Command {
     ///
     /// Executes the command.
     ///
-    pub fn execute(self) -> anyhow::Result<()> {
-        let manifest = Manifest::try_from(&self.manifest_path)?;
+    pub async fn execute(self) -> anyhow::Result<()> {
+        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
 
         match manifest.project.r#type {
-            ProjectType::Contract if self.method.is_none() => anyhow::bail!(Error::MethodMissing),
+            zinc_manifest::ProjectType::Contract if self.method.is_none() => {
+                anyhow::bail!(Error::MethodMissing)
+            }
             _ => {}
         }
 
@@ -61,6 +68,19 @@ impl Command {
         if manifest_path.is_file() {
             manifest_path.pop();
         }
+
+        TargetDirectory::create(&manifest_path, self.is_release)?;
+        let target_directory_path = TargetDirectory::path(&manifest_path, self.is_release);
+        let mut binary_path = target_directory_path;
+        binary_path.push(format!(
+            "{}.{}",
+            zinc_const::file_name::BINARY,
+            zinc_const::extension::BINARY
+        ));
+
+        TargetDependenciesDirectory::remove(&manifest_path)?;
+        TargetDependenciesDirectory::create(&manifest_path)?;
+        let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
 
         DataDirectory::create(&manifest_path)?;
         let data_directory_path = DataDirectory::path(&manifest_path);
@@ -80,15 +100,17 @@ impl Command {
             PrivateKeyFile::default().write_to(&data_directory_path)?;
         }
 
-        TargetDirectory::create(&manifest_path, self.is_release)?;
-        let target_directory_path = TargetDirectory::path(&manifest_path, self.is_release);
-        let mut binary_path = target_directory_path;
-        binary_path.push(format!(
-            "{}.{}",
-            zinc_const::file_name::BINARY,
-            zinc_const::extension::BINARY
-        ));
-        TargetDependenciesDirectory::create(&manifest_path)?;
+        if let Some(dependencies) = manifest.dependencies {
+            let network = zksync::Network::from_str(self.network.as_str())
+                .map(Network::from)
+                .map_err(Error::NetworkInvalid)?;
+            let url = network
+                .try_into_url()
+                .map_err(Error::NetworkUnimplemented)?;
+            let http_client = HttpClient::new(url);
+            let mut downloader = Downloader::new(&http_client, target_deps_directory_path);
+            downloader.download_list(dependencies).await?;
+        }
 
         if self.is_release {
             Compiler::build_release(

@@ -10,8 +10,6 @@ use franklin_crypto::bellman;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::SynthesisError;
 
-use zinc_build::Circuit as BuildCircuit;
-
 use crate::constraint_systems::dedup::Dedup as DedupCS;
 use crate::constraint_systems::logging::Logging as LoggingCS;
 use crate::core::circuit::State;
@@ -21,7 +19,7 @@ use crate::IEngine;
 pub struct Synthesizer<'a, E: IEngine> {
     pub inputs: Option<Vec<BigInt>>,
     pub output: &'a mut Option<Result<Vec<Option<BigInt>>, Error>>,
-    pub bytecode: BuildCircuit,
+    pub bytecode: zinc_build::Circuit,
 
     pub _pd: PhantomData<E>,
 }

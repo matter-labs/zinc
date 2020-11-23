@@ -2,7 +2,10 @@
 //! The `std::collections::MTreeMap::contains` function call.
 //!
 
+use std::collections::HashMap;
+
 use num::bigint::ToBigInt;
+use num::BigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
@@ -30,12 +33,12 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Contains {
         &self,
         _cs: CS,
         state: &mut ExecutionState<E>,
-        storage: Option<&mut S>,
+        storages: Option<HashMap<BigInt, &mut S>>,
     ) -> Result<(), Error>
     where
         CS: ConstraintSystem<E>,
     {
-        let storage = storage.ok_or(Error::OnlyForContracts)?;
+        let storages = storages.ok_or(Error::OnlyForContracts)?;
 
         let mut input = Vec::with_capacity(self.input_size);
         for _ in 0..self.input_size {
@@ -48,8 +51,20 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Contains {
             .pop()?
             .try_into_value()?
             .to_bigint()
-            .unwrap_or_default();
-        let data = match storage.load(index)?.leaf_values {
+            .expect(zinc_const::panic::DATA_CONVERSION);
+        let eth_address = state
+            .evaluation_stack
+            .pop()?
+            .try_into_value()?
+            .to_bigint()
+            .expect(zinc_const::panic::DATA_CONVERSION);
+
+        let data = match storages
+            .get(&eth_address)
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+            .load(index)?
+            .leaf_values
+        {
             LeafVariant::Map { data, .. } => data,
             LeafVariant::Array(_array) => return Err(Error::InvalidStorageValue),
         };

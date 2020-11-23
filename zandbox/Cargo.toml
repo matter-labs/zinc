@@ -31,6 +31,7 @@ semver = "0.11"
 rayon = "1.5"
 futures = "0.3"
 async-std = "1.7"
+tokio = { version = "0.2", features = [ "macros" ] }
 actix-rt = "1.1"
 actix-cors = "0.5"
 actix-web = "3.2"
@@ -49,9 +50,6 @@ zinc-source = { path = "../zinc-source" }
 zinc-build = { path = "../zinc-build" }
 zinc-zksync = { path = "../zinc-zksync" }
 zinc-vm = { path = "../zinc-vm" }
-
-[dev-dependencies]
-tokio = { version = "0.2", features = [ "macros" ] }
 
 [features]
 integration-tests = []

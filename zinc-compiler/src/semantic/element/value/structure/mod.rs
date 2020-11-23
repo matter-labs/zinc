@@ -82,6 +82,15 @@ impl Structure {
     /// Sets the structure type and checks if the pushed field types match it.
     ///
     pub fn validate(&mut self, expected: StructureType) -> Result<(), Error> {
+        if self.fields.len() < expected.fields.len() {
+            return Err(Error::StructureFieldCount {
+                location: self.location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+                r#type: expected.identifier.to_owned(),
+                expected: expected.fields.len(),
+                found: self.fields.len(),
+            });
+        }
+
         for (index, (name, location, r#type)) in self.fields.iter().enumerate() {
             match expected.fields.get(index) {
                 Some((expected_name, expected_type)) => {
@@ -106,7 +115,7 @@ impl Structure {
                     }
                 }
                 None => {
-                    return Err(Error::StructureFieldOutOfRange {
+                    return Err(Error::StructureFieldCount {
                         location: location.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
                         r#type: expected.identifier.to_owned(),
                         expected: expected.fields.len(),

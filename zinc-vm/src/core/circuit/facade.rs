@@ -13,7 +13,6 @@ use franklin_crypto::bellman::groth16::Proof;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
-use zinc_build::Circuit as BuildCircuit;
 use zinc_const::UnitTestExitCode;
 
 use crate::constraint_systems::main::Main as MainCS;
@@ -25,11 +24,11 @@ use crate::error::Error;
 use crate::IEngine;
 
 pub struct Facade {
-    inner: BuildCircuit,
+    inner: zinc_build::Circuit,
 }
 
 impl Facade {
-    pub fn new(inner: BuildCircuit) -> Self {
+    pub fn new(inner: zinc_build::Circuit) -> Self {
         Self { inner }
     }
 

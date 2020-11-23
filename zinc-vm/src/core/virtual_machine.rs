@@ -33,16 +33,25 @@ pub trait IVirtualMachine {
 
     // Operations with contract storage
 
+    fn storage_fetch(
+        &mut self,
+        eth_address: Scalar<Self::E>,
+        field_types: Vec<zinc_build::ContractFieldType>,
+    ) -> Result<(), Error>;
     fn storage_load(
         &mut self,
+        eth_address: Scalar<Self::E>,
         index: Scalar<Self::E>,
         size: usize,
     ) -> Result<Vec<Scalar<Self::E>>, Error>;
     fn storage_store(
         &mut self,
+        eth_address: Scalar<Self::E>,
         index: Scalar<Self::E>,
         values: LeafVariant<Self::E>,
     ) -> Result<(), Error>;
+
+    // Flow control operations
 
     fn loop_begin(&mut self, iter_count: usize) -> Result<(), Error>;
     fn loop_end(&mut self) -> Result<(), Error>;

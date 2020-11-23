@@ -4,6 +4,7 @@
 
 use actix_web::http::StatusCode;
 use actix_web::web;
+use num::BigInt;
 use num_old::BigUint;
 use num_old::Zero;
 
@@ -16,6 +17,7 @@ use zinc_vm::ContractInput;
 use crate::contract::Contract;
 use crate::error::Error;
 use crate::response::Response;
+use crate::storage::keeper::Keeper as StorageKeeper;
 
 ///
 /// The HTTP request handler.
@@ -63,16 +65,21 @@ pub async fn handle(
         return Err(Error::MethodIsImmutable(query.method));
     }
 
-    let arguments = zinc_build::Value::try_from_typed_json(body.arguments, method.input)
+    let eth_address_bigint =
+        BigInt::from_bytes_be(num::bigint::Sign::Plus, contract.eth_address.as_bytes());
+    let mut arguments = zinc_build::Value::try_from_typed_json(body.arguments, method.input)
         .map_err(Error::InvalidInput)?;
+    arguments.insert_contract_instance(eth_address_bigint.clone());
 
     let method = query.method;
     let contract_build = contract.build;
     let contract_storage = contract.storage;
+    let contract_storage_keeper = StorageKeeper::new(postgresql, network);
     let transaction = (&body.transaction).try_to_msg(&contract.wallet)?;
     let vm_time = std::time::Instant::now();
     let output = async_std::task::spawn_blocking(move || {
-        zinc_vm::ContractFacade::new(contract_build).run::<Bn256>(ContractInput::new(
+        zinc_vm::ContractFacade::new_with_keeper(contract_build, Box::new(contract_storage_keeper))
+            .run::<Bn256>(ContractInput::new(
             arguments,
             contract_storage.into_build(),
             method,
@@ -101,7 +108,7 @@ pub async fn handle(
         fee += contract
             .wallet
             .provider
-            .get_tx_fee(TxFeeTypes::Transfer, transfer.recipient.into(), token.id)
+            .get_tx_fee(TxFeeTypes::Transfer, transfer.recipient, token.id)
             .await?
             .total_fee;
     }

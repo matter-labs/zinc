@@ -39,12 +39,13 @@ mod tests {
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
-    use zinc_build::ScalarType;
-
     #[test]
     fn test_require_ok() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(
+                BigInt::one(),
+                zinc_build::ScalarType::Boolean,
+            ))
             .push(zinc_build::Require::new(None))
             .test::<i32>(&[])
     }
@@ -52,7 +53,10 @@ mod tests {
     #[test]
     fn test_require_fail() {
         let res = TestRunner::new()
-            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(
+                BigInt::zero(),
+                zinc_build::ScalarType::Boolean,
+            ))
             .push(zinc_build::Require::new(None))
             .test::<i32>(&[]);
 
@@ -65,9 +69,15 @@ mod tests {
     #[test]
     fn test_require_in_condition() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(
+                BigInt::zero(),
+                zinc_build::ScalarType::Boolean,
+            ))
             .push(zinc_build::If)
-            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(
+                BigInt::zero(),
+                zinc_build::ScalarType::Boolean,
+            ))
             .push(zinc_build::Require::new(None))
             .push(zinc_build::EndIf)
             .test::<i32>(&[])

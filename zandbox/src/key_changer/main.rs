@@ -4,10 +4,6 @@
 
 use colored::Colorize;
 
-use zksync::web3::types::H256;
-use zksync_eth_signer::PrivateKeySigner;
-use zksync_types::tx::PackedEthSignature;
-
 static PRIVATE_KEY: &str = "7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
 
 const NETWORK: zksync::Network = zksync::Network::Localhost;
@@ -18,14 +14,14 @@ const NETWORK: zksync::Network = zksync::Network::Localhost;
 #[actix_rt::main]
 async fn main() {
     let provider = zksync::Provider::new(NETWORK);
-    let private_key: H256 = PRIVATE_KEY
+    let private_key: zksync_types::H256 = PRIVATE_KEY
         .parse()
         .expect(zinc_const::panic::DATA_CONVERSION);
-    let address = PackedEthSignature::address_from_private_key(&private_key)
+    let address = zksync_types::tx::PackedEthSignature::address_from_private_key(&private_key)
         .expect(zinc_const::panic::DATA_CONVERSION);
     let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
         address,
-        PrivateKeySigner::new(private_key),
+        zksync_eth_signer::PrivateKeySigner::new(private_key),
         NETWORK,
     )
     .await

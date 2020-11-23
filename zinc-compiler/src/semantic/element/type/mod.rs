@@ -305,8 +305,8 @@ impl Type {
     ///
     /// Returns the type size in the virtual machine data stack.
     ///
-    /// The contract's size is zero, since its fields are stored in the contract storage, but not
-    /// in the data stack.
+    /// The contract size is one, since its fields are stored in the contract storage, and only
+    /// its address is stored in the data stack.
     ///
     pub fn size(&self) -> usize {
         match self {
@@ -326,7 +326,7 @@ impl Type {
                 .map(|(_name, r#type)| r#type.size())
                 .sum(),
             Self::Enumeration(_inner) => 1,
-            Self::Contract(_inner) => 0,
+            Self::Contract(_inner) => 1,
             Self::Function(_inner) => 0,
         }
     }
@@ -424,7 +424,8 @@ impl Type {
     ///
     /// Checks if the type can be instantiated.
     ///
-    /// Instantiation is currently impossible for strings, ranges, functions, and maps.
+    /// Instantiation is currently impossible for strings, ranges, functions,
+    /// and maps beyond the contract storage.
     ///
     pub fn is_instantiatable(&self, is_contract_field: bool) -> bool {
         match self {

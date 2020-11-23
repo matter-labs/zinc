@@ -80,6 +80,10 @@ pub enum Error {
     /// The contract storage JSON is invalid.
     #[error("contract storage must be an array, but found `{found}`")]
     InvalidContractStorageFormat { found: serde_json::Value },
+
+    /// The command is temporarily unavailable.
+    #[error("the proof verification is temporarily unavailable")]
+    ProofVerificationUnavailable,
 }
 
 ///

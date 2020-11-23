@@ -5,17 +5,21 @@
 #[cfg(test)]
 mod tests;
 
+pub mod contract_fetch;
+pub mod contract_transfer;
 pub mod debug;
 pub mod require;
 pub mod stdlib;
-pub mod zksync;
 
 use std::fmt;
 
 use zinc_build::LibraryFunctionIdentifier;
-
 use zinc_lexical::Location;
 
+use crate::semantic::element::r#type::contract::Contract as ContractType;
+
+use self::contract_fetch::Function as ContractFetchFunction;
+use self::contract_transfer::Function as ContractTransferFunction;
 use self::debug::Function as DebugFunction;
 use self::require::Function as RequireFunction;
 use self::stdlib::array_pad::Function as StdArrayPadFunction;
@@ -34,8 +38,6 @@ use self::stdlib::crypto_schnorr_signature_verify::Function as StdCryptoSchnorrS
 use self::stdlib::crypto_sha256::Function as StdCryptoSha256Function;
 use self::stdlib::ff_invert::Function as StdFfInvertFunction;
 use self::stdlib::Function as StandardLibraryFunction;
-use self::zksync::transfer::Function as ZkSyncTransferFunction;
-use self::zksync::Function as ZkSyncLibraryFunction;
 
 ///
 /// The semantic analyzer intrinsic function element.
@@ -46,10 +48,12 @@ pub enum Function {
     Require(RequireFunction),
     /// The `dbg!(...)` function. See the inner element description.
     Debug(DebugFunction),
+    /// The `<Contract>::fetch(...)` function. See the inner element description.
+    ContractFetch(ContractFetchFunction),
+    /// The `<Contract>::transfer(...)` function. See the inner element description.
+    ContractTransfer(ContractTransferFunction),
     /// The standard library function. See the inner element description.
     StandardLibrary(StandardLibraryFunction),
-    /// The zkSync library function. See the inner element description.
-    ZkSyncLibrary(ZkSyncLibraryFunction),
 }
 
 impl Function {
@@ -65,6 +69,20 @@ impl Function {
     ///
     pub fn new_debug() -> Self {
         Self::Debug(DebugFunction::default())
+    }
+
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new_contract_fetch(contract_type: ContractType) -> Self {
+        Self::ContractFetch(ContractFetchFunction::new(contract_type))
+    }
+
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new_contract_transfer(contract_type: ContractType) -> Self {
+        Self::ContractFetch(ContractFetchFunction::new(contract_type))
     }
 
     ///
@@ -117,9 +135,9 @@ impl Function {
                 StandardLibraryFunction::FfInvert(StdFfInvertFunction::default()),
             ),
 
-            LibraryFunctionIdentifier::ZksyncTransfer => Self::ZkSyncLibrary(
-                ZkSyncLibraryFunction::Transfer(ZkSyncTransferFunction::default()),
-            ),
+            LibraryFunctionIdentifier::ContractTransfer => {
+                Self::ContractTransfer(ContractTransferFunction::default())
+            }
 
             LibraryFunctionIdentifier::CollectionsMTreeMapGet => {
                 Self::StandardLibrary(StandardLibraryFunction::CollectionsMTreeMapGet(
@@ -158,8 +176,9 @@ impl Function {
         match self {
             Self::Require(_) => false,
             Self::Debug(_) => false,
+            Self::ContractFetch(_) => false,
+            Self::ContractTransfer(_) => true,
             Self::StandardLibrary(inner) => inner.is_mutable(),
-            Self::ZkSyncLibrary(inner) => inner.is_mutable(),
         }
     }
 
@@ -170,8 +189,9 @@ impl Function {
         match self {
             Self::Require(inner) => inner.identifier,
             Self::Debug(inner) => inner.identifier,
+            Self::ContractFetch(inner) => inner.identifier,
+            Self::ContractTransfer(inner) => inner.identifier,
             Self::StandardLibrary(inner) => inner.identifier(),
-            Self::ZkSyncLibrary(inner) => inner.identifier(),
         }
     }
 
@@ -182,8 +202,9 @@ impl Function {
         match self {
             Self::Require(inner) => inner.location = Some(location),
             Self::Debug(inner) => inner.location = Some(location),
+            Self::ContractFetch(inner) => inner.location = Some(location),
+            Self::ContractTransfer(inner) => inner.location = Some(location),
             Self::StandardLibrary(inner) => inner.set_location(location),
-            Self::ZkSyncLibrary(inner) => inner.set_location(location),
         }
     }
 
@@ -194,8 +215,9 @@ impl Function {
         match self {
             Self::Require(inner) => inner.location,
             Self::Debug(inner) => inner.location,
+            Self::ContractFetch(inner) => inner.location,
+            Self::ContractTransfer(inner) => inner.location,
             Self::StandardLibrary(inner) => inner.location(),
-            Self::ZkSyncLibrary(inner) => inner.location(),
         }
     }
 }
@@ -205,8 +227,9 @@ impl fmt::Display for Function {
         match self {
             Self::Require(inner) => write!(f, "{}", inner),
             Self::Debug(inner) => write!(f, "{}", inner),
+            Self::ContractFetch(inner) => write!(f, "{}", inner),
+            Self::ContractTransfer(inner) => write!(f, "{}", inner),
             Self::StandardLibrary(inner) => write!(f, "std::{}", inner),
-            Self::ZkSyncLibrary(inner) => write!(f, "zksync::{}", inner),
         }
     }
 }

@@ -4,10 +4,10 @@
 
 use std::fmt;
 
+use zinc_lexical::Location;
+
 use crate::semantic::element::r#type::Type;
 use crate::semantic::scope::item::index::INDEX as ITEM_INDEX;
-use crate::semantic::scope::memory_type::MemoryType;
-use zinc_lexical::Location;
 
 ///
 /// The variable item, declared using a `let` statement.
@@ -24,8 +24,6 @@ pub struct Variable {
     pub identifier: String,
     /// The variable type.
     pub r#type: Type,
-    /// The memory type, where the variable is declared.
-    pub memory_type: MemoryType,
 }
 
 impl Variable {
@@ -37,7 +35,6 @@ impl Variable {
         is_mutable: bool,
         identifier: String,
         r#type: Type,
-        memory_type: MemoryType,
     ) -> Self {
         let item_id = ITEM_INDEX.next(format!("variable {}", identifier));
 
@@ -47,7 +44,6 @@ impl Variable {
             is_mutable,
             identifier,
             r#type,
-            memory_type,
         }
     }
 }

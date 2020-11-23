@@ -51,7 +51,7 @@ pub fn initialize(app_name: &'static str, verbosity: usize) {
                     buffer,
                     "[{:>5} {:>5}] {}",
                     level_string(record.level()),
-                    record.module_path().unwrap_or_else(|| app_name).white(),
+                    record.module_path().unwrap_or(app_name).white(),
                     record.args()
                 )
             } else {

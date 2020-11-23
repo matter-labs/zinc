@@ -10,7 +10,6 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::item::Item as ScopeItem;
-use crate::semantic::scope::memory_type::MemoryType as ScopeVariableItemMemoryType;
 
 #[test]
 fn error_argument_count_lesser() {
@@ -109,7 +108,6 @@ fn main() {
                 false,
                 "x".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
-                ScopeVariableItemMemoryType::Stack,
             ))
             .to_string(),
         },

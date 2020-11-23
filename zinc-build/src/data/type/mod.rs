@@ -136,16 +136,17 @@ impl Type {
     }
 
     ///
-    /// Removes the first structure field, if the field is a contract instance.
+    /// Changes the first argument from the contract instance to a contract address.
     ///
     /// Is used before passing through the input arguments of a contract method, where the first
-    /// argument is a contract instance, which is stored not in the data stack, but in the
-    /// contract storage, and should not be taken into account when calculating the input size.
+    /// argument is a contract instance, which is stored as a reference to its storage.
     ///
-    pub fn remove_contract_instance(&mut self) {
+    pub fn set_contract_address(&mut self) {
         if let Self::Structure(fields) = self {
-            if matches!(fields.first(), Some((_name, Self::Contract(_)))) {
-                fields.remove(0);
+            if let Some((_name, r#type)) = fields.first_mut() {
+                if matches!(r#type, Self::Contract(_)) {
+                    *r#type = Type::Scalar(ScalarType::Integer(IntegerType::ETH_ADDRESS));
+                }
             }
         }
     }

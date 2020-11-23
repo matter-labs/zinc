@@ -18,6 +18,8 @@ pub mod verify;
 
 use structopt::StructOpt;
 
+use crate::error::Error;
+
 use self::build::Command as BuildCommand;
 use self::call::Command as CallCommand;
 use self::clean::Command as CleanCommand;
@@ -42,14 +44,16 @@ pub enum Command {
     New(NewCommand),
     /// Initializes a new project in the specified directory.
     Init(InitCommand),
-    /// Builds the project at the given path.
-    Build(BuildCommand),
     /// Removes the project build artifacts.
     Clean(CleanCommand),
+
+    /// Builds the project at the given path.
+    Build(BuildCommand),
     /// Runs the project and prints its output.
     Run(RunCommand),
     /// Runs the project unit tests.
     Test(TestCommand),
+
     /// Generates a pair of proving and verifying keys.
     Setup(SetupCommand),
     /// Generates the zero-knowledge proof for given input data.
@@ -58,6 +62,7 @@ pub enum Command {
     Verify(VerifyCommand),
     /// Runs the full project building, running, trusted setup, proving & verifying sequence.
     ProofCheck(ProofCheckCommand),
+
     /// Uploads the smart contract to the specified network.
     Publish(PublishCommand),
     /// Queries a contract storage or calls an immutable method.
@@ -74,14 +79,17 @@ impl Command {
         match self {
             Self::New(inner) => inner.execute()?,
             Self::Init(inner) => inner.execute()?,
-            Self::Build(inner) => inner.execute().await?,
             Self::Clean(inner) => inner.execute()?,
-            Self::Run(inner) => inner.execute()?,
-            Self::Test(inner) => inner.execute()?,
+
+            Self::Build(inner) => inner.execute().await?,
+            Self::Run(inner) => inner.execute().await?,
+            Self::Test(inner) => inner.execute().await?,
+
             Self::Setup(inner) => inner.execute()?,
-            Self::Prove(inner) => inner.execute()?,
-            Self::Verify(inner) => inner.execute()?,
-            Self::ProofCheck(inner) => inner.execute()?,
+            Self::Prove(_inner) => anyhow::bail!(Error::ProofVerificationUnavailable),
+            Self::Verify(_inner) => anyhow::bail!(Error::ProofVerificationUnavailable),
+            Self::ProofCheck(_inner) => anyhow::bail!(Error::ProofVerificationUnavailable),
+
             Self::Publish(inner) => inner.execute().await?,
             Self::Query(inner) => inner.execute().await?,
             Self::Call(inner) => inner.execute().await?,

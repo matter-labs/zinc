@@ -19,6 +19,7 @@ use serde::Deserialize;
 use serde::Serialize;
 
 use self::call_library::CallLibrary;
+use self::contract::fetch::StorageFetch;
 use self::contract::load::StorageLoad;
 use self::contract::store::StorageStore;
 use self::data_stack::load::Load;
@@ -95,6 +96,8 @@ pub enum Instruction {
     StorageStore(StorageStore),
     /// A contract storage instruction.
     StorageLoad(StorageLoad),
+    /// A contract storage instruction.
+    StorageFetch(StorageFetch),
 
     /// An arithmetic operator instruction.
     Add(Add),
@@ -164,12 +167,12 @@ pub enum Instruction {
     /// A flow control instruction.
     Exit(Exit),
 
-    /// The standard library function call instruction.
-    CallLibrary(CallLibrary),
-    /// An intrinsic function call instruction.
-    Require(Require),
     /// An intrinsic function call instruction.
     Dbg(Dbg),
+    /// An intrinsic function call instruction.
+    Require(Require),
+    /// The standard library function call instruction.
+    CallLibrary(CallLibrary),
 
     /// A debug location marker instruction.
     FileMarker(FileMarker),
@@ -200,6 +203,7 @@ impl Instruction {
 
             Self::StorageStore(inner) => inner.is_debug(),
             Self::StorageLoad(inner) => inner.is_debug(),
+            Self::StorageFetch(inner) => inner.is_debug(),
 
             Self::Add(inner) => inner.is_debug(),
             Self::Sub(inner) => inner.is_debug(),
@@ -238,9 +242,9 @@ impl Instruction {
             Self::Return(inner) => inner.is_debug(),
             Self::Exit(inner) => inner.is_debug(),
 
-            Self::CallLibrary(inner) => inner.is_debug(),
-            Self::Require(inner) => inner.is_debug(),
             Self::Dbg(inner) => inner.is_debug(),
+            Self::Require(inner) => inner.is_debug(),
+            Self::CallLibrary(inner) => inner.is_debug(),
 
             Self::FileMarker(inner) => inner.is_debug(),
             Self::FunctionMarker(inner) => inner.is_debug(),
@@ -266,6 +270,7 @@ impl fmt::Display for Instruction {
 
             Self::StorageStore(inner) => write!(f, "{}", inner),
             Self::StorageLoad(inner) => write!(f, "{}", inner),
+            Self::StorageFetch(inner) => write!(f, "{}", inner),
 
             Self::Add(inner) => write!(f, "{}", inner),
             Self::Sub(inner) => write!(f, "{}", inner),
@@ -304,9 +309,9 @@ impl fmt::Display for Instruction {
             Self::Return(inner) => write!(f, "{}", inner),
             Self::Exit(inner) => write!(f, "{}", inner),
 
-            Self::CallLibrary(inner) => write!(f, "{}", inner),
-            Self::Require(inner) => write!(f, "{}", inner),
             Self::Dbg(inner) => write!(f, "{}", inner),
+            Self::Require(inner) => write!(f, "{}", inner),
+            Self::CallLibrary(inner) => write!(f, "{}", inner),
 
             Self::FileMarker(inner) => write!(f, "{}", inner),
             Self::FunctionMarker(inner) => write!(f, "{}", inner),

@@ -10,14 +10,9 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use zinc_build::Application as BuildApplication;
-use zinc_build::ContractMethod;
 use zinc_build::Instruction;
-use zinc_build::UnitTest as BuildUnitTest;
 use zinc_lexical::Location;
 use zinc_lexical::FILE_INDEX;
-use zinc_manifest::Manifest;
-use zinc_manifest::ProjectType;
 
 use crate::generator::r#type::contract_field::ContractField as ContractFieldType;
 use crate::generator::r#type::Type;
@@ -32,7 +27,7 @@ use self::unit_test::UnitTest;
 #[derive(Debug)]
 pub struct State {
     /// The Zinc project manifest.
-    manifest: Manifest,
+    manifest: zinc_manifest::Manifest,
 
     /// The Zinc VM instructions written by the bytecode generator.
     instructions: Vec<Instruction>,
@@ -73,7 +68,7 @@ impl State {
     /// Creates a new bytecode instance with the placeholders for the entry `Call` and
     /// `Exit` instructions.
     ///
-    pub fn new(manifest: Manifest) -> Self {
+    pub fn new(manifest: zinc_manifest::Manifest) -> Self {
         Self {
             manifest,
 
@@ -139,7 +134,7 @@ impl State {
             zinc_build::FunctionMarker::new(identifier),
         ));
 
-        if let ProjectType::Contract = self.manifest.project.r#type {
+        if let zinc_manifest::ProjectType::Contract = self.manifest.project.r#type {
             self.define_variable(
                 Some(zinc_const::contract::TRANSACTION_VARIABLE_NAME.to_owned()),
                 zinc_const::contract::TRANSACTION_SIZE,
@@ -241,7 +236,7 @@ impl State {
     pub fn into_application(
         mut self,
         optimize_dead_function_elimination: bool,
-    ) -> BuildApplication {
+    ) -> zinc_build::Application {
         match self.contract_storage.take() {
             Some(storage) => {
                 let storage = storage.into_iter().map(|field| field.into()).collect();
@@ -279,11 +274,11 @@ impl State {
                         .cloned()
                         .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
                     let mut input: zinc_build::Type = method.input_fields_as_struct().into();
-                    input.remove_contract_instance();
+                    input.set_contract_address();
                     let output = method.output_type.into();
                     methods.insert(
                         method.name.clone(),
-                        ContractMethod::new(
+                        zinc_build::ContractMethod::new(
                             type_id,
                             method.name,
                             address,
@@ -303,13 +298,17 @@ impl State {
                         .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
                     unit_tests.insert(
                         unit_test.name,
-                        BuildUnitTest::new(address, unit_test.should_panic, unit_test.is_ignored),
+                        zinc_build::UnitTest::new(
+                            address,
+                            unit_test.should_panic,
+                            unit_test.is_ignored,
+                        ),
                     );
                 }
 
                 Self::print_instructions(self.instructions.as_slice());
 
-                BuildApplication::new_contract(
+                zinc_build::Application::new_contract(
                     self.manifest.project.name,
                     storage,
                     methods,
@@ -356,7 +355,11 @@ impl State {
                         .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
                     unit_tests.insert(
                         unit_test.name,
-                        BuildUnitTest::new(address, unit_test.should_panic, unit_test.is_ignored),
+                        zinc_build::UnitTest::new(
+                            address,
+                            unit_test.should_panic,
+                            unit_test.is_ignored,
+                        ),
                     );
                 }
 
@@ -368,7 +371,7 @@ impl State {
 
                 Self::print_instructions(self.instructions.as_slice());
 
-                BuildApplication::new_circuit(
+                zinc_build::Application::new_circuit(
                     self.manifest.project.name,
                     address,
                     input,

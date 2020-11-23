@@ -2,6 +2,10 @@
 //! The `std::array::truncate` function call.
 //!
 
+use std::collections::HashMap;
+
+use num::BigInt;
+
 use franklin_crypto::bellman::ConstraintSystem;
 
 use crate::core::execution_state::ExecutionState;
@@ -34,7 +38,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Truncate {
         &self,
         _cs: CS,
         state: &mut ExecutionState<E>,
-        _storage: Option<&mut S>,
+        _storages: Option<HashMap<BigInt, &mut S>>,
     ) -> Result<(), Error> {
         let new_length = state
             .evaluation_stack

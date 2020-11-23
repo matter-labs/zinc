@@ -2,22 +2,20 @@
 //! The database contract SELECT one model.
 //!
 
-use zksync::web3::types::Address;
-
 ///
 /// The database contract SELECT one input model.
 ///
 #[derive(Debug)]
 pub struct Input {
     /// The contract ETH address.
-    pub eth_address: Address,
+    pub eth_address: zksync_types::Address,
 }
 
 impl Input {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(eth_address: Address) -> Self {
+    pub fn new(eth_address: zksync_types::Address) -> Self {
         Self { eth_address }
     }
 }

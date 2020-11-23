@@ -14,12 +14,10 @@ use zksync::web3::types::H256;
 use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::tx::PackedEthSignature;
 
-use zinc_manifest::Manifest;
-use zinc_manifest::ProjectType;
-
 use crate::error::Error;
 use crate::executable::compiler::Compiler;
 use crate::executable::virtual_machine::VirtualMachine;
+use crate::http::downloader::Downloader;
 use crate::http::Client as HttpClient;
 use crate::network::Network;
 use crate::project::data::input::Input as InputFile;
@@ -28,6 +26,7 @@ use crate::project::data::verifying_key::VerifyingKey as VerifyingKeyFile;
 use crate::project::data::Directory as DataDirectory;
 use crate::project::src::Directory as SourceDirectory;
 use crate::project::target::bytecode::Bytecode as BytecodeFile;
+use crate::project::target::deps::Directory as TargetDependenciesDirectory;
 use crate::project::target::Directory as TargetDirectory;
 
 ///
@@ -78,10 +77,10 @@ impl Command {
             .map_err(Error::NetworkUnimplemented)?;
         let http_client = HttpClient::new(url);
 
-        let manifest = Manifest::try_from(&self.manifest_path)?;
+        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
 
         match manifest.project.r#type {
-            ProjectType::Contract => {}
+            zinc_manifest::ProjectType::Contract => {}
             _ => anyhow::bail!(Error::NotAContract),
         }
 
@@ -118,10 +117,26 @@ impl Command {
             zinc_const::extension::BINARY
         ));
 
-        if let ProjectType::Contract = manifest.project.r#type {
+        TargetDependenciesDirectory::remove(&manifest_path)?;
+        TargetDependenciesDirectory::create(&manifest_path)?;
+        let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
+
+        if let zinc_manifest::ProjectType::Contract = manifest.project.r#type {
             if !PrivateKeyFile::exists_at(&data_directory_path) {
                 PrivateKeyFile::default().write_to(&data_directory_path)?;
             }
+        }
+
+        if let Some(dependencies) = manifest.dependencies {
+            let network = zksync::Network::from_str(self.network.as_str())
+                .map(Network::from)
+                .map_err(Error::NetworkInvalid)?;
+            let url = network
+                .try_into_url()
+                .map_err(Error::NetworkUnimplemented)?;
+            let http_client = HttpClient::new(url);
+            let mut downloader = Downloader::new(&http_client, target_deps_directory_path);
+            downloader.download_list(dependencies).await?;
         }
 
         Compiler::build_release(

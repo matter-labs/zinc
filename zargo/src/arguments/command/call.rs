@@ -13,9 +13,6 @@ use zksync::web3::types::H256;
 use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::tx::PackedEthSignature;
 
-use zinc_manifest::Manifest;
-use zinc_manifest::ProjectType;
-
 use crate::error::Error;
 use crate::http::Client as HttpClient;
 use crate::network::Network;
@@ -74,7 +71,7 @@ impl Command {
             .map_err(Error::NetworkUnimplemented)?;
         let http_client = HttpClient::new(url);
 
-        let manifest = Manifest::try_from(&self.manifest_path)?;
+        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
 
         eprintln!(
             "     {} method `{}` of the contract `{} v{}` with address {} on network `{}`",
@@ -87,7 +84,7 @@ impl Command {
         );
 
         match manifest.project.r#type {
-            ProjectType::Contract => {}
+            zinc_manifest::ProjectType::Contract => {}
             _ => anyhow::bail!(Error::NotAContract),
         }
 

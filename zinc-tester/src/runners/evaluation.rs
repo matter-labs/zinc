@@ -7,8 +7,9 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use colored::Colorize;
+use num::BigInt;
+use num::Zero;
 
-use zinc_build::Application as BuildApplication;
 use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_vm::Bn256;
 use zinc_vm::CircuitFacade;
@@ -68,7 +69,7 @@ impl IRunnable for Runner {
                 continue;
             }
 
-            let instance = match Instance::new(
+            let mut instance = match Instance::new(
                 case_name.clone(),
                 file.code.as_str(),
                 path.to_owned(),
@@ -92,7 +93,7 @@ impl IRunnable for Runner {
             };
 
             match instance.application {
-                BuildApplication::Circuit(circuit) => {
+                zinc_build::Application::Circuit(circuit) => {
                     let output = CircuitFacade::new(circuit).run::<Bn256>(instance.input);
 
                     match output {
@@ -165,7 +166,7 @@ impl IRunnable for Runner {
                         }
                     }
                 }
-                BuildApplication::Contract(contract) => {
+                zinc_build::Application::Contract(contract) => {
                     let storage: Vec<BuildContractFieldValue> = contract
                         .storage
                         .clone()
@@ -173,6 +174,7 @@ impl IRunnable for Runner {
                         .map(BuildContractFieldValue::new_from_type)
                         .collect();
 
+                    instance.input.insert_contract_instance(BigInt::zero());
                     let output = ContractFacade::new(contract).run::<Bn256>(ContractInput::new(
                         instance.input,
                         zinc_build::Value::Contract(storage),

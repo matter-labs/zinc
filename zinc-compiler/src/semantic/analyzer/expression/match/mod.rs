@@ -29,7 +29,6 @@ use crate::semantic::element::r#type::i_typed::ITyped;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::r#type::Type as ScopeType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
@@ -258,7 +257,6 @@ impl Analyzer {
                         identifier.clone(),
                         false,
                         scrutinee_type.clone(),
-                        MemoryType::Stack,
                     )?;
                     let (result, branch) =
                         ExpressionAnalyzer::new(scope_stack.top(), TranslationRule::Value)

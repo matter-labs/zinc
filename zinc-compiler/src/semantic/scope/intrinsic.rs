@@ -14,7 +14,6 @@ use crate::semantic::scope::item::module::Module as ScopeModuleItem;
 use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::item::Item as ScopeItem;
-use crate::semantic::scope::memory_type::MemoryType;
 use crate::semantic::scope::Scope;
 
 ///
@@ -397,7 +396,7 @@ impl IntrinsicScope {
     fn module_zksync() -> Rc<RefCell<Scope>> {
         let scope = Scope::new_intrinsic("zksync").wrap();
 
-        let transfer = FunctionType::new_library(LibraryFunctionIdentifier::ZksyncTransfer);
+        let transfer = FunctionType::new_library(LibraryFunctionIdentifier::ContractTransfer);
 
         Scope::insert_item(
             scope.clone(),
@@ -448,7 +447,6 @@ impl IntrinsicScope {
                 false,
                 zinc_const::contract::TRANSACTION_VARIABLE_NAME.to_owned(),
                 Type::Structure(transaction_type),
-                MemoryType::Stack,
             ))
             .wrap(),
         );

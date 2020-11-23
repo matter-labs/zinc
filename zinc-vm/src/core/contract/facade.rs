@@ -2,10 +2,12 @@
 //! The virtual machine contract facade.
 //!
 
+use std::collections::HashMap;
 use std::marker::PhantomData;
 
 use colored::Colorize;
 use num::BigInt;
+use num::Zero;
 
 use franklin_crypto::bellman::groth16;
 use franklin_crypto::bellman::groth16::Parameters;
@@ -14,8 +16,6 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 
-use zinc_build::Contract as BuildContract;
-use zinc_build::ContractFieldValue;
 use zinc_const::UnitTestExitCode;
 use zinc_zksync::TransactionMsg;
 
@@ -23,8 +23,8 @@ use crate::constraint_systems::constant::Constant as ConstantCS;
 use crate::core::contract::input::Input as ContractInput;
 use crate::core::contract::output::Output as ContractOutput;
 use crate::core::contract::storage::database::Storage as DatabaseStorage;
-use crate::core::contract::storage::leaf::LeafInput;
-use crate::core::contract::storage::leaf::LeafOutput;
+use crate::core::contract::storage::keeper::DummyKeeper;
+use crate::core::contract::storage::keeper::IKeeper;
 use crate::core::contract::storage::setup::Storage as SetupStorage;
 use crate::core::contract::synthesizer::Synthesizer as ContractSynthesizer;
 use crate::core::contract::State as ContractState;
@@ -36,15 +36,26 @@ use crate::gadgets::contract::storage::StorageGadget;
 use crate::IEngine;
 
 pub struct Facade {
-    inner: BuildContract,
+    inner: zinc_build::Contract,
+    keeper: Box<dyn IKeeper>,
 }
 
 impl Facade {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(inner: BuildContract) -> Self {
-        Self { inner }
+    pub fn new(inner: zinc_build::Contract) -> Self {
+        Self {
+            inner,
+            keeper: Box::new(DummyKeeper::default()),
+        }
+    }
+
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn new_with_keeper(inner: zinc_build::Contract, keeper: Box<dyn IKeeper>) -> Self {
+        Self { inner, keeper }
     }
 
     pub fn run<E: IEngine>(self, input: ContractInput) -> Result<ContractOutput, Error> {
@@ -66,56 +77,22 @@ impl Facade {
             method.output
         };
 
-        let storage_fields = self.inner.storage.clone();
-        let mut storage_types = Vec::with_capacity(self.inner.storage.len());
-        for field in self.inner.storage.iter() {
-            storage_types.push(field.r#type.to_owned());
+        let mut storages = HashMap::with_capacity(1);
+        if method.name.as_str() != zinc_const::contract::CONSTRUCTOR_NAME {
+            let storage =
+                DatabaseStorage::<Bn256>::from_build(self.inner.storage.clone(), input.storage)?;
+            let storage_gadget =
+                StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
+            storages.insert(arguments_flat[0].to_owned(), storage_gadget);
         }
-        let storage_leaves = match input.storage {
-            zinc_build::Value::Contract(fields) => fields
-                .into_iter()
-                .enumerate()
-                .map(|(index, field)| {
-                    let r#type = storage_types[index].to_owned();
 
-                    match field.value {
-                        zinc_build::Value::Map(map) => {
-                            let (key_type, value_type) = match r#type {
-                                zinc_build::Type::Map {
-                                    key_type,
-                                    value_type,
-                                } => (*key_type, *value_type),
-                                _ => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
-                            };
-
-                            let entries = map
-                                .into_iter()
-                                .map(|(key, value)| {
-                                    (key.into_flat_values(), value.into_flat_values())
-                                })
-                                .collect();
-                            LeafInput::Map {
-                                key_type,
-                                value_type,
-                                entries,
-                            }
-                        }
-                        value => {
-                            let mut values = value.into_flat_values();
-                            values.reverse();
-                            LeafInput::Array { r#type, values }
-                        }
-                    }
-                })
-                .collect::<Vec<LeafInput>>(),
-            _ => return Err(Error::InvalidStorageValue),
-        };
-        let storage = DatabaseStorage::<Bn256>::new(storage_leaves);
-        let storage_gadget =
-            StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
-
-        let mut state =
-            ContractState::new(cs, storage_gadget, input.method_name, input.transaction);
+        let mut state = ContractState::new(
+            cs,
+            storages,
+            self.keeper,
+            input.method_name,
+            input.transaction,
+        );
 
         let mut num_constraints = 0;
         let result = state.run(
@@ -145,57 +122,15 @@ impl Facade {
         let output_value: Vec<BigInt> = result.into_iter().filter_map(|value| value).collect();
         let output_value = zinc_build::Value::from_flat_values(output_type, &output_value);
 
-        let storage_value = zinc_build::Value::Contract(
-            state
-                .storage
-                .into_inner()
-                .into_values()
-                .into_iter()
-                .zip(storage_fields)
-                .enumerate()
-                .map(|(index, (leaf, field))| {
-                    let r#type = storage_types
-                        .get(index)
-                        .cloned()
-                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
-
-                    let value = match leaf {
-                        LeafOutput::Array(array) => {
-                            zinc_build::Value::from_flat_values(r#type, array.as_slice())
-                        }
-                        LeafOutput::Map(entries) => {
-                            let (key_type, value_type) = match r#type {
-                                zinc_build::Type::Map {
-                                    key_type,
-                                    value_type,
-                                } => (*key_type, *value_type),
-                                _ => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
-                            };
-
-                            let mut values = Vec::with_capacity(entries.len());
-                            for (key, value) in entries.into_iter() {
-                                let key = zinc_build::Value::from_flat_values(
-                                    key_type.clone(),
-                                    key.as_slice(),
-                                );
-                                let value = zinc_build::Value::from_flat_values(
-                                    value_type.clone(),
-                                    value.as_slice(),
-                                );
-                                values.push((key, value));
-                            }
-                            zinc_build::Value::Map(values)
-                        }
-                    };
-
-                    ContractFieldValue::new(field.name, value, field.is_public, field.is_implicit)
-                })
-                .collect::<Vec<ContractFieldValue>>(),
-        );
+        let storages = state
+            .storages
+            .into_iter()
+            .map(|(address, storage)| (address, storage.into_build()))
+            .collect();
 
         let transfers = state.execution_state.transfers;
 
-        Ok(ContractOutput::new(output_value, storage_value, transfers))
+        Ok(ContractOutput::new(output_value, storages, transfers))
     }
 
     pub fn test<E: IEngine>(self) -> Result<UnitTestExitCode, Error> {
@@ -209,19 +144,23 @@ impl Facade {
 
             let mut cs = TestConstraintSystem::<Bn256>::new();
 
-            let storage_types = self
-                .inner
-                .storage
-                .clone()
-                .into_iter()
-                .map(|field| field.r#type)
-                .collect::<Vec<zinc_build::Type>>();
-            let storage = SetupStorage::new(storage_types);
+            let storage = SetupStorage::from_build(
+                self.inner.storage.clone(),
+                zinc_build::Value::Contract(vec![]),
+            )?;
             let storage_gadget =
                 StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
 
-            let mut state =
-                ContractState::new(cs, storage_gadget, name.clone(), TransactionMsg::default());
+            let mut storages = HashMap::with_capacity(1);
+            storages.insert(BigInt::zero(), storage_gadget);
+
+            let mut state = ContractState::new(
+                cs,
+                storages,
+                Box::new(DummyKeeper::default()),
+                name.clone(),
+                TransactionMsg::default(),
+            );
 
             let result = state.run(
                 self.inner.clone(),
@@ -271,13 +210,10 @@ impl Facade {
                 found: method_name.clone(),
             })?;
 
-        let storage_fields = self
-            .inner
-            .storage
-            .iter()
-            .map(|field| field.r#type.to_owned())
-            .collect();
-        let storage = SetupStorage::new(storage_fields);
+        let storage = SetupStorage::from_build(
+            self.inner.storage.clone(),
+            zinc_build::Value::Contract(vec![]),
+        )?;
 
         let synthesizable = ContractSynthesizer {
             inputs: None,
@@ -285,6 +221,7 @@ impl Facade {
             bytecode: self.inner,
             method,
             storage,
+            keeper: self.keeper,
             transaction: TransactionMsg::default(),
 
             _pd: PhantomData,
@@ -322,50 +259,7 @@ impl Facade {
             method.output.clone()
         };
 
-        let mut storage_types = Vec::with_capacity(self.inner.storage.len());
-        for field in self.inner.storage.iter() {
-            storage_types.push(field.r#type.to_owned());
-        }
-        let storage_leaves = match input.storage {
-            zinc_build::Value::Contract(fields) => fields
-                .into_iter()
-                .enumerate()
-                .map(|(index, field)| {
-                    let r#type = storage_types[index].to_owned();
-
-                    match field.value {
-                        zinc_build::Value::Map(map) => {
-                            let (key_type, value_type) = match r#type {
-                                zinc_build::Type::Map {
-                                    key_type,
-                                    value_type,
-                                } => (*key_type, *value_type),
-                                _ => panic!(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
-                            };
-
-                            let entries = map
-                                .into_iter()
-                                .map(|(key, value)| {
-                                    (key.into_flat_values(), value.into_flat_values())
-                                })
-                                .collect();
-                            LeafInput::Map {
-                                key_type,
-                                value_type,
-                                entries,
-                            }
-                        }
-                        value => {
-                            let mut values = value.into_flat_values();
-                            values.reverse();
-                            LeafInput::Array { r#type, values }
-                        }
-                    }
-                })
-                .collect::<Vec<LeafInput>>(),
-            _ => return Err(Error::InvalidStorageValue),
-        };
-        let storage = DatabaseStorage::new(storage_leaves);
+        let storage = DatabaseStorage::from_build(self.inner.storage.clone(), input.storage)?;
 
         let synthesizable = ContractSynthesizer {
             inputs: Some(arguments_flat),
@@ -373,6 +267,7 @@ impl Facade {
             bytecode: self.inner,
             method,
             storage,
+            keeper: self.keeper,
             transaction: input.transaction,
 
             _pd: PhantomData,

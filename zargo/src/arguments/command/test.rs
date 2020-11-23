@@ -4,13 +4,16 @@
 
 use std::convert::TryFrom;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use structopt::StructOpt;
 
-use zinc_manifest::Manifest;
-
+use crate::error::Error;
 use crate::executable::compiler::Compiler;
 use crate::executable::virtual_machine::VirtualMachine;
+use crate::http::downloader::Downloader;
+use crate::http::Client as HttpClient;
+use crate::network::Network;
 use crate::project::target::deps::Directory as TargetDependenciesDirectory;
 use crate::project::target::Directory as TargetDirectory;
 
@@ -31,6 +34,10 @@ pub struct Command {
         default_value = "./Zargo.toml"
     )]
     pub manifest_path: PathBuf,
+
+    /// Sets the network name, where the contract must be published to.
+    #[structopt(long = "network", default_value = "localhost")]
+    pub network: String,
 }
 
 ///
@@ -48,8 +55,8 @@ impl Command {
     ///
     /// Executes the command.
     ///
-    pub fn execute(self) -> anyhow::Result<()> {
-        let manifest = Manifest::try_from(&self.manifest_path)?;
+    pub async fn execute(self) -> anyhow::Result<()> {
+        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
 
         let mut manifest_path = self.manifest_path.clone();
         if manifest_path.is_file() {
@@ -64,7 +71,22 @@ impl Command {
             zinc_const::file_name::BINARY,
             zinc_const::extension::BINARY
         ));
+
+        TargetDependenciesDirectory::remove(&manifest_path)?;
         TargetDependenciesDirectory::create(&manifest_path)?;
+        let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
+
+        if let Some(dependencies) = manifest.dependencies {
+            let network = zksync::Network::from_str(self.network.as_str())
+                .map(Network::from)
+                .map_err(Error::NetworkInvalid)?;
+            let url = network
+                .try_into_url()
+                .map_err(Error::NetworkUnimplemented)?;
+            let http_client = HttpClient::new(url);
+            let mut downloader = Downloader::new(&http_client, target_deps_directory_path);
+            downloader.download_list(dependencies).await?;
+        }
 
         Compiler::build_release(
             self.verbosity,

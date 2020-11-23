@@ -7,9 +7,9 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use colored::Colorize;
+use num::BigInt;
+use num::Zero;
 
-use zinc_build::Application as BuildApplication;
-use zinc_build::ContractFieldValue as BuildContractFieldValue;
 use zinc_vm::Bn256;
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
@@ -69,7 +69,7 @@ impl IRunnable for Runner {
                 continue;
             }
 
-            let instance = match Instance::new(
+            let mut instance = match Instance::new(
                 case_name.clone(),
                 file.code.as_str(),
                 path.to_owned(),
@@ -93,8 +93,10 @@ impl IRunnable for Runner {
             };
 
             let params = match match instance.application.clone() {
-                BuildApplication::Circuit(circuit) => CircuitFacade::new(circuit).setup::<Bn256>(),
-                BuildApplication::Contract(contract) => ContractFacade::new(contract)
+                zinc_build::Application::Circuit(circuit) => {
+                    CircuitFacade::new(circuit).setup::<Bn256>()
+                }
+                zinc_build::Application::Contract(contract) => ContractFacade::new(contract)
                     .setup::<Bn256>(case.method.clone().unwrap_or_else(|| {
                         zinc_const::source::FUNCTION_MAIN_IDENTIFIER.to_owned()
                     })),
@@ -116,7 +118,7 @@ impl IRunnable for Runner {
             };
 
             let (output, proof) = match instance.application.clone() {
-                BuildApplication::Circuit(circuit) => {
+                zinc_build::Application::Circuit(circuit) => {
                     let result =
                         CircuitFacade::new(circuit).prove::<Bn256>(params.clone(), instance.input);
 
@@ -168,14 +170,15 @@ impl IRunnable for Runner {
                         }
                     }
                 }
-                BuildApplication::Contract(contract) => {
-                    let storage: Vec<BuildContractFieldValue> = contract
+                zinc_build::Application::Contract(contract) => {
+                    let storage: Vec<zinc_build::ContractFieldValue> = contract
                         .storage
                         .clone()
                         .into_iter()
-                        .map(BuildContractFieldValue::new_from_type)
+                        .map(zinc_build::ContractFieldValue::new_from_type)
                         .collect();
 
+                    instance.input.insert_contract_instance(BigInt::zero());
                     let result = ContractFacade::new(contract).prove::<Bn256>(
                         params.clone(),
                         ContractInput::new(

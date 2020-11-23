@@ -9,7 +9,6 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::item::Item as ScopeItem;
-use crate::semantic::scope::memory_type::MemoryType;
 
 #[test]
 fn ok_constant_element_simple() {
@@ -129,7 +128,6 @@ fn main() {
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
-                MemoryType::Stack,
             ))
             .to_string(),
         },
@@ -163,7 +161,6 @@ fn main() {
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
-                MemoryType::Stack,
             ))
             .to_string(),
         },
@@ -199,7 +196,6 @@ fn main() {
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
-                MemoryType::Stack,
             ))
             .to_string(),
         },
@@ -237,7 +233,6 @@ fn main() {
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
-                MemoryType::Stack,
             ))
             .to_string(),
         },
@@ -275,7 +270,6 @@ fn main() {
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
-                MemoryType::Stack,
             ))
             .to_string(),
         },
@@ -313,7 +307,6 @@ fn main() {
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
-                MemoryType::Stack,
             ))
             .to_string(),
         },
@@ -350,7 +343,6 @@ fn main() {
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
-                MemoryType::Stack,
             ))
             .to_string(),
         },
@@ -387,7 +379,6 @@ fn main() {
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
-                MemoryType::Stack,
             ))
             .to_string(),
         },
@@ -424,9 +415,38 @@ fn main() {
                 false,
                 "variable".to_owned(),
                 Type::integer_unsigned(None, zinc_const::bitlength::BYTE),
-                MemoryType::Stack,
             ))
             .to_string(),
+        },
+    ));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_contract_storage_field_without_instance() {
+    let input = r#"
+contract Test {
+    pub x: u8;
+
+    pub fn new() -> Self {
+        Self {
+            x: 42,
+        }
+    }
+
+    pub fn access() {
+        let bug = Self::x;
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(
+        SemanticError::ContractStorageFieldWithoutInstance {
+            location: Location::test(12, 19),
+            found: "x".to_owned(),
         },
     ));
 

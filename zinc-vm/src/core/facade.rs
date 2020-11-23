@@ -23,7 +23,7 @@ impl Facade {
             .into_iter()
             .map(|value| {
                 gadgets::scalar::fr_bigint::bigint_to_fr::<E>(&value)
-                    .ok_or_else(|| VerificationError::ValueOverflow(value))
+                    .ok_or(VerificationError::ValueOverflow(value))
             })
             .collect::<Result<Vec<E::Fr>, VerificationError>>()?;
 

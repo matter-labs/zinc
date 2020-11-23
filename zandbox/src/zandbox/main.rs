@@ -11,9 +11,6 @@ use actix_web::web;
 use actix_web::App;
 use actix_web::HttpServer;
 
-use zandbox::DatabaseClient;
-use zandbox::SharedData;
-
 use self::arguments::Arguments;
 
 ///
@@ -31,9 +28,9 @@ async fn main() -> anyhow::Result<()> {
         .map_err(|network| anyhow::anyhow!(format!("Invalid network `{}`", network)))?;
 
     log::info!("Initializing the PostgreSQL client");
-    let postgresql = DatabaseClient::new(args.postgresql_uri.as_str()).await?;
+    let postgresql = zandbox::DatabaseClient::new(args.postgresql_uri.as_str()).await?;
 
-    let data = SharedData::new(postgresql, network).wrap();
+    let data = zandbox::SharedData::new(postgresql, network).wrap();
 
     HttpServer::new(move || {
         App::new()

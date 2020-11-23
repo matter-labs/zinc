@@ -10,9 +10,7 @@ use num::One;
 use num::Zero;
 
 use zinc_build::Instruction;
-use zinc_build::IntegerType;
 use zinc_build::Push;
-use zinc_build::ScalarType;
 
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
@@ -90,8 +88,8 @@ impl Integer {
 impl IBytecodeWritable for Integer {
     fn write_all(self, state: Rc<RefCell<State>>) {
         let scalar_type = match (self.is_signed, self.bitlength) {
-            (false, zinc_const::bitlength::FIELD) => ScalarType::Field,
-            (is_signed, bitlength) => ScalarType::Integer(IntegerType {
+            (false, zinc_const::bitlength::FIELD) => zinc_build::ScalarType::Field,
+            (is_signed, bitlength) => zinc_build::ScalarType::Integer(zinc_build::IntegerType {
                 is_signed,
                 bitlength,
             }),

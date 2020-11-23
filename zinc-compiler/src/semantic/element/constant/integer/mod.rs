@@ -567,17 +567,14 @@ impl Shl<Self> for Integer {
             );
         }
 
-        let other = other
-            .value
-            .to_usize()
-            .ok_or_else(|| Error::InvalidInteger {
-                location: other.location,
-                inner: zinc_math::Error::Overflow {
-                    value: other.value,
-                    is_signed: other.is_signed,
-                    bitlength: other.bitlength,
-                },
-            })?;
+        let other = other.value.to_usize().ok_or(Error::InvalidInteger {
+            location: other.location,
+            inner: zinc_math::Error::Overflow {
+                value: other.value,
+                is_signed: other.is_signed,
+                bitlength: other.bitlength,
+            },
+        })?;
 
         let result = Self {
             location: self.location,
@@ -619,17 +616,14 @@ impl Shr<Self> for Integer {
             );
         }
 
-        let other = other
-            .value
-            .to_usize()
-            .ok_or_else(|| Error::InvalidInteger {
-                location: other.location,
-                inner: zinc_math::Error::Overflow {
-                    value: other.value,
-                    is_signed: other.is_signed,
-                    bitlength: other.bitlength,
-                },
-            })?;
+        let other = other.value.to_usize().ok_or(Error::InvalidInteger {
+            location: other.location,
+            inner: zinc_math::Error::Overflow {
+                value: other.value,
+                is_signed: other.is_signed,
+                bitlength: other.bitlength,
+            },
+        })?;
 
         let result = Self {
             location: self.location,

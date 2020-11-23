@@ -57,6 +57,12 @@ pub enum Error {
     #[error("synthesis error: {0}")]
     SynthesisError(#[from] franklin_crypto::bellman::SynthesisError),
 
+    #[error("database error: {0}")]
+    DatabaseError(#[from] sqlx::Error),
+
+    #[error("zkSync error: {0}")]
+    ZkSyncClient(#[from] zksync::error::ClientError),
+
     #[error("internal error in virtual machine: {0}")]
     InternalError(String),
 

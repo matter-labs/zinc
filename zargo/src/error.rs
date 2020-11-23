@@ -88,4 +88,8 @@ pub enum Error {
     /// The dependency requires different version of the compiler.
     #[error("dependency {0}: compiler version mismatch: expected {1}, found {2}")]
     DependencyCompilerVersionMismatch(String, String, String),
+
+    /// The command is temporarily unavailable.
+    #[error("the proof verification is temporarily unavailable")]
+    ProofVerificationUnavailable,
 }

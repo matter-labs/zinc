@@ -2,22 +2,20 @@
 //! The database contract storage field SELECT model.
 //!
 
-use zksync_types::AccountId;
-
 ///
 /// The database contract storage field SELECT input model.
 ///
 #[derive(Debug)]
 pub struct Input {
     /// The contract account ID referencing `contracts.account_id`.
-    pub account_id: AccountId,
+    pub account_id: zksync_types::AccountId,
 }
 
 impl Input {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(account_id: AccountId) -> Self {
+    pub fn new(account_id: zksync_types::AccountId) -> Self {
         Self { account_id }
     }
 }

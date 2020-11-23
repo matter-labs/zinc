@@ -2,9 +2,9 @@
 //! The virtual machine contract output.
 //!
 
-pub mod transfer;
+use std::collections::HashMap;
 
-use self::transfer::Transfer;
+use num::BigInt;
 
 ///
 /// The virtual machine contract output.
@@ -14,9 +14,9 @@ pub struct Output {
     /// The contract method output result, which is the public data for now.
     pub result: zinc_build::Value,
     /// The contract storage after executing a method.
-    pub storage: zinc_build::Value,
+    pub storages: HashMap<BigInt, zinc_build::Value>,
     /// The transfers executed in the contract method.
-    pub transfers: Vec<Transfer>,
+    pub transfers: Vec<zinc_zksync::TransactionMsg>,
 }
 
 impl Output {
@@ -25,12 +25,12 @@ impl Output {
     ///
     pub fn new(
         result: zinc_build::Value,
-        storage: zinc_build::Value,
-        transfers: Vec<Transfer>,
+        storages: HashMap<BigInt, zinc_build::Value>,
+        transfers: Vec<zinc_zksync::TransactionMsg>,
     ) -> Self {
         Self {
             result,
-            storage,
+            storages,
             transfers,
         }
     }
