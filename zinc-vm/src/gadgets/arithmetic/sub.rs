@@ -1,8 +1,6 @@
 use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::ScalarType;
-
 use crate::auto_const;
 use crate::error::Error;
 use crate::gadgets::auto_const::prelude::*;
@@ -41,7 +39,7 @@ where
         Ok(Scalar::new_unchecked_variable(
             value,
             variable,
-            ScalarType::Field,
+            zinc_build::ScalarType::Field,
         ))
     }
 

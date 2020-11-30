@@ -57,15 +57,15 @@ impl Type {
     ///
     /// Creates an empty unit test input instance.
     ///
-    pub fn new_empty_structure() -> Self {
+    pub fn empty_structure() -> Self {
         Self::Structure(vec![])
     }
 
     ///
-    /// Creates the ETH address type as integer.
+    /// Creates the ETH address type.
     ///
-    pub fn new_eth_address_integer() -> Self {
-        Self::Scalar(ScalarType::Integer(IntegerType::ETH_ADDRESS))
+    pub fn eth_address() -> Self {
+        Self::Scalar(ScalarType::eth_address())
     }
 
     ///

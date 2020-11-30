@@ -10,8 +10,6 @@ use franklin_crypto::bellman::pairing::ff::PrimeField;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_build::IntegerType;
-
 use crate::core::execution_state::ExecutionState;
 use crate::error::Error;
 use crate::error::MalformedBytecode;
@@ -57,7 +55,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for FromBitsUnsigned {
         let num =
             AllocatedNum::pack_bits_to_element(cs.namespace(|| "pack_bits_to_element"), &bits)?;
 
-        let int_type = IntegerType {
+        let int_type = zinc_build::IntegerType {
             is_signed: false,
             bitlength: self.bitlength,
         };

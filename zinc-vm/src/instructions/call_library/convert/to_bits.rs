@@ -9,9 +9,6 @@ use num::BigInt;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;
 
-use zinc_build::IntegerType;
-use zinc_build::ScalarType;
-
 use crate::core::execution_state::ExecutionState;
 use crate::error::Error;
 use crate::gadgets;
@@ -33,15 +30,17 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for ToBits {
         let expr = scalar.to_expression::<CS>();
 
         let mut bits = match scalar.get_type() {
-            ScalarType::Boolean => vec![scalar.to_boolean(cs.namespace(|| "to_boolean"))?],
-            ScalarType::Integer(t) => {
+            zinc_build::ScalarType::Boolean => {
+                vec![scalar.to_boolean(cs.namespace(|| "to_boolean"))?]
+            }
+            zinc_build::ScalarType::Integer(t) => {
                 if t.is_signed {
                     signed_to_bits(cs.namespace(|| "signed_to_bits"), scalar)?
                 } else {
                     expr.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.bitlength)?
                 }
             }
-            ScalarType::Field => {
+            zinc_build::ScalarType::Field => {
                 expr.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict"))?
             }
         };
@@ -55,7 +54,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for ToBits {
                 bit.get_variable()
                     .expect("into_bits_le_fixed must allocate")
                     .get_variable(),
-                ScalarType::Boolean,
+                zinc_build::ScalarType::Boolean,
             );
             state.evaluation_stack.push(scalar.into())?;
         }
@@ -70,7 +69,7 @@ where
     CS: ConstraintSystem<E>,
 {
     let bitlength = match scalar.get_type() {
-        ScalarType::Integer(IntegerType {
+        zinc_build::ScalarType::Integer(zinc_build::IntegerType {
             bitlength,
             is_signed: true,
         }) => bitlength,
@@ -83,7 +82,7 @@ where
     };
 
     let base_value = BigInt::from(1) << bitlength;
-    let base = Scalar::new_constant_bigint(base_value, ScalarType::Field)?;
+    let base = Scalar::new_constant_bigint(base_value, zinc_build::ScalarType::Field)?;
 
     let complement = gadgets::arithmetic::add::add(cs.namespace(|| "complement"), &scalar, &base)?;
 

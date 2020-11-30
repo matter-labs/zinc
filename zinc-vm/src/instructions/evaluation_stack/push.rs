@@ -26,8 +26,6 @@ mod tests {
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
-    use zinc_build::IntegerType;
-
     #[test]
     fn test_push() -> Result<(), TestingError> {
         TestRunner::new()
@@ -36,11 +34,11 @@ mod tests {
             .push(zinc_build::Push::new_field(0xABCD.into()))
             .push(zinc_build::Push::new(
                 BigInt::from(-1),
-                IntegerType::I8.into(),
+                zinc_build::IntegerType::I8.into(),
             ))
             .push(zinc_build::Push::new(
                 (-1000).into(),
-                IntegerType::I16.into(),
+                zinc_build::IntegerType::I16.into(),
             ))
             .test(&[-1000, -1, 0xABCD, 42, 0])
     }

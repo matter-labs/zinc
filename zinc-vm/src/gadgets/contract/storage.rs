@@ -4,8 +4,6 @@ use std::marker::PhantomData;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::bellman::SynthesisError;
 
-use zinc_build::ScalarType;
-
 use crate::core::contract::storage::leaf::LeafOutput;
 use crate::core::contract::storage::leaf::LeafVariant;
 use crate::error::Error;
@@ -38,7 +36,7 @@ where
         let root_hash = Scalar::<E>::new_unchecked_variable(
             Some(root_hash_value),
             root_hash_variable,
-            ScalarType::Field,
+            zinc_build::ScalarType::Field,
         );
 
         Ok(StorageGadget {

@@ -51,12 +51,8 @@ impl IBytecodeWritable for Statement {
             };
 
             match r#type {
-                Type::Contract { fields } => {
-                    let size = fields
-                        .first()
-                        .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
-                        .r#type
-                        .size();
+                Type::Contract { .. } => {
+                    let size = Type::eth_address().size();
                     let address = state
                         .borrow_mut()
                         .define_variable(Some(binding.identifier.name), size);

@@ -1,0 +1,6 @@
+[project]
+name = 'nesting'
+type = 'circuit'
+version = '0.1.0'
+
+[dependencies]

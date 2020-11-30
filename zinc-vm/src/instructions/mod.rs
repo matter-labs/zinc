@@ -36,9 +36,10 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Instruction {
             Self::Store(inner) => inner.execute(vm),
             Self::StoreByIndex(inner) => inner.execute(vm),
 
+            Self::StorageInit(inner) => inner.execute(vm),
+            Self::StorageFetch(inner) => inner.execute(vm),
             Self::StorageStore(inner) => inner.execute(vm),
             Self::StorageLoad(inner) => inner.execute(vm),
-            Self::StorageFetch(inner) => inner.execute(vm),
 
             Self::Add(inner) => inner.execute(vm),
             Self::Sub(inner) => inner.execute(vm),
@@ -75,7 +76,6 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Instruction {
             Self::LoopEnd(inner) => inner.execute(vm),
             Self::Call(inner) => inner.execute(vm),
             Self::Return(inner) => inner.execute(vm),
-            Self::Exit(inner) => inner.execute(vm),
 
             Self::CallLibrary(inner) => inner.execute(vm),
             Self::Require(inner) => inner.execute(vm),

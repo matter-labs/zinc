@@ -4,8 +4,8 @@
 
 use zinc_lexical::Location;
 
+use crate::tree::attribute::element::Element as AttributeElement;
 use crate::tree::attribute::Attribute;
-use crate::tree::identifier::Identifier;
 
 ///
 /// The attribute builder.
@@ -16,8 +16,8 @@ pub struct Builder {
     location: Option<Location>,
     /// If the attribute is related to the enclosing item, e.g. a module or block.
     is_inner: bool,
-    /// The attribute identifier.
-    identifier: Option<Identifier>,
+    /// The attribute element.
+    elements: Vec<AttributeElement>,
 }
 
 impl Builder {
@@ -38,8 +38,8 @@ impl Builder {
     ///
     /// Sets the corresponding builder value.
     ///
-    pub fn set_identifier(&mut self, value: Identifier) {
-        self.identifier = Some(value);
+    pub fn set_elements(&mut self, value: Vec<AttributeElement>) {
+        self.elements = value;
     }
 
     ///
@@ -57,14 +57,6 @@ impl Builder {
             )
         });
 
-        let identifier = self.identifier.take().unwrap_or_else(|| {
-            panic!(
-                "{}{}",
-                zinc_const::panic::BUILDER_REQUIRES_VALUE,
-                "identifier"
-            )
-        });
-
-        Attribute::new(location, self.is_inner, identifier)
+        Attribute::new(location, self.is_inner, self.elements)
     }
 }

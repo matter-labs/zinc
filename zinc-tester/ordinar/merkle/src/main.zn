@@ -1,0 +1,57 @@
+//!
+//! The 'merkle' circuit entry.
+//!
+
+mod merkle;
+
+const TREE_HEIGHT: u8 = 10;
+
+struct PublicInput {
+    address: field,
+    balance: field,
+    root_hash: merkle::Sha256Digest,
+}
+
+fn main(
+    address: field,
+    balance: field,
+    merkle_path: [merkle::Sha256Digest; TREE_HEIGHT]
+) -> PublicInput {
+    let leaf_hash = merkle::balance_hash(balance);
+
+    let root_hash = merkle::restore_root_hash(
+        leaf_hash,
+        address,
+        merkle_path,
+    );
+
+    PublicInput {
+        address: address,
+        balance: balance,
+        root_hash: root_hash,
+    }
+}
+
+#[test]
+fn test() {
+    let expected = PublicInput {
+        address: 4 as field,
+        balance: 8 as field,
+        root_hash: 42 as merkle::Sha256Digest,
+    };
+
+    let result = main(
+        4 as field,
+        8 as field,
+        [42 as merkle::Sha256Digest; TREE_HEIGHT],
+    );
+
+    require(result.address == expected.address);
+    require(result.balance == expected.balance);
+}
+
+#[test]
+#[should_panic]
+fn panic() {
+    require(false);
+}

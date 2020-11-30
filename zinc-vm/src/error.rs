@@ -5,8 +5,6 @@
 use num::BigInt;
 use thiserror::Error;
 
-use zinc_build::ScalarType;
-
 #[derive(Debug, Error)]
 pub enum TypeSizeError {
     #[error("expected input value of size {expected}, found {found}")]
@@ -105,7 +103,7 @@ pub enum Error {
     #[error("overflow: value {value} is not in range of type {scalar_type}")]
     ValueOverflow {
         value: BigInt,
-        scalar_type: ScalarType,
+        scalar_type: zinc_build::ScalarType,
     },
 
     #[error("the unit test data is missing")]

@@ -30,25 +30,47 @@ mod tests {
     use num::One;
     use num::Zero;
 
-    use zinc_build::ScalarType;
-
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
     #[test]
     fn test_and() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
-            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(
+                BigInt::zero(),
+                zinc_build::ScalarType::Boolean,
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::zero(),
+                zinc_build::ScalarType::Boolean,
+            ))
             .push(zinc_build::And)
-            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
-            .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(
+                BigInt::zero(),
+                zinc_build::ScalarType::Boolean,
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::one(),
+                zinc_build::ScalarType::Boolean,
+            ))
             .push(zinc_build::And)
-            .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
-            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(
+                BigInt::one(),
+                zinc_build::ScalarType::Boolean,
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::zero(),
+                zinc_build::ScalarType::Boolean,
+            ))
             .push(zinc_build::And)
-            .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
-            .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(
+                BigInt::one(),
+                zinc_build::ScalarType::Boolean,
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::one(),
+                zinc_build::ScalarType::Boolean,
+            ))
             .push(zinc_build::And)
             .test(&[1, 0, 0, 0])
     }

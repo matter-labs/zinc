@@ -3,7 +3,7 @@
 //!
 
 /// The default constructor name.
-pub static CONSTRUCTOR_NAME: &str = "new";
+pub static CONSTRUCTOR_IDENTIFIER: &str = "new";
 
 /// The implicit fields count.
 pub const IMPLICIT_FIELDS_COUNT: usize = 2;
@@ -25,6 +25,9 @@ pub static FIELD_NAME_BALANCES: &str = "balances";
 
 /// The implicit transaction variable name.
 pub static TRANSACTION_VARIABLE_NAME: &str = "msg";
+
+/// The implicit transaction variable fields count.
+pub const TRANSACTION_FIELDS_COUNT: usize = 4;
 
 /// The implicit transaction variable size.
 pub const TRANSACTION_SIZE: usize = 4;

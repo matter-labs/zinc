@@ -33,9 +33,6 @@ impl PrivateKey {
     pub fn exists_at(path: &PathBuf) -> bool {
         let mut path = path.to_owned();
         if path.is_dir() {
-            if !path.ends_with(zinc_const::directory::DATA) {
-                path.push(PathBuf::from(zinc_const::directory::DATA));
-            }
             path.push(PathBuf::from(Self::file_name()));
         }
         path.exists()
@@ -47,9 +44,6 @@ impl PrivateKey {
     pub fn write_to(self, path: &PathBuf) -> anyhow::Result<()> {
         let mut path = path.to_owned();
         if path.is_dir() {
-            if !path.ends_with(zinc_const::directory::DATA) {
-                path.push(PathBuf::from(zinc_const::directory::DATA));
-            }
             path.push(PathBuf::from(Self::file_name()));
         }
 
@@ -64,7 +58,7 @@ impl PrivateKey {
     /// The private file default template function.
     ///
     fn template() -> String {
-        "0".repeat(zinc_const::size::ETH_PRIVATE_KEY * 2)
+        "00".repeat(zinc_const::size::ETH_PRIVATE_KEY)
     }
 
     ///
@@ -81,9 +75,6 @@ impl TryFrom<&PathBuf> for PrivateKey {
     fn try_from(path: &PathBuf) -> Result<Self, Self::Error> {
         let mut path = path.to_owned();
         if path.is_dir() {
-            if !path.ends_with(zinc_const::directory::DATA) {
-                path.push(PathBuf::from(zinc_const::directory::DATA));
-            }
             path.push(PathBuf::from(Self::file_name()));
         }
 

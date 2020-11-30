@@ -5,8 +5,6 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_build::ScalarType;
-
 use crate::error::Error;
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
@@ -75,7 +73,7 @@ where
         )?;
         variants.push(variant.into());
     }
-    variants.push(Scalar::new_constant_usize(0, ScalarType::Field)); // offset `len` will clear all bits.
+    variants.push(Scalar::new_constant_usize(0, zinc_build::ScalarType::Field)); // offset `len` will clear all bits.
 
     let shift_bits_be = shift
         .to_expression::<CS>()

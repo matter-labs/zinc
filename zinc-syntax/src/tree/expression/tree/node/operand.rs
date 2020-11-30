@@ -2,6 +2,8 @@
 //! The expression operand.
 //!
 
+use std::fmt;
+
 use zinc_lexical::Location;
 
 use crate::tree::expression::array::Expression as ArrayExpression;
@@ -65,6 +67,15 @@ impl Operand {
             Self::Conditional(_) => true,
             Self::Match(_) => true,
             _ => false,
+        }
+    }
+}
+
+impl fmt::Display for Operand {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Identifier(inner) => write!(f, "{}", inner.name),
+            _ => todo!(),
         }
     }
 }

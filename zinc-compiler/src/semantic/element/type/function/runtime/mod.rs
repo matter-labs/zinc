@@ -126,7 +126,7 @@ impl Function {
                         position: index + 1,
                         expected: binding.r#type.to_string(),
                         found: actual_type.to_string(),
-                    })
+                    });
                 }
                 None => {
                     return Err(Error::FunctionArgumentCount {

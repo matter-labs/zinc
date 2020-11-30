@@ -22,43 +22,43 @@ pub struct Type {
 
 impl Type {
     /// An auxiliary internal type.
-    pub const U1: Self = Type {
+    pub const U1: Self = Self {
         is_signed: false,
         bitlength: zinc_const::bitlength::BOOLEAN,
     };
 
     /// An auxiliary internal type.
-    pub const U8: Self = Type {
+    pub const U8: Self = Self {
         is_signed: false,
         bitlength: zinc_const::bitlength::BYTE,
     };
 
     /// An auxiliary internal type.
-    pub const I8: Self = Type {
+    pub const I8: Self = Self {
         is_signed: true,
         bitlength: zinc_const::bitlength::BYTE,
     };
 
     /// An auxiliary internal type.
-    pub const U16: Self = Type {
+    pub const U16: Self = Self {
         is_signed: false,
         bitlength: zinc_const::bitlength::BYTE * 2,
     };
 
     /// An auxiliary internal type.
-    pub const I16: Self = Type {
+    pub const I16: Self = Self {
         is_signed: true,
         bitlength: zinc_const::bitlength::BYTE * 2,
     };
 
     /// An auxiliary internal type.
-    pub const ETH_ADDRESS: Self = Type {
+    pub const ETH_ADDRESS: Self = Self {
         is_signed: false,
         bitlength: zinc_const::bitlength::ETH_ADDRESS,
     };
 
     /// An auxiliary internal type.
-    pub const BALANCE: Self = Type {
+    pub const BALANCE: Self = Self {
         is_signed: false,
         bitlength: zinc_const::bitlength::BALANCE,
     };

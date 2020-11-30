@@ -117,6 +117,15 @@ impl Type {
     ///
     /// A shortcut constructor.
     ///
+    pub fn eth_address() -> Self {
+        Self::IntegerUnsigned {
+            bitlength: zinc_const::size::ETH_ADDRESS,
+        }
+    }
+
+    ///
+    /// A shortcut constructor.
+    ///
     pub fn field() -> Self {
         Self::Field
     }

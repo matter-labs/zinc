@@ -69,6 +69,10 @@ impl Command {
             manifest_path.pop();
         }
 
+        if self.method.is_some() && !PrivateKeyFile::exists_at(&manifest_path) {
+            PrivateKeyFile::default().write_to(&manifest_path)?;
+        }
+
         TargetDirectory::create(&manifest_path, self.is_release)?;
         let target_directory_path = TargetDirectory::path(&manifest_path, self.is_release);
         let mut binary_path = target_directory_path;
@@ -78,7 +82,6 @@ impl Command {
             zinc_const::extension::BINARY
         ));
 
-        TargetDependenciesDirectory::remove(&manifest_path)?;
         TargetDependenciesDirectory::create(&manifest_path)?;
         let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
 
@@ -96,9 +99,6 @@ impl Command {
             zinc_const::file_name::OUTPUT,
             zinc_const::extension::JSON,
         ));
-        if self.method.is_some() && !PrivateKeyFile::exists_at(&data_directory_path) {
-            PrivateKeyFile::default().write_to(&data_directory_path)?;
-        }
 
         if let Some(dependencies) = manifest.dependencies {
             let network = zksync::Network::from_str(self.network.as_str())

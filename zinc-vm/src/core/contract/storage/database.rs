@@ -22,6 +22,52 @@ pub struct Storage<E: IEngine> {
 }
 
 impl<E: IEngine> IMerkleTree<E> for Storage<E> {
+    fn from_evaluation_stack(
+        field_types: Vec<zinc_build::ContractFieldType>,
+        mut values: Vec<Scalar<E>>,
+    ) -> Result<Self, Error> {
+        let mut storage_leaves = Vec::with_capacity(field_types.len());
+        for field_type in field_types.iter() {
+            let leaf = match field_type.r#type {
+                zinc_build::Type::Map {
+                    ref key_type,
+                    ref value_type,
+                } => LeafInput::Map {
+                    key_type: *key_type.to_owned(),
+                    value_type: *value_type.to_owned(),
+                    entries: vec![],
+                },
+                ref r#type => {
+                    let values: Vec<BigInt> = values
+                        .drain(..r#type.size())
+                        .map(|value| value.to_bigint().expect(zinc_const::panic::DATA_CONVERSION))
+                        .collect();
+                    LeafInput::Array {
+                        r#type: r#type.to_owned(),
+                        values,
+                    }
+                }
+            };
+
+            storage_leaves.push(leaf);
+        }
+
+        let depth = (storage_leaves.len() as f64).log2().ceil() as usize;
+        let hash_tree_size = 1 << (depth + 1);
+
+        let leaf_values = storage_leaves
+            .into_iter()
+            .map(LeafVariant::new)
+            .collect::<Vec<LeafVariant<E>>>();
+
+        Ok(Self {
+            field_types,
+            hash_tree: vec![vec![]; hash_tree_size],
+            leaf_values,
+            depth,
+        })
+    }
+
     fn from_build(
         field_types: Vec<zinc_build::ContractFieldType>,
         value: zinc_build::Value,
@@ -68,62 +114,11 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
 
         let depth = (storage_leaves.len() as f64).log2().ceil() as usize;
         let hash_tree_size = 1 << (depth + 1);
-        let leaf_values_size = 1 << depth;
 
-        let mut leaf_values = storage_leaves
+        let leaf_values = storage_leaves
             .into_iter()
-            .map(|leaf| match leaf {
-                LeafInput::Array { r#type, values } => LeafVariant::Array(
-                    r#type
-                        .into_flat_scalar_types()
-                        .into_iter()
-                        .zip(values.into_iter())
-                        .map(|(r#type, value)| {
-                            Scalar::<E>::new_constant_bigint(value, r#type)
-                                .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
-                        })
-                        .collect::<Vec<Scalar<E>>>(),
-                ),
-                LeafInput::Map {
-                    key_type,
-                    value_type,
-                    entries,
-                } => {
-                    let mut result = Vec::with_capacity(entries.len());
-                    for (key, value) in entries.into_iter() {
-                        let key = key_type
-                            .clone()
-                            .into_flat_scalar_types()
-                            .into_iter()
-                            .zip(key.into_iter())
-                            .map(|(r#type, value)| {
-                                Scalar::<E>::new_constant_bigint(value, r#type)
-                                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
-                            })
-                            .collect::<Vec<Scalar<E>>>();
-
-                        let value = value_type
-                            .clone()
-                            .into_flat_scalar_types()
-                            .into_iter()
-                            .zip(value.into_iter())
-                            .map(|(r#type, value)| {
-                                Scalar::<E>::new_constant_bigint(value, r#type)
-                                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
-                            })
-                            .collect::<Vec<Scalar<E>>>();
-
-                        result.push((key, value));
-                    }
-                    LeafVariant::Map {
-                        data: result,
-                        key_size: key_type.size(),
-                        value_size: value_type.size(),
-                    }
-                }
-            })
+            .map(LeafVariant::new)
             .collect::<Vec<LeafVariant<E>>>();
-        leaf_values.resize(leaf_values_size, LeafVariant::Array(vec![]));
 
         Ok(Self {
             field_types,

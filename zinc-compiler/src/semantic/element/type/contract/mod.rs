@@ -94,7 +94,7 @@ impl Contract {
         Scope::define_type(
             scope.clone(),
             Identifier::new(location, ContractFetchFunction::IDENTIFIER.to_owned()),
-            Type::Function(Function::Intrinsic(IntrinsicFunction::new_contract_fetch(
+            Type::Function(Function::Intrinsic(IntrinsicFunction::contract_fetch(
                 contract.clone(),
             ))),
             None,

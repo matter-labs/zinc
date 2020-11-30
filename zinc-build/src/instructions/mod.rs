@@ -20,6 +20,7 @@ use serde::Serialize;
 
 use self::call_library::CallLibrary;
 use self::contract::fetch::StorageFetch;
+use self::contract::init::StorageInit;
 use self::contract::load::StorageLoad;
 use self::contract::store::StorageStore;
 use self::data_stack::load::Load;
@@ -31,7 +32,6 @@ use self::evaluation_stack::copy::Copy;
 use self::evaluation_stack::push::Push;
 use self::evaluation_stack::slice::Slice;
 use self::flow::call::Call;
-use self::flow::exit::Exit;
 use self::flow::loop_begin::LoopBegin;
 use self::flow::loop_end::LoopEnd;
 use self::flow::r#else::Else;
@@ -93,11 +93,13 @@ pub enum Instruction {
     StoreByIndex(StoreByIndex),
 
     /// A contract storage instruction.
+    StorageInit(StorageInit),
+    /// A contract storage instruction.
+    StorageFetch(StorageFetch),
+    /// A contract storage instruction.
     StorageStore(StorageStore),
     /// A contract storage instruction.
     StorageLoad(StorageLoad),
-    /// A contract storage instruction.
-    StorageFetch(StorageFetch),
 
     /// An arithmetic operator instruction.
     Add(Add),
@@ -164,8 +166,6 @@ pub enum Instruction {
     Call(Call),
     /// A flow control instruction.
     Return(Return),
-    /// A flow control instruction.
-    Exit(Exit),
 
     /// An intrinsic function call instruction.
     Dbg(Dbg),
@@ -201,9 +201,10 @@ impl Instruction {
             Self::Store(inner) => inner.is_debug(),
             Self::StoreByIndex(inner) => inner.is_debug(),
 
+            Self::StorageInit(inner) => inner.is_debug(),
+            Self::StorageFetch(inner) => inner.is_debug(),
             Self::StorageStore(inner) => inner.is_debug(),
             Self::StorageLoad(inner) => inner.is_debug(),
-            Self::StorageFetch(inner) => inner.is_debug(),
 
             Self::Add(inner) => inner.is_debug(),
             Self::Sub(inner) => inner.is_debug(),
@@ -240,7 +241,6 @@ impl Instruction {
             Self::LoopEnd(inner) => inner.is_debug(),
             Self::Call(inner) => inner.is_debug(),
             Self::Return(inner) => inner.is_debug(),
-            Self::Exit(inner) => inner.is_debug(),
 
             Self::Dbg(inner) => inner.is_debug(),
             Self::Require(inner) => inner.is_debug(),
@@ -268,9 +268,10 @@ impl fmt::Display for Instruction {
             Self::Store(inner) => write!(f, "{}", inner),
             Self::StoreByIndex(inner) => write!(f, "{}", inner),
 
+            Self::StorageInit(inner) => write!(f, "{}", inner),
+            Self::StorageFetch(inner) => write!(f, "{}", inner),
             Self::StorageStore(inner) => write!(f, "{}", inner),
             Self::StorageLoad(inner) => write!(f, "{}", inner),
-            Self::StorageFetch(inner) => write!(f, "{}", inner),
 
             Self::Add(inner) => write!(f, "{}", inner),
             Self::Sub(inner) => write!(f, "{}", inner),
@@ -307,7 +308,6 @@ impl fmt::Display for Instruction {
             Self::LoopEnd(inner) => write!(f, "{}", inner),
             Self::Call(inner) => write!(f, "{}", inner),
             Self::Return(inner) => write!(f, "{}", inner),
-            Self::Exit(inner) => write!(f, "{}", inner),
 
             Self::Dbg(inner) => write!(f, "{}", inner),
             Self::Require(inner) => write!(f, "{}", inner),

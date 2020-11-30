@@ -4,7 +4,6 @@
 
 pub mod array;
 pub mod generics;
-pub mod path;
 pub mod tuple;
 
 use std::cell::RefCell;
@@ -18,12 +17,12 @@ use zinc_lexical::TokenStream;
 
 use crate::error::Error as SyntaxError;
 use crate::error::ParsingError;
+use crate::parser::identifier_path::Parser as IdentifierPathParser;
 use crate::tree::r#type::builder::Builder as TypeBuilder;
 use crate::tree::r#type::Type;
 
 use self::array::Parser as ArrayParser;
 use self::generics::Parser as GenericsParser;
-use self::path::Parser as PathParser;
 use self::tuple::Parser as TupleParser;
 
 ///
@@ -86,7 +85,7 @@ impl Parser {
             } => {
                 let location = token.location;
                 let (expression, mut next) =
-                    PathParser::default().parse(stream.clone(), Some(token))?;
+                    IdentifierPathParser::default().parse(stream.clone(), Some(token))?;
                 self.builder.set_location(location);
                 self.builder.set_path_expression(expression);
 

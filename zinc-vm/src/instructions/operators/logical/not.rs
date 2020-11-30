@@ -27,17 +27,21 @@ mod test {
     use num::One;
     use num::Zero;
 
-    use zinc_build::ScalarType;
-
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
     #[test]
     fn test_not() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(BigInt::zero(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(
+                BigInt::zero(),
+                zinc_build::ScalarType::Boolean,
+            ))
             .push(zinc_build::Not)
-            .push(zinc_build::Push::new(BigInt::one(), ScalarType::Boolean))
+            .push(zinc_build::Push::new(
+                BigInt::one(),
+                zinc_build::ScalarType::Boolean,
+            ))
             .push(zinc_build::Not)
             .test(&[0, 1])
     }

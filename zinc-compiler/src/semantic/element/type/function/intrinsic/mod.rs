@@ -60,35 +60,35 @@ impl Function {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_require() -> Self {
+    pub fn require() -> Self {
         Self::Require(RequireFunction::default())
     }
 
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_debug() -> Self {
+    pub fn debug() -> Self {
         Self::Debug(DebugFunction::default())
     }
 
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_contract_fetch(contract_type: ContractType) -> Self {
+    pub fn contract_fetch(contract_type: ContractType) -> Self {
         Self::ContractFetch(ContractFetchFunction::new(contract_type))
     }
 
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_contract_transfer(contract_type: ContractType) -> Self {
+    pub fn contract_transfer(contract_type: ContractType) -> Self {
         Self::ContractFetch(ContractFetchFunction::new(contract_type))
     }
 
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_library(identifier: LibraryFunctionIdentifier) -> Self {
+    pub fn library(identifier: LibraryFunctionIdentifier) -> Self {
         match identifier {
             LibraryFunctionIdentifier::CryptoSha256 => Self::StandardLibrary(
                 StandardLibraryFunction::CryptoSha256(StdCryptoSha256Function::default()),

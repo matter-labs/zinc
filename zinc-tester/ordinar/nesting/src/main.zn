@@ -1,0 +1,46 @@
+//!
+//! The 'nesting' circuit entry.
+//!
+
+mod level_1;
+
+fn main() {}
+
+#[test]
+fn test_inner() {
+    let result = level_1::Level1::new(42 as u64, 4 as u64).action();
+
+    require(result == 264);
+}
+
+#[test]
+fn test_outer() {
+    let result = level_1::Level1::new_with_inner(
+        42 as u64,
+        4 as u64,
+        level_1::level_2::Level2::new_with_inner(
+            42 as u64,
+            4 as u64,
+            level_1::level_2::level_3::Level3::new_with_inner(
+                42 as u64,
+                4 as u64,
+                level_1::level_2::level_3::level_4::Level4::new_with_inner(
+                    42 as u64,
+                    4 as u64,
+                    level_1::level_2::level_3::level_4::level_5::Level5::new(
+                        42 as u64,
+                        4 as u64,
+                    ),
+                ),
+            ),
+        ),
+    ).action();
+
+    require(result == 264);
+}
+
+#[test]
+#[should_panic]
+fn panic() {
+    require(false);
+}

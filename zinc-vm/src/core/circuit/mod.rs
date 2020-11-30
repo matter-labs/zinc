@@ -79,10 +79,8 @@ where
         self.condition_push(one)?;
 
         let input_size = circuit.input.size();
-        self.execution_state
-            .frames_stack
-            .push(Frame::new(0, std::usize::MAX));
         self.init_root_frame(circuit.input, input_values)?;
+
         if let Err(error) = zinc_build::Call::new(circuit.address, input_size)
             .execute(self)
             .and(check_cs(&self.counter.cs))
@@ -123,11 +121,62 @@ where
         self.get_outputs()
     }
 
+    pub fn test(&mut self, circuit: zinc_build::Circuit, address: usize) -> Result<(), Error> {
+        self.counter.cs.enforce(
+            || "ONE * ONE = ONE (do this to avoid `unconstrained` error)",
+            |zero| zero + CS::one(),
+            |zero| zero + CS::one(),
+            |zero| zero + CS::one(),
+        );
+        let one = Scalar::new_constant_usize(1, zinc_build::ScalarType::Boolean);
+        self.condition_push(one)?;
+
+        self.init_root_frame(zinc_build::Type::empty_structure(), Some(&[]))?;
+
+        if let Err(error) = zinc_build::Call::new(address, 0).execute(self) {
+            log::error!("{}\nat {}", error, self.location.to_string().blue());
+            return Err(error);
+        }
+
+        let mut step = 0;
+        while self.execution_state.instruction_counter < circuit.instructions.len() {
+            let namespace = format!(
+                "step={}, addr={}",
+                step, self.execution_state.instruction_counter
+            );
+            self.counter.cs.push_namespace(|| namespace);
+            let instruction =
+                circuit.instructions[self.execution_state.instruction_counter].clone();
+
+            log::trace!(
+                "{}:{} > {}",
+                step,
+                self.execution_state.instruction_counter,
+                instruction,
+            );
+
+            self.execution_state.instruction_counter += 1;
+            if let Err(error) = instruction.execute(self) {
+                log::error!("{}\nat {}", error, self.location.to_string().blue());
+                return Err(error);
+            }
+
+            log::trace!("{}", self.execution_state);
+            self.counter.cs.pop_namespace();
+            step += 1;
+        }
+
+        Ok(())
+    }
+
     fn init_root_frame(
         &mut self,
         input_type: zinc_build::Type,
         inputs: Option<&[BigInt]>,
     ) -> Result<(), Error> {
+        self.execution_state
+            .frames_stack
+            .push(Frame::new(0, std::usize::MAX));
         let types = input_type.into_flat_scalar_types();
 
         // Convert Option<&[BigInt]> to iterator of Option<&BigInt> and zip with types.
@@ -210,6 +259,15 @@ where
             .set(frame_start + address, cell)
     }
 
+    fn storage_init(
+        &mut self,
+        _eth_address: Scalar<Self::E>,
+        _values: Vec<Scalar<Self::E>>,
+        _field_types: Vec<zinc_build::ContractFieldType>,
+    ) -> Result<(), Error> {
+        Err(Error::OnlyForContracts)
+    }
+
     fn storage_fetch(
         &mut self,
         _eth_address: Scalar<Self::E>,
@@ -234,6 +292,10 @@ where
         _value: LeafVariant<Self::E>,
     ) -> Result<(), Error> {
         Err(Error::OnlyForContracts)
+    }
+
+    fn storages_count(&self) -> usize {
+        0
     }
 
     fn loop_begin(&mut self, iterations: usize) -> Result<(), Error> {
@@ -287,7 +349,7 @@ where
     }
 
     fn r#return(&mut self, outputs_count: usize) -> Result<(), Error> {
-        let mut outputs = Vec::new();
+        let mut outputs = Vec::with_capacity(outputs_count);
         for _ in 0..outputs_count {
             let output = self.pop()?;
             outputs.push(output);
@@ -297,12 +359,24 @@ where
             .execution_state
             .frames_stack
             .pop()
-            .ok_or(MalformedBytecode::StackUnderflow)?;
+            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
 
-        self.execution_state.instruction_counter = frame.return_address;
+        if self.execution_state.frames_stack.len() == 1 {
+            for cell in outputs.into_iter().rev() {
+                self.outputs.push(cell.try_into_value()?);
+            }
 
-        for p in outputs.into_iter().rev() {
-            self.push(p)?;
+            self.execution_state.instruction_counter = std::usize::MAX;
+        } else {
+            for cell in outputs.into_iter().rev() {
+                self.push(cell)?;
+            }
+
+            self.execution_state
+                .data_stack
+                .drop_from(frame.stack_frame_start);
+
+            self.execution_state.instruction_counter = frame.return_address;
         }
 
         Ok(())
@@ -391,17 +465,6 @@ where
             .data_stack
             .merge(self.counter.next(), branch.condition)?;
 
-        Ok(())
-    }
-
-    fn exit(&mut self, outputs_count: usize) -> Result<(), Error> {
-        for _ in 0..outputs_count {
-            let value = self.pop()?.try_into_value()?;
-            self.outputs.push(value);
-        }
-        self.outputs.reverse();
-
-        self.execution_state.instruction_counter = std::usize::MAX;
         Ok(())
     }
 

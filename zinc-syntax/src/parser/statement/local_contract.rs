@@ -190,9 +190,13 @@ mod tests {
     use zinc_lexical::TokenStream;
 
     use super::Parser;
+    use crate::tree::attribute::element::Element as AttributeElement;
     use crate::tree::attribute::Attribute;
     use crate::tree::binding::Binding;
     use crate::tree::expression::block::Expression as BlockExpression;
+    use crate::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::tree::expression::tree::Tree as ExpressionTree;
     use crate::tree::identifier::Identifier;
     use crate::tree::pattern_binding::variant::Variant as BindingPatternVariant;
     use crate::tree::pattern_binding::Pattern as BindingPattern;
@@ -319,7 +323,16 @@ fn test() {}
                 vec![Attribute::new(
                     Location::test(2, 1),
                     false,
-                    Identifier::new(Location::test(2, 3), "test".to_owned()),
+                    vec![AttributeElement::new(
+                        Location::test(2, 3),
+                        ExpressionTree::new(
+                            Location::test(2, 3),
+                            ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                Identifier::new(Location::test(2, 3), "test".to_owned()),
+                            )),
+                        ),
+                        None,
+                    )],
                 )],
             )),
             None,
@@ -352,17 +365,47 @@ fn test() {}
                     Attribute::new(
                         Location::test(2, 1),
                         false,
-                        Identifier::new(Location::test(2, 3), "test".to_owned()),
+                        vec![AttributeElement::new(
+                            Location::test(2, 3),
+                            ExpressionTree::new(
+                                Location::test(2, 3),
+                                ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                    Identifier::new(Location::test(2, 3), "test".to_owned()),
+                                )),
+                            ),
+                            None,
+                        )],
                     ),
                     Attribute::new(
                         Location::test(3, 1),
                         false,
-                        Identifier::new(Location::test(3, 3), "should_panic".to_owned()),
+                        vec![AttributeElement::new(
+                            Location::test(3, 3),
+                            ExpressionTree::new(
+                                Location::test(3, 3),
+                                ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                    Identifier::new(
+                                        Location::test(3, 3),
+                                        "should_panic".to_owned(),
+                                    ),
+                                )),
+                            ),
+                            None,
+                        )],
                     ),
                     Attribute::new(
                         Location::test(4, 1),
                         false,
-                        Identifier::new(Location::test(4, 3), "ignore".to_owned()),
+                        vec![AttributeElement::new(
+                            Location::test(4, 3),
+                            ExpressionTree::new(
+                                Location::test(4, 3),
+                                ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                                    Identifier::new(Location::test(4, 3), "ignore".to_owned()),
+                                )),
+                            ),
+                            None,
+                        )],
                     ),
                 ],
             )),

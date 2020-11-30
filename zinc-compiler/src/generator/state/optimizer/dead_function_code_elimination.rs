@@ -66,7 +66,6 @@ impl Optimizer {
                         graph.update_edge(caller_node, callee_node, 1);
                     }
                     Some(Instruction::Return(_)) => break,
-                    Some(Instruction::Exit(_)) => break,
                     _ => {}
                 }
             }
@@ -98,11 +97,7 @@ impl Optimizer {
             if is_isolated {
                 let mut removed_count = 0;
                 for address in *start_address..instructions.len() {
-                    let is_end = match instructions.get(address) {
-                        Some(Instruction::Return(_)) => true,
-                        Some(Instruction::Exit(_)) => true,
-                        _ => false,
-                    };
+                    let is_end = matches!(instructions.get(address), Some(Instruction::Return(_)));
 
                     instructions[address] = Instruction::NoOperation(zinc_build::NoOperation);
                     removed_count += 1;

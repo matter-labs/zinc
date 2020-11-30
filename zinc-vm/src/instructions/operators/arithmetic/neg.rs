@@ -5,7 +5,6 @@
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_build::Neg;
-use zinc_build::ScalarType;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -23,7 +22,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Neg {
             gadgets::arithmetic::neg::neg(cs.namespace(|| "unchecked_neg"), &value)?;
 
         match value.get_type() {
-            ScalarType::Integer(mut int_type) => {
+            zinc_build::ScalarType::Integer(mut int_type) => {
                 let condition = vm.condition_top()?;
                 let cs = vm.constraint_system();
                 int_type.is_signed = true;
@@ -47,7 +46,6 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Neg {
 mod test {
     use num::BigInt;
 
-    use zinc_build::IntegerType;
     use zinc_build::Neg;
     use zinc_build::Push;
 
@@ -57,7 +55,10 @@ mod test {
     #[test]
     fn test_neg() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(Push::new(BigInt::from(127), IntegerType::U8.into()))
+            .push(Push::new(
+                BigInt::from(127),
+                zinc_build::IntegerType::U8.into(),
+            ))
             .push(Neg)
             .test(&[-127])
     }

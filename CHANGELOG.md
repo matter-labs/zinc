@@ -4,8 +4,10 @@
 
 #### Language
 
-- implemented the dependency and library system
+- implemented the Rust-like dependency system
+- added the library project type
 - allowed to use other smart contract instances through the dependency system
+- extended the attribute syntax to set the `zksync::msg` variable in unit tests
 - turned the `zksync::transfer` function into a built-in contract method
 
 #### Compiler
@@ -15,6 +17,11 @@
 - fixed the bug where contract storage fields could be addressed without an instance
 - fixed the bug where structures and contracts could be initialized with fewer fields than needed
 - performed an inventory of compiler errors and created an error reference
+
+#### Virtual machine
+
+- fixed circuit unit tests
+- replaced the `Exit` instruction with `Return`
 
 ## Version 0.2.0 (2020-10-28)
 

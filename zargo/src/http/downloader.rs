@@ -70,8 +70,6 @@ impl<'a> Downloader<'a> {
             return Ok(());
         }
 
-        fs::create_dir_all(&dependency_path)?;
-
         eprintln!(" {} {} v{}", "Downloading".bright_green(), name, version);
 
         let response = self
@@ -90,8 +88,10 @@ impl<'a> Downloader<'a> {
             ));
         }
 
+        fs::create_dir_all(&dependency_path)?;
         response.project.manifest.write_to(&dependency_path)?;
         response.project.source.write_to(&dependency_path)?;
+
         self.downloads.insert((name, version));
         for (name, version) in response.project.manifest.dependencies.unwrap_or_default() {
             self.download(name, version).await?;

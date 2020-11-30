@@ -1,0 +1,120 @@
+//!
+//! The Curve Stableswap contract token ID.
+//!
+
+use crate::types::Balance;
+use crate::types::Address;
+use crate::constants::MAX_TOKEN_PRECISION;
+
+/// 
+/// The token IDs of the Rinkeby testnet.
+/// 
+pub enum TokenAddress {
+    ETH = 0x0000000000000000000000000000000000000000,
+    USDT = 0x3b00ef435fa4fcff5c209a37d1f3dcff37c705ad,
+    USDC = 0xeb8f08a975ab53e34d8a0330e0d34de942c95926,
+    LINK = 0x4da8d0795830f75be471f072a034d42c369b5d0a,
+    TUSD = 0xd2255612f9b045e9c81244bb874abb413ca139a3,
+    HT = 0x14700cae8b2943bad34c70bb76ae27ecf5bc5013,
+    OMG = 0x2b203de02ad6109521e09985b3af9b8c62541cd6,
+    TRB = 0x2655f3a9eeb7f960be83098457144813ffad07a4,
+    ZRX = 0xdb7f2b9f6a0cb35fe5d236e5ed871d3ad4184290,
+    BAT = 0xd2084ea2ae4bbe1424e4fe3cde25b713632fb988,
+    REP = 0x9cac8508b9ff26501439590a24893d80e7e84d21,
+    STORJ = 0x8098165d982765097e4aa17138816e5b95f9fdb5,
+    NEXO = 0x02d01f0835b7fdfa5d801a8f5f74c37f2bb1ae6a,
+    MCO = 0xd93addb2921b8061b697c2ab055979bbefe2b7ac,
+    KNC = 0x290eba6ec56ecc9ff81c72e8eccc77d2c2bf63eb,
+    LAMB = 0x9ecec4d48efdd96ae377af3ab868f99de865cff8,
+    GNT = 0xd94e3dc39d4cad1dad634e7eb585a57a19dc7efe,
+    MLTT = 0x690f4886c6911d81beb8130db30c825c27281f22,
+    XEM = 0xc3904a7c3a95bc265066bb5bfc4d6664b2174774,
+    DAI = 0x2e055eee18284513b993db7568a592679ab13188,
+
+    Unknown = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,
+}
+
+impl TokenAddress {
+    /// 
+    /// Converts an `u16` into token ID.
+    /// 
+    pub fn from_address(value: Address) -> Self {
+        match value {
+            0x0000000000000000000000000000000000000000 => Self::ETH,
+            0x3b00ef435fa4fcff5c209a37d1f3dcff37c705ad => Self::USDT,
+            0xeb8f08a975ab53e34d8a0330e0d34de942c95926 => Self::USDC,
+            0x4da8d0795830f75be471f072a034d42c369b5d0a => Self::LINK,
+            0xd2255612f9b045e9c81244bb874abb413ca139a3 => Self::TUSD,
+            0x14700cae8b2943bad34c70bb76ae27ecf5bc5013 => Self::HT,
+            0x2b203de02ad6109521e09985b3af9b8c62541cd6 => Self::OMG,
+            0x2655f3a9eeb7f960be83098457144813ffad07a4 => Self::TRB,
+            0xdb7f2b9f6a0cb35fe5d236e5ed871d3ad4184290 => Self::ZRX,
+            0xd2084ea2ae4bbe1424e4fe3cde25b713632fb988 => Self::BAT,
+            0x9cac8508b9ff26501439590a24893d80e7e84d21 => Self::REP,
+            0x8098165d982765097e4aa17138816e5b95f9fdb5 => Self::STORJ,
+            0x02d01f0835b7fdfa5d801a8f5f74c37f2bb1ae6a => Self::NEXO,
+            0xd93addb2921b8061b697c2ab055979bbefe2b7ac => Self::MCO,
+            0x290eba6ec56ecc9ff81c72e8eccc77d2c2bf63eb => Self::KNC,
+            0x9ecec4d48efdd96ae377af3ab868f99de865cff8 => Self::LAMB,
+            0xd94e3dc39d4cad1dad634e7eb585a57a19dc7efe => Self::GNT,
+            0x690f4886c6911d81beb8130db30c825c27281f22 => Self::MLTT,
+            0xc3904a7c3a95bc265066bb5bfc4d6664b2174774 => Self::XEM,
+            0x2e055eee18284513b993db7568a592679ab13188 => Self::DAI,
+
+            another => {
+                // the only way of panicking explicitly
+                require(false, "Token address is unknown");
+
+                // unreachable
+                Self::Unknown
+            }
+        }
+    }
+
+    /// 
+    /// Returns the token precision.
+    /// 
+    pub fn precision(self) -> u8 {
+        match self {
+            Self::ETH => 18,
+            Self::USDT => 6,
+            Self::USDC => 6,
+            Self::LINK => 18,
+            Self::TUSD => 18,
+            Self::HT => 18,
+            Self::OMG => 18,
+            Self::TRB => 18,
+            Self::ZRX => 18,
+            Self::BAT => 18,
+            Self::REP => 18,
+            Self::STORJ => 8,
+            Self::NEXO => 18,
+            Self::MCO => 8,
+            Self::KNC => 18,
+            Self::LAMB => 18,
+            Self::GNT => 18,
+            Self::MLTT => 18,
+            Self::XEM => 0,
+            Self::DAI => 18,
+            
+            Self::Unknown => {
+                // the only way of panicking explicitly
+                require(false, "Token address is unknown");
+
+                // unreachable
+                0
+            }
+        }
+    }
+
+    ///
+    /// Returns the multiplier required to equalize the token precisions.
+    ///
+    pub fn magnitude_diff(self) -> Balance {
+        let mut diff: Balance = 1;
+        for i in 0..MAX_TOKEN_PRECISION while i < MAX_TOKEN_PRECISION - self.precision() {
+            diff *= 10 as Balance;
+        }
+        diff
+    }
+}

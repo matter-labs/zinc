@@ -2,8 +2,6 @@ use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_build::ScalarType;
-
 use crate::auto_const;
 use crate::error::Error;
 use crate::gadgets::auto_const::prelude::*;
@@ -21,8 +19,11 @@ where
         E: IEngine,
         CS: ConstraintSystem<E>,
     {
-        left.get_type().assert_type(ScalarType::Boolean)?;
-        right.get_type().assert_type(ScalarType::Boolean)?;
+        left.get_type()
+            .assert_type(zinc_build::ScalarType::Boolean)?;
+        right
+            .get_type()
+            .assert_type(zinc_build::ScalarType::Boolean)?;
 
         let num = AllocatedNum::alloc(cs.namespace(|| "value"), || {
             let mut conj = left.grab_value()?;
@@ -40,7 +41,7 @@ where
         Ok(Scalar::new_unchecked_variable(
             num.get_value(),
             num.get_variable(),
-            ScalarType::Boolean,
+            zinc_build::ScalarType::Boolean,
         ))
     }
 

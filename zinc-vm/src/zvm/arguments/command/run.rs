@@ -10,10 +10,6 @@ use structopt::StructOpt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 
-use zinc_build::ContractFieldValue as BuildContractFieldValue;
-use zinc_build::InputBuild;
-use zinc_zksync::TransactionMsg;
-
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
 use zinc_vm::ContractInput;
@@ -59,17 +55,17 @@ impl IExecutable for Command {
         let input_path = self.input_path;
         let input_template =
             fs::read_to_string(&input_path).error_with_path(|| input_path.to_string_lossy())?;
-        let input: InputBuild = serde_json::from_str(input_template.as_str())?;
+        let input: zinc_build::InputBuild = serde_json::from_str(input_template.as_str())?;
 
         let output = match application {
             zinc_build::Application::Circuit(circuit) => match input {
-                InputBuild::Circuit { arguments } => {
+                zinc_build::InputBuild::Circuit { arguments } => {
                     let input_type = circuit.input.clone();
                     let arguments = zinc_build::Value::try_from_typed_json(arguments, input_type)?;
 
                     CircuitFacade::new(circuit).run::<Bn256>(arguments)?.result
                 }
-                InputBuild::Contract { .. } => {
+                zinc_build::InputBuild::Contract { .. } => {
                     return Err(Error::InputDataInvalid {
                         expected: "circuit".to_owned(),
                         found: "contract".to_owned(),
@@ -77,13 +73,13 @@ impl IExecutable for Command {
                 }
             },
             zinc_build::Application::Contract(contract) => match input {
-                InputBuild::Circuit { .. } => {
+                zinc_build::InputBuild::Circuit { .. } => {
                     return Err(Error::InputDataInvalid {
                         expected: "contract".to_owned(),
                         found: "circuit".to_owned(),
                     })
                 }
-                InputBuild::Contract {
+                zinc_build::InputBuild::Contract {
                     arguments,
                     msg: transaction,
                     storage,
@@ -107,7 +103,7 @@ impl IExecutable for Command {
                         serde_json::Value::Array(array) => {
                             let mut storage_values = Vec::with_capacity(contract.storage.len());
                             for (field, value) in contract.storage.clone().into_iter().zip(array) {
-                                storage_values.push(BuildContractFieldValue::new(
+                                storage_values.push(zinc_build::ContractFieldValue::new(
                                     field.name,
                                     zinc_build::Value::try_from_typed_json(value, field.r#type)?,
                                     field.is_public,
@@ -123,7 +119,7 @@ impl IExecutable for Command {
                         method_arguments,
                         zinc_build::Value::Contract(storage_values),
                         method_name,
-                        TransactionMsg::try_from(&transaction).map_err(|error| {
+                        zinc_zksync::TransactionMsg::try_from(&transaction).map_err(|error| {
                             Error::InvalidTransaction {
                                 inner: error,
                                 found: transaction.clone(),
@@ -152,12 +148,13 @@ impl IExecutable for Command {
                         }
                     }
 
-                    let input_str = serde_json::to_string_pretty(&InputBuild::new_contract(
-                        serde_json::Value::Object(storages),
-                        transaction,
-                        arguments,
-                    ))
-                    .expect(zinc_const::panic::DATA_CONVERSION);
+                    let input_str =
+                        serde_json::to_string_pretty(&zinc_build::InputBuild::new_contract(
+                            serde_json::Value::Object(storages),
+                            transaction,
+                            arguments,
+                        ))
+                        .expect(zinc_const::panic::DATA_CONVERSION);
                     fs::write(&input_path, input_str)
                         .error_with_path(|| input_path.to_string_lossy())?;
 

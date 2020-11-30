@@ -142,7 +142,7 @@ impl Expression {
                     state.borrow_mut().push_instruction(
                         Instruction::Load(zinc_build::Load::new(
                             reference_address,
-                            Type::integer_unsigned(zinc_const::bitlength::ETH_ADDRESS).size(),
+                            Type::eth_address().size(),
                         )),
                         Some(location),
                     );
@@ -198,7 +198,7 @@ impl Expression {
                 state.borrow_mut().push_instruction(
                     Instruction::Load(zinc_build::Load::new(
                         reference_address,
-                        Type::integer_unsigned(zinc_const::bitlength::ETH_ADDRESS).size(),
+                        Type::eth_address().size(),
                     )),
                     Some(location),
                 );
@@ -298,7 +298,7 @@ impl Expression {
                     state.borrow_mut().push_instruction(
                         Instruction::Load(zinc_build::Load::new(
                             reference_address,
-                            Type::integer_unsigned(zinc_const::bitlength::ETH_ADDRESS).size(),
+                            Type::eth_address().size(),
                         )),
                         Some(location),
                     );
@@ -374,7 +374,7 @@ impl Expression {
                 state.borrow_mut().push_instruction(
                     Instruction::Load(zinc_build::Load::new(
                         reference_address,
-                        Type::integer_unsigned(zinc_const::bitlength::ETH_ADDRESS).size(),
+                        Type::eth_address().size(),
                     )),
                     Some(location),
                 );

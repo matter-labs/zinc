@@ -89,6 +89,12 @@ impl Command {
             manifest_path.pop();
         }
 
+        if let zinc_manifest::ProjectType::Contract = manifest.project.r#type {
+            if !PrivateKeyFile::exists_at(&manifest_path) {
+                PrivateKeyFile::default().write_to(&manifest_path)?;
+            }
+        }
+
         let source_directory_path = SourceDirectory::path(&manifest_path);
         let source = zinc_source::Source::try_from_path(&source_directory_path, true)?;
         let project = zinc_source::Project::new(manifest.clone(), source);
@@ -105,8 +111,6 @@ impl Command {
         proving_key_path.push(zinc_const::file_name::PROVING_KEY);
         let mut verifying_key_path = data_directory_path.clone();
         verifying_key_path.push(zinc_const::file_name::VERIFYING_KEY.to_owned());
-        let mut private_key_path = data_directory_path.clone();
-        private_key_path.push(zinc_const::file_name::PRIVATE_KEY.to_owned());
 
         TargetDirectory::create(&manifest_path, true)?;
         let target_directory_path = TargetDirectory::path(&manifest_path, true);
@@ -117,15 +121,8 @@ impl Command {
             zinc_const::extension::BINARY
         ));
 
-        TargetDependenciesDirectory::remove(&manifest_path)?;
         TargetDependenciesDirectory::create(&manifest_path)?;
         let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
-
-        if let zinc_manifest::ProjectType::Contract = manifest.project.r#type {
-            if !PrivateKeyFile::exists_at(&data_directory_path) {
-                PrivateKeyFile::default().write_to(&data_directory_path)?;
-            }
-        }
 
         if let Some(dependencies) = manifest.dependencies {
             let network = zksync::Network::from_str(self.network.as_str())
@@ -153,21 +150,23 @@ impl Command {
         let arguments = input
             .inner
             .as_object()
-            .ok_or(Error::InvalidInputData)?
+            .ok_or_else(|| Error::MissingInputSection("arguments".to_owned()))?
             .get("arguments")
             .cloned()
-            .ok_or(Error::InvalidInputData)?
+            .ok_or_else(|| Error::MissingInputSection("arguments".to_owned()))?
             .as_object()
-            .ok_or(Error::InvalidInputData)?
-            .get(zinc_const::contract::CONSTRUCTOR_NAME)
+            .ok_or_else(|| Error::MissingInputSection("arguments".to_owned()))?
+            .get(zinc_const::contract::CONSTRUCTOR_IDENTIFIER)
             .cloned()
-            .ok_or(Error::ConstructorArgumentsNotFound)?;
+            .ok_or_else(|| {
+                Error::MissingInputSection(zinc_const::contract::CONSTRUCTOR_IDENTIFIER.to_owned())
+            })?;
 
         if !verifying_key_path.exists() {
             VirtualMachine::setup_contract(
                 self.verbosity,
                 &binary_path,
-                zinc_const::contract::CONSTRUCTOR_NAME,
+                zinc_const::contract::CONSTRUCTOR_IDENTIFIER,
                 &proving_key_path,
                 &verifying_key_path,
             )?;
@@ -207,7 +206,7 @@ impl Command {
                 .replace("\"", "")
         );
 
-        let private_key = PrivateKeyFile::try_from(&private_key_path)?;
+        let private_key = PrivateKeyFile::try_from(&manifest_path)?;
 
         let signer_private_key: H256 = private_key.inner.parse()?;
         let signer_address = PackedEthSignature::address_from_private_key(&signer_private_key)?;

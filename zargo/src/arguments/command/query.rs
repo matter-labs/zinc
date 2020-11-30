@@ -87,15 +87,15 @@ impl Command {
                 let arguments = input
                     .inner
                     .as_object()
-                    .ok_or(Error::InvalidInputData)?
+                    .ok_or_else(|| Error::MissingInputSection("arguments".to_owned()))?
                     .get("arguments")
                     .cloned()
-                    .ok_or(Error::InvalidInputData)?
+                    .ok_or_else(|| Error::MissingInputSection("arguments".to_owned()))?
                     .as_object()
-                    .ok_or(Error::InvalidInputData)?
+                    .ok_or_else(|| Error::MissingInputSection("arguments".to_owned()))?
                     .get(method)
                     .cloned()
-                    .ok_or(Error::InvalidInputData)?;
+                    .ok_or_else(|| Error::MissingInputSection(method.to_owned()))?;
 
                 eprintln!(
                     "    {} method `{}` of the contract `{} v{}` with address {} on network `{}`",

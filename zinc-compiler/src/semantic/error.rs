@@ -1753,11 +1753,54 @@ pub enum Error {
     },
 
     /// The attribute is unknown. Check the known attribute list for more information.
-    UnknownAttribute {
+    AttributeUnknown {
         /// The error location data.
         location: Location,
         /// The invalid stringified attribute.
         found: String,
+    },
+    /// The attribute is empty.
+    AttributeEmpty {
+        /// The error location data.
+        location: Location,
+    },
+    /// The attribute element count is invalid.
+    AttributeElementsCount {
+        /// The error location data.
+        location: Location,
+        /// The attribute name.
+        name: String,
+        /// The expected number of elements.
+        expected: usize,
+        /// The found number of elements.
+        found: usize,
+    },
+    /// The attribute expected element.
+    AttributeExpectedElement {
+        /// The error location data.
+        location: Location,
+        /// The attribute name.
+        name: String,
+        /// The position where the element is expected.
+        position: usize,
+        /// The expected element.
+        expected: String,
+        /// The found element.
+        found: String,
+    },
+    /// The attribute expected literal.
+    AttributeExpectedIntegerLiteral {
+        /// The error location data.
+        location: Location,
+        /// The attribute name.
+        name: String,
+    },
+    /// The attribute expected nested data.
+    AttributeExpectedNested {
+        /// The error location data.
+        location: Location,
+        /// The attribute name.
+        name: String,
     },
 
     /// The type must be explicitly specified for this binding.
@@ -1828,6 +1871,8 @@ impl Error {
     ///
     /// Returns the semantic error code.
     ///
+    /// The last error code is `243` at `AttributeExpectedNested`.
+    ///
     pub fn code(&self) -> usize {
         match self {
             Self::EntryPointMissing => 1,
@@ -1859,7 +1904,12 @@ impl Error {
 
             Self::UseStatementExpectedPath { .. } => 22,
 
-            Self::UnknownAttribute { .. } => 23,
+            Self::AttributeUnknown { .. } => 23,
+            Self::AttributeEmpty { .. } => 239,
+            Self::AttributeElementsCount { .. } => 240,
+            Self::AttributeExpectedElement { .. } => 241,
+            Self::AttributeExpectedIntegerLiteral { .. } => 242,
+            Self::AttributeExpectedNested { .. } => 243,
 
             Self::BindingTypeRequired { .. } => 24,
             Self::BindingExpectedTuple { .. } => 25,

@@ -10,8 +10,6 @@ use franklin_crypto::bellman::pairing::ff::PrimeField;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_build::ScalarType;
-
 use crate::core::execution_state::ExecutionState;
 use crate::error::Error;
 use crate::gadgets::contract::merkle_tree::IMerkleTree;
@@ -39,8 +37,12 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for FromBitsField {
             AllocatedNum::pack_bits_to_element(cs.namespace(|| "pack_bits_to_element"), &bits)?;
 
         state.evaluation_stack.push(
-            Scalar::new_unchecked_variable(num.get_value(), num.get_variable(), ScalarType::Field)
-                .into(),
+            Scalar::new_unchecked_variable(
+                num.get_value(),
+                num.get_variable(),
+                zinc_build::ScalarType::Field,
+            )
+            .into(),
         )?;
 
         Ok(())

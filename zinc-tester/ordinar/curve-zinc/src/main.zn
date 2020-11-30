@@ -1,0 +1,205 @@
+//!
+//! The Curve Stableswap contract.
+//!
+//! Rewritten from [Vyper implementation](https://github.com/curvefi/curve-contract/blob/2b8ff42f5ce648be749c721d23c28ec8483df493/vyper/stableswap.vy)
+//!
+//! The [Curve Stableswap paper](https://www.curve.fi/stableswap-paper.pdf)
+//!
+
+mod types;
+mod invariant;
+mod constants;
+mod exchange;
+
+use self::constants::ZERO;
+use self::constants::N;
+use self::types::Address;
+use self::types::Balance;
+use self::types::token_address::TokenAddress;
+
+///
+/// The Curve Stableswap contract.
+///
+contract Stableswap {
+    /// The tokens being traded in the pool.
+    pub tokens: [TokenAddress; N];
+
+    /// The Curve amplifier.
+    pub amplifier: u64;
+
+    ///
+    /// The contract constructor.
+    ///
+    pub fn new(
+        tokens: [TokenAddress; N],
+        amplifier: u64,
+    ) -> Self {
+        require(amplifier > 0, "The Curve amplifier cannot be zero");
+
+        Self {
+            tokens: tokens,
+            amplifier: amplifier,
+        }
+    }
+
+    ///
+    /// Adds liquidity to the contract balances.
+    ///
+    pub fn deposit(mut self) {
+        require(
+            zksync::msg.recipient == self.address,
+            "Transaction recipient is not the contract",
+        );
+
+        // panics if the token with address `zksync::msg.token_address` is not traded in this pool
+        let deposit_idx = self.token_position(TokenAddress::from_address(zksync::msg.token_address));
+    }
+
+    ///
+    /// Exchanges the tokens, consuming some of the `zksync::msg.token_address` and returning
+    /// some of the `withdraw_token_address` to the client.
+    ///
+    pub fn swap(
+        mut self,
+        withdraw_address: Address,
+        withdraw_token_address: TokenAddress,
+        min_withdraw: Balance,
+    ) {
+        require(
+            zksync::msg.recipient == self.address,
+            "Transaction recipient is not the contract",
+        );
+
+        let deposit_idx = self.token_position(TokenAddress::from_address(zksync::msg.token_address));
+        let withdraw_idx = self.token_position(withdraw_token_address);
+
+        let balance_array = self.get_balance_array();
+
+        require(balance_array[deposit_idx] != 0, "Deposit token balance is zero");
+        require(balance_array[withdraw_idx] != 0, "Withdraw token balance is zero");
+
+        let new_x = balance_array[deposit_idx] + zksync::msg.amount;
+        let new_y = exchange::after(
+            self.tokens,
+            balance_array,
+            self.amplifier,
+
+            deposit_idx,
+            withdraw_idx,
+            new_x,
+        );
+
+        let old_y = balance_array[withdraw_idx];
+        require(
+            old_y >= min_withdraw + new_y,
+            "Exchange resulted in fewer coins than expected",
+        );
+        let withdraw_amount = old_y - new_y;
+
+        self.transfer(
+            withdraw_address,
+            withdraw_token_address,
+            withdraw_amount,
+        );
+    }
+
+    ///
+    /// Given the amount to withdraw, returns the amount that must be deposited.
+    ///
+    pub fn get_dx(
+        self,
+        deposit_token_address: TokenAddress,
+        withdraw_token_address: TokenAddress,
+        to_withdraw: Balance,
+    ) -> Balance {
+        let deposit_idx = self.token_position(deposit_token_address);
+        let withdraw_idx = self.token_position(withdraw_token_address);
+
+        let balance_array = self.get_balance_array();
+
+        require(balance_array[deposit_idx] != 0, "Deposit token balance is zero");
+        require(balance_array[withdraw_idx] != 0, "Withdraw token balance is zero");
+
+        let after_withdrawal = balance_array[withdraw_idx] - to_withdraw;
+        
+        let after_deposit = exchange::after(
+            self.tokens,
+            balance_array,
+            self.amplifier,
+
+            withdraw_idx,
+            deposit_idx,
+            after_withdrawal,
+        );
+
+        after_deposit - balance_array[deposit_idx]
+    }
+
+    ///
+    /// Given the amount to deposit, returns the amount that will be withdrawn.
+    ///
+    pub fn get_dy(
+        self,
+        deposit_token_address: TokenAddress,
+        withdraw_token_address: TokenAddress,
+        to_deposit: Balance,
+    ) -> Balance {
+        let deposit_idx = self.token_position(deposit_token_address);
+        let withdraw_idx = self.token_position(withdraw_token_address);
+
+        let balance_array = self.get_balance_array();
+
+        require(balance_array[deposit_idx] != 0, "Deposit token balance is zero");
+        require(balance_array[withdraw_idx] != 0, "Withdraw token balance is zero");
+
+        let after_deposit = balance_array[deposit_idx] + to_deposit;
+        
+        let after_withdrawal = exchange::after(
+            self.tokens,
+            balance_array,
+            self.amplifier,
+
+            deposit_idx,
+            withdraw_idx,
+            after_deposit,
+        );
+
+        balance_array[withdraw_idx] - after_withdrawal
+    }
+
+    /// 
+    /// Given a token ID, returns the token position in the array of balances.
+    /// 
+    fn token_position(
+        self,
+        token_address: TokenAddress,
+    ) -> u8 {
+        let mut position = N;
+        let mut found = false;
+
+        for i in 0..N while !found {
+            if self.tokens[i] == token_address {
+                position = i;
+                found = true;
+            }
+        }
+
+        require(found, "The token is not being traded in this pool");
+
+        position
+    }
+
+    /// 
+    /// Creates an array of balances from the inner balance map.
+    ///
+    fn get_balance_array(self) -> [Balance; N] {
+        let mut array = [0 as Balance; N];
+        for i in 0..N {
+            let (balance, found) = self.balances.get(self.tokens[i] as Address);
+            if found {
+                array[i] = balance;
+            }
+        }
+        array
+    }
+}

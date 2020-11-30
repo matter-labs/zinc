@@ -1,0 +1,28 @@
+//!
+//! The Curve constants.
+//!
+
+use crate::types::Balance;
+
+/// 
+/// The zero balance.
+/// 
+pub const ZERO: Balance = 0;
+
+/// 
+/// The default computation precision.
+/// 
+/// Balances are multiplied by it during invariant computation,
+/// to avoid division of integers of the same order of magnitude.
+/// 
+pub const PRECISION_MUL: Balance = 1E6;
+
+/// 
+/// The maximum known token precision.
+///
+pub const MAX_TOKEN_PRECISION: u8 = 18;
+
+/// 
+/// The number of tokens being traded in the pool.
+/// 
+pub const N: u8 = 2;

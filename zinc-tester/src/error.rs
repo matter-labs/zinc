@@ -9,13 +9,13 @@ use thiserror::Error;
 ///
 #[derive(Debug, Error)]
 pub enum Error {
-    /// The directory file type is invalid, that is, the file is neither a data file nor directory.
+    /// The file type is invalid, that is, the file is neither a data file nor directory.
     #[error("invalid file type: {0:?}")]
     InvalidFileType(std::fs::FileType),
-    /// The directory file extension could not be acquired.
+    /// The file extension could not be acquired.
     #[error("file extension getting")]
     GettingFileExtension,
-    /// The directory file extension is invalid.
+    /// The file extension is invalid.
     #[error("invalid file extension `{0}`")]
     InvalidFileExtension(String),
     /// The method is missing in the test metadata.

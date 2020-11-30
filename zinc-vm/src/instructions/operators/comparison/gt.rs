@@ -26,8 +26,6 @@ mod test {
     use num::BigInt;
     use num::One;
 
-    use zinc_build::IntegerType;
-
     use crate::tests::TestRunner;
     use crate::tests::TestingError;
 
@@ -36,23 +34,29 @@ mod test {
         TestRunner::new()
             .push(zinc_build::Push::new(
                 BigInt::from(2),
-                IntegerType::I8.into(),
-            ))
-            .push(zinc_build::Push::new(BigInt::one(), IntegerType::I8.into()))
-            .push(zinc_build::Gt)
-            .push(zinc_build::Push::new(
-                BigInt::from(2),
-                IntegerType::I8.into(),
+                zinc_build::IntegerType::I8.into(),
             ))
             .push(zinc_build::Push::new(
-                BigInt::from(2),
-                IntegerType::I8.into(),
+                BigInt::one(),
+                zinc_build::IntegerType::I8.into(),
             ))
             .push(zinc_build::Gt)
-            .push(zinc_build::Push::new(BigInt::one(), IntegerType::I8.into()))
             .push(zinc_build::Push::new(
                 BigInt::from(2),
-                IntegerType::I8.into(),
+                zinc_build::IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(2),
+                zinc_build::IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Gt)
+            .push(zinc_build::Push::new(
+                BigInt::one(),
+                zinc_build::IntegerType::I8.into(),
+            ))
+            .push(zinc_build::Push::new(
+                BigInt::from(2),
+                zinc_build::IntegerType::I8.into(),
             ))
             .push(zinc_build::Gt)
             .test(&[0, 0, 1])

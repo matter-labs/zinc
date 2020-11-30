@@ -3,10 +3,10 @@
 //!
 
 /// The `pedersen` hash maximal input size in bytes.
-pub const PEDERSEN_HASH_INPUT_BYTES: usize = PEDERSEN_HASH_INPUT_BITS / crate::bitlength::BYTE;
+pub const PEDERSEN_HASH_INPUT_BYTES: usize = 64;
 
 /// The `pedersen` hash maximal input size in bits.
-pub const PEDERSEN_HASH_INPUT_BITS: usize = 512;
+pub const PEDERSEN_HASH_INPUT_BITS: usize = PEDERSEN_HASH_INPUT_BYTES * crate::bitlength::BYTE;
 
 /// The `schnorr` message maximal size in bytes.
 pub const SCHNORR_MESSAGE_BYTES: usize = 31;

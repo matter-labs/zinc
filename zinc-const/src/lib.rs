@@ -12,10 +12,8 @@ pub mod extension;
 pub mod file_name;
 pub mod limit;
 pub mod panic;
-pub mod path;
 pub mod size;
 pub mod source;
-pub mod tester;
 pub mod zandbox;
 
 pub use self::exit_code::unit_test::ExitCode as UnitTestExitCode;

@@ -1,0 +1,31 @@
+//!
+//! The 'middleware' contract entry.
+//!
+
+contract Middleware {
+    pub x: u8;
+    pub y: u8;
+    pub z: u8;
+
+    pub fn new(x: u8, y: u8, z: u8) -> Self {
+        Self {
+            x: x,
+            y: y,
+            z: z,
+        }
+    }
+
+    pub fn double(mut self) {
+        self.x *= 2;
+        self.y *= 2;
+        self.z *= 2;
+    }
+
+    pub fn sum_with_inner(self, _inner: inner::Inner) -> u8 {
+        self.sum() + _inner.sum()
+    }
+
+    pub fn sum(self) -> u8 {
+        self.x + self.y + self.z
+    }
+}

@@ -1,0 +1,36 @@
+//!
+//! The level 3 module.
+//!
+
+mod level_4;
+
+struct Level3 {
+    a: u64,
+    b: u64,
+
+    inner: level_4::Level4,
+}
+
+impl Level3 {
+    pub fn new(a: u64, b: u64) -> Self {
+        Self {
+            a: a,
+            b: b,
+
+            inner: level_4::Level4::new(a, b),
+        }
+    }
+
+    pub fn new_with_inner(a: u64, b: u64, inner: level_4::Level4) -> Self {
+        Self {
+            a: a,
+            b: b,
+
+            inner: inner,
+        }
+    }
+
+    pub fn action(self) -> u64 {
+        self.a * self.b + self.inner.action()
+    }
+}

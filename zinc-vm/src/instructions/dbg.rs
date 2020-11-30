@@ -9,8 +9,6 @@ use num::Signed;
 use franklin_crypto::bellman::SynthesisError;
 
 use zinc_build::Dbg;
-use zinc_build::IntegerType;
-use zinc_build::ScalarType;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::Error;
@@ -36,7 +34,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Dbg {
                                 eth_address.clone(),
                                 Scalar::new_constant_usize(
                                     index,
-                                    ScalarType::Integer(IntegerType::new(
+                                    zinc_build::ScalarType::Integer(zinc_build::IntegerType::new(
                                         false,
                                         zinc_const::bitlength::INDEX,
                                     )),

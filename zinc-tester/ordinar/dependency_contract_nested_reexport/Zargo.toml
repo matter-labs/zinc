@@ -1,0 +1,7 @@
+[project]
+name = 'dependency_contract_nested'
+type = 'contract'
+version = '0.1.0'
+
+[dependencies]
+middleware = '0.1.0'

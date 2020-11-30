@@ -48,35 +48,35 @@ impl Function {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_dbg() -> Self {
-        Self::Intrinsic(IntrinsicFunction::new_debug())
+    pub fn dbg() -> Self {
+        Self::Intrinsic(IntrinsicFunction::debug())
     }
 
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_require() -> Self {
-        Self::Intrinsic(IntrinsicFunction::new_require())
+    pub fn require() -> Self {
+        Self::Intrinsic(IntrinsicFunction::require())
     }
 
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_contract_fetch(contract_type: ContractType) -> Self {
-        Self::Intrinsic(IntrinsicFunction::new_contract_fetch(contract_type))
+    pub fn contract_fetch(contract_type: ContractType) -> Self {
+        Self::Intrinsic(IntrinsicFunction::contract_fetch(contract_type))
     }
 
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_library(identifier: LibraryFunctionIdentifier) -> Self {
-        Self::Intrinsic(IntrinsicFunction::new_library(identifier))
+    pub fn library(identifier: LibraryFunctionIdentifier) -> Self {
+        Self::Intrinsic(IntrinsicFunction::library(identifier))
     }
 
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_runtime(
+    pub fn runtime(
         location: Location,
         identifier: String,
         type_id: usize,
@@ -95,7 +95,7 @@ impl Function {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_constant(
+    pub fn constant(
         location: Location,
         identifier: String,
         type_id: usize,
@@ -116,7 +116,7 @@ impl Function {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_test(location: Location, identifier: String, type_id: usize) -> Self {
+    pub fn test(location: Location, identifier: String, type_id: usize) -> Self {
         Self::Test(TestFunction::new(location, identifier, type_id))
     }
 

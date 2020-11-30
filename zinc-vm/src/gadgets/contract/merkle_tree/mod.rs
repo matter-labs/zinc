@@ -7,11 +7,22 @@ use crate::core::contract::storage::leaf::Leaf;
 use crate::core::contract::storage::leaf::LeafOutput;
 use crate::core::contract::storage::leaf::LeafVariant;
 use crate::error::Error;
+use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
 pub trait IMerkleTree<E: IEngine> {
     ///
-    /// Creates a contract storage from the specified values.
+    /// Creates a contract storage from the evaluation stack.
+    ///
+    fn from_evaluation_stack(
+        field_types: Vec<zinc_build::ContractFieldType>,
+        values: Vec<Scalar<E>>,
+    ) -> Result<Self, Error>
+    where
+        Self: Sized;
+
+    ///
+    /// Creates a contract storage from the metadata representation.
     ///
     fn from_build(
         field_types: Vec<zinc_build::ContractFieldType>,

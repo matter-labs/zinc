@@ -1,0 +1,52 @@
+//!
+//! The Merkle tree tools.
+//!
+
+use std::crypto::sha256;
+use std::array::truncate;
+
+type Sha256Digest = u248;
+
+fn restore_root_hash(
+    leaf_hash: Sha256Digest,
+    address: field,
+    merkle_path: [Sha256Digest; crate::TREE_HEIGHT],
+) -> Sha256Digest
+{
+    let address_bits = std::convert::to_bits(address);
+    let mut current = leaf_hash;
+
+    for i in 0..crate::TREE_HEIGHT {
+        let left_and_right = if address_bits[i] {
+            (current, merkle_path[i])
+        } else {
+            (merkle_path[i], current)
+        };
+
+        current = merkle_node_hash(left_and_right.0, left_and_right.1);
+    }
+
+    current
+}
+
+fn merkle_node_hash(left: Sha256Digest, right: Sha256Digest) -> Sha256Digest {
+    let mut data = [false; 496];
+
+    let left_bits = std::convert::to_bits(left);
+    let right_bits = std::convert::to_bits(right);
+
+    for i in (0 as u16)..(248 as u16) {
+        data[i] = left_bits[i];
+        data[(248 as u16) + i] = right_bits[i];
+    }
+
+    let digest_bits = truncate(sha256(data), 248);
+    std::convert::from_bits_unsigned(digest_bits)
+}
+
+fn balance_hash(balance: field) -> Sha256Digest {
+    let bits = std::convert::to_bits(balance);
+    let bits_padded = std::array::truncate(bits, 248);
+    let digest_bits = truncate(sha256(bits_padded), 248);
+    std::convert::from_bits_unsigned(digest_bits)
+}

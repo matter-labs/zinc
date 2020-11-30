@@ -8,11 +8,6 @@ use std::path::PathBuf;
 use std::process;
 
 use colored::Colorize;
-use rayon::ThreadPoolBuilder;
-
-use zinc_tester::Directory;
-use zinc_tester::EvaluationRunner;
-use zinc_tester::ProofCheckRunner;
 
 use self::arguments::Arguments;
 
@@ -22,26 +17,31 @@ use self::arguments::Arguments;
 fn main() -> anyhow::Result<()> {
     let args = Arguments::new();
 
-    if true {
-        ThreadPoolBuilder::new()
-            .num_threads(1)
-            .build_global()
-            .expect(zinc_const::panic::THREAD_POOL);
+    if args.proof_check {
+        anyhow::bail!("Proof verification is temporarily unavailable");
     }
+
     println!(
         "[INTEGRATION] Started with {} worker threads",
         rayon::current_num_threads()
     );
 
-    let result = if args.proof_check {
-        Directory::new(&PathBuf::from(zinc_const::tester::DEFAULT_DIRECTORY))?
-            .run(ProofCheckRunner::new(args.verbosity, args.filter))
-    } else {
-        Directory::new(&PathBuf::from(zinc_const::tester::DEFAULT_DIRECTORY))?
-            .run(EvaluationRunner::new(args.verbosity, args.filter))
-    };
+    let summary = zinc_tester::Summary::default().wrap();
 
-    match result {
+    println!("[INTEGRATION] Running one-file tests");
+    zinc_tester::OneFileTestsDirectory::new(&PathBuf::from(zinc_tester::ONE_FILE_TESTS_DIRECTORY))?
+        .run(
+            zinc_tester::EvaluationRunner::new(args.verbosity, args.filter),
+            summary.clone(),
+        );
+
+    println!("[INTEGRATION] Running project tests");
+    zinc_tester::OrdinarTestsDirectory::new(&PathBuf::from(
+        zinc_tester::ORDINAR_PROJECTS_DIRECTORY,
+    ))?
+    .run(summary.clone());
+
+    match zinc_tester::Summary::unwrap_arc(summary) {
         summary if summary.failed == 0 && summary.invalid == 0 => {
             println!(
                 "[{}] {} ({})",

@@ -5,7 +5,6 @@
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_build::Add;
-use zinc_build::ScalarType;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -20,7 +19,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Add {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
-        let sum_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
+        let sum_type = zinc_build::ScalarType::expect_same(left.get_type(), right.get_type())?;
 
         let condition = vm.condition_top()?;
         let cs = vm.constraint_system();

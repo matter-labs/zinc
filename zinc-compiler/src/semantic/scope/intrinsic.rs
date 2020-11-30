@@ -45,14 +45,14 @@ impl IntrinsicScope {
     pub fn initialize() -> Rc<RefCell<Scope>> {
         let scope = Scope::new_intrinsic("intrinsic").wrap();
 
-        let function_dbg = FunctionType::new_dbg();
+        let function_dbg = FunctionType::dbg();
         Scope::insert_item(
             scope.clone(),
             function_dbg.identifier(),
             ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(function_dbg))).wrap(),
         );
 
-        let function_require = FunctionType::new_require();
+        let function_require = FunctionType::require();
         Scope::insert_item(
             scope.clone(),
             function_require.identifier(),
@@ -146,13 +146,13 @@ impl IntrinsicScope {
     fn module_crypto() -> Rc<RefCell<Scope>> {
         let scope = Scope::new_intrinsic("crypto").wrap();
 
-        let sha256 = FunctionType::new_library(LibraryFunctionIdentifier::CryptoSha256);
-        let pedersen = FunctionType::new_library(LibraryFunctionIdentifier::CryptoPedersen);
+        let sha256 = FunctionType::library(LibraryFunctionIdentifier::CryptoSha256);
+        let pedersen = FunctionType::library(LibraryFunctionIdentifier::CryptoPedersen);
 
         let schnorr_scope = Scope::new_intrinsic("schnorr").wrap();
         let schnorr_signature_scope = Scope::new_intrinsic("Signature").wrap();
         let schnorr_verify =
-            FunctionType::new_library(LibraryFunctionIdentifier::CryptoSchnorrSignatureVerify);
+            FunctionType::library(LibraryFunctionIdentifier::CryptoSchnorrSignatureVerify);
         Scope::insert_item(
             schnorr_signature_scope.clone(),
             schnorr_verify.identifier(),
@@ -237,13 +237,13 @@ impl IntrinsicScope {
     fn module_convert() -> Rc<RefCell<Scope>> {
         let scope = Scope::new_intrinsic("convert").wrap();
 
-        let to_bits = FunctionType::new_library(LibraryFunctionIdentifier::ConvertToBits);
+        let to_bits = FunctionType::library(LibraryFunctionIdentifier::ConvertToBits);
         let from_bits_unsigned =
-            FunctionType::new_library(LibraryFunctionIdentifier::ConvertFromBitsUnsigned);
+            FunctionType::library(LibraryFunctionIdentifier::ConvertFromBitsUnsigned);
         let from_bits_signed =
-            FunctionType::new_library(LibraryFunctionIdentifier::ConvertFromBitsSigned);
+            FunctionType::library(LibraryFunctionIdentifier::ConvertFromBitsSigned);
         let from_bits_field =
-            FunctionType::new_library(LibraryFunctionIdentifier::ConvertFromBitsField);
+            FunctionType::library(LibraryFunctionIdentifier::ConvertFromBitsField);
 
         Scope::insert_item(
             scope.clone(),
@@ -281,9 +281,9 @@ impl IntrinsicScope {
     fn module_array() -> Rc<RefCell<Scope>> {
         let scope = Scope::new_intrinsic("array").wrap();
 
-        let reverse = FunctionType::new_library(LibraryFunctionIdentifier::ArrayReverse);
-        let truncate = FunctionType::new_library(LibraryFunctionIdentifier::ArrayTruncate);
-        let pad = FunctionType::new_library(LibraryFunctionIdentifier::ArrayPad);
+        let reverse = FunctionType::library(LibraryFunctionIdentifier::ArrayReverse);
+        let truncate = FunctionType::library(LibraryFunctionIdentifier::ArrayTruncate);
+        let pad = FunctionType::library(LibraryFunctionIdentifier::ArrayPad);
 
         Scope::insert_item(
             scope.clone(),
@@ -310,7 +310,7 @@ impl IntrinsicScope {
     fn module_ff() -> Rc<RefCell<Scope>> {
         let scope = Scope::new_intrinsic("ff").wrap();
 
-        let invert = FunctionType::new_library(LibraryFunctionIdentifier::FfInvert);
+        let invert = FunctionType::library(LibraryFunctionIdentifier::FfInvert);
 
         Scope::insert_item(
             scope.clone(),
@@ -338,7 +338,7 @@ impl IntrinsicScope {
             merkle_tree_map_scope.clone(),
         );
         let merkle_tree_map_get =
-            FunctionType::new_library(LibraryFunctionIdentifier::CollectionsMTreeMapGet);
+            FunctionType::library(LibraryFunctionIdentifier::CollectionsMTreeMapGet);
         Scope::insert_item(
             merkle_tree_map_scope.clone(),
             merkle_tree_map_get.identifier(),
@@ -348,7 +348,7 @@ impl IntrinsicScope {
             .wrap(),
         );
         let merkle_tree_map_contains =
-            FunctionType::new_library(LibraryFunctionIdentifier::CollectionsMTreeMapContains);
+            FunctionType::library(LibraryFunctionIdentifier::CollectionsMTreeMapContains);
         Scope::insert_item(
             merkle_tree_map_scope.clone(),
             merkle_tree_map_contains.identifier(),
@@ -358,7 +358,7 @@ impl IntrinsicScope {
             .wrap(),
         );
         let merkle_tree_map_insert =
-            FunctionType::new_library(LibraryFunctionIdentifier::CollectionsMTreeMapInsert);
+            FunctionType::library(LibraryFunctionIdentifier::CollectionsMTreeMapInsert);
         Scope::insert_item(
             merkle_tree_map_scope.clone(),
             merkle_tree_map_insert.identifier(),
@@ -368,7 +368,7 @@ impl IntrinsicScope {
             .wrap(),
         );
         let merkle_tree_map_remove =
-            FunctionType::new_library(LibraryFunctionIdentifier::CollectionsMTreeMapRemove);
+            FunctionType::library(LibraryFunctionIdentifier::CollectionsMTreeMapRemove);
         Scope::insert_item(
             merkle_tree_map_scope,
             merkle_tree_map_remove.identifier(),
@@ -396,7 +396,7 @@ impl IntrinsicScope {
     fn module_zksync() -> Rc<RefCell<Scope>> {
         let scope = Scope::new_intrinsic("zksync").wrap();
 
-        let transfer = FunctionType::new_library(LibraryFunctionIdentifier::ContractTransfer);
+        let transfer = FunctionType::library(LibraryFunctionIdentifier::ContractTransfer);
 
         Scope::insert_item(
             scope.clone(),

@@ -23,6 +23,61 @@ pub enum LeafVariant<E: IEngine> {
     },
 }
 
+impl<E: IEngine> LeafVariant<E> {
+    pub fn new(input: LeafInput) -> Self {
+        match input {
+            LeafInput::Array { r#type, values } => Self::Array(
+                r#type
+                    .into_flat_scalar_types()
+                    .into_iter()
+                    .zip(values.into_iter())
+                    .map(|(r#type, value)| {
+                        Scalar::<E>::new_constant_bigint(value, r#type)
+                            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+                    })
+                    .collect::<Vec<Scalar<E>>>(),
+            ),
+            LeafInput::Map {
+                key_type,
+                value_type,
+                entries,
+            } => {
+                let mut result = Vec::with_capacity(entries.len());
+                for (key, value) in entries.into_iter() {
+                    let key = key_type
+                        .clone()
+                        .into_flat_scalar_types()
+                        .into_iter()
+                        .zip(key.into_iter())
+                        .map(|(r#type, value)| {
+                            Scalar::<E>::new_constant_bigint(value, r#type)
+                                .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+                        })
+                        .collect::<Vec<Scalar<E>>>();
+
+                    let value = value_type
+                        .clone()
+                        .into_flat_scalar_types()
+                        .into_iter()
+                        .zip(value.into_iter())
+                        .map(|(r#type, value)| {
+                            Scalar::<E>::new_constant_bigint(value, r#type)
+                                .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+                        })
+                        .collect::<Vec<Scalar<E>>>();
+
+                    result.push((key, value));
+                }
+                Self::Map {
+                    data: result,
+                    key_size: key_type.size(),
+                    value_size: value_type.size(),
+                }
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum LeafInput {
     Array {

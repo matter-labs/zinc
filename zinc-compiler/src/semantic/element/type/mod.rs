@@ -243,7 +243,7 @@ impl Type {
         let type_id = TYPE_INDEX.next(format!("function {}", identifier));
 
         (
-            Self::Function(Function::new_runtime(
+            Self::Function(Function::runtime(
                 location,
                 identifier,
                 type_id,
@@ -266,7 +266,7 @@ impl Type {
     ) -> Self {
         let type_id = TYPE_INDEX.next(format!("function {}", identifier));
 
-        Self::Function(Function::new_constant(
+        Self::Function(Function::constant(
             location,
             identifier,
             type_id,
@@ -283,7 +283,7 @@ impl Type {
         let type_id = TYPE_INDEX.next(format!("function {}", identifier));
 
         (
-            Self::Function(Function::new_test(location, identifier, type_id)),
+            Self::Function(Function::test(location, identifier, type_id)),
             type_id,
         )
     }

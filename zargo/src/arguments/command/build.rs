@@ -57,19 +57,18 @@ impl Command {
             manifest_path.pop();
         }
 
+        if let zinc_manifest::ProjectType::Contract = manifest.project.r#type {
+            if !PrivateKeyFile::exists_at(&manifest_path) {
+                PrivateKeyFile::default().write_to(&manifest_path)?;
+            }
+        }
+
         TargetDirectory::create(&manifest_path, self.is_release)?;
 
-        TargetDependenciesDirectory::remove(&manifest_path)?;
         TargetDependenciesDirectory::create(&manifest_path)?;
         let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
 
         DataDirectory::create(&manifest_path)?;
-        let data_directory_path = DataDirectory::path(&manifest_path);
-        if let zinc_manifest::ProjectType::Contract = manifest.project.r#type {
-            if !PrivateKeyFile::exists_at(&data_directory_path) {
-                PrivateKeyFile::default().write_to(&data_directory_path)?;
-            }
-        }
 
         if let Some(dependencies) = manifest.dependencies {
             let network = zksync::Network::from_str(self.network.as_str())

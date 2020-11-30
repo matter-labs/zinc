@@ -94,6 +94,13 @@ pub enum Error {
         help: Option<&'static str>,
     },
     /// One of the common `expected-*` class errors.
+    ExpectedLiteral {
+        /// The invalid lexeme location.
+        location: Location,
+        /// The invalid lexeme.
+        found: Lexeme,
+    },
+    /// One of the common `expected-*` class errors.
     ExpectedIntegerLiteral {
         /// The invalid lexeme location.
         location: Location,
@@ -255,6 +262,13 @@ impl Error {
     ///
     pub fn expected_expression_or_operand(location: Location, found: Lexeme) -> Self {
         Self::ExpectedExpressionOrOperand { location, found }
+    }
+
+    ///
+    /// A shortcut constructor.
+    ///
+    pub fn expected_literal(location: Location, found: Lexeme) -> Self {
+        Self::ExpectedLiteral { location, found }
     }
 
     ///

@@ -5,6 +5,8 @@
 pub mod operand;
 pub mod operator;
 
+use std::fmt;
+
 use self::operand::Operand;
 use self::operator::Operator;
 
@@ -34,5 +36,14 @@ impl Node {
     ///
     pub fn operand(operand: Operand) -> Self {
         Self::Operand(operand)
+    }
+}
+
+impl fmt::Display for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Operator(inner) => write!(f, "{}", inner),
+            Self::Operand(inner) => write!(f, "{}", inner),
+        }
     }
 }

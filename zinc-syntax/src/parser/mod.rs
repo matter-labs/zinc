@@ -8,6 +8,7 @@ pub mod binding_list;
 pub mod expression;
 pub mod field;
 pub mod field_list;
+pub mod identifier_path;
 pub mod pattern_binding;
 pub mod pattern_match;
 pub mod statement;

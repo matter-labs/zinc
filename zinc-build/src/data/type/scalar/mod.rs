@@ -27,6 +27,13 @@ pub enum Type {
 
 impl Type {
     ///
+    /// Creates the ETH address type.
+    ///
+    pub fn eth_address() -> Self {
+        Self::Integer(IntegerType::ETH_ADDRESS)
+    }
+
+    ///
     /// Checks whether the type is a signed integer.
     ///
     pub fn is_signed(&self) -> bool {

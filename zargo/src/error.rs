@@ -53,13 +53,9 @@ pub enum Error {
     #[error("contract method to call must be specified")]
     MethodMissing,
 
-    /// The constructor arguments not found.
-    #[error("constructor arguments not found")]
-    ConstructorArgumentsNotFound,
-
-    /// The input file data is invalid.
-    #[error("invalid input file data")]
-    InvalidInputData,
+    /// The input file section is missing.
+    #[error("input file data must contain section `{0}`")]
+    MissingInputSection(String),
 
     /// The smart contract uploading request failure.
     #[error("contract uploading request: {0}")]

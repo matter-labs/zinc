@@ -31,20 +31,4 @@ impl Directory {
         Ok(fs::create_dir_all(&Self::path(path))
             .with_context(|| path.to_string_lossy().to_string())?)
     }
-
-    ///
-    /// Removes the directory with all its child directories.
-    ///
-    pub fn remove(path: &PathBuf) -> anyhow::Result<()> {
-        let mut path = path.to_owned();
-        if path.is_dir() && !path.ends_with(zinc_const::directory::TARGET_DEPS) {
-            path.push(PathBuf::from(zinc_const::directory::TARGET_DEPS));
-        }
-
-        if path.exists() {
-            fs::remove_dir_all(&path).with_context(|| path.to_string_lossy().to_string())?;
-        }
-
-        Ok(())
-    }
 }

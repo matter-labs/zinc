@@ -72,7 +72,7 @@ impl LockedContract {
         };
         let constructor = build
             .methods
-            .get(zinc_const::contract::CONSTRUCTOR_NAME)
+            .get(zinc_const::contract::CONSTRUCTOR_IDENTIFIER)
             .cloned()
             .ok_or(Error::ConstructorNotFound)?;
         let input_value = zinc_build::Value::try_from_typed_json(arguments, constructor.input)
@@ -84,7 +84,7 @@ impl LockedContract {
             vm_runner.run::<Bn256>(ContractInput::new(
                 input_value,
                 storage,
-                zinc_const::contract::CONSTRUCTOR_NAME.to_owned(),
+                zinc_const::contract::CONSTRUCTOR_IDENTIFIER.to_owned(),
                 zinc_zksync::TransactionMsg::default(),
             ))
         })

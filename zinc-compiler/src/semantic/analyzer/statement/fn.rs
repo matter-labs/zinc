@@ -10,6 +10,7 @@ use zinc_lexical::Keyword;
 use zinc_syntax::FnStatement;
 use zinc_syntax::Identifier;
 
+use crate::generator::statement::r#fn::role::Role as GeneratorFunctionRole;
 use crate::generator::statement::r#fn::Statement as GeneratorFunctionStatement;
 use crate::semantic::analyzer::attribute::Attribute;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
@@ -139,19 +140,28 @@ impl Analyzer {
             });
         }
 
-        let is_main = match scope_type {
-            ScopeType::Contract => false,
-            _ => statement.identifier.name.as_str() == zinc_const::source::FUNCTION_MAIN_IDENTIFIER,
-        };
-        let is_contract_entry = match scope_type {
-            ScopeType::Contract => {
-                let is_dependency =
-                    RefCell::borrow(&scope_stack.top()).is_within(ScopeType::Entry {
-                        is_dependency: true,
-                    });
-                !is_dependency && statement.is_public
+        let is_in_dependency = scope_stack.top().borrow().is_within(ScopeType::Entry {
+            is_dependency: true,
+        });
+        let is_method = bindings
+            .first()
+            .map(|binding| matches!(binding.r#type, Type::Contract(_)))
+            .unwrap_or_default();
+        let is_constructor = matches!(expected_type, Type::Contract(_));
+
+        let role = match scope_type {
+            ScopeType::Contract if statement.is_public && is_constructor => {
+                GeneratorFunctionRole::ContractConstuctor
             }
-            _ => false,
+            ScopeType::Contract if statement.is_public && is_method && !is_in_dependency => {
+                GeneratorFunctionRole::ContractEntry
+            }
+            _ if statement.identifier.name.as_str()
+                == zinc_const::source::FUNCTION_MAIN_IDENTIFIER =>
+            {
+                GeneratorFunctionRole::CircuitEntry
+            }
+            _ => GeneratorFunctionRole::Ordinar,
         };
 
         let is_mutable = bindings
@@ -174,8 +184,7 @@ impl Analyzer {
             intermediate,
             expected_type,
             type_id,
-            is_contract_entry,
-            is_main,
+            role,
             attributes,
         );
 
@@ -318,8 +327,7 @@ impl Analyzer {
             intermediate,
             Type::Unit(None),
             type_id,
-            false,
-            false,
+            GeneratorFunctionRole::UnitTest,
             attributes,
         );
 

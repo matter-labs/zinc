@@ -1,0 +1,7 @@
+[project]
+name = 'dependency_contract_static'
+type = 'contract'
+version = '0.1.0'
+
+[dependencies]
+math = '0.1.0'

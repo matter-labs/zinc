@@ -1,8 +1,5 @@
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::IntegerType;
-use zinc_build::ScalarType;
-
 use crate::auto_const;
 use crate::error::Error;
 use crate::gadgets;
@@ -21,14 +18,14 @@ where
         CS: ConstraintSystem<E>,
     {
         match scalar.get_type() {
-            ScalarType::Field | ScalarType::Boolean => Ok(scalar.clone()),
+            zinc_build::ScalarType::Field | zinc_build::ScalarType::Boolean => Ok(scalar.clone()),
 
-            ScalarType::Integer(int_type) => {
+            zinc_build::ScalarType::Integer(int_type) => {
                 if !int_type.is_signed {
                     return Ok(scalar.clone());
                 }
 
-                let scalar_type = ScalarType::Integer(IntegerType {
+                let scalar_type = zinc_build::ScalarType::Integer(zinc_build::IntegerType {
                     is_signed: true,
                     bitlength: int_type.bitlength + 1,
                 });

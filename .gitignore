@@ -5,9 +5,10 @@
 # Rust build
 /target/
 
+# Zinc build
+/zinc-tester/ordinar/*/target/debug/
+/zinc-tester/ordinar/*/target/release/
+/zinc-tester/ordinar/*/data/
+
 # Visual Studio Code extension build
 /vscode/*.vsix
-
-# Zinc build
-/zinc-examples/*/build/
-/zinc-examples/*/data/

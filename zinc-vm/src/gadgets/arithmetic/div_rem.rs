@@ -1,8 +1,6 @@
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::Assignment;
 
-use zinc_build::ScalarType;
-
 use crate::auto_const;
 use crate::error::Error;
 use crate::gadgets;
@@ -70,10 +68,16 @@ where
             |lc| lc + &nominator.to_linear_combination::<CS>() - remainder_var,
         );
 
-        let quotient =
-            Scalar::new_unchecked_variable(quotient_value, quotient_var, ScalarType::Field);
-        let remainder =
-            Scalar::new_unchecked_variable(remainder_value, remainder_var, ScalarType::Field);
+        let quotient = Scalar::new_unchecked_variable(
+            quotient_value,
+            quotient_var,
+            zinc_build::ScalarType::Field,
+        );
+        let remainder = Scalar::new_unchecked_variable(
+            remainder_value,
+            remainder_var,
+            zinc_build::ScalarType::Field,
+        );
 
         (quotient, remainder)
     };

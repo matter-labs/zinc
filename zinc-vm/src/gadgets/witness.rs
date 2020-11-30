@@ -8,8 +8,6 @@ use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::Assignment;
 
-use zinc_build::ScalarType;
-
 use crate::error::Error;
 use crate::gadgets;
 use crate::gadgets::scalar::Scalar;
@@ -18,7 +16,7 @@ use crate::IEngine;
 pub fn allocate<E, CS>(
     mut cs: CS,
     value: Option<&BigInt>,
-    scalar_type: ScalarType,
+    scalar_type: zinc_build::ScalarType,
 ) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
@@ -39,14 +37,14 @@ where
     let scalar = Scalar::new_unchecked_variable(fr, variable, scalar_type.clone());
 
     match scalar_type {
-        ScalarType::Field => {
+        zinc_build::ScalarType::Field => {
             // Create some constraints to avoid unconstrained variable errors.
-            let one = Scalar::new_constant_fr(E::Fr::one(), ScalarType::Field);
+            let one = Scalar::new_constant_fr(E::Fr::one(), zinc_build::ScalarType::Field);
             gadgets::arithmetic::add::add(cs.namespace(|| "dummy constraint"), &scalar, &one)?;
             Ok(scalar)
         }
         scalar_type => {
-            let condition = Scalar::new_constant_fr(E::Fr::one(), ScalarType::Boolean);
+            let condition = Scalar::new_constant_fr(E::Fr::one(), zinc_build::ScalarType::Boolean);
             Scalar::conditional_type_check(
                 cs.namespace(|| "type check"),
                 &condition,

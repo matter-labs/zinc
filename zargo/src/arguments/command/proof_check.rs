@@ -64,6 +64,10 @@ impl Command {
             manifest_path.pop();
         }
 
+        if self.method.is_some() && !PrivateKeyFile::exists_at(&manifest_path) {
+            PrivateKeyFile::default().write_to(&manifest_path)?;
+        }
+
         DataDirectory::create(&manifest_path)?;
         let data_directory_path = DataDirectory::path(&manifest_path);
         let mut input_path = data_directory_path.clone();
@@ -78,9 +82,6 @@ impl Command {
             zinc_const::file_name::OUTPUT,
             zinc_const::extension::JSON,
         ));
-        if self.method.is_some() && !PrivateKeyFile::exists_at(&data_directory_path) {
-            PrivateKeyFile::default().write_to(&data_directory_path)?;
-        }
         let mut proving_key_path = data_directory_path.clone();
         proving_key_path.push(zinc_const::file_name::PROVING_KEY);
         let mut verifying_key_path = data_directory_path;

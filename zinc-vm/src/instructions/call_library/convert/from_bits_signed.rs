@@ -11,8 +11,6 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_build::IntegerType;
-
 use crate::core::execution_state::ExecutionState;
 use crate::error::Error;
 use crate::error::MalformedBytecode;
@@ -70,7 +68,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for FromBitsSigned {
 
         let num = (num_expr - base_expr).into_number(cs.namespace(|| "result"))?;
 
-        let int_type = IntegerType {
+        let int_type = zinc_build::IntegerType {
             is_signed: true,
             bitlength: self.bitlength,
         };

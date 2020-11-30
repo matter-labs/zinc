@@ -6,8 +6,6 @@ use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_build::ScalarType;
-
 use crate::auto_const;
 use crate::error::Error;
 use crate::gadgets;
@@ -59,11 +57,11 @@ where
         E: IEngine,
         CS: ConstraintSystem<E>,
     {
-        let scalar_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
+        let scalar_type = zinc_build::ScalarType::expect_same(left.get_type(), right.get_type())?;
 
         match scalar_type {
-            ScalarType::Field => less_than_field(cs, left, right),
-            ScalarType::Integer(int_type) => {
+            zinc_build::ScalarType::Field => less_than_field(cs, left, right),
+            zinc_build::ScalarType::Integer(int_type) => {
                 let boolean = less_than_integer(
                     cs.namespace(|| "less_than_integer"),
                     int_type.bitlength,
@@ -72,7 +70,7 @@ where
                 )?;
                 Scalar::from_boolean(cs.namespace(|| "from_boolean"), boolean)
             }
-            r#type @ ScalarType::Boolean => Err(Error::TypeError {
+            r#type @ zinc_build::ScalarType::Boolean => Err(Error::TypeError {
                 expected: "field or integer type".into(),
                 found: r#type.to_string(),
             }),

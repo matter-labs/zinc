@@ -33,6 +33,12 @@ pub trait IVirtualMachine {
 
     // Operations with contract storage
 
+    fn storage_init(
+        &mut self,
+        eth_address: Scalar<Self::E>,
+        values: Vec<Scalar<Self::E>>,
+        field_types: Vec<zinc_build::ContractFieldType>,
+    ) -> Result<(), Error>;
     fn storage_fetch(
         &mut self,
         eth_address: Scalar<Self::E>,
@@ -50,6 +56,7 @@ pub trait IVirtualMachine {
         index: Scalar<Self::E>,
         values: LeafVariant<Self::E>,
     ) -> Result<(), Error>;
+    fn storages_count(&self) -> usize;
 
     // Flow control operations
 
@@ -62,8 +69,6 @@ pub trait IVirtualMachine {
     fn branch_then(&mut self) -> Result<(), Error>;
     fn branch_else(&mut self) -> Result<(), Error>;
     fn branch_end(&mut self) -> Result<(), Error>;
-
-    fn exit(&mut self, values_count: usize) -> Result<(), Error>;
 
     fn call_native<F: INativeCallable<Self::E, Self::S>>(
         &mut self,

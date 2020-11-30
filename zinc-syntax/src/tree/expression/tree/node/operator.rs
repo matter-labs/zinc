@@ -2,6 +2,8 @@
 //! The expression operator.
 //!
 
+use std::fmt;
+
 ///
 /// An expression tree operator.
 ///
@@ -104,4 +106,13 @@ pub enum Operator {
 
     /// The structure literal `{ ... }` quasi-operator.
     Structure,
+}
+
+impl fmt::Display for Operator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Path => write!(f, "::"),
+            _ => todo!(),
+        }
+    }
 }

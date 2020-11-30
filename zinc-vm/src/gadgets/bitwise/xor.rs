@@ -3,8 +3,6 @@ use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;
 
-use zinc_build::ScalarType;
-
 use crate::auto_const;
 use crate::error::Error;
 use crate::gadgets::auto_const::prelude::*;
@@ -22,7 +20,7 @@ where
         E: IEngine,
         CS: ConstraintSystem<E>,
     {
-        let scalar_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
+        let scalar_type = zinc_build::ScalarType::expect_same(left.get_type(), right.get_type())?;
         scalar_type.assert_signed(false)?;
 
         let len = scalar_type.bitlength::<E>();

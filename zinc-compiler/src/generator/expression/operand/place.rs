@@ -9,7 +9,6 @@ use num::BigInt;
 use num::Zero;
 
 use zinc_build::Instruction;
-use zinc_build::ScalarType;
 use zinc_syntax::Identifier;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
@@ -49,7 +48,7 @@ impl IBytecodeWritable for Place {
                 SemanticPlaceElement::IndexConstant { constant, access } => {
                     IntegerConstant::from_semantic(&constant).write_all(state.clone());
                     state.borrow_mut().push_instruction(
-                        Instruction::Cast(zinc_build::Cast::new(ScalarType::Field)),
+                        Instruction::Cast(zinc_build::Cast::new(zinc_build::ScalarType::Field)),
                         Some(self.identifier.location),
                     );
                     IntegerConstant::new(
@@ -70,7 +69,7 @@ impl IBytecodeWritable for Place {
                 SemanticPlaceElement::IndexExpression { expression, access } => {
                     expression.write_all(state.clone());
                     state.borrow_mut().push_instruction(
-                        Instruction::Cast(zinc_build::Cast::new(ScalarType::Field)),
+                        Instruction::Cast(zinc_build::Cast::new(zinc_build::ScalarType::Field)),
                         Some(self.identifier.location),
                     );
                     IntegerConstant::new(

@@ -1,0 +1,21 @@
+//!
+//! The level 5 module.
+//!
+
+struct Level5 {
+    a: u64,
+    b: u64,
+}
+
+impl Level5 {
+    pub fn new(a: u64, b: u64) -> Self {
+        Self {
+            a: a,
+            b: b,
+        }
+    }
+
+    pub fn action(self) -> u64 {
+        self.a % self.b
+    }
+}

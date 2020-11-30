@@ -100,24 +100,23 @@ impl Command {
             zinc_const::file_name::INPUT,
             zinc_const::extension::JSON,
         ));
-        let mut private_key_path = data_directory_path;
-        private_key_path.push(zinc_const::file_name::PRIVATE_KEY.to_owned());
 
         let input = InputFile::try_from_path(&input_path)?;
+        let method = self.method;
         let arguments = input
             .inner
             .as_object()
-            .ok_or(Error::InvalidInputData)?
+            .ok_or_else(|| Error::MissingInputSection("arguments".to_owned()))?
             .get("arguments")
             .cloned()
-            .ok_or(Error::InvalidInputData)?
+            .ok_or_else(|| Error::MissingInputSection("arguments".to_owned()))?
             .as_object()
-            .ok_or(Error::InvalidInputData)?
-            .get(self.method.as_str())
+            .ok_or_else(|| Error::MissingInputSection("arguments".to_owned()))?
+            .get(method.as_str())
             .cloned()
-            .ok_or(Error::InvalidInputData)?;
+            .ok_or_else(|| Error::MissingInputSection(method.clone()))?;
 
-        let private_key = PrivateKeyFile::try_from(&private_key_path)?;
+        let private_key = PrivateKeyFile::try_from(&manifest_path)?;
 
         let signer_private_key: H256 = private_key.inner.parse()?;
         let signer_address = PackedEthSignature::address_from_private_key(&signer_private_key)?;
@@ -135,16 +134,24 @@ impl Command {
         let msg = input
             .inner
             .as_object()
-            .ok_or(Error::InvalidInputData)?
-            .get("msg")
+            .ok_or_else(|| {
+                Error::MissingInputSection(
+                    zinc_const::contract::TRANSACTION_VARIABLE_NAME.to_owned(),
+                )
+            })?
+            .get(zinc_const::contract::TRANSACTION_VARIABLE_NAME)
             .cloned()
-            .ok_or(Error::InvalidInputData)?;
+            .ok_or_else(|| {
+                Error::MissingInputSection(
+                    zinc_const::contract::TRANSACTION_VARIABLE_NAME.to_owned(),
+                )
+            })?;
         let msg = zinc_zksync::TransactionMsg::try_from(&msg).map_err(TransactionError::Parsing)?;
         let transaction = crate::transaction::try_into_zksync(msg.clone(), &wallet, None).await?;
 
         let response = http_client
             .fee(
-                zinc_zksync::FeeRequestQuery::new(address, self.method.clone()),
+                zinc_zksync::FeeRequestQuery::new(address, method.clone()),
                 zinc_zksync::FeeRequestBody::new(arguments.clone(), transaction),
             )
             .await?;
@@ -158,7 +165,7 @@ impl Command {
 
         let response = http_client
             .call(
-                zinc_zksync::CallRequestQuery::new(address, self.method),
+                zinc_zksync::CallRequestQuery::new(address, method),
                 zinc_zksync::CallRequestBody::new(arguments, transaction),
             )
             .await?;

@@ -19,6 +19,32 @@ pub struct Storage<E: IEngine> {
 }
 
 impl<E: IEngine> IMerkleTree<E> for Storage<E> {
+    fn from_evaluation_stack(
+        field_types: Vec<zinc_build::ContractFieldType>,
+        _values: Vec<Scalar<E>>,
+    ) -> Result<Self, Error> {
+        let depth = (field_types.len() as f64).log2().ceil() as usize;
+        let leaf_values_count = 1 << depth;
+
+        let mut result = Self {
+            field_types: field_types.clone(),
+            leaf_values: vec![vec![]; leaf_values_count],
+            depth,
+        };
+
+        for (index, field) in field_types.into_iter().enumerate() {
+            let values = field
+                .r#type
+                .into_flat_scalar_types()
+                .into_iter()
+                .map(|r#type| Scalar::<E>::new_constant_usize(0, r#type))
+                .collect();
+            result.leaf_values[index] = values;
+        }
+
+        Ok(result)
+    }
+
     fn from_build(
         field_types: Vec<zinc_build::ContractFieldType>,
         _value: zinc_build::Value,

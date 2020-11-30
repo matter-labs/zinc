@@ -14,12 +14,12 @@ use franklin_crypto::bellman::groth16::Parameters;
 use franklin_crypto::bellman::groth16::Proof;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::ConstraintSystem;
-use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_const::UnitTestExitCode;
 use zinc_zksync::TransactionMsg;
 
 use crate::constraint_systems::constant::Constant as ConstantCS;
+use crate::constraint_systems::main::Main as MainCS;
 use crate::core::contract::input::Input as ContractInput;
 use crate::core::contract::output::Output as ContractOutput;
 use crate::core::contract::storage::database::Storage as DatabaseStorage;
@@ -69,7 +69,6 @@ impl Facade {
             .ok_or(Error::MethodNotFound {
                 found: input.method_name.clone(),
             })?;
-
         let arguments_flat = input.arguments.into_flat_values();
         let output_type = if method.is_mutable {
             method.output.into_mutable_method_output()
@@ -78,7 +77,7 @@ impl Facade {
         };
 
         let mut storages = HashMap::with_capacity(1);
-        if method.name.as_str() != zinc_const::contract::CONSTRUCTOR_NAME {
+        if method.name.as_str() != zinc_const::contract::CONSTRUCTOR_IDENTIFIER {
             let storage =
                 DatabaseStorage::<Bn256>::from_build(self.inner.storage.clone(), input.storage)?;
             let storage_gadget =
@@ -86,13 +85,7 @@ impl Facade {
             storages.insert(arguments_flat[0].to_owned(), storage_gadget);
         }
 
-        let mut state = ContractState::new(
-            cs,
-            storages,
-            self.keeper,
-            input.method_name,
-            input.transaction,
-        );
+        let mut state = ContractState::new(cs, storages, self.keeper, input.transaction);
 
         let mut num_constraints = 0;
         let result = state.run(
@@ -133,7 +126,11 @@ impl Facade {
         Ok(ContractOutput::new(output_value, storages, transfers))
     }
 
-    pub fn test<E: IEngine>(self) -> Result<UnitTestExitCode, Error> {
+    pub fn test<E: IEngine>(
+        self,
+        storage: zinc_build::Value,
+        transaction: zinc_zksync::TransactionMsg,
+    ) -> Result<UnitTestExitCode, Error> {
         let mut exit_code = UnitTestExitCode::Passed;
 
         for (name, unit_test) in self.inner.unit_tests.clone().into_iter() {
@@ -142,12 +139,10 @@ impl Facade {
                 return Ok(UnitTestExitCode::Ignored);
             }
 
-            let mut cs = TestConstraintSystem::<Bn256>::new();
+            let mut cs = MainCS::<Bn256>::new();
 
-            let storage = SetupStorage::from_build(
-                self.inner.storage.clone(),
-                zinc_build::Value::Contract(vec![]),
-            )?;
+            let storage =
+                DatabaseStorage::<Bn256>::from_build(self.inner.storage.clone(), storage.clone())?;
             let storage_gadget =
                 StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
 
@@ -158,20 +153,10 @@ impl Facade {
                 cs,
                 storages,
                 Box::new(DummyKeeper::default()),
-                name.clone(),
-                TransactionMsg::default(),
+                transaction.clone(),
             );
 
-            let result = state.run(
-                self.inner.clone(),
-                zinc_build::Type::new_empty_structure(),
-                Some(&[]),
-                |_| {},
-                |_| Ok(()),
-                unit_test.address,
-            );
-
-            match result {
+            match state.test(self.inner.clone(), unit_test.address) {
                 Err(_) if unit_test.should_panic => {
                     println!("test {} ... {} (failed)", name, "ok".green());
                 }

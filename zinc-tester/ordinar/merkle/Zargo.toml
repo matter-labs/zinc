@@ -1,0 +1,6 @@
+[project]
+name = 'merkle'
+type = 'circuit'
+version = '0.1.0'
+
+[dependencies]

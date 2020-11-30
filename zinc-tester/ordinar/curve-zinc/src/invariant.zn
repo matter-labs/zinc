@@ -1,0 +1,85 @@
+//!
+//! The invariant calculation.
+//!
+
+use crate::constants::ZERO;
+use crate::constants::N;
+
+///
+/// The `D` invariant calculation function.
+///
+/// The function is quite generic and does not work on token balances directly.
+/// The only requirement for the `values` is to be of the same precision
+/// to avoid incorrect amplification.
+///
+pub fn calculate(
+    values: [u248; N],
+    amplifier: u64,
+) -> u248 {
+    let mut sum = ZERO;
+    for i in 0..N {
+        sum += values[i];
+    }
+
+    if sum != ZERO {
+        let mut D_prev = ZERO;
+        let mut D = sum;
+
+        let amplifier_N: u248 = amplifier * (N as u64);
+
+        for _n in 0..15 while
+            (D > D_prev && D - D_prev > 0) ||
+            (D <= D_prev && D_prev - D > ZERO)
+        {
+            let mut D_P = D;
+
+            for i in 0..N {
+                // +1 is to prevent division by 0
+                D_P = D_P * D / (values[i] * (N as u248) + 1);
+            }
+
+            D_prev = D;
+            D = (amplifier_N * sum + D_P * (N as u248)) * D /
+                ((amplifier_N - 1) * D + ((N + 1) as u248) * D_P);
+        }
+
+        D
+    } else {
+        ZERO
+    }
+}
+
+#[test]
+fn ok_zero_values() {
+    let values = [0 as u248; N];
+    let amplifier: u64 = 100;
+
+    require(calculate(values, amplifier) == 0, "Invalid invariant");
+}
+
+#[test]
+fn ok_some_values() {
+    let values = [1_E6 as u248; N];
+    let amplifier: u64 = 100;
+
+    require(calculate(values, amplifier) == 2_E6, "Invalid invariant");
+}
+
+#[test]
+fn ok_some_values_amplified_swap() {
+    let amplifier: u64 = 100;
+
+    let direct = calculate([1_E6 as u248, 1_E18 as u248], amplifier);
+    let reverse = calculate([1_E18 as u248, 1_E6 as u248], amplifier);
+
+    require(
+        direct > reverse && direct - reverse < 1_E18 ||
+        reverse > direct && reverse - direct < 1_E18,
+        "Invariant depends on the value order for some reason");
+}
+
+#[test]
+#[should_panic]
+fn panic() {
+    require(false);
+}

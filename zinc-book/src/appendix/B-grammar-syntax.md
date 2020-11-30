@@ -118,7 +118,12 @@ tuple_expression =
 structure_expression = '{', field_list, '}';
 
 (* Attributes *)
-attribute = '#', [ '!' ], '[', identifier, ']' ;
+attribute = '#', [ '!' ], '[', attribute_element_list, ']' ;
+attribute_element = 
+    identifier
+  | identifier, '=', literal
+  | identifier, '(', attribute_element_list, ')' ;
+attribute_element_list = [ attribute_element, { ',', attribute_element } | ',' ] ;
 
 (* Parts *)
 alias = 'crate' | 'super' | 'self' | 'Self'

@@ -56,7 +56,6 @@ where
             DedupCS::new(LoggingCS::new(cs)),
             storages,
             self.keeper,
-            self.method.name,
             self.transaction,
         );
 

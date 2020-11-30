@@ -4,7 +4,6 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::ScalarType;
 use zinc_build::Sub;
 
 use crate::core::execution_state::cell::Cell;
@@ -20,7 +19,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Sub {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
-        let diff_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
+        let diff_type = zinc_build::ScalarType::expect_same(left.get_type(), right.get_type())?;
 
         let condition = vm.condition_top()?;
         let cs = vm.constraint_system();

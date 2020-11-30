@@ -181,6 +181,12 @@ impl Error {
                 None,
                 )
             }
+            Self::Syntax(SyntaxError::ExpectedLiteral { location, found }) => {
+                Self::format_line( format!("expected literal, found `{}`", found).as_str(),
+                                   code,location,
+                                   None,
+                )
+            }
             Self::Syntax(SyntaxError::ExpectedIntegerLiteral { location, found }) => {
                 Self::format_line( format!("expected integer literal, found `{}`", found).as_str(),
                     code,location,
@@ -1875,14 +1881,49 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::UnknownAttribute { location, found }) => {
+            Self::Semantic(SemanticError::AttributeUnknown { location, found }) => {
                 Self::format_line( format!(
-                    "unknown attribute `{}`",
+                    "attribute `{}` is unknown",
                     found
                 )
                                        .as_str(),
                                    code, location,
                                    Some("see the reference to get the list of allowed attributes"),
+                )
+            }
+            Self::Semantic(SemanticError::AttributeEmpty { location, }) => {
+                Self::format_line(
+                    "attribute is empty",
+                                   code, location,
+                                   Some("consider adding an attribute element, e.g. `#[test]`"),
+                )
+            }
+            Self::Semantic(SemanticError::AttributeElementsCount { location, name, expected, found }) => {
+                Self::format_line(
+                    format!("attribute `{}` expected {} elements, found {}", name, expected, found).as_str(),
+                    code, location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::AttributeExpectedElement { location, name, position, expected, found }) => {
+                Self::format_line(
+                    format!("attribute `{}` expected element `{}` at position {}, found `{}`", name, expected, position, found).as_str(),
+                    code, location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::AttributeExpectedIntegerLiteral { location, name }) => {
+                Self::format_line(
+                    format!("attribute `{}` expected an integer literal", name).as_str(),
+                    code, location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::AttributeExpectedNested { location, name }) => {
+                Self::format_line(
+                    format!("attribute `{}` expected a nested element", name).as_str(),
+                    code, location,
+                    Some(format!("consider passing the required elements, e.g. `{}(value = 42)`", name).as_str()),
                 )
             }
 

@@ -11,7 +11,6 @@ use franklin_crypto::bellman::groth16;
 use franklin_crypto::bellman::groth16::Parameters;
 use franklin_crypto::bellman::groth16::Proof;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
-use franklin_crypto::circuit::test::TestConstraintSystem;
 
 use zinc_const::UnitTestExitCode;
 
@@ -78,12 +77,11 @@ impl Facade {
                 return Ok(UnitTestExitCode::Ignored);
             }
 
-            let cs = TestConstraintSystem::<Bn256>::new();
+            let cs = MainCS::<Bn256>::new();
 
             let mut state = CircuitState::new(cs);
 
-            let result = state.run(self.inner.clone(), Some(&[]), |_| {}, |_| Ok(()));
-            match result {
+            match state.test(self.inner.clone(), unit_test.address) {
                 Err(_) if unit_test.should_panic => {
                     println!("test {} ... {} (failed)", name, "ok".green());
                 }

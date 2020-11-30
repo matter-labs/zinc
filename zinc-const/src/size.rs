@@ -13,6 +13,3 @@ pub const ETH_PUBLIC_KEY: usize = 64;
 
 /// The ETH private key size.
 pub const ETH_PRIVATE_KEY: usize = 32;
-
-/// The ETH signature size.
-pub const ETH_SIGNATURE: usize = 32;

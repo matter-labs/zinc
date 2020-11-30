@@ -5,6 +5,8 @@
 pub mod builder;
 pub mod node;
 
+use std::fmt;
+
 use zinc_lexical::Location;
 
 use self::node::Node;
@@ -66,6 +68,17 @@ impl Tree {
         match *self.value {
             Node::Operand(ref operand) => operand.can_be_unterminated(),
             _ => false,
+        }
+    }
+}
+
+impl fmt::Display for Tree {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match (self.left.as_ref(), self.right.as_ref()) {
+            (Some(left), Some(right)) => write!(f, "{}{}{}", left, self.value, right),
+            (Some(left), None) => write!(f, "{}{}", left, self.value),
+            (None, Some(right)) => write!(f, "{}{}", self.value, right),
+            (None, None) => write!(f, "{}", self.value),
         }
     }
 }
