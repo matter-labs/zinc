@@ -9,5 +9,8 @@
 /zinc-tester/ordinar/*/target/debug/
 /zinc-tester/ordinar/*/target/release/
 
+# Book build
+/zinc-book/build/
+
 # Visual Studio Code extension build
 /vscode/*.vsix
