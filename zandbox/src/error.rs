@@ -37,7 +37,7 @@ pub enum Error {
     /// Token cannot be resolved by zkSync.
     TokenNotFound(String),
     /// The contract method input transaction is invalid.
-    Transaction(zinc_zksync::TransactionError),
+    Transaction(zinc_types::TransactionError),
     /// The ZkSync transfer errors.
     TransferFailure(String),
     /// Could not get the account ID.
@@ -55,8 +55,8 @@ pub enum Error {
     ZkSyncSigner(zksync_eth_signer::error::SignerError),
 }
 
-impl From<zinc_zksync::TransactionError> for Error {
-    fn from(inner: zinc_zksync::TransactionError) -> Self {
+impl From<zinc_types::TransactionError> for Error {
+    fn from(inner: zinc_types::TransactionError) -> Self {
         Self::Transaction(inner)
     }
 }

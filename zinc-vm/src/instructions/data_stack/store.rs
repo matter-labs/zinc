@@ -2,7 +2,7 @@
 //! The `Store` instruction.
 //!
 
-use zinc_build::Store;
+use zinc_types::Store;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::Error;

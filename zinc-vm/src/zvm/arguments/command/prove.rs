@@ -53,13 +53,13 @@ impl IExecutable for Command {
         // Read the bytecode
         let bytecode =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let application = zinc_build::Application::try_from_slice(bytecode.as_slice())
+        let application = zinc_types::Application::try_from_slice(bytecode.as_slice())
             .map_err(Error::ApplicationDecoding)?;
 
         // Read the input file
         let input_template = fs::read_to_string(&self.input_path)
             .error_with_path(|| self.input_path.to_string_lossy())?;
-        let input: zinc_build::InputBuild = serde_json::from_str(input_template.as_str())?;
+        let input: zinc_types::InputBuild = serde_json::from_str(input_template.as_str())?;
 
         // Read the proving key
         let proving_key_path = self.proving_key_path;
@@ -69,31 +69,37 @@ impl IExecutable for Command {
             .error_with_path(|| proving_key_path.to_string_lossy())?;
 
         let proof = match application {
-            zinc_build::Application::Circuit(circuit) => match input {
-                zinc_build::InputBuild::Circuit { arguments } => {
+            zinc_types::Application::Circuit(circuit) => match input {
+                zinc_types::InputBuild::Circuit { arguments } => {
                     let input_type = circuit.input.clone();
-                    let arguments = zinc_build::Value::try_from_typed_json(arguments, input_type)?;
+                    let arguments = zinc_types::Value::try_from_typed_json(arguments, input_type)?;
 
                     let (_output, proof) =
                         CircuitFacade::new(circuit).prove::<Bn256>(params, arguments)?;
 
                     proof
                 }
-                zinc_build::InputBuild::Contract { .. } => {
+                zinc_types::InputBuild::Contract { .. } => {
                     return Err(Error::InputDataInvalid {
                         expected: "circuit".to_owned(),
                         found: "contract".to_owned(),
                     })
                 }
+                zinc_types::InputBuild::Library { .. } => {
+                    return Err(Error::InputDataInvalid {
+                        expected: "circuit".to_owned(),
+                        found: "library".to_owned(),
+                    })
+                }
             },
-            zinc_build::Application::Contract(contract) => match input {
-                zinc_build::InputBuild::Circuit { .. } => {
+            zinc_types::Application::Contract(contract) => match input {
+                zinc_types::InputBuild::Circuit { .. } => {
                     return Err(Error::InputDataInvalid {
                         expected: "contract".to_owned(),
                         found: "circuit".to_owned(),
                     })
                 }
-                zinc_build::InputBuild::Contract {
+                zinc_types::InputBuild::Contract {
                     arguments,
                     msg: transaction,
                     storage,
@@ -111,15 +117,15 @@ impl IExecutable for Command {
                         },
                     )?;
                     let method_arguments =
-                        zinc_build::Value::try_from_typed_json(method_arguments, method.input)?;
+                        zinc_types::Value::try_from_typed_json(method_arguments, method.input)?;
 
                     let storage_values = match storage {
                         serde_json::Value::Array(array) => {
                             let mut storage_values = Vec::with_capacity(contract.storage.len());
                             for (field, value) in contract.storage.clone().into_iter().zip(array) {
-                                storage_values.push(zinc_build::ContractFieldValue::new(
+                                storage_values.push(zinc_types::ContractFieldValue::new(
                                     field.name,
-                                    zinc_build::Value::try_from_typed_json(value, field.r#type)?,
+                                    zinc_types::Value::try_from_typed_json(value, field.r#type)?,
                                     field.is_public,
                                     field.is_implicit,
                                 ));
@@ -133,9 +139,9 @@ impl IExecutable for Command {
                         params,
                         ContractInput::new(
                             method_arguments,
-                            zinc_build::Value::Contract(storage_values),
+                            zinc_types::Value::Contract(storage_values),
                             method_name,
-                            zinc_zksync::TransactionMsg::try_from(&transaction).map_err(
+                            zinc_types::TransactionMsg::try_from(&transaction).map_err(
                                 |error| Error::InvalidTransaction {
                                     inner: error,
                                     found: transaction,
@@ -146,7 +152,14 @@ impl IExecutable for Command {
 
                     proof
                 }
+                zinc_types::InputBuild::Library { .. } => {
+                    return Err(Error::InputDataInvalid {
+                        expected: "contract".to_owned(),
+                        found: "library".to_owned(),
+                    })
+                }
             },
+            zinc_types::Application::Library(_library) => return Err(Error::CannotRunLibrary),
         };
 
         // Write the proof to stdout

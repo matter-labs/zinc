@@ -185,12 +185,12 @@ impl Command {
 
         let response = http_client
             .publish(
-                zinc_zksync::PublishRequestQuery::new(
+                zinc_types::PublishRequestQuery::new(
                     manifest.project.name,
                     manifest.project.version,
                     self.instance,
                 ),
-                zinc_zksync::PublishRequestBody::new(
+                zinc_types::PublishRequestBody::new(
                     project,
                     bytecode.inner,
                     arguments,
@@ -235,8 +235,8 @@ impl Command {
 
         let response = http_client
             .initialize(
-                zinc_zksync::InitializeRequestQuery::new(response.address),
-                zinc_zksync::InitializeRequestBody::new(initial_transfer),
+                zinc_types::InitializeRequestQuery::new(response.address),
+                zinc_types::InitializeRequestBody::new(initial_transfer),
             )
             .await?;
         println!("  {} {}", "Account ID".bright_green(), response.account_id);

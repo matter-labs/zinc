@@ -32,11 +32,11 @@ use self::variant::Variant as ScalarVariant;
 #[derive(Debug, Clone)]
 pub struct Scalar<E: IEngine> {
     variant: ScalarVariant<E>,
-    scalar_type: zinc_build::ScalarType,
+    scalar_type: zinc_types::ScalarType,
 }
 
 impl<E: IEngine> Scalar<E> {
-    pub fn new_constant_usize(value: usize, scalar_type: zinc_build::ScalarType) -> Self {
+    pub fn new_constant_usize(value: usize, scalar_type: zinc_types::ScalarType) -> Self {
         let value_string = value.to_string();
         let fr = E::Fr::from_str(&value_string).expect("failed to convert u64 into Fr");
         Self::new_constant_fr(fr, scalar_type)
@@ -44,10 +44,10 @@ impl<E: IEngine> Scalar<E> {
 
     pub fn new_constant_bool(value: bool) -> Self {
         let fr = if value { E::Fr::one() } else { E::Fr::zero() };
-        Self::new_constant_fr(fr, zinc_build::ScalarType::Boolean)
+        Self::new_constant_fr(fr, zinc_types::ScalarType::Boolean)
     }
 
-    pub fn new_constant_fr(value: E::Fr, scalar_type: zinc_build::ScalarType) -> Self {
+    pub fn new_constant_fr(value: E::Fr, scalar_type: zinc_types::ScalarType) -> Self {
         Self {
             variant: ScalarVariant::Constant(ScalarConstant::new_fr(value)),
             scalar_type,
@@ -56,7 +56,7 @@ impl<E: IEngine> Scalar<E> {
 
     pub fn new_constant_bigint(
         value: BigInt,
-        scalar_type: zinc_build::ScalarType,
+        scalar_type: zinc_types::ScalarType,
     ) -> Result<Self, Error> {
         let fr = fr_bigint::bigint_to_fr::<E>(&value).ok_or(Error::ValueOverflow {
             value,
@@ -68,7 +68,7 @@ impl<E: IEngine> Scalar<E> {
     pub fn new_unchecked_variable(
         value: Option<E::Fr>,
         variable: Variable,
-        scalar_type: zinc_build::ScalarType,
+        scalar_type: zinc_types::ScalarType,
     ) -> Self {
         Self {
             variant: ScalarVariant::Variable(ScalarVariable::new_unchecked(value, variable)),
@@ -78,7 +78,7 @@ impl<E: IEngine> Scalar<E> {
 
     pub fn to_boolean<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Boolean, Error> {
         self.scalar_type
-            .assert_type(zinc_build::ScalarType::Boolean)?;
+            .assert_type(zinc_types::ScalarType::Boolean)?;
 
         match &self.variant {
             ScalarVariant::Constant(constant) => Ok(Boolean::constant(!constant.value.is_zero())),
@@ -103,11 +103,11 @@ impl<E: IEngine> Scalar<E> {
     pub fn to_field(&self) -> Self {
         Self {
             variant: self.variant.clone(),
-            scalar_type: zinc_build::ScalarType::Field,
+            scalar_type: zinc_types::ScalarType::Field,
         }
     }
 
-    pub fn to_type_unchecked(&self, scalar_type: zinc_build::ScalarType) -> Self {
+    pub fn to_type_unchecked(&self, scalar_type: zinc_types::ScalarType) -> Self {
         Self {
             variant: self.variant.clone(),
             scalar_type,
@@ -131,7 +131,7 @@ impl<E: IEngine> Scalar<E> {
         }
     }
 
-    pub fn get_type(&self) -> zinc_build::ScalarType {
+    pub fn get_type(&self) -> zinc_types::ScalarType {
         self.scalar_type.to_owned()
     }
 
@@ -166,7 +166,7 @@ impl<E: IEngine> Scalar<E> {
     pub fn get_bits_le<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Vec<Self>, Error> {
         let num = self.to_expression::<CS>();
         let bits = match self.scalar_type {
-            zinc_build::ScalarType::Field => {
+            zinc_types::ScalarType::Field => {
                 num.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict"))
             }
             ref scalar_type => num.into_bits_le_fixed(
@@ -200,19 +200,19 @@ impl<E: IEngine> Scalar<E> {
             Boolean::Is(bit) => Ok(Self::new_unchecked_variable(
                 bit.get_value_field::<E>(),
                 bit.get_variable(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             )),
             Boolean::Not(bit) => {
                 let expr = Expression::constant::<CS>(E::Fr::one()) - Expression::from(&bit);
                 let num = expr.into_number(cs.namespace(|| "into_number"))?;
                 let scalar = Self::from(num);
-                Ok(scalar.to_type_unchecked(zinc_build::ScalarType::Boolean))
+                Ok(scalar.to_type_unchecked(zinc_types::ScalarType::Boolean))
             }
             Boolean::Constant(_) => Ok(Self::new_constant_fr(
                 boolean
                     .get_value_field::<E>()
                     .ok_or(Error::ExpectedConstant)?,
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             )),
         }
     }
@@ -221,30 +221,30 @@ impl<E: IEngine> Scalar<E> {
         cs: CS,
         condition: &Self,
         scalar: &Self,
-        scalar_type: zinc_build::ScalarType,
+        scalar_type: zinc_types::ScalarType,
     ) -> Result<Self, Error>
     where
         CS: ConstraintSystem<E>,
     {
         condition
             .get_type()
-            .assert_type(zinc_build::ScalarType::Boolean)?;
+            .assert_type(zinc_types::ScalarType::Boolean)?;
 
         match scalar_type {
-            zinc_build::ScalarType::Boolean => {
+            zinc_types::ScalarType::Boolean => {
                 // Check as u1 integer, then changet type to Boolean
                 let checked = Self::conditional_type_check(
                     cs,
                     condition,
                     scalar,
-                    zinc_build::IntegerType::U1.into(),
+                    zinc_types::IntegerType::U1.into(),
                 )?;
                 Ok(checked.to_type_unchecked(scalar_type))
             }
-            zinc_build::ScalarType::Integer(int_type) => {
+            zinc_types::ScalarType::Integer(int_type) => {
                 Self::conditional_int_type_check(cs, condition, scalar, int_type)
             }
-            zinc_build::ScalarType::Field => {
+            zinc_types::ScalarType::Field => {
                 // Always safe to cast into field
                 Ok(scalar.to_field())
             }
@@ -255,7 +255,7 @@ impl<E: IEngine> Scalar<E> {
         mut cs: CS,
         condition: &Self,
         scalar: &Self,
-        int_type: zinc_build::IntegerType,
+        int_type: zinc_types::IntegerType,
     ) -> Result<Self, Error>
     where
         CS: ConstraintSystem<E>,
@@ -325,7 +325,7 @@ impl<E: IEngine> From<&AllocatedNum<E>> for Scalar<E> {
                 variable: num.get_variable(),
             }
             .into(),
-            scalar_type: zinc_build::ScalarType::Field,
+            scalar_type: zinc_types::ScalarType::Field,
         }
     }
 }
@@ -338,7 +338,7 @@ impl<E: IEngine> From<AllocatedNum<E>> for Scalar<E> {
                 variable: num.get_variable(),
             }
             .into(),
-            scalar_type: zinc_build::ScalarType::Field,
+            scalar_type: zinc_types::ScalarType::Field,
         }
     }
 }

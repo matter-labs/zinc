@@ -14,7 +14,7 @@ pub enum Error {
     ProjectNameInvalid(std::ffi::OsString),
 
     /// The invalid project type error.
-    #[error("project type must be either `circuit` or `contract`, found `{0}`")]
+    #[error("project type must be either `circuit`, `contract`, or `library`, but found `{0}`")]
     ProjectTypeInvalid(String),
 
     /// The project directory does not exist. Use `new` instead.

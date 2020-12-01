@@ -5,8 +5,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use zinc_build::Instruction;
 use zinc_lexical::Location;
+use zinc_types::Instruction;
 
 use crate::generator::expression::Expression;
 use crate::generator::r#type::Type;
@@ -57,7 +57,7 @@ impl IBytecodeWritable for Statement {
                         .borrow_mut()
                         .define_variable(Some(binding.identifier.name), size);
                     state.borrow_mut().push_instruction(
-                        Instruction::Store(zinc_build::Store::new(address, size)),
+                        Instruction::Store(zinc_types::Store::new(address, size)),
                         Some(self.location),
                     );
                 }
@@ -74,12 +74,12 @@ impl IBytecodeWritable for Statement {
 
                     if let Some(scalar_type) = r#type.into() {
                         state.borrow_mut().push_instruction(
-                            Instruction::Cast(zinc_build::Cast::new(scalar_type)),
+                            Instruction::Cast(zinc_types::Cast::new(scalar_type)),
                             Some(self.location),
                         );
                     }
                     state.borrow_mut().push_instruction(
-                        Instruction::Store(zinc_build::Store::new(address, size)),
+                        Instruction::Store(zinc_types::Store::new(address, size)),
                         Some(self.location),
                     );
                 }

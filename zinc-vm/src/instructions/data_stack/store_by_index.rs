@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::StoreByIndex;
+use zinc_types::StoreByIndex;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;

@@ -40,8 +40,8 @@ use crate::storage::Storage;
 ///
 pub async fn handle(
     app_data: crate::WebData,
-    query: web::Query<zinc_zksync::CallRequestQuery>,
-    body: web::Json<zinc_zksync::CallRequestBody>,
+    query: web::Query<zinc_types::CallRequestQuery>,
+    body: web::Json<zinc_types::CallRequestBody>,
 ) -> crate::Result<serde_json::Value, Error> {
     let query = query.into_inner();
     let body = body.into_inner();
@@ -71,7 +71,7 @@ pub async fn handle(
 
     let eth_address_bigint =
         BigInt::from_bytes_be(num::bigint::Sign::Plus, contract.eth_address.as_bytes());
-    let mut arguments = zinc_build::Value::try_from_typed_json(body.arguments, method.input)
+    let mut arguments = zinc_types::Value::try_from_typed_json(body.arguments, method.input)
         .map_err(Error::InvalidInput)?;
     arguments.insert_contract_instance(eth_address_bigint.clone());
 
@@ -81,7 +81,7 @@ pub async fn handle(
     let contract_storage_keeper = StorageKeeper::new(postgresql.clone(), network);
     let transaction = (&body.transaction).try_to_msg(&contract.wallet)?;
     let vm_time = std::time::Instant::now();
-    let output = async_std::task::spawn_blocking(move || {
+    let output = tokio::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new_with_keeper(contract_build, Box::new(contract_storage_keeper))
             .run::<Bn256>(ContractInput::new(
             arguments,
@@ -91,6 +91,7 @@ pub async fn handle(
         ))
     })
     .await
+    .expect(zinc_const::panic::ASYNC_RUNTIME)
     .map_err(Error::VirtualMachine)?;
     log::info!(
         "[{}] VM executed in {} ms",
@@ -133,7 +134,7 @@ pub async fn handle(
         );
         let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
             transfer.sender,
-            zksync_eth_signer::PrivateKeySigner::new(zinc_zksync::private_key_from_slice(
+            zksync_eth_signer::PrivateKeySigner::new(zinc_types::private_key_from_slice(
                 contract.eth_private_key.as_slice(),
             )),
             network,
@@ -175,7 +176,7 @@ pub async fn handle(
             .signer
             .sign_transfer(token, amount, fee, transfer.recipient, *nonce)
             .await?;
-        transactions.push(zinc_zksync::Transaction::new(
+        transactions.push(zinc_types::Transaction::new(
             ZkSyncTx::Transfer(Box::new(transfer)),
             signature.expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
         ));
@@ -222,7 +223,7 @@ pub async fn handle(
 
     let mut transaction = postgresql.new_transaction().await?;
     for (address, storage) in output.storages.into_iter() {
-        let address = zinc_zksync::address_from_slice(address.to_bytes_be().1.as_slice());
+        let address = zinc_types::address_from_slice(address.to_bytes_be().1.as_slice());
         let contract = mutated_instances.entry(address).or_insert(
             postgresql
                 .select_contract(

@@ -23,32 +23,34 @@ pub enum Error {
     StemNotFound,
     /// The module entry is in the root directory. Only the application entry allowed there.
     #[error(
-        "the `{}.{}` file cannot be declared at the project root",
-        zinc_const::file_name::MODULE_ENTRY,
-        zinc_const::extension::SOURCE
+        "the `{1}.{0}` file cannot be declared at the project root",
+        zinc_const::extension::SOURCE,
+        zinc_const::file_name::MODULE_ENTRY
     )]
     ModuleEntryInRoot,
-    /// The application entry file is deeper than the root directory.
+    /// The project entry file is deeper than the root directory.
     #[error(
-        "the `{}.{}` file must be declared at the project root",
+        "the `{1}.{0}` or `{2}.{0}` file must be declared at the project root",
+        zinc_const::extension::SOURCE,
         zinc_const::file_name::APPLICATION_ENTRY,
-        zinc_const::extension::SOURCE
+        zinc_const::file_name::LIBRARY_ENTRY
     )]
-    ApplicationEntryBeyondRoot,
+    ProjectEntryBeyondRoot,
     /// The module entry not found.
     #[error(
-        "the `{}.{}` file is missing",
-        zinc_const::file_name::MODULE_ENTRY,
-        zinc_const::extension::SOURCE
+        "the `{1}.{0}` file is missing",
+        zinc_const::extension::SOURCE,
+        zinc_const::file_name::MODULE_ENTRY
     )]
     ModuleEntryNotFound,
-    /// The application entry not found. Only for the root directory.
+    /// The project entry not found. Only for the root directory.
     #[error(
-        "the `{}.{}` file is missing",
+        "the `{1}.{0}` or `{2}.{0}` file is missing",
+        zinc_const::extension::SOURCE,
         zinc_const::file_name::APPLICATION_ENTRY,
-        zinc_const::extension::SOURCE
+        zinc_const::file_name::LIBRARY_ENTRY
     )]
-    ApplicationEntryNotFound,
+    ProjectEntryNotFound,
     /// The source code compiler analysis error, formatted as string.
     #[error("{0}")]
     Compiling(String),

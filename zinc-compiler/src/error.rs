@@ -1966,12 +1966,6 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::EntryPointMissing) => {
-                Self::format_message(
-                    "the project entry point is missing",
-                    code, Some("create the `main` function or a contract definition in the entry point file"),
-                )
-            }
             Self::Semantic(SemanticError::EntryPointAmbiguous { main, contract }) => {
                 Self::format_line_with_reference("the entry file contains both the `main` function and contract definition",
                                                  code, main,
@@ -2026,6 +2020,7 @@ impl Error {
     ///
     /// The error is locationless, that is, not related to any specific place in the source code.
     ///
+    #[allow(dead_code)]
     fn format_message(message: &str, code: Option<usize>, help: Option<&str>) -> String {
         let mut strings = Vec::with_capacity(8);
         strings.push(String::new());

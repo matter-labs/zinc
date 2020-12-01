@@ -20,7 +20,7 @@ where
         E: IEngine,
         CS: ConstraintSystem<E>,
     {
-        let scalar_type = zinc_build::ScalarType::expect_same(left.get_type(), right.get_type())?;
+        let scalar_type = zinc_types::ScalarType::expect_same(left.get_type(), right.get_type())?;
         scalar_type.assert_signed(false)?;
 
         let len = scalar_type.bitlength::<E>();

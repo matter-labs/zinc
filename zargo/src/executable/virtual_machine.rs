@@ -104,18 +104,12 @@ impl VirtualMachine {
     ///
     /// Executes the virtual machine `test` subcommand.
     ///
-    pub fn test(
-        verbosity: usize,
-        binary_path: &PathBuf,
-        input_path: &PathBuf,
-    ) -> anyhow::Result<ExitStatus> {
+    pub fn test(verbosity: usize, binary_path: &PathBuf) -> anyhow::Result<ExitStatus> {
         let mut process = process::Command::new(zinc_const::app_name::VIRTUAL_MACHINE)
             .args(vec!["-v"; verbosity])
             .arg("test")
             .arg("--binary")
             .arg(binary_path)
-            .arg("--input")
-            .arg(input_path)
             .spawn()?;
 
         let status = process.wait()?;

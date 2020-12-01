@@ -12,11 +12,11 @@ use num::BigInt;
 #[derive(Debug)]
 pub struct Output {
     /// The contract method output result, which is the public data for now.
-    pub result: zinc_build::Value,
+    pub result: zinc_types::Value,
     /// The contract storage after executing a method.
-    pub storages: HashMap<BigInt, zinc_build::Value>,
+    pub storages: HashMap<BigInt, zinc_types::Value>,
     /// The transfers executed in the contract method.
-    pub transfers: Vec<zinc_zksync::TransactionMsg>,
+    pub transfers: Vec<zinc_types::TransactionMsg>,
 }
 
 impl Output {
@@ -24,9 +24,9 @@ impl Output {
     /// A shortcut constructor.
     ///
     pub fn new(
-        result: zinc_build::Value,
-        storages: HashMap<BigInt, zinc_build::Value>,
-        transfers: Vec<zinc_zksync::TransactionMsg>,
+        result: zinc_types::Value,
+        storages: HashMap<BigInt, zinc_types::Value>,
+        transfers: Vec<zinc_types::TransactionMsg>,
     ) -> Self {
         Self {
             result,

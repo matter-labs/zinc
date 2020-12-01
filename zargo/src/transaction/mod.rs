@@ -12,7 +12,7 @@ use zksync_types::tx::ZkSyncTx;
 use zksync_types::TokenLike;
 use zksync_types::TxFeeTypes;
 
-use zinc_zksync::TransactionMsg;
+use zinc_types::TransactionMsg;
 
 use self::error::Error;
 
@@ -24,7 +24,7 @@ pub async fn new_initial(
     recipient: Address,
     token_symbol: String,
     amount: BigUint,
-) -> anyhow::Result<zinc_zksync::Transaction> {
+) -> anyhow::Result<zinc_types::Transaction> {
     let token_like = TokenLike::Symbol(token_symbol);
     let token = wallet
         .tokens
@@ -32,7 +32,7 @@ pub async fn new_initial(
         .ok_or(Error::TokenNotFound)?;
 
     let amount =
-        zksync::utils::closest_packable_token_amount(&zinc_zksync::num_compat_backward(amount));
+        zksync::utils::closest_packable_token_amount(&zinc_types::num_compat_backward(amount));
     let fee = wallet
         .provider
         .get_tx_fee(TxFeeTypes::Transfer, recipient, token_like)
@@ -54,7 +54,7 @@ pub async fn new_initial(
         .map_err(Error::TransactionSigning)?;
     let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
-    Ok(zinc_zksync::Transaction::new(
+    Ok(zinc_types::Transaction::new(
         ZkSyncTx::Transfer(Box::new(transfer)),
         signature,
     ))
@@ -67,7 +67,7 @@ pub async fn try_into_zksync(
     transaction: TransactionMsg,
     wallet: &zksync::Wallet<PrivateKeySigner>,
     contract_fee: Option<BigUint>,
-) -> anyhow::Result<zinc_zksync::Transaction> {
+) -> anyhow::Result<zinc_types::Transaction> {
     let token = wallet
         .tokens
         .resolve(transaction.token_address.into())
@@ -84,7 +84,7 @@ pub async fn try_into_zksync(
         .map_err(Error::FeeGetting)?
         .total_fee
         + contract_fee
-            .map(zinc_zksync::num_compat_backward)
+            .map(zinc_types::num_compat_backward)
             .unwrap_or_default();
     let fee = zksync::utils::closest_packable_fee_amount(&fee);
     let nonce = wallet
@@ -102,7 +102,7 @@ pub async fn try_into_zksync(
         .map_err(Error::TransactionSigning)?;
     let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
-    Ok(zinc_zksync::Transaction::new(
+    Ok(zinc_types::Transaction::new(
         ZkSyncTx::Transfer(Box::new(transfer)),
         signature,
     ))

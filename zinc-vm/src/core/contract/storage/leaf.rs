@@ -81,12 +81,12 @@ impl<E: IEngine> LeafVariant<E> {
 #[derive(Debug, Clone)]
 pub enum LeafInput {
     Array {
-        r#type: zinc_build::Type,
+        r#type: zinc_types::Type,
         values: Vec<BigInt>,
     },
     Map {
-        key_type: zinc_build::Type,
-        value_type: zinc_build::Type,
+        key_type: zinc_types::Type,
+        value_type: zinc_types::Type,
         entries: Vec<(Vec<BigInt>, Vec<BigInt>)>,
     },
 }

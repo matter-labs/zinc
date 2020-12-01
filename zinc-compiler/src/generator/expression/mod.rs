@@ -13,9 +13,9 @@ use num::BigInt;
 use num::One;
 use num::Zero;
 
-use zinc_build::Instruction;
-use zinc_build::LibraryFunctionIdentifier;
 use zinc_lexical::Location;
+use zinc_types::Instruction;
+use zinc_types::LibraryFunctionIdentifier;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::operand::place::Place;
@@ -108,13 +108,13 @@ impl Expression {
 
                 state.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::StoreByIndex(zinc_build::StoreByIndex::new(
+                        Instruction::StoreByIndex(zinc_types::StoreByIndex::new(
                             address,
                             element_size,
                             total_size,
                         ))
                     } else {
-                        Instruction::Store(zinc_build::Store::new(address, total_size))
+                        Instruction::Store(zinc_types::Store::new(address, total_size))
                     },
                     Some(location),
                 );
@@ -140,7 +140,7 @@ impl Expression {
                     let position = *position;
 
                     state.borrow_mut().push_instruction(
-                        Instruction::Load(zinc_build::Load::new(
+                        Instruction::Load(zinc_types::Load::new(
                             reference_address,
                             Type::eth_address().size(),
                         )),
@@ -153,7 +153,7 @@ impl Expression {
                     )
                     .write_all(state.clone());
                     state.borrow_mut().push_instruction(
-                        Instruction::StorageLoad(zinc_build::StorageLoad::new(*element_size)),
+                        Instruction::StorageLoad(zinc_types::StorageLoad::new(*element_size)),
                         Some(place.identifier.location),
                     );
 
@@ -167,7 +167,7 @@ impl Expression {
                 let is_indexed = !place.elements.is_empty();
 
                 state.borrow_mut().push_instruction(
-                    Instruction::Store(zinc_build::Store::new(address, total_size)),
+                    Instruction::Store(zinc_types::Store::new(address, total_size)),
                     Some(location),
                 );
 
@@ -179,24 +179,24 @@ impl Expression {
 
                 state.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::StoreByIndex(zinc_build::StoreByIndex::new(
+                        Instruction::StoreByIndex(zinc_types::StoreByIndex::new(
                             address,
                             element_size,
                             total_size,
                         ))
                     } else {
-                        Instruction::Store(zinc_build::Store::new(address, total_size))
+                        Instruction::Store(zinc_types::Store::new(address, total_size))
                     },
                     Some(location),
                 );
 
                 state.borrow_mut().push_instruction(
-                    Instruction::Load(zinc_build::Load::new(address, total_size)),
+                    Instruction::Load(zinc_types::Load::new(address, total_size)),
                     Some(location),
                 );
 
                 state.borrow_mut().push_instruction(
-                    Instruction::Load(zinc_build::Load::new(
+                    Instruction::Load(zinc_types::Load::new(
                         reference_address,
                         Type::eth_address().size(),
                     )),
@@ -209,7 +209,7 @@ impl Expression {
                 )
                 .write_all(state.clone());
                 state.borrow_mut().push_instruction(
-                    Instruction::StorageStore(zinc_build::StorageStore::new(total_size)),
+                    Instruction::StorageStore(zinc_types::StorageStore::new(total_size)),
                     Some(location),
                 );
             }
@@ -240,18 +240,18 @@ impl Expression {
                     place.write_all(state.clone());
                     state
                         .borrow_mut()
-                        .push_instruction(Instruction::Copy(zinc_build::Copy), Some(location));
+                        .push_instruction(Instruction::Copy(zinc_types::Copy), Some(location));
                 }
 
                 state.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::LoadByIndex(zinc_build::LoadByIndex::new(
+                        Instruction::LoadByIndex(zinc_types::LoadByIndex::new(
                             address,
                             element_size,
                             total_size,
                         ))
                     } else {
-                        Instruction::Load(zinc_build::Load::new(address, total_size))
+                        Instruction::Load(zinc_types::Load::new(address, total_size))
                     },
                     Some(location),
                 );
@@ -264,13 +264,13 @@ impl Expression {
 
                 state.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::StoreByIndex(zinc_build::StoreByIndex::new(
+                        Instruction::StoreByIndex(zinc_types::StoreByIndex::new(
                             address,
                             element_size,
                             total_size,
                         ))
                     } else {
-                        Instruction::Store(zinc_build::Store::new(address, total_size))
+                        Instruction::Store(zinc_types::Store::new(address, total_size))
                     },
                     Some(location),
                 );
@@ -296,7 +296,7 @@ impl Expression {
                     let position = *position;
 
                     state.borrow_mut().push_instruction(
-                        Instruction::Load(zinc_build::Load::new(
+                        Instruction::Load(zinc_types::Load::new(
                             reference_address,
                             Type::eth_address().size(),
                         )),
@@ -309,7 +309,7 @@ impl Expression {
                     )
                     .write_all(state.clone());
                     state.borrow_mut().push_instruction(
-                        Instruction::StorageLoad(zinc_build::StorageLoad::new(*element_size)),
+                        Instruction::StorageLoad(zinc_types::StorageLoad::new(*element_size)),
                         Some(place.identifier.location),
                     );
 
@@ -323,7 +323,7 @@ impl Expression {
                 let is_indexed = !place.elements.is_empty();
 
                 state.borrow_mut().push_instruction(
-                    Instruction::Store(zinc_build::Store::new(address, total_size)),
+                    Instruction::Store(zinc_types::Store::new(address, total_size)),
                     Some(location),
                 );
 
@@ -331,18 +331,18 @@ impl Expression {
                     place.write_all(state.clone());
                     state
                         .borrow_mut()
-                        .push_instruction(Instruction::Copy(zinc_build::Copy), Some(location));
+                        .push_instruction(Instruction::Copy(zinc_types::Copy), Some(location));
                 }
 
                 state.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::LoadByIndex(zinc_build::LoadByIndex::new(
+                        Instruction::LoadByIndex(zinc_types::LoadByIndex::new(
                             address,
                             element_size,
                             total_size,
                         ))
                     } else {
-                        Instruction::Load(zinc_build::Load::new(address, total_size))
+                        Instruction::Load(zinc_types::Load::new(address, total_size))
                     },
                     Some(location),
                 );
@@ -355,24 +355,24 @@ impl Expression {
 
                 state.borrow_mut().push_instruction(
                     if is_indexed {
-                        Instruction::StoreByIndex(zinc_build::StoreByIndex::new(
+                        Instruction::StoreByIndex(zinc_types::StoreByIndex::new(
                             address,
                             element_size,
                             total_size,
                         ))
                     } else {
-                        Instruction::Store(zinc_build::Store::new(address, total_size))
+                        Instruction::Store(zinc_types::Store::new(address, total_size))
                     },
                     Some(location),
                 );
 
                 state.borrow_mut().push_instruction(
-                    Instruction::Load(zinc_build::Load::new(address, total_size)),
+                    Instruction::Load(zinc_types::Load::new(address, total_size)),
                     Some(location),
                 );
 
                 state.borrow_mut().push_instruction(
-                    Instruction::Load(zinc_build::Load::new(
+                    Instruction::Load(zinc_types::Load::new(
                         reference_address,
                         Type::eth_address().size(),
                     )),
@@ -385,7 +385,7 @@ impl Expression {
                 )
                 .write_all(state.clone());
                 state.borrow_mut().push_instruction(
-                    Instruction::StorageStore(zinc_build::StorageStore::new(total_size)),
+                    Instruction::StorageStore(zinc_types::StorageStore::new(total_size)),
                     Some(location),
                 );
             }
@@ -415,7 +415,7 @@ impl Expression {
     ///
     fn call(state: Rc<RefCell<State>>, type_id: usize, input_size: usize, location: Location) {
         state.borrow_mut().push_instruction(
-            Instruction::Call(zinc_build::Call::new(type_id, input_size)),
+            Instruction::Call(zinc_types::Call::new(type_id, input_size)),
             Some(location),
         );
     }
@@ -426,11 +426,11 @@ impl Expression {
     fn call_debug(
         state: Rc<RefCell<State>>,
         format: String,
-        input_types: Vec<zinc_build::Type>,
+        input_types: Vec<zinc_types::Type>,
         location: Location,
     ) {
         state.borrow_mut().push_instruction(
-            Instruction::Dbg(zinc_build::Dbg::new(format, input_types)),
+            Instruction::Dbg(zinc_types::Dbg::new(format, input_types)),
             Some(location),
         );
     }
@@ -440,7 +440,7 @@ impl Expression {
     ///
     fn call_require(state: Rc<RefCell<State>>, message: Option<String>, location: Location) {
         state.borrow_mut().push_instruction(
-            Instruction::Require(zinc_build::Require::new(message)),
+            Instruction::Require(zinc_types::Require::new(message)),
             Some(location),
         );
     }
@@ -454,7 +454,7 @@ impl Expression {
         location: Location,
     ) {
         state.borrow_mut().push_instruction(
-            Instruction::StorageFetch(zinc_build::StorageFetch::new(
+            Instruction::StorageFetch(zinc_types::StorageFetch::new(
                 fields.into_iter().map(|field| field.into()).collect(),
             )),
             Some(location),
@@ -472,7 +472,7 @@ impl Expression {
         location: Location,
     ) {
         state.borrow_mut().push_instruction(
-            Instruction::CallLibrary(zinc_build::CallLibrary::new(
+            Instruction::CallLibrary(zinc_types::CallLibrary::new(
                 identifier,
                 input_size,
                 output_size,
@@ -504,7 +504,7 @@ impl IBytecodeWritable for Expression {
                         state.clone(),
                         place,
                         expression,
-                        Instruction::BitwiseOr(zinc_build::BitwiseOr),
+                        Instruction::BitwiseOr(zinc_types::BitwiseOr),
                         location,
                     ),
                     Operator::AssignmentBitwiseXor {
@@ -515,7 +515,7 @@ impl IBytecodeWritable for Expression {
                         state.clone(),
                         place,
                         expression,
-                        Instruction::BitwiseXor(zinc_build::BitwiseXor),
+                        Instruction::BitwiseXor(zinc_types::BitwiseXor),
                         location,
                     ),
                     Operator::AssignmentBitwiseAnd {
@@ -526,7 +526,7 @@ impl IBytecodeWritable for Expression {
                         state.clone(),
                         place,
                         expression,
-                        Instruction::BitwiseAnd(zinc_build::BitwiseAnd),
+                        Instruction::BitwiseAnd(zinc_types::BitwiseAnd),
                         location,
                     ),
                     Operator::AssignmentBitwiseShiftLeft {
@@ -537,7 +537,7 @@ impl IBytecodeWritable for Expression {
                         state.clone(),
                         place,
                         expression,
-                        Instruction::BitwiseShiftLeft(zinc_build::BitwiseShiftLeft),
+                        Instruction::BitwiseShiftLeft(zinc_types::BitwiseShiftLeft),
                         location,
                     ),
                     Operator::AssignmentBitwiseShiftRight {
@@ -548,7 +548,7 @@ impl IBytecodeWritable for Expression {
                         state.clone(),
                         place,
                         expression,
-                        Instruction::BitwiseShiftRight(zinc_build::BitwiseShiftRight),
+                        Instruction::BitwiseShiftRight(zinc_types::BitwiseShiftRight),
                         location,
                     ),
                     Operator::AssignmentAddition {
@@ -559,7 +559,7 @@ impl IBytecodeWritable for Expression {
                         state.clone(),
                         place,
                         expression,
-                        Instruction::Add(zinc_build::Add),
+                        Instruction::Add(zinc_types::Add),
                         location,
                     ),
                     Operator::AssignmentSubtraction {
@@ -570,7 +570,7 @@ impl IBytecodeWritable for Expression {
                         state.clone(),
                         place,
                         expression,
-                        Instruction::Sub(zinc_build::Sub),
+                        Instruction::Sub(zinc_types::Sub),
                         location,
                     ),
                     Operator::AssignmentMultiplication {
@@ -581,7 +581,7 @@ impl IBytecodeWritable for Expression {
                         state.clone(),
                         place,
                         expression,
-                        Instruction::Mul(zinc_build::Mul),
+                        Instruction::Mul(zinc_types::Mul),
                         location,
                     ),
                     Operator::AssignmentDivision {
@@ -592,7 +592,7 @@ impl IBytecodeWritable for Expression {
                         state.clone(),
                         place,
                         expression,
-                        Instruction::Div(zinc_build::Div),
+                        Instruction::Div(zinc_types::Div),
                         location,
                     ),
                     Operator::AssignmentRemainder {
@@ -603,144 +603,144 @@ impl IBytecodeWritable for Expression {
                         state.clone(),
                         place,
                         expression,
-                        Instruction::Rem(zinc_build::Rem),
+                        Instruction::Rem(zinc_types::Rem),
                         location,
                     ),
 
                     Operator::Or => {
-                        //                        Self::binary(state.clone(), Instruction::Or(zinc_build::Or), location)
+                        //                        Self::binary(state.clone(), Instruction::Or(zinc_types::Or), location)
                     }
                     Operator::OrShortCircuitStart => {
                         state
                             .borrow_mut()
-                            .push_instruction(Instruction::Not(zinc_build::Not), None);
+                            .push_instruction(Instruction::Not(zinc_types::Not), None);
                         state
                             .borrow_mut()
-                            .push_instruction(Instruction::If(zinc_build::If), None);
+                            .push_instruction(Instruction::If(zinc_types::If), None);
                     }
                     Operator::OrShortCircuitEnd => {
                         state
                             .borrow_mut()
-                            .push_instruction(Instruction::Else(zinc_build::Else), None);
+                            .push_instruction(Instruction::Else(zinc_types::Else), None);
                         state.borrow_mut().push_instruction(
-                            Instruction::Push(zinc_build::Push::new(
+                            Instruction::Push(zinc_types::Push::new(
                                 BigInt::one(),
-                                zinc_build::ScalarType::Boolean,
+                                zinc_types::ScalarType::Boolean,
                             )),
                             None,
                         );
                         state
                             .borrow_mut()
-                            .push_instruction(Instruction::EndIf(zinc_build::EndIf), None);
+                            .push_instruction(Instruction::EndIf(zinc_types::EndIf), None);
                     }
                     Operator::Xor => {
-                        Self::binary(state.clone(), Instruction::Xor(zinc_build::Xor), location)
+                        Self::binary(state.clone(), Instruction::Xor(zinc_types::Xor), location)
                     }
                     Operator::And => {
-                        //                        Self::binary(state.clone(), Instruction::And(zinc_build::And), location)
+                        //                        Self::binary(state.clone(), Instruction::And(zinc_types::And), location)
                     }
                     Operator::AndShortCircuitStart => {
                         state
                             .borrow_mut()
-                            .push_instruction(Instruction::If(zinc_build::If), None);
+                            .push_instruction(Instruction::If(zinc_types::If), None);
                     }
                     Operator::AndShortCircuitEnd => {
                         state
                             .borrow_mut()
-                            .push_instruction(Instruction::Else(zinc_build::Else), None);
+                            .push_instruction(Instruction::Else(zinc_types::Else), None);
                         state.borrow_mut().push_instruction(
-                            Instruction::Push(zinc_build::Push::new(
+                            Instruction::Push(zinc_types::Push::new(
                                 BigInt::zero(),
-                                zinc_build::ScalarType::Boolean,
+                                zinc_types::ScalarType::Boolean,
                             )),
                             None,
                         );
                         state
                             .borrow_mut()
-                            .push_instruction(Instruction::EndIf(zinc_build::EndIf), None);
+                            .push_instruction(Instruction::EndIf(zinc_types::EndIf), None);
                     }
 
                     Operator::Equals { .. } => {
-                        Self::binary(state.clone(), Instruction::Eq(zinc_build::Eq), location)
+                        Self::binary(state.clone(), Instruction::Eq(zinc_types::Eq), location)
                     }
                     Operator::NotEquals { .. } => {
-                        Self::binary(state.clone(), Instruction::Ne(zinc_build::Ne), location)
+                        Self::binary(state.clone(), Instruction::Ne(zinc_types::Ne), location)
                     }
                     Operator::GreaterEquals { .. } => {
-                        Self::binary(state.clone(), Instruction::Ge(zinc_build::Ge), location)
+                        Self::binary(state.clone(), Instruction::Ge(zinc_types::Ge), location)
                     }
                     Operator::LesserEquals { .. } => {
-                        Self::binary(state.clone(), Instruction::Le(zinc_build::Le), location)
+                        Self::binary(state.clone(), Instruction::Le(zinc_types::Le), location)
                     }
                     Operator::Greater { .. } => {
-                        Self::binary(state.clone(), Instruction::Gt(zinc_build::Gt), location)
+                        Self::binary(state.clone(), Instruction::Gt(zinc_types::Gt), location)
                     }
                     Operator::Lesser { .. } => {
-                        Self::binary(state.clone(), Instruction::Lt(zinc_build::Lt), location)
+                        Self::binary(state.clone(), Instruction::Lt(zinc_types::Lt), location)
                     }
 
                     Operator::BitwiseOr { .. } => Self::binary(
                         state.clone(),
-                        Instruction::BitwiseOr(zinc_build::BitwiseOr),
+                        Instruction::BitwiseOr(zinc_types::BitwiseOr),
                         location,
                     ),
                     Operator::BitwiseXor { .. } => Self::binary(
                         state.clone(),
-                        Instruction::BitwiseXor(zinc_build::BitwiseXor),
+                        Instruction::BitwiseXor(zinc_types::BitwiseXor),
                         location,
                     ),
                     Operator::BitwiseAnd { .. } => Self::binary(
                         state.clone(),
-                        Instruction::BitwiseAnd(zinc_build::BitwiseAnd),
+                        Instruction::BitwiseAnd(zinc_types::BitwiseAnd),
                         location,
                     ),
                     Operator::BitwiseShiftLeft => Self::binary(
                         state.clone(),
-                        Instruction::BitwiseShiftLeft(zinc_build::BitwiseShiftLeft),
+                        Instruction::BitwiseShiftLeft(zinc_types::BitwiseShiftLeft),
                         location,
                     ),
                     Operator::BitwiseShiftRight => Self::binary(
                         state.clone(),
-                        Instruction::BitwiseShiftRight(zinc_build::BitwiseShiftRight),
+                        Instruction::BitwiseShiftRight(zinc_types::BitwiseShiftRight),
                         location,
                     ),
 
                     Operator::Addition { .. } => {
-                        Self::binary(state.clone(), Instruction::Add(zinc_build::Add), location)
+                        Self::binary(state.clone(), Instruction::Add(zinc_types::Add), location)
                     }
                     Operator::Subtraction { .. } => {
-                        Self::binary(state.clone(), Instruction::Sub(zinc_build::Sub), location)
+                        Self::binary(state.clone(), Instruction::Sub(zinc_types::Sub), location)
                     }
                     Operator::Multiplication { .. } => {
-                        Self::binary(state.clone(), Instruction::Mul(zinc_build::Mul), location)
+                        Self::binary(state.clone(), Instruction::Mul(zinc_types::Mul), location)
                     }
                     Operator::Division { .. } => {
-                        Self::binary(state.clone(), Instruction::Div(zinc_build::Div), location)
+                        Self::binary(state.clone(), Instruction::Div(zinc_types::Div), location)
                     }
                     Operator::Remainder { .. } => {
-                        Self::binary(state.clone(), Instruction::Rem(zinc_build::Rem), location)
+                        Self::binary(state.clone(), Instruction::Rem(zinc_types::Rem), location)
                     }
 
                     Operator::Casting { r#type } => {
                         if let Some(scalar_type) = r#type.into() {
                             Self::unary(
                                 state.clone(),
-                                Instruction::Cast(zinc_build::Cast::new(scalar_type)),
+                                Instruction::Cast(zinc_types::Cast::new(scalar_type)),
                                 location,
                             )
                         }
                     }
 
                     Operator::Not => {
-                        Self::unary(state.clone(), Instruction::Not(zinc_build::Not), location)
+                        Self::unary(state.clone(), Instruction::Not(zinc_types::Not), location)
                     }
                     Operator::BitwiseNot => Self::unary(
                         state.clone(),
-                        Instruction::BitwiseNot(zinc_build::BitwiseNot),
+                        Instruction::BitwiseNot(zinc_types::BitwiseNot),
                         location,
                     ),
                     Operator::Negation => {
-                        Self::unary(state.clone(), Instruction::Neg(zinc_build::Neg), location)
+                        Self::unary(state.clone(), Instruction::Neg(zinc_types::Neg), location)
                     }
 
                     Operator::Index { expression, access } => {
@@ -754,8 +754,8 @@ impl IBytecodeWritable for Expression {
                         } else {
                             expression.write_all(state.clone());
                             state.borrow_mut().push_instruction(
-                                Instruction::Cast(zinc_build::Cast::new(
-                                    zinc_build::ScalarType::Field,
+                                Instruction::Cast(zinc_types::Cast::new(
+                                    zinc_types::ScalarType::Field,
                                 )),
                                 Some(location),
                             );
@@ -767,13 +767,13 @@ impl IBytecodeWritable for Expression {
                                 )
                                 .write_all(state.clone());
                                 state.borrow_mut().push_instruction(
-                                    Instruction::Mul(zinc_build::Mul),
+                                    Instruction::Mul(zinc_types::Mul),
                                     Some(location),
                                 );
                             }
                         }
                         state.borrow_mut().push_instruction(
-                            Instruction::Slice(zinc_build::Slice::new(
+                            Instruction::Slice(zinc_types::Slice::new(
                                 access.element_size * access.slice_length,
                                 access.total_size,
                             )),
@@ -788,7 +788,7 @@ impl IBytecodeWritable for Expression {
                         )
                         .write_all(state.clone());
                         state.borrow_mut().push_instruction(
-                            Instruction::Slice(zinc_build::Slice::new(
+                            Instruction::Slice(zinc_types::Slice::new(
                                 access.element_size,
                                 access.total_size,
                             )),

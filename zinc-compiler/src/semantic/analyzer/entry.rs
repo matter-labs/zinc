@@ -36,10 +36,6 @@ impl Analyzer {
             let main_function_location = scope.borrow().get_main_location();
             let contract_location = scope.borrow().get_contract_location();
 
-            if main_function_location.is_none() && contract_location.is_none() {
-                return Err(Error::EntryPointMissing);
-            }
-
             if let (Some(main_location), Some(contract_location)) =
                 (main_function_location, contract_location)
             {

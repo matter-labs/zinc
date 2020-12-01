@@ -83,14 +83,15 @@ impl File {
     /// Checks whether the file is the entry point.
     ///
     pub fn is_entry(&self) -> bool {
-        self.is_application_entry() || self.is_module_entry()
+        self.is_project_entry() || self.is_module_entry()
     }
 
     ///
-    /// Checks whether the file is the application entry point.
+    /// Checks whether the file is the project entry point.
     ///
-    pub fn is_application_entry(&self) -> bool {
+    pub fn is_project_entry(&self) -> bool {
         self.name.as_str() == zinc_const::file_name::APPLICATION_ENTRY
+            || self.name.as_str() == zinc_const::file_name::LIBRARY_ENTRY
     }
 
     ///

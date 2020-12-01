@@ -40,4 +40,4 @@ zinc-manifest = { path = "../zinc-manifest" }
 zinc-const = { path = "../zinc-const" }
 zinc-math = { path = "../zinc-math" }
 zinc-source = { path = "../zinc-source" }
-zinc-zksync = { path = "../zinc-zksync" }
+zinc-types = { path = "../zinc-types" }

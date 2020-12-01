@@ -4,7 +4,7 @@
 
 use num::bigint::ToBigInt;
 
-use zinc_build::Lt;
+use zinc_types::Lt;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -38,33 +38,33 @@ mod test {
     #[test]
     fn simple() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(2),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::one(),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Lt)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Lt)
+            .push(zinc_types::Push::new(
                 BigInt::from(2),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(2),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Lt)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Lt)
+            .push(zinc_types::Push::new(
                 BigInt::one(),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(2),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Lt)
+            .push(zinc_types::Lt)
             .test(&[1, 0, 0])
     }
 
@@ -75,33 +75,33 @@ mod test {
         let max = gadgets::scalar::fr_bigint::fr_to_bigint::<Bn256>(&max_fr, false);
 
         TestRunner::new()
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 max.clone(),
-                zinc_build::ScalarType::Field,
+                zinc_types::ScalarType::Field,
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::zero(),
-                zinc_build::ScalarType::Field,
+                zinc_types::ScalarType::Field,
             ))
-            .push(zinc_build::Lt)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Lt)
+            .push(zinc_types::Push::new(
                 BigInt::zero(),
-                zinc_build::ScalarType::Field,
+                zinc_types::ScalarType::Field,
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 max.clone(),
-                zinc_build::ScalarType::Field,
+                zinc_types::ScalarType::Field,
             ))
-            .push(zinc_build::Lt)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Lt)
+            .push(zinc_types::Push::new(
                 BigInt::one(),
-                zinc_build::ScalarType::Field,
+                zinc_types::ScalarType::Field,
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 max.clone(),
-                zinc_build::ScalarType::Field,
+                zinc_types::ScalarType::Field,
             ))
-            .push(zinc_build::Lt)
+            .push(zinc_types::Lt)
             .test(&[1, 1, 0])
     }
 }

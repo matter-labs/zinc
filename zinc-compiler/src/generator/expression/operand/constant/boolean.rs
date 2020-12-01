@@ -9,8 +9,8 @@ use num::BigInt;
 use num::One;
 use num::Zero;
 
-use zinc_build::Instruction;
-use zinc_build::Push;
+use zinc_types::Instruction;
+use zinc_types::Push;
 
 use crate::generator::state::State;
 use crate::generator::IBytecodeWritable;
@@ -50,7 +50,7 @@ impl IBytecodeWritable for Boolean {
         };
 
         state.borrow_mut().push_instruction(
-            Instruction::Push(Push::new(value, zinc_build::ScalarType::Boolean)),
+            Instruction::Push(Push::new(value, zinc_types::ScalarType::Boolean)),
             None,
         );
     }

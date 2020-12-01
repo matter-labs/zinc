@@ -5,7 +5,7 @@
 use num::bigint::ToBigInt;
 use num::Zero;
 
-use zinc_build::Not;
+use zinc_types::Not;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -33,16 +33,16 @@ mod test {
     #[test]
     fn test_not() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::zero(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Not)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Not)
+            .push(zinc_types::Push::new(
                 BigInt::one(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Not)
+            .push(zinc_types::Not)
             .test(&[0, 1])
     }
 }

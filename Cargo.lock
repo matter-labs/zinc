@@ -113,7 +113,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a60f9ba7c4e6df97f3aacb14bb5c0cd7d98a49dcbaed0d7f292912ad9a6a3ed2"
 dependencies = [
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -237,9 +237,9 @@ dependencies = [
 
 [[package]]
 name = "actix-web"
-version = "3.3.0"
+version = "3.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a89a7b133e734f6d1e555502d450408ae04105826aef7e3605019747d3ac732"
+checksum = "7d6d0a6ae7ff7290372b3f636b9fc38b76dfbfc395187ce21e5b95471f7ccab9"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -282,7 +282,7 @@ checksum = "ad26f77093333e0e7c6ffe54ebe3582d908a104e448723eec6d43d08b07143fb"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -440,9 +440,9 @@ dependencies = [
 
 [[package]]
 name = "async-io"
-version = "1.2.0"
+version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40a0b2bb8ae20fede194e779150fe283f65a4a08461b496de546ec366b174ad9"
+checksum = "9315f8f07556761c3e48fec2e6b276004acf426e6dc068b2c2251854d65ee0fd"
 dependencies = [
  "concurrent-queue",
  "fastrand",
@@ -487,7 +487,7 @@ checksum = "e5444eec77a9ec2bfe4524139e09195862e981400c4358d3b760cae634e4c4ee"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -531,7 +531,7 @@ checksum = "8d3a45e77e34375a7923b1e8febb049bb011f064714a8e17a1a616fef01da13d"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -574,9 +574,9 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
 name = "awc"
-version = "2.0.2"
+version = "2.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9056f5e27b0d56bedd82f78eceaba0bcddcbbcbbefae3cd0a53994b28c96ff5"
+checksum = "b381e490e7b0cfc37ebc54079b0413d8093ef43d14a4e4747083f7fa47a9e691"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -1215,7 +1215,7 @@ checksum = "41cb0e6161ad61ed084a36ba71fbba9e3ac5aee3606fb607fe08da6acbcf3d8c"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -1281,7 +1281,7 @@ dependencies = [
  "heck",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -1408,7 +1408,7 @@ dependencies = [
  "num-traits",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -1628,7 +1628,7 @@ dependencies = [
  "proc-macro-hack",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -2005,9 +2005,9 @@ checksum = "dc6f3ad7b9d11a0c00842ff8de1b60ee58661048eb8049ed33c73594f359d7e6"
 
 [[package]]
 name = "js-sys"
-version = "0.3.45"
+version = "0.3.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca059e81d9486668f12d455a4ea6daa600bd408134cd17e3d3fb5a32d1f016f8"
+checksum = "cf3d7383929f7c9c7c2d0fa596f325832df98c3704f2c60553080f7127a58175"
 dependencies = [
  "wasm-bindgen",
 ]
@@ -2649,7 +2649,7 @@ checksum = "65ad2ae56b6abe3a1ee25f15ee605bacadb9a764edaba9c2bf4103800d4a1895"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -2660,7 +2660,7 @@ checksum = "f8e8d2bf0b23038a4424865103a4df472855692821aab4e4f5c3312d461d9e5f"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -2728,7 +2728,7 @@ dependencies = [
  "proc-macro-error-attr",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
  "version_check",
 ]
 
@@ -3283,7 +3283,7 @@ checksum = "cbd1ae72adb44aab48f325a02444a5fc079349a8d804c1fc922aed3f7454c74e"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -3484,7 +3484,7 @@ dependencies = [
  "serde_json",
  "sqlx-core",
  "sqlx-rt",
- "syn 1.0.52",
+ "syn 1.0.53",
  "url",
 ]
 
@@ -3538,7 +3538,7 @@ dependencies = [
  "quote 1.0.7",
  "serde",
  "serde_derive",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -3554,7 +3554,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "sha1",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -3590,9 +3590,9 @@ checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
 name = "structopt"
-version = "0.3.20"
+version = "0.3.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "126d630294ec449fae0b16f964e35bf3c74f940da9dca17ee9b905f7b3112eb8"
+checksum = "5277acd7ee46e63e5168a80734c9f6ee81b1367a7d8772a2d765df2a3705d28c"
 dependencies = [
  "clap",
  "lazy_static",
@@ -3601,15 +3601,15 @@ dependencies = [
 
 [[package]]
 name = "structopt-derive"
-version = "0.4.13"
+version = "0.4.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65e51c492f9e23a220534971ff5afc14037289de430e3c83f9daf6a1b6ae91e8"
+checksum = "5ba9cdfda491b814720b6b06e0cac513d922fc407582032e8706e9f137976f90"
 dependencies = [
  "heck",
  "proc-macro-error",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -3637,9 +3637,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.52"
+version = "1.0.53"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c1e438504729046a5cfae47f97c30d6d083c7d91d94603efdae3477fc070d4c"
+checksum = "8833e20724c24de12bbaba5ad230ea61c3eafb05b881c7c9d3cfe8638b187e68"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
@@ -3701,7 +3701,7 @@ checksum = "9ba20f23e85b10754cd195504aebf6a27e2e6cbe28c17778a0c930724628dd56"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -3768,7 +3768,7 @@ dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
  "standback",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -3835,7 +3835,7 @@ checksum = "e44da00bfc73a25f814cd8d7e57a68a5c31b74b3152a0a1d1f590c97ed06265a"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
 ]
 
 [[package]]
@@ -4101,11 +4101,11 @@ checksum = "1a143597ca7c7793eff794def352d41792a93c481eb1042423ff7ff72ba2c31f"
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.68"
+version = "0.2.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ac64ead5ea5f05873d7c12b545865ca2b8d28adfc50a49b84770a3a97265d42"
+checksum = "3cd364751395ca0f68cafb17666eee36b63077fb5ecd972bbcd74c90c4bf736e"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "serde",
  "serde_json",
  "wasm-bindgen-macro",
@@ -4113,26 +4113,26 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-backend"
-version = "0.2.68"
+version = "0.2.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f22b422e2a757c35a73774860af8e112bff612ce6cb604224e8e47641a9e4f68"
+checksum = "1114f89ab1f4106e5b55e688b828c0ab0ea593a1ea7c094b141b14cbaaec2d62"
 dependencies = [
  "bumpalo",
  "lazy_static",
  "log",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
  "wasm-bindgen-shared",
 ]
 
 [[package]]
 name = "wasm-bindgen-futures"
-version = "0.4.18"
+version = "0.4.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7866cab0aa01de1edf8b5d7936938a7e397ee50ce24119aef3e1eaa3b6171da"
+checksum = "1fe9756085a84584ee9457a002b7cdfe0bfff169f45d2591d8be1345a6780e35"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "js-sys",
  "wasm-bindgen",
  "web-sys",
@@ -4140,9 +4140,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.68"
+version = "0.2.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b13312a745c08c469f0b292dd2fcd6411dba5f7160f593da6ef69b64e407038"
+checksum = "7a6ac8995ead1f084a8dea1e65f194d0973800c7f571f6edd70adf06ecf77084"
 dependencies = [
  "quote 1.0.7",
  "wasm-bindgen-macro-support",
@@ -4150,28 +4150,28 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.68"
+version = "0.2.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f249f06ef7ee334cc3b8ff031bfc11ec99d00f34d86da7498396dc1e3b1498fe"
+checksum = "b5a48c72f299d80557c7c62e37e7225369ecc0c963964059509fbafe917c7549"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.52",
+ "syn 1.0.53",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.68"
+version = "0.2.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d649a3145108d7d3fbcde896a468d1bd636791823c9921135218ad89be08307"
+checksum = "7e7811dd7f9398f14cc76efd356f98f03aa30419dea46aa810d71e819fc97158"
 
 [[package]]
 name = "wasm-bindgen-test"
-version = "0.3.18"
+version = "0.3.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34d1cdc8b98a557f24733d50a1199c4b0635e465eecba9c45b214544da197f64"
+checksum = "0355fa0c1f9b792a09b6dcb6a8be24d51e71e6d74972f9eb4a44c4c004d24a25"
 dependencies = [
  "console_error_panic_hook",
  "js-sys",
@@ -4183,9 +4183,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-test-macro"
-version = "0.3.18"
+version = "0.3.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8fb9c67be7439ee8ab1b7db502a49c05e51e2835b66796c705134d9b8e1a585"
+checksum = "27e07b46b98024c2ba2f9e83a10c2ef0515f057f2da299c1762a2017de80438b"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
@@ -4193,9 +4193,9 @@ dependencies = [
 
 [[package]]
 name = "web-sys"
-version = "0.3.45"
+version = "0.3.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4bf6ef87ad7ae8008e15a355ce696bed26012b7caa21605188cfd8214ab51e2d"
+checksum = "222b1ef9334f92a21d3fb53dc3fd80f30836959a90f9274a626d7e06315ba3c3"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -4338,7 +4338,6 @@ dependencies = [
  "actix-rt",
  "actix-web",
  "anyhow",
- "async-std",
  "colored",
  "futures 0.3.8",
  "log",
@@ -4353,13 +4352,12 @@ dependencies = [
  "structopt",
  "thiserror",
  "tokio",
- "zinc-build",
  "zinc-const",
  "zinc-logger",
  "zinc-math",
  "zinc-source",
+ "zinc-types",
  "zinc-vm",
- "zinc-zksync",
  "zksync",
  "zksync_eth_signer",
  "zksync_types",
@@ -4391,7 +4389,7 @@ dependencies = [
  "zinc-manifest",
  "zinc-math",
  "zinc-source",
- "zinc-zksync",
+ "zinc-types",
  "zksync",
  "zksync_eth_signer",
  "zksync_types",
@@ -4402,22 +4400,6 @@ name = "zeroize"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05f33972566adbd2d3588b0491eb94b98b43695c4ef897903470ede4f3f5a28a"
-
-[[package]]
-name = "zinc-build"
-version = "0.2.1"
-dependencies = [
- "anyhow",
- "bincode",
- "log",
- "num 0.3.1",
- "serde",
- "serde_json",
- "thiserror",
- "zinc-const",
- "zinc-lexical",
- "zinc-math",
-]
 
 [[package]]
 name = "zinc-compiler"
@@ -4434,7 +4416,6 @@ dependencies = [
  "serde_json",
  "structopt",
  "thiserror",
- "zinc-build",
  "zinc-const",
  "zinc-lexical",
  "zinc-logger",
@@ -4442,6 +4423,7 @@ dependencies = [
  "zinc-math",
  "zinc-source",
  "zinc-syntax",
+ "zinc-types",
 ]
 
 [[package]]
@@ -4522,12 +4504,35 @@ dependencies = [
  "serde_json",
  "structopt",
  "thiserror",
- "zinc-build",
  "zinc-compiler",
  "zinc-const",
  "zinc-manifest",
+ "zinc-types",
  "zinc-vm",
- "zinc-zksync",
+]
+
+[[package]]
+name = "zinc-types"
+version = "0.2.1"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "log",
+ "num 0.2.1",
+ "num 0.3.1",
+ "rustc-hex",
+ "semver 0.11.0",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "zinc-const",
+ "zinc-lexical",
+ "zinc-manifest",
+ "zinc-math",
+ "zinc-source",
+ "zksync",
+ "zksync_eth_signer",
+ "zksync_types",
 ]
 
 [[package]]
@@ -4547,40 +4552,18 @@ dependencies = [
  "sqlx",
  "structopt",
  "thiserror",
- "zinc-build",
  "zinc-const",
  "zinc-logger",
  "zinc-math",
- "zinc-zksync",
+ "zinc-types",
  "zksync",
- "zksync_types",
-]
-
-[[package]]
-name = "zinc-zksync"
-version = "0.2.1"
-dependencies = [
- "num 0.2.1",
- "num 0.3.1",
- "rustc-hex",
- "semver 0.11.0",
- "serde",
- "serde_json",
- "thiserror",
- "zinc-build",
- "zinc-const",
- "zinc-manifest",
- "zinc-math",
- "zinc-source",
- "zksync",
- "zksync_eth_signer",
  "zksync_types",
 ]
 
 [[package]]
 name = "zksync"
 version = "0.1.1"
-source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7a61e24cab6899f60dc73057fc03e14e732cb627"
+source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7db99f3fe86e9881668c53fdc3a0695a40eed43b"
 dependencies = [
  "ethabi",
  "jsonrpc-core",
@@ -4602,7 +4585,7 @@ dependencies = [
 [[package]]
 name = "zksync_basic_types"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7a61e24cab6899f60dc73057fc03e14e732cb627"
+source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7db99f3fe86e9881668c53fdc3a0695a40eed43b"
 dependencies = [
  "web3",
 ]
@@ -4610,7 +4593,7 @@ dependencies = [
 [[package]]
 name = "zksync_crypto"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7a61e24cab6899f60dc73057fc03e14e732cb627"
+source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7db99f3fe86e9881668c53fdc3a0695a40eed43b"
 dependencies = [
  "anyhow",
  "fnv",
@@ -4627,7 +4610,7 @@ dependencies = [
 [[package]]
 name = "zksync_eth_client"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7a61e24cab6899f60dc73057fc03e14e732cb627"
+source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7db99f3fe86e9881668c53fdc3a0695a40eed43b"
 dependencies = [
  "anyhow",
  "ethabi",
@@ -4642,7 +4625,7 @@ dependencies = [
 [[package]]
 name = "zksync_eth_signer"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7a61e24cab6899f60dc73057fc03e14e732cb627"
+source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7db99f3fe86e9881668c53fdc3a0695a40eed43b"
 dependencies = [
  "async-trait",
  "hex 0.4.2",
@@ -4660,7 +4643,7 @@ dependencies = [
 [[package]]
 name = "zksync_types"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7a61e24cab6899f60dc73057fc03e14e732cb627"
+source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7db99f3fe86e9881668c53fdc3a0695a40eed43b"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4679,7 +4662,7 @@ dependencies = [
 [[package]]
 name = "zksync_utils"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7a61e24cab6899f60dc73057fc03e14e732cb627"
+source = "git+ssh://git@github.com/matter-labs/zksync-dev?branch=dev#7db99f3fe86e9881668c53fdc3a0695a40eed43b"
 dependencies = [
  "anyhow",
  "bigdecimal",

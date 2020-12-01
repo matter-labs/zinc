@@ -12,6 +12,7 @@ use structopt::StructOpt;
 use crate::error::Error;
 use crate::project::src::circuit::Circuit as CircuitFile;
 use crate::project::src::contract::Contract as ContractFile;
+use crate::project::src::library::Library as LibraryFile;
 use crate::project::src::Directory as SourceDirectory;
 
 ///
@@ -73,6 +74,11 @@ impl Command {
             zinc_manifest::ProjectType::Contract => {
                 if !ContractFile::exists_at(&self.path) {
                     ContractFile::new(&project_name).write_to(&self.path)?;
+                }
+            }
+            zinc_manifest::ProjectType::Library => {
+                if !LibraryFile::exists_at(&self.path) {
+                    LibraryFile::new(&project_name).write_to(&self.path)?;
                 }
             }
         }

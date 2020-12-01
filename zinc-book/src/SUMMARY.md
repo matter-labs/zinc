@@ -42,6 +42,7 @@
     - [Storage and methods](07-smart-contracts/01-storage-and-methods.md)
     - [Minimal example](07-smart-contracts/02-minimal-example.md)
     - [The Curve](07-smart-contracts/03-curve-implementation.md)
+    - [Troubleshooting](07-smart-contracts/04-troubleshooting.md)
 - [Zero-knowledge circuits](08-circuits/00-overview.md)
     - [Input and output](08-circuits/01-input-output.md)
     - [Minimal example](08-circuits/02-minimal-example.md)

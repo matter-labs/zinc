@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use petgraph::algo::DfsSpace;
 use petgraph::graph::Graph;
 
-use zinc_build::Instruction;
+use zinc_types::Instruction;
 
 ///
 /// The dead function code elimination optimization.
@@ -55,7 +55,7 @@ impl Optimizer {
 
             for address in *start_address..instructions.len() {
                 match instructions.get(address) {
-                    Some(Instruction::Call(zinc_build::Call {
+                    Some(Instruction::Call(zinc_types::Call {
                         address: callee_id, ..
                     })) => {
                         let callee_node = function_node_map
@@ -99,7 +99,7 @@ impl Optimizer {
                 for address in *start_address..instructions.len() {
                     let is_end = matches!(instructions.get(address), Some(Instruction::Return(_)));
 
-                    instructions[address] = Instruction::NoOperation(zinc_build::NoOperation);
+                    instructions[address] = Instruction::NoOperation(zinc_types::NoOperation);
                     removed_count += 1;
 
                     if is_end {
@@ -134,7 +134,7 @@ impl Optimizer {
         function_addresses: &HashMap<usize, usize>,
     ) {
         for instruction in instructions.iter_mut() {
-            if let Instruction::Call(zinc_build::Call {
+            if let Instruction::Call(zinc_types::Call {
                 address: ref mut type_id,
                 ..
             }) = instruction

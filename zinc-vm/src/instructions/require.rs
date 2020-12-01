@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::Require;
+use zinc_types::Require;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::Error;
@@ -42,22 +42,22 @@ mod tests {
     #[test]
     fn test_require_ok() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::one(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Require::new(None))
+            .push(zinc_types::Require::new(None))
             .test::<i32>(&[])
     }
 
     #[test]
     fn test_require_fail() {
         let res = TestRunner::new()
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::zero(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Require::new(None))
+            .push(zinc_types::Require::new(None))
             .test::<i32>(&[]);
 
         match res {
@@ -69,17 +69,17 @@ mod tests {
     #[test]
     fn test_require_in_condition() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::zero(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::If)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::If)
+            .push(zinc_types::Push::new(
                 BigInt::zero(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Require::new(None))
-            .push(zinc_build::EndIf)
+            .push(zinc_types::Require::new(None))
+            .push(zinc_types::EndIf)
             .test::<i32>(&[])
     }
 }

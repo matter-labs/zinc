@@ -1,0 +1,28 @@
+{
+  "type": "contract",
+  "storage": [
+    "0x0",
+    [],
+    "0",
+    "0",
+    "0"
+  ],
+  "msg": {
+    "sender": "0x0000000000000000000000000000000000000000",
+    "recipient": "0x0000000000000000000000000000000000000000",
+    "token_address": "0x0000000000000000000000000000000000000000",
+    "amount": "0"
+  },
+  "arguments": {
+    "double": {},
+    "sum_with_dependencies": {
+      "middleware_x": "0",
+      "middleware_y": "0",
+      "middleware_z": "0",
+      "inner_x": "0",
+      "inner_y": "0",
+      "inner_z": "0"
+    },
+    "sum": {}
+  }
+}

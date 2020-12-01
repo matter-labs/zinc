@@ -19,7 +19,7 @@ use crate::IEngine;
 pub struct Synthesizer<'a, E: IEngine> {
     pub inputs: Option<Vec<BigInt>>,
     pub output: &'a mut Option<Result<Vec<Option<BigInt>>, Error>>,
-    pub bytecode: zinc_build::Circuit,
+    pub bytecode: zinc_types::Circuit,
 
     pub _pd: PhantomData<E>,
 }

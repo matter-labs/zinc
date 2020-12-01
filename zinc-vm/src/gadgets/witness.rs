@@ -16,7 +16,7 @@ use crate::IEngine;
 pub fn allocate<E, CS>(
     mut cs: CS,
     value: Option<&BigInt>,
-    scalar_type: zinc_build::ScalarType,
+    scalar_type: zinc_types::ScalarType,
 ) -> Result<Scalar<E>, Error>
 where
     E: IEngine,
@@ -37,14 +37,14 @@ where
     let scalar = Scalar::new_unchecked_variable(fr, variable, scalar_type.clone());
 
     match scalar_type {
-        zinc_build::ScalarType::Field => {
+        zinc_types::ScalarType::Field => {
             // Create some constraints to avoid unconstrained variable errors.
-            let one = Scalar::new_constant_fr(E::Fr::one(), zinc_build::ScalarType::Field);
+            let one = Scalar::new_constant_fr(E::Fr::one(), zinc_types::ScalarType::Field);
             gadgets::arithmetic::add::add(cs.namespace(|| "dummy constraint"), &scalar, &one)?;
             Ok(scalar)
         }
         scalar_type => {
-            let condition = Scalar::new_constant_fr(E::Fr::one(), zinc_build::ScalarType::Boolean);
+            let condition = Scalar::new_constant_fr(E::Fr::one(), zinc_types::ScalarType::Boolean);
             Scalar::conditional_type_check(
                 cs.namespace(|| "type check"),
                 &condition,

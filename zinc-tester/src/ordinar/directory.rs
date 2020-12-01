@@ -13,7 +13,6 @@ use colored::Colorize;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
-use crate::error::Error;
 use crate::summary::Summary;
 
 ///
@@ -71,105 +70,36 @@ impl Directory {
                     return Ok(());
                 }
 
-                let mut datasets_directory_path = project_path.clone();
-                datasets_directory_path.push(zinc_const::directory::DATASETS);
-                if datasets_directory_path.exists() {
-                    let mut original_input_template_file = project_path.clone();
-                    original_input_template_file.push(zinc_const::directory::DATA);
-                    original_input_template_file.push(format!(
-                        "{}.{}",
-                        zinc_const::file_name::INPUT,
-                        zinc_const::extension::JSON
-                    ));
-
-                    for entry in fs::read_dir(datasets_directory_path)?.into_iter() {
-                        let entry = entry?;
-                        let path = entry.path();
-
-                        let entry_type = entry
-                            .file_type()
-                            .with_context(|| path.to_string_lossy().to_string())?;
-                        if !entry_type.is_file() {
-                            return Err(Error::InvalidFileType(entry_type))
-                                .with_context(|| path.to_string_lossy().to_string());
-                        }
-                        let file_extension = path
-                            .extension()
-                            .ok_or(Error::GettingFileExtension)
-                            .with_context(|| path.to_string_lossy().to_string())?;
-                        if file_extension != zinc_const::extension::JSON {
-                            return Err(Error::InvalidFileExtension(
-                                file_extension.to_string_lossy().to_string(),
-                            ))
-                            .with_context(|| path.to_string_lossy().to_string());
-                        }
-
-                        fs::copy(&path, &original_input_template_file)
-                            .with_context(|| path.to_string_lossy().to_string())?;
-
-                        let output = process::Command::new(zinc_const::app_name::ZARGO)
-                            .arg("test")
-                            .arg("--manifest-path")
-                            .arg(&project_path)
-                            .output()
-                            .with_context(|| project_path.to_string_lossy().to_string())?;
-                        print!("{}", String::from_utf8_lossy(output.stdout.as_slice()));
-                        if !output.status.success() {
-                            print!("{}", String::from_utf8_lossy(output.stderr.as_slice()));
-                            println!(
-                                "[INTEGRATION] {} {} (unit test failure)",
-                                "FAILED".bright_red(),
-                                path.to_string_lossy(),
-                            );
-                            summary
-                                .lock()
-                                .expect(zinc_const::panic::SYNCHRONIZATION)
-                                .failed += 1;
-                            continue;
-                        }
-
-                        println!(
-                            "[INTEGRATION] {} {}",
-                            "PASSED".green(),
-                            path.to_string_lossy(),
-                        );
-                        summary
-                            .lock()
-                            .expect(zinc_const::panic::SYNCHRONIZATION)
-                            .passed += 1;
-                    }
-                } else {
-                    let output = process::Command::new(zinc_const::app_name::ZARGO)
-                        .arg("test")
-                        .arg("--manifest-path")
-                        .arg(&project_path)
-                        .output()
-                        .with_context(|| project_path.to_string_lossy().to_string())?;
-                    print!("{}", String::from_utf8_lossy(output.stdout.as_slice()));
-                    if !output.status.success() {
-                        print!("{}", String::from_utf8_lossy(output.stderr.as_slice()));
-                        println!(
-                            "[INTEGRATION] {} {} (unit test failure)",
-                            "FAILED".bright_red(),
-                            project_path.to_string_lossy(),
-                        );
-                        summary
-                            .lock()
-                            .expect(zinc_const::panic::SYNCHRONIZATION)
-                            .failed += 1;
-                        return Ok(());
-                    }
-
+                let output = process::Command::new(zinc_const::app_name::ZARGO)
+                    .arg("test")
+                    .arg("--manifest-path")
+                    .arg(&project_path)
+                    .output()
+                    .with_context(|| project_path.to_string_lossy().to_string())?;
+                print!("{}", String::from_utf8_lossy(output.stdout.as_slice()));
+                if !output.status.success() {
+                    print!("{}", String::from_utf8_lossy(output.stderr.as_slice()));
                     println!(
-                        "[INTEGRATION] {} {}",
-                        "PASSED".green(),
+                        "[INTEGRATION] {} {} (unit test failure)",
+                        "FAILED".bright_red(),
                         project_path.to_string_lossy(),
                     );
                     summary
                         .lock()
                         .expect(zinc_const::panic::SYNCHRONIZATION)
-                        .passed += 1;
+                        .failed += 1;
+                    return Ok(());
                 }
+
+                println!(
+                    "[INTEGRATION] {} {}",
+                    "PASSED".green(),
+                    project_path.to_string_lossy(),
+                );
+                summary
+                    .lock()
+                    .expect(zinc_const::panic::SYNCHRONIZATION)
+                    .passed += 1;
 
                 Ok(())
             })

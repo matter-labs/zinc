@@ -23,6 +23,14 @@
 - fixed circuit unit tests
 - replaced the `Exit` instruction with `Return`
 
+#### Book
+
+- added the smart contract troubleshooting chapter
+
+#### Source code
+
+- merged `zinc_build` and `zinc_zksync` into `zinc_types`
+
 ## Version 0.2.0 (2020-10-28)
 
 #### Language
@@ -86,8 +94,8 @@
     - `zinc_math`
     - `zinc_manifest`
     - `zinc_source`
-    - `zinc_build`
-    - `zinc_zksync`
+    - `zinc_types`
+    - `zinc_types`
 
 #### Overall
 

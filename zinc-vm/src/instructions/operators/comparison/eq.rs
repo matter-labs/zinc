@@ -4,7 +4,7 @@
 
 use num::bigint::ToBigInt;
 
-use zinc_build::Eq;
+use zinc_types::Eq;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -32,15 +32,15 @@ mod test {
     #[test]
     fn test_eq() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new_field(BigInt::one()))
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Eq)
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Eq)
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Push::new_field(BigInt::one()))
-            .push(zinc_build::Eq)
+            .push(zinc_types::Push::new_field(BigInt::one()))
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Eq)
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Eq)
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Push::new_field(BigInt::one()))
+            .push(zinc_types::Eq)
             .test(&[0, 1, 0])
     }
 }

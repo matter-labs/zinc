@@ -2,7 +2,7 @@
 //! The `StorageFetch` instruction.
 //!
 
-use zinc_build::StorageFetch;
+use zinc_types::StorageFetch;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::Error;

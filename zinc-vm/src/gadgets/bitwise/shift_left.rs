@@ -73,7 +73,7 @@ where
         )?;
         variants.push(variant.into());
     }
-    variants.push(Scalar::new_constant_usize(0, zinc_build::ScalarType::Field)); // offset `len` will clear all bits.
+    variants.push(Scalar::new_constant_usize(0, zinc_types::ScalarType::Field)); // offset `len` will clear all bits.
 
     let shift_bits_be = shift
         .to_expression::<CS>()

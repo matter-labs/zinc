@@ -4,7 +4,7 @@
 
 use num::bigint::ToBigInt;
 
-use zinc_build::Ne;
+use zinc_types::Ne;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -32,15 +32,15 @@ mod test {
     #[test]
     fn test_ne() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new_field(BigInt::one()))
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Ne)
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Ne)
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Push::new_field(BigInt::one()))
-            .push(zinc_build::Ne)
+            .push(zinc_types::Push::new_field(BigInt::one()))
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Ne)
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Ne)
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Push::new_field(BigInt::one()))
+            .push(zinc_types::Ne)
             .test(&[1, 0, 1])
     }
 }

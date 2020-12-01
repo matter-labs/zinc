@@ -24,4 +24,7 @@ pub enum Error {
     /// The method could not be found in the test application.
     #[error("method `{0}` not found")]
     MethodNotFound(String),
+    /// The library cannot be run as a standalone application.
+    #[error("libraries cannot be run as they have no entry points")]
+    CannotRunLibrary,
 }

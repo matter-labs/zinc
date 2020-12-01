@@ -23,15 +23,15 @@ use crate::error::Error;
 use crate::IEngine;
 
 pub struct Facade {
-    inner: zinc_build::Circuit,
+    inner: zinc_types::Circuit,
 }
 
 impl Facade {
-    pub fn new(inner: zinc_build::Circuit) -> Self {
+    pub fn new(inner: zinc_types::Circuit) -> Self {
         Self { inner }
     }
 
-    pub fn run<E: IEngine>(self, input: zinc_build::Value) -> Result<CircuitOutput, Error> {
+    pub fn run<E: IEngine>(self, input: zinc_types::Value) -> Result<CircuitOutput, Error> {
         let cs = MainCS::<Bn256>::new();
 
         let inputs_flat = input.into_flat_values();
@@ -63,7 +63,7 @@ impl Facade {
         }
 
         let output_flat: Vec<BigInt> = result.into_iter().filter_map(|value| value).collect();
-        let output_value = zinc_build::Value::from_flat_values(output_type, &output_flat);
+        let output_value = zinc_types::Value::from_flat_values(output_type, &output_flat);
 
         Ok(CircuitOutput::new(output_value))
     }
@@ -130,8 +130,8 @@ impl Facade {
     pub fn prove<E: IEngine>(
         self,
         params: Parameters<E>,
-        input: zinc_build::Value,
-    ) -> Result<(zinc_build::Value, Proof<E>), Error> {
+        input: zinc_types::Value,
+    ) -> Result<(zinc_types::Value, Proof<E>), Error> {
         let mut result = None;
         let rng = &mut rand::thread_rng();
 
@@ -158,7 +158,7 @@ impl Facade {
                     let output_flat: Vec<BigInt> =
                         result.into_iter().filter_map(|value| value).collect();
                     let output_value =
-                        zinc_build::Value::from_flat_values(output_type, &output_flat);
+                        zinc_types::Value::from_flat_values(output_type, &output_flat);
 
                     Ok((output_value, proof))
                 }

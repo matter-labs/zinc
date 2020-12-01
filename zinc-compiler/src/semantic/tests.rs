@@ -76,21 +76,6 @@ pub(crate) fn compile_module_with_modules(
 }
 
 #[test]
-fn error_entry_point_missing() {
-    let code = r#"
-fn another() -> u8 {
-    42
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::EntryPointMissing));
-
-    let result = crate::semantic::tests::compile_entry(code);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
 fn error_entry_point_ambiguous() {
     let code = r#"
 fn main() -> u8 {

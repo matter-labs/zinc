@@ -126,7 +126,7 @@ impl Source {
     ///
     pub fn is_application_entry(&self) -> bool {
         match self {
-            Self::File(file) => file.is_application_entry(),
+            Self::File(file) => file.is_project_entry(),
             Self::Directory(_directory) => false,
         }
     }

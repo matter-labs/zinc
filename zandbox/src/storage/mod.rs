@@ -12,20 +12,20 @@ use crate::database::model;
 #[derive(Debug, Clone)]
 pub struct Storage {
     /// The contract storage fields.
-    pub fields: Vec<zinc_build::ContractFieldValue>,
+    pub fields: Vec<zinc_types::ContractFieldValue>,
 }
 
 impl Storage {
     ///
     /// Populates the storage with the default data.
     ///
-    pub fn new(types: &[zinc_build::ContractFieldType]) -> Self {
+    pub fn new(types: &[zinc_types::ContractFieldType]) -> Self {
         let mut fields = Vec::with_capacity(types.len());
 
         for r#type in types.iter() {
-            fields.push(zinc_build::ContractFieldValue::new(
+            fields.push(zinc_types::ContractFieldValue::new(
                 r#type.name.to_owned(),
-                zinc_build::Value::new(r#type.r#type.to_owned()),
+                zinc_types::Value::new(r#type.r#type.to_owned()),
                 r#type.is_public,
                 r#type.is_implicit,
             ));
@@ -42,15 +42,15 @@ impl Storage {
     ///
     pub async fn new_with_data(
         database_fields: Vec<model::field::select::Output>,
-        types: &[zinc_build::ContractFieldType],
+        types: &[zinc_types::ContractFieldType],
         address: zksync_types::Address,
         wallet: &zksync::Wallet<zksync_eth_signer::PrivateKeySigner>,
     ) -> Result<Self, zksync::error::ClientError> {
         let mut fields = Vec::with_capacity(database_fields.len());
 
-        fields.push(zinc_build::ContractFieldValue::new(
+        fields.push(zinc_types::ContractFieldValue::new(
             zinc_const::contract::FIELD_NAME_ADDRESS.to_owned(),
-            zinc_build::Value::try_from_typed_json(
+            zinc_types::Value::try_from_typed_json(
                 serde_json::to_value(address).expect(zinc_const::panic::DATA_CONVERSION),
                 types[zinc_const::contract::FIELD_INDEX_ADDRESS]
                     .r#type
@@ -73,9 +73,9 @@ impl Storage {
                 "value": balance.0.to_string(),
             }));
         }
-        fields.push(zinc_build::ContractFieldValue::new(
+        fields.push(zinc_types::ContractFieldValue::new(
             zinc_const::contract::FIELD_NAME_BALANCES.to_owned(),
-            zinc_build::Value::try_from_typed_json(
+            zinc_types::Value::try_from_typed_json(
                 serde_json::Value::Array(balances),
                 types[zinc_const::contract::FIELD_INDEX_BALANCES]
                     .r#type
@@ -92,9 +92,9 @@ impl Storage {
             index += zinc_const::contract::IMPLICIT_FIELDS_COUNT;
 
             let r#type = types[index].r#type.to_owned();
-            let value = zinc_build::Value::try_from_typed_json(value, r#type)
+            let value = zinc_types::Value::try_from_typed_json(value, r#type)
                 .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
-            fields.push(zinc_build::ContractFieldValue::new(
+            fields.push(zinc_types::ContractFieldValue::new(
                 name,
                 value,
                 types[index].is_public,
@@ -108,9 +108,9 @@ impl Storage {
     ///
     /// The build type adapter.
     ///
-    pub fn from_build(build: zinc_build::Value) -> Self {
+    pub fn from_build(build: zinc_types::Value) -> Self {
         match build {
-            zinc_build::Value::Contract(fields) => Self { fields },
+            zinc_types::Value::Contract(fields) => Self { fields },
             _ => panic!(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION),
         }
     }
@@ -163,15 +163,15 @@ impl Storage {
     ///
     /// Wraps the fields with the VM value type.
     ///
-    pub fn into_build(self) -> zinc_build::Value {
-        zinc_build::Value::Contract(self.fields)
+    pub fn into_build(self) -> zinc_types::Value {
+        zinc_types::Value::Contract(self.fields)
     }
 
     ///
     /// Wraps the fields with the VM value type, filtering out the private fields.
     ///
-    pub fn into_public_build(self) -> zinc_build::Value {
-        zinc_build::Value::Contract(
+    pub fn into_public_build(self) -> zinc_types::Value {
+        zinc_types::Value::Contract(
             self.fields
                 .into_iter()
                 .filter(|field| field.is_public)

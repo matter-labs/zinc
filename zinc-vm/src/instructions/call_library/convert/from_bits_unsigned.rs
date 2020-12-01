@@ -55,7 +55,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for FromBitsUnsigned {
         let num =
             AllocatedNum::pack_bits_to_element(cs.namespace(|| "pack_bits_to_element"), &bits)?;
 
-        let int_type = zinc_build::IntegerType {
+        let int_type = zinc_types::IntegerType {
             is_signed: false,
             bitlength: self.bitlength,
         };

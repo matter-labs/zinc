@@ -60,7 +60,7 @@ impl IExecutable for Command {
         // Read the application
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let application = zinc_build::Application::try_from_slice(bytes.as_slice())
+        let application = zinc_types::Application::try_from_slice(bytes.as_slice())
             .map_err(Error::ApplicationDecoding)?;
 
         // Read the verification key
@@ -78,8 +78,8 @@ impl IExecutable for Command {
             .error_with_path(|| self.output_path.to_string_lossy())?;
         let output_json = serde_json::from_str(output_text.as_str())?;
         let output_type = match application {
-            zinc_build::Application::Circuit(circuit) => circuit.output,
-            zinc_build::Application::Contract(contract) => {
+            zinc_types::Application::Circuit(circuit) => circuit.output,
+            zinc_types::Application::Contract(contract) => {
                 let method_name = self.method.ok_or(Error::MethodNameNotFound)?;
                 let method = contract
                     .methods
@@ -92,8 +92,9 @@ impl IExecutable for Command {
                     method.output
                 }
             }
+            zinc_types::Application::Library(_library) => return Err(Error::CannotRunLibrary),
         };
-        let output_value = zinc_build::Value::try_from_typed_json(output_json, output_type)?;
+        let output_value = zinc_types::Value::try_from_typed_json(output_json, output_type)?;
 
         // Verify the proof
         let verified = Facade::verify::<Bn256>(verifying_key, proof, output_value)?;

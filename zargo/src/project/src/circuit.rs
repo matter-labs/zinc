@@ -22,9 +22,9 @@ impl Circuit {
     ///
     /// Creates a new file representation instance.
     ///
-    pub fn new(circuit_name: &str) -> Self {
+    pub fn new(name: &str) -> Self {
         Self {
-            name: circuit_name.to_owned(),
+            name: name.to_owned(),
         }
     }
 

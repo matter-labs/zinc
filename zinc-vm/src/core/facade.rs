@@ -16,7 +16,7 @@ impl Facade {
     pub fn verify<E: IEngine>(
         verifying_key: VerifyingKey<E>,
         proof: Proof<E>,
-        public_input: zinc_build::Value,
+        public_input: zinc_types::Value,
     ) -> Result<bool, VerificationError> {
         let public_input_flat = public_input
             .into_flat_values()

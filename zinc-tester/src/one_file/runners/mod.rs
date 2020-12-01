@@ -22,5 +22,11 @@ pub trait IRunnable: Clone + Sync + Send {
     ///
     /// Runs a test and writes its result to `summary`.
     ///
-    fn run(self, path: PathBuf, file: File, metadata: Metadata, summary: Arc<Mutex<Summary>>);
+    fn run(
+        self,
+        path: PathBuf,
+        file: File,
+        metadata: Metadata,
+        summary: Arc<Mutex<Summary>>,
+    ) -> anyhow::Result<()>;
 }

@@ -1,4 +1,4 @@
-<img style="display: block; margin: auto;" width="200" height="200" src="./zinc-color.png"/>
+<img style="display: block; margin: auto;" width="200" height="200" src="../img/logo.png"/>
 
 # Intro
 

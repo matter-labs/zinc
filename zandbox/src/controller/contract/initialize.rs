@@ -26,9 +26,9 @@ use crate::response::Response;
 ///
 pub async fn handle(
     app_data: crate::WebData,
-    query: web::Query<zinc_zksync::InitializeRequestQuery>,
-    body: web::Json<zinc_zksync::InitializeRequestBody>,
-) -> crate::Result<zinc_zksync::InitializeResponseBody, Error> {
+    query: web::Query<zinc_types::InitializeRequestQuery>,
+    body: web::Json<zinc_types::InitializeRequestBody>,
+) -> crate::Result<zinc_types::InitializeResponseBody, Error> {
     let query = query.into_inner();
     let body = body.into_inner();
     let log_id = serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION);
@@ -195,7 +195,7 @@ pub async fn handle(
         transaction.commit().await?;
     }
 
-    let response = zinc_zksync::InitializeResponseBody::new(account_id);
+    let response = zinc_types::InitializeResponseBody::new(account_id);
 
     log::info!("[{}] Unlocking sequence finished", log_id);
     Ok(Response::new_with_data(StatusCode::OK, response))

@@ -32,7 +32,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Transfer {
         let recipient = state.evaluation_stack.pop()?.try_into_value()?;
         let sender = state.evaluation_stack.pop()?.try_into_value()?;
 
-        let sender = zinc_zksync::address_from_slice(
+        let sender = zinc_types::address_from_slice(
             sender
                 .to_bigint()
                 .expect(zinc_const::panic::DATA_CONVERSION)
@@ -40,7 +40,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Transfer {
                 .1
                 .as_slice(),
         );
-        let recipient = zinc_zksync::address_from_slice(
+        let recipient = zinc_types::address_from_slice(
             recipient
                 .to_bigint()
                 .expect(zinc_const::panic::DATA_CONVERSION)
@@ -48,7 +48,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Transfer {
                 .1
                 .as_slice(),
         );
-        let token_address = zinc_zksync::address_from_slice(
+        let token_address = zinc_types::address_from_slice(
             token_address
                 .to_bigint()
                 .expect(zinc_const::panic::DATA_CONVERSION)
@@ -56,7 +56,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Transfer {
                 .1
                 .as_slice(),
         );
-        let amount = zinc_zksync::num_compat_backward(
+        let amount = zinc_types::num_compat_backward(
             amount
                 .to_bigint()
                 .expect(zinc_const::panic::DATA_CONVERSION)
@@ -64,7 +64,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Transfer {
                 .expect(zinc_const::panic::DATA_CONVERSION),
         );
 
-        state.transfers.push(zinc_zksync::TransactionMsg::new(
+        state.transfers.push(zinc_types::TransactionMsg::new(
             sender,
             recipient,
             token_address,

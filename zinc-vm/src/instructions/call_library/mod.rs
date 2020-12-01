@@ -15,8 +15,8 @@ use num::BigInt;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::CallLibrary;
-use zinc_build::LibraryFunctionIdentifier;
+use zinc_types::CallLibrary;
+use zinc_types::LibraryFunctionIdentifier;
 
 use crate::core::execution_state::ExecutionState;
 use crate::core::virtual_machine::IVirtualMachine;

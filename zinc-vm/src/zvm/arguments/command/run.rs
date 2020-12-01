@@ -48,38 +48,44 @@ impl IExecutable for Command {
         // Read the bytecode
         let bytecode =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let application = zinc_build::Application::try_from_slice(bytecode.as_slice())
+        let application = zinc_types::Application::try_from_slice(bytecode.as_slice())
             .map_err(Error::ApplicationDecoding)?;
 
         // Read the input file
         let input_path = self.input_path;
         let input_template =
             fs::read_to_string(&input_path).error_with_path(|| input_path.to_string_lossy())?;
-        let input: zinc_build::InputBuild = serde_json::from_str(input_template.as_str())?;
+        let input: zinc_types::InputBuild = serde_json::from_str(input_template.as_str())?;
 
         let output = match application {
-            zinc_build::Application::Circuit(circuit) => match input {
-                zinc_build::InputBuild::Circuit { arguments } => {
+            zinc_types::Application::Circuit(circuit) => match input {
+                zinc_types::InputBuild::Circuit { arguments } => {
                     let input_type = circuit.input.clone();
-                    let arguments = zinc_build::Value::try_from_typed_json(arguments, input_type)?;
+                    let arguments = zinc_types::Value::try_from_typed_json(arguments, input_type)?;
 
                     CircuitFacade::new(circuit).run::<Bn256>(arguments)?.result
                 }
-                zinc_build::InputBuild::Contract { .. } => {
+                zinc_types::InputBuild::Contract { .. } => {
                     return Err(Error::InputDataInvalid {
                         expected: "circuit".to_owned(),
                         found: "contract".to_owned(),
                     })
                 }
+                zinc_types::InputBuild::Library { .. } => {
+                    return Err(Error::InputDataInvalid {
+                        expected: "circuit".to_owned(),
+                        found: "library".to_owned(),
+                    })
+                }
             },
-            zinc_build::Application::Contract(contract) => match input {
-                zinc_build::InputBuild::Circuit { .. } => {
+            zinc_types::Application::Contract(contract) => match input {
+                zinc_types::InputBuild::Circuit { .. } => {
                     return Err(Error::InputDataInvalid {
                         expected: "contract".to_owned(),
                         found: "circuit".to_owned(),
                     })
                 }
-                zinc_build::InputBuild::Contract {
+                zinc_types::InputBuild::Contract {
                     arguments,
                     msg: transaction,
                     storage,
@@ -97,15 +103,15 @@ impl IExecutable for Command {
                         },
                     )?;
                     let method_arguments =
-                        zinc_build::Value::try_from_typed_json(method_arguments, method.input)?;
+                        zinc_types::Value::try_from_typed_json(method_arguments, method.input)?;
 
                     let storage_values = match storage {
                         serde_json::Value::Array(array) => {
                             let mut storage_values = Vec::with_capacity(contract.storage.len());
                             for (field, value) in contract.storage.clone().into_iter().zip(array) {
-                                storage_values.push(zinc_build::ContractFieldValue::new(
+                                storage_values.push(zinc_types::ContractFieldValue::new(
                                     field.name,
-                                    zinc_build::Value::try_from_typed_json(value, field.r#type)?,
+                                    zinc_types::Value::try_from_typed_json(value, field.r#type)?,
                                     field.is_public,
                                     field.is_implicit,
                                 ));
@@ -117,9 +123,9 @@ impl IExecutable for Command {
 
                     let output = ContractFacade::new(contract).run::<Bn256>(ContractInput::new(
                         method_arguments,
-                        zinc_build::Value::Contract(storage_values),
+                        zinc_types::Value::Contract(storage_values),
                         method_name,
-                        zinc_zksync::TransactionMsg::try_from(&transaction).map_err(|error| {
+                        zinc_types::TransactionMsg::try_from(&transaction).map_err(|error| {
                             Error::InvalidTransaction {
                                 inner: error,
                                 found: transaction.clone(),
@@ -130,7 +136,7 @@ impl IExecutable for Command {
                     let mut storages = serde_json::Map::with_capacity(output.storages.len());
                     for (eth_address, value) in output.storages.into_iter() {
                         match value {
-                            zinc_build::Value::Contract(fields) => {
+                            zinc_types::Value::Contract(fields) => {
                                 let mut storage_values = Vec::with_capacity(fields.len());
                                 for field in fields.into_iter() {
                                     storage_values.push(field.value.into_json());
@@ -149,7 +155,7 @@ impl IExecutable for Command {
                     }
 
                     let input_str =
-                        serde_json::to_string_pretty(&zinc_build::InputBuild::new_contract(
+                        serde_json::to_string_pretty(&zinc_types::InputBuild::new_contract(
                             serde_json::Value::Object(storages),
                             transaction,
                             arguments,
@@ -160,7 +166,14 @@ impl IExecutable for Command {
 
                     output.result
                 }
+                zinc_types::InputBuild::Library { .. } => {
+                    return Err(Error::InputDataInvalid {
+                        expected: "contract".to_owned(),
+                        found: "library".to_owned(),
+                    })
+                }
             },
+            zinc_types::Application::Library(_library) => return Err(Error::CannotRunLibrary),
         };
 
         let output_json = serde_json::to_string_pretty(&output.into_json())? + "\n";

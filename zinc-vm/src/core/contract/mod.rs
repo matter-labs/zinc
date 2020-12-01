@@ -52,7 +52,7 @@ where
 
     storages: HashMap<BigInt, StorageGadget<E, S, H>>,
     keeper: Box<dyn IKeeper>,
-    transaction: zinc_zksync::TransactionMsg,
+    transaction: zinc_types::TransactionMsg,
 
     pub(crate) location: Location,
 }
@@ -68,7 +68,7 @@ where
         cs: CS,
         storages: HashMap<BigInt, StorageGadget<E, S, H>>,
         keeper: Box<dyn IKeeper>,
-        transaction: zinc_zksync::TransactionMsg,
+        transaction: zinc_types::TransactionMsg,
     ) -> Self {
         Self {
             counter: NamespaceCounter::new(cs),
@@ -86,8 +86,8 @@ where
     #[allow(clippy::too_many_arguments)]
     pub fn run<CB, F>(
         &mut self,
-        contract: zinc_build::Contract,
-        input_type: zinc_build::Type,
+        contract: zinc_types::Contract,
+        input_type: zinc_types::Type,
         input_values: Option<&[BigInt]>,
         mut instruction_callback: CB,
         mut check_cs: F,
@@ -103,13 +103,13 @@ where
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
         );
-        let one = Scalar::new_constant_usize(1, zinc_build::ScalarType::Boolean);
+        let one = Scalar::new_constant_usize(1, zinc_types::ScalarType::Boolean);
         self.condition_push(one)?;
 
         let input_size = input_type.size();
         self.init_root_frame(input_type, input_values)?;
 
-        if let Err(error) = zinc_build::Call::new(address, input_size)
+        if let Err(error) = zinc_types::Call::new(address, input_size)
             .execute(self)
             .and(check_cs(&self.counter.cs))
         {
@@ -155,19 +155,19 @@ where
         self.get_outputs()
     }
 
-    pub fn test(&mut self, contract: zinc_build::Contract, address: usize) -> Result<(), Error> {
+    pub fn test(&mut self, contract: zinc_types::Contract, address: usize) -> Result<(), Error> {
         self.counter.cs.enforce(
             || "ONE * ONE = ONE (do this to avoid `unconstrained` error)",
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
         );
-        let one = Scalar::new_constant_usize(1, zinc_build::ScalarType::Boolean);
+        let one = Scalar::new_constant_usize(1, zinc_types::ScalarType::Boolean);
         self.condition_push(one)?;
 
-        self.init_root_frame(zinc_build::Type::empty_structure(), Some(&[]))?;
+        self.init_root_frame(zinc_types::Type::empty_structure(), Some(&[]))?;
 
-        if let Err(error) = zinc_build::Call::new(address, 0).execute(self) {
+        if let Err(error) = zinc_types::Call::new(address, 0).execute(self) {
             log::error!("{}\nat {}", error, self.location.to_string().blue());
             return Err(error);
         }
@@ -205,7 +205,7 @@ where
 
     fn init_root_frame(
         &mut self,
-        input_type: zinc_build::Type,
+        input_type: zinc_types::Type,
         inputs: Option<&[BigInt]>,
     ) -> Result<(), Error> {
         self.execution_state
@@ -238,7 +238,7 @@ where
         }
         let root_hash = gadgets::output::output(
             self.counter.next(),
-            Scalar::new_constant_usize(0, zinc_build::ScalarType::Field),
+            Scalar::new_constant_usize(0, zinc_types::ScalarType::Field),
         )?;
         outputs_bigint.push(Some(
             root_hash
@@ -309,7 +309,7 @@ where
         &mut self,
         eth_address: Scalar<Self::E>,
         values: Vec<Scalar<Self::E>>,
-        field_types: Vec<zinc_build::ContractFieldType>,
+        field_types: Vec<zinc_types::ContractFieldType>,
     ) -> Result<(), Error> {
         let eth_address = eth_address
             .to_bigint()
@@ -325,7 +325,7 @@ where
     fn storage_fetch(
         &mut self,
         eth_address: Scalar<Self::E>,
-        field_types: Vec<zinc_build::ContractFieldType>,
+        field_types: Vec<zinc_types::ContractFieldType>,
     ) -> Result<(), Error> {
         let eth_address = eth_address
             .to_bigint()
@@ -427,7 +427,7 @@ where
                 Sign::Plus,
                 sender.to_vec().as_slice(),
             )),
-            zinc_build::ScalarType::Integer(zinc_build::IntegerType::ETH_ADDRESS),
+            zinc_types::ScalarType::Integer(zinc_types::IntegerType::ETH_ADDRESS),
         )?;
         self.store(
             transaction_field_iter
@@ -443,7 +443,7 @@ where
                 Sign::Plus,
                 recipient.to_vec().as_slice(),
             )),
-            zinc_build::ScalarType::Integer(zinc_build::IntegerType::ETH_ADDRESS),
+            zinc_types::ScalarType::Integer(zinc_types::IntegerType::ETH_ADDRESS),
         )?;
         self.store(
             transaction_field_iter
@@ -460,7 +460,7 @@ where
                 Sign::Plus,
                 token_address.to_vec().as_slice(),
             )),
-            zinc_build::ScalarType::Integer(zinc_build::IntegerType::ETH_ADDRESS),
+            zinc_types::ScalarType::Integer(zinc_types::IntegerType::ETH_ADDRESS),
         )?;
         self.store(
             transaction_field_iter
@@ -472,11 +472,11 @@ where
         let amount = gadgets::witness::allocate(
             self.counter.next(),
             Some(
-                &zinc_zksync::num_compat_forward(self.transaction.amount.to_owned())
+                &zinc_types::num_compat_forward(self.transaction.amount.to_owned())
                     .to_bigint()
                     .expect(zinc_const::panic::DATA_CONVERSION),
             ),
-            zinc_build::ScalarType::Integer(zinc_build::IntegerType::BALANCE),
+            zinc_types::ScalarType::Integer(zinc_types::IntegerType::BALANCE),
         )?;
         self.store(
             transaction_field_iter

@@ -24,11 +24,11 @@ use crate::IEngine;
 pub struct Synthesizer<'a, E: IEngine, S: IMerkleTree<E>> {
     pub inputs: Option<Vec<BigInt>>,
     pub output: &'a mut Option<Result<Vec<Option<BigInt>>, Error>>,
-    pub bytecode: zinc_build::Contract,
-    pub method: zinc_build::ContractMethod,
+    pub bytecode: zinc_types::Contract,
+    pub method: zinc_types::ContractMethod,
     pub storage: S,
     pub keeper: Box<dyn IKeeper>,
-    pub transaction: zinc_zksync::TransactionMsg,
+    pub transaction: zinc_types::TransactionMsg,
 
     pub _pd: PhantomData<E>,
 }

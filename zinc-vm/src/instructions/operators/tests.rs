@@ -5,9 +5,9 @@
 use num::BigInt;
 use num::One;
 
-use zinc_build::Add;
-use zinc_build::Push;
-use zinc_build::Sub;
+use zinc_types::Add;
+use zinc_types::Push;
+use zinc_types::Sub;
 
 use crate::error::Error;
 use crate::tests::TestRunner;
@@ -18,9 +18,9 @@ fn unsigned_positive_overflow_fail() {
     let res = TestRunner::new()
         .push(Push::new(
             BigInt::from(255),
-            zinc_build::IntegerType::U8.into(),
+            zinc_types::IntegerType::U8.into(),
         ))
-        .push(Push::new(BigInt::one(), zinc_build::IntegerType::U8.into()))
+        .push(Push::new(BigInt::one(), zinc_types::IntegerType::U8.into()))
         .push(Add)
         .test(&[256]);
 
@@ -35,11 +35,11 @@ fn unsigned_negative_overflow_fail() {
     let res = TestRunner::new()
         .push(Push::new(
             BigInt::from(254),
-            zinc_build::IntegerType::U8.into(),
+            zinc_types::IntegerType::U8.into(),
         ))
         .push(Push::new(
             BigInt::from(255),
-            zinc_build::IntegerType::U8.into(),
+            zinc_types::IntegerType::U8.into(),
         ))
         .push(Sub)
         .test(&[-1]);
@@ -55,9 +55,9 @@ fn signed_positive_overflow_fail() {
     let res = TestRunner::new()
         .push(Push::new(
             BigInt::from(127),
-            zinc_build::IntegerType::I8.into(),
+            zinc_types::IntegerType::I8.into(),
         ))
-        .push(Push::new(BigInt::one(), zinc_build::IntegerType::I8.into()))
+        .push(Push::new(BigInt::one(), zinc_types::IntegerType::I8.into()))
         .push(Add)
         .test(&[128]);
 
@@ -72,9 +72,9 @@ fn signed_negative_overflow_fail() {
     let res = TestRunner::new()
         .push(Push::new(
             BigInt::from(-128),
-            zinc_build::IntegerType::I8.into(),
+            zinc_types::IntegerType::I8.into(),
         ))
-        .push(Push::new(BigInt::one(), zinc_build::IntegerType::I8.into()))
+        .push(Push::new(BigInt::one(), zinc_types::IntegerType::I8.into()))
         .push(Sub)
         .test(&[-129]);
 
@@ -89,9 +89,9 @@ fn unsigned_positive_overflow_ok() -> Result<(), TestingError> {
     TestRunner::new()
         .push(Push::new(
             BigInt::from(254),
-            zinc_build::IntegerType::U8.into(),
+            zinc_types::IntegerType::U8.into(),
         ))
-        .push(Push::new(BigInt::one(), zinc_build::IntegerType::U8.into()))
+        .push(Push::new(BigInt::one(), zinc_types::IntegerType::U8.into()))
         .push(Add)
         .test(&[255])
 }
@@ -101,11 +101,11 @@ fn unsigned_negative_overflow_ok() -> Result<(), TestingError> {
     TestRunner::new()
         .push(Push::new(
             BigInt::from(255),
-            zinc_build::IntegerType::U8.into(),
+            zinc_types::IntegerType::U8.into(),
         ))
         .push(Push::new(
             BigInt::from(255),
-            zinc_build::IntegerType::U8.into(),
+            zinc_types::IntegerType::U8.into(),
         ))
         .push(Sub)
         .test(&[0])
@@ -116,9 +116,9 @@ fn signed_positive_overflow_ok() -> Result<(), TestingError> {
     TestRunner::new()
         .push(Push::new(
             BigInt::from(126),
-            zinc_build::IntegerType::I8.into(),
+            zinc_types::IntegerType::I8.into(),
         ))
-        .push(Push::new(BigInt::one(), zinc_build::IntegerType::I8.into()))
+        .push(Push::new(BigInt::one(), zinc_types::IntegerType::I8.into()))
         .push(Add)
         .test(&[127])
 }
@@ -128,9 +128,9 @@ fn signed_negative_overflow_ok() -> Result<(), TestingError> {
     TestRunner::new()
         .push(Push::new(
             BigInt::from(-127),
-            zinc_build::IntegerType::I8.into(),
+            zinc_types::IntegerType::I8.into(),
         ))
-        .push(Push::new(BigInt::one(), zinc_build::IntegerType::I8.into()))
+        .push(Push::new(BigInt::one(), zinc_types::IntegerType::I8.into()))
         .push(Sub)
         .test(&[-128])
 }

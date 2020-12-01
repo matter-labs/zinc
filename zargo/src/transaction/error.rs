@@ -11,7 +11,7 @@ use thiserror::Error;
 pub enum Error {
     /// A required transaction field is missing.
     #[error("parsing: {}", _0)]
-    Parsing(zinc_zksync::TransactionError),
+    Parsing(zinc_types::TransactionError),
     /// The transaction token is invalid.
     #[error("token is invalid and cannot be resolved")]
     TokenNotFound,
@@ -26,8 +26,8 @@ pub enum Error {
     TransactionSigning(zksync_eth_signer::error::SignerError),
 }
 
-impl From<zinc_zksync::TransactionError> for Error {
-    fn from(inner: zinc_zksync::TransactionError) -> Self {
+impl From<zinc_types::TransactionError> for Error {
+    fn from(inner: zinc_types::TransactionError) -> Self {
         Self::Parsing(inner)
     }
 }

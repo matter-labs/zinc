@@ -39,7 +39,7 @@ where
         Ok(Scalar::new_unchecked_variable(
             value,
             variable,
-            zinc_build::ScalarType::Field,
+            zinc_types::ScalarType::Field,
         ))
     }
 

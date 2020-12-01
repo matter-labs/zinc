@@ -16,7 +16,7 @@ use std::rc::Rc;
 
 use num::BigInt;
 
-use zinc_build::Instruction;
+use zinc_types::Instruction;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::r#type::Type;
@@ -77,7 +77,7 @@ impl IBytecodeWritable for Operand {
                     if is_indexed {
                         inner.write_all(state.clone());
                         state.borrow_mut().push_instruction(
-                            Instruction::LoadByIndex(zinc_build::LoadByIndex::new(
+                            Instruction::LoadByIndex(zinc_types::LoadByIndex::new(
                                 address,
                                 element_size,
                                 total_size,
@@ -86,7 +86,7 @@ impl IBytecodeWritable for Operand {
                         );
                     } else {
                         state.borrow_mut().push_instruction(
-                            Instruction::Load(zinc_build::Load::new(address, total_size)),
+                            Instruction::Load(zinc_types::Load::new(address, total_size)),
                             Some(location),
                         );
                     }
@@ -111,7 +111,7 @@ impl IBytecodeWritable for Operand {
                             .get_variable_address(inner.identifier.name.as_str())
                             .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
                         state.borrow_mut().push_instruction(
-                            Instruction::Load(zinc_build::Load::new(
+                            Instruction::Load(zinc_types::Load::new(
                                 address,
                                 Type::eth_address().size(),
                             )),
@@ -126,7 +126,7 @@ impl IBytecodeWritable for Operand {
 
                         if !*is_mtreemap {
                             state.borrow_mut().push_instruction(
-                                Instruction::StorageLoad(zinc_build::StorageLoad::new(
+                                Instruction::StorageLoad(zinc_types::StorageLoad::new(
                                     *element_size,
                                 )),
                                 Some(inner.identifier.location),
@@ -139,7 +139,7 @@ impl IBytecodeWritable for Operand {
                     if !inner.elements.is_empty() {
                         inner.write_all(state.clone());
                         state.borrow_mut().push_instruction(
-                            Instruction::Slice(zinc_build::Slice::new(element_size, total_size)),
+                            Instruction::Slice(zinc_types::Slice::new(element_size, total_size)),
                             Some(location),
                         );
                     }

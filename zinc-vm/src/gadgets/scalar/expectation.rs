@@ -13,7 +13,7 @@ pub trait ITypeExpectation: Sized {
     fn bitlength<E: IEngine>(&self) -> usize;
 }
 
-impl ITypeExpectation for zinc_build::ScalarType {
+impl ITypeExpectation for zinc_types::ScalarType {
     fn expect_same(left: Self, right: Self) -> Result<Self, Error> {
         if left != right {
             return Err(Error::TypeError {
@@ -38,8 +38,8 @@ impl ITypeExpectation for zinc_build::ScalarType {
 
     fn assert_signed(&self, is_signed: bool) -> Result<(), Error> {
         let is_signed = match self {
-            zinc_build::ScalarType::Field | zinc_build::ScalarType::Boolean => false,
-            zinc_build::ScalarType::Integer(int_type) => int_type.is_signed == is_signed,
+            zinc_types::ScalarType::Field | zinc_types::ScalarType::Boolean => false,
+            zinc_types::ScalarType::Integer(int_type) => int_type.is_signed == is_signed,
         };
 
         if !is_signed {
@@ -58,9 +58,9 @@ impl ITypeExpectation for zinc_build::ScalarType {
 
     fn bitlength<E: IEngine>(&self) -> usize {
         match self {
-            zinc_build::ScalarType::Boolean => 1,
-            zinc_build::ScalarType::Integer(inner) => inner.bitlength,
-            zinc_build::ScalarType::Field => E::Fr::NUM_BITS as usize,
+            zinc_types::ScalarType::Boolean => 1,
+            zinc_types::ScalarType::Integer(inner) => inner.bitlength,
+            zinc_types::ScalarType::Field => E::Fr::NUM_BITS as usize,
         }
     }
 }

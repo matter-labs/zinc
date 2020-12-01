@@ -5,7 +5,7 @@
 use num::bigint::ToBigInt;
 use num::Signed;
 
-use zinc_build::StorageStore;
+use zinc_types::StorageStore;
 
 use crate::core::contract::storage::leaf::LeafVariant;
 use crate::core::virtual_machine::IVirtualMachine;

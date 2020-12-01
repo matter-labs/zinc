@@ -2,8 +2,8 @@
 //! The loop instructions.
 //!
 
-use zinc_build::LoopBegin;
-use zinc_build::LoopEnd;
+use zinc_types::LoopBegin;
+use zinc_types::LoopEnd;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::Error;
@@ -33,22 +33,22 @@ mod test {
     #[test]
     fn test_loop() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new_field(BigInt::zero()))
-            .push(zinc_build::Store::new(0, 1))
-            .push(zinc_build::Push::new_field(BigInt::zero()))
-            .push(zinc_build::Store::new(1, 1))
-            .push(zinc_build::LoopBegin::new(10))
-            .push(zinc_build::Load::new(0, 1))
-            .push(zinc_build::Push::new_field(BigInt::one()))
-            .push(zinc_build::Add)
-            .push(zinc_build::Store::new(0, 1))
-            .push(zinc_build::Load::new(0, 1))
-            .push(zinc_build::Load::new(1, 1))
-            .push(zinc_build::Add)
-            .push(zinc_build::Store::new(1, 1))
-            .push(zinc_build::LoopEnd)
-            .push(zinc_build::Load::new(0, 1))
-            .push(zinc_build::Load::new(1, 1))
+            .push(zinc_types::Push::new_field(BigInt::zero()))
+            .push(zinc_types::Store::new(0, 1))
+            .push(zinc_types::Push::new_field(BigInt::zero()))
+            .push(zinc_types::Store::new(1, 1))
+            .push(zinc_types::LoopBegin::new(10))
+            .push(zinc_types::Load::new(0, 1))
+            .push(zinc_types::Push::new_field(BigInt::one()))
+            .push(zinc_types::Add)
+            .push(zinc_types::Store::new(0, 1))
+            .push(zinc_types::Load::new(0, 1))
+            .push(zinc_types::Load::new(1, 1))
+            .push(zinc_types::Add)
+            .push(zinc_types::Store::new(1, 1))
+            .push(zinc_types::LoopEnd)
+            .push(zinc_types::Load::new(0, 1))
+            .push(zinc_types::Load::new(1, 1))
             .test(&[55, 10])
     }
 }

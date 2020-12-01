@@ -1,23 +1,19 @@
 [workspace]
 members = [
-    "zinc-lexical",
-    "zinc-syntax",
+    # Binaries
     "zinc-compiler",
-
     "zinc-tester",
     "zinc-vm",
     "zargo",
     "zandbox",
 
+    # Libraries
     "zinc-logger",
     "zinc-const",
+    "zinc-lexical",
+    "zinc-syntax",
     "zinc-math",
     "zinc-manifest",
     "zinc-source",
-    "zinc-build",
-    "zinc-zksync",
-]
-
-exclude = [
-    "zksync"
+    "zinc-types",
 ]

@@ -9,9 +9,9 @@ pub mod test;
 
 use std::fmt;
 
-use zinc_build::LibraryFunctionIdentifier;
 use zinc_lexical::Location;
 use zinc_syntax::BlockExpression;
+use zinc_types::LibraryFunctionIdentifier;
 
 use crate::semantic::binding::Binding;
 use crate::semantic::element::r#type::contract::Contract as ContractType;

@@ -57,11 +57,11 @@ where
         E: IEngine,
         CS: ConstraintSystem<E>,
     {
-        let scalar_type = zinc_build::ScalarType::expect_same(left.get_type(), right.get_type())?;
+        let scalar_type = zinc_types::ScalarType::expect_same(left.get_type(), right.get_type())?;
 
         match scalar_type {
-            zinc_build::ScalarType::Field => less_than_field(cs, left, right),
-            zinc_build::ScalarType::Integer(int_type) => {
+            zinc_types::ScalarType::Field => less_than_field(cs, left, right),
+            zinc_types::ScalarType::Integer(int_type) => {
                 let boolean = less_than_integer(
                     cs.namespace(|| "less_than_integer"),
                     int_type.bitlength,
@@ -70,7 +70,7 @@ where
                 )?;
                 Scalar::from_boolean(cs.namespace(|| "from_boolean"), boolean)
             }
-            r#type @ zinc_build::ScalarType::Boolean => Err(Error::TypeError {
+            r#type @ zinc_types::ScalarType::Boolean => Err(Error::TypeError {
                 expected: "field or integer type".into(),
                 found: r#type.to_string(),
             }),

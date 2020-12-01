@@ -53,7 +53,7 @@ impl Bundler {
     ///
     /// Compiles the project source code with its entire dependency tree.
     ///
-    pub fn bundle(&mut self) -> anyhow::Result<zinc_build::Build> {
+    pub fn bundle(&mut self) -> anyhow::Result<zinc_types::Build> {
         let manifest = zinc_manifest::Manifest::try_from(&self.project_path)
             .with_context(|| self.project_path.to_string_lossy().to_string())?;
 

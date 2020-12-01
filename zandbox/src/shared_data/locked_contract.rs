@@ -33,7 +33,7 @@ pub struct LockedContract {
     pub verifying_key: Vec<u8>,
 
     /// The pre-built contract ready to be called.
-    pub build: zinc_build::Contract,
+    pub build: zinc_types::Contract,
     /// The contract storage.
     pub storage: Storage,
     /// The contract wallet.
@@ -64,31 +64,33 @@ impl LockedContract {
             zksync_types::tx::PackedEthSignature::address_from_private_key(&eth_private_key)
                 .expect(zinc_const::panic::DATA_CONVERSION);
 
-        let application = zinc_build::Application::try_from_slice(bytecode.as_slice())
+        let application = zinc_types::Application::try_from_slice(bytecode.as_slice())
             .map_err(Error::InvalidBytecode)?;
         let build = match application.clone() {
-            zinc_build::Application::Circuit(_circuit) => return Err(Error::NotAContract),
-            zinc_build::Application::Contract(contract) => contract,
+            zinc_types::Application::Circuit(_circuit) => return Err(Error::NotAContract),
+            zinc_types::Application::Contract(contract) => contract,
+            zinc_types::Application::Library(_library) => return Err(Error::NotAContract),
         };
         let constructor = build
             .methods
             .get(zinc_const::contract::CONSTRUCTOR_IDENTIFIER)
             .cloned()
             .ok_or(Error::ConstructorNotFound)?;
-        let input_value = zinc_build::Value::try_from_typed_json(arguments, constructor.input)
+        let input_value = zinc_types::Value::try_from_typed_json(arguments, constructor.input)
             .map_err(Error::InvalidInput)?;
         let storage = Storage::new(build.storage.as_slice()).into_build();
 
         let vm_runner = zinc_vm::ContractFacade::new(build.clone());
-        let output = async_std::task::spawn_blocking(move || {
+        let output = tokio::task::spawn_blocking(move || {
             vm_runner.run::<Bn256>(ContractInput::new(
                 input_value,
                 storage,
                 zinc_const::contract::CONSTRUCTOR_IDENTIFIER.to_owned(),
-                zinc_zksync::TransactionMsg::default(),
+                zinc_types::TransactionMsg::default(),
             ))
         })
         .await
+        .expect(zinc_const::panic::ASYNC_RUNTIME)
         .map_err(Error::VirtualMachine)?;
         let storage = Storage::from_build(output.result);
 

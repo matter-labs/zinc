@@ -48,17 +48,18 @@ impl IExecutable for Command {
     fn execute(self) -> Result<i32, Self::Error> {
         let bytes =
             fs::read(&self.binary_path).error_with_path(|| self.binary_path.to_string_lossy())?;
-        let application = zinc_build::Application::try_from_slice(bytes.as_slice())
+        let application = zinc_types::Application::try_from_slice(bytes.as_slice())
             .map_err(Error::ApplicationDecoding)?;
 
         let params = match application {
-            zinc_build::Application::Circuit(circuit) => {
+            zinc_types::Application::Circuit(circuit) => {
                 CircuitFacade::new(circuit).setup::<Bn256>()?
             }
-            zinc_build::Application::Contract(contract) => {
+            zinc_types::Application::Contract(contract) => {
                 let method_name = self.method.ok_or(Error::MethodNameNotFound)?;
                 ContractFacade::new(contract).setup::<Bn256>(method_name)?
             }
+            zinc_types::Application::Library(_library) => return Err(Error::CannotRunLibrary),
         };
 
         let proving_key_path = self.proving_key_path;

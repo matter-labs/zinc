@@ -18,14 +18,14 @@ where
         CS: ConstraintSystem<E>,
     {
         match scalar.get_type() {
-            zinc_build::ScalarType::Field | zinc_build::ScalarType::Boolean => Ok(scalar.clone()),
+            zinc_types::ScalarType::Field | zinc_types::ScalarType::Boolean => Ok(scalar.clone()),
 
-            zinc_build::ScalarType::Integer(int_type) => {
+            zinc_types::ScalarType::Integer(int_type) => {
                 if !int_type.is_signed {
                     return Ok(scalar.clone());
                 }
 
-                let scalar_type = zinc_build::ScalarType::Integer(zinc_build::IntegerType {
+                let scalar_type = zinc_types::ScalarType::Integer(zinc_types::IntegerType {
                     is_signed: true,
                     bitlength: int_type.bitlength + 1,
                 });

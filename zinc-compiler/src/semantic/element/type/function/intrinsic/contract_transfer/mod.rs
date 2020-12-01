@@ -7,8 +7,8 @@ mod tests;
 
 use std::fmt;
 
-use zinc_build::LibraryFunctionIdentifier;
 use zinc_lexical::Location;
+use zinc_types::LibraryFunctionIdentifier;
 
 use crate::semantic::element::argument_list::ArgumentList;
 use crate::semantic::element::r#type::i_typed::ITyped;

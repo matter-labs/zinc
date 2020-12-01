@@ -57,8 +57,8 @@ mod tests {
     fn test_inverse() {
         let mut cs = TestConstraintSystem::<Bn256>::new();
 
-        let zero = Scalar::new_constant_usize(0, zinc_build::ScalarType::Field);
-        let one = Scalar::new_constant_usize(1, zinc_build::ScalarType::Field);
+        let zero = Scalar::new_constant_usize(0, zinc_types::ScalarType::Field);
+        let one = Scalar::new_constant_usize(1, zinc_types::ScalarType::Field);
 
         assert!(
             gadgets::arithmetic::field::inverse(cs.namespace(|| "zero"), &zero).is_err(),

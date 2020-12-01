@@ -7,8 +7,8 @@ pub mod role;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use zinc_build::Instruction;
 use zinc_lexical::Location;
+use zinc_types::Instruction;
 
 use crate::generator::expression::operand::block::Expression;
 use crate::generator::r#type::Type;
@@ -105,8 +105,7 @@ impl IBytecodeWritable for Statement {
                     self.location,
                     self.type_id,
                     self.identifier,
-                    self.attributes.contains(&Attribute::ShouldPanic),
-                    self.attributes.contains(&Attribute::Ignore),
+                    self.attributes,
                 );
             }
             _ => {
@@ -129,7 +128,7 @@ impl IBytecodeWritable for Statement {
 
         match self.role {
             Role::ContractConstuctor => {
-                let field_types: Vec<zinc_build::ContractFieldType> = match self.output_type {
+                let field_types: Vec<zinc_types::ContractFieldType> = match self.output_type {
                     Type::Contract { fields } => {
                         fields.into_iter().map(|field| field.into()).collect()
                     }
@@ -137,17 +136,17 @@ impl IBytecodeWritable for Statement {
                 };
 
                 state.borrow_mut().push_instruction(
-                    Instruction::StorageInit(zinc_build::StorageInit::new(field_types)),
+                    Instruction::StorageInit(zinc_types::StorageInit::new(field_types)),
                     Some(self.location),
                 );
                 state.borrow_mut().push_instruction(
-                    Instruction::Return(zinc_build::Return::new(Type::eth_address().size())),
+                    Instruction::Return(zinc_types::Return::new(Type::eth_address().size())),
                     Some(self.location),
                 );
             }
             _ => {
                 state.borrow_mut().push_instruction(
-                    Instruction::Return(zinc_build::Return::new(output_size)),
+                    Instruction::Return(zinc_types::Return::new(output_size)),
                     Some(self.location),
                 );
             }

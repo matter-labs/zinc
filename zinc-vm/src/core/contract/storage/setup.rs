@@ -13,14 +13,14 @@ use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
 pub struct Storage<E: IEngine> {
-    field_types: Vec<zinc_build::ContractFieldType>,
+    field_types: Vec<zinc_types::ContractFieldType>,
     leaf_values: Vec<Vec<Scalar<E>>>,
     depth: usize,
 }
 
 impl<E: IEngine> IMerkleTree<E> for Storage<E> {
     fn from_evaluation_stack(
-        field_types: Vec<zinc_build::ContractFieldType>,
+        field_types: Vec<zinc_types::ContractFieldType>,
         _values: Vec<Scalar<E>>,
     ) -> Result<Self, Error> {
         let depth = (field_types.len() as f64).log2().ceil() as usize;
@@ -46,8 +46,8 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
     }
 
     fn from_build(
-        field_types: Vec<zinc_build::ContractFieldType>,
-        _value: zinc_build::Value,
+        field_types: Vec<zinc_types::ContractFieldType>,
+        _value: zinc_types::Value,
     ) -> Result<Self, Error> {
         let depth = (field_types.len() as f64).log2().ceil() as usize;
         let leaf_values_count = 1 << depth;
@@ -109,7 +109,7 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
             .collect()
     }
 
-    fn types(&self) -> &[zinc_build::ContractFieldType] {
+    fn types(&self) -> &[zinc_types::ContractFieldType] {
         self.field_types.as_slice()
     }
 

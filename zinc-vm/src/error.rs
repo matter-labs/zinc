@@ -103,7 +103,7 @@ pub enum Error {
     #[error("overflow: value {value} is not in range of type {scalar_type}")]
     ValueOverflow {
         value: BigInt,
-        scalar_type: zinc_build::ScalarType,
+        scalar_type: zinc_types::ScalarType,
     },
 
     #[error("the unit test data is missing")]

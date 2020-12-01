@@ -18,8 +18,8 @@ use crate::response::Response;
 ///
 pub async fn handle(
     app_data: crate::WebData,
-    query: web::Query<zinc_zksync::SourceRequestQuery>,
-) -> crate::Result<zinc_zksync::SourceResponseBody, Error> {
+    query: web::Query<zinc_types::SourceRequestQuery>,
+) -> crate::Result<zinc_types::SourceResponseBody, Error> {
     let query = query.into_inner();
 
     let postgresql = app_data
@@ -35,7 +35,7 @@ pub async fn handle(
         )
         .await
         .map(|response| {
-            zinc_zksync::SourceResponseBody::new(
+            zinc_types::SourceResponseBody::new(
                 response.zinc_version,
                 serde_json::from_value::<zinc_source::Project>(response.project)
                     .expect(zinc_const::panic::DATA_CONVERSION),

@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::Add;
+use zinc_types::Add;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -19,7 +19,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Add {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
-        let sum_type = zinc_build::ScalarType::expect_same(left.get_type(), right.get_type())?;
+        let sum_type = zinc_types::ScalarType::expect_same(left.get_type(), right.get_type())?;
 
         let condition = vm.condition_top()?;
         let cs = vm.constraint_system();
@@ -48,9 +48,9 @@ mod tests {
     #[test]
     fn test_add() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new_field(BigInt::one()))
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Add)
+            .push(zinc_types::Push::new_field(BigInt::one()))
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Add)
             .test(&[3])
     }
 }

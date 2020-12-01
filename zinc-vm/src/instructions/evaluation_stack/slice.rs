@@ -7,7 +7,7 @@ use num::ToPrimitive;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::Slice;
+use zinc_types::Slice;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -66,14 +66,14 @@ mod tests {
     #[test]
     fn test_slice() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new_field(BigInt::one()))
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Push::new_field(BigInt::from(3)))
-            .push(zinc_build::Push::new_field(BigInt::from(4)))
-            .push(zinc_build::Push::new_field(BigInt::from(5)))
-            .push(zinc_build::Push::new_field(BigInt::from(6)))
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Slice::new(2, 5))
+            .push(zinc_types::Push::new_field(BigInt::one()))
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Push::new_field(BigInt::from(3)))
+            .push(zinc_types::Push::new_field(BigInt::from(4)))
+            .push(zinc_types::Push::new_field(BigInt::from(5)))
+            .push(zinc_types::Push::new_field(BigInt::from(6)))
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Slice::new(2, 5))
             .test(&[5, 4, 1])
     }
 }

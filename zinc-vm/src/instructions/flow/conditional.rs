@@ -2,9 +2,9 @@
 //! The conditional instructions.
 //!
 
-use zinc_build::Else;
-use zinc_build::EndIf;
-use zinc_build::If;
+use zinc_types::Else;
+use zinc_types::EndIf;
+use zinc_types::If;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::Error;
@@ -55,26 +55,26 @@ mod tests {
 
         for (a, b) in data.iter() {
             TestRunner::new()
-                .push(zinc_build::Push::new(
+                .push(zinc_types::Push::new(
                     (*a).into(),
-                    zinc_build::IntegerType::I8.into(),
+                    zinc_types::IntegerType::I8.into(),
                 ))
-                .push(zinc_build::Store::new(0, 1))
-                .push(zinc_build::Push::new(
+                .push(zinc_types::Store::new(0, 1))
+                .push(zinc_types::Push::new(
                     (*b).into(),
-                    zinc_build::IntegerType::I8.into(),
+                    zinc_types::IntegerType::I8.into(),
                 ))
-                .push(zinc_build::Store::new(1, 1))
-                .push(zinc_build::Load::new(1, 1))
-                .push(zinc_build::Load::new(0, 1))
-                .push(zinc_build::Gt)
-                .push(zinc_build::If)
-                .push(zinc_build::Load::new(0, 1))
-                .push(zinc_build::Load::new(1, 1))
-                .push(zinc_build::Else)
-                .push(zinc_build::Load::new(1, 1))
-                .push(zinc_build::Load::new(0, 1))
-                .push(zinc_build::EndIf)
+                .push(zinc_types::Store::new(1, 1))
+                .push(zinc_types::Load::new(1, 1))
+                .push(zinc_types::Load::new(0, 1))
+                .push(zinc_types::Gt)
+                .push(zinc_types::If)
+                .push(zinc_types::Load::new(0, 1))
+                .push(zinc_types::Load::new(1, 1))
+                .push(zinc_types::Else)
+                .push(zinc_types::Load::new(1, 1))
+                .push(zinc_types::Load::new(0, 1))
+                .push(zinc_types::EndIf)
                 .test(&[cmp::max(*a, *b), cmp::min(*a, *b)])?;
         }
 
@@ -97,33 +97,33 @@ mod tests {
 
         for (c, r) in data.iter() {
             TestRunner::new()
-                .push(zinc_build::Push::new(
+                .push(zinc_types::Push::new(
                     BigInt::zero(),
-                    zinc_build::IntegerType::I8.into(),
+                    zinc_types::IntegerType::I8.into(),
                 ))
-                .push(zinc_build::Store::new(0, 1))
-                .push(zinc_build::Push::new(
+                .push(zinc_types::Store::new(0, 1))
+                .push(zinc_types::Push::new(
                     (*c).into(),
-                    zinc_build::ScalarType::Boolean,
+                    zinc_types::ScalarType::Boolean,
                 ))
-                .push(zinc_build::If)
-                .push(zinc_build::Push::new(
+                .push(zinc_types::If)
+                .push(zinc_types::Push::new(
                     BigInt::one(),
-                    zinc_build::IntegerType::I8.into(),
+                    zinc_types::IntegerType::I8.into(),
                 ))
-                .push(zinc_build::Load::new(0, 1))
-                .push(zinc_build::Add)
-                .push(zinc_build::Store::new(0, 1))
-                .push(zinc_build::Else)
-                .push(zinc_build::Load::new(0, 1))
-                .push(zinc_build::Push::new(
+                .push(zinc_types::Load::new(0, 1))
+                .push(zinc_types::Add)
+                .push(zinc_types::Store::new(0, 1))
+                .push(zinc_types::Else)
+                .push(zinc_types::Load::new(0, 1))
+                .push(zinc_types::Push::new(
                     BigInt::one(),
-                    zinc_build::IntegerType::I8.into(),
+                    zinc_types::IntegerType::I8.into(),
                 ))
-                .push(zinc_build::Sub)
-                .push(zinc_build::Store::new(0, 1))
-                .push(zinc_build::EndIf)
-                .push(zinc_build::Load::new(0, 1))
+                .push(zinc_types::Sub)
+                .push(zinc_types::Store::new(0, 1))
+                .push(zinc_types::EndIf)
+                .push(zinc_types::Load::new(0, 1))
                 .test(&[*r])?;
         }
 

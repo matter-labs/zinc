@@ -21,9 +21,9 @@ use crate::error::Error;
 ///
 pub struct Instance {
     /// The input data template value.
-    pub input: zinc_build::Value,
+    pub input: zinc_types::Value,
     /// The instance bytecode with metadata.
-    pub application: zinc_build::Application,
+    pub application: zinc_types::Application,
 }
 
 impl Instance {
@@ -48,7 +48,7 @@ impl Instance {
 
         let application = thread::Builder::new()
             .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
-            .spawn(move || -> anyhow::Result<zinc_build::Application> {
+            .spawn(move || -> anyhow::Result<zinc_types::Application> {
                 let scope = EntryAnalyzer::define(source, HashMap::new(), false)
                     .map_err(CompilerError::Semantic)
                     .map_err(|error| anyhow::anyhow!(error.format()))?;
@@ -65,8 +65,8 @@ impl Instance {
             .expect(zinc_const::panic::SYNCHRONIZATION)?;
 
         let input_type = match application {
-            zinc_build::Application::Circuit(ref circuit) => circuit.input.to_owned(),
-            zinc_build::Application::Contract(ref contract) => {
+            zinc_types::Application::Circuit(ref circuit) => circuit.input.to_owned(),
+            zinc_types::Application::Contract(ref contract) => {
                 let method = method
                     .ok_or(Error::MethodMissing)
                     .with_context(|| path.to_string_lossy().to_string())?;
@@ -79,9 +79,10 @@ impl Instance {
                     .input
                     .to_owned()
             }
+            zinc_types::Application::Library(_library) => anyhow::bail!(Error::CannotRunLibrary),
         };
 
-        let input = zinc_build::Value::try_from_typed_json(input, input_type)?;
+        let input = zinc_types::Value::try_from_typed_json(input, input_type)?;
 
         Ok(Self { input, application })
     }

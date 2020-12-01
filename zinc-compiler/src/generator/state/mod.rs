@@ -10,12 +10,13 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use zinc_build::Instruction;
 use zinc_lexical::Location;
 use zinc_lexical::FILE_INDEX;
+use zinc_types::Instruction;
 
 use crate::generator::r#type::contract_field::ContractField as ContractFieldType;
 use crate::generator::r#type::Type;
+use crate::semantic::analyzer::attribute::Attribute;
 
 use self::entry::Entry;
 use self::optimizer::dead_function_code_elimination::Optimizer as DeadFunctionCodeEliminationOptimizer;
@@ -124,14 +125,14 @@ impl State {
         self.data_stack_pointer = 0;
 
         self.instructions
-            .push(Instruction::FileMarker(zinc_build::FileMarker::new(
+            .push(Instruction::FileMarker(zinc_types::FileMarker::new(
                 FILE_INDEX
                     .get_path(location.file)
                     .to_string_lossy()
                     .to_string(),
             )));
         self.instructions.push(Instruction::FunctionMarker(
-            zinc_build::FunctionMarker::new(identifier),
+            zinc_types::FunctionMarker::new(identifier),
         ));
 
         if let zinc_manifest::ProjectType::Contract = self.manifest.project.r#type {
@@ -174,10 +175,27 @@ impl State {
         location: Location,
         type_id: usize,
         identifier: String,
-        should_panic: bool,
-        is_ignored: bool,
+        attributes: Vec<Attribute>,
     ) {
-        let test = UnitTest::new(type_id, identifier.clone(), should_panic, is_ignored);
+        let mut should_panic = false;
+        let mut is_ignored = false;
+        let mut zksync_msg = None;
+        for attribute in attributes.into_iter() {
+            match attribute {
+                Attribute::ShouldPanic => should_panic = true,
+                Attribute::Ignore => is_ignored = true,
+                Attribute::ZksyncMsg(inner) => zksync_msg = Some(inner),
+                _ => {}
+            }
+        }
+
+        let test = UnitTest::new(
+            type_id,
+            identifier.clone(),
+            should_panic,
+            is_ignored,
+            zksync_msg,
+        );
         self.unit_tests.insert(type_id, test);
 
         self.start_function(location, type_id, identifier);
@@ -204,7 +222,7 @@ impl State {
             if self.current_location != location {
                 if self.instructions.is_empty() || self.current_location.file != location.file {
                     self.instructions
-                        .push(Instruction::FileMarker(zinc_build::FileMarker::new(
+                        .push(Instruction::FileMarker(zinc_types::FileMarker::new(
                             FILE_INDEX
                                 .get_path(location.file)
                                 .to_string_lossy()
@@ -213,13 +231,13 @@ impl State {
                 }
                 if self.current_location.line != location.line {
                     self.instructions
-                        .push(Instruction::LineMarker(zinc_build::LineMarker::new(
+                        .push(Instruction::LineMarker(zinc_types::LineMarker::new(
                             location.line,
                         )));
                 }
                 if self.current_location.column != location.column {
                     self.instructions.push(Instruction::ColumnMarker(
-                        zinc_build::ColumnMarker::new(location.column),
+                        zinc_types::ColumnMarker::new(location.column),
                     ));
                 }
                 self.current_location = location;
@@ -236,7 +254,7 @@ impl State {
     pub fn into_application(
         mut self,
         optimize_dead_function_elimination: bool,
-    ) -> zinc_build::Application {
+    ) -> zinc_types::Application {
         match self.contract_storage.take() {
             Some(storage) => {
                 let storage = storage.into_iter().map(|field| field.into()).collect();
@@ -273,12 +291,12 @@ impl State {
                         .get(&type_id)
                         .cloned()
                         .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
-                    let mut input: zinc_build::Type = method.input_fields_as_struct().into();
+                    let mut input: zinc_types::Type = method.input_fields_as_struct().into();
                     input.set_contract_address();
                     let output = method.output_type.into();
                     methods.insert(
                         method.name.clone(),
-                        zinc_build::ContractMethod::new(
+                        zinc_types::ContractMethod::new(
                             type_id,
                             method.name,
                             address,
@@ -298,17 +316,18 @@ impl State {
                         .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
                     unit_tests.insert(
                         unit_test.name,
-                        zinc_build::UnitTest::new(
+                        zinc_types::UnitTest::new(
                             address,
                             unit_test.should_panic,
                             unit_test.is_ignored,
+                            unit_test.zksync_msg,
                         ),
                     );
                 }
 
                 Self::print_instructions(self.instructions.as_slice());
 
-                zinc_build::Application::new_contract(
+                zinc_types::Application::new_contract(
                     self.manifest.project.name,
                     storage,
                     methods,
@@ -316,7 +335,7 @@ impl State {
                     self.instructions,
                 )
             }
-            None => {
+            None if !self.entries.is_empty() => {
                 let (entry_id, entry) = self
                     .entries
                     .into_iter()
@@ -343,7 +362,7 @@ impl State {
                     DeadFunctionCodeEliminationOptimizer::set_addresses(
                         &mut self.instructions,
                         &self.function_addresses,
-                    )
+                    );
                 }
 
                 let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
@@ -355,10 +374,11 @@ impl State {
                         .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
                     unit_tests.insert(
                         unit_test.name,
-                        zinc_build::UnitTest::new(
+                        zinc_types::UnitTest::new(
                             address,
                             unit_test.should_panic,
                             unit_test.is_ignored,
+                            unit_test.zksync_msg,
                         ),
                     );
                 }
@@ -371,11 +391,43 @@ impl State {
 
                 Self::print_instructions(self.instructions.as_slice());
 
-                zinc_build::Application::new_circuit(
+                zinc_types::Application::new_circuit(
                     self.manifest.project.name,
                     address,
                     input,
                     output,
+                    unit_tests,
+                    self.instructions,
+                )
+            }
+            None => {
+                DeadFunctionCodeEliminationOptimizer::set_addresses(
+                    &mut self.instructions,
+                    &self.function_addresses,
+                );
+
+                let mut unit_tests = HashMap::with_capacity(self.unit_tests.len());
+                for (type_id, unit_test) in self.unit_tests.into_iter() {
+                    let address = self
+                        .function_addresses
+                        .get(&type_id)
+                        .cloned()
+                        .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS);
+                    unit_tests.insert(
+                        unit_test.name,
+                        zinc_types::UnitTest::new(
+                            address,
+                            unit_test.should_panic,
+                            unit_test.is_ignored,
+                            unit_test.zksync_msg,
+                        ),
+                    );
+                }
+
+                Self::print_instructions(self.instructions.as_slice());
+
+                zinc_types::Application::new_library(
+                    self.manifest.project.name,
                     unit_tests,
                     self.instructions,
                 )

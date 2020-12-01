@@ -48,9 +48,9 @@ impl ContractField {
     }
 }
 
-impl Into<zinc_build::ContractFieldType> for ContractField {
-    fn into(self) -> zinc_build::ContractFieldType {
-        zinc_build::ContractFieldType::new(
+impl Into<zinc_types::ContractFieldType> for ContractField {
+    fn into(self) -> zinc_types::ContractFieldType {
+        zinc_types::ContractFieldType::new(
             self.name,
             self.r#type.into(),
             self.is_public,

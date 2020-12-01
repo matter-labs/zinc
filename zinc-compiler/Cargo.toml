@@ -33,4 +33,4 @@ zinc-const = { path = "../zinc-const" }
 zinc-math = { path = "../zinc-math" }
 zinc-logger = { path = "../zinc-logger" }
 zinc-source = { path = "../zinc-source" }
-zinc-build = { path = "../zinc-build" }
+zinc-types = { path = "../zinc-types" }

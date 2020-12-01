@@ -31,8 +31,8 @@ impl zinc_vm::IContractStorageKeeper for Keeper {
     fn fetch(
         &self,
         eth_address: BigInt,
-        field_types: Vec<zinc_build::ContractFieldType>,
-    ) -> Result<zinc_build::Value, zinc_vm::Error> {
+        field_types: Vec<zinc_types::ContractFieldType>,
+    ) -> Result<zinc_types::Value, zinc_vm::Error> {
         let mut runtime = tokio::runtime::Builder::new()
             .threaded_scheduler()
             .core_threads(1)
@@ -40,7 +40,7 @@ impl zinc_vm::IContractStorageKeeper for Keeper {
             .build()
             .expect(zinc_const::panic::ASYNC_RUNTIME);
 
-        let eth_address = zinc_zksync::address_from_slice(eth_address.to_bytes_be().1.as_slice());
+        let eth_address = zinc_types::address_from_slice(eth_address.to_bytes_be().1.as_slice());
         let contract = runtime.block_on(
             self.postgresql
                 .select_contract(model::contract::select_one::Input::new(eth_address), None),
@@ -51,7 +51,7 @@ impl zinc_vm::IContractStorageKeeper for Keeper {
             None,
         ))?;
         let eth_private_key =
-            zinc_zksync::private_key_from_slice(contract.eth_private_key.as_slice());
+            zinc_types::private_key_from_slice(contract.eth_private_key.as_slice());
 
         let provider = zksync::Provider::new(self.network);
         let wallet_credentials = runtime.block_on(zksync::WalletCredentials::from_eth_signer(

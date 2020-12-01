@@ -68,8 +68,8 @@ where
 {
     condition
         .get_type()
-        .assert_type(zinc_build::ScalarType::Boolean)?;
-    let scalar_type = zinc_build::ScalarType::expect_same(if_true.get_type(), if_false.get_type())?;
+        .assert_type(zinc_types::ScalarType::Boolean)?;
+    let scalar_type = zinc_types::ScalarType::expect_same(if_true.get_type(), if_false.get_type())?;
 
     match condition.get_variant() {
         ScalarVariant::Constant(constant) => {

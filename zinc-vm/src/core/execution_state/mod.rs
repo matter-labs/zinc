@@ -24,7 +24,7 @@ pub struct ExecutionState<E: IEngine> {
     pub data_stack: DataStack<E>,
     pub conditions_stack: Vec<Scalar<E>>,
     pub frames_stack: Vec<Frame<E>>,
-    pub transfers: Vec<zinc_zksync::TransactionMsg>,
+    pub transfers: Vec<zinc_types::TransactionMsg>,
 }
 
 impl<E: IEngine> ExecutionState<E> {

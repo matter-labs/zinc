@@ -6,9 +6,9 @@ use actix_web::http::StatusCode;
 use actix_web::web;
 use num::BigInt;
 
+use zinc_types::TransactionMsg;
 use zinc_vm::Bn256;
 use zinc_vm::ContractInput;
-use zinc_zksync::TransactionMsg;
 
 use crate::contract::Contract;
 use crate::error::Error;
@@ -28,8 +28,8 @@ use crate::storage::keeper::Keeper as StorageKeeper;
 ///
 pub async fn handle(
     app_data: crate::WebData,
-    query: web::Query<zinc_zksync::QueryRequestQuery>,
-    body: web::Json<zinc_zksync::QueryRequestBody>,
+    query: web::Query<zinc_types::QueryRequestQuery>,
+    body: web::Json<zinc_types::QueryRequestBody>,
 ) -> crate::Result<serde_json::Value, Error> {
     let query = query.into_inner();
     let body = body.into_inner();
@@ -75,7 +75,7 @@ pub async fn handle(
     };
     let eth_address_bigint =
         BigInt::from_bytes_be(num::bigint::Sign::Plus, contract.eth_address.as_bytes());
-    let mut arguments = zinc_build::Value::try_from_typed_json(arguments, method.input)
+    let mut arguments = zinc_types::Value::try_from_typed_json(arguments, method.input)
         .map_err(Error::InvalidInput)?;
     arguments.insert_contract_instance(eth_address_bigint.clone());
 
@@ -83,7 +83,7 @@ pub async fn handle(
     let contract_storage = contract.storage;
     let contract_storage_keeper = StorageKeeper::new(postgresql, network);
     let vm_time = std::time::Instant::now();
-    let output = async_std::task::spawn_blocking(move || {
+    let output = tokio::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new_with_keeper(contract_build, Box::new(contract_storage_keeper))
             .run::<Bn256>(ContractInput::new(
             arguments,
@@ -93,6 +93,7 @@ pub async fn handle(
         ))
     })
     .await
+    .expect(zinc_const::panic::ASYNC_RUNTIME)
     .map_err(Error::VirtualMachine)?;
     log::info!(
         "[{}] VM executed in {} ms",

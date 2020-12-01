@@ -24,9 +24,9 @@ use crate::shared_data::locked_contract::LockedContract;
 ///
 pub async fn handle(
     app_data: crate::WebData,
-    query: web::Query<zinc_zksync::PublishRequestQuery>,
-    body: web::Json<zinc_zksync::PublishRequestBody>,
-) -> crate::Result<zinc_zksync::PublishResponseBody, Error> {
+    query: web::Query<zinc_types::PublishRequestQuery>,
+    body: web::Json<zinc_types::PublishRequestBody>,
+) -> crate::Result<zinc_types::PublishResponseBody, Error> {
     let query = query.into_inner();
     let body = body.into_inner();
     let log_id = format!("{}-{}/{}", query.name, query.version, query.instance);
@@ -64,7 +64,7 @@ pub async fn handle(
         serde_json::to_string(&eth_address).expect(zinc_const::panic::DATA_CONVERSION),
     );
 
-    let response = zinc_zksync::PublishResponseBody::new(eth_address);
+    let response = zinc_types::PublishResponseBody::new(eth_address);
 
     Ok(Response::new_with_data(StatusCode::CREATED, response))
 }

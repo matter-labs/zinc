@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::Div;
+use zinc_types::Div;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -20,12 +20,12 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Div {
         let left = vm.pop()?.try_into_value()?;
 
         let condition = vm.condition_top()?;
-        let scalar_type = zinc_build::ScalarType::expect_same(left.get_type(), right.get_type())?;
+        let scalar_type = zinc_types::ScalarType::expect_same(left.get_type(), right.get_type())?;
 
         let cs = vm.constraint_system();
 
         let div = match scalar_type {
-            zinc_build::ScalarType::Field => {
+            zinc_types::ScalarType::Field => {
                 let one = Scalar::new_constant_usize(1, right.get_type());
                 let denom = gadgets::select::conditional(
                     cs.namespace(|| "select denom"),
@@ -37,7 +37,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Div {
                     gadgets::arithmetic::field::inverse(cs.namespace(|| "inverse"), &denom)?;
                 gadgets::arithmetic::mul::mul(cs.namespace(|| "div"), &left, &inverse)?
             }
-            zinc_build::ScalarType::Integer(_) => {
+            zinc_types::ScalarType::Integer(_) => {
                 let (unchecked_div, _rem) = gadgets::arithmetic::div_rem::div_rem_conditional(
                     cs.namespace(|| "div_rem_conditional"),
                     &condition,
@@ -74,42 +74,42 @@ mod test {
     #[test]
     fn test_div() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(9),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(4),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Div)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Div)
+            .push(zinc_types::Push::new(
                 BigInt::from(9),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(-4),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Div)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Div)
+            .push(zinc_types::Push::new(
                 BigInt::from(-9),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(4),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Div)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Div)
+            .push(zinc_types::Push::new(
                 BigInt::from(-9),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(-4),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Div)
+            .push(zinc_types::Div)
             .test(&[3, -3, -2, 2])
     }
 }

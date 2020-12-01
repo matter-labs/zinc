@@ -7,7 +7,6 @@ use std::marker::PhantomData;
 
 use colored::Colorize;
 use num::BigInt;
-use num::Zero;
 
 use franklin_crypto::bellman::groth16;
 use franklin_crypto::bellman::groth16::Parameters;
@@ -16,7 +15,7 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::ConstraintSystem;
 
 use zinc_const::UnitTestExitCode;
-use zinc_zksync::TransactionMsg;
+use zinc_types::TransactionMsg;
 
 use crate::constraint_systems::constant::Constant as ConstantCS;
 use crate::constraint_systems::main::Main as MainCS;
@@ -36,7 +35,7 @@ use crate::gadgets::contract::storage::StorageGadget;
 use crate::IEngine;
 
 pub struct Facade {
-    inner: zinc_build::Contract,
+    inner: zinc_types::Contract,
     keeper: Box<dyn IKeeper>,
 }
 
@@ -44,7 +43,7 @@ impl Facade {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(inner: zinc_build::Contract) -> Self {
+    pub fn new(inner: zinc_types::Contract) -> Self {
         Self {
             inner,
             keeper: Box::new(DummyKeeper::default()),
@@ -54,7 +53,7 @@ impl Facade {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new_with_keeper(inner: zinc_build::Contract, keeper: Box<dyn IKeeper>) -> Self {
+    pub fn new_with_keeper(inner: zinc_types::Contract, keeper: Box<dyn IKeeper>) -> Self {
         Self { inner, keeper }
     }
 
@@ -113,7 +112,7 @@ impl Facade {
         }
 
         let output_value: Vec<BigInt> = result.into_iter().filter_map(|value| value).collect();
-        let output_value = zinc_build::Value::from_flat_values(output_type, &output_value);
+        let output_value = zinc_types::Value::from_flat_values(output_type, &output_value);
 
         let storages = state
             .storages
@@ -126,11 +125,7 @@ impl Facade {
         Ok(ContractOutput::new(output_value, storages, transfers))
     }
 
-    pub fn test<E: IEngine>(
-        self,
-        storage: zinc_build::Value,
-        transaction: zinc_zksync::TransactionMsg,
-    ) -> Result<UnitTestExitCode, Error> {
+    pub fn test<E: IEngine>(self) -> Result<UnitTestExitCode, Error> {
         let mut exit_code = UnitTestExitCode::Passed;
 
         for (name, unit_test) in self.inner.unit_tests.clone().into_iter() {
@@ -139,21 +134,13 @@ impl Facade {
                 return Ok(UnitTestExitCode::Ignored);
             }
 
-            let mut cs = MainCS::<Bn256>::new();
+            let cs = MainCS::<Bn256>::new();
 
-            let storage =
-                DatabaseStorage::<Bn256>::from_build(self.inner.storage.clone(), storage.clone())?;
-            let storage_gadget =
-                StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
-
-            let mut storages = HashMap::with_capacity(1);
-            storages.insert(BigInt::zero(), storage_gadget);
-
-            let mut state = ContractState::new(
+            let mut state = ContractState::<_, _, DatabaseStorage<_>, Sha256Hasher>::new(
                 cs,
-                storages,
+                HashMap::with_capacity(1),
                 Box::new(DummyKeeper::default()),
-                transaction.clone(),
+                unit_test.zksync_msg.unwrap_or_default(),
             );
 
             match state.test(self.inner.clone(), unit_test.address) {
@@ -197,7 +184,7 @@ impl Facade {
 
         let storage = SetupStorage::from_build(
             self.inner.storage.clone(),
-            zinc_build::Value::Contract(vec![]),
+            zinc_types::Value::Contract(vec![]),
         )?;
 
         let synthesizable = ContractSynthesizer {
@@ -224,7 +211,7 @@ impl Facade {
         self,
         params: Parameters<E>,
         input: ContractInput,
-    ) -> Result<(zinc_build::Value, Proof<E>), Error> {
+    ) -> Result<(zinc_types::Value, Proof<E>), Error> {
         let method = self
             .inner
             .methods
@@ -270,7 +257,7 @@ impl Facade {
                     let output_flat: Vec<BigInt> =
                         result.into_iter().filter_map(|value| value).collect();
                     let output_value =
-                        zinc_build::Value::from_flat_values(output_type, &output_flat);
+                        zinc_types::Value::from_flat_values(output_type, &output_flat);
 
                     Ok((output_value, proof))
                 }

@@ -2,10 +2,10 @@
 //! The `*Marker` instructions.
 //!
 
-use zinc_build::ColumnMarker;
-use zinc_build::FileMarker;
-use zinc_build::FunctionMarker;
-use zinc_build::LineMarker;
+use zinc_types::ColumnMarker;
+use zinc_types::FileMarker;
+use zinc_types::FunctionMarker;
+use zinc_types::LineMarker;
 
 use crate::core::location::Location;
 use crate::core::virtual_machine::IVirtualMachine;

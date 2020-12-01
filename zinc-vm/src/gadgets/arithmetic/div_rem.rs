@@ -71,12 +71,12 @@ where
         let quotient = Scalar::new_unchecked_variable(
             quotient_value,
             quotient_var,
-            zinc_build::ScalarType::Field,
+            zinc_types::ScalarType::Field,
         );
         let remainder = Scalar::new_unchecked_variable(
             remainder_value,
             remainder_var,
-            zinc_build::ScalarType::Field,
+            zinc_types::ScalarType::Field,
         );
 
         (quotient, remainder)

@@ -37,12 +37,12 @@ pub trait IVirtualMachine {
         &mut self,
         eth_address: Scalar<Self::E>,
         values: Vec<Scalar<Self::E>>,
-        field_types: Vec<zinc_build::ContractFieldType>,
+        field_types: Vec<zinc_types::ContractFieldType>,
     ) -> Result<(), Error>;
     fn storage_fetch(
         &mut self,
         eth_address: Scalar<Self::E>,
-        field_types: Vec<zinc_build::ContractFieldType>,
+        field_types: Vec<zinc_types::ContractFieldType>,
     ) -> Result<(), Error>;
     fn storage_load(
         &mut self,

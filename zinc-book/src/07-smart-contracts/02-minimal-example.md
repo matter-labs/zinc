@@ -187,6 +187,7 @@ and fill the constructor arguments you are going to pass:
 > Also, put your account private key to the `./data/private_key` file. All deposits
 > and transfers to the newly created contract will be done from that account.
 > Ensure that your account is unlocked and has enough balance to pay fees.
+> To see how to unlock a new zkSync account, go to the [troubleshooting](./04-troubleshooting.md) chapter.
 
 To publish the contract, use this simple command with the network identifier
 and instance name:

@@ -36,7 +36,7 @@ where
         let root_hash = Scalar::<E>::new_unchecked_variable(
             Some(root_hash_value),
             root_hash_variable,
-            zinc_build::ScalarType::Field,
+            zinc_types::ScalarType::Field,
         );
 
         Ok(StorageGadget {
@@ -99,7 +99,7 @@ where
         Ok(())
     }
 
-    pub fn into_build(self) -> zinc_build::Value {
+    pub fn into_build(self) -> zinc_types::Value {
         let field_types = self.storage.types().to_owned();
         let fields = self
             .storage
@@ -109,11 +109,11 @@ where
             .map(|(leaf, field)| {
                 let value = match leaf {
                     LeafOutput::Array(array) => {
-                        zinc_build::Value::from_flat_values(field.r#type, array.as_slice())
+                        zinc_types::Value::from_flat_values(field.r#type, array.as_slice())
                     }
                     LeafOutput::Map(entries) => {
                         let (key_type, value_type) = match field.r#type {
-                            zinc_build::Type::Map {
+                            zinc_types::Type::Map {
                                 key_type,
                                 value_type,
                             } => (*key_type, *value_type),
@@ -122,30 +122,30 @@ where
 
                         let mut values = Vec::with_capacity(entries.len());
                         for (key, value) in entries.into_iter() {
-                            let key = zinc_build::Value::from_flat_values(
+                            let key = zinc_types::Value::from_flat_values(
                                 key_type.clone(),
                                 key.as_slice(),
                             );
-                            let value = zinc_build::Value::from_flat_values(
+                            let value = zinc_types::Value::from_flat_values(
                                 value_type.clone(),
                                 value.as_slice(),
                             );
                             values.push((key, value));
                         }
-                        zinc_build::Value::Map(values)
+                        zinc_types::Value::Map(values)
                     }
                 };
 
-                zinc_build::ContractFieldValue::new(
+                zinc_types::ContractFieldValue::new(
                     field.name,
                     value,
                     field.is_public,
                     field.is_implicit,
                 )
             })
-            .collect::<Vec<zinc_build::ContractFieldValue>>();
+            .collect::<Vec<zinc_types::ContractFieldValue>>();
 
-        zinc_build::Value::Contract(fields)
+        zinc_types::Value::Contract(fields)
     }
 
     pub fn root_hash(&self) -> Result<Scalar<E>, Error> {

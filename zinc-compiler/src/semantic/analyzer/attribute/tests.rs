@@ -209,6 +209,35 @@ fn test() {}
 }
 
 #[test]
+fn error_overflow_zksync_msg_sender() {
+    let input = r#"
+fn main() {}
+
+#[zksync::msg(
+    sender = 0x10000000000000000000000000000000000000000,
+    recipient = 0x0002,
+    token_address = 0x0003,
+    amount = 1000,
+)]
+fn test() {}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::InvalidInteger {
+        location: Location::test(5, 14),
+        inner: zinc_math::Error::Overflow {
+            value: zinc_math::bigint_from_str("0x10000000000000000000000000000000000000000")
+                .expect(zinc_const::panic::TEST_DATA_VALID),
+            is_signed: false,
+            bitlength: zinc_const::bitlength::ETH_ADDRESS,
+        },
+    }));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_expected_element_zksync_msg_recipient() {
     let input = r#"
 fn main() {}
@@ -255,6 +284,35 @@ fn test() {}
             name: "recipient".to_owned(),
         },
     ));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_overflow_zksync_msg_recipient() {
+    let input = r#"
+fn main() {}
+
+#[zksync::msg(
+    sender = 0x0001,
+    recipient = 0x10000000000000000000000000000000000000000,
+    token_address = 0x0003,
+    amount = 1000,
+)]
+fn test() {}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::InvalidInteger {
+        location: Location::test(6, 17),
+        inner: zinc_math::Error::Overflow {
+            value: zinc_math::bigint_from_str("0x10000000000000000000000000000000000000000")
+                .expect(zinc_const::panic::TEST_DATA_VALID),
+            is_signed: false,
+            bitlength: zinc_const::bitlength::ETH_ADDRESS,
+        },
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -315,6 +373,35 @@ fn test() {}
 }
 
 #[test]
+fn error_overflow_zksync_msg_token_address() {
+    let input = r#"
+fn main() {}
+
+#[zksync::msg(
+    sender = 0x0001,
+    recipient = 0x0002,
+    token_address = 0x10000000000000000000000000000000000000000,
+    amount = 1000,
+)]
+fn test() {}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::InvalidInteger {
+        location: Location::test(7, 21),
+        inner: zinc_math::Error::Overflow {
+            value: zinc_math::bigint_from_str("0x10000000000000000000000000000000000000000")
+                .expect(zinc_const::panic::TEST_DATA_VALID),
+            is_signed: false,
+            bitlength: zinc_const::bitlength::ETH_ADDRESS,
+        },
+    }));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_expected_element_zksync_msg_amount() {
     let input = r#"
 fn main() {}
@@ -361,6 +448,37 @@ fn test() {}
             name: "amount".to_owned(),
         },
     ));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_overflow_zksync_msg_amount() {
+    let input = r#"
+fn main() {}
+
+#[zksync::msg(
+    sender = 0x0001,
+    recipient = 0x0002,
+    token_address = 0x0003,
+    amount = 0x100000000000000000000000000000000000000000000000000000000000000,
+)]
+fn test() {}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::InvalidInteger {
+        location: Location::test(8, 14),
+        inner: zinc_math::Error::Overflow {
+            value: zinc_math::bigint_from_str(
+                "0x100000000000000000000000000000000000000000000000000000000000000",
+            )
+            .expect(zinc_const::panic::TEST_DATA_VALID),
+            is_signed: false,
+            bitlength: zinc_const::bitlength::BALANCE,
+        },
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 

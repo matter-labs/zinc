@@ -5,7 +5,7 @@
 use num::bigint::ToBigInt;
 use num::ToPrimitive;
 
-use zinc_build::LoadByIndex;
+use zinc_types::LoadByIndex;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;

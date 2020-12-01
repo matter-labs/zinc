@@ -35,5 +35,4 @@ franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto.git", 
 zinc-const = { path = "../zinc-const" }
 zinc-math = { path = "../zinc-math" }
 zinc-logger = { path = "../zinc-logger" }
-zinc-zksync = { path = "../zinc-zksync" }
-zinc-build = { path = "../zinc-build" }
+zinc-types = { path = "../zinc-types" }

@@ -58,7 +58,7 @@ impl Directory {
                             .with_context(|| path.to_string_lossy().to_string());
                     }
 
-                    if !is_entry && file.is_application_entry() {
+                    if !is_entry && file.is_project_entry() {
                         return Err(Error::ApplicationEntryBeyondRoot)
                             .with_context(|| path.to_string_lossy().to_string());
                     }

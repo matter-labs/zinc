@@ -1,0 +1,3347 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Zinc v0.2.1</title>
+        
+        <meta name="robots" content="noindex" />
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="The official Zinc book">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="01-design-background.html"><strong aria-hidden="true">1.</strong> Design background</a></li><li class="chapter-item expanded "><a href="02-getting-started/00-overview.html"><strong aria-hidden="true">2.</strong> Getting started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="02-getting-started/01-require-function.html"><strong aria-hidden="true">2.1.</strong> Require</a></li><li class="chapter-item expanded "><a href="02-getting-started/02-standard-libraries.html"><strong aria-hidden="true">2.2.</strong> Standard libraries</a></li><li class="chapter-item expanded "><a href="02-getting-started/03-debugging.html"><strong aria-hidden="true">2.3.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="02-getting-started/04-testing.html"><strong aria-hidden="true">2.4.</strong> Testing</a></li></ol></li><li class="chapter-item expanded "><a href="03-variables-and-types/00-overview.html"><strong aria-hidden="true">3.</strong> Variables and types</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-variables-and-types/01-variables.html"><strong aria-hidden="true">3.1.</strong> Variables</a></li><li class="chapter-item expanded "><a href="03-variables-and-types/02-types/00-overview.html"><strong aria-hidden="true">3.2.</strong> Types</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="03-variables-and-types/02-types/01-scalar.html"><strong aria-hidden="true">3.2.1.</strong> Scalar</a></li><li class="chapter-item expanded "><a href="03-variables-and-types/02-types/02-arrays.html"><strong aria-hidden="true">3.2.2.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="03-variables-and-types/02-types/03-tuples.html"><strong aria-hidden="true">3.2.3.</strong> Tuples</a></li><li class="chapter-item expanded "><a href="03-variables-and-types/02-types/04-structures.html"><strong aria-hidden="true">3.2.4.</strong> Structures</a></li><li class="chapter-item expanded "><a href="03-variables-and-types/02-types/05-enumerations.html"><strong aria-hidden="true">3.2.5.</strong> Enumerations</a></li><li class="chapter-item expanded "><a href="03-variables-and-types/02-types/06-strings.html"><strong aria-hidden="true">3.2.6.</strong> Strings</a></li><li class="chapter-item expanded "><a href="03-variables-and-types/02-types/07-casting-and-conversions.html"><strong aria-hidden="true">3.2.7.</strong> Casting and conversions</a></li><li class="chapter-item expanded "><a href="03-variables-and-types/02-types/08-maps.html"><strong aria-hidden="true">3.2.8.</strong> Maps</a></li></ol></li><li class="chapter-item expanded "><a href="03-variables-and-types/03-functions.html"><strong aria-hidden="true">3.3.</strong> Functions</a></li></ol></li><li class="chapter-item expanded "><a href="04-operators/00-overview.html"><strong aria-hidden="true">4.</strong> Operators</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="04-operators/01-arithmetic.html"><strong aria-hidden="true">4.1.</strong> Arithmetic</a></li><li class="chapter-item expanded "><a href="04-operators/02-bitwise.html"><strong aria-hidden="true">4.2.</strong> Bitwise</a></li><li class="chapter-item expanded "><a href="04-operators/03-comparison.html"><strong aria-hidden="true">4.3.</strong> Comparison</a></li><li class="chapter-item expanded "><a href="04-operators/04-logical.html"><strong aria-hidden="true">4.4.</strong> Logical</a></li><li class="chapter-item expanded "><a href="04-operators/05-casting.html"><strong aria-hidden="true">4.5.</strong> Casting</a></li><li class="chapter-item expanded "><a href="04-operators/06-access.html"><strong aria-hidden="true">4.6.</strong> Access</a></li><li class="chapter-item expanded "><a href="04-operators/07-range.html"><strong aria-hidden="true">4.7.</strong> Range</a></li><li class="chapter-item expanded "><a href="04-operators/08-assignment.html"><strong aria-hidden="true">4.8.</strong> Assignment</a></li></ol></li><li class="chapter-item expanded "><a href="05-expressions/00-overview.html"><strong aria-hidden="true">5.</strong> Expressions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="05-expressions/01-literals.html"><strong aria-hidden="true">5.1.</strong> Literals</a></li><li class="chapter-item expanded "><a href="05-expressions/02-blocks.html"><strong aria-hidden="true">5.2.</strong> Blocks</a></li><li class="chapter-item expanded "><a href="05-expressions/03-conditionals.html"><strong aria-hidden="true">5.3.</strong> Conditionals</a></li><li class="chapter-item expanded "><a href="05-expressions/04-constant.html"><strong aria-hidden="true">5.4.</strong> Constant</a></li></ol></li><li class="chapter-item expanded "><a href="06-statements/00-overview.html"><strong aria-hidden="true">6.</strong> Statements</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="06-statements/01-declaration.html"><strong aria-hidden="true">6.1.</strong> Declaration</a></li><li class="chapter-item expanded "><a href="06-statements/02-expression.html"><strong aria-hidden="true">6.2.</strong> Expression</a></li><li class="chapter-item expanded "><a href="06-statements/03-control.html"><strong aria-hidden="true">6.3.</strong> Control</a></li></ol></li><li class="chapter-item expanded "><a href="07-smart-contracts/00-overview.html"><strong aria-hidden="true">7.</strong> Smart contracts</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="07-smart-contracts/01-storage-and-methods.html"><strong aria-hidden="true">7.1.</strong> Storage and methods</a></li><li class="chapter-item expanded "><a href="07-smart-contracts/02-minimal-example.html"><strong aria-hidden="true">7.2.</strong> Minimal example</a></li><li class="chapter-item expanded "><a href="07-smart-contracts/03-curve-implementation.html"><strong aria-hidden="true">7.3.</strong> The Curve</a></li><li class="chapter-item expanded "><a href="07-smart-contracts/04-troubleshooting.html"><strong aria-hidden="true">7.4.</strong> Troubleshooting</a></li></ol></li><li class="chapter-item expanded "><a href="08-circuits/00-overview.html"><strong aria-hidden="true">8.</strong> Zero-knowledge circuits</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="08-circuits/01-input-output.html"><strong aria-hidden="true">8.1.</strong> Input and output</a></li><li class="chapter-item expanded "><a href="08-circuits/02-minimal-example.html"><strong aria-hidden="true">8.2.</strong> Minimal example</a></li><li class="chapter-item expanded "><a href="08-circuits/03-merkle-tree.html"><strong aria-hidden="true">8.3.</strong> The Merkle tree</a></li></ol></li><li class="chapter-item expanded "><a href="09-virtual-machine/00-overview.html"><strong aria-hidden="true">9.</strong> Virtual machine</a></li><li class="chapter-item expanded "><a href="10-zargo/00-overview.html"><strong aria-hidden="true">10.</strong> Zargo</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="10-zargo/01-contract-workflow.html"><strong aria-hidden="true">10.1.</strong> Contract workflow</a></li><li class="chapter-item expanded "><a href="10-zargo/02-circuit-workflow.html"><strong aria-hidden="true">10.2.</strong> Circuit workflow</a></li></ol></li><li class="chapter-item expanded "><a href="appendix/_overview.html"><strong aria-hidden="true">11.</strong> Appendix</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="appendix/A-grammar-lexical.html"><strong aria-hidden="true">11.1.</strong> A - Lexical grammar</a></li><li class="chapter-item expanded "><a href="appendix/B-grammar-syntax.html"><strong aria-hidden="true">11.2.</strong> B - Syntax grammar</a></li><li class="chapter-item expanded "><a href="appendix/C-keywords.html"><strong aria-hidden="true">11.3.</strong> C - Keywords</a></li><li class="chapter-item expanded "><a href="appendix/D-intrinsic-functions.html"><strong aria-hidden="true">11.4.</strong> D - Intrinsic functions</a></li><li class="chapter-item expanded "><a href="appendix/E-standard-library.html"><strong aria-hidden="true">11.5.</strong> E - The standard library</a></li><li class="chapter-item expanded "><a href="appendix/F-zksync-library.html"><strong aria-hidden="true">11.6.</strong> F - The zkSync library</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Zinc v0.2.1</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <img style="display: block; margin: auto;" width="200" height="200" src="../img/logo.png"/>
+<h1><a class="header" href="#intro" id="intro">Intro</a></h1>
+<p>Zinc is a programming language which can be used to develop:</p>
+<ol>
+<li>Smart contracts for <a href="https://zksync.io">zkSync</a> (a ZK Rollup on Ethereum).</li>
+<li>General-purpose zero-knowledge proof circuits.</li>
+</ol>
+<p>Existing ZKP frameworks lack functionality specific for smart contracts.
+Security and safety aspects are crucial for developing smart contracts since they
+deal with valuable financial assets. Modern smart contract languages, such as
+Simplicity or Libra's Move, deliberately made design choices that favor safety
+and formal verifiability of the code over generalistic expressiveness.</p>
+<p>Zinc is created to fill the gap between the two worlds: to provide a smart
+contract language optimized for ZKP circuits, which is reliable and simple at the
+same time, and can be quickly learned by a large number of software developers.</p>
+<p>We decided to borrow the Rust syntax and semantics. Zinc is a subset of Rust
+with minor differences dictated by the subtleties of ZKP circuits. It is easily
+learnable by any developer familiar with Rust, Golang, C++ or other C-like
+languages. Also, experience with Solidity will help in understanding some smart
+contract specifics.</p>
+<p>The language is under heavy development, thus many of its aspects will eventually
+be improved or changed. However, the basic principles, such as security and
+simplicity, will never be questioned.</p>
+<h1><a class="header" href="#getting-help" id="getting-help">Getting help</a></h1>
+<p>You can ask questions and get assistance in our <a href="https://gitter.im/matter-labs/zinc">Gitter</a>
+chat room.</p>
+<p>If you would like to migrate an existing project to <a href="https://zksync.io">zkSync</a> and
+require help, please send us an email at <a href="">hello@matter-labs.io</a>.</p>
+<h1><a class="header" href="#design-background" id="design-background">Design background</a></h1>
+<p>The goal of Zinc is to make writing safe zero-knowledge circuits and ZKP-based
+smart contracts easy. It has been designed with the following principles in mind:</p>
+<ul>
+<li><strong>Security</strong>. It should be easy to write deterministic and secure applications.
+Conversely, it should be hard to write code to exploit some possible
+vulnerabilities found in other programming languages.</li>
+<li><strong>Safety</strong>. The language must enforce the strictest semantics available,
+such as a strong static explicit type system.</li>
+<li><strong>Efficiency</strong>. The code should compile to the most efficient circuit possible.</li>
+<li><strong>Cost-exposition</strong>. Performance costs that cannot be optimized efficiently
+must be made explicit to the developers. An example is the requirement to
+explicitly specify the loop range with constants.</li>
+<li><strong>Simplicity</strong>. Anyone familiar with C-like languages (Javascript, Java,
+Golang, C++, Rust, Solidity, Move) should be able to learn Zinc quickly and
+with minimum effort.</li>
+<li><strong>Readability</strong>. The code in Zinc should be easily readable to anybody
+familiar with the C++ language family. There should be no counter-intuitive concepts.</li>
+<li><strong>Minimalism</strong>. Less code is better. There should ideally be only one way to
+do something efficiently. Complexity should be reduced.</li>
+<li><strong>Expressiveness</strong>. The language should be powerful enough to make building
+complex applications easy.</li>
+<li><strong>Turing incompleteness</strong>. Unbounded looping and recursion are not permitted
+in Zinc. This not only allows more efficient R1CS circuit construction but
+also makes formal verifiability about the call and stack safety easier and
+eliminates the gas computation problem inherent to Turing-complete smart
+contract platforms, such as EVM.</li>
+</ul>
+<h1><a class="header" href="#key-features" id="key-features">Key features</a></h1>
+<ul>
+<li>Type safety</li>
+<li>Type inference</li>
+<li>Immutability</li>
+<li>Movable resources as a first-class citizen</li>
+<li>Module definition and import</li>
+<li>Expressive syntax</li>
+<li>Industrial-grade compiler optimizations</li>
+<li>Turing incompleteness: no recursion or unbounded looping</li>
+<li>Flat learning curve for Rust/JS/Solidity/C++ developers</li>
+</ul>
+<h1><a class="header" href="#comparison-to-rust" id="comparison-to-rust">Comparison to Rust</a></h1>
+<p>Zinc is designed specifically for ZK-circuits and ZKP-based smart contract
+development, so some differences from Rust are inevitable.</p>
+<h2><a class="header" href="#type-system" id="type-system">Type system</a></h2>
+<p>We need to adapt the type system to be efficiently representable in
+finite fields, which are the basic building block of R1CS. The current type
+system mostly follows Rust, but some aspects are borrowed from smart contract
+languages. For example, Zinc provides integer types with 1-byte step sizes,
+like those in Solidity.</p>
+<h2><a class="header" href="#ownership-and-borrowing" id="ownership-and-borrowing">Ownership and borrowing</a></h2>
+<p>Memory management is very different in R1CS circuits compared to the
+von Neumann architecture. Also, since R1CS does not imply parallel programming
+patterns, a lot of elements of the Rust design would be unnecessary and redundant.
+Zinc has no ownership mechanism found in Rust because all variables will be
+passed by value. The borrowing mechanism is still being designed, but probably,
+only immutable references will be allowed in the future.</p>
+<h2><a class="header" href="#loops-and-recursion" id="loops-and-recursion">Loops and recursion</a></h2>
+<p>Zinc is a Turing-incomplete language, as it does not allow recursion and
+variable loop indexes. Every loop range must be bounded with constant literals
+or expressions.</p>
+<h1><a class="header" href="#getting-started" id="getting-started">Getting started</a></h1>
+<h2><a class="header" href="#installation" id="installation">Installation</a></h2>
+<p>To start using the Zinc framework, do the following:</p>
+<ol>
+<li>Download the latest release for your OS and architecture.</li>
+<li>Add the folder with the binaries to <code>PATH</code>.</li>
+<li>Use the binaries via your favorite terminal.</li>
+</ol>
+<p>The minimal Zinc framework consists of the three tools:</p>
+<ul>
+<li><code>zargo</code> package manager</li>
+<li><code>znc</code> Zinc compiler</li>
+<li><code>zvm</code> Zinc virtual machine</li>
+</ul>
+<p><code>zargo</code> can use the compiler and virtual machine through as subprocesses,
+so you will only need <code>zargo</code> to work with your projects.</p>
+<p>For more information on <code>zargo</code>, check out this <a href="02-getting-started/../10-zargo/00-overview.html">chapter</a>.</p>
+<h2><a class="header" href="#the-visual-studio-code-extension" id="the-visual-studio-code-extension">The Visual Studio Code extension</a></h2>
+<p>There is a syntax highlighting extension for Zinc called <code>Zinc Syntax Highligthing</code>.
+The IDE should recommend installing it once you have opened a Zinc file!</p>
+<h1><a class="header" href="#the-require-function" id="the-require-function">The <code>require</code> function</a></h1>
+<p>This function creates a custom constraint in any place of your code.
+Using <code>require()</code> you can check whether some condition is true
+and make the application exit with an error if otherwise.</p>
+<p>The full function description is <a href="02-getting-started/../appendix/D-intrinsic-functions.html">here</a>.</p>
+<h2><a class="header" href="#example" id="example">Example</a></h2>
+<pre><code class="language-rust no_run noplaypen">const BAD_VALUE: u8 = 42;
+
+fn wrong(a: u8, b: u8) -&gt; u8 {
+    let c = a + b - BAD_VALUE;
+    require(a + b == c, &quot;always fails&quot;);
+    c
+}
+</code></pre>
+<h1><a class="header" href="#standard-library" id="standard-library">Standard library</a></h1>
+<p>The standard library is currently located in a built-in module called <code>std</code>.
+The library contains the following modules:</p>
+<ul>
+<li><code>crypto</code> - cryptographic and hash functions
+<ul>
+<li><code>ecc</code> - elliptic curve cryptography</li>
+<li><code>schnorr</code> - EDDSA signature verification</li>
+</ul>
+</li>
+<li><code>convert</code> - bit array conversion functions</li>
+<li><code>array</code> - array processing functions</li>
+<li><code>ff</code> - finite field functions</li>
+<li><code>collections</code> - data collection types</li>
+</ul>
+<p>All the standard library contents are listed in the <a href="02-getting-started/../appendix/E-standard-library.html">Appendix E</a>.</p>
+<p>Standard library items can be used directly or imported with <code>use</code>:</p>
+<pre><code class="language-rust no_run noplaypen">use std::crypto::sha256; // an import
+
+fn main(preimage: [bool; 256]) -&gt; ([bool; 256], (field, field)) {
+    let input_sha256 = sha256(preimage); // imported
+    let input_pedersen = std::crypto::pedersen(preimage); // directly
+
+    (input_sha256, input_pedersen)
+}
+</code></pre>
+<h1><a class="header" href="#the-zksync-library" id="the-zksync-library">The zkSync library</a></h1>
+<p>The zkSync library is an emerging library, which contains the only function to
+make transfers in the zkSync network.</p>
+<pre><code class="language-rust no_run noplaypen">zksync::transfer(tx.sender, 0xb51be8fafff98d7d2e3615610d08977ad513fc54, 1.0_E18);
+</code></pre>
+<p>Smart contracts also have the global transaction <code>msg</code> variable, which is
+accessible via the <code>zksync</code> library:</p>
+<pre><code class="language-rust no_run noplaypen">let amount = zksync::msg.amount;
+</code></pre>
+<p>The zkSync library contents are listed in the <a href="02-getting-started/../appendix/F-zksync-library.html">Appendix F</a>.</p>
+<h1><a class="header" href="#debugging" id="debugging">Debugging</a></h1>
+<p>There is a special <code>dbg!</code> function, which can print any data anywhere in your code.
+The function prints data to the terminal and is used only for debugging purposes.</p>
+<p>The first argument is the format string, where each <code>{}</code> placeholder is replaced
+with a corresponding value from the rest of the arguments. The number of placeholders
+must be equal to the number of the arguments not including the format string.</p>
+<p>The full function description is <a href="02-getting-started/../appendix/D-intrinsic-functions.html">here</a>.</p>
+<h2><a class="header" href="#example-1" id="example-1">Example</a></h2>
+<pre><code class="language-rust no_run noplaypen">// a = 5, b = 3
+fn print_sum(a: u8, b: u8) {
+    dbg!(&quot;{} + {} = {}&quot;, a, b, a + b); // prints '5 + 3 = 8'
+}
+</code></pre>
+<h1><a class="header" href="#testing" id="testing">Testing</a></h1>
+<p>The Zinc framework provides some basic unit testing functionality.</p>
+<p>Unit tests are just simple functions marked with the <code>#[test]</code> attribute.
+Such functions may be declared anywhere in the root scope of any module.</p>
+<p>A test function can also be marked with other special attributes:</p>
+<ul>
+<li>
+<p><code>#[should_panic]</code> such test must fail in order to succeed, e.g. by passing a
+false value to the <code>require</code> function or causing an overflow.</p>
+</li>
+<li>
+<p><code>#[ignore]</code> such test is just ignored.</p>
+</li>
+</ul>
+<h2><a class="header" href="#examples" id="examples">Examples</a></h2>
+<pre><code class="language-rust no_run noplaypen">#[test]
+fn ordinar() {
+    require(2 + 2 == 4, &quot;The laws of the Universe have been broken&quot;);
+}
+
+#[test]
+#[should_panic]
+fn panicking() {
+    require(2 + 2 == 5, &quot;And it's okay&quot;);
+}
+
+#[test]
+#[ignore]
+fn ignored() {
+    require(2 + 2 &gt; 4, &quot;So we'll just ignore it&quot;);
+}
+</code></pre>
+<h1><a class="header" href="#variables-and-types" id="variables-and-types">Variables and types</a></h1>
+<p>This chapter describes the Zinc language concepts. Here you will learn about
+variables, types, and functions.</p>
+<h1><a class="header" href="#variables" id="variables">Variables</a></h1>
+<p>As it was said before, Zinc is mostly about safety and security. Thus,
+variables are immutable by default. If you are going to change their values,
+you must explicitly mark them as mutable. It protects your data from accidental
+mutating where the compiler is unable to check your intentions.</p>
+<pre><code class="language-rust no_run noplaypen">fn test() {
+    let x = 0;    
+    x = 42; // compile error: mutating an immutable variable
+
+    let mut y = 0;
+    y = 42; // ok
+}
+</code></pre>
+<blockquote>
+<p>If you are familiar with Rust, you will not have any trouble understanding this
+concept, since the syntax and semantics are almost identical. However, pattern
+matching and destructuring are not implemented yet.</p>
+</blockquote>
+<p>Immutable variables are similar to constants. Like with constants, you cannot
+change the immutable variable value. However, constants cannot infer their type
+and you must specify it explicitly.</p>
+<blockquote>
+<p>In contrast to Rust, variables can only be declared in functions. If you need a
+global variable, you should declare a constant instead. This limitation is devised to
+prevent unwanted side effects, polluting the global namespace, and bad code design.</p>
+</blockquote>
+<pre><code class="language-rust no_run noplaypen">const VALUE: field = 0;
+
+fn test() {
+    let variable = VALUE;
+}
+</code></pre>
+<p>Variable shadowing can be a convenient feature, but Zinc is going to enforce
+warning-as-error development workflow, forbidding variable shadowing as a
+potentially unsafe trick. You should use mutable variables or type suffixes
+if you need several adjacent variables with similar logical meaning.</p>
+<pre><code class="language-rust no_run noplaypen">fn test() {
+    let mut x = 5;
+    {        
+        let x = 25; // compile error: redeclared variable 'x'
+    };    
+    let x = 25; // compile error: redeclared variable 'x'
+
+    x = 25; // ok
+}
+</code></pre>
+<h3><a class="header" href="#tuple-destructuring" id="tuple-destructuring">Tuple destructuring</a></h3>
+<p>It is possible to declare multiple variables with a single <code>let</code> statement:</p>
+<pre><code class="language-rust no_run noplaypen">fn main() {
+    let (mut a, b) = (42, 25);
+
+    let (c, (mut d, e)) = (42, (25, 16));
+}
+</code></pre>
+<blockquote>
+<p>This feature is identical to that of Rust, but it is only supported for the
+<code>let</code> statement. Function arguments cannot be destructured.</p>
+</blockquote>
+<h1><a class="header" href="#types" id="types">Types</a></h1>
+<p>Zinc is a statically typed language, thus all the variables must have a type
+known at the compile-time. Strict type system allows to catch the majority of
+runtime errors, which are very common to dynamically typed languages.</p>
+<blockquote>
+<p>If you are familiar with Rust, you will find the Zinc type system very similar,
+but with some modifications, limitations, and restrictions.</p>
+</blockquote>
+<p>Types are divided into several groups:</p>
+<ul>
+<li><a href="03-variables-and-types/02-types/./01-scalar.html">Scalar</a></li>
+<li><a href="03-variables-and-types/02-types/./02-arrays.html">Array</a></li>
+<li><a href="03-variables-and-types/02-types/./03-tuples.html">Tuple</a></li>
+<li><a href="03-variables-and-types/02-types/./04-structures.html">Structure</a></li>
+<li><a href="03-variables-and-types/02-types/./05-enumerations.html">Enumeration</a></li>
+<li><a href="03-variables-and-types/02-types/./06-strings.html">String</a></li>
+</ul>
+<p>To read more about casting, conversions, and type policy, go to <a href="03-variables-and-types/02-types/./07-casting-and-conversions.html">this chapter</a>.</p>
+<p>You can declare type aliases in Zinc, which allow you to shorten type
+signatures of complex types by giving them a name:</p>
+<pre><code class="language-rust no_run noplaypen">type ComplexType = [(u8, [bool; 8], field); 16];
+
+fn example(data: ComplexType) {}
+</code></pre>
+<h1><a class="header" href="#scalar-types" id="scalar-types">Scalar types</a></h1>
+<p>Scalar types are also called primitive types and contain a single value.</p>
+<h2><a class="header" href="#unit" id="unit">Unit</a></h2>
+<p>The unit type and value are described with empty round parenthesis <code>()</code>.
+Values of that type are implicitly returned from functions, blocks, and other
+expressions which do not return a value explicitly. Also, this type can be used
+as a placeholder for input, witness and output types of the <code>main</code> function.</p>
+<p><code>()</code> is the literal for both unit type and value. The unit type values cannot be
+used by any operators or casted back and forth.</p>
+<p>The unit type can exist as a standalone value:</p>
+<pre><code class="language-rust no_run noplaypen">let x = (); // ()
+</code></pre>
+<p>It is implicitly returned by blocks or functions:</p>
+<pre><code class="language-rust no_run noplaypen">fn check(value: bool) {
+    // several statements
+};
+
+let y = check(true); // y is ()
+</code></pre>
+<h2><a class="header" href="#boolean" id="boolean">Boolean</a></h2>
+<p><code>bool</code> is the boolean type keyword.</p>
+<p>Boolean value is represented as <code>field</code> with value set to either <code>0</code> or <code>1</code>.
+To ensure type safety casting between boolean and integer types is not allowed.</p>
+<h3><a class="header" href="#literals" id="literals">Literals</a></h3>
+<p><code>true</code> and <code>false</code>.</p>
+<h3><a class="header" href="#examples-1" id="examples-1">Examples</a></h3>
+<pre><code class="language-rust no_run noplaypen">let a = true;
+let b: bool = false;
+
+if a &amp;&amp; !b {
+    debug(a ^^ b);
+};
+</code></pre>
+<h2><a class="header" href="#integer" id="integer">Integer</a></h2>
+<p>Integer types can be of any size between 1 and 32 bytes. This feature was
+borrowed from Solidity and it helps to reduce the number of constraints and
+smart contract size. Internal integer representation uses the BN256 field of
+different bitlength.</p>
+<h3><a class="header" href="#types-1" id="types-1">Types</a></h3>
+<ul>
+<li><code>u8</code> .. <code>u248</code>: unsigned integers</li>
+<li><code>i8</code> .. <code>i248</code>: signed integers</li>
+<li><code>field</code>: the native field integer</li>
+</ul>
+<p>Integer types bitlength step equals 8, that is, only the following bitlengths
+are possible: <code>8</code>, <code>16</code>, ..., <code>240</code>, <code>248</code>.</p>
+<p>A <code>field</code> value is a native field element of the elliptic curve used in the
+constraint system. It represents an unsigned integer of bitlength equal to the
+field modulus length (e.g. for BN256 the field modulus length is <code>254</code> bit).</p>
+<p>All the types are represented using <code>field</code> as their basic building block.
+When an integer variable is allocated, its bitlength must be enforced in the
+constraint system.</p>
+<h3><a class="header" href="#literals-1" id="literals-1">Literals</a></h3>
+<ul>
+<li>decimal: <code>0</code>, <code>1</code>, <code>122</code>, <code>574839572494237242</code></li>
+<li>hexadecimal: <code>0x0</code>, <code>0xfa</code>, <code>0x0001</code>, <code>0x1fffDEADffffffffffBEEFffff</code></li>
+</ul>
+<p>Only unsigned integer literals can be expressed, since the unary minus
+is not a part of the literal but a standalone operator. Thus, unsigned values
+can be implicitly casted to signed ones using the unary minus.</p>
+<h3><a class="header" href="#casting" id="casting">Casting</a></h3>
+<p>Casting can be done only between integer and <code>field</code> types. If the value does
+not fit into the target type, it is truncated.</p>
+<h3><a class="header" href="#inference" id="inference">Inference</a></h3>
+<p>If the literal type is not specified, the minimal possible bitlength is inferred.</p>
+<h3><a class="header" href="#examples-2" id="examples-2">Examples</a></h3>
+<pre><code class="language-rust no_run noplaypen">let a = 0; // u8
+let a: i24 = 0; // i24
+let b = 256; // u16
+let c = -1;  // i8
+let c = -129; // i16
+let d = 0xff as field; // field
+let e: field = 0; // field
+</code></pre>
+<h1><a class="header" href="#arrays" id="arrays">Arrays</a></h1>
+<p>Arrays are collections of values of the same type sequentially stored in the memory.</p>
+<p>Arrays support the index and slice operators, which is explained in detail
+<a href="03-variables-and-types/02-types/../../04-operators/06-access.html">here</a>.</p>
+<pre><code class="language-rust no_run noplaypen">let mut fibbonaci = [0, 1, 1, 2, 3, 5, 8, 13];
+let element = fibbonaci[3];
+fibbonaci[2] = 1;
+</code></pre>
+<blockquote>
+<p>There is a minor restriction for arrays at the current language state. Arrays
+cannot be indexed with a witness value, but only with a constant or
+witness-independent variable.</p>
+</blockquote>
+<h1><a class="header" href="#tuples" id="tuples">Tuples</a></h1>
+<p>Tuples are anonymous collections of values of different types, sequentially
+stored in memory and gathered together due to some logical relations.</p>
+<p>Tuple fields can be accessed via the dot operator, which is explained in detail
+<a href="03-variables-and-types/02-types/../../04-operators/06-access.html">here</a>.</p>
+<pre><code class="language-rust no_run noplaypen">let mut tuple: (u8, field) = (0xff, 0 as field);
+tuple.0 = 42;
+dbg!(&quot;{}&quot;, tuple.1);
+</code></pre>
+<blockquote>
+<p>If you familiar with Rust, you may remember the peculiar connection between
+unit values, parenthesized expressions, and tuples of one element:</p>
+<ul>
+<li><code>()</code> is a unit value</li>
+<li><code>(value)</code> is a parenthesized expression</li>
+<li><code>(value,)</code> is a tuple of one element</li>
+</ul>
+</blockquote>
+<h1><a class="header" href="#structures" id="structures">Structures</a></h1>
+<p>The structure is a custom data type which lets you name and package together
+multiple related values that make up a meaningful group. Structures allow you
+to easily build complex data types and pass them around your code with as little
+verbosity as possible.</p>
+<p>Structure fields can be accessed via the dot operator, which is explained in
+detail <a href="03-variables-and-types/02-types/../../04-operators/06-access.html">here</a>.</p>
+<pre><code class="language-rust no_run noplaypen">struct Person {
+    age: u8,
+    id: u64,
+}
+
+fn main() {
+    let mut person = Person {
+        age: 24,
+        id: 123456789 as u64,
+    };
+    person.age = 25;
+}
+</code></pre>
+<h2><a class="header" href="#implementation" id="implementation">Implementation</a></h2>
+<p>A structure can be implemented, that is, some methods and associated items
+may be declared for it. The structure implementation resemble the behavioral
+part of a class in object-oriented language.</p>
+<pre><code class="language-rust no_run noplaypen">struct Arithmetic {
+    a: field,
+    b: field,
+}
+
+impl Arithmetic {
+    pub fn add(self) -&gt; field {
+        self.a + self.b
+    }
+
+    pub fn sub(self) -&gt; field {
+        self.a - self.b
+    }
+
+    pub fn mul(self) -&gt; field {
+        self.a * self.b
+    }
+
+    pub fn div(self) {
+        require(false, &quot;Field division is forbidden!&quot;);
+    }
+}
+
+fn main() {
+    let a: field = 10;
+    let b: field = 5;
+    let arithmetic = Arithmetic { a: a, b: b };
+    
+    dbg!(&quot;{} + {} = {}&quot;, a, b, arithmetic.add());
+    dbg!(&quot;{} - {} = {}&quot;, a, b, arithmetic.sub());
+    dbg!(&quot;{} * {} = {}&quot;, a, b, arithmetic.mul());
+    dbg!(&quot;{} / {} = {}&quot;, a, b, arithmetic.div()); // will panic
+}
+</code></pre>
+<p>For more information on methods, see this <a href="03-variables-and-types/02-types/../03-functions.html">chapter</a>.</p>
+<h1><a class="header" href="#enumerations" id="enumerations">Enumerations</a></h1>
+<p>These allow you to define a type by enumerating its possible values. Only simple
+C-like enums are supported for now, which are groups of constants:</p>
+<pre><code class="language-rust no_run noplaypen">enum Order {
+    FIRST = 0,
+    SECOND = 1,
+}
+</code></pre>
+<p>Enum values can be used with <code>match</code> expressions to define the behavior in every
+possible case:</p>
+<pre><code class="language-rust no_run noplaypen">let value = Order::FIRST;
+let result = match value {
+    Order::FIRST =&gt; do_this(),
+    Order::SECOND =&gt; do_that(),
+};
+</code></pre>
+<p>The enum values can be implicitly casted to integers using <code>let</code> statements or
+explicitly via the <code>as</code> operator:</p>
+<pre><code class="language-rust no_run noplaypen">let x = Order::FIRST; // the type is Order (inference)
+let y: u8 = Order::SECOND; // the type is u8 (implicit casting)
+let z = Order::SECOND as u8; // the type is u8 (explicit casting)
+</code></pre>
+<h2><a class="header" href="#implementation-1" id="implementation-1">Implementation</a></h2>
+<p>An enumeration can be implemented, that is, some methods and associated items
+may be declared for it. The enumeration implementation resemble the behavioral
+part of a class in object-oriented language.</p>
+<pre><code class="language-rust no_run noplaypen">enum List {
+    First = 1,
+    Second = 2,
+    Third = 3,
+}
+
+impl List {
+    pub fn first() -&gt; Self {
+        Self::First
+    }
+
+    pub fn second() -&gt; Self {
+        Self::Second
+    }
+
+    pub fn third() -&gt; Self {
+        Self::Third
+    }
+}
+
+fn main(witness: field) -&gt; field {
+    (List::first() + List::second() + List::third()) as field * witness
+}
+</code></pre>
+<p>For more information on methods, see this <a href="03-variables-and-types/02-types/../03-functions.html">chapter</a>.</p>
+<h1><a class="header" href="#strings" id="strings">Strings</a></h1>
+<p>For now, strings have very limited implementation and usability.</p>
+<p>The string values may exist only in the literal form and can only appear in the
+<code>dbg</code> and <code>require</code> intrinsic functions:</p>
+<pre><code class="language-rust no_run noplaypen">dbg!(&quot;{}&quot;, 42); // format string
+
+require(true != false, &quot;a very obvious fact&quot;); // optional error message
+</code></pre>
+<h1><a class="header" href="#casting-and-conversions" id="casting-and-conversions">Casting and conversions</a></h1>
+<p>The language enforces static strong explicit type semantics. It is the strictest
+type system available since reliability is above everything. However,
+some inference abilities will not do any harm, so you do not have to specify
+types in places where they are highly obvious.</p>
+<h2><a class="header" href="#explicit" id="explicit">Explicit</a></h2>
+<p>Type conversions can be only performed on the integer and enumeration types with
+the casting operator. <a href="03-variables-and-types/02-types/../../04-operators/05-casting.html">This chapter</a> explains
+the operator's behavior in detail.</p>
+<h2><a class="header" href="#implicit" id="implicit">Implicit</a></h2>
+<p>The <code>let</code> statement can perform implicit type casting of integers if the type
+is specified to the left of the assignment symbol. Let us examine the statement:</p>
+<pre><code class="language-rust no_run noplaypen">let a: field = 42 as u32;
+</code></pre>
+<ol>
+<li><code>42</code> is inferred as a value of type <code>u8</code>.</li>
+<li><code>42</code> is cast from <code>u8</code> to <code>u32</code>.</li>
+<li>The expression <code>42 as u32</code> result is cast to <code>field</code>.</li>
+<li>The field value is assigned to the variable <code>a</code>.</li>
+</ol>
+<p>The second case of implicit casting is the negation operator, which always
+returns a signed integer type value of the same bitlength, regardless of the
+input argument.</p>
+<pre><code class="language-rust no_run noplaypen">let positive = 100; // u8
+let negative = -positive; // i8
+</code></pre>
+<p><a href="03-variables-and-types/02-types/../../04-operators/01-arithmetic.html">This chapter</a> describes the negation operator
+in more detail.</p>
+<h2><a class="header" href="#inference-1" id="inference-1">Inference</a></h2>
+<p>For now, Zinc infers types in two cases: integer literals and <code>let</code> bindings.</p>
+<p>Integer literals are always inferred as values of the minimal possible size.
+That is, <code>255</code> is a <code>u8</code> value, whereas <code>256</code> is a <code>u16</code> value.</p>
+<p>The <code>let</code> statement can infer types in case its type is not specified.</p>
+<pre><code class="language-rust no_run noplaypen">let value = 0xffffffff_ffffffff_ffffffff_ffffffff;
+</code></pre>
+<p>In the example above, the <code>value</code> variable gets type <code>u128</code>, since 128 bytes
+are enough to represent the value <code>0xffffffff_ffffffff_ffffffff_ffffffff</code>;</p>
+<h1><a class="header" href="#maps" id="maps">Maps</a></h1>
+<p>The <code>std::collections::MTreeMap</code> is a special type, which can only be used as a smart contract
+storage field:</p>
+<pre><code class="language-rust no_run noplaypen">use std::collections::MTreeMap;
+
+struct Data {
+    a: u8,
+    b: u8,
+}
+
+contract Test {
+    data: MTreeMap&lt;u8, Data&gt;;
+
+    pub fn example(mut self) {
+        let (old1, existed1) = self.data.insert(42, Data { a: 16, b: 9 });
+        let (value, exists1) = self.data.get(42);
+        let exists2 = self.data.contains(42);
+        let (old2, existed2) = self.data.remove(42);
+    }
+}
+</code></pre>
+<blockquote>
+<p>The maps introduce a new concept of generic types, but this feature can
+only be used to specify the key and value types for the <code>MTreeMap</code> instance.</p>
+</blockquote>
+<p>The full description of the <code>MTreeMap</code> methods is <a href="03-variables-and-types/02-types/../../appendix/E-standard-library.html#stdcollectionsmtreemapk-v">here</a>.</p>
+<h1><a class="header" href="#function" id="function">Function</a></h1>
+<p>The function is the only callable type in Zinc. However, R1CS specifics require
+that functions must be executed completely, thus there is no <code>return</code> statement.
+The only way to return a value is to specify it as the last unterminated
+statement of the function block.</p>
+<p>Functions consist of several parts: the name, arguments, return type, and the
+code block. The function name uniquely defines the function within its namespace.
+The arguments can be only passed by value, and the function result can only be
+returned by value. If the return type is omitted, the function is considered
+returning a unit value <code>()</code>. The code block can access the global scope,
+but it has no information about where the function has been called from.</p>
+<pre><code class="language-rust no_run noplaypen">const GLOBAL: u8 = 31;
+
+fn wierd_sum(a: u8, b: u8) -&gt; u8 {
+    dbg!(&quot;{} + {}&quot;, a, b);
+    a + b + GLOBAL // return value
+}
+
+fn main() {
+    let result = wierd_sum(42, 27);
+    require(result == 100, &quot;the weird sum is incorrect&quot;);
+}
+</code></pre>
+<h2><a class="header" href="#methods" id="methods">Methods</a></h2>
+<p>Methods are functions declared in a structure or enumeration implementation,
+or in a smart contract definition. Such functions accept the object instance as
+the first argument and can be called via the dot operator.</p>
+<pre><code class="language-rust no_run noplaypen">struct Data {
+    a: u8,
+    b: u8,
+    c: u8,
+    d: u8,
+}
+
+impl Data {
+    pub fn sum(self) -&gt; u8 {
+        self.a + self.b + self.c + self.d
+    }
+}
+
+fn main() {
+    let data = Data { a: 1, b: 2, c: 3, d: 4 };
+    
+    dbg!(&quot;Data sum is: {}&quot;, data.sum());
+}
+</code></pre>
+<p>Methods can be called like ordinary functions using the type namespace they
+are declared in. In some languages it is called a static form:</p>
+<pre><code class="language-rust no_run noplaypen">dbg!(&quot;Data sum is: {}&quot;, Data::sum(data));
+</code></pre>
+<p>If the first argument of a method is mutable, the method is considered mutable and
+it can alter the instance field values. Also, a mutable method can only be called
+from another mutable method, providing some extra data safety.</p>
+<pre><code class="language-rust no_run noplaypen">struct Data {
+    a: u8,
+    b: u8,
+}
+
+impl Data {
+    pub fn double(mut self) -&gt; Self {
+        self.a *= 2;
+        self.b *= 2;
+        self
+    }
+}
+
+fn main() {
+    let mut data = Data { a: 2, b: 1 };
+    dbg!(&quot;Data x1 is: {}&quot;, data);
+
+    let data_x2 = data.double();
+    dbg!(&quot;Data x2 is: {}&quot;, data_x2);
+}
+</code></pre>
+<h2><a class="header" href="#constant-functions" id="constant-functions">Constant functions</a></h2>
+<p>Constant functions are called at compile-time, thus they may only accept and
+return constant expressions. Such functions are useful when you need to use
+a lot of similar parameterized values, and you are not willing to repeat the
+calculating code each time.</p>
+<pre><code class="language-rust no_run noplaypen">const fn cube(x: u64) -&gt; u64 { x * x * x }
+
+fn main() {
+    let cubed_ten = cube(10 as u64); // 1000
+    let cubed_twenty = cube(20 as u64); // 8000
+}
+</code></pre>
+<p>Such functions only exist at compile time, so they do not impact the application
+performance at all.</p>
+<h1><a class="header" href="#operators" id="operators">Operators</a></h1>
+<p>Operators of the Zinc language can be divided into several groups:</p>
+<ul>
+<li><a href="04-operators/./01-arithmetic.html">Arithmetic</a></li>
+<li><a href="04-operators/./02-bitwise.html">Bitwise</a></li>
+<li><a href="04-operators/./03-comparison.html">Comparison</a></li>
+<li><a href="04-operators/./04-logical.html">Logical</a></li>
+<li><a href="04-operators/./05-casting.html">Casting</a></li>
+<li><a href="04-operators/./06-access.html">Access</a></li>
+<li><a href="04-operators/./07-range.html">Range</a></li>
+<li><a href="04-operators/./08-assignment.html">Assignment</a></li>
+</ul>
+<h1><a class="header" href="#precedence" id="precedence">Precedence</a></h1>
+<p>The top one is executed first.</p>
+<table><thead><tr><th>Operator</th><th>Associativity</th></tr></thead><tbody>
+<tr><td>::</td><td>left to right</td></tr>
+<tr><td>[] .</td><td>left to right</td></tr>
+<tr><td>- ~ !</td><td>unary</td></tr>
+<tr><td>as</td><td>left to right</td></tr>
+<tr><td>* / %</td><td>left to right</td></tr>
+<tr><td>+ -</td><td>left to right</td></tr>
+<tr><td>&lt;&lt; &gt;&gt;</td><td>left to right</td></tr>
+<tr><td>&amp;</td><td>left to right</td></tr>
+<tr><td>^</td><td>left to right</td></tr>
+<tr><td>⎮</td><td>left to right</td></tr>
+<tr><td>== != &lt;= &gt;= &lt; &gt;</td><td>require parentheses</td></tr>
+<tr><td>&amp;&amp;</td><td>left to right</td></tr>
+<tr><td>^^</td><td>left to right</td></tr>
+<tr><td>⎮⎮</td><td>left to right</td></tr>
+<tr><td>.. ..=</td><td>require parentheses</td></tr>
+<tr><td>= += -= *= /= %= ⎮= ^= &amp;= &lt;&lt;= &gt;&gt;=</td><td>require parentheses</td></tr>
+</tbody></table>
+<h1><a class="header" href="#arithmetic-operators" id="arithmetic-operators">Arithmetic operators</a></h1>
+<p>Arithmetic operators do not perform any kind of overflow checking at
+compile-time. If an overflow happens, the Zinc VM will fail at runtime.</p>
+<blockquote>
+<p>When it comes to the division of negative numbers, Zinc follows the Euclidean
+division concept. It means that <code>-45 % 7 == 4</code>. To get the detailed explanation
+and some examples, see the <a href="https://en.wikipedia.org/wiki/Euclidean_division">article</a>.</p>
+</blockquote>
+<p>The <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>%=</code> shortcut operators perform the operation
+and assign the result to the first operand. The first operand must be a mutable memory location
+like a variable, array element, or structure field.</p>
+<h3><a class="header" href="#addition" id="addition">Addition</a></h3>
+<p><code>+</code> and <code>+=</code> are binary operators.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Integer expression</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> an integer result of the same type.</p>
+<h3><a class="header" href="#subtraction" id="subtraction">Subtraction</a></h3>
+<p><code>-</code> and <code>-=</code> are binary operators.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Integer expression</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> an integer result of the same type.</p>
+<h3><a class="header" href="#multiplication" id="multiplication">Multiplication</a></h3>
+<p><code>*</code> and <code>*=</code> are binary operators.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Integer expression</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> an integer result of the same type.</p>
+<h3><a class="header" href="#division" id="division">Division</a></h3>
+<p><code>/</code> and <code>/=</code> are binary operators.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Integer expression (any type except <code>field</code>)</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> an integer result of the same type.</p>
+<h3><a class="header" href="#remainder" id="remainder">Remainder</a></h3>
+<p><code>%</code> and <code>%=</code> are binary operators.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Integer expression (any type except <code>field</code>)</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> an integer result of the same type.</p>
+<h3><a class="header" href="#negation" id="negation">Negation</a></h3>
+<p><code>-</code> is an unary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Unsigned integer expression</li>
+</ol>
+<p><em>Returns</em> an integer result of the same type.</p>
+<h1><a class="header" href="#bitwise-operators" id="bitwise-operators">Bitwise operators</a></h1>
+<p>The <code>|=</code>, <code>^=</code>, <code>&amp;=</code>, <code>&lt;&lt;=</code>, <code>&gt;&gt;=</code> shortcut operators perform the operation
+and assign the result to the first operand. The first operand must be a mutable
+memory location like a variable, array element, or structure field.</p>
+<h3><a class="header" href="#bitwise-or" id="bitwise-or">Bitwise OR</a></h3>
+<p><code>|</code> and <code>|=</code> are binary operators.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Unsigned integer expression (excluding <code>field</code>)</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> an integer result of the same type.</p>
+<h3><a class="header" href="#bitwise-xor" id="bitwise-xor">Bitwise XOR</a></h3>
+<p><code>^</code> and <code>^=</code> are binary operators.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Unsigned integer expression (excluding <code>field</code>)</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> an integer result of the same type.</p>
+<h3><a class="header" href="#bitwise-and" id="bitwise-and">Bitwise AND</a></h3>
+<p><code>&amp;</code> and <code>&amp;=</code> are binary operators.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Unsigned integer expression (excluding <code>field</code>)</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> an integer result of the same type.</p>
+<h3><a class="header" href="#bitwise-shift-left" id="bitwise-shift-left">Bitwise shift left</a></h3>
+<p><code>&lt;&lt;</code> and <code>&lt;&lt;=</code> are binary operators.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Unsigned integer expression (excluding <code>field</code>)</li>
+<li>Constant unsigned integer expression</li>
+</ol>
+<p><em>Returns</em> an integer result of the operand 1 type.</p>
+<h3><a class="header" href="#bitwise-shift-right" id="bitwise-shift-right">Bitwise shift right</a></h3>
+<p><code>&gt;&gt;</code> and <code>&gt;&gt;=</code> are binary operators.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Unsigned integer expression (excluding <code>field</code>)</li>
+<li>Constant unsigned integer expression</li>
+</ol>
+<p><em>Returns</em> an integer result of the operand 1 type.</p>
+<h3><a class="header" href="#bitwise-not" id="bitwise-not">Bitwise NOT</a></h3>
+<p><code>~</code> is an unary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Unsigned integer expression (excluding <code>field</code>)</li>
+</ol>
+<p><em>Returns</em> an integer result.</p>
+<h1><a class="header" href="#comparison-operators" id="comparison-operators">Comparison operators</a></h1>
+<h3><a class="header" href="#equality" id="equality">Equality</a></h3>
+<p><code>==</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Integer <strong>or</strong> boolean expression</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> the boolean result.</p>
+<h3><a class="header" href="#non-equality" id="non-equality">Non-equality</a></h3>
+<p><code>!=</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Integer <strong>or</strong> boolean expression</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> the boolean result.</p>
+<h3><a class="header" href="#lesser-or-equals" id="lesser-or-equals">Lesser or equals</a></h3>
+<p><code>&lt;=</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Integer expression</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> the boolean result.</p>
+<h3><a class="header" href="#greater-or-equals" id="greater-or-equals">Greater or equals</a></h3>
+<p><code>&gt;=</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Integer expression</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> the boolean result.</p>
+<h3><a class="header" href="#lesser" id="lesser">Lesser</a></h3>
+<p><code>&lt;</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Integer expression</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> the boolean result.</p>
+<h3><a class="header" href="#greater" id="greater">Greater</a></h3>
+<p><code>&gt;</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Integer expression</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> the boolean result.</p>
+<h1><a class="header" href="#logical-operators" id="logical-operators">Logical operators</a></h1>
+<h3><a class="header" href="#or" id="or">OR</a></h3>
+<p><code>||</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Boolean expression</li>
+<li>Boolean expression</li>
+</ol>
+<p><em>Returns</em> the boolean result.</p>
+<h3><a class="header" href="#xor" id="xor">XOR</a></h3>
+<p><code>^^</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Boolean expression</li>
+<li>Boolean expression</li>
+</ol>
+<p><em>Returns</em> the boolean result.</p>
+<h3><a class="header" href="#and" id="and">AND</a></h3>
+<p><code>&amp;&amp;</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Boolean expression</li>
+<li>Boolean expression</li>
+</ol>
+<p><em>Returns</em> the boolean result.</p>
+<h3><a class="header" href="#not" id="not">NOT</a></h3>
+<p><code>!</code> is a unary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Boolean expression</li>
+</ol>
+<p><em>Returns</em> the boolean result.</p>
+<h1><a class="header" href="#casting-operator" id="casting-operator">Casting operator</a></h1>
+<p><code>as</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Expression of any type</li>
+<li>Expression of the same or another integer type</li>
+</ol>
+<p><em>Returns</em> the casted value.</p>
+<p>Casting allowed:</p>
+<ul>
+<li>from integer to integer</li>
+<li>from enum to integer</li>
+<li>to the same type (no effect, no errors)</li>
+</ul>
+<pre><code class="language-rust no_run noplaypen">enum Order {
+    First = 1,
+}
+
+let a = 1; // inferred as u8
+let b = a as i8; // explicit casting to the opposite sign
+let c: u8 = Order::First; // implicit casting to an integer
+</code></pre>
+<h1><a class="header" href="#access-operators" id="access-operators">Access operators</a></h1>
+<h3><a class="header" href="#path-resolution" id="path-resolution">Path resolution</a></h3>
+<p><code>::</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Namespace identifier (module, structure, enumeration)</li>
+<li>Item identifier (module, type, variable, constant etc.)</li>
+</ol>
+<p><em>Returns</em> the second operand.</p>
+<h3><a class="header" href="#array-indexing" id="array-indexing">Array indexing</a></h3>
+<p><code>[]</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Array expression</li>
+<li>Integer or range expression</li>
+</ol>
+<p><em>Returns</em> an array element (if the 2nd operand is an integer) or a sub-array
+(if the 2nd operand is a range).</p>
+<h3><a class="header" href="#field-access" id="field-access">Field access</a></h3>
+<p><code>.</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Tuple or structure/contract expression</li>
+<li>Tuple index or structure/contract member name</li>
+</ol>
+<p><em>Returns</em> a tuple element or structure/contract member.</p>
+<h1><a class="header" href="#range-operators" id="range-operators">Range operators</a></h1>
+<h3><a class="header" href="#range" id="range">Range</a></h3>
+<p><code>..</code> is a binary operator.</p>
+<p>Range operator is used only for loop bounds or array slicing.</p>
+<p>The operator can accept operands of different integer types. The result will
+be signed if any of the operands if signed, and the bitlength will be enough
+to contain the greater range bound.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Constant integer expression</li>
+<li>Constant integer expression</li>
+</ol>
+<p><em>Returns</em> a temporary range element to be used as a slice or loop range.</p>
+<h3><a class="header" href="#inclusive-range" id="inclusive-range">Inclusive range</a></h3>
+<p><code>..=</code> is a binary operator.</p>
+<p>The same as the above, but the right range bound is inclusive.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Constant integer expression</li>
+<li>Constant integer expression</li>
+</ol>
+<p><em>Returns</em> a temporary range element to be used as a slice or loop range.</p>
+<h1><a class="header" href="#assignment-operators" id="assignment-operators">Assignment operators</a></h1>
+<p><code>=</code> is a binary operator.</p>
+<p><em>Accepts</em></p>
+<ol>
+<li>Place expression (a descriptor of a memory place, e.g. a variable, array element, etc.)</li>
+<li>Expression of the operand 1 type</li>
+</ol>
+<p><em>Returns</em> <code>()</code>.</p>
+<p>There are several variations of the assignment operator performing an operation
+before the assignment: <code>|=</code>, <code>^=</code>, <code>&amp;=</code>, <code>&lt;&lt;=</code>, <code>&gt;&gt;=</code>, <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>%=</code>.</p>
+<h1><a class="header" href="#expressions" id="expressions">Expressions</a></h1>
+<p>Expressions consist of operands and operators.</p>
+<p>Operators have already been described in <a href="05-expressions/../04-operators/00-overview.html">this chapter</a>.</p>
+<p>Zinc supports constant expressions with arrays, tuples, structures, conditionals,
+and matches, which are described <a href="05-expressions/04-constant.html">here</a>.</p>
+<h2><a class="header" href="#operands" id="operands">Operands</a></h2>
+<p>Any syntax constructions computed into values can be used in expressions.
+Zinc does all the type checking at compile-time, so you can build expressions
+of arbitrary complexity without caring about type safety.
+However, you should care about readability and maintainability, since there are
+probably other people going to work with your code.</p>
+<h1><a class="header" href="#literals-2" id="literals-2">Literals</a></h1>
+<p>Simple literal operands are the basic elements of an expression:</p>
+<ul>
+<li><code>42</code> - integer</li>
+<li><code>false</code> - boolean</li>
+<li><code>&quot;error&quot;</code> - string</li>
+<li><code>u128</code> - type (in casting clauses like <code>42 as u128</code>)</li>
+</ul>
+<p>There are several complex operands worth mentioning. As you will see from the
+examples, you can nest these constructions as deep as you need, but do not abuse
+this ability too much.</p>
+<blockquote>
+<p>Integer literal can be written with the pseudo-fractional part, which is useful
+for representing values with a lot of zeros after the comma, e.g. WEI units or
+satoshis: <code>1.0_E18</code>, <code>0.001_E8</code>, <code>42_E6</code>.</p>
+<p>Such numbers are pseudo-fractional, as the exponent cannot be less than the number
+of fractional digits.</p>
+</blockquote>
+<h2><a class="header" href="#array" id="array">Array</a></h2>
+<pre><code class="language-rust no_run noplaypen">let array = [
+    1,
+    2,
+    3,
+    4,
+    5,
+    1 + 5,
+    { let t = 5; t * t },
+];
+</code></pre>
+<p>The inner type and array length are inferred by the compiler.</p>
+<h2><a class="header" href="#tuple" id="tuple">Tuple</a></h2>
+<pre><code class="language-rust no_run noplaypen">let tuple = (42, true, [1, 2, 3]);
+</code></pre>
+<p>The inner types and the tuple type are inferred by the compiler.</p>
+<h2><a class="header" href="#structure" id="structure">Structure</a></h2>
+<pre><code class="language-rust no_run noplaypen">struct Data {
+    value: field,
+}
+
+fn main() {
+    let data = Data {
+        value: 0,
+    };
+}
+</code></pre>
+<h1><a class="header" href="#blocks" id="blocks">Blocks</a></h1>
+<p>A block expression consists of zero or more statements and an optional result
+expression. Every block starts a new scope of visibility.</p>
+<pre><code class="language-rust no_run noplaypen">let c = {
+    let a = 5;
+    let b = 10;
+    a + b
+};
+</code></pre>
+<h1><a class="header" href="#conditionals" id="conditionals">Conditionals</a></h1>
+<h2><a class="header" href="#if" id="if"><code>if</code></a></h2>
+<p>An <code>if</code> conditional expression consists of the condition, main block, and optional
+<code>else</code> block. Every block starts a new scope of visibility.</p>
+<pre><code class="language-rust no_run noplaypen">let condition = true;
+let c = if condition {
+    let a = 5;
+    a
+} else {
+    let b = 10;
+    b
+};
+</code></pre>
+<h2><a class="header" href="#match" id="match"><code>match</code></a></h2>
+<p>The match expression is a syntactic sugar for nested conditional
+expressions. Each branch block starts a new scope of visibility.</p>
+<pre><code class="language-rust no_run noplaypen">enum MyEnum {
+    ValueOne = 1,
+    // ...
+    ValueTen = 10,
+}
+
+fn main() {
+    let value = MyEnum::ValueOne;
+
+    match value {
+        MyEnum::ValueOne =&gt; { /* ... */ },
+        MyEnum::ValueTen =&gt; { /* ... */ },
+    }
+}
+</code></pre>
+<p>For now, only the following match patterns are supported:</p>
+<ul>
+<li>constant (e.g. <code>42</code>)</li>
+<li>path (e.g. <code>MyEnum::ValueOne</code>)</li>
+<li>variable binding (e.g. <code>value</code>)</li>
+<li>wildcard (<code>_</code>)</li>
+</ul>
+<blockquote>
+<p>Only simple types can be used as the <code>match</code> scrutinee for now,
+that is, you cannot match an array, tuple, or structure.</p>
+</blockquote>
+<h1><a class="header" href="#constant-expressions" id="constant-expressions">Constant expressions</a></h1>
+<p>A constant expression is evaluated at compile time. It is useful to declare
+some global data used throughout the project.</p>
+<pre><code class="language-rust no_run noplaypen">const UNIX_EPOCH_TIMESTAMP: (u64, u8, u8) = (1970, 1, 1);
+</code></pre>
+<h1><a class="header" href="#statements" id="statements">Statements</a></h1>
+<p>The basic element of a Zinc application is a <strong>statement</strong>.</p>
+<p>Statements are divided into several types:</p>
+<ol>
+<li>Declaration statements</li>
+<li>Expression statements</li>
+<li>Control statements</li>
+</ol>
+<h1><a class="header" href="#declaration-statements" id="declaration-statements">Declaration statements</a></h1>
+<p>The declaration statements declare a new item, that is, a type, variable or module.</p>
+<h2><a class="header" href="#let-variable-declaration" id="let-variable-declaration"><code>let</code> variable declaration</a></h2>
+<p><code>let [mut] {identifier}[: {type}] = {expression};</code></p>
+<p>The <code>let</code> declaration behaves just like in Rust, but it does not allow
+uninitialized variables.</p>
+<p>The type is optional and is used mostly to cast integer literal or double-check
+the expression result type, otherwise, it is inferred.</p>
+<pre><code class="language-rust no_run noplaypen">let mut variable: field = 0;
+</code></pre>
+<h2><a class="header" href="#type-alias-declaration" id="type-alias-declaration"><code>type</code> alias declaration</a></h2>
+<p><code>type {identifier} = {type};</code></p>
+<p>The <code>type</code> statement declares a type alias to avoid repeating complex types.</p>
+<pre><code class="language-rust no_run noplaypen">type Alias = (field, u8, [field; 8]);
+</code></pre>
+<h2><a class="header" href="#struct-type-declaration" id="struct-type-declaration"><code>struct</code> type declaration</a></h2>
+<p>The <code>struct</code> statement declares a structure.</p>
+<pre><code class="language-rust no_run noplaypen">struct Data {
+    a: field,
+    b: u8,
+    c: (),
+}
+</code></pre>
+<h2><a class="header" href="#enum-type-declaration" id="enum-type-declaration"><code>enum</code> type declaration</a></h2>
+<p>The <code>enum</code> statement declares an enumeration.</p>
+<pre><code class="language-rust no_run noplaypen">enum List {
+    A = 1,
+    B = 2,
+    C = 3,
+}
+</code></pre>
+<h2><a class="header" href="#fn-type-declaration" id="fn-type-declaration"><code>fn</code> type declaration</a></h2>
+<p>The <code>fn</code> statement declares a function.</p>
+<pre><code class="language-rust no_run noplaypen">fn sum(a: u8, b: u8) -&gt; u8 {
+    a + b
+}
+</code></pre>
+<h2><a class="header" href="#impl-namespace-declaration" id="impl-namespace-declaration"><code>impl</code> namespace declaration</a></h2>
+<p>The <code>impl</code> statement declares a namespace of a structure or enumeration.</p>
+<pre><code class="language-rust no_run noplaypen">struct Data {
+    value: field,
+}
+
+impl Data {
+    fn print(self) {
+        dbg!(&quot;{}&quot;, data.value);
+    }
+}
+</code></pre>
+<h2><a class="header" href="#mod-module-declaration" id="mod-module-declaration"><code>mod</code> module declaration</a></h2>
+<p><code>mod {identifier};</code></p>
+<p>The <code>mod</code> statement declares a new module and requires an eponymous module file
+to be present in the declaring module directory.</p>
+<p>That is, if your declare a module named <code>utils</code> in the file <code>main.zn</code> located in
+the <code>src/</code> directory, there must be a file <code>src/utils.zn</code>.</p>
+<p>The Zinc module system almost completely mimics <a href="https://doc.rust-lang.org/book/second-edition/ch07-00-modules.html">that of Rust</a>,
+but requires every module to reside in a separate file and temporarily allows
+importing private items.</p>
+<h2><a class="header" href="#use-module-import" id="use-module-import"><code>use</code> module import</a></h2>
+<p><code>use {path};</code></p>
+<p>The <code>use</code> statement imports an item from another namespace to the current one.</p>
+<p>Using the example above, you may import items from your <code>utils</code> module this way:</p>
+<pre><code class="language-rust no_run noplaypen">mod utils;
+
+use utils::UsefulUtility;
+
+// some code using 'UsefulUtility'
+</code></pre>
+<h2><a class="header" href="#contract-declaration" id="contract-declaration"><code>contract</code> declaration</a></h2>
+<p>The <code>contract</code> statement declares a smart contract. Contracts are described
+<a href="06-statements/../07-smart-contracts/00-overview.html">here</a>.
+The statement is a merged <code>struct</code> and <code>impl</code> statements, but it can be only
+declared in the entry point file.</p>
+<pre><code class="language-rust no_run noplaypen">type Currency = u248;
+type PairToken = u8;
+
+contract Uniswap {
+    // The contract storage fields     
+    balance_1: Currency;
+    balance_2: Currency;    
+    rate: u248;
+    
+    // Public entries available from outside   
+    
+    pub fn deposit(self, amount: Currency, token: PairToken) {
+        // ...
+    }
+
+    pub fn withdraw(self, amount: Currency) {
+        // ...
+    }
+    
+    pub fn buy(self, amount: Currency, from: PairToken) {
+        // ...
+    }
+    
+    // Private functions
+    
+    fn foo(self) {
+        // ...
+    }
+}
+</code></pre>
+<h1><a class="header" href="#expression-statements" id="expression-statements">Expression statements</a></h1>
+<h2><a class="header" href="#expression" id="expression">Expression</a></h2>
+<p>The expression statement is an expression terminated with a <code>;</code> to ignore its
+result. The most common use is the assignment to a mutable variable:</p>
+<pre><code class="language-rust no_run noplaypen">let mut a = 0;
+a = 42; // an expression statement ignoring the '()' result of the assignment
+</code></pre>
+<p>For more information on expressions, check <a href="06-statements/../05-expressions/00-overview.html">this chapter</a>.</p>
+<h2><a class="header" href="#semicolons" id="semicolons">Semicolons</a></h2>
+<p>Expression statements in Zinc must be always terminated with <code>;</code> to get rid
+of some ambiguities regarding block and conditional expressions.</p>
+<h1><a class="header" href="#control-statements" id="control-statements">Control statements</a></h1>
+<p>Control statements neither ignore the result nor declare a new item. The
+only such statement is the <code>for-while</code> loop.</p>
+<h2><a class="header" href="#for-while-loop" id="for-while-loop"><code>for-while</code> loop</a></h2>
+<pre><code class="language-rust no_run noplaypen">for {identifier} in {range} [while {expression}] {
+    ...
+}
+</code></pre>
+<p>The <code>for</code> loop statement can be modified with the <code>while</code> condition, which will
+be checked before each iteration of the loop. The <code>while</code> condition expression
+has access to the loop iterator variable.</p>
+<pre><code class="language-rust no_run noplaypen">let x = 7;
+
+for i in 0..10 while i % x != 2 {
+    // do something
+};
+</code></pre>
+<p>Only constant expressions can be used as the bounds of the iterator range. The
+<code>while</code> condition will not cause an early return, but it will suppress the loop
+body side effects.</p>
+<p>Zinc is a Turing-incomplete language, as it is dictated by R1CS restrictions, so
+loops always have a fixed number of iterations. On the one hand, the loop counter
+can be optimized to be treated as a constant, reducing the circuit cost, but on
+the other hand, you cannot force a loop to return early, increasing the circuit
+cost.</p>
+<h2><a class="header" href="#if-and-match" id="if-and-match"><code>if</code> and <code>match</code></a></h2>
+<p>The <a href="06-statements/../05-expressions/03-conditionals.html">conditional and match</a> expressions
+can act as control statements, ignoring the returned value. To use them in such
+a role, just terminate the expression with a semicolon:</p>
+<pre><code class="language-rust no_run noplaypen">fn unknown(value: u8) -&gt; u8 {
+    match value {
+        1 =&gt; dbg!(&quot;One!&quot;),
+        2 =&gt; dbg!(&quot;Two!&quot;),
+        _ =&gt; dbg!(&quot;Perhaps, three!&quot;),
+    };
+    42
+}
+</code></pre>
+<h1><a class="header" href="#smart-contracts" id="smart-contracts">Smart contracts</a></h1>
+<p>A Zinc smart contract consists of the entry file <code>main.zn</code>, where the contract
+itself is declared, and zero or more modules, whose contents can be imported
+into the main file.</p>
+<h2><a class="header" href="#example-2" id="example-2">Example</a></h2>
+<h3><a class="header" href="#entry-point-file" id="entry-point-file">Entry point file</a></h3>
+<pre><code class="language-rust no_run noplaypen">/// 
+/// 'src/cube_deposit.zn'
+///
+/// Triples the deposited amount.
+///
+
+mod simple_math;
+
+use simple_math::cube;
+
+contract CubeDeposit {
+    pub balance: u64;
+
+    pub fn deposit(mut self, amount: u64) {
+        self.balance += cube(amount);
+    }
+}
+</code></pre>
+<h3><a class="header" href="#module-simple_math-file" id="module-simple_math-file">Module <code>simple_math</code> file</a></h3>
+<pre><code class="language-rust no_run noplaypen">/// 
+/// 'src/simple_math.zn'
+/// 
+
+/// Returns x^3.
+fn cube(x: u64) -&gt; u64 {
+    x * x * x
+}
+</code></pre>
+<h1><a class="header" href="#storage-and-methods" id="storage-and-methods">Storage and methods</a></h1>
+<p>A typical contract consists of several groups of entities:</p>
+<ul>
+<li>implicit storage fields</li>
+<li>explicit storage fields</li>
+<li>the constructor</li>
+<li>public methods</li>
+<li>private methods</li>
+<li>global variables</li>
+<li>constants</li>
+</ul>
+<h2><a class="header" href="#implicit-storage-fields" id="implicit-storage-fields">Implicit storage fields</a></h2>
+<p>There are several implicitly created fields, which are set upon the contract publishing:</p>
+<ul>
+<li>the contract address (field <code>address</code> of type <code>u160</code>)</li>
+<li>the contract balances (field <code>balances</code> of type <code>std::collections::MTreeMap&lt;u160, u248&gt;</code>),
+where the key is a zkSync token address, and the value is token amount.</li>
+</ul>
+<p>So, when you see an empty contract <code>contract Empty {}</code>, it actually looks like this:</p>
+<pre><code class="language-rust no_run noplaypen">// will not compile, because the fields are already there!
+contract Empty {
+    pub address: u160;
+
+    pub balances: std::collections::MTreeMap&lt;u160, u248&gt;;
+}
+</code></pre>
+<p>The public (<code>pub</code>) fields are visible when querying the contract storage state,
+whereas the private fields are internal and cannot be seen.</p>
+<h2><a class="header" href="#explicit-storage-fields" id="explicit-storage-fields">Explicit storage fields</a></h2>
+<p>The explicit storage fields are declared in the same way as in structure, but with
+a semicolon in the end.</p>
+<pre><code class="language-rust no_run noplaypen">contract Example {
+    pub tokens: (u8, u64);
+
+    data: [u8; 1000];
+
+    //...
+}
+</code></pre>
+<p>Each smart contract instance gets its own storage, which is written to the
+persistent databases by the Zinc Zandbox server.</p>
+<h2><a class="header" href="#the-constructor" id="the-constructor">The constructor</a></h2>
+<p>Each contract must have a constructor, a special function with the name <code>new</code>, which
+returns a <code>Self</code> contract instance. You must not initialize the implicit storage fields,
+since they are filled automatically.</p>
+<pre><code class="language-rust no_run noplaypen">contract Example {
+    pub value: u64;
+
+    pub fn new(_value: u64) -&gt; Self {
+        Self {
+            value: _value,
+        }
+    }
+}
+</code></pre>
+<h2><a class="header" href="#public-methods" id="public-methods">Public methods</a></h2>
+<p>The contract declaration contains several public functions, which serve as
+contract methods. The contract must have at least one public function.</p>
+<pre><code class="language-rust no_run noplaypen">contract Example {
+    //...
+
+    pub fn deposit(mut self, amount: u64) -&gt; bool { ... }
+}
+</code></pre>
+<h2><a class="header" href="#private-methods" id="private-methods">Private methods</a></h2>
+<p>The private functions are declared without the <code>pub</code> keyword and have no
+special meaning. Such functions are simply associated with the contract and
+can be called from within the public methods.</p>
+<pre><code class="language-rust no_run noplaypen">contract Example {
+    //...
+
+    fn get_balance(address: u160) -&gt; bool { ... }
+}
+</code></pre>
+<h2><a class="header" href="#global-variables" id="global-variables">Global variables</a></h2>
+<p>Each contract includes the global <code>zksync::msg</code> variable, which contains the
+transfer data the contract has been called with. The variable description can
+be found in the <a href="07-smart-contracts/../appendix/F-zksync-library.html">Appendix F</a>.</p>
+<h2><a class="header" href="#constants" id="constants">Constants</a></h2>
+<p>A contract may contain some constants associated with it. The constants do not
+have any special meaning and can be used from within the contract functions or
+from the outside.</p>
+<pre><code class="language-rust no_run noplaypen">contract Example {
+    //...
+
+    pub const VERSION: u8 = 1; // public constant 
+
+    const LIMIT: u8 = 255; // private constant
+}
+</code></pre>
+<h1><a class="header" href="#minimal-example" id="minimal-example">Minimal example</a></h1>
+<p>In this example we will implement the simplest exchange smart contract, where
+it will be possible to exchange between a pair of tokens with ever-constant price.</p>
+<p>You will need <code>zargo</code>, which is the Zinc package manager, which bundles smart
+contract projects and simplifies usage of contract methods, using input data
+JSON template located in the project <code>data</code> directory.</p>
+<h2><a class="header" href="#project-initialization" id="project-initialization">Project initialization</a></h2>
+<p>To create a new smart contract project, use the following command:</p>
+<pre><code class="language-bash no_run noplaypen">zargo new --type contract constant_price
+</code></pre>
+<p>Zargo will create a project with some default template code:</p>
+<pre><code class="language-rust no_run noplaypen">//!
+//! The 'constant_price' contract entry.
+//!
+
+contract ConstantPrice {
+    pub value: u64;
+
+    pub fn new(_value: u64) -&gt; Self {
+        Self {
+            value: _value,
+        }
+    }
+}
+</code></pre>
+<p>Let's change the code by:</p>
+<ul>
+<li>removing the redundant <code>value</code> auto-generated field</li>
+<li>adding the <code>fee</code> parameter </li>
+<li>adding two mutable methods for making <code>exchange</code>s and <code>deposit</code>s</li>
+<li>adding an immutable method for getting the contract fee value</li>
+<li>declaring the <code>Address</code> and <code>Balance</code> type aliases</li>
+<li>declaring the <code>TokenAddress</code> enumeration type with zkSync token addresses</li>
+</ul>
+<p>The <code>TokenAddress</code> enumeration lists the token address-like identifiers from
+the <code>Rinkeby</code> zkSync network. Addresses of tokens on the <code>Rinkeby</code> network
+should not change and may be taken from here for further usage.</p>
+<pre><code class="language-rust no_run noplaypen">type Address = u160;
+type Balance = u248;
+
+enum TokenAddress {
+    ETH = 0x0000000000000000000000000000000000000000,
+    USDT = 0x3b00ef435fa4fcff5c209a37d1f3dcff37c705ad,
+    USDC = 0xeb8f08a975ab53e34d8a0330e0d34de942c95926,
+    LINK = 0x4da8d0795830f75be471f072a034d42c369b5d0a,
+    TUSD = 0xd2255612f9b045e9c81244bb874abb413ca139a3,
+    HT = 0x14700cae8b2943bad34c70bb76ae27ecf5bc5013,
+    OMG = 0x2b203de02ad6109521e09985b3af9b8c62541cd6,
+    TRB = 0x2655f3a9eeb7f960be83098457144813ffad07a4,
+    ZRX = 0xdb7f2b9f6a0cb35fe5d236e5ed871d3ad4184290,
+    BAT = 0xd2084ea2ae4bbe1424e4fe3cde25b713632fb988,
+    REP = 0x9cac8508b9ff26501439590a24893d80e7e84d21,
+    STORJ = 0x8098165d982765097e4aa17138816e5b95f9fdb5,
+    NEXO = 0x02d01f0835b7fdfa5d801a8f5f74c37f2bb1ae6a,
+    MCO = 0xd93addb2921b8061b697c2ab055979bbefe2b7ac,
+    KNC = 0x290eba6ec56ecc9ff81c72e8eccc77d2c2bf63eb,
+    LAMB = 0x9ecec4d48efdd96ae377af3ab868f99de865cff8,
+    GNT = 0xd94e3dc39d4cad1dad634e7eb585a57a19dc7efe,
+    MLTT = 0x690f4886c6911d81beb8130db30c825c27281f22,
+    XEM = 0xc3904a7c3a95bc265066bb5bfc4d6664b2174774,
+    DAI = 0x2e055eee18284513b993db7568a592679ab13188,
+}
+
+impl TokenAddress {
+    pub fn is_known(address: Address) -&gt; bool {
+        match address {
+            0x0000000000000000000000000000000000000000 =&gt; true,
+            0x3b00ef435fa4fcff5c209a37d1f3dcff37c705ad =&gt; true,
+            0xeb8f08a975ab53e34d8a0330e0d34de942c95926 =&gt; true,
+            0x4da8d0795830f75be471f072a034d42c369b5d0a =&gt; true,
+            0xd2255612f9b045e9c81244bb874abb413ca139a3 =&gt; true,
+            0x14700cae8b2943bad34c70bb76ae27ecf5bc5013 =&gt; true,
+            0x2b203de02ad6109521e09985b3af9b8c62541cd6 =&gt; true,
+            0x2655f3a9eeb7f960be83098457144813ffad07a4 =&gt; true,
+            0xdb7f2b9f6a0cb35fe5d236e5ed871d3ad4184290 =&gt; true,
+            0xd2084ea2ae4bbe1424e4fe3cde25b713632fb988 =&gt; true,
+            0x9cac8508b9ff26501439590a24893d80e7e84d21 =&gt; true,
+            0x8098165d982765097e4aa17138816e5b95f9fdb5 =&gt; true,
+            0x02d01f0835b7fdfa5d801a8f5f74c37f2bb1ae6a =&gt; true,
+            0xd93addb2921b8061b697c2ab055979bbefe2b7ac =&gt; true,
+            0x290eba6ec56ecc9ff81c72e8eccc77d2c2bf63eb =&gt; true,
+            0x9ecec4d48efdd96ae377af3ab868f99de865cff8 =&gt; true,
+            0xd94e3dc39d4cad1dad634e7eb585a57a19dc7efe =&gt; true,
+            0x690f4886c6911d81beb8130db30c825c27281f22 =&gt; true,
+            0xc3904a7c3a95bc265066bb5bfc4d6664b2174774 =&gt; true,
+            0x2e055eee18284513b993db7568a592679ab13188 =&gt; true,
+            _ =&gt; false,
+        }
+    }
+}
+
+contract ConstantPrice {
+    const MAX_FEE: u16 = 10000;
+    const PRECISION_MUL: Balance = 1E3;
+
+    pub fee: u16;
+
+    pub fn new(_fee: u16) -&gt; Self {
+        require(_fee &lt;= Self::MAX_FEE, &quot;The fee value must be between 0 and 10000&quot;);
+
+        Self {
+            fee: _fee,
+        }
+    }
+
+    pub fn deposit(mut self) {
+        // check if the transaction recipient is the contract address
+        require(zksync::msg.recipient == self.address, &quot;The transfer recipient is not the contract&quot;);
+
+        // check if the deposited token is known to the contract
+        require(TokenAddress::is_known(zksync::msg.token_address), &quot;The deposited token is unknown&quot;);
+
+        // check if the deposited amount is not zero
+        require(zksync::msg.amount &gt; 0, &quot;Cannot deposit zero tokens&quot;);
+    }
+
+    pub fn exchange(
+        mut self,
+        withdraw_token: Address,
+    ) {
+        // check if the transaction recipient is the contract address
+        require(zksync::msg.recipient == self.address, &quot;The transfer recipient is not the contract&quot;);
+
+        // check if the deposited token is known to the contract
+        require(TokenAddress::is_known(zksync::msg.token_address), &quot;The deposited token is unknown&quot;);
+
+        // check if the withdrawn token is known to the contract
+        require(TokenAddress::is_known(withdraw_token), &quot;The withdrawn token is unknown&quot;);
+
+        // check if the deposited amount is not zero
+        require(zksync::msg.amount &gt; 0, &quot;Cannot deposit zero tokens&quot;);
+
+        // check if the deposited and withdrawn token identifiers are different
+        require(zksync::msg.token_address != withdraw_token, &quot;Cannot withdraw the same token&quot;);
+
+        let withdraw_token_amount = zksync::msg.amount *
+            ((Self::MAX_FEE - self.fee) as Balance * Self::PRECISION_MUL / Self::MAX_FEE as Balance) /
+            Self::PRECISION_MUL;
+        // check if there is enough balance to withdraw
+        require(self.balances.get(withdraw_token).0 &gt;= withdraw_token_amount, &quot;Not enough tokens to withdraw&quot;);
+
+        zksync::transfer(zksync::msg.sender, withdraw_token, withdraw_token_amount);
+    }
+
+    pub fn get_fee(self) -&gt; u16 {
+        self.fee
+    }
+}
+</code></pre>
+<blockquote>
+<p>In our case, the <code>fee</code> is an integer value between <code>0</code> and <code>10000</code>, where the latter
+represents <code>100%</code>. It is common practice to use integer values in this way, since there
+are usually limited support of floating point numbers in safe smart contract languages.
+We are also using some additional fractional digits to avoid getting zeros after
+integer division. That is, instead of doing <code>amount * 9900 / 10000</code>, we do
+<code>amount * 9900 * 1E3 / 10000 / 1E3</code>.</p>
+</blockquote>
+<h2><a class="header" href="#publishing-the-contract" id="publishing-the-contract">Publishing the contract</a></h2>
+<p>Before publishing, run <code>zargo build</code> in the project directory. Then,
+open the <code>./data/input.json</code> constructor input template file
+and fill the constructor arguments you are going to pass:</p>
+<pre><code class="language-json">{
+  &quot;arguments&quot;: {
+    &quot;new&quot;: {
+      &quot;_fee&quot;: &quot;100&quot;
+    }
+    // ...
+  }
+}
+</code></pre>
+<blockquote>
+<p>Also, put your account private key to the <code>./data/private_key</code> file. All deposits
+and transfers to the newly created contract will be done from that account.
+Ensure that your account is unlocked and has enough balance to pay fees.
+To see how to unlock a new zkSync account, go to the <a href="07-smart-contracts/./04-troubleshooting.html">troubleshooting</a> chapter.</p>
+</blockquote>
+<p>To publish the contract, use this simple command with the network identifier
+and instance name:</p>
+<pre><code class="language-bash no_run noplaypen">zargo publish --network rinkeby --instance default
+</code></pre>
+<p>When the contract is successfully published, its ETH address and zkSync account ID
+will be returned. You will need the address to make some further calls.
+Let's assume it is <code>0x1234...1234</code>.</p>
+<p>The instance name is used to uniquely identify your published contract without
+memorizing its ETH address.</p>
+<p>The contract has been published!</p>
+<h2><a class="header" href="#querying-the-contract-storage" id="querying-the-contract-storage">Querying the contract storage</a></h2>
+<p>The <code>constant_price</code> contract is now published, and its dedicated storage
+instance is created. You may query the Zandbox server to see its zero balances:</p>
+<pre><code class="language-bash no_run noplaypen">zargo query --network rinkeby --address 0x1234...1234
+</code></pre>
+<h2><a class="header" href="#calling-a-non-mutable-contract-method" id="calling-a-non-mutable-contract-method">Calling a non-mutable contract method</a></h2>
+<p>A non-mutable contract method can be called with the same query as above, but
+with the <code>method</code> argument:</p>
+<pre><code class="language-bash no_run noplaypen">zargo query --network rinkeby --address 0x1234...1234 --method get_fee
+</code></pre>
+<p>The output:</p>
+<pre><code class="language-json">{
+  &quot;output&quot;: &quot;100&quot;
+}
+</code></pre>
+<h2><a class="header" href="#calling-a-mutable-contract-method" id="calling-a-mutable-contract-method">Calling a mutable contract method</a></h2>
+<p>Let's now call our contract <code>deposit</code> method!</p>
+<p>Open the method input template file <code>./data/input.json</code> and specify
+the token identifier and amount you want to exchange:</p>
+<pre><code class="language-json">{
+  &quot;msg&quot;: {
+    &quot;sender&quot;: &quot;&lt;your_address&gt;&quot;,
+    &quot;recipient&quot;: &quot;0x1234...1234&quot;,
+    &quot;token_address&quot;: &quot;0x0000000000000000000000000000000000000000&quot;, // ETH
+    &quot;amount&quot;: &quot;0.1_E18&quot;
+  }
+}
+</code></pre>
+<blockquote>
+<p>Be cautious when specifying the exponent value for token amounts, as it is
+crucial to specify the correct number of decimal digits for each token.</p>
+</blockquote>
+<p>To call the contract method, use the following command with the method name and
+contract account ID:</p>
+<pre><code class="language-bash no_run noplaypen">zargo call --network rinkeby --address 0x1234...1234 --method deposit
+</code></pre>
+<p>After the call has succeeded, query the contract storage again to see the
+expected result:</p>
+<pre><code class="language-json">{
+  &quot;address&quot;: &quot;0x1234...1234&quot;,
+  &quot;balances&quot;: [
+    {
+      &quot;key&quot;: &quot;0x0&quot;,
+      &quot;value&quot;: &quot;100000000000000000&quot; // 0.1_E18
+    }
+  ]
+}
+</code></pre>
+<p>Now you may repeat the call for other tokens and when there is more than one token
+on the exchange, call the <code>exchange</code> method, specifying the token you want to withdraw.</p>
+<h2><a class="header" href="#whats-next" id="whats-next">What's next</a></h2>
+<p>When you have a new smart contract version, just publish it with another instance
+name and it will get a separate storage instance, living its own life!</p>
+<p>Also, there is a <a href="07-smart-contracts/./03-curve-implementation.html">Curve smart contract</a> implementation
+in Zinc. Check it out!</p>
+<h1><a class="header" href="#the-curve" id="the-curve">The Curve</a></h1>
+<p>The <a href="https://www.curve.fi/stableswap-paper.pdf">Curve smart contract</a> has been
+partially ported from its original
+<a href="https://github.com/curvefi/curve-contract/blob/2b8ff42f5ce648be749c721d23c28ec8483df493/vyper/stableswap.vy">Vyper implementation</a>.</p>
+<p>The full Zinc source code is <a href="https://github.com/matter-labs/curve-zinc">here</a>.</p>
+<h2><a class="header" href="#code-listings" id="code-listings">Code listings</a></h2>
+<p>Here are the most important parts of the Curve implementation. Some boilerplate
+code with types and constants is omitted and can be checked out via the link above.</p>
+<h4><a class="header" href="#main-module" id="main-module">Main module</a></h4>
+<pre><code class="language-rust no_run noplaypen">//!
+//! The Curve Stableswap contract.
+//!
+
+mod types;
+mod invariant;
+mod constants;
+mod exchange;
+
+use self::constants::ZERO;
+use self::constants::N;
+use self::types::Address;
+use self::types::Balance;
+use self::types::token_address::TokenAddress;
+
+///
+/// The Curve Stableswap contract.
+///
+contract Stableswap {
+    /// The tokens being traded in the pool.
+    pub tokens: [TokenAddress; N];
+
+    /// The Curve amplifier.
+    pub amplifier: u64;
+
+    ///
+    /// The contract constructor.
+    ///
+    pub fn new(
+        _tokens: [TokenAddress; N],
+        _amplifier: u64,
+    ) -&gt; Self {
+        require(_amplifier &gt; 0, &quot;The Curve amplifier cannot be zero&quot;);
+
+        Self {
+            tokens: _tokens,
+            amplifier: _amplifier,
+        }
+    }
+
+    ///
+    /// Adds liquidity to the contract balances.
+    ///
+    pub fn deposit(mut self) {
+        require(
+            zksync::msg.recipient == self.address,
+            &quot;Transaction recipient is not the contract&quot;,
+        );
+
+        // panics if the token with address `zksync::msg.token_address` is not traded in this pool
+        let deposit_idx = self.token_position(TokenAddress::from_address(zksync::msg.token_address));
+    }
+
+    ///
+    /// Exchanges the tokens, consuming some of the `zksync::msg.token_address` and returning
+    /// some of the `withdraw_token_address` to the client.
+    ///
+    pub fn swap(
+        mut self,
+        withdraw_address: Address,
+        withdraw_token_address: TokenAddress,
+        min_withdraw: Balance,
+    ) {
+        require(
+            zksync::msg.recipient == self.address,
+            &quot;Transaction recipient is not the contract&quot;,
+        );
+
+        let deposit_idx = self.token_position(TokenAddress::from_address(zksync::msg.token_address));
+        let withdraw_idx = self.token_position(withdraw_token_address);
+
+        let balance_array = self.get_balance_array();
+
+        require(balance_array[deposit_idx] != 0, &quot;Deposit token balance is zero&quot;);
+        require(balance_array[withdraw_idx] != 0, &quot;Withdraw token balance is zero&quot;);
+
+        let new_x = balance_array[deposit_idx] + zksync::msg.amount;
+        let new_y = exchange::after(
+            self.tokens,
+            balance_array,
+            self.amplifier,
+
+            deposit_idx,
+            withdraw_idx,
+            new_x,
+        );
+
+        let old_y = balance_array[withdraw_idx];
+        require(
+            old_y &gt;= min_withdraw + new_y,
+            &quot;Exchange resulted in fewer coins than expected&quot;,
+        );
+        let withdraw_amount = old_y - new_y;
+
+        zksync::transfer(
+            withdraw_address,
+            withdraw_token_address,
+            withdraw_amount,
+        );
+    }
+
+    ///
+    /// Given the amount to withdraw, returns the amount that must be deposited.
+    ///
+    pub fn get_dx(
+        self,
+        deposit_token_address: TokenAddress,
+        withdraw_token_address: TokenAddress,
+        to_withdraw: Balance,
+    ) -&gt; Balance {
+        let deposit_idx = self.token_position(deposit_token_address);
+        let withdraw_idx = self.token_position(withdraw_token_address);
+
+        let balance_array = self.get_balance_array();
+
+        require(balance_array[deposit_idx] != 0, &quot;Deposit token balance is zero&quot;);
+        require(balance_array[withdraw_idx] != 0, &quot;Withdraw token balance is zero&quot;);
+
+        let after_withdrawal = balance_array[withdraw_idx] - to_withdraw;
+        
+        let after_deposit = exchange::after(
+            self.tokens,
+            balance_array,
+            self.amplifier,
+
+            withdraw_idx,
+            deposit_idx,
+            after_withdrawal,
+        );
+
+        after_deposit - balance_array[deposit_idx]
+    }
+
+    ///
+    /// Given the amount to deposit, returns the amount that will be withdrawn.
+    ///
+    pub fn get_dy(
+        self,
+        deposit_token_address: TokenAddress,
+        withdraw_token_address: TokenAddress,
+        to_deposit: Balance,
+    ) -&gt; Balance {
+        let deposit_idx = self.token_position(deposit_token_address);
+        let withdraw_idx = self.token_position(withdraw_token_address);
+
+        let balance_array = self.get_balance_array();
+
+        require(balance_array[deposit_idx] != 0, &quot;Deposit token balance is zero&quot;);
+        require(balance_array[withdraw_idx] != 0, &quot;Withdraw token balance is zero&quot;);
+
+        let after_deposit = balance_array[deposit_idx] + to_deposit;
+        
+        let after_withdrawal = exchange::after(
+            self.tokens,
+            balance_array,
+            self.amplifier,
+
+            deposit_idx,
+            withdraw_idx,
+            after_deposit,
+        );
+
+        balance_array[withdraw_idx] - after_withdrawal
+    }
+
+    /// 
+    /// Given a token ID, returns the token position in the array of balances.
+    /// 
+    fn token_position(
+        self,
+        token_address: TokenAddress,
+    ) -&gt; u8 {
+        let mut position = N;
+        let mut found = false;
+
+        for i in 0..N while !found {
+            if self.tokens[i] == token_address {
+                position = i;
+                found = true;
+            }
+        }
+
+        require(found, &quot;The token is not being traded in this pool&quot;);
+
+        position
+    }
+
+    /// 
+    /// Creates an array of balances from the inner balance map.
+    ///
+    fn get_balance_array(self) -&gt; [Balance; N] {
+        let mut array = [0 as Balance; N];
+        for i in 0..N {
+            let (balance, found) = self.balances.get(self.tokens[i] as Address);
+            if found {
+                array[i] = balance;
+            }
+        }
+        array
+    }
+}
+</code></pre>
+<h4><a class="header" href="#the-invariant-module" id="the-invariant-module">The invariant module</a></h4>
+<pre><code class="language-rust no_run noplaypen">use crate::constants::ZERO;
+use crate::constants::N;
+
+///
+/// The `D` invariant calculation function.
+///
+/// The function is quite generic and does not work on token balances directly.
+/// The only requirement for the `values` is to be of the same precision
+/// to avoid incorrect amplification.
+///
+pub fn calculate(
+    values: [u248; N],
+    amplifier: u64,
+) -&gt; u248 {
+    let mut sum = ZERO;
+    for i in 0..N {
+        sum += values[i];
+    }
+
+    if sum != ZERO {
+        let mut D_prev = ZERO;
+        let mut D = sum;
+
+        let amplifier_N: u248 = amplifier * (N as u64);
+
+        for _n in 0..15 while
+            (D &gt; D_prev &amp;&amp; D - D_prev &gt; 0) ||
+            (D &lt;= D_prev &amp;&amp; D_prev - D &gt; ZERO)
+        {
+            let mut D_P = D;
+
+            for i in 0..N {
+                // +1 is to prevent division by 0
+                D_P = D_P * D / (values[i] * (N as u248) + 1);
+            }
+
+            D_prev = D;
+            D = (amplifier_N * sum + D_P * (N as u248)) * D /
+                ((amplifier_N - 1) * D + ((N + 1) as u248) * D_P);
+        }
+
+        D
+    } else {
+        ZERO
+    }
+}
+</code></pre>
+<h4><a class="header" href="#the-swap-module" id="the-swap-module">The swap module</a></h4>
+<pre><code class="language-rust no_run noplaypen">//!
+//! The swap consequences calculation.
+//!
+
+use crate::types::Balance;
+use crate::types::token_address::TokenAddress;
+use crate::constants::ZERO;
+use crate::constants::PRECISION_MUL;
+use crate::constants::N;
+
+///
+/// The token being withdrawn balance after the swap.
+///
+pub fn after(
+    tokens: [TokenAddress; N],
+    balances: [Balance; N],
+    amplifier: u64,
+
+    token_x_idx: u8,
+    token_y_idx: u8,
+    after_x: Balance,
+) -&gt; Balance {
+    require(token_x_idx != token_y_idx, &quot;Cannot exchange between the same coins&quot;);
+
+    let mut balances_p = balances;
+    for i in 0..N {
+        balances_p[i] *= tokens[i].magnitude_diff() * PRECISION_MUL;
+    }
+
+    let D = crate::invariant::calculate(balances_p, amplifier);
+    let An: Balance = amplifier * (N as u64);
+
+    let x_magnitude_diff = tokens[token_x_idx].magnitude_diff() * PRECISION_MUL;
+    let y_magnitude_diff = tokens[token_y_idx].magnitude_diff() * PRECISION_MUL;
+
+    let mut c = D;
+    let mut S: Balance = ZERO;
+
+    for i in 0..N {
+        if i == token_x_idx as u8 {
+            let after_x_p = after_x * x_magnitude_diff;
+            S += after_x_p;
+            c = c * D / (after_x_p * (N as Balance));
+        } else if i != token_y_idx as u8 {
+            S += balances_p[i];
+            c = c * D / (balances_p[i] * (N as Balance));
+        };
+    }
+
+    c = c * D / (An * (N as Balance));
+    let b: Balance = S + D / An;
+
+    let mut y = D;
+    let mut y_next = y;
+    let mut y_done = false;
+    for n in 0..15 while !y_done {
+        y_next = (y * y + c) / (2 * y + b - D);
+
+        let is_next =
+            (y &gt; y_next &amp;&amp; y - y_next &gt; y_magnitude_diff) ||
+            (y &lt;= y_next &amp;&amp; y_next - y &gt; y_magnitude_diff);
+
+        if is_next {
+            y = y_next;
+        } else {
+            y_done = true;
+        };
+    }
+
+    y / y_magnitude_diff
+}
+</code></pre>
+<h1><a class="header" href="#troubleshooting" id="troubleshooting">Troubleshooting</a></h1>
+<p>This chapter describes the most common issues with smart contract development.
+And some ways of fixing them, of course.</p>
+<h2><a class="header" href="#unlocking-a-zksync-account" id="unlocking-a-zksync-account">Unlocking a zkSync account</a></h2>
+<pre><code class="language-bash no_run noplaypen">[ERROR zargo] action failed: HTTP error (422 Unprocessable Entity) Initial transfer: Account is locked
+</code></pre>
+<p><em><strong>OR</strong></em></p>
+<pre><code class="language-bash no_run noplaypen">[ERROR zargo] transaction: signing error: Signing key is not set in account
+</code></pre>
+<p>When you have created a new zkSync account and minted some trial tokens, you should
+see the following interface:</p>
+<img style="display: block; margin: auto;" width="503" height="853" src="07-smart-contracts/../../img/transfer.png"/>
+<p>Click the <code>Transfer</code> button. In the next window, click the <code>Unlock</code> button and
+follow the instructions.</p>
+<img style="display: block; margin: auto;" width="503" height="672" src="07-smart-contracts/../../img/unlock.png"/>
+<p>This sequence sets the public key for your zkSync account, so it gets ready for
+interaction with your smart contract accounts.</p>
+<h2><a class="header" href="#resetting-the-input-data" id="resetting-the-input-data">Resetting the input data</a></h2>
+<pre><code class="language-bash no_run noplaypen">[ERROR zargo] transaction: signing error: Signing failed: Transfer is incorrect, check amounts
+</code></pre>
+<p>This error will become more informative and accurate in the future versions.</p>
+<p>The most effective way of fixing it is making <code>zargo clean</code> and <code>zargo build</code>, since some
+elements of your <code>data/input.json</code> file got outdated.</p>
+<h1><a class="header" href="#zero-knowledge-circuits" id="zero-knowledge-circuits">Zero-knowledge circuits</a></h1>
+<p>A Zinc circuit consists of the entry point file called <code>main.zn</code> and zero or more
+modules whose contents can be imported into the main file.</p>
+<p>The entry point file must contain the <code>main</code> function, which accepts secret witness
+data and returns public input data. For more detail, see the <a href="08-circuits/./01-input-output.html">next section</a>.</p>
+<h2><a class="header" href="#example-3" id="example-3">Example</a></h2>
+<h3><a class="header" href="#entry-point-file-1" id="entry-point-file-1">Entry point file</a></h3>
+<pre><code class="language-rust no_run noplaypen">//! 
+//! 'src/main.zn'
+//!
+//! Proves a knowledge of a cube root `r` for a given public input `x`.
+//!
+
+mod simple_math;
+
+fn main(x: field) -&gt; field {
+    simple_math::cube(x)
+}
+</code></pre>
+<h3><a class="header" href="#module-simple_math-file-1" id="module-simple_math-file-1">Module <code>simple_math</code> file</a></h3>
+<pre><code class="language-rust no_run noplaypen">//! 
+//! 'src/simple_math.zn'
+//! 
+
+/// Returns x^3.
+fn cube(x: field) -&gt; field {
+    x * x * x
+}
+</code></pre>
+<h1><a class="header" href="#input-and-output" id="input-and-output">Input and output</a></h1>
+<p>In terms of zero-knowledge circuits, the information that we are trying to prove
+valid is called <strong>public input</strong>. The secret piece of information that may
+be known only by the prover is called <strong>witness</strong>.</p>
+<p>In the Zinc framework, the circuit <strong>output</strong> becomes <strong>public input</strong>.
+This means that whatever the <code>main</code> function returns should be known by the verifier.
+All other runtime values including <strong>arguments</strong> represent the circuit <strong>witness</strong> data.</p>
+<p>So when verifier checks the circuit <strong>output</strong> and the <strong>proof</strong>
+it is safe to state that:</p>
+<blockquote>
+<p>There is some set of <strong>arguments</strong> known to <strong>prover</strong>, which,
+being provided to circuit yields the same <strong>output</strong>.</p>
+</blockquote>
+<p>The prover must provide arguments to the application to generate the result and proof.</p>
+<p>Verifier will use the proof to check that the result has been obtained by
+executing the circuit.</p>
+<p>The following example illustrates a circuit proving knowledge of some
+<code>sha256</code> hash preimage:</p>
+<pre><code class="language-rust no_run noplaypen">use std::crypto::sha256;
+
+fn main(preimage: [bool; 512]) -&gt; [bool; 256] {
+    sha256(preimage)
+}
+</code></pre>
+<h1><a class="header" href="#minimal-example-1" id="minimal-example-1">Minimal example</a></h1>
+<h2><a class="header" href="#creating-a-circuit" id="creating-a-circuit">Creating a circuit</a></h2>
+<p>Let's create our first circuit, which will be able to prove knowledge of
+some <code>sha256</code> hash preimage:</p>
+<pre><code class="language-bash no_run noplaypen">zargo new --type circuit preimage
+cd preimage
+</code></pre>
+<p>The command above will create a directory with <code>Zargo.toml</code> manifest and the <code>src/</code>
+folder with an entry point module <code>main.zn</code>.</p>
+<p>Let's replace the <code>main.zn</code> contents with the following code:</p>
+<pre><code class="language-rust no_run noplaypen">use std::crypto::sha256;
+use std::convert::to_bits;
+use std::array::pad;
+
+const FIELD_SIZE: u64 = 254;
+const FIELD_SIZE_PADDED: u64 = FIELD_SIZE + 2 as u64;
+const SHA256_HASH_SIZE: u64 = 256;
+
+fn main(preimage: field) -&gt; [bool; SHA256_HASH_SIZE] {
+    let preimage_bits: [bool; FIELD_SIZE] = to_bits(preimage);
+    let preimage_bits_padded: [bool; FIELD_SIZE_PADDED] = pad(preimage_bits, 256, false);
+    sha256(preimage_bits_padded)
+}
+</code></pre>
+<h2><a class="header" href="#all-in-one-command" id="all-in-one-command">All-in-one command</a></h2>
+<p>When you have finished writing the code, run <code>zargo proof-check</code>. This command
+will build and run the circuit, generate keys for the trusted setup, generate a proof
+and verify it.</p>
+<h2><a class="header" href="#step-by-step" id="step-by-step">Step by step</a></h2>
+<p>Let's get through each step of the command above manually to better understand
+what is under the hood. Before you start, run <code>zargo clean</code> to remove all the
+build artifacts.</p>
+<h3><a class="header" href="#building-the-circuit" id="building-the-circuit">Building the circuit</a></h3>
+<p>Now, you need to compile the circuit into Zinc bytecode:</p>
+<p><code>zargo build</code></p>
+<p>The command above will write the bytecode to the <code>build</code> directory located in
+the project root. There is also a file called <code>input.json</code> in the
+<code>data</code> directory, which is used to provide the secret witness data to the circuit.</p>
+<h3><a class="header" href="#running-the-circuit" id="running-the-circuit">Running the circuit</a></h3>
+<p>Before you run the circuit, open the <code>./data/input.json</code> file with
+your favorite editor and fill it with some meaningful values.</p>
+<p>Now, execute <code>zargo run &gt; ./data/output.json</code> to run the circuit and
+write the resulting public data to a file.</p>
+<blockquote>
+<p>There is a useful tool called <code>jq</code>. You may use it together with <code>zargo run</code>
+to highlight, edit, filter the output data before writing it to the file:
+<code>zargo run | jq &gt; ./data/output.json</code>.</p>
+<p>For more information on <code>jq</code>, visit the <a href="https://stedolan.github.io/jq/manual/">official manual</a>.</p>
+</blockquote>
+<h3><a class="header" href="#trusted-setup" id="trusted-setup">Trusted setup</a></h3>
+<p>To be able to verify proofs, you must create a pair of keys for the prover and
+the verifier.</p>
+<p>To generate a new pair of proving and verifying keys, use this command:</p>
+<pre><code class="language-bash no_run noplaypen">zargo setup
+</code></pre>
+<h3><a class="header" href="#generating-a-proof" id="generating-a-proof">Generating a proof</a></h3>
+<p>To generate a proof, provide the witness and public data to the Zinc VM with
+the following command:</p>
+<pre><code class="language-bash no_run noplaypen">zargo prove &gt; proof.txt
+</code></pre>
+<h3><a class="header" href="#verifying-a-proof" id="verifying-a-proof">Verifying a proof</a></h3>
+<p>Before verifying a proof, make sure the prover and verifier use the same
+version of the Zinc framework.</p>
+<p>To verify a proof, pass it to the Zinc VM with the same public data you used to
+generate it and the verification key:</p>
+<pre><code class="language-bash no_run noplaypen">zargo verify &lt; proof.txt
+</code></pre>
+<p>Congratulations! You have developed your first circuit and verified your first
+Zero-Knowledge Proof!</p>
+<p>Now you may proceed to implementing the <a href="08-circuits/./03-merkle-tree.html">more complex example</a>.</p>
+<h1><a class="header" href="#the-merkle-tree" id="the-merkle-tree">The Merkle tree</a></h1>
+<p>In this chapter, we will implement a circuit able to validate the Merkle tree
+root hash.</p>
+<p>At this stage of reading the book, you may be unfamiliar with some language
+concepts. So, if you struggle to understand some examples, you are welcome to
+read the rest of the book first, and then come back.</p>
+<p>Our circuit will accept the tree node path, address, and the balance available
+as the secret witness data. The public data will be the Merkle tree root hash.</p>
+<h2><a class="header" href="#creating-a-new-project" id="creating-a-new-project">Creating a new project</a></h2>
+<p>Let's create a new circuit called <code>merkle-proof</code>:</p>
+<pre><code class="language-bash no_run noplaypen">zargo new --type circuit merkle-proof
+cd merkle-proof
+</code></pre>
+<p>Now, you can open the project in your favorite IDE and go to <code>src/main.zn</code>,
+where we are going to start writing the circuit code.</p>
+<h2><a class="header" href="#defining-types" id="defining-types">Defining types</a></h2>
+<p>Let's start by defining the secret witness data arguments and the public data
+return type.</p>
+<pre><code class="language-rust no_run noplaypen">struct PublicInput {
+    root_hash: [bool; 256],
+}
+
+fn main(
+    address: [bool; 10], // the node address in the merkle tree
+    balance: field, // the balance stored in the node
+    merkle_path: [[bool; 256]; 10] // the hash path to the node
+) -&gt; PublicInput {
+    // ...
+}
+</code></pre>
+<p>As you can see, some complex types are used in several places of our code, so
+it is very convenient to create an alias for such type.</p>
+<pre><code class="language-rust no_run noplaypen">type Sha256Digest = [bool; 256];
+</code></pre>
+<h2><a class="header" href="#creating-functions" id="creating-functions">Creating functions</a></h2>
+<p>Now, we will write a function to calculate the <code>sha256</code> hash of
+our balance. We need it to verify the balance stored within the leaf node at our
+Merkle tree path.</p>
+<pre><code class="language-rust no_run noplaypen">fn balance_hash(balance: field) -&gt; Sha256Digest {
+    let bits = std::convert::to_bits(balance); // [bool; 254]
+    let bits_padded = std::array::pad(bits, 256, false); // [bool; 256]
+    std::crypto::sha256(bits_padded) // [bool; 256] a.k.a. Sha256Digest
+}
+</code></pre>
+<p>The function accepts <code>balance</code> we passed as secret witness data, converts it
+into a bit array of length 254 (elliptic curve field length), and pads the
+array with 2 extra zero bits, since we are going to pass a 256-bit array to the
+<code>sha256</code> function.</p>
+<p>We have also used here three functions from the <a href="08-circuits/../appendix/E-standard-library.html">standard library</a>
+from three different modules. Paths like <code>std::crypto::sha256</code> might seem a
+bit verbose, but we will solve this problem later.</p>
+<p>At this stage, this is how our code looks like:</p>
+<pre><code class="language-rust no_run noplaypen">type Sha256Digest = [bool; 256];
+
+struct PublicInput {
+    root_hash: Sha256Digest,
+}
+
+fn balance_hash(balance: field) -&gt; Sha256Digest {
+    let bits = std::convert::to_bits(balance); // [bool; 254]
+    let bits_padded = std::array::pad(bits, 256, false); // [bool; 256]
+    std::crypto::sha256(bits_padded) // [bool; 256] a.k.a. Sha256Digest
+}
+
+fn main(
+    address: [bool; 10], // the node address in the merkle tree
+    balance: field, // the balance stored in the node
+    merkle_path: [Sha256Digest; 10] // the hash path to the node
+) -&gt; PublicInput {
+    let leaf_hash = balance_hash(balance);
+
+    // ...
+}
+</code></pre>
+<p>Now, we need a function to calculate a tree node hash:</p>
+<pre><code class="language-rust no_run noplaypen">fn merkle_node_hash(left: Sha256Digest, right: Sha256Digest) -&gt; Sha256Digest {
+    let mut data = [false; 512]; // [bool; 512]
+
+    // Casting to u16 is needed to make the range types equal,
+    // since 0 will be inferred as u8, and 256 - as u16.
+    for i in 0 as u16..256 {
+        data[i] = left[i];
+        data[256 + i] = right[i];
+    }
+
+    std::crypto::sha256(data) // [bool; 256] a.k.a. Sha256Digest
+}
+</code></pre>
+<p>The Zinc standard library does not support array concatenation yet, so for now,
+we will do it by hand, allocating an array to contain two leaves node digests,
+then put the digests together and hash them with <code>std::crypto::sha256</code>.</p>
+<p>Finally, let's define a function to calculate the hash of the whole tree:</p>
+<pre><code class="language-rust no_run noplaypen">fn restore_root_hash(
+    leaf_hash: Sha256Digest,
+    address: [bool; 10],
+    merkle_path: [Sha256Digest; 10],
+) -&gt; Sha256Digest
+{
+    let mut current = leaf_hash; // Sha256Digest
+
+    // Traverse the tree from the left node to the root node
+    for i in 0..10 {
+        // Multiple variables binding is not supported yet,
+        // so we going to store leaves as an array of two digests.
+        // If address[i] is 0, we are in the left node, otherwise,
+        // we are in the right node.
+        let left_and_right = if address[i] {
+            [current, merkle_path[i]] // [Sha256Digest; 2]
+        } else {
+            [merkle_path[i], current] // [Sha256Digest; 2]
+        };
+
+        // remember the current node hash
+        current = merkle_node_hash(left_and_right[0], left_and_right[1]);
+    }
+
+    // return the root node hash
+    current
+}
+</code></pre>
+<p>Congratulations! Now we have a working circuit able to verify the Merkle proof!</p>
+<pre><code class="language-rust no_run noplaypen">// main.zn
+
+type Sha256Digest = [bool; 256];
+
+fn balance_hash(balance: field) -&gt; Sha256Digest {
+    let bits = std::convert::to_bits(balance); // [bool; 254]
+    let bits_padded = std::array::pad(bits, 256, false); // [bool; 256]
+    std::crypto::sha256(bits_padded) // [bool; 256] a.k.a. Sha256Digest
+}
+
+fn merkle_node_hash(left: Sha256Digest, right: Sha256Digest) -&gt; Sha256Digest {
+    let mut data = [false; 512]; // [bool; 512]
+
+    for i in 0..256 {
+        data[i] = left[i];
+        data[256 + i] = right[i];
+    }
+
+    std::crypto::sha256(data) // [bool; 256] a.k.a. Sha256Digest
+}
+
+fn restore_root_hash(
+    leaf_hash: Sha256Digest,
+    address: [bool; 10],
+    merkle_path: [Sha256Digest; 10],
+) -&gt; Sha256Digest
+{
+    let mut current = leaf_hash; // Sha256Digest
+
+    // Traverse the tree from the left node to the root node
+    for i in 0..10 {
+        // Multiple variables binding is not supported yet,
+        // so we going to store leaves as a tuple of two digests.
+        // If address[i] is 0, we are in the left node, otherwise,
+        // we are in the right node.
+        let left_and_right = if address[i] {
+            (current, merkle_path[i]) // (Sha256Digest, Sha256Digest)
+        } else {
+            (merkle_path[i], current) // (Sha256Digest, Sha256Digest)
+        };
+
+        // remember the current node hash
+        current = merkle_node_hash(left_and_right.0, left_and_right.1);
+    }
+
+    // return the root node hash
+    current
+}
+
+struct PublicInput {
+    root_hash: Sha256Digest,
+}
+
+fn main(
+    address: [bool; 10],
+    balance: field,
+    merkle_path: [Sha256Digest; 10]
+) -&gt; PublicInput {
+    let leaf_hash = balance_hash(balance);
+
+    let root_hash = restore_root_hash(
+        leaf_hash,
+        address,
+        merkle_path,
+    );
+
+    PublicInput {
+        root_hash: root_hash,
+    }
+}
+</code></pre>
+<h2><a class="header" href="#defining-a-module" id="defining-a-module">Defining a module</a></h2>
+<p>Our <code>main.zn</code> module has got a little overpopulated by now, so let's move our
+functions to another one called <code>merkle</code>. At first, create a file called <code>merkle.zn</code>
+in the <code>src</code> directory besides <code>main.zn</code>. Then, move everything above the
+<code>PublicInput</code> definition to that file. Our <code>main.zn</code> will now look like this:</p>
+<pre><code class="language-rust no_run noplaypen">struct PublicInput {
+    root_hash: Sha256Digest, // undeclared `Sha256Digest`
+}
+
+fn main(
+    address: [bool; 10],
+    balance: field,
+    merkle_path: [Sha256Digest; 10] // undeclared `Sha256Digest`
+) -&gt; PublicInput {
+    let leaf_hash = balance_hash(balance); // undeclared `balance_hash`
+
+    let root_hash = restore_root_hash( // undeclared `restore_root_hash`
+        leaf_hash,
+        address,
+        merkle_path,
+    );
+
+    PublicInput {
+        root_hash: root_hash,
+    }
+}
+</code></pre>
+<p>This code will not compile, as we have several items undeclared now! Let's
+define our <code>merkle</code> module and resolve the function paths:</p>
+<pre><code class="language-rust no_run noplaypen">mod merkle; // defined a module
+
+struct PublicInput {
+    root_hash: merkle::Sha256Digest, // use a type declaration from `merkle`
+}
+
+fn main(
+    address: [bool; 10],
+    balance: field,
+    merkle_path: [merkle::Sha256Digest; 10] // use a type declaration from `merkle`
+) -&gt; PublicInput {
+    let leaf_hash = merkle::balance_hash(balance); // call a function from `merkle`
+
+    // call a function from `merkle`
+    let root_hash = merkle::restore_root_hash(
+        leaf_hash,
+        address,
+        merkle_path,
+    );
+
+    PublicInput {
+        root_hash: root_hash,
+    }
+}
+</code></pre>
+<p>Perfect! Now all our functions and types are defined. By the way, let's have a
+glance at our <code>merkle</code> module, where you can find another improvement!</p>
+<pre><code class="language-rust no_run noplaypen">use std::crypto::sha256; // an import
+
+type Sha256Digest = [bool; 256];
+
+fn balance_hash(balance: field) -&gt; Sha256Digest {
+    let bits = std::convert::to_bits(balance);
+    let bits_padded = std::array::pad(bits, 256, false);
+    sha256(bits_padded)
+}
+
+fn merkle_node_hash(left: Sha256Digest, right: Sha256Digest) -&gt; Sha256Digest {
+    let mut data = [false; 512];
+
+    for i in 0..256 {
+        data[i] = left[i];
+        data[256 + i] = right[i];
+    }
+
+    sha256(data)
+}
+
+fn restore_root_hash(
+    leaf_hash: Sha256Digest,
+    address: [bool; 10],
+    merkle_path: [Sha256Digest; 10],
+) -&gt; Sha256Digest
+{
+    let mut current = leaf_hash;
+
+    for i in 0..10 {
+        let left_and_right = if address[i] {
+            (current, merkle_path[i])
+        } else {
+            (merkle_path[i], current)
+        };
+
+        current = merkle_node_hash(left_and_right.0, left_and_right.1);
+    }
+
+    current
+}
+</code></pre>
+<p>You may notice a <code>use</code> statement at the first line of code. It is an import statement
+which is designed to prevent using long repeated paths in our code. As you see,
+now we are able to call the standard library function more conveniently:
+<code>sha256(data)</code> instead of <code>std::crypto::sha256(data)</code>.</p>
+<h2><a class="header" href="#finalizing" id="finalizing">Finalizing</a></h2>
+<p>Congratulations, you are an experienced Zinc developer!
+Now, you may build the circuit, generate and verify a proof, like it was
+explained in the <a href="08-circuits/./02-minimal-example.html">previous chapter</a>,
+and move on to reading the rest of the book!</p>
+<h1><a class="header" href="#virtual-machine" id="virtual-machine">Virtual machine</a></h1>
+<p>Zinc code is compiled into bytecode which can be run by Zinc VM.</p>
+<p>Zinc VM is a virtual machine that serves three purposes: executing arbitrary
+computations, generating zero-knowledge proof of performed computations, and
+verification of the provided proof without knowing the input data.</p>
+<p>Zinc VM is a stack-based virtual machine which is similar to many others like
+the Python VM. Even though the VM is designed considering specifics and
+limitations of zero-knowledge computations, bytecode instructions only
+manipulate data on the stack while all zero-knowledge constraints are
+automatically applied by the virtual machine.</p>
+<h1><a class="header" href="#zargo-package-manager" id="zargo-package-manager">Zargo package manager</a></h1>
+<p><code>Zargo</code> is a project managing tool, which can create and build projects,
+generate and verify proofs, publish smart contracts and call their methods.</p>
+<h2><a class="header" href="#general-commands" id="general-commands">General commands</a></h2>
+<p>All the commands have default values, so you may omit them in normal circumstances.
+See <code>zargo --help</code> for more detail.</p>
+<h3><a class="header" href="#new" id="new"><code>new</code></a></h3>
+<p>Creates a new project directory with <code>Zargo.toml</code> manifest file and <code>src/main.zn</code>
+application entry point module.</p>
+<h3><a class="header" href="#init" id="init"><code>init</code></a></h3>
+<p>Initializes a new project in an existing directory, creates missing files.</p>
+<h3><a class="header" href="#build" id="build"><code>build</code></a></h3>
+<p>Builds the project. The build consists of:</p>
+<ul>
+<li>the bytecode file</li>
+<li>input JSON template</li>
+<li>output JSON template</li>
+</ul>
+<h3><a class="header" href="#clean" id="clean"><code>clean</code></a></h3>
+<p>Removes the build directory.</p>
+<h3><a class="header" href="#run" id="run"><code>run</code></a></h3>
+<p>Build and runs the application on the Zinc VM, writes the result to the terminal.</p>
+<h3><a class="header" href="#test" id="test"><code>test</code></a></h3>
+<p>Runs the application unit tests.</p>
+<h3><a class="header" href="#setup" id="setup"><code>setup</code></a></h3>
+<p>Generates parameters for the prover using the application bytecode.</p>
+<h3><a class="header" href="#prove" id="prove"><code>prove</code></a></h3>
+<p>Generates the proof using the application bytecode, parameters generated with <code>setup</code>,
+and provided public data.</p>
+<h3><a class="header" href="#verify" id="verify"><code>verify</code></a></h3>
+<p>Verifies the proof using the application bytecode, parameters generated with <code>setup</code>,
+proof generated with <code>prove</code>, and provided public data.</p>
+<h3><a class="header" href="#proof-check" id="proof-check"><code>proof-check</code></a></h3>
+<p>Executes the full cycle of proof verification, that is, performs
+<code>run</code> + <code>setup</code> + <code>prove</code> + <code>verify</code>. Mostly for testing purposes.</p>
+<h2><a class="header" href="#smart-contract-commands" id="smart-contract-commands">Smart contract commands</a></h2>
+<h3><a class="header" href="#publish" id="publish"><code>publish</code></a></h3>
+<p>Publishes the smart contract to the Zandbox server on the specified network.</p>
+<h3><a class="header" href="#query" id="query"><code>query</code></a></h3>
+<p>Queries a smart contract storage or calls an immutable method.</p>
+<h3><a class="header" href="#call" id="call"><code>call</code></a></h3>
+<p>Calls a mutable smart contract method, that is, one modifying its storage and
+making operations with tokens and balances.</p>
+<h1><a class="header" href="#contract-workflow" id="contract-workflow">Contract workflow</a></h1>
+<p>This code snippet describes the workflow of creating, building, publishing a
+smart contract and calling its methods.</p>
+<pre><code class="language-bash no_run noplaypen"># create a new contract called 'swap'
+zargo new --type contract swap
+cd swap/
+
+# write some code
+
+# rebuild, publish the contract, and get its address
+zargo publish --instance default --network rinkeby
+
+# query the newly created contract storage
+zargo query --address &lt;address&gt;
+
+# call some contract method
+zargo call --method exchange --address &lt;address&gt;
+</code></pre>
+<h2><a class="header" href="#manifest-file" id="manifest-file">Manifest file</a></h2>
+<p>A Zinc smart contract is described in the manifest file <code>Zargo.toml</code> with the
+following structure:</p>
+<pre><code class="language-toml no_run noplaypen">[project]
+name = &quot;test&quot;
+type = &quot;contract&quot;
+version = &quot;0.1.0&quot;
+</code></pre>
+<h1><a class="header" href="#circuit-workflow" id="circuit-workflow">Circuit workflow</a></h1>
+<h3><a class="header" href="#short" id="short">Short</a></h3>
+<p>The short example includes the <code>proof-check</code> command, which executes a full
+application lifecycle with default data.</p>
+<pre><code class="language-bash no_run noplaypen"># create a new circuit called 'zircuit'
+zargo new --type circuit zircuit
+cd zircuit/
+
+# write some code
+
+# run the full verification cycle
+zargo proof-check
+</code></pre>
+<h3><a class="header" href="#full" id="full">Full</a></h3>
+<p>The full workflow example allows you to go through the application lifecycle
+step by step and see all its intrincics.</p>
+<pre><code class="language-bash no_run noplaypen"># create a new circuit called 'zircuit'
+zargo new --type circuit zircuit
+cd zircuit/
+
+# write some code
+
+# build the circuit
+zargo build
+
+# run the circuit and print the result
+zargo run
+
+# generate the prover parameters
+zargo setup
+
+# edit the './data/input.json' and './data/output.json' files
+
+# generate the proof
+zargo prove
+
+# verify the proof
+zargo verify
+</code></pre>
+<h2><a class="header" href="#manifest-file-1" id="manifest-file-1">Manifest file</a></h2>
+<p>A Zinc circuit is described in the manifest file <code>Zargo.toml</code> with the
+following structure:</p>
+<pre><code class="language-toml no_run noplaypen">[project]
+name = &quot;test&quot;
+type = &quot;circuit&quot;
+version = &quot;0.1.0&quot;
+</code></pre>
+<h1><a class="header" href="#appendix" id="appendix">Appendix</a></h1>
+<p>The following sections contain reference material you may find useful in
+your Zinc journey.</p>
+<h1><a class="header" href="#lexical-grammar-ebnf" id="lexical-grammar-ebnf">Lexical grammar (EBNF)</a></h1>
+<pre><code>lexeme = comment | identifier | keyword | literal | symbol | EOF ;
+
+comment = single_line_comment | multi_line_comment ;
+single_line_comment = '//', ( ? ANY ? - '\n' | EOF ), '\n' | EOF ;
+multi_line_comment = '/*', ( ? ANY ? - '*/' ), '*/' ;
+
+identifier = (
+    alpha, { alpha | digit | '_' }
+  | '_', alpha, { alpha }
+- keyword ) ;
+
+keyword =
+    'let'
+  | 'mut'
+  | 'const'
+  | 'type'
+  | 'struct'
+  | 'enum'
+  | 'fn'
+  | 'mod'
+  | 'use'
+  | 'impl'
+  | 'contract'
+  | 'pub'
+
+  | 'for'
+  | 'in'
+  | 'while'
+  | 'if'
+  | 'else'
+  | 'match'
+
+  | 'bool'
+  | 'u8' | 'u16' | 'u24' | 'u32' | 'u40' | 'u48' | 'u56' | 'u64'
+  | 'u72' | 'u80' | 'u88' | 'u96' | 'u104' | 'u112' | 'u120' | 'u128'
+  | 'u136' | 'u144' | 'u152' | 'u160' | 'u168' | 'u176' | 'u184' | 'u192'
+  | 'u200' | 'u208' | 'u216' | 'u224' | 'u232' | 'u240' | 'u248'
+  | 'i8' | 'i16' | 'i24' | 'i32' | 'i40' | 'i48' | 'i56' | 'i64'
+  | 'i72' | 'i80' | 'i88' | 'i96' | 'i104' | 'i112' | 'i120' | 'i128'
+  | 'i136' | 'i144' | 'i152' | 'i160' | 'i168' | 'i176' | 'i184' | 'i192'
+  | 'i200' | 'i208' | 'i216' | 'i224' | 'i232' | 'i240' | 'i248'
+  | 'field'
+
+  | 'true'
+  | 'false'
+
+  | 'as'
+
+  | 'crate'
+  | 'super'
+  | 'self'
+  | 'Self'
+
+  | 'static'
+  | 'ref'
+  | 'extern'
+  | 'return'
+  | 'loop'
+  | 'break'
+  | 'continue'
+  | 'trait'
+;
+
+literal = boolean | integer | string ;
+boolean = 'true' | 'false' ;
+integer =
+    '0'
+  | '0b', binary_digit | '_', { binary_digit | '_' }
+  | '0o', octal_digit | '_', { octal_digit | '_' }
+  | decimal_digit - '0', { decimal_digit | '_' }
+  | '0x', hexadecimal_digit | '_', { hexadecimal_digit | '_' }
+;
+string = '&quot;', { ANY - '&quot;' | '\', ANY }, '&quot;' ;
+
+symbol =
+    '('
+  | ')'
+  | '['
+  | ']'
+  | '{'
+  | '}'
+  | '_'
+  | '.'
+  | ':'
+  | ';'
+  | ','
+  | '='
+  | '+'
+  | '-'
+  | '*'
+  | '/'
+  | '%'
+  | '\'
+  | '!'
+  | '&lt;'
+  | '&gt;'
+  | '|'
+  | '&amp;'
+  | '^'
+  | '~'
+  | '#'
+  | '&lt;&lt;'
+  | '&gt;&gt;'
+  | '+='
+  | '-='
+  | '*='
+  | '/='
+  | '%='
+  | '|='
+  | '&amp;='
+  | '^='
+  | '::'
+  | '=='
+  | '!='
+  | '&lt;='
+  | '&gt;='  
+  | '&amp;&amp;'
+  | '^^'
+  | '||'
+  | '..'
+  | '..='
+  | '&lt;&lt;='
+  | '&gt;&gt;='
+  | '=&gt;'
+  | '-&gt;'
+;
+
+alpha =
+    'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'
+  | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N'
+  | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U'
+  | 'V' | 'W' | 'X' | 'Y' | 'Z' 
+  | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g'
+  | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n'
+  | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u'
+  | 'v' | 'w' | 'x' | 'y' | 'z'
+;
+
+binary_digit = '0' | '1' ;
+
+octal_digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' ;
+
+decimal_digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+
+hexadecimal_digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+  | 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
+  | 'a' | 'b' | 'c' | 'd' | 'e' | 'f'
+;
+
+</code></pre>
+<h3><a class="header" href="#the-zinc-alphabet" id="the-zinc-alphabet">The Zinc alphabet</a></h3>
+<table><thead><tr><th>Group</th><th>Characters</th></tr></thead><tbody>
+<tr><td>whitespaces</td><td>\t \n \r <Space></td></tr>
+<tr><td>lowercase</td><td>A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</td></tr>
+<tr><td>uppercase</td><td>a b c d e f g h i j k l m n o p q r s t u v w x y z</td></tr>
+<tr><td>numbers</td><td>0 1 2 3 4 5 6 7 8 9</td></tr>
+<tr><td>symbols</td><td>+ - * / % &lt; = &gt; ⎮ &amp; ^ _ ! ~ ( ) [ ] { } &quot; , . : ; #</td></tr>
+</tbody></table>
+<h1><a class="header" href="#syntax-grammar-ebnf" id="syntax-grammar-ebnf">Syntax grammar (EBNF)</a></h1>
+<pre><code>file = { module_local_statement } ;
+
+(* Statements *)
+module_local_statement =
+    const_statement
+  | type_statement
+  | struct_statement
+  | enum_statement
+  | fn_statement
+  | mod_statement
+  | use_statement
+  | impl_statement
+  | contract_statement
+  | empty_statement
+;
+
+function_local_statement =
+    let_statement
+  | const_statement
+  | loop_statement
+  | empty_statement
+  | expression, [ ';' ]
+;
+
+implementation_local_statement =
+    const_statement
+  | fn_statement
+  | empty_statement
+;
+
+contract_local_statement =
+    field_statement
+  | const_statement
+  | fn_statement
+  | empty_statement
+;
+
+field_statement = [ 'pub' ], [ 'extern' ], identifier, ':', type, ';' ;
+
+type_statement = [ 'pub' ], 'type', identifier, '=', type, ';' ;
+
+struct_statement = [ 'pub' ], 'struct', '{', field_list, '}' ;
+
+enum_statement = [ 'pub' ], 'enum', '{', variant_list, '}' ;
+
+fn_statement = [ 'pub' ], [ 'const' ], 'fn', identifier, '(', binding_list, ')', [ '-&gt;', type ], block_expression ;
+
+mod_statement = [ 'pub' ], 'mod', identifier, ';' ;
+
+use_statement = [ 'pub' ], 'use', path_expression, [ 'as', identifier ], ';' ;
+
+impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}' ;
+
+const_statement = [ 'pub' ], 'const', identifier, ':', type, '=', expression, ';' ;
+
+let_statement = 'let', binding, '=', expression, ';' ;
+
+loop_statement = 'for', identifier, 'in', expression, [ 'while', expression ], block_expression ;
+
+contract_statement = 'contract', '{', { contract_local_statement }, '}' ;
+
+empty_statement = ';' ;
+
+(* Expressions *)
+expression = operand_assignment, [ '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&lt;&lt;=' | '&gt;&gt;=' | '|=' | '^=' | '&amp;=', operand_assignment ] ;
+operand_assignment = operand_range, [ '..' | '..=', operand_range ] ;
+operand_range = operand_or, { '||', operand_or } ;
+operand_or = operand_xor, { '^^', operand_xor } ;
+operand_xor = operand_and, { '&amp;&amp;', operand_and } ;
+operand_and = operand_comparison, [ '==' | '!=' | '&gt;=' | '&lt;=' | '&gt;' | '&lt;', operand_comparison ] ;
+operand_comparison = operand_bitwise_or, { '|', operand_bitwise_or } ;
+operand_bitwise_or = operand_bitwise_xor, { '^', operand_bitwise_xor } ;
+operand_bitwise_xor = operand_bitwise_and, { '&amp;', operand_bitwise_and } ;
+operand_bitwise_and = operand_bitwise_shift, { '&lt;&lt;' | '&gt;&gt;', operand_bitwise_shift } ;
+operand_bitwise_shift = operand_add_sub, { '+' | '-', operand_add_sub } ;
+operand_add_sub = operand_mul_div_rem, { '*' | '/' | '%', operand_mul_div_rem } ;
+operand_mul_div_rem = operand_as, { 'as', type } ;
+operand_as = { '-' | '~' | '!' }, operand_access ;
+operand_access = operand_path, {
+    '[', expression, ']'
+  | '.', integer | identifier
+  | [ '!' ], '(', expression_list, ')'
+} ;
+operand_path = operand_terminal, { '::', operand_terminal }, [ structure_expression ] ;
+operand_terminal =
+    tuple_expression
+  | block_expression
+  | array_expression
+  | conditional_expression
+  | match_expression
+  | literal
+  | identifier
+  | alias
+;
+
+expression_list = [ expression, { ',', expression } | ',' ] ;
+
+block_expression = '{', { function_local_statement }, [ expression ], '}' ;
+
+conditional_expression = 'if', expression, block_expression, [ 'else', conditional_expression | block_expression ] ;
+
+match_expression = 'match', expression, '{', { pattern_match, '=&gt;', expression, ',' }, '}' ;
+
+array_expression =
+    '[', [ expression, { ',', expression } ] ']'
+  | '[', expression, ';', integer, ']'
+;
+
+tuple_expression =
+    '(', ')'
+  | '(', expression, ')'
+  | '(', expression, ',', [ expression, { ',', expression } ], ')'
+;
+
+structure_expression = '{', field_list, '}';
+
+(* Attributes *)
+attribute = '#', [ '!' ], '[', attribute_element_list, ']' ;
+attribute_element = 
+    identifier
+  | identifier, '=', literal
+  | identifier, '(', attribute_element_list, ')' ;
+attribute_element_list = [ attribute_element, { ',', attribute_element } | ',' ] ;
+
+(* Parts *)
+alias = 'crate' | 'super' | 'self' | 'Self'
+
+type =
+    '(', ')'
+  | 'bool'
+  | 'u8' | 'u16' | 'u24' | 'u32' | 'u40' | 'u48' | 'u56' | 'u64'
+  | 'u72' | 'u80' | 'u88' | 'u96' | 'u104' | 'u112' | 'u120' | 'u128'
+  | 'u136' | 'u144' | 'u152' | 'u160' | 'u168' | 'u176' | 'u184' | 'u192'
+  | 'u200' | 'u208' | 'u216' | 'u224' | 'u232' | 'u240' | 'u248' | 'field'
+  | 'i8' | 'i16' | 'i24' | 'i32' | 'i40' | 'i48' | 'i56' | 'i64'
+  | 'i72' | 'i80' | 'i88' | 'i96' | 'i104' | 'i112' | 'i120' | 'i128'
+  | 'i136' | 'i144' | 'i152' | 'i160' | 'i168' | 'i176' | 'i184' | 'i192'
+  | 'i200' | 'i208' | 'i216' | 'i224' | 'i232' | 'i240' | 'i248'
+  | 'field'
+  | '[', type, ';', expression, ']'
+  | '(', type, { ',', type }, ')'
+  | identifier | alias, { '::', identifier | alias }
+;
+
+pattern_match =
+    boolean
+  | integer
+  | identifier
+  | operand_path
+  | '_'
+;
+
+binding = pattern_binding, [ ':', type ] ;
+binding_list = [ binding, { ',', binding } | ',' ] ;
+pattern_binding =
+    [ 'mut' ], identifier
+  | ( pattern_binding, { ',', pattern_binding } | ',' ) 
+  | '(', ')'
+  | '_'
+;
+
+field = identifier, ':', type ;
+field_list = [ field, { ',', field } | ',' ] ;
+
+variant = identifier, '=', integer ;
+variant_list = [ variant, { ',', variant } | ',' ] ;
+</code></pre>
+<h1><a class="header" href="#keywords" id="keywords">Keywords</a></h1>
+<h4><a class="header" href="#declarations" id="declarations">Declarations</a></h4>
+<pre><code class="language-rust no_run noplaypen">let
+mut
+const
+type
+struct
+enum
+fn
+use
+mod
+impl
+contract
+pub
+</code></pre>
+<h4><a class="header" href="#controls" id="controls">Controls</a></h4>
+<pre><code class="language-rust no_run noplaypen">for
+in
+while
+if
+else
+match
+</code></pre>
+<h4><a class="header" href="#types-2" id="types-2">Types</a></h4>
+<pre><code class="language-rust no_run noplaypen">bool
+u8 u16 ... u240 u248
+i8 i16 ... i240 i248
+field
+</code></pre>
+<h4><a class="header" href="#literals-3" id="literals-3">Literals</a></h4>
+<pre><code class="language-rust no_run noplaypen">true
+false
+</code></pre>
+<h4><a class="header" href="#operators-1" id="operators-1">Operators</a></h4>
+<pre><code class="language-rust no_run noplaypen">as
+</code></pre>
+<h4><a class="header" href="#aliases" id="aliases">Aliases</a></h4>
+<pre><code class="language-rust no_run noplaypen">crate
+super
+self
+Self
+</code></pre>
+<h2><a class="header" href="#reserved" id="reserved">Reserved</a></h2>
+<pre><code class="language-rust no_run noplaypen">static
+extern
+ref
+return
+loop
+break
+continue
+trait
+</code></pre>
+<h1><a class="header" href="#intrinsic-functions" id="intrinsic-functions">Intrinsic functions</a></h1>
+<p>Intrinsic functions are special and usually correspond to dedicated Zinc VM
+instructions.</p>
+<h2><a class="header" href="#dbg" id="dbg"><code>dbg</code></a></h2>
+<p>Prints its arguments to the terminal. Only for debugging purposes.</p>
+<p>Arguments:</p>
+<ul>
+<li>format string literal (<code>str</code>)</li>
+<li>rest of the arguments to print</li>
+</ul>
+<p>Return type: <code>()</code></p>
+<p><strong>Note</strong>: This function is special, as it accepts an arbitrary number of arguments
+of any type after the format string.</p>
+<h2><a class="header" href="#require" id="require"><code>require</code></a></h2>
+<p>Checks if the boolean expression is true. If it is not, the circuit fails with
+an error passed as the second argument.</p>
+<p>Arguments:</p>
+<ul>
+<li>boolean expression (<code>bool</code>)</li>
+<li>error message string literal (<code>str</code>)</li>
+</ul>
+<p>Return type: <code>()</code></p>
+<p>This is the only function able to halt the application execution.</p>
+<h1><a class="header" href="#the-standard-library" id="the-standard-library">The standard library</a></h1>
+<p>The standard library is unstable. Function signatures and behavior are going to
+be changed in future releases.</p>
+<p>Most of the functions described here are special, as they accept arrays of
+arbitrary size. Since there are only fixed-size arrays in Zinc now, it would
+be challenging to create a function for arrays of every possible size. It is
+not possible to write such a function yourself using the language type
+system, but <code>std</code> makes an exception to simplify development for now.</p>
+<h2><a class="header" href="#definitions" id="definitions">Definitions</a></h2>
+<ul>
+<li><code>{scalar}</code> - a scalar type, which can be <code>bool</code>, <code>u{N}</code>, <code>i{N}</code>, <code>field</code></li>
+<li><code>u{N}</code> - an unsigned integer of bitlength <code>N</code></li>
+<li><code>i{N}</code> - a signed integer of bitlength <code>N</code></li>
+<li><code>field</code> - a field element of bitlength <code>254</code></li>
+</ul>
+<h2><a class="header" href="#stdcrypto-module" id="stdcrypto-module"><code>std::crypto</code> module</a></h2>
+<h3><a class="header" href="#stdcryptosha256" id="stdcryptosha256"><code>std::crypto::sha256</code></a></h3>
+<p>Computes the <code>sha256</code> hash of a given bit array.</p>
+<p>Will cause a compile-error if either:</p>
+<ul>
+<li>preimage length is zero</li>
+<li>preimage length is not multiple of 8</li>
+</ul>
+<p>Arguments:</p>
+<ul>
+<li>preimage bit array <code>[bool; N]</code></li>
+</ul>
+<p>Returns: 256-bit hash <code>[bool; 256]</code></p>
+<h3><a class="header" href="#stdcryptopedersen" id="stdcryptopedersen"><code>std::crypto::pedersen</code></a></h3>
+<p>Maps a bit array to a point on an elliptic curve.</p>
+<p>Will cause a compile-error if either:</p>
+<ul>
+<li>preimage length is zero</li>
+<li>preimage length is greater than 512 bits</li>
+</ul>
+<p>To understand what is under the hood, see <a href="https://iden3-docs.readthedocs.io/en/latest/iden3_repos/research/publications/zkproof-standards-workshop-2/pedersen-hash/pedersen.html">this article</a>.</p>
+<p>Arguments:</p>
+<ul>
+<li>preimage bit array <code>[bool; N]</code></li>
+</ul>
+<p>Returns: elliptic curve point coordinates <code>(field, field)</code></p>
+<h3><a class="header" href="#stdcryptoeccpoint" id="stdcryptoeccpoint"><code>std::crypto::ecc::Point</code></a></h3>
+<p>The elliptic curve point.</p>
+<pre><code class="language-rust no_run noplaypen">struct Point {
+    x: field,
+    y: field,
+}
+</code></pre>
+<h3><a class="header" href="#stdcryptoschnorrsignature" id="stdcryptoschnorrsignature"><code>std::crypto::schnorr::Signature</code></a></h3>
+<p>The Schnorr EDDSA signature structure.</p>
+<pre><code class="language-rust no_run noplaypen">struct Signature {
+    r: std::crypto::ecc::Point,
+    s: field,
+    pk: std::crypto::ecc::Point,
+}
+</code></pre>
+<h3><a class="header" href="#stdcryptoschnorrsignatureverify" id="stdcryptoschnorrsignatureverify"><code>std::crypto::schnorr::Signature::verify</code></a></h3>
+<p>Verifies the EDDSA signature.</p>
+<p>Will cause a compile-error if either:</p>
+<ul>
+<li>message length is zero</li>
+<li>message length is greater than 248 bits</li>
+</ul>
+<p>Arguments:</p>
+<ul>
+<li>the signature: <code>std::crypto::schnorr::Signature</code></li>
+<li>the message: <code>[bool; N]</code></li>
+</ul>
+<p>Returns: the boolean result</p>
+<h2><a class="header" href="#stdconvert-module" id="stdconvert-module"><code>std::convert</code> module</a></h2>
+<h3><a class="header" href="#stdconvertto_bits" id="stdconvertto_bits"><code>std::convert::to_bits</code></a></h3>
+<p>Converts a scalar value to a bit array of its bitlength.</p>
+<p>Arguments:</p>
+<ul>
+<li>scalar value: <code>u{N}</code>, or <code>i{N}</code>, or <code>field</code></li>
+</ul>
+<p>Returns: <code>[bool; N]</code></p>
+<h3><a class="header" href="#stdconvertfrom_bits_unsigned" id="stdconvertfrom_bits_unsigned"><code>std::convert::from_bits_unsigned</code></a></h3>
+<p>Converts a bit array to an unsigned integer of the array's bitlength.</p>
+<p>Will cause a compile-error if either:</p>
+<ul>
+<li>bit array size is zero</li>
+<li>bit array size is greater than 248 bits</li>
+<li>bit array size is not multiple of 8</li>
+</ul>
+<p>Arguments:</p>
+<ul>
+<li>bit array: <code>[bool; N]</code></li>
+</ul>
+<p>Returns: <code>u{N}</code></p>
+<h3><a class="header" href="#stdconvertfrom_bits_signed" id="stdconvertfrom_bits_signed"><code>std::convert::from_bits_signed</code></a></h3>
+<p>Converts a bit array to a signed integer of the array's bitlength.</p>
+<p>Will cause a compile-error if either:</p>
+<ul>
+<li>bit array size is zero</li>
+<li>bit array size is greater than 248 bits</li>
+<li>bit array size is not multiple of 8</li>
+</ul>
+<p>Arguments:</p>
+<ul>
+<li>bit array: <code>[bool; N]</code></li>
+</ul>
+<p>Returns: <code>i{N}</code></p>
+<h3><a class="header" href="#stdconvertfrom_bits_unsigned-1" id="stdconvertfrom_bits_unsigned-1"><code>std::convert::from_bits_unsigned</code></a></h3>
+<p>Converts a bit array to a field element.</p>
+<p>Arguments:</p>
+<ul>
+<li>bit array: <code>[bool; 254]</code></li>
+</ul>
+<p>Returns: <code>field</code></p>
+<h2><a class="header" href="#stdarray-module" id="stdarray-module"><code>std::array</code> module</a></h2>
+<h3><a class="header" href="#stdarrayreverse" id="stdarrayreverse"><code>std::array::reverse</code></a></h3>
+<p>Reverses a given array.</p>
+<p>Arguments:</p>
+<ul>
+<li>array: <code>[{scalar}; N]</code></li>
+</ul>
+<p>Returns: <code>[{scalar}; N]</code></p>
+<h3><a class="header" href="#stdarraytruncate" id="stdarraytruncate"><code>std::array::truncate</code></a></h3>
+<p>Truncates an array of size <code>N</code> to an array of size <code>new_length</code>.</p>
+<p>Will cause a compile-error if either:</p>
+<ul>
+<li>array size is less than new length</li>
+<li>new length is not a constant expression</li>
+</ul>
+<p>Arguments:</p>
+<ul>
+<li>array: <code>[{scalar}; N]</code></li>
+<li>new_length: <code>u{N}</code> or <code>field</code></li>
+</ul>
+<p>Returns: <code>[{scalar}; new_length]</code></p>
+<h3><a class="header" href="#stdarraypad" id="stdarraypad"><code>std::array::pad</code></a></h3>
+<p>Pads a given array with the given values.</p>
+<p>Will cause a compile-error if either:</p>
+<ul>
+<li>array size is greater than new length</li>
+<li>new length is not a constant expression</li>
+</ul>
+<p>Arguments:</p>
+<ul>
+<li>array: <code>[{scalar}; N]</code></li>
+<li>new_length: <code>u{N}</code> or <code>field</code></li>
+<li>fill_value: <code>{scalar}</code></li>
+</ul>
+<p>Returns: <code>[{scalar}; new_length]</code></p>
+<h2><a class="header" href="#stdff-module" id="stdff-module"><code>std::ff</code> module</a></h2>
+<h3><a class="header" href="#stdffinvert" id="stdffinvert"><code>std::ff::invert</code></a></h3>
+<p>Inverts a finite field.</p>
+<p>Arguments:</p>
+<ul>
+<li>value: <code>field</code></li>
+</ul>
+<p>Returns: <code>field</code></p>
+<h2><a class="header" href="#stdcollections-module" id="stdcollections-module"><code>std::collections</code> module</a></h2>
+<h3><a class="header" href="#stdcollectionsmtreemapk-v" id="stdcollectionsmtreemapk-v"><code>std::collections::MTreeMap&lt;K, V&gt;</code></a></h3>
+<p>The map type, which can only be a contract storage field and accessed
+via the methods below.</p>
+<h3><a class="header" href="#stdcollectionsmtreemapget" id="stdcollectionsmtreemapget"><code>std::collections::MTreeMap::get</code></a></h3>
+<p>Gets the value from the map. Returns the value and presence flag.
+If the presence flag is <code>false</code>, the value is filled with zeros.</p>
+<p>Arguments:</p>
+<ul>
+<li>key: <code>K</code></li>
+</ul>
+<p>Returns: <code>(V, bool)</code></p>
+<h3><a class="header" href="#stdcollectionsmtreemapcontains" id="stdcollectionsmtreemapcontains"><code>std::collections::MTreeMap::contains</code></a></h3>
+<p>Checks if the value exists in the map. Returns the presence flag.</p>
+<p>Arguments:</p>
+<ul>
+<li>key: <code>K</code></li>
+</ul>
+<p>Returns: <code>bool</code></p>
+<h3><a class="header" href="#stdcollectionsmtreemapinsert" id="stdcollectionsmtreemapinsert"><code>std::collections::MTreeMap::insert</code></a></h3>
+<p>Inserts the value into the map. Returns the old value and presence flag.
+If the presence flag is <code>false</code>, the old value is filled with zeros.</p>
+<p>Arguments:</p>
+<ul>
+<li>key: <code>K</code></li>
+<li>value: <code>V</code></li>
+</ul>
+<p>Returns: <code>(V, bool)</code></p>
+<h3><a class="header" href="#stdcollectionsmtreemapremove" id="stdcollectionsmtreemapremove"><code>std::collections::MTreeMap::remove</code></a></h3>
+<p>Removes the value from the map. Returns the removed value and presence flag.
+If the presence flag is <code>false</code>, the removed value is filled with zeros.</p>
+<p>Arguments:</p>
+<ul>
+<li>key: <code>K</code></li>
+</ul>
+<p>Returns: <code>(V, bool)</code></p>
+<h1><a class="header" href="#the-zksync-library-1" id="the-zksync-library-1">The zkSync library</a></h1>
+<p>The zkSync library contains functions and utilities to perform operations in
+the zkSync networks.</p>
+<h2><a class="header" href="#zksynctransfer-function" id="zksynctransfer-function"><code>zksync::transfer</code> function</a></h2>
+<p>Executes a transfer which is eventually sent to the zkSync platform.</p>
+<p>Arguments:</p>
+<ul>
+<li>recipient: <code>u160</code></li>
+<li>token_address: <code>u160</code></li>
+<li>amount: <code>u248</code></li>
+</ul>
+<p>Returns: <code>()</code></p>
+<h2><a class="header" href="#zksyncmsg-variable" id="zksyncmsg-variable"><code>zksync::msg</code> variable</a></h2>
+<p>The built-in global transaction variable.</p>
+<p>Fields:</p>
+<ul>
+<li>sender: <code>u160</code></li>
+<li>recipient: <code>u160</code></li>
+<li>token_address: <code>u160</code></li>
+<li>amount: <code>u248</code></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+        
+        <script type="text/javascript">
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+        
+        
+
+    </body>
+</html>

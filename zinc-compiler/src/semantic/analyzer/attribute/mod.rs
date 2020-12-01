@@ -7,8 +7,6 @@ mod tests;
 
 use std::convert::TryFrom;
 
-use num::BigInt;
-
 use zinc_syntax::Attribute as SyntaxAttribute;
 use zinc_syntax::AttributeElementVariant as SyntaxAttributeElementVariant;
 use zinc_syntax::Literal;
@@ -28,16 +26,7 @@ pub enum Attribute {
     /// The `#[ignore]` attribute.
     Ignore,
     /// The `#[zksync::msg(...)]` attribute.
-    ZksyncMsg {
-        /// The `zksync::msg.sender` field.
-        sender: BigInt,
-        /// The `zksync::msg.recipient` field.
-        recipient: BigInt,
-        /// The `zksync::msg.token_address` field.
-        token_address: BigInt,
-        /// The `zksync::msg.amount` field.
-        amount: BigInt,
-    },
+    ZksyncMsg(zinc_types::TransactionMsg),
 }
 
 impl Attribute {
@@ -92,7 +81,7 @@ impl TryFrom<SyntaxAttribute> for Attribute {
                     let sender = match sender.variant {
                         Some(SyntaxAttributeElementVariant::Value(Literal::Integer(
                             ref integer,
-                        ))) => IntegerConstant::try_from(integer)?.value,
+                        ))) => IntegerConstant::try_from(integer)?,
                         _ => {
                             return Err(Error::AttributeExpectedIntegerLiteral {
                                 location: sender.location,
@@ -100,6 +89,16 @@ impl TryFrom<SyntaxAttribute> for Attribute {
                             })
                         }
                     };
+                    if sender.bitlength > zinc_const::bitlength::ETH_ADDRESS {
+                        return Err(Error::InvalidInteger {
+                            location: sender.location,
+                            inner: zinc_math::Error::Overflow {
+                                value: sender.value,
+                                is_signed: sender.is_signed,
+                                bitlength: zinc_const::bitlength::ETH_ADDRESS,
+                            },
+                        });
+                    }
 
                     let recipient = nested.remove(0);
                     let name = recipient.path.to_string();
@@ -115,7 +114,7 @@ impl TryFrom<SyntaxAttribute> for Attribute {
                     let recipient = match recipient.variant {
                         Some(SyntaxAttributeElementVariant::Value(Literal::Integer(
                             ref integer,
-                        ))) => IntegerConstant::try_from(integer)?.value,
+                        ))) => IntegerConstant::try_from(integer)?,
                         _ => {
                             return Err(Error::AttributeExpectedIntegerLiteral {
                                 location: recipient.location,
@@ -123,6 +122,16 @@ impl TryFrom<SyntaxAttribute> for Attribute {
                             })
                         }
                     };
+                    if recipient.bitlength > zinc_const::bitlength::ETH_ADDRESS {
+                        return Err(Error::InvalidInteger {
+                            location: recipient.location,
+                            inner: zinc_math::Error::Overflow {
+                                value: recipient.value,
+                                is_signed: recipient.is_signed,
+                                bitlength: zinc_const::bitlength::ETH_ADDRESS,
+                            },
+                        });
+                    }
 
                     let token_address = nested.remove(0);
                     let name = token_address.path.to_string();
@@ -138,7 +147,7 @@ impl TryFrom<SyntaxAttribute> for Attribute {
                     let token_address = match token_address.variant {
                         Some(SyntaxAttributeElementVariant::Value(Literal::Integer(
                             ref integer,
-                        ))) => IntegerConstant::try_from(integer)?.value,
+                        ))) => IntegerConstant::try_from(integer)?,
                         _ => {
                             return Err(Error::AttributeExpectedIntegerLiteral {
                                 location: token_address.location,
@@ -146,6 +155,16 @@ impl TryFrom<SyntaxAttribute> for Attribute {
                             })
                         }
                     };
+                    if token_address.bitlength > zinc_const::bitlength::ETH_ADDRESS {
+                        return Err(Error::InvalidInteger {
+                            location: token_address.location,
+                            inner: zinc_math::Error::Overflow {
+                                value: token_address.value,
+                                is_signed: token_address.is_signed,
+                                bitlength: zinc_const::bitlength::ETH_ADDRESS,
+                            },
+                        });
+                    }
 
                     let amount = nested.remove(0);
                     let name = amount.path.to_string();
@@ -161,7 +180,7 @@ impl TryFrom<SyntaxAttribute> for Attribute {
                     let amount = match amount.variant {
                         Some(SyntaxAttributeElementVariant::Value(Literal::Integer(
                             ref integer,
-                        ))) => IntegerConstant::try_from(integer)?.value,
+                        ))) => IntegerConstant::try_from(integer)?,
                         _ => {
                             return Err(Error::AttributeExpectedIntegerLiteral {
                                 location: amount.location,
@@ -169,13 +188,23 @@ impl TryFrom<SyntaxAttribute> for Attribute {
                             })
                         }
                     };
-
-                    Self::ZksyncMsg {
-                        sender,
-                        recipient,
-                        token_address,
-                        amount,
+                    if amount.bitlength > zinc_const::bitlength::BALANCE {
+                        return Err(Error::InvalidInteger {
+                            location: amount.location,
+                            inner: zinc_math::Error::Overflow {
+                                value: amount.value,
+                                is_signed: amount.is_signed,
+                                bitlength: zinc_const::bitlength::BALANCE,
+                            },
+                        });
                     }
+
+                    Self::ZksyncMsg(zinc_types::TransactionMsg::new_from_bigints(
+                        sender.value,
+                        recipient.value,
+                        token_address.value,
+                        amount.value,
+                    ))
                 }
                 _ => {
                     return Err(Error::AttributeExpectedNested {

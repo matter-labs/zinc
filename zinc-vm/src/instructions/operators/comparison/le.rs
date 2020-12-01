@@ -4,7 +4,7 @@
 
 use num::bigint::ToBigInt;
 
-use zinc_build::Le;
+use zinc_types::Le;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -32,51 +32,51 @@ mod test {
     #[test]
     fn test_le() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(2),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::one(),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Le)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Le)
+            .push(zinc_types::Push::new(
                 BigInt::from(2),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(2),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Le)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Le)
+            .push(zinc_types::Push::new(
                 BigInt::one(),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(2),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Le)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Le)
+            .push(zinc_types::Push::new(
                 BigInt::from(-2),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(2),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Le)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Le)
+            .push(zinc_types::Push::new(
                 BigInt::from(2),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::from(-2),
-                zinc_build::IntegerType::I8.into(),
+                zinc_types::IntegerType::I8.into(),
             ))
-            .push(zinc_build::Le)
+            .push(zinc_types::Le)
             .test(&[0, 1, 1, 1, 0])
     }
 }

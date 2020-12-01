@@ -60,7 +60,7 @@ where
 
     pub fn run<CB, F>(
         &mut self,
-        circuit: zinc_build::Circuit,
+        circuit: zinc_types::Circuit,
         input_values: Option<&[BigInt]>,
         mut instruction_callback: CB,
         mut check_cs: F,
@@ -75,13 +75,13 @@ where
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
         );
-        let one = Scalar::new_constant_usize(1, zinc_build::ScalarType::Boolean);
+        let one = Scalar::new_constant_usize(1, zinc_types::ScalarType::Boolean);
         self.condition_push(one)?;
 
         let input_size = circuit.input.size();
         self.init_root_frame(circuit.input, input_values)?;
 
-        if let Err(error) = zinc_build::Call::new(circuit.address, input_size)
+        if let Err(error) = zinc_types::Call::new(circuit.address, input_size)
             .execute(self)
             .and(check_cs(&self.counter.cs))
         {
@@ -121,19 +121,19 @@ where
         self.get_outputs()
     }
 
-    pub fn test(&mut self, circuit: zinc_build::Circuit, address: usize) -> Result<(), Error> {
+    pub fn test(&mut self, circuit: zinc_types::Circuit, address: usize) -> Result<(), Error> {
         self.counter.cs.enforce(
             || "ONE * ONE = ONE (do this to avoid `unconstrained` error)",
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
             |zero| zero + CS::one(),
         );
-        let one = Scalar::new_constant_usize(1, zinc_build::ScalarType::Boolean);
+        let one = Scalar::new_constant_usize(1, zinc_types::ScalarType::Boolean);
         self.condition_push(one)?;
 
-        self.init_root_frame(zinc_build::Type::empty_structure(), Some(&[]))?;
+        self.init_root_frame(zinc_types::Type::empty_structure(), Some(&[]))?;
 
-        if let Err(error) = zinc_build::Call::new(address, 0).execute(self) {
+        if let Err(error) = zinc_types::Call::new(address, 0).execute(self) {
             log::error!("{}\nat {}", error, self.location.to_string().blue());
             return Err(error);
         }
@@ -171,7 +171,7 @@ where
 
     fn init_root_frame(
         &mut self,
-        input_type: zinc_build::Type,
+        input_type: zinc_types::Type,
         inputs: Option<&[BigInt]>,
     ) -> Result<(), Error> {
         self.execution_state
@@ -263,7 +263,7 @@ where
         &mut self,
         _eth_address: Scalar<Self::E>,
         _values: Vec<Scalar<Self::E>>,
-        _field_types: Vec<zinc_build::ContractFieldType>,
+        _field_types: Vec<zinc_types::ContractFieldType>,
     ) -> Result<(), Error> {
         Err(Error::OnlyForContracts)
     }
@@ -271,7 +271,7 @@ where
     fn storage_fetch(
         &mut self,
         _eth_address: Scalar<Self::E>,
-        _field_types: Vec<zinc_build::ContractFieldType>,
+        _field_types: Vec<zinc_types::ContractFieldType>,
     ) -> Result<(), Error> {
         Err(Error::OnlyForContracts)
     }

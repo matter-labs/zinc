@@ -58,8 +58,8 @@ impl Directory {
                             .with_context(|| path.to_string_lossy().to_string());
                     }
 
-                    if !is_entry && file.is_application_entry() {
-                        return Err(Error::ApplicationEntryBeyondRoot)
+                    if !is_entry && file.is_project_entry() {
+                        return Err(Error::ProjectEntryBeyondRoot)
                             .with_context(|| path.to_string_lossy().to_string());
                     }
 
@@ -88,8 +88,9 @@ impl Directory {
                 entry,
                 modules,
             }),
-            None if is_entry => Err(Error::ApplicationEntryNotFound)
-                .with_context(|| path.to_string_lossy().to_string()),
+            None if is_entry => {
+                Err(Error::ProjectEntryNotFound).with_context(|| path.to_string_lossy().to_string())
+            }
             None => {
                 Err(Error::ModuleEntryNotFound).with_context(|| path.to_string_lossy().to_string())
             }
@@ -126,8 +127,8 @@ impl Directory {
                             .with_context(|| path.to_string_lossy().to_string());
                     }
 
-                    if !is_entry && file.is_application_entry() {
-                        return Err(Error::ApplicationEntryBeyondRoot)
+                    if !is_entry && file.is_project_entry() {
+                        return Err(Error::ProjectEntryBeyondRoot)
                             .with_context(|| path.to_string_lossy().to_string());
                     }
 
@@ -150,8 +151,9 @@ impl Directory {
                 entry,
                 modules,
             }),
-            None if is_entry => Err(Error::ApplicationEntryNotFound)
-                .with_context(|| path.to_string_lossy().to_string()),
+            None if is_entry => {
+                Err(Error::ProjectEntryNotFound).with_context(|| path.to_string_lossy().to_string())
+            }
             None => {
                 Err(Error::ModuleEntryNotFound).with_context(|| path.to_string_lossy().to_string())
             }

@@ -4,7 +4,7 @@
 
 use num::bigint::ToBigInt;
 
-use zinc_build::Ge;
+use zinc_types::Ge;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -32,15 +32,15 @@ mod test {
     #[test]
     fn test_ge() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Push::new_field(BigInt::one()))
-            .push(zinc_build::Ge)
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Ge)
-            .push(zinc_build::Push::new_field(BigInt::one()))
-            .push(zinc_build::Push::new_field(BigInt::from(2)))
-            .push(zinc_build::Ge)
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Push::new_field(BigInt::one()))
+            .push(zinc_types::Ge)
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Ge)
+            .push(zinc_types::Push::new_field(BigInt::one()))
+            .push(zinc_types::Push::new_field(BigInt::from(2)))
+            .push(zinc_types::Ge)
             .test(&[0, 1, 1])
     }
 }

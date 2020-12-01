@@ -15,6 +15,7 @@ use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
 use zinc_vm::ContractInput;
 
+use crate::error::Error;
 use crate::one_file::file::File;
 use crate::one_file::instance::Instance;
 use crate::one_file::metadata::Metadata;
@@ -44,7 +45,13 @@ impl Runner {
 }
 
 impl IRunnable for Runner {
-    fn run(self, path: PathBuf, file: File, metadata: Metadata, summary: Arc<Mutex<Summary>>) {
+    fn run(
+        self,
+        path: PathBuf,
+        file: File,
+        metadata: Metadata,
+        summary: Arc<Mutex<Summary>>,
+    ) -> anyhow::Result<()> {
         let path = match path.strip_prefix(crate::ONE_FILE_TESTS_DIRECTORY) {
             Ok(path) => path,
             Err(_error) => &path,
@@ -91,7 +98,7 @@ impl IRunnable for Runner {
             };
 
             match instance.application {
-                zinc_build::Application::Circuit(circuit) => {
+                zinc_types::Application::Circuit(circuit) => {
                     let output = CircuitFacade::new(circuit).run::<Bn256>(instance.input);
 
                     match output {
@@ -164,22 +171,22 @@ impl IRunnable for Runner {
                         }
                     }
                 }
-                zinc_build::Application::Contract(contract) => {
-                    let storage: Vec<zinc_build::ContractFieldValue> = contract
+                zinc_types::Application::Contract(contract) => {
+                    let storage: Vec<zinc_types::ContractFieldValue> = contract
                         .storage
                         .clone()
                         .into_iter()
-                        .map(zinc_build::ContractFieldValue::new_from_type)
+                        .map(zinc_types::ContractFieldValue::new_from_type)
                         .collect();
 
                     instance.input.insert_contract_instance(BigInt::zero());
                     let output = ContractFacade::new(contract).run::<Bn256>(ContractInput::new(
                         instance.input,
-                        zinc_build::Value::Contract(storage),
+                        zinc_types::Value::Contract(storage),
                         case.method.unwrap_or_else(|| {
                             zinc_const::source::FUNCTION_MAIN_IDENTIFIER.to_owned()
                         }),
-                        zinc_zksync::TransactionMsg::default(),
+                        zinc_types::TransactionMsg::default(),
                     ));
 
                     match output {
@@ -252,7 +259,12 @@ impl IRunnable for Runner {
                         }
                     }
                 }
+                zinc_types::Application::Library(_library) => {
+                    anyhow::bail!(Error::CannotRunLibrary);
+                }
             }
         }
+
+        Ok(())
     }
 }

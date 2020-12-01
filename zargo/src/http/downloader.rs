@@ -74,7 +74,7 @@ impl<'a> Downloader<'a> {
 
         let response = self
             .client
-            .source(zinc_zksync::SourceRequestQuery::new(
+            .source(zinc_types::SourceRequestQuery::new(
                 name.clone(),
                 version.clone(),
             ))

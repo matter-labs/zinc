@@ -2,9 +2,6 @@
 //! The Zandbox server daemon library.
 //!
 
-#[cfg(test)]
-mod tests;
-
 pub(crate) mod contract;
 pub(crate) mod controller;
 pub(crate) mod database;

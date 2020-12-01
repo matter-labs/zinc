@@ -2,7 +2,7 @@
 //! The `StorageLoad` instruction.
 //!
 
-use zinc_build::StorageLoad;
+use zinc_types::StorageLoad;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::Error;

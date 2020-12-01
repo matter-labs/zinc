@@ -40,7 +40,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for FromBitsField {
             Scalar::new_unchecked_variable(
                 num.get_value(),
                 num.get_variable(),
-                zinc_build::ScalarType::Field,
+                zinc_types::ScalarType::Field,
             )
             .into(),
         )?;

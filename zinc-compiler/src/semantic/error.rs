@@ -1834,8 +1834,6 @@ pub enum Error {
         location: Location,
     },
 
-    /// The application does not have an entry point function.
-    EntryPointMissing,
     /// The application has both the `main` function and contract.
     EntryPointAmbiguous {
         /// The location where the `main` function is declared.
@@ -1873,9 +1871,12 @@ impl Error {
     ///
     /// The last error code is `243` at `AttributeExpectedNested`.
     ///
+    /// Do not remove nor uncomment the commented out errors, as they
+    /// help to see error codes from the previous Zinc versions.
+    ///
     pub fn code(&self) -> usize {
         match self {
-            Self::EntryPointMissing => 1,
+            // Self::EntryPointMissing => 1,
             Self::EntryPointAmbiguous { .. } => 2,
             Self::EntryPointConstant { .. } => 3,
             Self::FunctionMainBeyondEntry { .. } => 4,

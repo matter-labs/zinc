@@ -32,9 +32,9 @@ use crate::storage::keeper::Keeper as StorageKeeper;
 ///
 pub async fn handle(
     app_data: crate::WebData,
-    query: web::Query<zinc_zksync::FeeRequestQuery>,
-    body: web::Json<zinc_zksync::FeeRequestBody>,
-) -> crate::Result<zinc_zksync::FeeResponseBody, Error> {
+    query: web::Query<zinc_types::FeeRequestQuery>,
+    body: web::Json<zinc_types::FeeRequestBody>,
+) -> crate::Result<zinc_types::FeeResponseBody, Error> {
     let query = query.into_inner();
     let body = body.into_inner();
     let log_id = serde_json::to_string(&query.address).expect(zinc_const::panic::DATA_CONVERSION);
@@ -67,7 +67,7 @@ pub async fn handle(
 
     let eth_address_bigint =
         BigInt::from_bytes_be(num::bigint::Sign::Plus, contract.eth_address.as_bytes());
-    let mut arguments = zinc_build::Value::try_from_typed_json(body.arguments, method.input)
+    let mut arguments = zinc_types::Value::try_from_typed_json(body.arguments, method.input)
         .map_err(Error::InvalidInput)?;
     arguments.insert_contract_instance(eth_address_bigint.clone());
 
@@ -77,7 +77,7 @@ pub async fn handle(
     let contract_storage_keeper = StorageKeeper::new(postgresql, network);
     let transaction = (&body.transaction).try_to_msg(&contract.wallet)?;
     let vm_time = std::time::Instant::now();
-    let output = async_std::task::spawn_blocking(move || {
+    let output = tokio::task::spawn_blocking(move || {
         zinc_vm::ContractFacade::new_with_keeper(contract_build, Box::new(contract_storage_keeper))
             .run::<Bn256>(ContractInput::new(
             arguments,
@@ -87,6 +87,7 @@ pub async fn handle(
         ))
     })
     .await
+    .expect(zinc_const::panic::ASYNC_RUNTIME)
     .map_err(Error::VirtualMachine)?;
     log::info!(
         "[{}] VM executed in {} ms",
@@ -119,7 +120,7 @@ pub async fn handle(
         token.symbol,
     );
 
-    let response = zinc_zksync::FeeResponseBody::new(fee);
+    let response = zinc_types::FeeResponseBody::new(fee);
 
     Ok(Response::new_with_data(StatusCode::OK, response))
 }

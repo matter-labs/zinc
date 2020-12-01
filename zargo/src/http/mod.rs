@@ -35,9 +35,9 @@ impl Client {
     ///
     pub async fn publish(
         &self,
-        query: zinc_zksync::PublishRequestQuery,
-        body: zinc_zksync::PublishRequestBody,
-    ) -> anyhow::Result<zinc_zksync::PublishResponseBody> {
+        query: zinc_types::PublishRequestQuery,
+        body: zinc_types::PublishRequestBody,
+    ) -> anyhow::Result<zinc_types::PublishResponseBody> {
         let response = self
             .inner
             .execute(
@@ -69,7 +69,7 @@ impl Client {
         }
 
         Ok(response
-            .json::<zinc_zksync::PublishResponseBody>()
+            .json::<zinc_types::PublishResponseBody>()
             .await
             .expect(zinc_const::panic::DATA_CONVERSION))
     }
@@ -81,9 +81,9 @@ impl Client {
     ///
     pub async fn initialize(
         &self,
-        query: zinc_zksync::InitializeRequestQuery,
-        body: zinc_zksync::InitializeRequestBody,
-    ) -> anyhow::Result<zinc_zksync::InitializeResponseBody> {
+        query: zinc_types::InitializeRequestQuery,
+        body: zinc_types::InitializeRequestBody,
+    ) -> anyhow::Result<zinc_types::InitializeResponseBody> {
         let response = self
             .inner
             .execute(
@@ -119,7 +119,7 @@ impl Client {
         }
 
         Ok(response
-            .json::<zinc_zksync::InitializeResponseBody>()
+            .json::<zinc_types::InitializeResponseBody>()
             .await
             .expect(zinc_const::panic::DATA_CONVERSION))
     }
@@ -129,8 +129,8 @@ impl Client {
     ///
     pub async fn query(
         &self,
-        query: zinc_zksync::QueryRequestQuery,
-        body: zinc_zksync::QueryRequestBody,
+        query: zinc_types::QueryRequestQuery,
+        body: zinc_types::QueryRequestBody,
     ) -> anyhow::Result<serde_json::Value> {
         let response = self
             .inner
@@ -173,9 +173,9 @@ impl Client {
     ///
     pub async fn fee(
         &self,
-        query: zinc_zksync::FeeRequestQuery,
-        body: zinc_zksync::FeeRequestBody,
-    ) -> anyhow::Result<zinc_zksync::FeeResponseBody> {
+        query: zinc_types::FeeRequestQuery,
+        body: zinc_types::FeeRequestBody,
+    ) -> anyhow::Result<zinc_types::FeeResponseBody> {
         let response = self
             .inner
             .execute(
@@ -207,7 +207,7 @@ impl Client {
         }
 
         Ok(response
-            .json::<zinc_zksync::FeeResponseBody>()
+            .json::<zinc_types::FeeResponseBody>()
             .await
             .expect(zinc_const::panic::DATA_CONVERSION))
     }
@@ -217,8 +217,8 @@ impl Client {
     ///
     pub async fn call(
         &self,
-        query: zinc_zksync::CallRequestQuery,
-        body: zinc_zksync::CallRequestBody,
+        query: zinc_types::CallRequestQuery,
+        body: zinc_types::CallRequestBody,
     ) -> anyhow::Result<serde_json::Value> {
         let response = self
             .inner
@@ -261,8 +261,8 @@ impl Client {
     ///
     pub async fn source(
         &self,
-        query: zinc_zksync::SourceRequestQuery,
-    ) -> anyhow::Result<zinc_zksync::SourceResponseBody> {
+        query: zinc_types::SourceRequestQuery,
+    ) -> anyhow::Result<zinc_types::SourceResponseBody> {
         let response = self
             .inner
             .execute(
@@ -293,7 +293,7 @@ impl Client {
         }
 
         Ok(response
-            .json::<zinc_zksync::SourceResponseBody>()
+            .json::<zinc_types::SourceResponseBody>()
             .await
             .expect(zinc_const::panic::DATA_CONVERSION))
     }

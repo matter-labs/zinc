@@ -13,7 +13,7 @@ pub mod noop;
 pub mod operators;
 pub mod require;
 
-use zinc_build::Instruction;
+use zinc_types::Instruction;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::Error;

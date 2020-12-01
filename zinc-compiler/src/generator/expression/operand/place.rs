@@ -8,8 +8,8 @@ use std::rc::Rc;
 use num::BigInt;
 use num::Zero;
 
-use zinc_build::Instruction;
 use zinc_syntax::Identifier;
+use zinc_types::Instruction;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::state::State;
@@ -48,7 +48,7 @@ impl IBytecodeWritable for Place {
                 SemanticPlaceElement::IndexConstant { constant, access } => {
                     IntegerConstant::from_semantic(&constant).write_all(state.clone());
                     state.borrow_mut().push_instruction(
-                        Instruction::Cast(zinc_build::Cast::new(zinc_build::ScalarType::Field)),
+                        Instruction::Cast(zinc_types::Cast::new(zinc_types::ScalarType::Field)),
                         Some(self.identifier.location),
                     );
                     IntegerConstant::new(
@@ -58,18 +58,18 @@ impl IBytecodeWritable for Place {
                     )
                     .write_all(state.clone());
                     state.borrow_mut().push_instruction(
-                        Instruction::Mul(zinc_build::Mul),
+                        Instruction::Mul(zinc_types::Mul),
                         Some(self.identifier.location),
                     );
                     state.borrow_mut().push_instruction(
-                        Instruction::Add(zinc_build::Add),
+                        Instruction::Add(zinc_types::Add),
                         Some(self.identifier.location),
                     );
                 }
                 SemanticPlaceElement::IndexExpression { expression, access } => {
                     expression.write_all(state.clone());
                     state.borrow_mut().push_instruction(
-                        Instruction::Cast(zinc_build::Cast::new(zinc_build::ScalarType::Field)),
+                        Instruction::Cast(zinc_types::Cast::new(zinc_types::ScalarType::Field)),
                         Some(self.identifier.location),
                     );
                     IntegerConstant::new(
@@ -79,11 +79,11 @@ impl IBytecodeWritable for Place {
                     )
                     .write_all(state.clone());
                     state.borrow_mut().push_instruction(
-                        Instruction::Mul(zinc_build::Mul),
+                        Instruction::Mul(zinc_types::Mul),
                         Some(self.identifier.location),
                     );
                     state.borrow_mut().push_instruction(
-                        Instruction::Add(zinc_build::Add),
+                        Instruction::Add(zinc_types::Add),
                         Some(self.identifier.location),
                     );
                 }
@@ -95,7 +95,7 @@ impl IBytecodeWritable for Place {
                     )
                     .write_all(state.clone());
                     state.borrow_mut().push_instruction(
-                        Instruction::Add(zinc_build::Add),
+                        Instruction::Add(zinc_types::Add),
                         Some(self.identifier.location),
                     );
                 }
@@ -107,7 +107,7 @@ impl IBytecodeWritable for Place {
                     )
                     .write_all(state.clone());
                     state.borrow_mut().push_instruction(
-                        Instruction::Add(zinc_build::Add),
+                        Instruction::Add(zinc_types::Add),
                         Some(self.identifier.location),
                     );
                 }
@@ -119,7 +119,7 @@ impl IBytecodeWritable for Place {
                     )
                     .write_all(state.clone());
                     state.borrow_mut().push_instruction(
-                        Instruction::Add(zinc_build::Add),
+                        Instruction::Add(zinc_types::Add),
                         Some(self.identifier.location),
                     );
                 }

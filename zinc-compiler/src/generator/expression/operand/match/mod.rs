@@ -7,7 +7,7 @@ pub mod builder;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use zinc_build::Instruction;
+use zinc_types::Instruction;
 
 use crate::generator::expression::operand::constant::Constant;
 use crate::generator::expression::Expression as GeneratorExpression;
@@ -74,26 +74,26 @@ impl IBytecodeWritable for Expression {
 
         self.scrutinee.write_all(bytecode.clone());
         bytecode.borrow_mut().push_instruction(
-            Instruction::Store(zinc_build::Store::new(scrutinee_address, scrutinee_size)),
+            Instruction::Store(zinc_types::Store::new(scrutinee_address, scrutinee_size)),
             Some(self.location),
         );
 
         for (branch_pattern, branch_expression) in self.branches.into_iter() {
             bytecode.borrow_mut().push_instruction(
-                Instruction::Load(zinc_build::Load::new(scrutinee_address, scrutinee_size)),
+                Instruction::Load(zinc_types::Load::new(scrutinee_address, scrutinee_size)),
                 Some(self.location),
             );
             branch_pattern.write_all(bytecode.clone());
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::Eq(zinc_build::Eq), Some(self.location));
+                .push_instruction(Instruction::Eq(zinc_types::Eq), Some(self.location));
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::If(zinc_build::If), Some(self.location));
+                .push_instruction(Instruction::If(zinc_types::If), Some(self.location));
             branch_expression.write_all(bytecode.clone());
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::Else(zinc_build::Else), Some(self.location));
+                .push_instruction(Instruction::Else(zinc_types::Else), Some(self.location));
         }
 
         if let Some(binding_branch) = binding_branch {
@@ -104,11 +104,11 @@ impl IBytecodeWritable for Expression {
 
         bytecode
             .borrow_mut()
-            .push_instruction(Instruction::EndIf(zinc_build::EndIf), Some(self.location));
+            .push_instruction(Instruction::EndIf(zinc_types::EndIf), Some(self.location));
         for _ in 0..branch_count - 1 {
             bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::EndIf(zinc_build::EndIf), Some(self.location));
+                .push_instruction(Instruction::EndIf(zinc_types::EndIf), Some(self.location));
         }
     }
 }

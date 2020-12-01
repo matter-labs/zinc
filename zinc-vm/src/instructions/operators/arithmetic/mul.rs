@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::Mul;
+use zinc_types::Mul;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -19,7 +19,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for Mul {
         let right = vm.pop()?.try_into_value()?;
         let left = vm.pop()?.try_into_value()?;
 
-        let mul_type = zinc_build::ScalarType::expect_same(left.get_type(), right.get_type())?;
+        let mul_type = zinc_types::ScalarType::expect_same(left.get_type(), right.get_type())?;
 
         let condition = vm.condition_top()?;
         let cs = vm.constraint_system();
@@ -47,9 +47,9 @@ mod test {
     #[test]
     fn test_mul() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new_field(BigInt::from(3)))
-            .push(zinc_build::Push::new_field(BigInt::from(4)))
-            .push(zinc_build::Mul)
+            .push(zinc_types::Push::new_field(BigInt::from(3)))
+            .push(zinc_types::Push::new_field(BigInt::from(4)))
+            .push(zinc_types::Mul)
             .test(&[12])
     }
 }

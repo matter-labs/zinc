@@ -146,27 +146,27 @@ impl Command {
                     zinc_const::contract::TRANSACTION_VARIABLE_NAME.to_owned(),
                 )
             })?;
-        let msg = zinc_zksync::TransactionMsg::try_from(&msg).map_err(TransactionError::Parsing)?;
+        let msg = zinc_types::TransactionMsg::try_from(&msg).map_err(TransactionError::Parsing)?;
         let transaction = crate::transaction::try_into_zksync(msg.clone(), &wallet, None).await?;
 
         let response = http_client
             .fee(
-                zinc_zksync::FeeRequestQuery::new(address, method.clone()),
-                zinc_zksync::FeeRequestBody::new(arguments.clone(), transaction),
+                zinc_types::FeeRequestQuery::new(address, method.clone()),
+                zinc_types::FeeRequestBody::new(arguments.clone(), transaction),
             )
             .await?;
         let contract_fee = response.fee;
         let transaction = crate::transaction::try_into_zksync(
             msg,
             &wallet,
-            Some(zinc_zksync::num_compat_forward(contract_fee)),
+            Some(zinc_types::num_compat_forward(contract_fee)),
         )
         .await?;
 
         let response = http_client
             .call(
-                zinc_zksync::CallRequestQuery::new(address, method),
-                zinc_zksync::CallRequestBody::new(arguments, transaction),
+                zinc_types::CallRequestQuery::new(address, method),
+                zinc_types::CallRequestBody::new(arguments, transaction),
             )
             .await?;
         println!(

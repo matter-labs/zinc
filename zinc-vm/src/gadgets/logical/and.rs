@@ -20,10 +20,10 @@ where
         CS: ConstraintSystem<E>,
     {
         left.get_type()
-            .assert_type(zinc_build::ScalarType::Boolean)?;
+            .assert_type(zinc_types::ScalarType::Boolean)?;
         right
             .get_type()
-            .assert_type(zinc_build::ScalarType::Boolean)?;
+            .assert_type(zinc_types::ScalarType::Boolean)?;
 
         let num = AllocatedNum::alloc(cs.namespace(|| "value"), || {
             let mut conj = left.grab_value()?;
@@ -41,7 +41,7 @@ where
         Ok(Scalar::new_unchecked_variable(
             num.get_value(),
             num.get_variable(),
-            zinc_build::ScalarType::Boolean,
+            zinc_types::ScalarType::Boolean,
         ))
     }
 

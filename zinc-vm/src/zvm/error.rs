@@ -73,13 +73,17 @@ pub enum Error {
     /// The transaction JSON is invalid.
     #[error("transaction `{found}` is invalid: {inner}")]
     InvalidTransaction {
-        inner: zinc_zksync::TransactionError,
+        inner: zinc_types::TransactionError,
         found: serde_json::Value,
     },
 
     /// The contract storage JSON is invalid.
     #[error("contract storage must be an array, but found `{found}`")]
     InvalidContractStorageFormat { found: serde_json::Value },
+
+    /// The library cannot be run as a standalone application.
+    #[error("libraries cannot be run as they have no entry points")]
+    CannotRunLibrary,
 
     /// The command is temporarily unavailable.
     #[error("the proof verification is temporarily unavailable")]

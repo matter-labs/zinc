@@ -125,8 +125,8 @@ impl Command {
 
         let response = http_client
             .query(
-                zinc_zksync::QueryRequestQuery::new(address, self.method),
-                zinc_zksync::QueryRequestBody::new(arguments),
+                zinc_types::QueryRequestQuery::new(address, self.method),
+                zinc_types::QueryRequestBody::new(arguments),
             )
             .await?;
         println!(

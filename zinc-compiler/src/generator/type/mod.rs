@@ -284,54 +284,54 @@ impl Type {
     }
 }
 
-impl Into<zinc_build::Type> for Type {
-    fn into(self) -> zinc_build::Type {
+impl Into<zinc_types::Type> for Type {
+    fn into(self) -> zinc_types::Type {
         match self {
-            Self::Unit => zinc_build::Type::Unit,
-            Self::Boolean => zinc_build::Type::Scalar(zinc_build::ScalarType::Boolean),
+            Self::Unit => zinc_types::Type::Unit,
+            Self::Boolean => zinc_types::Type::Scalar(zinc_types::ScalarType::Boolean),
             Self::IntegerUnsigned { bitlength } => {
-                zinc_build::Type::Scalar(zinc_build::ScalarType::Integer(zinc_build::IntegerType {
+                zinc_types::Type::Scalar(zinc_types::ScalarType::Integer(zinc_types::IntegerType {
                     is_signed: false,
                     bitlength,
                 }))
             }
             Self::IntegerSigned { bitlength } => {
-                zinc_build::Type::Scalar(zinc_build::ScalarType::Integer(zinc_build::IntegerType {
+                zinc_types::Type::Scalar(zinc_types::ScalarType::Integer(zinc_types::IntegerType {
                     is_signed: true,
                     bitlength,
                 }))
             }
-            Self::Field => zinc_build::Type::Scalar(zinc_build::ScalarType::Field),
+            Self::Field => zinc_types::Type::Scalar(zinc_types::ScalarType::Field),
             Self::Enumeration {
                 bitlength,
                 variants,
-            } => zinc_build::Type::Enumeration {
+            } => zinc_types::Type::Enumeration {
                 bitlength,
                 variants,
             },
             Self::Array { r#type, size } => {
-                let element_type: zinc_build::Type = (*r#type).into();
-                zinc_build::Type::Array(Box::new(element_type), size)
+                let element_type: zinc_types::Type = (*r#type).into();
+                zinc_types::Type::Array(Box::new(element_type), size)
             }
             Self::Tuple { types } => {
-                zinc_build::Type::Tuple(types.into_iter().map(|r#type| r#type.into()).collect())
+                zinc_types::Type::Tuple(types.into_iter().map(|r#type| r#type.into()).collect())
             }
-            Self::Structure { fields } => zinc_build::Type::Structure(
+            Self::Structure { fields } => zinc_types::Type::Structure(
                 fields
                     .into_iter()
                     .map(|(name, r#type)| (name, r#type.into()))
                     .collect(),
             ),
             Self::Contract { fields } => {
-                zinc_build::Type::Contract(fields.into_iter().map(|field| field.into()).collect())
+                zinc_types::Type::Contract(fields.into_iter().map(|field| field.into()).collect())
             }
             Self::Map {
                 key_type,
                 value_type,
             } => {
-                let key_type: zinc_build::Type = (*key_type).into();
-                let value_type: zinc_build::Type = (*value_type).into();
-                zinc_build::Type::Map {
+                let key_type: zinc_types::Type = (*key_type).into();
+                let value_type: zinc_types::Type = (*value_type).into();
+                zinc_types::Type::Map {
                     key_type: Box::new(key_type),
                     value_type: Box::new(value_type),
                 }
@@ -340,23 +340,23 @@ impl Into<zinc_build::Type> for Type {
     }
 }
 
-impl Into<Option<zinc_build::ScalarType>> for Type {
-    fn into(self) -> Option<zinc_build::ScalarType> {
+impl Into<Option<zinc_types::ScalarType>> for Type {
+    fn into(self) -> Option<zinc_types::ScalarType> {
         match self {
-            Self::Boolean => Some(zinc_build::ScalarType::Boolean),
+            Self::Boolean => Some(zinc_types::ScalarType::Boolean),
             Self::IntegerUnsigned { bitlength } => {
-                Some(zinc_build::ScalarType::Integer(zinc_build::IntegerType {
+                Some(zinc_types::ScalarType::Integer(zinc_types::IntegerType {
                     is_signed: false,
                     bitlength,
                 }))
             }
             Self::IntegerSigned { bitlength } => {
-                Some(zinc_build::ScalarType::Integer(zinc_build::IntegerType {
+                Some(zinc_types::ScalarType::Integer(zinc_types::IntegerType {
                     is_signed: true,
                     bitlength,
                 }))
             }
-            Self::Field => Some(zinc_build::ScalarType::Field),
+            Self::Field => Some(zinc_types::ScalarType::Field),
             _ => None,
         }
     }

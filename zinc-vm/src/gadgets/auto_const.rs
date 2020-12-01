@@ -44,8 +44,8 @@ pub mod prelude {
 /// use zinc_vm::gadgets;
 /// use zinc_vm::gadgets::auto_const::prelude::*;
 ///
-/// let a = Scalar::<Bn256>::new_constant_fr(Fr::from_str("42").expect(zinc_const::panic::TEST_DATA_VALID), zinc_build::ScalarType::Field);
-/// let b = Scalar::<Bn256>::new_constant_fr(Fr::from_str("69").expect(zinc_const::panic::TEST_DATA_VALID), zinc_build::ScalarType::Field);
+/// let a = Scalar::<Bn256>::new_constant_fr(Fr::from_str("42").expect(zinc_const::panic::TEST_DATA_VALID), zinc_types::ScalarType::Field);
+/// let b = Scalar::<Bn256>::new_constant_fr(Fr::from_str("69").expect(zinc_const::panic::TEST_DATA_VALID), zinc_types::ScalarType::Field);
 ///
 /// let mut cs = TestConstraintSystem::<Bn256>::new();
 ///

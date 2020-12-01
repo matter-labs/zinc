@@ -15,7 +15,7 @@ use crate::gadgets::scalar::Scalar;
 use crate::IEngine;
 
 pub struct Storage<E: IEngine> {
-    field_types: Vec<zinc_build::ContractFieldType>,
+    field_types: Vec<zinc_types::ContractFieldType>,
     hash_tree: Vec<Vec<u8>>,
     leaf_values: Vec<LeafVariant<E>>,
     depth: usize,
@@ -23,13 +23,13 @@ pub struct Storage<E: IEngine> {
 
 impl<E: IEngine> IMerkleTree<E> for Storage<E> {
     fn from_evaluation_stack(
-        field_types: Vec<zinc_build::ContractFieldType>,
+        field_types: Vec<zinc_types::ContractFieldType>,
         mut values: Vec<Scalar<E>>,
     ) -> Result<Self, Error> {
         let mut storage_leaves = Vec::with_capacity(field_types.len());
         for field_type in field_types.iter() {
             let leaf = match field_type.r#type {
-                zinc_build::Type::Map {
+                zinc_types::Type::Map {
                     ref key_type,
                     ref value_type,
                 } => LeafInput::Map {
@@ -69,20 +69,20 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
     }
 
     fn from_build(
-        field_types: Vec<zinc_build::ContractFieldType>,
-        value: zinc_build::Value,
+        field_types: Vec<zinc_types::ContractFieldType>,
+        value: zinc_types::Value,
     ) -> Result<Self, Error> {
         let storage_leaves = match value {
-            zinc_build::Value::Contract(fields) => fields
+            zinc_types::Value::Contract(fields) => fields
                 .into_iter()
                 .enumerate()
                 .map(|(index, field)| {
                     let r#type = field_types[index].r#type.to_owned();
 
                     match field.value {
-                        zinc_build::Value::Map(map) => {
+                        zinc_types::Value::Map(map) => {
                             let (key_type, value_type) = match r#type {
-                                zinc_build::Type::Map {
+                                zinc_types::Type::Map {
                                     key_type,
                                     value_type,
                                 } => (*key_type, *value_type),
@@ -184,7 +184,7 @@ impl<E: IEngine> IMerkleTree<E> for Storage<E> {
             .collect()
     }
 
-    fn types(&self) -> &[zinc_build::ContractFieldType] {
+    fn types(&self) -> &[zinc_types::ContractFieldType] {
         self.field_types.as_slice()
     }
 

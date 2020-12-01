@@ -32,7 +32,7 @@ pub struct Contract {
     /// The contract wallet.
     pub wallet: zksync::Wallet<zksync_eth_signer::PrivateKeySigner>,
     /// The pre-built contract ready to be called.
-    pub build: zinc_build::Contract,
+    pub build: zinc_types::Contract,
     /// The contract storage.
     pub storage: Storage,
 }
@@ -61,7 +61,7 @@ impl Contract {
             .await?;
 
         let eth_private_key =
-            zinc_zksync::private_key_from_slice(contract.eth_private_key.as_slice());
+            zinc_types::private_key_from_slice(contract.eth_private_key.as_slice());
 
         let provider = zksync::Provider::new(network);
         let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
@@ -72,13 +72,16 @@ impl Contract {
         .await?;
         let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
 
-        let application = zinc_build::Application::try_from_slice(project.bytecode.as_slice())
+        let application = zinc_types::Application::try_from_slice(project.bytecode.as_slice())
             .expect(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION);
         let build = match application {
-            zinc_build::Application::Circuit(_circuit) => {
+            zinc_types::Application::Circuit(_circuit) => {
                 panic!(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION)
             }
-            zinc_build::Application::Contract(contract) => contract,
+            zinc_types::Application::Contract(contract) => contract,
+            zinc_types::Application::Library(_library) => {
+                panic!(zinc_const::panic::VALIDATED_DURING_DATABASE_POPULATION)
+            }
         };
 
         let database_fields = postgresql

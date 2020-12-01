@@ -4,6 +4,7 @@
 
 pub mod circuit;
 pub mod contract;
+pub mod library;
 
 use std::fs;
 use std::path::PathBuf;

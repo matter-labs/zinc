@@ -1,0 +1,36 @@
+{
+  "type": "contract",
+  "storage": [
+    "0x0",
+    [],
+    [
+      "ETH",
+      "ETH"
+    ],
+    "0"
+  ],
+  "msg": {
+    "sender": "0x0000000000000000000000000000000000000000",
+    "recipient": "0x0000000000000000000000000000000000000000",
+    "token_address": "0x0000000000000000000000000000000000000000",
+    "amount": "0"
+  },
+  "arguments": {
+    "deposit": {},
+    "get_dx": {
+      "deposit_token_address": "ETH",
+      "withdraw_token_address": "ETH",
+      "to_withdraw": "0"
+    },
+    "get_dy": {
+      "deposit_token_address": "ETH",
+      "withdraw_token_address": "ETH",
+      "to_deposit": "0"
+    },
+    "swap": {
+      "withdraw_address": "0x0",
+      "withdraw_token_address": "ETH",
+      "min_withdraw": "0"
+    }
+  }
+}

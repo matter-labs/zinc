@@ -2,8 +2,8 @@
 //! The function instructions.
 //!
 
-use zinc_build::Call;
-use zinc_build::Return;
+use zinc_types::Call;
+use zinc_types::Return;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::Error;
@@ -32,22 +32,22 @@ mod tests {
     fn test() -> Result<(), TestingError> {
         TestRunner::new()
             // call main
-            .push(zinc_build::Call::new(11, 0))
+            .push(zinc_types::Call::new(11, 0))
             // fn min(field, field) -> field
-            .push(zinc_build::Load::new(0, 1))
-            .push(zinc_build::Load::new(1, 1))
-            .push(zinc_build::Lt)
-            .push(zinc_build::If)
-            .push(zinc_build::Load::new(0, 1))
-            .push(zinc_build::Else)
-            .push(zinc_build::Load::new(1, 1))
-            .push(zinc_build::EndIf)
-            .push(zinc_build::Return::new(1))
+            .push(zinc_types::Load::new(0, 1))
+            .push(zinc_types::Load::new(1, 1))
+            .push(zinc_types::Lt)
+            .push(zinc_types::If)
+            .push(zinc_types::Load::new(0, 1))
+            .push(zinc_types::Else)
+            .push(zinc_types::Load::new(1, 1))
+            .push(zinc_types::EndIf)
+            .push(zinc_types::Return::new(1))
             // fn main
-            .push(zinc_build::Push::new_field(BigInt::from(42)))
-            .push(zinc_build::Push::new_field(BigInt::from(5)))
-            .push(zinc_build::Push::new_field(BigInt::from(3)))
-            .push(zinc_build::Call::new(2, 2))
+            .push(zinc_types::Push::new_field(BigInt::from(42)))
+            .push(zinc_types::Push::new_field(BigInt::from(5)))
+            .push(zinc_types::Push::new_field(BigInt::from(3)))
+            .push(zinc_types::Call::new(2, 2))
             .test(&[3, 42])
     }
 }

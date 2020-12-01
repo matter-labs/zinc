@@ -4,7 +4,7 @@
 
 use num::BigInt;
 
-use zinc_build::StorageInit;
+use zinc_types::StorageInit;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::Error;
@@ -22,7 +22,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for StorageInit {
 
         let eth_address = Scalar::new_constant_bigint(
             BigInt::from(vm.storages_count() + 1),
-            zinc_build::ScalarType::eth_address(),
+            zinc_types::ScalarType::eth_address(),
         )?;
 
         let mut values = Vec::with_capacity(size);

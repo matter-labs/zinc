@@ -14,7 +14,6 @@ use crate::executable::virtual_machine::VirtualMachine;
 use crate::http::downloader::Downloader;
 use crate::http::Client as HttpClient;
 use crate::network::Network;
-use crate::project::data::Directory as DataDirectory;
 use crate::project::target::deps::Directory as TargetDependenciesDirectory;
 use crate::project::target::Directory as TargetDirectory;
 
@@ -76,15 +75,6 @@ impl Command {
         TargetDependenciesDirectory::create(&manifest_path)?;
         let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
 
-        DataDirectory::create(&manifest_path)?;
-        let data_directory_path = DataDirectory::path(&manifest_path);
-        let mut input_path = data_directory_path.clone();
-        input_path.push(format!(
-            "{}.{}",
-            zinc_const::file_name::INPUT,
-            zinc_const::extension::JSON,
-        ));
-
         if let Some(dependencies) = manifest.dependencies {
             let network = zksync::Network::from_str(self.network.as_str())
                 .map(Network::from)
@@ -105,7 +95,7 @@ impl Command {
             true,
         )?;
 
-        VirtualMachine::test(self.verbosity, &binary_path, &input_path)?;
+        VirtualMachine::test(self.verbosity, &binary_path)?;
 
         Ok(())
     }

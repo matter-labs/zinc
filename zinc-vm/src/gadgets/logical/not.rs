@@ -20,7 +20,7 @@ where
     {
         scalar
             .get_type()
-            .assert_type(zinc_build::ScalarType::Boolean)?;
+            .assert_type(zinc_types::ScalarType::Boolean)?;
 
         let one_expr = Expression::u64::<CS>(1);
         let not_expr = one_expr - scalar.to_expression::<CS>();
@@ -30,7 +30,7 @@ where
         Ok(Scalar::new_unchecked_variable(
             not_num.get_value(),
             not_num.get_variable(),
-            zinc_build::ScalarType::Boolean,
+            zinc_types::ScalarType::Boolean,
         ))
     }
 

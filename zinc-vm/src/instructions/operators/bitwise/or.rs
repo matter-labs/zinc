@@ -4,7 +4,7 @@
 
 use franklin_crypto::bellman::ConstraintSystem;
 
-use zinc_build::BitwiseOr;
+use zinc_types::BitwiseOr;
 
 use crate::core::virtual_machine::IVirtualMachine;
 use crate::error::Error;

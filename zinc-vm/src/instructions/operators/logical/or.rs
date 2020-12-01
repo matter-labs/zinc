@@ -5,7 +5,7 @@
 use num::bigint::ToBigInt;
 use num::One;
 
-use zinc_build::Or;
+use zinc_types::Or;
 
 use crate::core::execution_state::cell::Cell;
 use crate::core::virtual_machine::IVirtualMachine;
@@ -36,42 +36,42 @@ mod tests {
     #[test]
     fn test_or() -> Result<(), TestingError> {
         TestRunner::new()
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::zero(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::zero(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Or)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Or)
+            .push(zinc_types::Push::new(
                 BigInt::zero(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::one(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Or)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Or)
+            .push(zinc_types::Push::new(
                 BigInt::one(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::zero(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Or)
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Or)
+            .push(zinc_types::Push::new(
                 BigInt::one(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Push::new(
+            .push(zinc_types::Push::new(
                 BigInt::one(),
-                zinc_build::ScalarType::Boolean,
+                zinc_types::ScalarType::Boolean,
             ))
-            .push(zinc_build::Or)
+            .push(zinc_types::Or)
             .test(&[1, 1, 1, 0])
     }
 }

@@ -30,7 +30,6 @@ semver = "0.11"
 
 rayon = "1.5"
 futures = "0.3"
-async-std = "1.7"
 tokio = { version = "0.2", features = [ "macros" ] }
 actix-rt = "1.1"
 actix-cors = "0.5"
@@ -47,9 +46,5 @@ zinc-logger = { path = "../zinc-logger" }
 zinc-const = { path = "../zinc-const" }
 zinc-math = { path = "../zinc-math" }
 zinc-source = { path = "../zinc-source" }
-zinc-build = { path = "../zinc-build" }
-zinc-zksync = { path = "../zinc-zksync" }
+zinc-types = { path = "../zinc-types" }
 zinc-vm = { path = "../zinc-vm" }
-
-[features]
-integration-tests = []

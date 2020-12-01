@@ -19,6 +19,9 @@ pub enum ProjectType {
     /// The smart-contract.
     #[serde(rename = "contract")]
     Contract,
+    /// The library.
+    #[serde(rename = "library")]
+    Library,
 }
 
 impl FromStr for ProjectType {
@@ -28,6 +31,7 @@ impl FromStr for ProjectType {
         match value {
             "circuit" => Ok(Self::Circuit),
             "contract" => Ok(Self::Contract),
+            "library" => Ok(Self::Library),
             another => Err(another.to_owned()),
         }
     }
@@ -38,6 +42,7 @@ impl fmt::Display for ProjectType {
         match self {
             Self::Circuit => write!(f, "circuit"),
             Self::Contract => write!(f, "contract"),
+            Self::Library => write!(f, "library"),
         }
     }
 }

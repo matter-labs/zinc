@@ -15,7 +15,7 @@ pub trait IMerkleTree<E: IEngine> {
     /// Creates a contract storage from the evaluation stack.
     ///
     fn from_evaluation_stack(
-        field_types: Vec<zinc_build::ContractFieldType>,
+        field_types: Vec<zinc_types::ContractFieldType>,
         values: Vec<Scalar<E>>,
     ) -> Result<Self, Error>
     where
@@ -25,8 +25,8 @@ pub trait IMerkleTree<E: IEngine> {
     /// Creates a contract storage from the metadata representation.
     ///
     fn from_build(
-        field_types: Vec<zinc_build::ContractFieldType>,
-        value: zinc_build::Value,
+        field_types: Vec<zinc_types::ContractFieldType>,
+        value: zinc_types::Value,
     ) -> Result<Self, Error>
     where
         Self: Sized;
@@ -49,7 +49,7 @@ pub trait IMerkleTree<E: IEngine> {
     ///
     /// Returns the storage field types.
     ///
-    fn types(&self) -> &[zinc_build::ContractFieldType];
+    fn types(&self) -> &[zinc_types::ContractFieldType];
 
     ///
     /// Returns the Merkle tree root hash.

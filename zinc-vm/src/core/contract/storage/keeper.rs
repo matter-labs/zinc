@@ -16,8 +16,8 @@ pub trait IKeeper: Sync + Send {
     fn fetch(
         &self,
         eth_address: BigInt,
-        field_types: Vec<zinc_build::ContractFieldType>,
-    ) -> Result<zinc_build::Value, Error>;
+        field_types: Vec<zinc_types::ContractFieldType>,
+    ) -> Result<zinc_types::Value, Error>;
 }
 
 ///
@@ -30,12 +30,12 @@ impl IKeeper for DummyKeeper {
     fn fetch(
         &self,
         _eth_address: BigInt,
-        field_types: Vec<zinc_build::ContractFieldType>,
-    ) -> Result<zinc_build::Value, Error> {
-        Ok(zinc_build::Value::Contract(
+        field_types: Vec<zinc_types::ContractFieldType>,
+    ) -> Result<zinc_types::Value, Error> {
+        Ok(zinc_types::Value::Contract(
             field_types
                 .into_iter()
-                .map(zinc_build::ContractFieldValue::new_from_type)
+                .map(zinc_types::ContractFieldValue::new_from_type)
                 .collect(),
         ))
     }
