@@ -28,9 +28,8 @@ petgraph = "0.5"
 
 zinc-lexical = { path = "../zinc-lexical" }
 zinc-syntax = { path = "../zinc-syntax" }
-zinc-manifest = { path = "../zinc-manifest" }
 zinc-const = { path = "../zinc-const" }
 zinc-math = { path = "../zinc-math" }
 zinc-logger = { path = "../zinc-logger" }
-zinc-source = { path = "../zinc-source" }
+zinc-project = { path = "../zinc-project" }
 zinc-types = { path = "../zinc-types" }

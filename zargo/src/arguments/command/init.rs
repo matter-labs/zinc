@@ -52,7 +52,7 @@ impl Command {
                 .to_string(),
         };
 
-        let project_type = zinc_manifest::ProjectType::from_str(self.r#type.as_str())
+        let project_type = zinc_project::ProjectType::from_str(self.r#type.as_str())
             .map_err(Error::ProjectTypeInvalid)?;
 
         if !self.path.exists() {
@@ -61,27 +61,27 @@ impl Command {
             ));
         }
 
-        if zinc_manifest::Manifest::exists_at(&self.path) {
+        if zinc_project::Manifest::exists_at(&self.path) {
             anyhow::bail!(Error::ProjectAlreadyInitialized(
                 self.path.as_os_str().to_owned(),
             ));
         }
-        zinc_manifest::Manifest::new(&project_name, project_type).write_to(&self.path)?;
+        zinc_project::Manifest::new(&project_name, project_type).write_to(&self.path)?;
 
         SourceDirectory::create(&self.path)?;
 
         match project_type {
-            zinc_manifest::ProjectType::Circuit => {
+            zinc_project::ProjectType::Circuit => {
                 if !CircuitFile::exists_at(&self.path) {
                     CircuitFile::new(&project_name).write_to(&self.path)?;
                 }
             }
-            zinc_manifest::ProjectType::Contract => {
+            zinc_project::ProjectType::Contract => {
                 if !ContractFile::exists_at(&self.path) {
                     ContractFile::new(&project_name).write_to(&self.path)?;
                 }
             }
-            zinc_manifest::ProjectType::Library => {
+            zinc_project::ProjectType::Library => {
                 if !LibraryFile::exists_at(&self.path) {
                     LibraryFile::new(&project_name).write_to(&self.path)?;
                 }

@@ -5,6 +5,7 @@
 pub mod build;
 pub mod call;
 pub mod clean;
+pub mod download;
 pub mod init;
 pub mod new;
 pub mod proof_check;
@@ -14,6 +15,7 @@ pub mod query;
 pub mod run;
 pub mod setup;
 pub mod test;
+pub mod upload;
 pub mod verify;
 
 use structopt::StructOpt;
@@ -23,6 +25,7 @@ use crate::error::Error;
 use self::build::Command as BuildCommand;
 use self::call::Command as CallCommand;
 use self::clean::Command as CleanCommand;
+use self::download::Command as DownloadCommand;
 use self::init::Command as InitCommand;
 use self::new::Command as NewCommand;
 use self::proof_check::Command as ProofCheckCommand;
@@ -32,6 +35,7 @@ use self::query::Command as QueryCommand;
 use self::run::Command as RunCommand;
 use self::setup::Command as SetupCommand;
 use self::test::Command as TestCommand;
+use self::upload::Command as UploadCommand;
 use self::verify::Command as VerifyCommand;
 
 ///
@@ -69,6 +73,11 @@ pub enum Command {
     Query(QueryCommand),
     /// Calls a mutable smart contract method.
     Call(CallCommand),
+
+    /// Uploads a project to the specified network.
+    Upload(UploadCommand),
+    /// Downloads a project from the specified network.
+    Download(DownloadCommand),
 }
 
 impl Command {
@@ -93,6 +102,9 @@ impl Command {
             Self::Publish(inner) => inner.execute().await?,
             Self::Query(inner) => inner.execute().await?,
             Self::Call(inner) => inner.execute().await?,
+
+            Self::Upload(inner) => inner.execute().await?,
+            Self::Download(inner) => inner.execute().await?,
         }
 
         Ok(())

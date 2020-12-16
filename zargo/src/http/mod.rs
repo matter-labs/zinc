@@ -31,6 +31,83 @@ impl Client {
     }
 
     ///
+    /// Downloads projects metadata from the Zandbox server.
+    ///
+    pub async fn metadata(&self) -> anyhow::Result<zinc_types::MetadataResponseBody> {
+        let response = self
+            .inner
+            .execute(
+                self.inner
+                    .request(
+                        Method::GET,
+                        Url::parse(
+                            format!("{}{}", self.url, zinc_const::zandbox::PROJECT_URL).as_str(),
+                        )
+                        .expect(zinc_const::panic::DATA_CONVERSION),
+                    )
+                    .build()
+                    .expect(zinc_const::panic::DATA_CONVERSION),
+            )
+            .await?;
+
+        if !response.status().is_success() {
+            anyhow::bail!(Error::ProjectMetadata(format!(
+                "HTTP error ({}) {}",
+                response.status(),
+                response
+                    .text()
+                    .await
+                    .expect(zinc_const::panic::DATA_CONVERSION),
+            )));
+        }
+
+        Ok(response
+            .json::<zinc_types::MetadataResponseBody>()
+            .await
+            .expect(zinc_const::panic::DATA_CONVERSION))
+    }
+
+    ///
+    /// Uploads a project to the Zandbox server.
+    ///
+    pub async fn upload(
+        &self,
+        query: zinc_types::UploadRequestQuery,
+        body: zinc_types::UploadRequestBody,
+    ) -> anyhow::Result<()> {
+        let response = self
+            .inner
+            .execute(
+                self.inner
+                    .request(
+                        Method::POST,
+                        Url::parse_with_params(
+                            format!("{}{}", self.url, zinc_const::zandbox::PROJECT_URL).as_str(),
+                            query,
+                        )
+                        .expect(zinc_const::panic::DATA_CONVERSION),
+                    )
+                    .json(&body)
+                    .build()
+                    .expect(zinc_const::panic::DATA_CONVERSION),
+            )
+            .await?;
+
+        if !response.status().is_success() {
+            anyhow::bail!(Error::ProjectUploading(format!(
+                "HTTP error ({}) {}",
+                response.status(),
+                response
+                    .text()
+                    .await
+                    .expect(zinc_const::panic::DATA_CONVERSION),
+            )));
+        }
+
+        Ok(())
+    }
+
+    ///
     /// Publishes a contract to the Zandbox server.
     ///
     pub async fn publish(
@@ -45,8 +122,7 @@ impl Client {
                     .request(
                         Method::POST,
                         Url::parse_with_params(
-                            format!("{}{}", self.url, zinc_const::zandbox::CONTRACT_PUBLISH_URL)
-                                .as_str(),
+                            format!("{}{}", self.url, zinc_const::zandbox::CONTRACT_URL).as_str(),
                             query,
                         )
                         .expect(zinc_const::panic::DATA_CONVERSION),

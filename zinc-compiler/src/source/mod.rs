@@ -36,10 +36,10 @@ impl Source {
     ///
     /// Initializes an application module from string data.
     ///
-    pub fn try_from_string(source: zinc_source::Source, is_entry: bool) -> anyhow::Result<Self> {
+    pub fn try_from_string(source: zinc_project::Source, is_entry: bool) -> anyhow::Result<Self> {
         match source {
-            zinc_source::Source::File(inner) => File::try_from_string(inner).map(Self::File),
-            zinc_source::Source::Directory(inner) => {
+            zinc_project::Source::File(inner) => File::try_from_string(inner).map(Self::File),
+            zinc_project::Source::Directory(inner) => {
                 Directory::try_from_string(inner, is_entry).map(Self::Directory)
             }
         }
@@ -102,7 +102,7 @@ impl Source {
     ///
     pub fn compile(
         self,
-        manifest: zinc_manifest::Manifest,
+        manifest: zinc_project::Manifest,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
     ) -> anyhow::Result<Rc<RefCell<State>>> {
         match self {

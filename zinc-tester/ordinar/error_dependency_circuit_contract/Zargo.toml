@@ -1,0 +1,7 @@
+[project]
+name = 'dependency_circuit_contract'
+type = 'circuit'
+version = '0.1.0'
+
+[dependencies]
+inner = '0.1.0'

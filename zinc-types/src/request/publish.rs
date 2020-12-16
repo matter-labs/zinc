@@ -54,7 +54,7 @@ impl IntoIterator for Query {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Body {
     /// The project data.
-    pub project: zinc_source::Project,
+    pub project: zinc_project::Project,
     /// The contract bytecode.
     pub bytecode: Vec<u8>,
     /// The JSON constructor input.
@@ -68,7 +68,7 @@ impl Body {
     /// A shortcut constructor.
     ///
     pub fn new(
-        project: zinc_source::Project,
+        project: zinc_project::Project,
         bytecode: Vec<u8>,
         arguments: serde_json::Value,
         verifying_key: Vec<u8>,

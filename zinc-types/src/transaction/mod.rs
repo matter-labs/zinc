@@ -8,7 +8,6 @@ pub mod msg;
 use serde::Deserialize;
 use serde::Serialize;
 
-use zksync_eth_signer::PrivateKeySigner;
 use zksync_types::tx::PackedEthSignature;
 use zksync_types::tx::ZkSyncTx;
 use zksync_types::TokenLike;
@@ -42,7 +41,10 @@ impl Transaction {
     ///
     /// Converts the transaction into an intrinsic `zksync::msg` variable representation.
     ///
-    pub fn try_to_msg(&self, wallet: &zksync::Wallet<PrivateKeySigner>) -> Result<Msg, Error> {
+    pub fn try_to_msg(
+        &self,
+        wallet: &zksync::Wallet<zksync_eth_signer::PrivateKeySigner, zksync::RpcProvider>,
+    ) -> Result<Msg, Error> {
         match self.tx {
             ZkSyncTx::Transfer(ref transfer) => {
                 let token = wallet

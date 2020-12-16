@@ -1,0 +1,20 @@
+//! { "cases": [ {
+//!     "case": "default",
+//!     "method": "default",
+//!     "input": {},
+//!     "output": {
+//!         "result": true,
+//!         "root_hash": "0x0"
+//!     }
+//! } ] }
+
+use std::collections::MTreeMap;
+
+contract Test {
+    map: MTreeMap<u248, u248>;
+
+    pub fn default(mut self) -> bool {
+        let (zeros, exists) = self.map.get(0 as u248);
+        !exists && zeros == 0
+    }
+}

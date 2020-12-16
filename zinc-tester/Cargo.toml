@@ -24,7 +24,7 @@ num = "0.3"
 rayon = "1.5"
 
 zinc-const = { path = "../zinc-const" }
-zinc-manifest = { path = "../zinc-manifest" }
+zinc-project = { path = "../zinc-project" }
 zinc-compiler = { path = "../zinc-compiler" }
 zinc-types = { path = "../zinc-types" }
 zinc-vm = { path = "../zinc-vm" }

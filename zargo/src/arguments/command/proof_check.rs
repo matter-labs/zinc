@@ -50,10 +50,10 @@ impl Command {
     ///
     #[allow(dead_code)]
     pub fn execute(self) -> anyhow::Result<()> {
-        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
+        let manifest = zinc_project::Manifest::try_from(&self.manifest_path)?;
 
         match manifest.project.r#type {
-            zinc_manifest::ProjectType::Contract if self.method.is_none() => {
+            zinc_project::ProjectType::Contract if self.method.is_none() => {
                 anyhow::bail!(Error::MethodMissing)
             }
             _ => {}

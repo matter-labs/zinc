@@ -22,10 +22,13 @@ impl<VM: IVirtualMachine> IExecutable<VM> for StorageStore {
             values.push(vm.pop()?.try_into_value()?);
         }
 
-        if let Some(condition) = vm.condition_top()?.to_bigint() {
-            if condition.is_positive() {
-                vm.storage_store(eth_address, index, LeafVariant::Array(values))?;
-            }
+        if vm
+            .condition_top()?
+            .to_bigint()
+            .expect(zinc_const::panic::DATA_CONVERSION)
+            .is_positive()
+        {
+            vm.storage_store(eth_address, index, LeafVariant::Array(values))?;
         }
 
         Ok(())

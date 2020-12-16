@@ -41,7 +41,7 @@ impl Directory {
     /// Initializes an application directory from string data.
     ///
     pub fn try_from_string(
-        directory: zinc_source::Directory,
+        directory: zinc_project::Directory,
         is_entry: bool,
     ) -> anyhow::Result<Self> {
         let path = PathBuf::from(directory.path);
@@ -52,7 +52,7 @@ impl Directory {
 
         for (name, module) in directory.modules.into_iter() {
             match module {
-                zinc_source::Source::File(file) => {
+                zinc_project::Source::File(file) => {
                     if is_entry && file.is_module_entry() {
                         return Err(Error::ModuleEntryInRoot)
                             .with_context(|| path.to_string_lossy().to_string());
@@ -72,7 +72,7 @@ impl Directory {
                         modules.insert(name, Source::File(file));
                     }
                 }
-                zinc_source::Source::Directory(directory) => {
+                zinc_project::Source::Directory(directory) => {
                     let directory = Self::try_from_string(directory, false)
                         .with_context(|| path.to_string_lossy().to_string())?;
 
@@ -183,7 +183,7 @@ impl Directory {
     ///
     pub fn compile(
         self,
-        manifest: zinc_manifest::Manifest,
+        manifest: zinc_project::Manifest,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
     ) -> anyhow::Result<Rc<RefCell<State>>> {
         let scope = EntryAnalyzer::define(Source::Directory(self), dependencies, false)

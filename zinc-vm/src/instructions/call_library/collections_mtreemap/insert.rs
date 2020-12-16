@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use num::bigint::ToBigInt;
 use num::BigInt;
 
+use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 
 use crate::core::contract::storage::leaf::LeafVariant;
@@ -86,7 +87,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Insert {
             .position(|(map_key, _value)| map_key.as_slice() == key.as_slice());
         let output = match position {
             Some(position) => data[position].1.to_owned(),
-            None => vec![Scalar::new_constant_bool(false); self.output_size],
+            None => vec![Scalar::new_constant_bool(false); self.output_size - 1],
         };
 
         for value in output.into_iter() {
@@ -100,17 +101,25 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Insert {
             Some(position) => data[position].1 = value,
             None => data.push((key, value)),
         }
-        storages
-            .get_mut(&eth_address)
-            .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
-            .store(
-                index,
-                LeafVariant::Map {
-                    data,
-                    key_size,
-                    value_size,
-                },
-            )?;
+
+        if state
+            .conditions_stack
+            .iter()
+            .map(|value| value.get_value().expect(zinc_const::panic::DATA_CONVERSION))
+            .all(|value| !value.is_zero())
+        {
+            storages
+                .get_mut(&eth_address)
+                .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS)
+                .store(
+                    index,
+                    LeafVariant::Map {
+                        data,
+                        key_size,
+                        value_size,
+                    },
+                )?;
+        }
 
         Ok(())
     }

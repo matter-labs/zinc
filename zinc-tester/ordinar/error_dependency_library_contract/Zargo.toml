@@ -1,0 +1,7 @@
+[project]
+name = 'dependency_library_contract'
+type = 'library'
+version = '0.1.0'
+
+[dependencies]
+inner = '0.1.0'

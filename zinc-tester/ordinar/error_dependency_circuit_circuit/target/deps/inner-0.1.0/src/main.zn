@@ -1,0 +1,5 @@
+//!
+//! The 'inner' circuit entry.
+//!
+
+fn main() {}

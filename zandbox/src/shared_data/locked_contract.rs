@@ -26,7 +26,7 @@ pub struct LockedContract {
     pub instance: String,
 
     /// The project JSON representation.
-    pub project: zinc_source::Project,
+    pub project: zinc_project::Project,
     /// The project bytecode.
     pub bytecode: Vec<u8>,
     /// The project verifying key.
@@ -37,7 +37,7 @@ pub struct LockedContract {
     /// The contract storage.
     pub storage: Storage,
     /// The contract wallet.
-    pub wallet: zksync::Wallet<zksync_eth_signer::PrivateKeySigner>,
+    pub wallet: zksync::Wallet<zksync_eth_signer::PrivateKeySigner, zksync::RpcProvider>,
 }
 
 impl LockedContract {
@@ -54,7 +54,7 @@ impl LockedContract {
 
         arguments: serde_json::Value,
 
-        project: zinc_source::Project,
+        project: zinc_project::Project,
         bytecode: Vec<u8>,
         verifying_key: Vec<u8>,
     ) -> Result<Self, Error> {
@@ -81,7 +81,7 @@ impl LockedContract {
         let storage = Storage::new(build.storage.as_slice()).into_build();
 
         let vm_runner = zinc_vm::ContractFacade::new(build.clone());
-        let output = tokio::task::spawn_blocking(move || {
+        let mut output = tokio::task::spawn_blocking(move || {
             vm_runner.run::<Bn256>(ContractInput::new(
                 input_value,
                 storage,
@@ -92,9 +92,19 @@ impl LockedContract {
         .await
         .expect(zinc_const::panic::ASYNC_RUNTIME)
         .map_err(Error::VirtualMachine)?;
-        let storage = Storage::from_build(output.result);
+        let address = output
+            .result
+            .into_flat_values()
+            .first()
+            .cloned()
+            .expect(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION);
+        let storage = output
+            .storages
+            .remove(&address)
+            .map(Storage::from_build)
+            .expect(zinc_const::panic::VALIDATED_DURING_RUNTIME_EXECUTION);
 
-        let provider = zksync::Provider::new(network);
+        let provider = zksync::RpcProvider::new(network);
         let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
             eth_address,
             zksync_eth_signer::PrivateKeySigner::new(eth_private_key),

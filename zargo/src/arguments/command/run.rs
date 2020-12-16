@@ -55,10 +55,10 @@ impl Command {
     /// Executes the command.
     ///
     pub async fn execute(self) -> anyhow::Result<()> {
-        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
+        let manifest = zinc_project::Manifest::try_from(&self.manifest_path)?;
 
         match manifest.project.r#type {
-            zinc_manifest::ProjectType::Contract if self.method.is_none() => {
+            zinc_project::ProjectType::Contract if self.method.is_none() => {
                 anyhow::bail!(Error::MethodMissing)
             }
             _ => {}
@@ -83,7 +83,6 @@ impl Command {
         ));
 
         TargetDependenciesDirectory::create(&manifest_path)?;
-        let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
 
         DataDirectory::create(&manifest_path)?;
         let data_directory_path = DataDirectory::path(&manifest_path);
@@ -93,7 +92,7 @@ impl Command {
             zinc_const::file_name::INPUT,
             zinc_const::extension::JSON,
         ));
-        let mut output_path = data_directory_path.clone();
+        let mut output_path = data_directory_path;
         output_path.push(format!(
             "{}.{}",
             zinc_const::file_name::OUTPUT,
@@ -108,8 +107,8 @@ impl Command {
                 .try_into_url()
                 .map_err(Error::NetworkUnimplemented)?;
             let http_client = HttpClient::new(url);
-            let mut downloader = Downloader::new(&http_client, target_deps_directory_path);
-            downloader.download_list(dependencies).await?;
+            let mut downloader = Downloader::new(&http_client, &manifest_path);
+            downloader.download_dependency_list(dependencies).await?;
         }
 
         if self.is_release {

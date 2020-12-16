@@ -5,7 +5,7 @@
 ///
 /// The generator function role.
 ///
-/// Describes special function traits, e.g. circuit entry or contract constructor.
+/// Describes special function traits, e.g. circuit entry or contract method.
 ///
 #[derive(Debug, Clone, Copy)]
 pub enum Role {
@@ -15,8 +15,8 @@ pub enum Role {
     CircuitEntry,
     /// A contract constructor.
     ContractConstuctor,
-    /// A contract entry.
-    ContractEntry,
+    /// A contract method entry.
+    ContractMethodEntry,
     /// A unit test.
     UnitTest,
 }

@@ -6,6 +6,8 @@ use std::convert::TryFrom;
 use std::fs;
 use std::path::PathBuf;
 
+use num::BigInt;
+use num::Zero;
 use structopt::StructOpt;
 
 use franklin_crypto::bellman::pairing::bn256::Bn256;
@@ -102,8 +104,9 @@ impl IExecutable for Command {
                             name: method_name.clone(),
                         },
                     )?;
-                    let method_arguments =
+                    let mut method_arguments =
                         zinc_types::Value::try_from_typed_json(method_arguments, method.input)?;
+                    method_arguments.insert_contract_instance(BigInt::zero());
 
                     let storage_values = match storage {
                         serde_json::Value::Array(array) => {

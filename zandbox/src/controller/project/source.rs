@@ -37,7 +37,7 @@ pub async fn handle(
         .map(|response| {
             zinc_types::SourceResponseBody::new(
                 response.zinc_version,
-                serde_json::from_value::<zinc_source::Project>(response.project)
+                serde_json::from_value::<zinc_project::Project>(response.project)
                     .expect(zinc_const::panic::DATA_CONVERSION),
             )
         })?;

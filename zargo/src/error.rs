@@ -13,19 +13,27 @@ pub enum Error {
     #[error("project name is missing and cannot be inferred from path {0:?}")]
     ProjectNameInvalid(std::ffi::OsString),
 
+    /// The project name is missing.
+    #[error("project name must be specified")]
+    ProjectNameMissing,
+
     /// The invalid project type error.
     #[error("project type must be either `circuit`, `contract`, or `library`, but found `{0}`")]
     ProjectTypeInvalid(String),
 
+    /// The project version is missing.
+    #[error("project version must be specified")]
+    ProjectVersionMissing,
+
     /// The project directory does not exist. Use `new` instead.
-    #[error("directory {0:?} does not exist. To create a new directory, use `zargo new`")]
+    #[error("directory {0:?} does not exist")]
     DirectoryDoesNotExist(std::ffi::OsString),
 
     /// The project directory already exists. Use `init` instead.
-    #[error("directory {0:?} already exists. To initialize it with a project, use `zargo init`")]
+    #[error("directory {0:?} already exists")]
     DirectoryAlreadyExists(std::ffi::OsString),
 
-    /// The project has been already initialized error.
+    /// The project has been already initialized.
     #[error("project at path {0:?} is already initialized")]
     ProjectAlreadyInitialized(std::ffi::OsString),
 
@@ -57,6 +65,14 @@ pub enum Error {
     #[error("input file data must contain section `{0}`")]
     MissingInputSection(String),
 
+    /// The project metadata request failure.
+    #[error("project metadata request: {0}")]
+    ProjectMetadata(String),
+
+    /// The project uploading request failure.
+    #[error("project uploading request: {0}")]
+    ProjectUploading(String),
+
     /// The smart contract uploading request failure.
     #[error("contract uploading request: {0}")]
     ContractUploading(String),
@@ -82,8 +98,8 @@ pub enum Error {
     ContractProjectDownloading(String),
 
     /// The dependency requires different version of the compiler.
-    #[error("dependency {0}: compiler version mismatch: expected {1}, found {2}")]
-    DependencyCompilerVersionMismatch(String, String, String),
+    #[error("project {0}: compiler version mismatch: expected {1}, found {2}")]
+    CompilerVersionMismatch(String, String, String),
 
     /// The command is temporarily unavailable.
     #[error("the proof verification is temporarily unavailable")]

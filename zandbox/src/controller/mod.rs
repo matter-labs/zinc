@@ -20,7 +20,12 @@ pub fn configure(config: &mut web::ServiceConfig) {
                         .service(
                             web::resource("")
                                 .route(web::head().to(head::handle))
-                                .route(web::post().to(contract::post::handle)),
+                                .route(web::post().to(contract::publish::handle)),
+                        )
+                        .service(
+                            web::resource("/curve")
+                                .route(web::head().to(head::handle))
+                                .route(web::get().to(contract::curve::handle)),
                         )
                         .service(
                             web::resource("/initialize")
@@ -33,27 +38,29 @@ pub fn configure(config: &mut web::ServiceConfig) {
                                 .route(web::put().to(contract::query::handle)),
                         )
                         .service(
-                            web::resource("/fee")
-                                .route(web::head().to(head::handle))
-                                .route(web::put().to(contract::fee::handle)),
-                        )
-                        .service(
                             web::resource("/call")
                                 .route(web::head().to(head::handle))
                                 .route(web::post().to(contract::call::handle)),
                         )
                         .service(
-                            web::resource("/curve")
+                            web::resource("/fee")
                                 .route(web::head().to(head::handle))
-                                .route(web::get().to(contract::curve::handle)),
+                                .route(web::put().to(contract::fee::handle)),
                         ),
                 )
                 .service(
-                    web::scope("/project").service(
-                        web::resource("/source")
-                            .route(web::head().to(head::handle))
-                            .route(web::get().to(project::source::handle)),
-                    ),
+                    web::scope("/project")
+                        .service(
+                            web::resource("")
+                                .route(web::head().to(head::handle))
+                                .route(web::get().to(project::metadata::handle))
+                                .route(web::post().to(project::upload::handle)),
+                        )
+                        .service(
+                            web::resource("/source")
+                                .route(web::head().to(head::handle))
+                                .route(web::get().to(project::source::handle)),
+                        ),
                 ),
         ),
     );

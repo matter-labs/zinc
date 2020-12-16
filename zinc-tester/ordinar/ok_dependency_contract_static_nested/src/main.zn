@@ -1,0 +1,56 @@
+//!
+//! The 'dependency_contract_static_nested' contract entry.
+//!
+
+contract Main {
+    pub fn add(a: u8, b: u8) -> u8 {
+        middleware::Middleware::add(a, b)
+    }
+
+    pub fn sub(a: u8, b: u8) -> u8 {
+        middleware::Middleware::sub(a, b)
+    }
+
+    pub fn mul(a: u8, b: u8) -> u8 {
+        middleware::Middleware::mul(a, b)
+    }
+
+    pub fn div(a: u8, b: u8) -> u8 {
+        middleware::Middleware::div(a, b)
+    }
+
+    pub fn rem(a: u8, b: u8) -> u8 {
+        middleware::Middleware::rem(a, b)
+    }
+}
+
+#[test]
+fn add() {
+    require(Main::add(2, 2) == 4);
+}
+
+#[test]
+fn sub() {
+    require(Main::sub(4, 2) == 2);
+}
+
+#[test]
+fn mul() {
+    require(Main::mul(2, 2) == 4);
+}
+
+#[test]
+fn div() {
+    require(Main::div(8, 2) == 4);
+}
+
+#[test]
+fn rem() {
+    require(Main::rem(10, 6) == 4);
+}
+
+#[test]
+#[should_panic]
+fn panic() {
+    require(false);
+}

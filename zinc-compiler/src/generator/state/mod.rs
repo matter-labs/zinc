@@ -28,7 +28,7 @@ use self::unit_test::UnitTest;
 #[derive(Debug)]
 pub struct State {
     /// The Zinc project manifest.
-    manifest: zinc_manifest::Manifest,
+    manifest: zinc_project::Manifest,
 
     /// The Zinc VM instructions written by the bytecode generator.
     instructions: Vec<Instruction>,
@@ -69,7 +69,7 @@ impl State {
     /// Creates a new bytecode instance with the placeholders for the entry `Call` and
     /// `Exit` instructions.
     ///
-    pub fn new(manifest: zinc_manifest::Manifest) -> Self {
+    pub fn new(manifest: zinc_project::Manifest) -> Self {
         Self {
             manifest,
 
@@ -135,7 +135,7 @@ impl State {
             zinc_types::FunctionMarker::new(identifier),
         ));
 
-        if let zinc_manifest::ProjectType::Contract = self.manifest.project.r#type {
+        if let zinc_project::ProjectType::Contract = self.manifest.project.r#type {
             self.define_variable(
                 Some(zinc_const::contract::TRANSACTION_VARIABLE_NAME.to_owned()),
                 zinc_const::contract::TRANSACTION_SIZE,

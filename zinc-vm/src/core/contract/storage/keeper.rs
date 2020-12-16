@@ -11,6 +11,11 @@ use crate::error::Error;
 ///
 pub trait IKeeper: Sync + Send {
     ///
+    /// Generates a new ETH private key.
+    ///
+    fn generate(&self) -> zksync_types::H256;
+
+    ///
     /// Fetches the contract storage instance by its ETH address.
     ///
     fn fetch(
@@ -27,6 +32,12 @@ pub trait IKeeper: Sync + Send {
 pub struct DummyKeeper {}
 
 impl IKeeper for DummyKeeper {
+    fn generate(&self) -> zksync_types::H256 {
+        let mut eth_private_key = zksync_types::H256::default();
+        eth_private_key.randomize();
+        eth_private_key
+    }
+
     fn fetch(
         &self,
         _eth_address: BigInt,

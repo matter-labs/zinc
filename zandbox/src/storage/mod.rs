@@ -44,7 +44,7 @@ impl Storage {
         database_fields: Vec<model::field::select::Output>,
         types: &[zinc_types::ContractFieldType],
         address: zksync_types::Address,
-        wallet: &zksync::Wallet<zksync_eth_signer::PrivateKeySigner>,
+        wallet: &zksync::Wallet<zksync_eth_signer::PrivateKeySigner, zksync::RpcProvider>,
     ) -> Result<Self, zksync::error::ClientError> {
         let mut fields = Vec::with_capacity(database_fields.len());
 

@@ -24,8 +24,8 @@ use self::branch::DataStackDelta;
 
 #[derive(Debug)]
 pub struct DataStack<E: IEngine> {
-    memory: Vec<Option<Cell<E>>>,
-    branches: Vec<DataStackBranch<E>>,
+    pub memory: Vec<Option<Cell<E>>>,
+    pub branches: Vec<DataStackBranch<E>>,
 }
 
 impl<E: IEngine> DataStack<E> {

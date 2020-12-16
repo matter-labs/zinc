@@ -14,6 +14,7 @@ use colored::Colorize;
 use num::bigint::Sign;
 use num::bigint::ToBigInt;
 use num::BigInt;
+use num::Zero;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
@@ -307,19 +308,38 @@ where
 
     fn storage_init(
         &mut self,
-        eth_address: Scalar<Self::E>,
-        values: Vec<Scalar<Self::E>>,
+        mut values: Vec<Scalar<Self::E>>,
         field_types: Vec<zinc_types::ContractFieldType>,
-    ) -> Result<(), Error> {
-        let eth_address = eth_address
+    ) -> Result<Scalar<Self::E>, Error> {
+        if self
+            .condition_top()?
             .to_bigint()
-            .expect(zinc_const::panic::DATA_CONVERSION);
+            .expect(zinc_const::panic::DATA_CONVERSION)
+            .is_zero()
+        {
+            return Ok(Scalar::new_constant_usize(
+                0,
+                zinc_types::ScalarType::eth_address(),
+            ));
+        }
+
+        let eth_private_key = self.keeper.generate();
+        let eth_address: zksync_types::Address =
+            zksync_types::tx::PackedEthSignature::address_from_private_key(&eth_private_key)
+                .expect(zinc_const::panic::DATA_CONVERSION);
+        let eth_address = BigInt::from_bytes_be(num::bigint::Sign::Plus, eth_address.as_bytes());
+
+        let eth_address_scalar = Scalar::new_constant_bigint(
+            eth_address.clone(),
+            zinc_types::ScalarType::eth_address(),
+        )?;
+        values.insert(0, eth_address_scalar.clone());
 
         let storage = Self::S::from_evaluation_stack(field_types, values)?;
         let storage_gadget = StorageGadget::new(self.counter.next(), storage)?;
         self.storages.insert(eth_address, storage_gadget);
 
-        Ok(())
+        Ok(eth_address_scalar)
     }
 
     fn storage_fetch(

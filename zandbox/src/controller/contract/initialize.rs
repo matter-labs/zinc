@@ -8,8 +8,10 @@ use actix_web::http::StatusCode;
 use actix_web::web;
 
 use zksync::operations::SyncTransactionHandle;
+use zksync::provider::Provider;
 use zksync_types::tx::ZkSyncTx;
 
+use crate::database::error::Error as DatabaseError;
 use crate::database::model;
 use crate::error::Error;
 use crate::response::Response;
@@ -152,7 +154,7 @@ pub async fn handle(
                     return Err(Error::ContractSourceCodeMismatch);
                 }
             }
-            Err(sqlx::Error::RowNotFound) => {
+            Err(DatabaseError::NotFound { .. }) => {
                 postgresql
                     .insert_project(
                         model::project::insert_one::Input::new(

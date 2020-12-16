@@ -15,7 +15,7 @@ use zinc_types::Instruction;
 /// Usually there are several entry points to an application. Each entry ends up with its own
 /// call graph, so we can remove the unused functions from the bytecode.
 ///
-pub struct Optimizer;
+pub struct Optimizer {}
 
 impl Optimizer {
     ///
@@ -40,10 +40,10 @@ impl Optimizer {
         mut instructions: &mut Vec<Instruction>,
         mut function_addresses: &mut HashMap<usize, usize>,
     ) {
-        let mut graph = Graph::new();
+        let mut graph = Graph::<(), ()>::new();
         let mut function_node_map = HashMap::with_capacity(function_addresses.len());
         for (function_id, _) in function_addresses.iter() {
-            let function_node = graph.add_node(1);
+            let function_node = graph.add_node(());
             function_node_map.insert(*function_id, function_node);
         }
 
@@ -63,7 +63,7 @@ impl Optimizer {
                             .copied()
                             .expect(zinc_const::panic::VALIDATED_DURING_TARGET_CODE_GENERATION);
 
-                        graph.update_edge(caller_node, callee_node, 1);
+                        graph.update_edge(caller_node, callee_node, ());
                     }
                     Some(Instruction::Return(_)) => break,
                     _ => {}

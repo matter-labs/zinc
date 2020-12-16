@@ -1,0 +1,36 @@
+//!
+//! The 'math_library' library entry.
+//!
+
+mod math;
+
+#[test]
+fn add() {
+    require(math::add(2, 2) == 4);
+}
+
+#[test]
+fn sub() {
+    require(math::sub(4, 2) == 2);
+}
+
+#[test]
+fn mul() {
+    require(math::mul(2, 2) == 4);
+}
+
+#[test]
+fn div() {
+    require(math::div(8, 2) == 4);
+}
+
+#[test]
+fn rem() {
+    require(math::rem(10, 6) == 4);
+}
+
+#[test]
+#[should_panic]
+fn panic() {
+    require(false);
+}

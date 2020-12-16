@@ -196,6 +196,11 @@ and instance name:
 zargo publish --network rinkeby --instance default
 ```
 
+> Since every follower of this tutorial has created a contract with name `constant_price`,
+> the contract may not be uploaded, because the name and version must be unique.
+> To fix this issue, you may change your contract name or version in the `Zargo.toml` manifest.
+> To see all uploaded projects, use the `zargo download --list` command.
+
 When the contract is successfully published, its ETH address and zkSync account ID
 will be returned. You will need the address to make some further calls.
 Let's assume it is `0x1234...1234`.

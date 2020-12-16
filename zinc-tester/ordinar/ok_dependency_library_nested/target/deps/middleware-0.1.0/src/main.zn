@@ -1,0 +1,7 @@
+//!
+//! The 'middleware' library entry.
+//!
+
+pub fn double(value: u8) -> u8 {
+    inner::double(value)
+}

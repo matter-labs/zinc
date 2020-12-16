@@ -154,7 +154,7 @@ impl Analyzer {
                 GeneratorFunctionRole::ContractConstuctor
             }
             ScopeType::Contract if statement.is_public && is_method && !is_in_dependency => {
-                GeneratorFunctionRole::ContractEntry
+                GeneratorFunctionRole::ContractMethodEntry
             }
             _ if statement.identifier.name.as_str()
                 == zinc_const::source::FUNCTION_MAIN_IDENTIFIER =>

@@ -29,7 +29,9 @@
 
 #### Source code
 
-- merged `zinc_build` and `zinc_zksync` into `zinc_types`
+- merged
+    - `zinc_build` and `zinc_zksync` into `zinc_types`,
+    - `zinc_source` and `zinc_manifest` into `zinc_project`
 
 ## Version 0.2.0 (2020-10-28)
 

@@ -9,12 +9,13 @@ use sqlx::postgres::PgPoolOptions;
 use sqlx::Postgres;
 use sqlx::Transaction;
 
+use crate::database::error::Error;
 use crate::database::model;
 
 ///
 /// The shortcut database result type.
 ///
-pub type Result<T> = std::result::Result<T, sqlx::Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 ///
 /// The database asynchronous client adapter.
@@ -42,7 +43,7 @@ impl Client {
     /// Initializes a transaction.
     ///
     pub async fn new_transaction(&self) -> Result<Transaction<'static, Postgres>> {
-        self.pool.begin().await
+        Ok(self.pool.begin().await?)
     }
 
     ///
@@ -84,9 +85,10 @@ impl Client {
             .bind(input.verifying_key);
 
         match transaction {
-            Some(transaction) => query.execute(transaction).await?,
-            None => query.execute(&self.pool).await?,
-        };
+            Some(transaction) => query.execute(transaction).await,
+            None => query.execute(&self.pool).await,
+        }
+        .map_err(|error| (error, "project"))?;
 
         Ok(())
     }
@@ -118,9 +120,10 @@ impl Client {
             .bind(input.version.to_string());
 
         Ok(match transaction {
-            Some(transaction) => query.fetch_one(transaction).await?,
-            None => query.fetch_one(&self.pool).await?,
-        })
+            Some(transaction) => query.fetch_one(transaction).await,
+            None => query.fetch_one(&self.pool).await,
+        }
+        .map_err(|error| (error, "project"))?)
     }
 
     ///
@@ -148,8 +151,34 @@ impl Client {
             .bind(input.version.to_string());
 
         Ok(match transaction {
-            Some(transaction) => query.fetch_one(transaction).await?,
-            None => query.fetch_one(&self.pool).await?,
+            Some(transaction) => query.fetch_one(transaction).await,
+            None => query.fetch_one(&self.pool).await,
+        }
+        .map_err(|error| (error, "project"))?)
+    }
+
+    ///
+    /// Selects projects metadata from the `projects` table.
+    ///
+    pub async fn select_projects_metadata(
+        &self,
+        transaction: Option<&mut Transaction<'static, Postgres>>,
+    ) -> Result<Vec<model::project::select_metadata::Output>> {
+        const STATEMENT: &str = r#"
+        SELECT
+            name,
+            version
+        FROM zandbox.projects
+        ORDER BY
+            name,
+            version;
+        "#;
+
+        let query = sqlx::query_as(STATEMENT);
+
+        Ok(match transaction {
+            Some(transaction) => query.fetch_all(transaction).await?,
+            None => query.fetch_all(&self.pool).await?,
         })
     }
 
@@ -193,9 +222,10 @@ impl Client {
             .bind(<[u8; zinc_const::size::ETH_PRIVATE_KEY]>::from(input.eth_private_key).to_vec());
 
         match transaction {
-            Some(transaction) => query.execute(transaction).await?,
-            None => query.execute(&self.pool).await?,
-        };
+            Some(transaction) => query.execute(transaction).await,
+            None => query.execute(&self.pool).await,
+        }
+        .map_err(|error| (error, "contract"))?;
 
         Ok(())
     }
@@ -227,9 +257,10 @@ impl Client {
             .bind(<[u8; zinc_const::size::ETH_ADDRESS]>::from(input.eth_address).to_vec());
 
         Ok(match transaction {
-            Some(transaction) => query.fetch_one(transaction).await?,
-            None => query.fetch_one(&self.pool).await?,
-        })
+            Some(transaction) => query.fetch_one(transaction).await,
+            None => query.fetch_one(&self.pool).await,
+        }
+        .map_err(|error| (error, "contract"))?)
     }
 
     ///

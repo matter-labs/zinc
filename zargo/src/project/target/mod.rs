@@ -44,10 +44,16 @@ impl Directory {
     ///
     /// Removes the directory with all its child directories.
     ///
-    pub fn remove(path: &PathBuf) -> anyhow::Result<()> {
+    pub fn remove(path: &PathBuf, is_release: bool) -> anyhow::Result<()> {
+        let target = if is_release {
+            zinc_const::directory::TARGET_RELEASE
+        } else {
+            zinc_const::directory::TARGET_DEBUG
+        };
+
         let mut path = path.to_owned();
-        if path.is_dir() && !path.ends_with(zinc_const::directory::TARGET) {
-            path.push(PathBuf::from(zinc_const::directory::TARGET));
+        if path.is_dir() && !path.ends_with(target) {
+            path.push(PathBuf::from(target));
         }
 
         if path.exists() {

@@ -1,0 +1,5 @@
+//!
+//! The 'dependency_circuit_circuit' circuit entry.
+//!
+
+fn main() {}

@@ -57,16 +57,30 @@ impl Directory {
                     .arg(&project_path)
                     .output()?;
                 if !output.status.success() {
-                    println!(
-                        "[INTEGRATION] {} {}\n{}",
-                        "INVALID".red(),
-                        project_path.to_string_lossy(),
-                        String::from_utf8_lossy(output.stderr.as_slice())
-                    );
-                    summary
-                        .lock()
-                        .expect(zinc_const::panic::SYNCHRONIZATION)
-                        .invalid += 1;
+                    if project_path.to_string_lossy().contains("error") {
+                        println!(
+                            "[INTEGRATION] {} ({}) {}",
+                            "PASSED".green(),
+                            "INVALID".green(),
+                            project_path.to_string_lossy(),
+                        );
+                        summary
+                            .lock()
+                            .expect(zinc_const::panic::SYNCHRONIZATION)
+                            .passed += 1;
+                    } else {
+                        println!(
+                            "[INTEGRATION] {} {}\n{}",
+                            "INVALID".red(),
+                            project_path.to_string_lossy(),
+                            String::from_utf8_lossy(output.stderr.as_slice())
+                        );
+                        summary
+                            .lock()
+                            .expect(zinc_const::panic::SYNCHRONIZATION)
+                            .invalid += 1;
+                    }
+
                     return Ok(());
                 }
 
@@ -100,6 +114,13 @@ impl Directory {
                     .lock()
                     .expect(zinc_const::panic::SYNCHRONIZATION)
                     .passed += 1;
+
+                process::Command::new(zinc_const::app_name::ZARGO)
+                    .arg("clean")
+                    .arg("--manifest-path")
+                    .arg(&project_path)
+                    .output()
+                    .with_context(|| project_path.to_string_lossy().to_string())?;
 
                 Ok(())
             })

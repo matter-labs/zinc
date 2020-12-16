@@ -263,7 +263,6 @@ contract Data {
 "#;
 
     let result = crate::semantic::tests::compile_entry(input);
-    dbg!(&result);
 
     assert!(result.is_ok());
 }

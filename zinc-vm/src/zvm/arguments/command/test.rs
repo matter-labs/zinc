@@ -11,6 +11,7 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 
 use zinc_vm::CircuitFacade;
 use zinc_vm::ContractFacade;
+use zinc_vm::LibraryFacade;
 
 use crate::arguments::command::IExecutable;
 use crate::error::Error;
@@ -44,7 +45,9 @@ impl IExecutable for Command {
             zinc_types::Application::Contract(contract) => {
                 ContractFacade::new(contract).test::<Bn256>()?
             }
-            zinc_types::Application::Library(_library) => return Err(Error::CannotRunLibrary),
+            zinc_types::Application::Library(library) => {
+                LibraryFacade::new(library).test::<Bn256>()?
+            }
         };
 
         Ok(status as i32)

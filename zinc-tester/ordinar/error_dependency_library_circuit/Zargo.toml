@@ -1,0 +1,7 @@
+[project]
+name = 'dependency_library_circuit'
+type = 'library'
+version = '0.1.0'
+
+[dependencies]
+inner = '0.1.0'

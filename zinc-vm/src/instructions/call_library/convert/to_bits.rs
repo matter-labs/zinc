@@ -49,12 +49,9 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for ToBits {
         bits.reverse();
 
         for bit in bits {
-            let scalar = Scalar::new_unchecked_variable(
-                bit.get_value_field::<E>(),
-                bit.get_variable()
-                    .expect("into_bits_le_fixed must allocate")
-                    .get_variable(),
-                zinc_types::ScalarType::Boolean,
+            let scalar = Scalar::new_constant_bool(
+                bit.get_value()
+                    .expect(zinc_const::panic::VALUE_ALWAYS_EXISTS),
             );
             state.evaluation_stack.push(scalar.into())?;
         }

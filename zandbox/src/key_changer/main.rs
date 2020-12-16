@@ -13,7 +13,7 @@ const NETWORK: zksync::Network = zksync::Network::Localhost;
 ///
 #[actix_rt::main]
 async fn main() {
-    let provider = zksync::Provider::new(NETWORK);
+    let provider = zksync::RpcProvider::new(NETWORK);
     let private_key: zksync_types::H256 = PRIVATE_KEY
         .parse()
         .expect(zinc_const::panic::DATA_CONVERSION);

@@ -71,6 +71,8 @@ impl Facade {
         let arguments_flat = input.arguments.into_flat_values();
         let output_type = if method.is_mutable {
             method.output.into_mutable_method_output()
+        } else if method.name.as_str() == zinc_const::contract::CONSTRUCTOR_IDENTIFIER {
+            zinc_types::Type::eth_address()
         } else {
             method.output
         };
@@ -81,7 +83,7 @@ impl Facade {
                 DatabaseStorage::<Bn256>::from_build(self.inner.storage.clone(), input.storage)?;
             let storage_gadget =
                 StorageGadget::<_, _, Sha256Hasher>::new(cs.namespace(|| "storage"), storage)?;
-            storages.insert(arguments_flat[0].to_owned(), storage_gadget);
+            storages.insert(arguments_flat[0].clone(), storage_gadget);
         }
 
         let mut state = ContractState::new(cs, storages, self.keeper, input.transaction);

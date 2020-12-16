@@ -8,6 +8,7 @@ use std::process;
 use std::process::ExitStatus;
 use std::process::Stdio;
 
+use anyhow::Context;
 use colored::Colorize;
 
 use crate::error::Error;
@@ -47,9 +48,12 @@ impl VirtualMachine {
             .arg(input_path)
             .arg("--output")
             .arg(output_path)
-            .spawn()?;
+            .spawn()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
-        let status = process.wait()?;
+        let status = process
+            .wait()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
         if !status.success() {
             anyhow::bail!(Error::SubprocessFailure(status));
@@ -90,9 +94,12 @@ impl VirtualMachine {
             .arg(output_path)
             .arg("--method")
             .arg(method)
-            .spawn()?;
+            .spawn()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
-        let status = process.wait()?;
+        let status = process
+            .wait()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
         if !status.success() {
             anyhow::bail!(Error::SubprocessFailure(status));
@@ -110,9 +117,12 @@ impl VirtualMachine {
             .arg("test")
             .arg("--binary")
             .arg(binary_path)
-            .spawn()?;
+            .spawn()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
-        let status = process.wait()?;
+        let status = process
+            .wait()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
         if !status.success() {
             anyhow::bail!(Error::SubprocessFailure(status));
@@ -137,11 +147,17 @@ impl VirtualMachine {
             verifying_key_path.to_string_lossy(),
         );
 
-        let mut proving_key = std::fs::File::create(proving_key_path)?;
-        proving_key.write_all(vec![0u8; 8192].as_slice())?;
+        let mut proving_key = std::fs::File::create(proving_key_path)
+            .with_context(|| proving_key_path.to_string_lossy().to_string())?;
+        proving_key
+            .write_all(vec![0u8; 8192].as_slice())
+            .with_context(|| proving_key_path.to_string_lossy().to_string())?;
 
-        let mut verifying_key = std::fs::File::create(verifying_key_path)?;
-        verifying_key.write_all(vec![0u8; 1024].as_slice())?;
+        let mut verifying_key = std::fs::File::create(verifying_key_path)
+            .with_context(|| verifying_key_path.to_string_lossy().to_string())?;
+        verifying_key
+            .write_all(vec![0u8; 1024].as_slice())
+            .with_context(|| verifying_key_path.to_string_lossy().to_string())?;
 
         Ok(())
     }
@@ -163,11 +179,17 @@ impl VirtualMachine {
             verifying_key_path.to_string_lossy(),
         );
 
-        let mut proving_key = std::fs::File::create(proving_key_path)?;
-        proving_key.write_all(vec![0u8; 8192].as_slice())?;
+        let mut proving_key = std::fs::File::create(proving_key_path)
+            .with_context(|| proving_key_path.to_string_lossy().to_string())?;
+        proving_key
+            .write_all(vec![0u8; 8192].as_slice())
+            .with_context(|| proving_key_path.to_string_lossy().to_string())?;
 
-        let mut verifying_key = std::fs::File::create(verifying_key_path)?;
-        verifying_key.write_all(vec![0u8; 1024].as_slice())?;
+        let mut verifying_key = std::fs::File::create(verifying_key_path)
+            .with_context(|| verifying_key_path.to_string_lossy().to_string())?;
+        verifying_key
+            .write_all(vec![0u8; 1024].as_slice())
+            .with_context(|| verifying_key_path.to_string_lossy().to_string())?;
 
         Ok(())
     }
@@ -200,9 +222,12 @@ impl VirtualMachine {
             .arg(input_path)
             .arg("--output")
             .arg(output_path)
-            .spawn()?;
+            .spawn()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
-        let status = child.wait()?;
+        let status = child
+            .wait()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
         if !status.success() {
             anyhow::bail!(Error::SubprocessFailure(status));
@@ -242,9 +267,12 @@ impl VirtualMachine {
             .arg(output_path)
             .arg("--method")
             .arg(method)
-            .spawn()?;
+            .spawn()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
-        let status = child.wait()?;
+        let status = child
+            .wait()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
         if !status.success() {
             anyhow::bail!(Error::SubprocessFailure(status));
@@ -278,9 +306,12 @@ impl VirtualMachine {
             .arg(verifying_key_path)
             .arg("--output")
             .arg(output_path)
-            .spawn()?;
+            .spawn()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
-        let status = child.wait()?;
+        let status = child
+            .wait()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
         if !status.success() {
             anyhow::bail!(Error::SubprocessFailure(status));
@@ -317,9 +348,12 @@ impl VirtualMachine {
             .arg(output_path)
             .arg("--method")
             .arg(method)
-            .spawn()?;
+            .spawn()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
-        let status = child.wait()?;
+        let status = child
+            .wait()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
         if !status.success() {
             anyhow::bail!(Error::SubprocessFailure(status));
@@ -359,7 +393,8 @@ impl VirtualMachine {
             .arg(input_path)
             .arg("--output")
             .arg(output_path)
-            .output()?;
+            .output()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
         eprintln!(
             "   {} `{}` with `{}`",
@@ -378,13 +413,16 @@ impl VirtualMachine {
             .arg("--output")
             .arg(output_path)
             .stdin(Stdio::piped())
-            .spawn()?;
+            .spawn()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
         verifier_child
             .stdin
             .as_mut()
             .ok_or(Error::StdinAcquisition)?
             .write_all(prover_output.stdout.as_slice())?;
-        let status = verifier_child.wait()?;
+        let status = verifier_child
+            .wait()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
         if !status.success() {
             anyhow::bail!(Error::SubprocessFailure(status));
@@ -427,7 +465,8 @@ impl VirtualMachine {
             .arg(output_path)
             .arg("--method")
             .arg(method)
-            .output()?;
+            .output()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
         eprintln!(
             "   {} `{}` with `{}`",
@@ -448,13 +487,16 @@ impl VirtualMachine {
             .arg("--method")
             .arg(method)
             .stdin(Stdio::piped())
-            .spawn()?;
+            .spawn()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
         verifier_child
             .stdin
             .as_mut()
             .ok_or(Error::StdinAcquisition)?
             .write_all(prover_output.stdout.as_slice())?;
-        let status = verifier_child.wait()?;
+        let status = verifier_child
+            .wait()
+            .with_context(|| zinc_const::app_name::VIRTUAL_MACHINE)?;
 
         if !status.success() {
             anyhow::bail!(Error::SubprocessFailure(status));

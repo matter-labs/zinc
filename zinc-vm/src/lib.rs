@@ -11,8 +11,9 @@ mod tests;
 pub(crate) mod constraint_systems;
 pub(crate) mod core;
 pub(crate) mod error;
-pub mod gadgets;
 pub(crate) mod instructions;
+
+pub mod gadgets;
 
 pub use franklin_crypto::bellman::pairing::bn256::Bn256;
 
@@ -23,6 +24,7 @@ pub use self::core::contract::input::Input as ContractInput;
 pub use self::core::contract::output::Output as ContractOutput;
 pub use self::core::contract::storage::keeper::IKeeper as IContractStorageKeeper;
 pub use self::core::facade::Facade;
+pub use self::core::library::facade::Facade as LibraryFacade;
 pub use self::error::Error;
 pub use self::error::VerificationError;
 

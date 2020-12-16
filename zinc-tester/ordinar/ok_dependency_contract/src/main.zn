@@ -1,0 +1,40 @@
+//!
+//! The 'dependency_contract' contract entry.
+//!
+
+contract Main {
+    pub x: u8;
+    pub y: u8;
+    pub z: u8;
+
+    pub fn new(x: u8, y: u8, z: u8) -> Self {
+        Self {
+            x: x,
+            y: y,
+            z: z,
+        }
+    }
+
+    pub fn sum_with_inner(self, _inner: inner::Inner) -> u8 {
+        self.sum() + _inner.sum()
+    }
+
+    fn sum(self) -> u8 {
+        self.x + self.y + self.z
+    }
+}
+
+#[test]
+fn default() {
+    require(
+        Main::new(2, 4, 6)
+            .sum_with_inner(inner::Inner::new(8, 10, 12))
+            == 42
+    );
+}
+
+#[test]
+#[should_panic]
+fn panic() {
+    require(false);
+}

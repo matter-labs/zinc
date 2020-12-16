@@ -1,0 +1,73 @@
+//!
+//! The 'dependency_contract_nested_reexport' contract entry.
+//!
+
+use middleware::inner;
+
+contract Main {
+    pub x: u8;
+    pub y: u8;
+    pub z: u8;
+
+    pub fn new(x: u8, y: u8, z: u8) -> Self {
+        Self {
+            x: x,
+            y: y,
+            z: z,
+        }
+    }
+
+    pub fn double(mut self) {
+        self.x *= 2;
+        self.y *= 2;
+        self.z *= 2;
+    }
+
+    pub fn sum_with_dependencies(
+        self,
+        _middleware: middleware::Middleware,
+        _inner: inner::Inner,
+    ) -> u8 {
+        self.sum() + _middleware.sum_with_inner(_inner)
+    }
+
+    pub fn sum(self) -> u8 {
+        self.x + self.y + self.z
+    }
+}
+
+#[test]
+fn default() {
+    let instance = Main::new(1, 3, 5);
+    let middleware_instance = middleware::Middleware::new(7, 9, 11);
+    let inner_instance = inner::Inner::new(1, 2, 3);
+
+    let result = instance.sum_with_dependencies(middleware_instance, inner_instance);
+
+    let expected = 42;
+
+    require(result == expected);
+}
+
+#[test]
+fn double() {
+    let mut instance = Main::new(1, 3, 5);
+    let mut middleware_instance = middleware::Middleware::new(7, 9, 11);
+    let mut inner_instance = inner::Inner::new(1, 2, 3);
+
+    instance.double();
+    middleware_instance.double();
+    inner_instance.double();
+
+    let result = instance.sum_with_dependencies(middleware_instance, inner_instance);
+
+    let expected = 42 * 2;
+
+    require(result == expected);
+}
+
+#[test]
+#[should_panic]
+fn panic() {
+    require(false);
+}

@@ -90,7 +90,7 @@ impl IBytecodeWritable for Statement {
         let output_size = self.output_type.size();
 
         match self.role {
-            Role::CircuitEntry | Role::ContractEntry => {
+            Role::CircuitEntry | Role::ContractMethodEntry | Role::ContractConstuctor => {
                 state.borrow_mut().start_entry_function(
                     self.location,
                     self.type_id,

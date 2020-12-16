@@ -8,6 +8,7 @@ use num::BigInt;
 use num_old::BigUint;
 use num_old::Zero;
 
+use zksync::provider::Provider;
 use zksync_types::tx::ZkSyncTx;
 use zksync_types::TxFeeTypes;
 

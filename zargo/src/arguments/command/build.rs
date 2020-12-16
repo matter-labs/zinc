@@ -50,14 +50,14 @@ impl Command {
     /// Executes the command.
     ///
     pub async fn execute(self) -> anyhow::Result<()> {
-        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
+        let manifest = zinc_project::Manifest::try_from(&self.manifest_path)?;
 
         let mut manifest_path = self.manifest_path.clone();
         if manifest_path.is_file() {
             manifest_path.pop();
         }
 
-        if let zinc_manifest::ProjectType::Contract = manifest.project.r#type {
+        if let zinc_project::ProjectType::Contract = manifest.project.r#type {
             if !PrivateKeyFile::exists_at(&manifest_path) {
                 PrivateKeyFile::default().write_to(&manifest_path)?;
             }
@@ -66,7 +66,6 @@ impl Command {
         TargetDirectory::create(&manifest_path, self.is_release)?;
 
         TargetDependenciesDirectory::create(&manifest_path)?;
-        let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
 
         DataDirectory::create(&manifest_path)?;
 
@@ -78,8 +77,8 @@ impl Command {
                 .try_into_url()
                 .map_err(Error::NetworkUnimplemented)?;
             let http_client = HttpClient::new(url);
-            let mut downloader = Downloader::new(&http_client, target_deps_directory_path);
-            downloader.download_list(dependencies).await?;
+            let mut downloader = Downloader::new(&http_client, &manifest_path);
+            downloader.download_dependency_list(dependencies).await?;
         }
 
         if self.is_release {

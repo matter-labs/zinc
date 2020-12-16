@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use num::bigint::ToBigInt;
 use num::BigInt;
 
+use franklin_crypto::bellman::pairing::ff::Field;
 use franklin_crypto::bellman::ConstraintSystem;
 
 use crate::core::execution_state::ExecutionState;
@@ -64,12 +65,19 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Transfer {
                 .expect(zinc_const::panic::DATA_CONVERSION),
         );
 
-        state.transfers.push(zinc_types::TransactionMsg::new(
-            sender,
-            recipient,
-            token_address,
-            amount,
-        ));
+        if state
+            .conditions_stack
+            .iter()
+            .map(|value| value.get_value().expect(zinc_const::panic::DATA_CONVERSION))
+            .all(|value| !value.is_zero())
+        {
+            state.transfers.push(zinc_types::TransactionMsg::new(
+                sender,
+                recipient,
+                token_address,
+                amount,
+            ));
+        }
 
         Ok(())
     }

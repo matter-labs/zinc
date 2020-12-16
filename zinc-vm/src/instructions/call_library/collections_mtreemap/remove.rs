@@ -88,7 +88,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Remove {
                 }
             })
             .unwrap_or((
-                vec![Scalar::new_constant_bool(false); self.output_size],
+                vec![Scalar::new_constant_bool(false); self.output_size - 1],
                 0,
                 false,
             ));

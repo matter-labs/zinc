@@ -77,10 +77,10 @@ impl Command {
             .map_err(Error::NetworkUnimplemented)?;
         let http_client = HttpClient::new(url);
 
-        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
+        let manifest = zinc_project::Manifest::try_from(&self.manifest_path)?;
 
         match manifest.project.r#type {
-            zinc_manifest::ProjectType::Contract => {}
+            zinc_project::ProjectType::Contract => {}
             _ => anyhow::bail!(Error::NotAContract),
         }
 
@@ -89,15 +89,15 @@ impl Command {
             manifest_path.pop();
         }
 
-        if let zinc_manifest::ProjectType::Contract = manifest.project.r#type {
+        if let zinc_project::ProjectType::Contract = manifest.project.r#type {
             if !PrivateKeyFile::exists_at(&manifest_path) {
                 PrivateKeyFile::default().write_to(&manifest_path)?;
             }
         }
 
         let source_directory_path = SourceDirectory::path(&manifest_path);
-        let source = zinc_source::Source::try_from_path(&source_directory_path, true)?;
-        let project = zinc_source::Project::new(manifest.clone(), source);
+        let source = zinc_project::Source::try_from_path(&source_directory_path, true)?;
+        let project = zinc_project::Project::new(manifest.clone(), source);
 
         DataDirectory::create(&manifest_path)?;
         let data_directory_path = DataDirectory::path(&manifest_path);
@@ -122,7 +122,6 @@ impl Command {
         ));
 
         TargetDependenciesDirectory::create(&manifest_path)?;
-        let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
 
         if let Some(dependencies) = manifest.dependencies {
             let network = zksync::Network::from_str(self.network.as_str())
@@ -132,8 +131,8 @@ impl Command {
                 .try_into_url()
                 .map_err(Error::NetworkUnimplemented)?;
             let http_client = HttpClient::new(url);
-            let mut downloader = Downloader::new(&http_client, target_deps_directory_path);
-            downloader.download_list(dependencies).await?;
+            let mut downloader = Downloader::new(&http_client, &manifest_path);
+            downloader.download_dependency_list(dependencies).await?;
         }
 
         Compiler::build_release(
@@ -219,7 +218,8 @@ impl Command {
         .await
         .expect(zinc_const::panic::DATA_CONVERSION);
         let wallet =
-            zksync::Wallet::new(zksync::Provider::new(network.into()), wallet_credentials).await?;
+            zksync::Wallet::new(zksync::RpcProvider::new(network.into()), wallet_credentials)
+                .await?;
 
         let initial_deposit_amount: BigUint =
             zinc_math::bigint_from_str(self.deposit_amount.as_str())?

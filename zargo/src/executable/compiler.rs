@@ -5,6 +5,7 @@
 use std::path::PathBuf;
 use std::process;
 
+use anyhow::Context;
 use colored::Colorize;
 
 use crate::error::Error;
@@ -39,7 +40,8 @@ impl Compiler {
             } else {
                 vec![]
             })
-            .spawn()?;
+            .spawn()
+            .with_context(|| zinc_const::app_name::COMPILER)?;
 
         let status = child.wait()?;
 
@@ -77,7 +79,8 @@ impl Compiler {
                 vec![]
             })
             .arg("--opt-dfe")
-            .spawn()?;
+            .spawn()
+            .with_context(|| zinc_const::app_name::COMPILER)?;
 
         let status = child.wait()?;
 

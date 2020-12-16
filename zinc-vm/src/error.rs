@@ -115,6 +115,12 @@ pub enum Error {
     #[error("invalid storage value")]
     InvalidStorageValue,
 
+    #[error("contract {address} does not exist")]
+    ContractNotFound { address: String },
+
+    #[error("contract {address} already exists")]
+    ContractAlreadyExists { address: String },
+
     #[error("contract method `{found}` does not exist")]
     MethodNotFound { found: String },
 }

@@ -261,10 +261,9 @@ where
 
     fn storage_init(
         &mut self,
-        _eth_address: Scalar<Self::E>,
         _values: Vec<Scalar<Self::E>>,
         _field_types: Vec<zinc_types::ContractFieldType>,
-    ) -> Result<(), Error> {
+    ) -> Result<Scalar<Self::E>, Error> {
         Err(Error::OnlyForContracts)
     }
 

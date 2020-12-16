@@ -5,6 +5,7 @@
 use num::BigInt;
 
 use crate::database::client::Client as DatabaseClient;
+use crate::database::error::Error as DatabaseError;
 use crate::database::model;
 use crate::storage::Storage;
 
@@ -28,6 +29,12 @@ impl Keeper {
 }
 
 impl zinc_vm::IContractStorageKeeper for Keeper {
+    fn generate(&self) -> zksync_types::H256 {
+        let mut eth_private_key = zksync_types::H256::default();
+        eth_private_key.randomize();
+        eth_private_key
+    }
+
     fn fetch(
         &self,
         eth_address: BigInt,
@@ -41,19 +48,43 @@ impl zinc_vm::IContractStorageKeeper for Keeper {
             .expect(zinc_const::panic::ASYNC_RUNTIME);
 
         let eth_address = zinc_types::address_from_slice(eth_address.to_bytes_be().1.as_slice());
-        let contract = runtime.block_on(
-            self.postgresql
-                .select_contract(model::contract::select_one::Input::new(eth_address), None),
-        )?;
+        let contract = runtime
+            .block_on(
+                self.postgresql
+                    .select_contract(model::contract::select_one::Input::new(eth_address), None),
+            )
+            .map_err(|error| match error {
+                DatabaseError::NotFound { .. } => zinc_vm::Error::ContractNotFound {
+                    address: serde_json::to_string(&eth_address)
+                        .expect(zinc_const::panic::DATA_CONVERSION),
+                },
+                DatabaseError::AlreadyExists { .. } => zinc_vm::Error::ContractAlreadyExists {
+                    address: serde_json::to_string(&eth_address)
+                        .expect(zinc_const::panic::DATA_CONVERSION),
+                },
+                DatabaseError::Other(other) => zinc_vm::Error::DatabaseError(other),
+            })?;
 
-        let fields = runtime.block_on(self.postgresql.select_fields(
-            model::field::select::Input::new(contract.account_id as zksync_types::AccountId),
-            None,
-        ))?;
+        let fields = runtime
+            .block_on(self.postgresql.select_fields(
+                model::field::select::Input::new(contract.account_id as zksync_types::AccountId),
+                None,
+            ))
+            .map_err(|error| match error {
+                DatabaseError::NotFound { .. } => zinc_vm::Error::ContractNotFound {
+                    address: serde_json::to_string(&eth_address)
+                        .expect(zinc_const::panic::DATA_CONVERSION),
+                },
+                DatabaseError::AlreadyExists { .. } => zinc_vm::Error::ContractAlreadyExists {
+                    address: serde_json::to_string(&eth_address)
+                        .expect(zinc_const::panic::DATA_CONVERSION),
+                },
+                DatabaseError::Other(other) => zinc_vm::Error::DatabaseError(other),
+            })?;
         let eth_private_key =
             zinc_types::private_key_from_slice(contract.eth_private_key.as_slice());
 
-        let provider = zksync::Provider::new(self.network);
+        let provider = zksync::RpcProvider::new(self.network);
         let wallet_credentials = runtime.block_on(zksync::WalletCredentials::from_eth_signer(
             eth_address,
             zksync_eth_signer::PrivateKeySigner::new(eth_private_key),

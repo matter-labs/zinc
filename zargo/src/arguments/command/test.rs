@@ -56,7 +56,7 @@ impl Command {
     /// Executes the command.
     ///
     pub async fn execute(self) -> anyhow::Result<()> {
-        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
+        let manifest = zinc_project::Manifest::try_from(&self.manifest_path)?;
 
         let mut manifest_path = self.manifest_path.clone();
         if manifest_path.is_file() {
@@ -73,7 +73,6 @@ impl Command {
         ));
 
         TargetDependenciesDirectory::create(&manifest_path)?;
-        let target_deps_directory_path = TargetDependenciesDirectory::path(&manifest_path);
 
         if let Some(dependencies) = manifest.dependencies {
             let network = zksync::Network::from_str(self.network.as_str())
@@ -83,8 +82,8 @@ impl Command {
                 .try_into_url()
                 .map_err(Error::NetworkUnimplemented)?;
             let http_client = HttpClient::new(url);
-            let mut downloader = Downloader::new(&http_client, target_deps_directory_path);
-            downloader.download_list(dependencies).await?;
+            let mut downloader = Downloader::new(&http_client, &manifest_path);
+            downloader.download_dependency_list(dependencies).await?;
         }
 
         Compiler::build_release(

@@ -8,3 +8,4 @@ pub mod initialize;
 pub mod publish;
 pub mod query;
 pub mod source;
+pub mod upload;

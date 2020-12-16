@@ -13,14 +13,14 @@ pub struct Body {
     /// The project compiler version.
     pub zinc_version: String,
     /// The project data.
-    pub project: zinc_source::Project,
+    pub project: zinc_project::Project,
 }
 
 impl Body {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(zinc_version: String, project: zinc_source::Project) -> Self {
+    pub fn new(zinc_version: String, project: zinc_project::Project) -> Self {
         Self {
             zinc_version,
             project,

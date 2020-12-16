@@ -61,10 +61,10 @@ impl Command {
             .map_err(Error::NetworkUnimplemented)?;
         let http_client = HttpClient::new(url);
 
-        let manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
+        let manifest = zinc_project::Manifest::try_from(&self.manifest_path)?;
 
         match manifest.project.r#type {
-            zinc_manifest::ProjectType::Contract => {}
+            zinc_project::ProjectType::Contract => {}
             _ => anyhow::bail!(Error::NotAContract),
         }
 
@@ -95,7 +95,7 @@ impl Command {
                     .ok_or_else(|| Error::MissingInputSection("arguments".to_owned()))?
                     .get(method)
                     .cloned()
-                    .ok_or_else(|| Error::MissingInputSection(method.to_owned()))?;
+                    .ok_or_else(|| Error::MissingInputSection(format!("arguments.{}", method)))?;
 
                 eprintln!(
                     "    {} method `{}` of the contract `{} v{}` with address {} on network `{}`",

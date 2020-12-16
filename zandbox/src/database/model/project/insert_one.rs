@@ -15,7 +15,7 @@ pub struct Input {
     /// The project compiler version.
     pub zinc_version: semver::Version,
     /// The project tree JSON representation.
-    pub project: zinc_source::Project,
+    pub project: zinc_project::Project,
     /// The project bytecode.
     pub bytecode: Vec<u8>,
     /// The project verifying key as a byte array.
@@ -31,7 +31,7 @@ impl Input {
         version: semver::Version,
 
         zinc_version: semver::Version,
-        project: zinc_source::Project,
+        project: zinc_project::Project,
         bytecode: Vec<u8>,
         verifying_key: Vec<u8>,
     ) -> Self {

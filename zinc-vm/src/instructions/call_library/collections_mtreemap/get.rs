@@ -77,7 +77,7 @@ impl<E: IEngine, S: IMerkleTree<E>> INativeCallable<E, S> for Get {
             .find(|(map_key, _value)| map_key == &input)
             .map(|(_key, value)| (value, true))
             .unwrap_or((
-                vec![Scalar::new_constant_bool(false); self.output_size],
+                vec![Scalar::new_constant_bool(false); self.output_size - 1],
                 false,
             ));
 

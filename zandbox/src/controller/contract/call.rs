@@ -12,6 +12,7 @@ use num_old::BigUint;
 use num_old::Zero;
 
 use zksync::operations::SyncTransactionHandle;
+use zksync::provider::Provider;
 use zksync_types::tx::ZkSyncTx;
 
 use zinc_vm::Bn256;
@@ -141,7 +142,7 @@ pub async fn handle(
         )
         .await?;
         let wallet =
-            zksync::Wallet::new(zksync::Provider::new(network), wallet_credentials).await?;
+            zksync::Wallet::new(zksync::RpcProvider::new(network), wallet_credentials).await?;
 
         let nonce = nonces.entry(transfer.sender).or_insert(
             wallet
@@ -185,7 +186,7 @@ pub async fn handle(
     }
 
     let provider = contract.wallet.provider;
-    let handles: Vec<SyncTransactionHandle> = provider
+    let handles: Vec<SyncTransactionHandle<zksync::RpcProvider>> = provider
         .send_txs_batch(
             transactions
                 .into_iter()

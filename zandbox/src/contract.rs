@@ -30,7 +30,7 @@ pub struct Contract {
     pub instance: String,
 
     /// The contract wallet.
-    pub wallet: zksync::Wallet<zksync_eth_signer::PrivateKeySigner>,
+    pub wallet: zksync::Wallet<zksync_eth_signer::PrivateKeySigner, zksync::RpcProvider>,
     /// The pre-built contract ready to be called.
     pub build: zinc_types::Contract,
     /// The contract storage.
@@ -63,7 +63,7 @@ impl Contract {
         let eth_private_key =
             zinc_types::private_key_from_slice(contract.eth_private_key.as_slice());
 
-        let provider = zksync::Provider::new(network);
+        let provider = zksync::RpcProvider::new(network);
         let wallet_credentials = zksync::WalletCredentials::from_eth_signer(
             eth_address,
             zksync_eth_signer::PrivateKeySigner::new(eth_private_key),

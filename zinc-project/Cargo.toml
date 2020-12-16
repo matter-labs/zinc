@@ -1,0 +1,18 @@
+[package]
+name = "zinc-project"
+version = "0.2.1"
+authors = [
+    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
+]
+edition = "2018"
+description = "The Zinc project representation"
+
+[dependencies]
+anyhow = "1.0"
+thiserror = "1.0"
+
+serde = "1.0"
+semver = { version = "0.11", features = [ "serde" ] }
+toml = "0.5"
+
+zinc-const = { path = "../zinc-const" }

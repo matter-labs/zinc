@@ -27,17 +27,16 @@ semver = "0.11"
 Inflector = "0.11"
 
 tokio = { version = "0.2", features = [ "macros" ] }
-reqwest = "0.10"
+reqwest = { version = "0.10", default-features = false, features = [ "rustls-tls" ] }
 async-recursion = "0.3"
 
-zksync = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
-zksync_types = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
-zksync_eth_signer = { git = "ssh://git@github.com/matter-labs/zksync-dev", branch = "dev" }
+zksync = { git = "ssh://git@github.com/matter-labs/zksync", branch = "master" }
+zksync_types = { git = "ssh://git@github.com/matter-labs/zksync", branch = "master" }
+zksync_eth_signer = { git = "ssh://git@github.com/matter-labs/zksync", branch = "master" }
 num_old = { package = "num", version = "0.2.1" }
 
 zinc-logger = { path = "../zinc-logger" }
-zinc-manifest = { path = "../zinc-manifest" }
 zinc-const = { path = "../zinc-const" }
 zinc-math = { path = "../zinc-math" }
-zinc-source = { path = "../zinc-source" }
+zinc-project = { path = "../zinc-project" }
 zinc-types = { path = "../zinc-types" }

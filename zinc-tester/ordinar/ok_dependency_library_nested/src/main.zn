@@ -1,0 +1,40 @@
+//!
+//! The 'dependency_library_nested' contract entry.
+//!
+
+contract Main {
+    pub x: u8;
+    pub y: u8;
+    pub z: u8;
+
+    pub fn new(x: u8, y: u8, z: u8) -> Self {
+        Self {
+            x: x,
+            y: y,
+            z: z,
+        }
+    }
+
+    pub fn sum_double(self) -> u8 {
+        middleware::double(self.sum())
+    }
+
+    fn sum(self) -> u8 {
+        self.x + self.y + self.z
+    }
+}
+
+#[test]
+fn default() {
+    require(
+        Main::new(5, 7, 9)
+            .sum_double()
+            == 42
+    );
+}
+
+#[test]
+#[should_panic]
+fn panic() {
+    require(false);
+}

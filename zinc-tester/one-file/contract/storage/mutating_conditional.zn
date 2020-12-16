@@ -1,0 +1,65 @@
+//! { "cases": [ {
+//!     "case": "false_false",
+//!     "method": "main",
+//!     "input": {
+//!         "gate_1": false,
+//!         "gate_2": false,
+//!         "value": "25"
+//!     },
+//!     "output": {
+//!         "result": "42",
+//!         "root_hash": "0x0"
+//!     }
+//! }, {
+//!     "case": "false_true",
+//!     "method": "main",
+//!     "input": {
+//!         "gate_1": false,
+//!         "gate_2": true,
+//!         "value": "25"
+//!     },
+//!     "output": {
+//!         "result": "42",
+//!         "root_hash": "0x0"
+//!     }
+//! }, {
+//!     "case": "true_false",
+//!     "method": "main",
+//!     "input": {
+//!         "gate_1": true,
+//!         "gate_2": false,
+//!         "value": "25"
+//!     },
+//!     "output": {
+//!         "result": "42",
+//!         "root_hash": "0x0"
+//!     }
+//! }, {
+//!     "case": "true_true",
+//!     "method": "main",
+//!     "input": {
+//!         "gate_1": true,
+//!         "gate_2": true,
+//!         "value": "25"
+//!     },
+//!     "output": {
+//!         "result": "25",
+//!         "root_hash": "0x0"
+//!     }
+//! } ] }
+
+contract Test {
+    data: u8;
+
+    pub fn main(mut self, gate_1: bool, gate_2: bool, value: u8) -> u8 {
+        self.data = 42;
+
+        if gate_1 {
+            if gate_2 {
+                self.data = value;
+            }
+        }
+
+        self.data
+    }
+}

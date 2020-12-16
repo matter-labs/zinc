@@ -13,7 +13,6 @@ members = [
     "zinc-lexical",
     "zinc-syntax",
     "zinc-math",
-    "zinc-manifest",
-    "zinc-source",
+    "zinc-project",
     "zinc-types",
 ]

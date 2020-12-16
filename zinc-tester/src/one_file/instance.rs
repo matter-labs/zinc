@@ -38,9 +38,9 @@ impl Instance {
         input: serde_json::Value,
     ) -> anyhow::Result<Self> {
         let project_type = if method.is_some() {
-            zinc_manifest::ProjectType::Contract
+            zinc_project::ProjectType::Contract
         } else {
-            zinc_manifest::ProjectType::Circuit
+            zinc_project::ProjectType::Circuit
         };
 
         let source = Source::test(code, path.clone(), HashMap::new())
@@ -54,7 +54,7 @@ impl Instance {
                     .map_err(|error| anyhow::anyhow!(error.format()))?;
 
                 let state =
-                    State::new(zinc_manifest::Manifest::new(name.as_str(), project_type)).wrap();
+                    State::new(zinc_project::Manifest::new(name.as_str(), project_type)).wrap();
                 zinc_compiler::Module::new(scope.borrow().get_intermediate())
                     .write_all(state.clone());
 

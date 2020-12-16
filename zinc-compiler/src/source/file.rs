@@ -43,7 +43,7 @@ impl File {
     ///
     /// `path` is used to set the virtual module path within a project.
     ///
-    pub fn try_from_string(file: zinc_source::File) -> anyhow::Result<Self> {
+    pub fn try_from_string(file: zinc_project::File) -> anyhow::Result<Self> {
         let path = PathBuf::from(file.path);
 
         let next_file_id = FILE_INDEX.next(&path, file.code);
@@ -148,7 +148,7 @@ impl File {
     ///
     pub fn compile(
         self,
-        manifest: zinc_manifest::Manifest,
+        manifest: zinc_project::Manifest,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
     ) -> anyhow::Result<Rc<RefCell<State>>> {
         let scope = EntryAnalyzer::define(Source::File(self), dependencies, false)

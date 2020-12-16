@@ -34,7 +34,7 @@ impl Command {
     /// Executes the command.
     ///
     pub fn execute(self) -> anyhow::Result<()> {
-        let _manifest = zinc_manifest::Manifest::try_from(&self.manifest_path)?;
+        let _manifest = zinc_project::Manifest::try_from(&self.manifest_path)?;
 
         let mut manifest_path = self.manifest_path;
         if manifest_path.is_file() {
@@ -42,7 +42,8 @@ impl Command {
         }
 
         DataDirectory::remove(&manifest_path)?;
-        TargetDirectory::remove(&manifest_path)?;
+        TargetDirectory::remove(&manifest_path, false)?;
+        TargetDirectory::remove(&manifest_path, true)?;
 
         Ok(())
     }

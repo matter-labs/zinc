@@ -38,3 +38,15 @@ This error will become more informative and accurate in the future versions.
 
 The most effective way of fixing it is making `zargo clean` and `zargo build`, since some
 elements of your `data/input.json` file got outdated.
+
+## Using a unique contract name
+
+```bash,no_run,noplaypen
+[ERROR zargo] project uploading request: HTTP error (503 Service Unavailable) Database:
+Database(PgDatabaseError { severity: Error, code: "23505", message: "duplicate key value
+violates unique constraint \"projects_pkey\"", detail: ... })
+```
+
+The contract name and version must be unique.
+To fix this issue, you may change your contract name or version in the `Zargo.toml` manifest.
+To see all uploaded projects, use the `zargo download --list` command.

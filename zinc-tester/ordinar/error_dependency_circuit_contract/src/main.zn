@@ -1,0 +1,5 @@
+//!
+//! The 'dependency_circuit_contract' circuit entry.
+//!
+
+fn main() {}

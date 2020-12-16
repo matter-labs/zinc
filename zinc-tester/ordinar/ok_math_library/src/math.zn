@@ -1,0 +1,23 @@
+//!
+//! The math functions.
+//!
+
+pub fn add(a: u8, b: u8) -> u8 {
+    a + b
+}
+
+pub fn sub(a: u8, b: u8) -> u8 {
+    a - b
+}
+
+pub fn mul(a: u8, b: u8) -> u8 {
+    a * b
+}
+
+pub fn div(a: u8, b: u8) -> u8 {
+    a / b
+}
+
+pub fn rem(a: u8, b: u8) -> u8 {
+    a % b
+}
