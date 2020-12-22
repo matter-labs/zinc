@@ -4617,7 +4617,7 @@ dependencies = [
 [[package]]
 name = "zksync"
 version = "0.2.0"
-source = "git+ssh://git@github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
+source = "git+https://github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
 dependencies = [
  "async-trait",
  "ethabi",
@@ -4641,7 +4641,7 @@ dependencies = [
 [[package]]
 name = "zksync_basic_types"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
+source = "git+https://github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
 dependencies = [
  "web3",
 ]
@@ -4649,7 +4649,7 @@ dependencies = [
 [[package]]
 name = "zksync_config"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
+source = "git+https://github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
 dependencies = [
  "log",
  "num 0.2.1",
@@ -4663,7 +4663,7 @@ dependencies = [
 [[package]]
 name = "zksync_crypto"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
+source = "git+https://github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
 dependencies = [
  "anyhow",
  "fnv",
@@ -4680,7 +4680,7 @@ dependencies = [
 [[package]]
 name = "zksync_eth_client"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
+source = "git+https://github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
 dependencies = [
  "anyhow",
  "ethabi",
@@ -4695,7 +4695,7 @@ dependencies = [
 [[package]]
 name = "zksync_eth_signer"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
+source = "git+https://github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
 dependencies = [
  "async-trait",
  "hex 0.4.2",
@@ -4713,7 +4713,7 @@ dependencies = [
 [[package]]
 name = "zksync_types"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
+source = "git+https://github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4732,7 +4732,7 @@ dependencies = [
 [[package]]
 name = "zksync_utils"
 version = "1.0.0"
-source = "git+ssh://git@github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
+source = "git+https://github.com/matter-labs/zksync?branch=master#5b936b1855a08033cca7f75d6f87fde106c6e8fd"
 dependencies = [
  "anyhow",
  "bigdecimal",

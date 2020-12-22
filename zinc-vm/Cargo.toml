@@ -29,8 +29,8 @@ num = "0.3"
 
 sqlx = { version = "0.4", default-features = false, features = [ "runtime-tokio-native-tls", "macros", "postgres", "json" ] }
 
-zksync = { git = "ssh://git@github.com/matter-labs/zksync", branch = "master" }
-zksync_types = { git = "ssh://git@github.com/matter-labs/zksync", branch = "master" }
+zksync = { git = "https://github.com/matter-labs/zksync", branch = "master" }
+zksync_types = { git = "https://github.com/matter-labs/zksync", branch = "master" }
 franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto.git", branch = "zinc" }
 
 zinc-const = { path = "../zinc-const" }

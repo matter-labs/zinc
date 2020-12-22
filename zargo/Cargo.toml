@@ -30,9 +30,9 @@ tokio = { version = "0.2", features = [ "macros" ] }
 reqwest = { version = "0.10", default-features = false, features = [ "rustls-tls" ] }
 async-recursion = "0.3"
 
-zksync = { git = "ssh://git@github.com/matter-labs/zksync", branch = "master" }
-zksync_types = { git = "ssh://git@github.com/matter-labs/zksync", branch = "master" }
-zksync_eth_signer = { git = "ssh://git@github.com/matter-labs/zksync", branch = "master" }
+zksync = { git = "https://github.com/matter-labs/zksync", branch = "master" }
+zksync_types = { git = "https://github.com/matter-labs/zksync", branch = "master" }
+zksync_eth_signer = { git = "https://github.com/matter-labs/zksync", branch = "master" }
 num_old = { package = "num", version = "0.2.1" }
 
 zinc-logger = { path = "../zinc-logger" }
