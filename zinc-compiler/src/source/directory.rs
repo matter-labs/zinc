@@ -12,7 +12,7 @@ use anyhow::Context;
 
 use crate::error::Error as CompilerError;
 use crate::generator::module::Module;
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 use crate::semantic::scope::Scope;
@@ -167,10 +167,11 @@ impl Directory {
     ///
     pub fn modularize(
         self,
+        project: zinc_project::ManifestProject,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
     ) -> anyhow::Result<Rc<RefCell<Scope>>> {
         Ok(
-            EntryAnalyzer::define(Source::Directory(self), dependencies, true)
+            EntryAnalyzer::define(Source::Directory(self), project, dependencies, true)
                 .map_err(CompilerError::Semantic)
                 .map_err(|error| error.format())
                 .map_err(Error::Compiling)?,
@@ -185,14 +186,19 @@ impl Directory {
         self,
         manifest: zinc_project::Manifest,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
-    ) -> anyhow::Result<Rc<RefCell<State>>> {
-        let scope = EntryAnalyzer::define(Source::Directory(self), dependencies, false)
-            .map_err(CompilerError::Semantic)
-            .map_err(|error| error.format())
-            .map_err(Error::Compiling)?;
+    ) -> anyhow::Result<Rc<RefCell<ZincVMState>>> {
+        let scope = EntryAnalyzer::define(
+            Source::Directory(self),
+            manifest.project.clone(),
+            dependencies,
+            false,
+        )
+        .map_err(CompilerError::Semantic)
+        .map_err(|error| error.format())
+        .map_err(Error::Compiling)?;
 
-        let state = State::new(manifest).wrap();
-        Module::new(scope.borrow().get_intermediate()).write_all(state.clone());
+        let state = ZincVMState::new(manifest).wrap();
+        Module::new(scope.borrow().get_intermediate()).write_to_zinc_vm(state.clone());
 
         Ok(state)
     }

@@ -7,7 +7,7 @@ use crate::generator::expression::operator::Operator;
 use zinc_lexical::Location;
 
 ///
-/// The bytecode generator expression element.
+/// The generator expression element.
 ///
 #[derive(Debug, Clone)]
 pub enum Element {

@@ -56,6 +56,7 @@ use self::variant::Variant;
 /// 6. Define item `B`, which was referenced by the item `C`.
 ///
 #[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
 pub enum Item {
     /// The variable item. See the inner element description.
     Variable(Variable),

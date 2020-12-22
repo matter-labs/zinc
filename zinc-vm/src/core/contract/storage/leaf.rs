@@ -1,5 +1,3 @@
-#![allow(clippy::type_complexity)]
-
 use num::BigInt;
 
 use crate::core::contract::storage::sha256;
@@ -14,6 +12,7 @@ pub struct Leaf<E: IEngine> {
 }
 
 #[derive(Debug, Clone)]
+#[allow(clippy::type_complexity)]
 pub enum LeafVariant<E: IEngine> {
     Array(Vec<Scalar<E>>),
     Map {

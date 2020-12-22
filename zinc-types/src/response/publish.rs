@@ -14,13 +14,18 @@ use zksync_types::Address;
 pub struct Body {
     /// The contract address.
     pub address: Address,
+    /// The fee required to execute the change-pubkey transaction.
+    pub change_pubkey_fee: num::BigUint,
 }
 
 impl Body {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(address: Address) -> Self {
-        Self { address }
+    pub fn new(address: Address, change_pubkey_fee: num::BigUint) -> Self {
+        Self {
+            address,
+            change_pubkey_fee,
+        }
     }
 }

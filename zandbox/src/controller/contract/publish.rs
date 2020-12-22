@@ -16,7 +16,7 @@ use crate::shared_data::locked_contract::LockedContract;
 /// 1. Parse the contract bytecode from the request.
 /// 2. Extract the contract constructor from its metadata.
 /// 3. Parse the construtor arguments.
-/// 4. Run the construtor on the Zinc VM which must return the contract storage.
+/// 4. Run the construtor on the VM which must return the contract storage.
 /// 5. Generate a private key for the contract.
 /// 6. Fill the implicit contract storage fields.
 /// 7. Write the contract and its storage to the in-memory cache.
@@ -47,24 +47,31 @@ pub async fn handle(
         body.project,
         body.bytecode,
         body.verifying_key,
+        query.change_pubkey_fee_token,
     )
     .await?;
 
     let eth_address = pending.eth_address;
 
+    log::info!(
+        "[{}] The contract has got address {} and waits for unlocking with fee {} {}",
+        log_id,
+        serde_json::to_string(&eth_address).expect(zinc_const::panic::DATA_CONVERSION),
+        zksync_utils::format_units(
+            &pending.change_pubkey_fee,
+            pending.change_pubkey_fee_token.decimals
+        ),
+        pending.change_pubkey_fee_token.symbol,
+    );
+
+    let change_pubkey_fee = pending.change_pubkey_fee.clone();
     app_data
         .write()
         .expect(zinc_const::panic::SYNCHRONIZATION)
         .locked_contracts
         .insert(eth_address, pending);
 
-    log::info!(
-        "[{}] The contract has got address {} and waits for unlocking",
-        log_id,
-        serde_json::to_string(&eth_address).expect(zinc_const::panic::DATA_CONVERSION),
-    );
-
-    let response = zinc_types::PublishResponseBody::new(eth_address);
+    let response = zinc_types::PublishResponseBody::new(eth_address, change_pubkey_fee);
 
     Ok(Response::new_with_data(StatusCode::CREATED, response))
 }

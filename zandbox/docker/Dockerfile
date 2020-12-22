@@ -1,13 +1,16 @@
 # syntax=docker/dockerfile:experimental
 #
-# from root directory:
+# From the root directory:
 # DOCKER_BUILDKIT=1 docker build -t matterlabs/zandbox -f zandbox/docker/Dockerfile .
-# docker push matterlabs/zandbox
-FROM rust:1.47 as builder
+# docker push matterlabs/zandbox:0.2.1
+
+FROM rust:1.48 as builder
+
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo install sccache
 WORKDIR /usr/src/zandbox
 COPY . .
+
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/root/.cache/sccache \
     RUSTC_WRAPPER=/usr/local/cargo/bin/sccache \

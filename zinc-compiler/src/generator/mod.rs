@@ -1,24 +1,24 @@
 //!
-//! The intermediate representation for Zinc VM bytecode generating.
+//! The intermediate representation for bytecode generating.
 //!
 
 pub mod expression;
 pub mod module;
-pub mod state;
 pub mod statement;
 pub mod r#type;
+pub mod zinc_vm;
 
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use self::state::State;
+use self::zinc_vm::State as ZincVMState;
 
 ///
-/// Implemented by items which are translated into the Zinc VM bytecode.
+/// Implemented by items which are translated into some target bytecode.
 ///
 pub trait IBytecodeWritable {
     ///
-    /// Writes the item to the bytecode generator state object.
+    /// Writes the item to the Zinc VM bytecode generator state object.
     ///
-    fn write_all(self, state: Rc<RefCell<State>>);
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>);
 }

@@ -14,6 +14,7 @@ use crate::semantic::scope::Scope;
 /// The definition state, which is either `declared` or `defined`.
 ///
 #[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
 pub enum State {
     /// Waiting to be defined during the second pass.
     Declared {

@@ -14,7 +14,7 @@ use std::rc::Rc;
 
 use anyhow::Context;
 
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::semantic::scope::Scope;
 use crate::source::error::Error;
 
@@ -88,11 +88,12 @@ impl Source {
     ///
     pub fn modularize(
         self,
+        project: zinc_project::ManifestProject,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
     ) -> anyhow::Result<Rc<RefCell<Scope>>> {
         match self {
-            Self::File(inner) => inner.modularize(dependencies),
-            Self::Directory(inner) => inner.modularize(dependencies),
+            Self::File(inner) => inner.modularize(project, dependencies),
+            Self::Directory(inner) => inner.modularize(project, dependencies),
         }
     }
 
@@ -104,7 +105,7 @@ impl Source {
         self,
         manifest: zinc_project::Manifest,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
-    ) -> anyhow::Result<Rc<RefCell<State>>> {
+    ) -> anyhow::Result<Rc<RefCell<ZincVMState>>> {
         match self {
             Self::File(inner) => inner.compile(manifest, dependencies),
             Self::Directory(inner) => inner.compile(manifest, dependencies),

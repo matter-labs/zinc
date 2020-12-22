@@ -12,7 +12,7 @@ use zinc_syntax::Identifier;
 use zinc_types::Instruction;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
 use crate::semantic::element::place::memory_type::MemoryType;
@@ -37,16 +37,16 @@ pub struct Place {
 }
 
 impl IBytecodeWritable for Place {
-    fn write_all(self, state: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         if !self.elements.is_empty() {
             IntegerConstant::new(BigInt::zero(), false, zinc_const::bitlength::FIELD)
-                .write_all(state.clone());
+                .write_to_zinc_vm(state.clone());
         }
 
         for element in self.elements.into_iter() {
             match element {
                 SemanticPlaceElement::IndexConstant { constant, access } => {
-                    IntegerConstant::from_semantic(&constant).write_all(state.clone());
+                    IntegerConstant::from_semantic(&constant).write_to_zinc_vm(state.clone());
                     state.borrow_mut().push_instruction(
                         Instruction::Cast(zinc_types::Cast::new(zinc_types::ScalarType::Field)),
                         Some(self.identifier.location),
@@ -56,7 +56,7 @@ impl IBytecodeWritable for Place {
                         false,
                         zinc_const::bitlength::FIELD,
                     )
-                    .write_all(state.clone());
+                    .write_to_zinc_vm(state.clone());
                     state.borrow_mut().push_instruction(
                         Instruction::Mul(zinc_types::Mul),
                         Some(self.identifier.location),
@@ -67,7 +67,7 @@ impl IBytecodeWritable for Place {
                     );
                 }
                 SemanticPlaceElement::IndexExpression { expression, access } => {
-                    expression.write_all(state.clone());
+                    expression.write_to_zinc_vm(state.clone());
                     state.borrow_mut().push_instruction(
                         Instruction::Cast(zinc_types::Cast::new(zinc_types::ScalarType::Field)),
                         Some(self.identifier.location),
@@ -77,7 +77,7 @@ impl IBytecodeWritable for Place {
                         false,
                         zinc_const::bitlength::FIELD,
                     )
-                    .write_all(state.clone());
+                    .write_to_zinc_vm(state.clone());
                     state.borrow_mut().push_instruction(
                         Instruction::Mul(zinc_types::Mul),
                         Some(self.identifier.location),
@@ -93,7 +93,7 @@ impl IBytecodeWritable for Place {
                         false,
                         zinc_const::bitlength::FIELD,
                     )
-                    .write_all(state.clone());
+                    .write_to_zinc_vm(state.clone());
                     state.borrow_mut().push_instruction(
                         Instruction::Add(zinc_types::Add),
                         Some(self.identifier.location),
@@ -105,7 +105,7 @@ impl IBytecodeWritable for Place {
                         false,
                         zinc_const::bitlength::FIELD,
                     )
-                    .write_all(state.clone());
+                    .write_to_zinc_vm(state.clone());
                     state.borrow_mut().push_instruction(
                         Instruction::Add(zinc_types::Add),
                         Some(self.identifier.location),
@@ -117,7 +117,7 @@ impl IBytecodeWritable for Place {
                         false,
                         zinc_const::bitlength::FIELD,
                     )
-                    .write_all(state.clone());
+                    .write_to_zinc_vm(state.clone());
                     state.borrow_mut().push_instruction(
                         Instruction::Add(zinc_types::Add),
                         Some(self.identifier.location),

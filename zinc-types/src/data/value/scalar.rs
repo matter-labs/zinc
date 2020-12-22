@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM template scalar value.
+//! The template scalar value.
 //!
 
 use num::BigInt;
@@ -11,7 +11,7 @@ use serde::Serialize;
 use crate::data::r#type::scalar::integer::Type as IntegerType;
 
 ///
-/// The Zinc VM template scalar value.
+/// The template scalar value.
 ///
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Value {

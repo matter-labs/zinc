@@ -21,7 +21,7 @@ use crate::generator::expression::operand::constant::integer::Integer as Integer
 use crate::generator::expression::operand::place::Place;
 use crate::generator::r#type::contract_field::ContractField;
 use crate::generator::r#type::Type;
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
@@ -32,7 +32,7 @@ use self::operand::Operand;
 use self::operator::Operator;
 
 ///
-/// The expression translated to the target Zinc VM bytecode.
+/// The generator expression.
 ///
 #[derive(Debug, Default, Clone)]
 pub struct Expression {
@@ -85,7 +85,7 @@ impl Expression {
     /// Translates an assignment operator into the bytecode.
     ///
     fn assignment(
-        state: Rc<RefCell<State>>,
+        state: Rc<RefCell<ZincVMState>>,
         mut place: Place,
         expression: Self,
         location: Location,
@@ -101,10 +101,10 @@ impl Expression {
                     .expect(zinc_const::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
 
                 if is_indexed {
-                    place.write_all(state.clone());
+                    place.write_to_zinc_vm(state.clone());
                 }
 
-                expression.write_all(state.clone());
+                expression.write_to_zinc_vm(state.clone());
 
                 state.borrow_mut().push_instruction(
                     if is_indexed {
@@ -151,7 +151,7 @@ impl Expression {
                         false,
                         zinc_const::bitlength::FIELD,
                     )
-                    .write_all(state.clone());
+                    .write_to_zinc_vm(state.clone());
                     state.borrow_mut().push_instruction(
                         Instruction::StorageLoad(zinc_types::StorageLoad::new(*element_size)),
                         Some(place.identifier.location),
@@ -172,10 +172,10 @@ impl Expression {
                 );
 
                 if is_indexed {
-                    place.write_all(state.clone());
+                    place.write_to_zinc_vm(state.clone());
                 }
 
-                expression.write_all(state.clone());
+                expression.write_to_zinc_vm(state.clone());
 
                 state.borrow_mut().push_instruction(
                     if is_indexed {
@@ -207,7 +207,7 @@ impl Expression {
                     false,
                     zinc_const::bitlength::FIELD,
                 )
-                .write_all(state.clone());
+                .write_to_zinc_vm(state.clone());
                 state.borrow_mut().push_instruction(
                     Instruction::StorageStore(zinc_types::StorageStore::new(total_size)),
                     Some(location),
@@ -220,7 +220,7 @@ impl Expression {
     /// Translates a shortcut assignment operator into the bytecode.
     ///
     fn assignment_with_operation(
-        state: Rc<RefCell<State>>,
+        state: Rc<RefCell<ZincVMState>>,
         mut place: Place,
         expression: Self,
         operation: Instruction,
@@ -237,7 +237,7 @@ impl Expression {
                 let total_size = place.total_size;
 
                 if is_indexed {
-                    place.write_all(state.clone());
+                    place.write_to_zinc_vm(state.clone());
                     state
                         .borrow_mut()
                         .push_instruction(Instruction::Copy(zinc_types::Copy), Some(location));
@@ -256,7 +256,7 @@ impl Expression {
                     Some(location),
                 );
 
-                expression.write_all(state.clone());
+                expression.write_to_zinc_vm(state.clone());
 
                 state
                     .borrow_mut()
@@ -307,7 +307,7 @@ impl Expression {
                         false,
                         zinc_const::bitlength::FIELD,
                     )
-                    .write_all(state.clone());
+                    .write_to_zinc_vm(state.clone());
                     state.borrow_mut().push_instruction(
                         Instruction::StorageLoad(zinc_types::StorageLoad::new(*element_size)),
                         Some(place.identifier.location),
@@ -328,7 +328,7 @@ impl Expression {
                 );
 
                 if is_indexed {
-                    place.write_all(state.clone());
+                    place.write_to_zinc_vm(state.clone());
                     state
                         .borrow_mut()
                         .push_instruction(Instruction::Copy(zinc_types::Copy), Some(location));
@@ -347,7 +347,7 @@ impl Expression {
                     Some(location),
                 );
 
-                expression.write_all(state.clone());
+                expression.write_to_zinc_vm(state.clone());
 
                 state
                     .borrow_mut()
@@ -383,7 +383,7 @@ impl Expression {
                     false,
                     zinc_const::bitlength::FIELD,
                 )
-                .write_all(state.clone());
+                .write_to_zinc_vm(state.clone());
                 state.borrow_mut().push_instruction(
                     Instruction::StorageStore(zinc_types::StorageStore::new(total_size)),
                     Some(location),
@@ -395,7 +395,7 @@ impl Expression {
     ///
     /// Translates a binary operator into the bytecode.
     ///
-    fn binary(state: Rc<RefCell<State>>, instruction: Instruction, location: Location) {
+    fn binary(state: Rc<RefCell<ZincVMState>>, instruction: Instruction, location: Location) {
         state
             .borrow_mut()
             .push_instruction(instruction, Some(location));
@@ -404,7 +404,7 @@ impl Expression {
     ///
     /// Translates an unary operator into the bytecode.
     ///
-    fn unary(state: Rc<RefCell<State>>, instruction: Instruction, location: Location) {
+    fn unary(state: Rc<RefCell<ZincVMState>>, instruction: Instruction, location: Location) {
         state
             .borrow_mut()
             .push_instruction(instruction, Some(location));
@@ -413,7 +413,12 @@ impl Expression {
     ///
     /// Translates an ordinar function call into the bytecode.
     ///
-    fn call(state: Rc<RefCell<State>>, type_id: usize, input_size: usize, location: Location) {
+    fn call(
+        state: Rc<RefCell<ZincVMState>>,
+        type_id: usize,
+        input_size: usize,
+        location: Location,
+    ) {
         state.borrow_mut().push_instruction(
             Instruction::Call(zinc_types::Call::new(type_id, input_size)),
             Some(location),
@@ -424,7 +429,7 @@ impl Expression {
     /// Translates a `dbg!(...)` function call into the bytecode.
     ///
     fn call_debug(
-        state: Rc<RefCell<State>>,
+        state: Rc<RefCell<ZincVMState>>,
         format: String,
         input_types: Vec<zinc_types::Type>,
         location: Location,
@@ -438,7 +443,7 @@ impl Expression {
     ///
     /// Translates an `require(...)` function call into the bytecode.
     ///
-    fn call_require(state: Rc<RefCell<State>>, message: Option<String>, location: Location) {
+    fn call_require(state: Rc<RefCell<ZincVMState>>, message: Option<String>, location: Location) {
         state.borrow_mut().push_instruction(
             Instruction::Require(zinc_types::Require::new(message)),
             Some(location),
@@ -449,7 +454,7 @@ impl Expression {
     /// Translates an `<Contract>::fetch(...)` function call into the bytecode.
     ///
     fn call_contract_fetch(
-        state: Rc<RefCell<State>>,
+        state: Rc<RefCell<ZincVMState>>,
         fields: Vec<ContractField>,
         location: Location,
     ) {
@@ -465,7 +470,7 @@ impl Expression {
     /// Translates a standard library function call into the bytecode.
     ///
     fn call_standard_library(
-        state: Rc<RefCell<State>>,
+        state: Rc<RefCell<ZincVMState>>,
         identifier: LibraryFunctionIdentifier,
         input_size: usize,
         output_size: usize,
@@ -483,11 +488,11 @@ impl Expression {
 }
 
 impl IBytecodeWritable for Expression {
-    fn write_all(self, state: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         for element in self.elements.into_iter() {
             match element {
                 Element::Operand(operand) => {
-                    operand.write_all(state.clone());
+                    operand.write_to_zinc_vm(state.clone());
                 }
                 Element::Operator { location, operator } => match operator {
                     Operator::None => {}
@@ -750,9 +755,9 @@ impl IBytecodeWritable for Expression {
                                 false,
                                 zinc_const::bitlength::FIELD,
                             )
-                            .write_all(state.clone());
+                            .write_to_zinc_vm(state.clone());
                         } else {
-                            expression.write_all(state.clone());
+                            expression.write_to_zinc_vm(state.clone());
                             state.borrow_mut().push_instruction(
                                 Instruction::Cast(zinc_types::Cast::new(
                                     zinc_types::ScalarType::Field,
@@ -765,7 +770,7 @@ impl IBytecodeWritable for Expression {
                                     false,
                                     zinc_const::bitlength::FIELD,
                                 )
-                                .write_all(state.clone());
+                                .write_to_zinc_vm(state.clone());
                                 state.borrow_mut().push_instruction(
                                     Instruction::Mul(zinc_types::Mul),
                                     Some(location),
@@ -786,7 +791,7 @@ impl IBytecodeWritable for Expression {
                             false,
                             zinc_const::bitlength::FIELD,
                         )
-                        .write_all(state.clone());
+                        .write_to_zinc_vm(state.clone());
                         state.borrow_mut().push_instruction(
                             Instruction::Slice(zinc_types::Slice::new(
                                 access.element_size,

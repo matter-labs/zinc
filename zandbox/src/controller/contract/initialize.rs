@@ -7,9 +7,7 @@ use std::time::Duration;
 use actix_web::http::StatusCode;
 use actix_web::web;
 
-use zksync::operations::SyncTransactionHandle;
 use zksync::provider::Provider;
-use zksync_types::tx::ZkSyncTx;
 
 use crate::database::error::Error as DatabaseError;
 use crate::database::model;
@@ -58,7 +56,7 @@ pub async fn handle(
             )
         })?;
 
-    if let ZkSyncTx::Transfer(ref transfer) = body.transaction.tx {
+    if let zksync_types::ZkSyncTx::Transfer(ref transfer) = body.transaction.tx {
         let token = contract
             .wallet
             .tokens
@@ -77,7 +75,7 @@ pub async fn handle(
     }
 
     let fee_token_id = match body.transaction.tx {
-        ZkSyncTx::Transfer(ref transfer) => transfer.token,
+        zksync_types::ZkSyncTx::Transfer(ref transfer) => transfer.token,
         _ => panic!(zinc_const::panic::VALUE_ALWAYS_EXISTS),
     };
 
@@ -86,15 +84,20 @@ pub async fn handle(
         .provider
         .send_tx(
             body.transaction.tx,
-            Some(body.transaction.ethereum_signature.signature),
+            body.transaction
+                .ethereum_signature
+                .map(|signature| signature.signature),
         )
         .await
         .map(|tx_hash| {
-            let mut handle = SyncTransactionHandle::new(tx_hash, contract.wallet.provider.clone())
-                .commit_timeout(Duration::from_secs(10));
+            let mut handle = zksync::operations::SyncTransactionHandle::new(
+                tx_hash,
+                contract.wallet.provider.clone(),
+            )
+            .commit_timeout(Duration::from_secs(10));
             handle
                 .polling_interval(Duration::from_millis(200))
-                .expect("Validated inside the method");
+                .expect(zinc_const::panic::DATA_CONVERSION);
             handle
         })?
         .wait_for_commit()
@@ -115,6 +118,9 @@ pub async fn handle(
     let mut change_pubkey = contract.wallet.start_change_pubkey();
     if let zksync::Network::Rinkeby = network {
         change_pubkey = change_pubkey.fee(0u64);
+    } else {
+        change_pubkey =
+            change_pubkey.fee(zinc_types::num_compat_backward(contract.change_pubkey_fee));
     }
     let mut handle = change_pubkey
         .fee_token(fee_token_id)?
@@ -123,7 +129,7 @@ pub async fn handle(
         .commit_timeout(Duration::from_secs(10));
     handle
         .polling_interval(Duration::from_millis(200))
-        .expect("Validated inside the method");
+        .expect(zinc_const::panic::DATA_CONVERSION);
     let tx_info = handle.wait_for_commit().await?;
     if !tx_info.success.unwrap_or_default() {
         return Err(Error::ChangePubkey(

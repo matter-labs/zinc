@@ -12,7 +12,7 @@ use zinc_types::Instruction;
 
 use crate::generator::expression::operand::block::Expression;
 use crate::generator::r#type::Type;
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::analyzer::attribute::Attribute;
 use crate::semantic::binding::Binding;
@@ -21,7 +21,7 @@ use crate::semantic::element::r#type::Type as SemanticType;
 use self::role::Role;
 
 ///
-/// The Zinc VM function statement.
+/// The generator `fn` statement.
 ///
 #[derive(Debug, Clone)]
 pub struct Statement {
@@ -86,11 +86,11 @@ impl Statement {
 }
 
 impl IBytecodeWritable for Statement {
-    fn write_all(self, state: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         let output_size = self.output_type.size();
 
         match self.role {
-            Role::CircuitEntry | Role::ContractMethodEntry | Role::ContractConstuctor => {
+            Role::CircuitEntry | Role::ContractMethodEntry | Role::ContractConstuctor { .. } => {
                 state.borrow_mut().start_entry_function(
                     self.location,
                     self.type_id,
@@ -124,10 +124,10 @@ impl IBytecodeWritable for Statement {
             state.borrow_mut().define_variable(Some(name), size);
         }
 
-        self.body.write_all(state.clone());
+        self.body.write_to_zinc_vm(state.clone());
 
         match self.role {
-            Role::ContractConstuctor => {
+            Role::ContractConstuctor { project } => {
                 let field_types: Vec<zinc_types::ContractFieldType> = match self.output_type {
                     Type::Contract { fields } => {
                         fields.into_iter().map(|field| field.into()).collect()
@@ -136,7 +136,7 @@ impl IBytecodeWritable for Statement {
                 };
 
                 state.borrow_mut().push_instruction(
-                    Instruction::StorageInit(zinc_types::StorageInit::new(field_types)),
+                    Instruction::StorageInit(zinc_types::StorageInit::new(project, field_types)),
                     Some(self.location),
                 );
                 state.borrow_mut().push_instruction(

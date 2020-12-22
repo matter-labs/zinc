@@ -108,7 +108,7 @@ contract Stableswap {
         );
         let withdraw_amount = old_y - new_y;
 
-        zksync::transfer(
+        self.transfer(
             withdraw_address,
             withdraw_token_address,
             withdraw_amount,

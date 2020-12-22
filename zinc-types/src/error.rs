@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM template value error.
+//! The template value error.
 //!
 
 use thiserror::Error;

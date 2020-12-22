@@ -18,6 +18,7 @@ use num::Zero;
 
 use franklin_crypto::bellman::ConstraintSystem;
 
+use crate::core::contract::output::initializer::Initializer;
 use crate::core::contract::storage::keeper::IKeeper;
 use crate::core::contract::storage::leaf::LeafVariant;
 use crate::core::counter::NamespaceCounter;
@@ -84,7 +85,6 @@ where
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub fn run<CB, F>(
         &mut self,
         contract: zinc_types::Contract,
@@ -308,6 +308,7 @@ where
 
     fn storage_init(
         &mut self,
+        project: zinc_project::ManifestProject,
         mut values: Vec<Scalar<Self::E>>,
         field_types: Vec<zinc_types::ContractFieldType>,
     ) -> Result<Scalar<Self::E>, Error> {
@@ -327,17 +328,26 @@ where
         let eth_address: zksync_types::Address =
             zksync_types::tx::PackedEthSignature::address_from_private_key(&eth_private_key)
                 .expect(zinc_const::panic::DATA_CONVERSION);
-        let eth_address = BigInt::from_bytes_be(num::bigint::Sign::Plus, eth_address.as_bytes());
+        let eth_address_bigint =
+            BigInt::from_bytes_be(num::bigint::Sign::Plus, eth_address.as_bytes());
 
         let eth_address_scalar = Scalar::new_constant_bigint(
-            eth_address.clone(),
+            eth_address_bigint.clone(),
             zinc_types::ScalarType::eth_address(),
         )?;
         values.insert(0, eth_address_scalar.clone());
 
-        let storage = Self::S::from_evaluation_stack(field_types, values)?;
+        let storage = Self::S::from_evaluation_stack(field_types.clone(), values)?;
         let storage_gadget = StorageGadget::new(self.counter.next(), storage)?;
-        self.storages.insert(eth_address, storage_gadget);
+        self.storages.insert(eth_address_bigint, storage_gadget);
+
+        self.execution_state.initializers.push(Initializer::new(
+            project.name,
+            project.version,
+            eth_private_key,
+            eth_address,
+            field_types,
+        ));
 
         Ok(eth_address_scalar)
     }
@@ -350,6 +360,12 @@ where
         let eth_address = eth_address
             .to_bigint()
             .expect(zinc_const::panic::DATA_CONVERSION);
+
+        if self.storages.contains_key(&eth_address) {
+            return Err(Error::ContractAlreadyFetched {
+                address: eth_address.to_str_radix(zinc_const::base::HEXADECIMAL),
+            });
+        }
 
         let storage = self
             .keeper

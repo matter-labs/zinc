@@ -9,7 +9,7 @@ description = "The Zinc package manager"
 
 [[bin]]
 name = "zargo"
-path = "src/main.rs"
+path = "src/zargo/mod.rs"
 
 [dependencies]
 log = "0.4"

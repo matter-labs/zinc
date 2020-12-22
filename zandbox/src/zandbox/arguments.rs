@@ -17,6 +17,10 @@ pub struct Arguments {
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
+    /// Suppresses output, if set.
+    #[structopt(short = "q", long = "quiet")]
+    pub quiet: bool,
+
     /// The HTTP server port.
     #[structopt(short = "p", long = "http-port")]
     pub http_port: Option<u16>,

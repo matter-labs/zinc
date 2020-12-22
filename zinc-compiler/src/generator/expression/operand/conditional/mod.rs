@@ -11,12 +11,12 @@ use zinc_types::Instruction;
 
 use crate::generator::expression::operand::block::Expression as BlockExpression;
 use crate::generator::expression::Expression as GeneratorExpression;
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 use zinc_lexical::Location;
 
 ///
-/// The conditional expression which is translated to a Zinc VM conditional.
+/// The conditional expression.
 ///
 #[derive(Debug, Clone)]
 pub struct Expression {
@@ -50,18 +50,18 @@ impl Expression {
 }
 
 impl IBytecodeWritable for Expression {
-    fn write_all(self, state: Rc<RefCell<State>>) {
-        self.condition.write_all(state.clone());
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
+        self.condition.write_to_zinc_vm(state.clone());
         state
             .borrow_mut()
             .push_instruction(Instruction::If(zinc_types::If), Some(self.location));
-        self.main_block.write_all(state.clone());
+        self.main_block.write_to_zinc_vm(state.clone());
 
         if let Some(else_block) = self.else_block {
             state
                 .borrow_mut()
                 .push_instruction(Instruction::Else(zinc_types::Else), Some(self.location));
-            else_block.write_all(state.clone());
+            else_block.write_to_zinc_vm(state.clone());
         }
 
         state

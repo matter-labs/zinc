@@ -74,9 +74,9 @@ impl Contract {
 contract {} {{
     pub value: u64;
 
-    pub fn new(_value: u64) -> Self {{
+    pub fn new(value: u64) -> Self {{
         Self {{
-            value: _value,
+            value: value,
         }}
     }}
 }}

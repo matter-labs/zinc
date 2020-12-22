@@ -12,12 +12,12 @@ use zinc_types::Instruction;
 use crate::generator::expression::operand::constant::Constant;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::r#type::Type;
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 use zinc_lexical::Location;
 
 ///
-/// The match expression which is translated to Zinc VM conditional series.
+/// The match expression.
 ///
 #[derive(Debug, Clone)]
 pub struct Expression {
@@ -59,7 +59,7 @@ impl Expression {
 }
 
 impl IBytecodeWritable for Expression {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, bytecode: Rc<RefCell<ZincVMState>>) {
         let branch_count = self.branches.len();
         let scrutinee_size = self.scrutinee_type.size();
 
@@ -72,7 +72,7 @@ impl IBytecodeWritable for Expression {
             .borrow_mut()
             .define_variable(binding_name, scrutinee_size);
 
-        self.scrutinee.write_all(bytecode.clone());
+        self.scrutinee.write_to_zinc_vm(bytecode.clone());
         bytecode.borrow_mut().push_instruction(
             Instruction::Store(zinc_types::Store::new(scrutinee_address, scrutinee_size)),
             Some(self.location),
@@ -83,23 +83,23 @@ impl IBytecodeWritable for Expression {
                 Instruction::Load(zinc_types::Load::new(scrutinee_address, scrutinee_size)),
                 Some(self.location),
             );
-            branch_pattern.write_all(bytecode.clone());
+            branch_pattern.write_to_zinc_vm(bytecode.clone());
             bytecode
                 .borrow_mut()
                 .push_instruction(Instruction::Eq(zinc_types::Eq), Some(self.location));
             bytecode
                 .borrow_mut()
                 .push_instruction(Instruction::If(zinc_types::If), Some(self.location));
-            branch_expression.write_all(bytecode.clone());
+            branch_expression.write_to_zinc_vm(bytecode.clone());
             bytecode
                 .borrow_mut()
                 .push_instruction(Instruction::Else(zinc_types::Else), Some(self.location));
         }
 
         if let Some(binding_branch) = binding_branch {
-            binding_branch.write_all(bytecode.clone());
+            binding_branch.write_to_zinc_vm(bytecode.clone());
         } else if let Some(wildcard_branch) = self.wildcard_branch {
-            wildcard_branch.write_all(bytecode.clone());
+            wildcard_branch.write_to_zinc_vm(bytecode.clone());
         }
 
         bytecode

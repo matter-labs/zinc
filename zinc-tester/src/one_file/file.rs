@@ -14,7 +14,7 @@ use crate::error::Error;
 ///
 /// The integration test file.
 ///
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct File {
     /// The test file source code.
     pub code: String,

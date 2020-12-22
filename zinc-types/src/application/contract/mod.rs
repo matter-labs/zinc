@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM bytecode contract application.
+//! The bytecode contract application.
 //!
 
 pub mod method;
@@ -16,7 +16,7 @@ use crate::instructions::Instruction;
 use self::method::Method;
 
 ///
-/// The contract application.
+/// The bytecode contract application.
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Contract {

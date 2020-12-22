@@ -1,0 +1,62 @@
+[
+  {
+    "action": "publish",
+    "instance": "default",
+    "input_path": "01_publish.json",
+    "change_pubkey_fee_token": "ETH"
+  },
+  {
+    "action": "call",
+    "instance": "default",
+    "input_path": "02_call_deposit_ETH.json",
+    "method": "deposit",
+    "expect": {
+      "output": {
+        "result": null,
+        "root_hash": "0x0"
+      }
+    }
+  },
+  {
+    "action": "call",
+    "instance": "default",
+    "input_path": "03_call_deposit_DAI.json",
+    "method": "deposit",
+    "expect": {
+      "output": {
+        "result": null,
+        "root_hash": "0x0"
+      }
+    }
+  },
+  {
+    "action": "call",
+    "instance": "default",
+    "input_path": "04_call_exchange.json",
+    "method": "exchange",
+    "expect": {
+      "output": {
+        "result": null,
+        "root_hash": "0x0"
+      }
+    }
+  },
+  {
+    "action": "query",
+    "instance": "default",
+    "input_path": "05_query.json",
+    "expect": {
+      "balances": [
+        {
+          "key": "0x0",
+          "value": "1100000000000000000"
+        },
+        {
+          "key": "0x318093a9b569e332d0224b0e1aec5fa92cc097d3",
+          "value": "900000000000000000"
+        }
+      ],
+      "fee": "0"
+    }
+  }
+]

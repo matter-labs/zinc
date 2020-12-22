@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM type.
+//! The type.
 //!
 
 pub mod contract_field;

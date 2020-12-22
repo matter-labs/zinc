@@ -11,7 +11,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::generator::expression::Expression;
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 
 use self::contract::Statement as ContractStatement;
@@ -20,7 +20,7 @@ use self::r#for::Statement as ForStatement;
 use self::r#let::Statement as LetStatement;
 
 ///
-/// Statements translated to the target Zinc VM bytecode.
+/// The generator statement.
 ///
 #[derive(Debug, Clone)]
 pub enum Statement {
@@ -37,13 +37,13 @@ pub enum Statement {
 }
 
 impl IBytecodeWritable for Statement {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, bytecode: Rc<RefCell<ZincVMState>>) {
         match self {
-            Self::Fn(inner) => inner.write_all(bytecode),
-            Self::Let(inner) => inner.write_all(bytecode),
-            Self::Contract(inner) => inner.write_all(bytecode),
-            Self::For(inner) => inner.write_all(bytecode),
-            Self::Expression(inner) => inner.write_all(bytecode),
+            Self::Fn(inner) => inner.write_to_zinc_vm(bytecode),
+            Self::Let(inner) => inner.write_to_zinc_vm(bytecode),
+            Self::Contract(inner) => inner.write_to_zinc_vm(bytecode),
+            Self::For(inner) => inner.write_to_zinc_vm(bytecode),
+            Self::Expression(inner) => inner.write_to_zinc_vm(bytecode),
         }
     }
 }

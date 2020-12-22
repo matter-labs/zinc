@@ -1,0 +1,23 @@
+//!
+//! The 'factory_transfer' contract entry.
+//!
+
+use internal::Internal;
+
+contract InternalTransfer {
+    pub value: u64;
+
+    pub fn new(value: u64) -> Self {
+        Self {
+            value: value,
+        }
+    }
+
+    pub fn deposit(mut self) {}
+
+    pub fn create_and_init(mut self) {
+        let mut instance = Internal::new(self.value / 2);
+        self.transfer(instance.address, 0x0 as u160, 0.1_E18 as u248);
+        instance.reclaim(self.address, 0.05_E18 as u248);
+    }
+}

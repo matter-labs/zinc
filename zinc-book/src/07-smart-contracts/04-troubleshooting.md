@@ -47,6 +47,7 @@ Database(PgDatabaseError { severity: Error, code: "23505", message: "duplicate k
 violates unique constraint \"projects_pkey\"", detail: ... })
 ```
 
-The contract name and version must be unique.
-To fix this issue, you may change your contract name or version in the `Zargo.toml` manifest.
+The contract name, version, and instance must be unique.
+To fix this issue, change your contract name or version in the `Zargo.toml` manifest, or
+use another instance name during publishing.
 To see all uploaded projects, use the `zargo download --list` command.

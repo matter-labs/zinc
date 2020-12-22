@@ -140,22 +140,27 @@ impl Analyzer {
             });
         }
 
-        let is_in_dependency = scope_stack.top().borrow().is_within(ScopeType::Entry {
-            is_dependency: true,
-        });
+        let is_in_dependency = scope_stack
+            .top()
+            .borrow()
+            .entry()
+            .map(|(_project, is_dependency)| is_dependency)
+            .unwrap_or_default();
         let is_method = bindings
             .first()
             .map(|binding| matches!(binding.r#type, Type::Contract(_)))
             .unwrap_or_default();
-        let is_constructor = matches!(expected_type, Type::Contract(_));
 
         let role = match scope_type {
-            ScopeType::Contract if statement.is_public && is_constructor => {
-                GeneratorFunctionRole::ContractConstuctor
-            }
             ScopeType::Contract if statement.is_public && is_method && !is_in_dependency => {
                 GeneratorFunctionRole::ContractMethodEntry
             }
+            ScopeType::Contract if statement.is_public => match expected_type {
+                Type::Contract(ref contract) => GeneratorFunctionRole::ContractConstuctor {
+                    project: contract.project.to_owned(),
+                },
+                _ => GeneratorFunctionRole::Ordinar,
+            },
             _ if statement.identifier.name.as_str()
                 == zinc_const::source::FUNCTION_MAIN_IDENTIFIER =>
             {

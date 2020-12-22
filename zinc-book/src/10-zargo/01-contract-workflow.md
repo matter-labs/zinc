@@ -27,7 +27,7 @@ following structure:
 
 ```toml,no_run,noplaypen
 [project]
-name = "test"
-type = "contract"
-version = "0.1.0"
+name = 'test'
+type = 'contract'
+version = '0.1.0'
 ```

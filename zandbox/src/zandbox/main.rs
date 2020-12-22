@@ -20,7 +20,7 @@ use self::arguments::Arguments;
 async fn main() -> anyhow::Result<()> {
     let args = Arguments::new();
 
-    zinc_logger::initialize(zinc_const::app_name::ZANDBOX, args.verbosity);
+    zinc_logger::initialize(zinc_const::app_name::ZANDBOX, args.verbosity, args.quiet);
 
     log::info!("Zandbox server started");
 

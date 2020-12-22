@@ -1,5 +1,5 @@
 //!
-//! The Zinc tester directory.
+//! The integration tests directory.
 //!
 
 use std::fs;
@@ -9,16 +9,16 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use anyhow::Context;
-use colored::Colorize;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
+use crate::ordinar::project::Project;
 use crate::summary::Summary;
 
 ///
-/// The integration test directory.
+/// The integration tests directory.
 ///
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Directory {
     /// The project directory paths.
     pub project_paths: Vec<PathBuf>,
@@ -47,83 +47,57 @@ impl Directory {
     ///
     /// Runs the test projects and writes their results to `summary`.
     ///
-    pub fn run(self, summary: Arc<Mutex<Summary>>) {
+    pub fn run(self, verbosity: usize, summary: Arc<Mutex<Summary>>) {
+        self.reset_database(verbosity)
+            .expect(zinc_const::panic::TEST_DATA_VALID);
+
         self.project_paths
             .into_par_iter()
-            .map(|project_path| -> anyhow::Result<()> {
-                let output = process::Command::new(zinc_const::app_name::ZARGO)
-                    .arg("build")
-                    .arg("--manifest-path")
-                    .arg(&project_path)
-                    .output()?;
-                if !output.status.success() {
-                    if project_path.to_string_lossy().contains("error") {
-                        println!(
-                            "[INTEGRATION] {} ({}) {}",
-                            "PASSED".green(),
-                            "INVALID".green(),
-                            project_path.to_string_lossy(),
-                        );
-                        summary
-                            .lock()
-                            .expect(zinc_const::panic::SYNCHRONIZATION)
-                            .passed += 1;
-                    } else {
-                        println!(
-                            "[INTEGRATION] {} {}\n{}",
-                            "INVALID".red(),
-                            project_path.to_string_lossy(),
-                            String::from_utf8_lossy(output.stderr.as_slice())
-                        );
-                        summary
-                            .lock()
-                            .expect(zinc_const::panic::SYNCHRONIZATION)
-                            .invalid += 1;
-                    }
-
-                    return Ok(());
-                }
-
-                let output = process::Command::new(zinc_const::app_name::ZARGO)
-                    .arg("test")
-                    .arg("--manifest-path")
-                    .arg(&project_path)
-                    .output()
-                    .with_context(|| project_path.to_string_lossy().to_string())?;
-                print!("{}", String::from_utf8_lossy(output.stdout.as_slice()));
-                if !output.status.success() {
-                    print!("{}", String::from_utf8_lossy(output.stderr.as_slice()));
-                    println!(
-                        "[INTEGRATION] {} {} (unit test failure)",
-                        "FAILED".bright_red(),
-                        project_path.to_string_lossy(),
-                    );
-                    summary
-                        .lock()
-                        .expect(zinc_const::panic::SYNCHRONIZATION)
-                        .failed += 1;
-                    return Ok(());
-                }
-
-                println!(
-                    "[INTEGRATION] {} {}",
-                    "PASSED".green(),
-                    project_path.to_string_lossy(),
-                );
-                summary
-                    .lock()
-                    .expect(zinc_const::panic::SYNCHRONIZATION)
-                    .passed += 1;
-
-                process::Command::new(zinc_const::app_name::ZARGO)
-                    .arg("clean")
-                    .arg("--manifest-path")
-                    .arg(&project_path)
-                    .output()
-                    .with_context(|| project_path.to_string_lossy().to_string())?;
-
-                Ok(())
-            })
+            .map(|path| Project::new(verbosity, path).run(summary.clone()))
             .collect::<Vec<anyhow::Result<()>>>();
+    }
+
+    ///
+    /// Resets the database in order to run the test in a clear environment.
+    ///
+    fn reset_database(&self, verbosity: usize) -> anyhow::Result<()> {
+        process::Command::new(zinc_const::app_name::PSQL)
+            .args(if verbosity <= 1 {
+                vec!["--quiet"]
+            } else {
+                vec![]
+            })
+            .arg("--command")
+            .arg("DELETE FROM zandbox.fields;")
+            .spawn()
+            .with_context(|| zinc_const::app_name::PSQL)?
+            .wait()
+            .with_context(|| zinc_const::app_name::PSQL)?;
+        process::Command::new(zinc_const::app_name::PSQL)
+            .args(if verbosity <= 1 {
+                vec!["--quiet"]
+            } else {
+                vec![]
+            })
+            .arg("--command")
+            .arg("DELETE FROM zandbox.contracts;")
+            .spawn()
+            .with_context(|| zinc_const::app_name::PSQL)?
+            .wait()
+            .with_context(|| zinc_const::app_name::PSQL)?;
+        process::Command::new(zinc_const::app_name::PSQL)
+            .args(if verbosity <= 1 {
+                vec!["--quiet"]
+            } else {
+                vec![]
+            })
+            .arg("--command")
+            .arg("DELETE FROM zandbox.projects;")
+            .spawn()
+            .with_context(|| zinc_const::app_name::PSQL)?
+            .wait()
+            .with_context(|| zinc_const::app_name::PSQL)?;
+
+        Ok(())
     }
 }

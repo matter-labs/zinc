@@ -13,7 +13,7 @@ use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::r#type::Type as SemanticType;
 
 ///
-/// The expression operator which is translated to some specific Zinc VM instructions.
+/// The expression operator which is translated to some specific instructions.
 ///
 #[derive(Debug, Clone)]
 pub enum Operator {

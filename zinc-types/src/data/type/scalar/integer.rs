@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM integer scalar type.
+//! The integer scalar type.
 //!
 
 use std::fmt;
@@ -10,7 +10,7 @@ use serde::Deserialize;
 use serde::Serialize;
 
 ///
-/// The Zinc VM scalar integer type.
+/// The scalar integer type.
 ///
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Type {

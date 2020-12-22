@@ -12,7 +12,7 @@ use num_old::BigUint;
 ///
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Body {
-    /// The zkSync account ID.
+    /// The batch transaction fee.
     pub fee: BigUint,
 }
 

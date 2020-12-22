@@ -43,13 +43,14 @@ impl Module {
     ///
     pub fn new_entry(
         module: Source,
+        project: zinc_project::ManifestProject,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
         is_dependency_entry: bool,
     ) -> Result<Rc<RefCell<ScopeItem>>, Error> {
         let scope = Scope::new_module(
             module.name().to_owned(),
             dependencies.clone(),
-            true,
+            Some(project),
             is_dependency_entry,
         )
         .wrap();

@@ -25,9 +25,9 @@ Zargo will create a project with some default template code:
 contract ConstantPrice {
     pub value: u64;
 
-    pub fn new(_value: u64) -> Self {
+    pub fn new(value: u64) -> Self {
         Self {
-            value: _value,
+            value: value,
         }
     }
 }
@@ -151,7 +151,7 @@ contract ConstantPrice {
         // check if there is enough balance to withdraw
         require(self.balances.get(withdraw_token).0 >= withdraw_token_amount, "Not enough tokens to withdraw");
 
-        zksync::transfer(zksync::msg.sender, withdraw_token, withdraw_token_amount);
+        self.transfer(zksync::msg.sender, withdraw_token, withdraw_token_amount);
     }
 
     pub fn get_fee(self) -> u16 {

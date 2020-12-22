@@ -24,17 +24,17 @@ pub struct Transaction {
     /// The transaction itself.
     pub tx: ZkSyncTx,
     /// The Ethereum signature of the transaction.
-    pub ethereum_signature: EthereumSignature,
+    pub ethereum_signature: Option<EthereumSignature>,
 }
 
 impl Transaction {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(tx: ZkSyncTx, signature: PackedEthSignature) -> Self {
+    pub fn new(tx: ZkSyncTx, signature: Option<PackedEthSignature>) -> Self {
         Self {
             tx,
-            ethereum_signature: EthereumSignature::new(signature),
+            ethereum_signature: signature.map(EthereumSignature::new),
         }
     }
 

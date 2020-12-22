@@ -8,7 +8,7 @@ pub mod integer;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::element::constant::Constant as SemanticConstant;
 
@@ -80,13 +80,13 @@ impl Constant {
 }
 
 impl IBytecodeWritable for Constant {
-    fn write_all(self, state: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         match self {
-            Self::Boolean(inner) => inner.write_all(state),
-            Self::Integer(inner) => inner.write_all(state),
+            Self::Boolean(inner) => inner.write_to_zinc_vm(state),
+            Self::Integer(inner) => inner.write_to_zinc_vm(state),
             Self::Group(inner) => {
                 for constant in inner.into_iter() {
-                    constant.write_all(state.clone());
+                    constant.write_to_zinc_vm(state.clone());
                 }
             }
         }

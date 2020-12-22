@@ -9,13 +9,13 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::generator::expression::Expression as GeneratorExpression;
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 
 use self::variant::Variant;
 
 ///
-/// The array expression which is translated to Zinc VM data.
+/// The array expression which is translated to some data.
 ///
 #[derive(Debug, Clone)]
 pub struct Expression {
@@ -44,16 +44,16 @@ impl Expression {
 }
 
 impl IBytecodeWritable for Expression {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, bytecode: Rc<RefCell<ZincVMState>>) {
         match self.variant {
             Variant::List { expressions } => {
                 for expression in expressions.into_iter() {
-                    expression.write_all(bytecode.clone());
+                    expression.write_to_zinc_vm(bytecode.clone());
                 }
             }
             Variant::Repeated { expression, size } => {
                 for expression in vec![expression; size].into_iter() {
-                    expression.write_all(bytecode.clone());
+                    expression.write_to_zinc_vm(bytecode.clone());
                 }
             }
         }

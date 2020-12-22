@@ -181,6 +181,7 @@ where
 
     fn storage_init(
         &mut self,
+        _project: zinc_project::ManifestProject,
         _values: Vec<Scalar<Self::E>>,
         _field_types: Vec<zinc_types::ContractFieldType>,
     ) -> Result<Scalar<Self::E>, Error> {

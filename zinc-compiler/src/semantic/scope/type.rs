@@ -5,10 +5,12 @@
 ///
 /// The semantic analyzer scope type.
 ///
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     /// The main file module of the application entry.
     Entry {
+        /// The `project` section of the project manifest.
+        project: zinc_project::ManifestProject,
         /// Whether the entry is of an application dependency.
         is_dependency: bool,
     },

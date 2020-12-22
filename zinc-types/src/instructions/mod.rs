@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM bytecode instruction.
+//! The bytecode instruction.
 //!
 
 pub mod call_library;
@@ -69,7 +69,7 @@ use self::operator::logical::xor::Xor;
 use self::require::Require;
 
 ///
-/// The Zinc VM bytecode instruction.
+/// The bytecode instruction.
 ///
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Instruction {

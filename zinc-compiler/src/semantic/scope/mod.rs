@@ -84,7 +84,7 @@ impl Scope {
     pub fn new_module(
         name: String,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
-        is_entry: bool,
+        entry: Option<zinc_project::ManifestProject>,
         is_dependency_entry: bool,
     ) -> Self {
         let mut items = HashMap::with_capacity(Self::ITEMS_INITIAL_CAPACITY + dependencies.len());
@@ -94,8 +94,9 @@ impl Scope {
             items.insert(name, Item::Module(module).wrap());
         }
 
-        let r#type = if is_entry {
+        let r#type = if let Some(project) = entry {
             ScopeType::Entry {
+                project,
                 is_dependency: is_dependency_entry,
             }
         } else {
@@ -146,7 +147,7 @@ impl Scope {
     /// Returns the scope type.
     ///
     pub fn r#type(&self) -> ScopeType {
-        self.r#type
+        self.r#type.clone()
     }
 
     ///
@@ -173,15 +174,19 @@ impl Scope {
     }
 
     ///
-    /// Whether the scope is located within a scope with the specified type.
+    /// Returns the entry description. Is `None` for non-entry module items.
     ///
-    pub fn is_within(&self, r#type: ScopeType) -> bool {
-        if self.r#type == r#type {
-            true
+    pub fn entry(&self) -> Option<(zinc_project::ManifestProject, bool)> {
+        if let ScopeType::Entry {
+            ref project,
+            is_dependency,
+        } = self.r#type
+        {
+            Some((project.to_owned(), is_dependency))
         } else {
             match self.parent {
-                Some(ref parent) => parent.borrow().is_within(r#type),
-                None => false,
+                Some(ref parent) => parent.borrow().entry(),
+                None => None,
             }
         }
     }
@@ -496,8 +501,6 @@ impl Scope {
         module: Source,
         scope_crate: Rc<RefCell<Scope>>,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
-        is_entry: bool,
-        is_dependency_entry: bool,
     ) -> Result<(), Error> {
         if let Ok(item) = RefCell::borrow(&scope).resolve_item(&identifier, true) {
             return Err(Error::ScopeItemRedeclared {
@@ -508,13 +511,8 @@ impl Scope {
         }
 
         let name = identifier.name.clone();
-        let module_scope = Self::new_module(
-            identifier.name.clone(),
-            dependencies.clone(),
-            is_entry,
-            is_dependency_entry,
-        )
-        .wrap();
+        let module_scope =
+            Self::new_module(identifier.name.clone(), dependencies.clone(), None, false).wrap();
         let module = ModuleItem::new_declared(
             Some(identifier.location),
             module_scope.clone(),
@@ -523,7 +521,7 @@ impl Scope {
             scope_crate,
             Some(scope.clone()),
             dependencies,
-            is_entry,
+            false,
         )?;
         let item = Item::Module(module).wrap();
 

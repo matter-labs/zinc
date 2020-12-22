@@ -104,8 +104,6 @@ impl Analyzer {
                         module,
                         scope_crate.clone(),
                         dependencies.clone(),
-                        false,
-                        false,
                     )?;
                 }
                 ModuleLocalStatement::Contract(statement) => {

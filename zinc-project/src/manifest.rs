@@ -29,7 +29,7 @@ pub struct Manifest {
 ///
 /// The `project` section representation.
 ///
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Project {
     /// The project name.
     pub name: String,

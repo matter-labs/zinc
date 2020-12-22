@@ -18,6 +18,10 @@ pub struct Arguments {
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
 
+    /// Suppresses output, if set.
+    #[structopt(short = "q", long = "quiet")]
+    pub quiet: bool,
+
     /// The subcommand variant.
     #[structopt(subcommand)]
     pub command: Command,

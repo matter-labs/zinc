@@ -5,8 +5,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::state::State;
 use crate::generator::statement::Statement;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 
 ///
@@ -28,9 +28,9 @@ impl Module {
 }
 
 impl IBytecodeWritable for Module {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, bytecode: Rc<RefCell<ZincVMState>>) {
         for statement in self.statements.into_iter() {
-            statement.write_all(bytecode.clone());
+            statement.write_to_zinc_vm(bytecode.clone());
         }
     }
 }

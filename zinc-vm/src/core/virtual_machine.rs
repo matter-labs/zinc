@@ -35,6 +35,7 @@ pub trait IVirtualMachine {
 
     fn storage_init(
         &mut self,
+        project: zinc_project::ManifestProject,
         values: Vec<Scalar<Self::E>>,
         field_types: Vec<zinc_types::ContractFieldType>,
     ) -> Result<Scalar<Self::E>, Error>;

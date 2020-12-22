@@ -31,3 +31,6 @@ pub static VERIFYING_KEY: &str = "verifying_key";
 
 /// The private key file default name (testnet only!).
 pub static PRIVATE_KEY: &str = "private_key";
+
+/// The integration test scenario file default name.
+pub static SCENARIO: &str = "scenario";

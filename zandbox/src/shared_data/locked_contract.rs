@@ -2,6 +2,10 @@
 //! The cached contract data.
 //!
 
+use std::collections::HashMap;
+
+use zksync::provider::Provider;
+
 use zinc_vm::Bn256;
 use zinc_vm::ContractInput;
 
@@ -38,6 +42,11 @@ pub struct LockedContract {
     pub storage: Storage,
     /// The contract wallet.
     pub wallet: zksync::Wallet<zksync_eth_signer::PrivateKeySigner, zksync::RpcProvider>,
+
+    /// The token used for paying for changing the public key.
+    pub change_pubkey_fee_token: zksync_types::Token,
+    /// The fee needed for changing the public key.
+    pub change_pubkey_fee: num::BigUint,
 }
 
 impl LockedContract {
@@ -57,6 +66,8 @@ impl LockedContract {
         project: zinc_project::Project,
         bytecode: Vec<u8>,
         verifying_key: Vec<u8>,
+
+        change_pubkey_fee_token: String,
     ) -> Result<Self, Error> {
         let mut eth_private_key = zksync_types::H256::default();
         eth_private_key.randomize();
@@ -78,13 +89,18 @@ impl LockedContract {
             .ok_or(Error::ConstructorNotFound)?;
         let input_value = zinc_types::Value::try_from_typed_json(arguments, constructor.input)
             .map_err(Error::InvalidInput)?;
-        let storage = Storage::new(build.storage.as_slice()).into_build();
+
+        let mut storages = HashMap::with_capacity(1);
+        storages.insert(
+            eth_address,
+            Storage::new(build.storage.as_slice()).into_build(),
+        );
 
         let vm_runner = zinc_vm::ContractFacade::new(build.clone());
         let mut output = tokio::task::spawn_blocking(move || {
             vm_runner.run::<Bn256>(ContractInput::new(
                 input_value,
-                storage,
+                storages,
                 zinc_const::contract::CONSTRUCTOR_IDENTIFIER.to_owned(),
                 zinc_types::TransactionMsg::default(),
             ))
@@ -113,6 +129,25 @@ impl LockedContract {
         .await?;
         let wallet = zksync::Wallet::new(provider, wallet_credentials).await?;
 
+        let change_pubkey_fee_token = wallet
+            .tokens
+            .resolve(change_pubkey_fee_token.as_str().into())
+            .ok_or(Error::TokenNotFound(change_pubkey_fee_token))?;
+
+        let change_pubkey_fee = zinc_types::num_compat_forward(
+            wallet
+                .provider
+                .get_tx_fee(
+                    zksync_types::TxFeeTypes::ChangePubKey {
+                        onchain_pubkey_auth: true,
+                    },
+                    eth_address,
+                    change_pubkey_fee_token.id,
+                )
+                .await?
+                .total_fee,
+        );
+
         Ok(Self {
             eth_address,
             eth_private_key,
@@ -128,6 +163,9 @@ impl LockedContract {
             build,
             storage,
             wallet,
+
+            change_pubkey_fee_token,
+            change_pubkey_fee,
         })
     }
 }

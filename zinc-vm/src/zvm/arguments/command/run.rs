@@ -2,6 +2,7 @@
 //! The Zinc virtual machine `run` subcommand.
 //!
 
+use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fs;
 use std::path::PathBuf;
@@ -90,7 +91,7 @@ impl IExecutable for Command {
                 zinc_types::InputBuild::Contract {
                     arguments,
                     msg: transaction,
-                    storage,
+                    storages,
                 } => {
                     let method_name = self.method.ok_or(Error::MethodNameNotFound)?;
                     let method = contract.methods.get(method_name.as_str()).cloned().ok_or(
@@ -106,27 +107,44 @@ impl IExecutable for Command {
                     )?;
                     let mut method_arguments =
                         zinc_types::Value::try_from_typed_json(method_arguments, method.input)?;
-                    method_arguments.insert_contract_instance(BigInt::zero());
+                    if method_name != zinc_const::contract::CONSTRUCTOR_IDENTIFIER {
+                        method_arguments.insert_contract_instance(BigInt::zero());
+                    }
 
-                    let storage_values = match storage {
-                        serde_json::Value::Array(array) => {
-                            let mut storage_values = Vec::with_capacity(contract.storage.len());
-                            for (field, value) in contract.storage.clone().into_iter().zip(array) {
-                                storage_values.push(zinc_types::ContractFieldValue::new(
-                                    field.name,
-                                    zinc_types::Value::try_from_typed_json(value, field.r#type)?,
-                                    field.is_public,
-                                    field.is_implicit,
-                                ));
+                    let mut input_storages = HashMap::with_capacity(storages.len());
+                    for (address, value) in storages.into_iter() {
+                        let address: zksync_types::Address = address["0x".len()..]
+                            .parse()
+                            .expect(zinc_const::panic::DATA_CONVERSION);
+
+                        let value = match value {
+                            serde_json::Value::Array(array) => {
+                                let mut storage_values = Vec::with_capacity(contract.storage.len());
+                                for (field, value) in
+                                    contract.storage.clone().into_iter().zip(array)
+                                {
+                                    storage_values.push(zinc_types::ContractFieldValue::new(
+                                        field.name,
+                                        zinc_types::Value::try_from_typed_json(
+                                            value,
+                                            field.r#type,
+                                        )?,
+                                        field.is_public,
+                                        field.is_implicit,
+                                    ));
+                                }
+                                zinc_types::Value::Contract(storage_values)
                             }
-                            storage_values
-                        }
-                        value => return Err(Error::InvalidContractStorageFormat { found: value }),
-                    };
+                            value => {
+                                return Err(Error::InvalidContractStorageFormat { found: value })
+                            }
+                        };
+                        input_storages.insert(address, value);
+                    }
 
                     let output = ContractFacade::new(contract).run::<Bn256>(ContractInput::new(
                         method_arguments,
-                        zinc_types::Value::Contract(storage_values),
+                        input_storages,
                         method_name,
                         zinc_types::TransactionMsg::try_from(&transaction).map_err(|error| {
                             Error::InvalidTransaction {
@@ -136,7 +154,7 @@ impl IExecutable for Command {
                         })?,
                     ))?;
 
-                    let mut storages = serde_json::Map::with_capacity(output.storages.len());
+                    let mut storages = HashMap::with_capacity(output.storages.len());
                     for (eth_address, value) in output.storages.into_iter() {
                         match value {
                             zinc_types::Value::Contract(fields) => {
@@ -145,7 +163,10 @@ impl IExecutable for Command {
                                     storage_values.push(field.value.into_json());
                                 }
                                 storages.insert(
-                                    eth_address.to_str_radix(zinc_const::base::HEXADECIMAL),
+                                    format!(
+                                        "0x{}",
+                                        eth_address.to_str_radix(zinc_const::base::HEXADECIMAL)
+                                    ),
                                     serde_json::Value::Array(storage_values),
                                 );
                             }
@@ -157,13 +178,10 @@ impl IExecutable for Command {
                         }
                     }
 
-                    let input_str =
-                        serde_json::to_string_pretty(&zinc_types::InputBuild::new_contract(
-                            serde_json::Value::Object(storages),
-                            transaction,
-                            arguments,
-                        ))
-                        .expect(zinc_const::panic::DATA_CONVERSION);
+                    let input_str = serde_json::to_string_pretty(
+                        &zinc_types::InputBuild::new_contract(storages, transaction, arguments),
+                    )
+                    .expect(zinc_const::panic::DATA_CONVERSION);
                     fs::write(&input_path, input_str)
                         .error_with_path(|| input_path.to_string_lossy())?;
 

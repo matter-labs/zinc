@@ -28,3 +28,17 @@ Arguments:
 Return type: `()`
 
 This is the only function able to halt the application execution.
+
+## `<Contract>::transfer` function
+
+Executes a transfer which is eventually sent to the zkSync platform.
+
+Is automatically defined as a method in every smart contract.
+
+Arguments:
+- sender: `<Contract>`
+- recipient: `u160`
+- token_address: `u160`
+- amount: `u248`
+
+Returns: `()`

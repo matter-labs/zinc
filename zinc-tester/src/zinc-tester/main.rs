@@ -17,13 +17,9 @@ use self::arguments::Arguments;
 fn main() -> anyhow::Result<()> {
     let args = Arguments::new();
 
-    if args.proof_check {
-        anyhow::bail!("Proof verification is temporarily unavailable");
-    }
-
     println!(
         "[INTEGRATION] Started with {} worker threads",
-        rayon::current_num_threads()
+        rayon::current_num_threads(),
     );
 
     let summary = zinc_tester::Summary::default().wrap();
@@ -39,7 +35,7 @@ fn main() -> anyhow::Result<()> {
     zinc_tester::OrdinarTestsDirectory::new(&PathBuf::from(
         zinc_tester::ORDINAR_PROJECTS_DIRECTORY,
     ))?
-    .run(summary.clone());
+    .run(args.verbosity, summary.clone());
 
     match zinc_tester::Summary::unwrap_arc(summary) {
         summary if summary.failed == 0 && summary.invalid == 0 => {

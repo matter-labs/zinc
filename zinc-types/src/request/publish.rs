@@ -18,17 +18,25 @@ pub struct Query {
     pub version: semver::Version,
     /// The uploaded contract instance name.
     pub instance: String,
+    /// The change-pubkey fee token.
+    pub change_pubkey_fee_token: String,
 }
 
 impl Query {
     ///
     /// A shortcut constructor.
     ///
-    pub fn new(name: String, version: semver::Version, instance: String) -> Self {
+    pub fn new(
+        name: String,
+        version: semver::Version,
+        instance: String,
+        change_pubkey_fee_token: String,
+    ) -> Self {
         Self {
             name,
             version,
             instance,
+            change_pubkey_fee_token,
         }
     }
 }
@@ -43,6 +51,7 @@ impl IntoIterator for Query {
             ("name", self.name),
             ("version", self.version.to_string()),
             ("instance", self.instance),
+            ("change_pubkey_fee_token", self.change_pubkey_fee_token),
         ]
         .into_iter()
     }

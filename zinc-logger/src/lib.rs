@@ -2,9 +2,12 @@
 //! The Zinc logger.
 //!
 
+pub mod level;
+
+pub use self::level::Level;
+
 use std::io::Write;
 
-use log::Level;
 use log::LevelFilter;
 
 use colored::ColoredString;
@@ -19,22 +22,21 @@ const LEVEL_NAME_LENGTH: usize = 10;
 /// # Arguments
 ///
 /// Verbosity:
-/// 0 for `Warn`,
+/// 0 for `Error` + `Warn`,
 /// 1 for `Info`,
 /// 2 for `Debug`,
-/// _ for `Trace`
+/// 3+ for `Trace`
 ///
-pub fn initialize(app_name: &'static str, verbosity: usize) {
-    let level = match verbosity {
-        0 => LevelFilter::Warn,
-        1 => LevelFilter::Info,
-        2 => LevelFilter::Debug,
-        _ => LevelFilter::Trace,
+pub fn initialize(app_name: &'static str, verbosity: usize, quiet: bool) {
+    let level: LevelFilter = if quiet {
+        LevelFilter::Off
+    } else {
+        Level::from(verbosity).into()
     };
 
     env_logger::builder()
         .filter(None, LevelFilter::Off)
-        .filter_module("actix_server", LevelFilter::Info)
+        .filter_module("actix_server", level)
         .filter_module(zinc_const::app_name::ZARGO, level)
         .filter_module(zinc_const::app_name::ZANDBOX, level)
         .filter_module(zinc_const::app_name::COMPILER, level)
@@ -46,7 +48,7 @@ pub fn initialize(app_name: &'static str, verbosity: usize) {
         .filter_module("zinc_vm", level)
         .filter_module("zinc_tester", level)
         .format(move |buffer, record| {
-            if record.level() >= Level::Debug {
+            if record.level() >= log::Level::Debug {
                 writeln!(
                     buffer,
                     "[{:>5} {:>5}] {}",
@@ -74,12 +76,12 @@ pub fn initialize(app_name: &'static str, verbosity: usize) {
 ///
 /// The log level string printed to the terminal.
 ///
-fn level_string(level: Level) -> ColoredString {
+fn level_string(level: log::Level) -> ColoredString {
     match level {
-        Level::Error => "ERROR".bold().red(),
-        Level::Warn => "WARN".bold().yellow(),
-        Level::Info => "INFO".bold().blue(),
-        Level::Debug => "DEBUG".bold().magenta(),
-        Level::Trace => "TRACE".bold(),
+        log::Level::Error => "ERROR".bold().red(),
+        log::Level::Warn => "WARN".bold().yellow(),
+        log::Level::Info => "INFO".bold().blue(),
+        log::Level::Debug => "DEBUG".bold().magenta(),
+        log::Level::Trace => "TRACE".bold(),
     }
 }

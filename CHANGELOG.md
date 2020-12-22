@@ -1,12 +1,12 @@
 # The Zinc changelog
 
-## Version 0.2.1 (2020-XX-XX)
+## Version 0.2.1 (2020-12-22)
 
 #### Language
 
 - implemented the Rust-like dependency system
 - added the library project type
-- allowed to use other smart contract instances through the dependency system
+- allowed to create and use other smart contract instances using the dependency system
 - extended the attribute syntax to set the `zksync::msg` variable in unit tests
 - turned the `zksync::transfer` function into a built-in contract method
 
@@ -20,8 +20,15 @@
 
 #### Virtual machine
 
+- prevented contract storage and zkSync side effects in false condition branches
 - fixed circuit unit tests
 - replaced the `Exit` instruction with `Return`
+- disabled the proof verification tools, as they are temporarily unsupported
+
+#### Zargo
+
+- initial deposits for contract publishing are not required anymore
+- fixed the segmentation fault during HTTP requests on Linux
 
 #### Book
 

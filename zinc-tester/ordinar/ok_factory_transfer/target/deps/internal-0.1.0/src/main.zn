@@ -1,0 +1,17 @@
+//!
+//! The 'internal' contract entry.
+//!
+
+contract Internal {
+    pub value: u64;
+
+    pub fn new(value: u64) -> Self {
+        Self {
+            value: value,
+        }
+    }
+
+    pub fn reclaim(mut self, caller: u160, amount: u248) {
+        self.transfer(caller, 0x0 as u160, amount);
+    }
+}

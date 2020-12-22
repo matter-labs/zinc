@@ -2,6 +2,7 @@
 //! The default evaluation test runner.
 //!
 
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -88,7 +89,7 @@ impl IRunnable for Runner {
                         .expect(zinc_const::panic::SYNCHRONIZATION)
                         .invalid += 1;
                     println!(
-                        "[INTEGRATION] {} {} ({})",
+                        "[INTEGRATION] {} {}: {:?}",
                         "INVALID".red(),
                         case_name,
                         error
@@ -162,7 +163,7 @@ impl IRunnable for Runner {
                                     .expect(zinc_const::panic::SYNCHRONIZATION)
                                     .failed += 1;
                                 println!(
-                                    "[INTEGRATION] {} {} ({})",
+                                    "[INTEGRATION] {} {}: {}",
                                     "FAILED".bright_red(),
                                     case_name,
                                     error
@@ -179,13 +180,22 @@ impl IRunnable for Runner {
                         .map(zinc_types::ContractFieldValue::new_from_type)
                         .collect();
 
-                    instance.input.insert_contract_instance(BigInt::zero());
+                    let method_name = case
+                        .method
+                        .unwrap_or_else(|| zinc_const::source::FUNCTION_MAIN_IDENTIFIER.to_owned());
+                    if method_name != zinc_const::contract::CONSTRUCTOR_IDENTIFIER {
+                        instance.input.insert_contract_instance(BigInt::zero());
+                    }
+
+                    let mut storages = HashMap::with_capacity(1);
+                    storages.insert(
+                        zksync_types::Address::default(),
+                        zinc_types::Value::Contract(storage),
+                    );
                     let output = ContractFacade::new(contract).run::<Bn256>(ContractInput::new(
                         instance.input,
-                        zinc_types::Value::Contract(storage),
-                        case.method.unwrap_or_else(|| {
-                            zinc_const::source::FUNCTION_MAIN_IDENTIFIER.to_owned()
-                        }),
+                        storages,
+                        method_name,
                         zinc_types::TransactionMsg::default(),
                     ));
 
@@ -250,7 +260,7 @@ impl IRunnable for Runner {
                                     .expect(zinc_const::panic::SYNCHRONIZATION)
                                     .failed += 1;
                                 println!(
-                                    "[INTEGRATION] {} {} ({})",
+                                    "[INTEGRATION] {} {}: {}",
                                     "FAILED".bright_red(),
                                     case_name,
                                     error

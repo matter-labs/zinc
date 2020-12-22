@@ -182,7 +182,7 @@ impl Type {
     }
 
     ///
-    /// The type size in the Zinc VM data stack.
+    /// The type size in the abstract data stack.
     ///
     pub fn size(&self) -> usize {
         match self {

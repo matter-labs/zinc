@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM contract type storage field.
+//! The contract type storage field.
 //!
 
 use std::fmt;

@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM bytecode circuit application unit test.
+//! The bytecode circuit application unit test.
 //!
 
 use serde::Deserialize;

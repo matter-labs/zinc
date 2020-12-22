@@ -1,0 +1,27 @@
+{
+  "type": "contract",
+  "storage": [
+    "0x0",
+    [],
+    [
+      "ETH",
+      "ETH"
+    ],
+    "0"
+  ],
+  "msg": {
+    "sender": "0xa61464658AfeAf65CccaaFD3a512b69A83B77618",
+    "recipient": "0x0000000000000000000000000000000000000000",
+    "token_address": "0x0000000000000000000000000000000000000000",
+    "amount": "0"
+  },
+  "arguments": {
+    "new": {
+      "tokens": [
+        "ETH",
+        "DAI"
+      ],
+      "amplifier": "100"
+    }
+  }
+}

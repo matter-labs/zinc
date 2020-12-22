@@ -1,0 +1,17 @@
+{
+  "type": "contract",
+  "storage": [
+    "0x0",
+    [],
+    "42"
+  ],
+  "msg": {
+    "sender": "0x0D43eB5B8a47bA8900d84AA36656c92024e9772e",
+    "recipient": "0x0000000000000000000000000000000000000000",
+    "token_address": "0x0000000000000000000000000000000000000000",
+    "amount": "0.0_E18"
+  },
+  "arguments": {
+    "create_and_init": {}
+  }
+}

@@ -10,7 +10,6 @@ pub(crate) mod summary;
 pub use self::error::Error;
 pub use self::one_file::directory::Directory as OneFileTestsDirectory;
 pub use self::one_file::runners::evaluation::Runner as EvaluationRunner;
-pub use self::one_file::runners::proof_check::Runner as ProofCheckRunner;
 pub use self::one_file::runners::IRunnable;
 pub use self::ordinar::directory::Directory as OrdinarTestsDirectory;
 pub use self::summary::Summary;

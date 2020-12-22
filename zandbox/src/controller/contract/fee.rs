@@ -9,16 +9,10 @@ use num_old::BigUint;
 use num_old::Zero;
 
 use zksync::provider::Provider;
-use zksync_types::tx::ZkSyncTx;
-use zksync_types::TxFeeTypes;
-
-use zinc_vm::Bn256;
-use zinc_vm::ContractInput;
 
 use crate::contract::Contract;
 use crate::error::Error;
 use crate::response::Response;
-use crate::storage::keeper::Keeper as StorageKeeper;
 
 ///
 /// The HTTP request handler.
@@ -27,8 +21,8 @@ use crate::storage::keeper::Keeper as StorageKeeper;
 /// 1. Get the contract and its data from the database.
 /// 2. Extract the called method from its metadata and check if it is mutable.
 /// 3. Parse the method input arguments.
-/// 4. Run the method on the Zinc VM.
-/// 5. Calculate the fee required for the transfers.
+/// 4. Run the method on the VM.
+/// 5. Calculate the fee required for the initializers and transfers.
 /// 6. Send the calculated fee back to the client.
 ///
 pub async fn handle(
@@ -72,45 +66,47 @@ pub async fn handle(
         .map_err(Error::InvalidInput)?;
     arguments.insert_contract_instance(eth_address_bigint.clone());
 
-    let method = query.method;
-    let contract_build = contract.build;
-    let contract_storage = contract.storage;
-    let contract_storage_keeper = StorageKeeper::new(postgresql, network);
-    let transaction = (&body.transaction).try_to_msg(&contract.wallet)?;
-    let vm_time = std::time::Instant::now();
-    let output = tokio::task::spawn_blocking(move || {
-        zinc_vm::ContractFacade::new_with_keeper(contract_build, Box::new(contract_storage_keeper))
-            .run::<Bn256>(ContractInput::new(
+    let output = contract
+        .run_method(
+            query.method,
+            (&body.transaction).try_to_msg(&contract.wallet)?,
             arguments,
-            contract_storage.into_build(),
-            method,
-            transaction,
-        ))
-    })
-    .await
-    .expect(zinc_const::panic::ASYNC_RUNTIME)
-    .map_err(Error::VirtualMachine)?;
-    log::info!(
-        "[{}] VM executed in {} ms",
-        log_id,
-        vm_time.elapsed().as_millis()
-    );
+            postgresql,
+        )
+        .await?;
 
     let mut fee = BigUint::zero();
-    let token =
-        match body.transaction.tx {
-            ZkSyncTx::Transfer(ref transfer) => contract
-                .wallet
-                .tokens
-                .resolve(transfer.token.into())
-                .ok_or_else(|| Error::TokenNotFound(transfer.token.to_string()))?,
-            _ => panic!(zinc_const::panic::VALUE_ALWAYS_EXISTS),
-        };
+    let token = match body.transaction.tx {
+        zksync_types::ZkSyncTx::Transfer(ref transfer) => contract
+            .wallet
+            .tokens
+            .resolve(transfer.token.into())
+            .ok_or_else(|| Error::TokenNotFound(transfer.token.to_string()))?,
+        _ => panic!(zinc_const::panic::VALUE_ALWAYS_EXISTS),
+    };
+    for initializer in output.initializers.into_iter() {
+        fee += contract
+            .wallet
+            .provider
+            .get_tx_fee(
+                zksync_types::TxFeeTypes::ChangePubKey {
+                    onchain_pubkey_auth: true,
+                },
+                initializer.eth_address,
+                token.id,
+            )
+            .await?
+            .total_fee;
+    }
     for transfer in output.transfers.into_iter() {
         fee += contract
             .wallet
             .provider
-            .get_tx_fee(TxFeeTypes::Transfer, transfer.recipient, token.id)
+            .get_tx_fee(
+                zksync_types::TxFeeTypes::Transfer,
+                transfer.recipient,
+                token.id,
+            )
             .await?
             .total_fee;
     }

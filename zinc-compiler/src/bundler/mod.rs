@@ -13,7 +13,7 @@ use std::rc::Rc;
 
 use anyhow::Context;
 
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::semantic::scope::Scope;
 use crate::source::Source;
 
@@ -86,7 +86,7 @@ impl Bundler {
         let source = Source::try_from_entry(&source_directory_path)?;
         let state = source.compile(manifest, dependencies)?;
         let application =
-            State::unwrap_rc(state).into_application(self.optimize_dead_function_elimination);
+            ZincVMState::unwrap_rc(state).into_application(self.optimize_dead_function_elimination);
 
         Ok(application.into_build())
     }
@@ -129,7 +129,7 @@ impl Bundler {
                     let mut source_directory_path = path.clone();
                     source_directory_path.push(zinc_const::directory::SOURCE);
                     let source = Source::try_from_entry(&source_directory_path)?;
-                    let scope = source.modularize(dependencies)?;
+                    let scope = source.modularize(manifest.project.clone(), dependencies)?;
 
                     let dependency = Dependency::new(manifest.project, scope.clone(), node_index);
                     self.cache

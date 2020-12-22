@@ -27,7 +27,7 @@ impl Facade {
 
         for (name, unit_test) in self.inner.unit_tests.clone().into_iter() {
             if unit_test.is_ignored {
-                println!("test {} ... {}", name, "ignore".yellow());
+                log::info!("test {} ... {}", name, "ignore".yellow());
                 return Ok(UnitTestExitCode::Ignored);
             }
 
@@ -37,10 +37,10 @@ impl Facade {
 
             match state.test(self.inner.clone(), unit_test.address) {
                 Err(_) if unit_test.should_panic => {
-                    println!("test {} ... {} (failed)", name, "ok".green());
+                    log::info!("test {} ... {} (failed)", name, "ok".green());
                 }
                 Ok(_) if unit_test.should_panic => {
-                    println!(
+                    log::error!(
                         "test {} ... {} (should have failed)",
                         name,
                         "error".bright_red()
@@ -49,10 +49,10 @@ impl Facade {
                 }
 
                 Ok(_) => {
-                    println!("test {} ... {}", name, "ok".green());
+                    log::info!("test {} ... {}", name, "ok".green());
                 }
                 Err(error) => {
-                    println!("test {} ... {} ({})", name, "error".bright_red(), error);
+                    log::error!("test {} ... {} ({})", name, "error".bright_red(), error);
                     exit_code = UnitTestExitCode::Failed;
                 }
             };

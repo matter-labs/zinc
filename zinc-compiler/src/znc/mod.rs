@@ -35,7 +35,7 @@ fn main() {
 fn main_inner() -> anyhow::Result<()> {
     let args = Arguments::new();
 
-    zinc_logger::initialize(zinc_const::app_name::COMPILER, args.verbosity);
+    zinc_logger::initialize(zinc_const::app_name::COMPILER, args.verbosity, args.quiet);
 
     let optimize_dead_function_elimination = args.optimize_dead_function_elimination;
 

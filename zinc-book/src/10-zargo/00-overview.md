@@ -69,3 +69,11 @@ Queries a smart contract storage or calls an immutable method.
 
 Calls a mutable smart contract method, that is, one modifying its storage and
 making operations with tokens and balances.
+
+### `upload`
+
+Uploads the project to the Zandbox server on the specified network.
+
+### `download`
+
+Downloads the project from the Zandbox server on the specified network.

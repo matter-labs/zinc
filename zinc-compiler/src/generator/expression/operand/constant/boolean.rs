@@ -12,7 +12,7 @@ use num::Zero;
 use zinc_types::Instruction;
 use zinc_types::Push;
 
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::element::constant::boolean::Boolean as SemanticBooleanConstant;
 
@@ -42,7 +42,7 @@ impl Boolean {
 }
 
 impl IBytecodeWritable for Boolean {
-    fn write_all(self, state: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         let value = if self.inner {
             BigInt::one()
         } else {

@@ -39,6 +39,8 @@ pub struct Contract {
     pub location: Location,
     /// The contract type identifier.
     pub identifier: String,
+    /// The `project` section of the contract project manifest.
+    pub project: zinc_project::ManifestProject,
     /// The unique contract type ID.
     pub type_id: usize,
     /// The ordered contract storage fields array.
@@ -54,6 +56,7 @@ impl Contract {
     pub fn new(
         location: Location,
         identifier: String,
+        project: zinc_project::ManifestProject,
         type_id: usize,
         fields: Vec<Field>,
         scope: Rc<RefCell<Scope>>,
@@ -86,6 +89,7 @@ impl Contract {
         let contract = Self {
             location,
             identifier,
+            project,
             type_id,
             fields,
             scope: scope.clone(),

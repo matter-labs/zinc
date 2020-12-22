@@ -68,15 +68,13 @@ impl Storage {
                 .tokens
                 .resolve(zksync_types::TokenLike::Symbol(symbol))
                 .ok_or(zksync::error::ClientError::UnknownToken)?;
-            balances.push(serde_json::json!({
-                "key": token.address,
-                "value": balance.0.to_string(),
-            }));
+            balances.push((token.address, balance.0.to_string()));
         }
+        balances.sort_by_key(|(address, _balance)| *address);
         fields.push(zinc_types::ContractFieldValue::new(
             zinc_const::contract::FIELD_NAME_BALANCES.to_owned(),
             zinc_types::Value::try_from_typed_json(
-                serde_json::Value::Array(balances),
+                serde_json::Value::Array(balances.into_iter().map(|(address, balance)| serde_json::json!({"key": address, "value": balance})).collect()),
                 types[zinc_const::contract::FIELD_INDEX_BALANCES]
                     .r#type
                     .to_owned(),

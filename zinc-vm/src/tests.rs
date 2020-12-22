@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM test tools.
+//! The test tools.
 //!
 
 use std::collections::HashMap;

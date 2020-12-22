@@ -6,14 +6,9 @@ use actix_web::http::StatusCode;
 use actix_web::web;
 use num::BigInt;
 
-use zinc_types::TransactionMsg;
-use zinc_vm::Bn256;
-use zinc_vm::ContractInput;
-
 use crate::contract::Contract;
 use crate::error::Error;
 use crate::response::Response;
-use crate::storage::keeper::Keeper as StorageKeeper;
 
 ///
 /// The HTTP request handler.
@@ -23,7 +18,7 @@ use crate::storage::keeper::Keeper as StorageKeeper;
 /// 2. If the method was not specified, return the contract storage to the client.
 /// 3. Extract the called method from the contract metadata and check if it is immutable.
 /// 4. Parse the method input arguments.
-/// 5. Run the method on the Zinc VM.
+/// 5. Run the method on the VM.
 /// 6. Send the contract method execution result back to the client.
 ///
 pub async fn handle(
@@ -79,27 +74,14 @@ pub async fn handle(
         .map_err(Error::InvalidInput)?;
     arguments.insert_contract_instance(eth_address_bigint.clone());
 
-    let contract_build = contract.build;
-    let contract_storage = contract.storage;
-    let contract_storage_keeper = StorageKeeper::new(postgresql, network);
-    let vm_time = std::time::Instant::now();
-    let output = tokio::task::spawn_blocking(move || {
-        zinc_vm::ContractFacade::new_with_keeper(contract_build, Box::new(contract_storage_keeper))
-            .run::<Bn256>(ContractInput::new(
-            arguments,
-            contract_storage.into_build(),
+    let output = contract
+        .run_method(
             method_name,
-            TransactionMsg::default(),
-        ))
-    })
-    .await
-    .expect(zinc_const::panic::ASYNC_RUNTIME)
-    .map_err(Error::VirtualMachine)?;
-    log::info!(
-        "[{}] VM executed in {} ms",
-        log_id,
-        vm_time.elapsed().as_millis()
-    );
+            zinc_types::TransactionMsg::default(),
+            arguments,
+            postgresql,
+        )
+        .await?;
 
     let response = serde_json::json!({
         "output": output.result.into_json(),

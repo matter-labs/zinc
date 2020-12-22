@@ -11,7 +11,7 @@ use serde::Serialize;
 /// The Zinc build input file representation.
 ///
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
+#[serde(tag = "type", rename_all = "lowercase")]
 pub enum Input {
     /// The circuit byte representation.
     Circuit {
@@ -20,8 +20,8 @@ pub enum Input {
     },
     /// The contract byte representation.
     Contract {
-        /// The storage file JSON data.
-        storage: serde_json::Value,
+        /// The storages JSON data.
+        storages: HashMap<String, serde_json::Value>,
         /// The contract input transaction, represented by the `zksync::msg` variable.
         msg: serde_json::Value,
         /// The contract methods arguments JSON data.
@@ -43,12 +43,12 @@ impl Input {
     /// A shortcut constructor.
     ///
     pub fn new_contract(
-        storage: serde_json::Value,
+        storages: HashMap<String, serde_json::Value>,
         msg: serde_json::Value,
         arguments: HashMap<String, serde_json::Value>,
     ) -> Self {
         Self::Contract {
-            storage,
+            storages,
             msg,
             arguments,
         }

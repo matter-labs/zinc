@@ -61,18 +61,18 @@ rustup target add "${TARGET_LINUX}"
 
 # Building OpenSSL
 wget --verbose \
-  --output-document 'openssl-1.1.1g.tar.gz' \
-  'https://www.openssl.org/source/openssl-1.1.1g.tar.gz'
-tar --verbose --extract --file 'openssl-1.1.1g.tar.gz'
-cd 'openssl-1.1.1g/'
+  --output-document 'openssl-1.1.1i.tar.gz' \
+  'https://www.openssl.org/source/openssl-1.1.1i.tar.gz'
+tar --verbose --extract --file 'openssl-1.1.1i.tar.gz'
+cd 'openssl-1.1.1i/'
 ./config \
-  --prefix='/zinc-dev/openssl-1.1.1g/build/' \
-  --openssldir='/zinc-dev/openssl-1.1.1g/build/' \
+  --prefix='/zinc-dev/openssl-1.1.1i/build/' \
+  --openssldir='/zinc-dev/openssl-1.1.1i/build/' \
   'shared' \
   'zlib'
 make -j"$(nproc)" && make install
 cd -
-export OPENSSL_DIR='/zinc-dev/openssl-1.1.1g/build/'
+export OPENSSL_DIR='/zinc-dev/openssl-1.1.1i/build/'
 
 # Building
 cargo build --verbose --release --target "${TARGET_LINUX}"
@@ -123,10 +123,10 @@ export CXX='o64-clang++'
 
 # Downloading OpenSSL
 wget --verbose \
-  --output-document 'openssl-1.1.1g.tar.gz' \
-  'https://homebrew.bintray.com/bottles/openssl%401.1-1.1.1g.catalina.bottle.tar.gz'
-tar --verbose --extract --file 'openssl-1.1.1g.tar.gz'
-export OPENSSL_DIR='/zinc-dev/openssl@1.1/1.1.1g/'
+  --output-document 'openssl-1.1.1i.tar.gz' \
+  'https://homebrew.bintray.com/bottles/openssl%401.1-1.1.1i.catalina.bottle.tar.gz'
+tar --verbose --extract --file 'openssl-1.1.1i.tar.gz'
+export OPENSSL_DIR='/zinc-dev/openssl@1.1/1.1.1i/'
 
 # Configuring
 cat <<EOT >> '.cargo/config'

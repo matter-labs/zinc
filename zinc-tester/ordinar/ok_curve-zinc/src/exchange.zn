@@ -73,7 +73,7 @@ pub fn after(
 #[test]
 fn ok_equal_precision() {
     let new_y = after(
-        [TokenAddress::USDT, TokenAddress::USDC],
+        [TokenAddress::ETH, TokenAddress::DAI],
         [1_E3 as Balance, 1_E3 as Balance],
         100 as u64,
 
@@ -88,7 +88,7 @@ fn ok_equal_precision() {
 #[test]
 fn ok_equal_precision_amplified() {
     let new_y = after(
-        [TokenAddress::USDT, TokenAddress::USDC],
+        [TokenAddress::ETH, TokenAddress::DAI],
         [1_E6 as Balance, 1_E6 as Balance],
         100 as u64,
 
@@ -103,8 +103,8 @@ fn ok_equal_precision_amplified() {
 #[test]
 fn ok_different_precision_lesser_bigger() {
     let new_y = after(
-        [TokenAddress::USDT, TokenAddress::TUSD],
-        [1_E6 as Balance, 1_E18 as Balance],
+        [TokenAddress::wBTC, TokenAddress::DAI],
+        [1_E8 as Balance, 1_E18 as Balance],
         100 as u64,
 
         0,
@@ -112,14 +112,14 @@ fn ok_different_precision_lesser_bigger() {
         1.050_E6 as Balance,
     );
 
-    require!(new_y == 950_024_800_946_586_013, "The balance after withdrawal does not match the reference");
+    require!(new_y == 2_379_708_997_553_867_551, "The balance after withdrawal does not match the reference");
 }
 
 #[test]
 fn ok_different_precision_lesser_bigger_amplified() {
     let new_y = after(
-        [TokenAddress::USDT, TokenAddress::TUSD],
-        [1_E6 as Balance, 1_E18 as Balance],
+        [TokenAddress::wBTC, TokenAddress::DAI],
+        [1_E8 as Balance, 1_E18 as Balance],
         100 as u64,
 
         0,
@@ -127,14 +127,14 @@ fn ok_different_precision_lesser_bigger_amplified() {
         1.950_E6 as Balance,
     );
 
-    require!(new_y == 94_351_900_636_131_207, "The balance after withdrawal does not match the reference");
+    require!(new_y == 2_203_255_778_032_482_414, "The balance after withdrawal does not match the reference");
 }
 
 #[test]
 fn ok_different_precision_bigger_lesser() {
     let new_y = after(
-        [TokenAddress::TUSD, TokenAddress::USDT],
-        [1_E18 as Balance, 1_E6 as Balance],
+        [TokenAddress::DAI, TokenAddress::wBTC],
+        [1_E18 as Balance, 1_E8 as Balance],
         100 as u64,
 
         0,
@@ -142,14 +142,14 @@ fn ok_different_precision_bigger_lesser() {
         1.050_E18 as Balance,
     );
 
-    require!(new_y == 950_024, "The balance after withdrawal does not match the reference");
+    require!(new_y == 95_002_480, "The balance after withdrawal does not match the reference");
 }
 
 #[test]
 fn ok_different_precision_bigger_lesser_amplified() {
     let new_y = after(
-        [TokenAddress::TUSD, TokenAddress::USDT],
-        [1_E18 as Balance, 1_E6 as Balance],
+        [TokenAddress::DAI, TokenAddress::wBTC],
+        [1_E18 as Balance, 1_E8 as Balance],
         100 as u64,
 
         0,
@@ -157,14 +157,14 @@ fn ok_different_precision_bigger_lesser_amplified() {
         1.950_E18 as Balance,
     );
 
-    require!(new_y == 94_351, "The balance after withdrawal does not match the reference");
+    require!(new_y == 9_435_190, "The balance after withdrawal does not match the reference");
 }
 
 #[test]
 #[should_panic]
 fn error_same_tokens() {
     after(
-        [TokenAddress::USDT, TokenAddress::USDC],
+        [TokenAddress::ETH, TokenAddress::ETH],
         [1E3 as Balance, 1E3 as Balance],
         100 as u64,
 

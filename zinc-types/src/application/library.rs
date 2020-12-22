@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM bytecode library application.
+//! The bytecode library.
 //!
 
 use std::collections::HashMap;
@@ -11,7 +11,7 @@ use crate::application::unit_test::UnitTest;
 use crate::instructions::Instruction;
 
 ///
-/// The library.
+/// The bytecode library.
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Library {

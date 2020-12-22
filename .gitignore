@@ -6,6 +6,7 @@
 /target/
 
 # Zinc build
+/zinc-tester/ordinar/*/data/
 /zinc-tester/ordinar/*/target/debug/
 /zinc-tester/ordinar/*/target/release/
 

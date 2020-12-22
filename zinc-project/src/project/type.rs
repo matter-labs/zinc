@@ -11,7 +11,7 @@ use serde::Serialize;
 ///
 /// The Zinc project type.
 ///
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub enum Type {
     /// The zero-knowledge circuit.
     #[serde(rename = "circuit")]

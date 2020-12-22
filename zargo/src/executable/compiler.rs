@@ -21,18 +21,21 @@ impl Compiler {
     ///
     /// If `is_test_only` is set, passes the flag to only build the project unit tests.
     ///
-    #[allow(clippy::too_many_arguments)]
     pub fn build_debug(
         verbosity: usize,
+        quiet: bool,
         name: &str,
         version: &semver::Version,
         manifest_path: &PathBuf,
         is_test_only: bool,
     ) -> anyhow::Result<()> {
-        eprintln!("   {} {} v{}", "Compiling".bright_green(), name, version);
+        if !quiet {
+            eprintln!("   {} {} v{}", "Compiling".bright_green(), name, version);
+        }
 
         let mut child = process::Command::new(zinc_const::app_name::COMPILER)
             .args(vec!["-v"; verbosity])
+            .args(if quiet { vec!["--quiet"] } else { vec![] })
             .arg("--manifest-path")
             .arg(manifest_path)
             .args(if is_test_only {
@@ -49,7 +52,9 @@ impl Compiler {
             anyhow::bail!(Error::SubprocessFailure(status));
         }
 
-        eprintln!("    {} dev [unoptimized] target", "Finished".bright_green());
+        if !quiet {
+            eprintln!("    {} dev [unoptimized] target", "Finished".bright_green());
+        }
 
         Ok(())
     }
@@ -59,18 +64,21 @@ impl Compiler {
     ///
     /// If `is_test_only` is set, passes the flag to only build the project unit tests.
     ///
-    #[allow(clippy::too_many_arguments)]
     pub fn build_release(
         verbosity: usize,
+        quiet: bool,
         name: &str,
         version: &semver::Version,
         manifest_path: &PathBuf,
         is_test_only: bool,
     ) -> anyhow::Result<()> {
-        eprintln!("   {} {} v{}", "Compiling".bright_green(), name, version);
+        if !quiet {
+            eprintln!("   {} {} v{}", "Compiling".bright_green(), name, version);
+        }
 
         let mut child = process::Command::new(zinc_const::app_name::COMPILER)
             .args(vec!["-v"; verbosity])
+            .args(if quiet { vec!["--quiet"] } else { vec![] })
             .arg("--manifest-path")
             .arg(manifest_path)
             .args(if is_test_only {
@@ -88,10 +96,12 @@ impl Compiler {
             anyhow::bail!(Error::SubprocessFailure(status));
         }
 
-        eprintln!(
-            "    {} release [optimized] target",
-            "Finished".bright_green(),
-        );
+        if !quiet {
+            eprintln!(
+                "    {} release [optimized] target",
+                "Finished".bright_green(),
+            );
+        }
 
         Ok(())
     }

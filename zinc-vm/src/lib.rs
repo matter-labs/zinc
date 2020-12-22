@@ -21,6 +21,7 @@ pub use self::core::circuit::facade::Facade as CircuitFacade;
 pub use self::core::circuit::output::Output as CircuitOutput;
 pub use self::core::contract::facade::Facade as ContractFacade;
 pub use self::core::contract::input::Input as ContractInput;
+pub use self::core::contract::output::initializer::Initializer as ContractOutputInitializer;
 pub use self::core::contract::output::Output as ContractOutput;
 pub use self::core::contract::storage::keeper::IKeeper as IContractStorageKeeper;
 pub use self::core::facade::Facade;

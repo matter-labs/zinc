@@ -1,0 +1,32 @@
+[
+  {
+    "action": "publish",
+    "instance": "default",
+    "input_path": "01_publish.json",
+    "change_pubkey_fee_token": "ETH"
+  },
+  {
+    "action": "call",
+    "instance": "default",
+    "input_path": "02_call_deposit.json",
+    "method": "deposit",
+    "expect": {
+      "output": {
+        "result": null,
+        "root_hash": "0x0"
+      }
+    }
+  },
+  {
+    "action": "call",
+    "instance": "default",
+    "input_path": "03_call_create_and_init.json",
+    "method": "create_and_init",
+    "expect": {
+      "output": {
+        "result": null,
+        "root_hash": "0x0"
+      }
+    }
+  }
+]

@@ -23,10 +23,11 @@ impl Analyzer {
     ///
     pub fn define(
         module: Source,
+        project: zinc_project::ManifestProject,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
         is_dependency_entry: bool,
     ) -> Result<Rc<RefCell<Scope>>, Error> {
-        let entry = ScopeModuleItem::new_entry(module, dependencies, is_dependency_entry)?;
+        let entry = ScopeModuleItem::new_entry(module, project, dependencies, is_dependency_entry)?;
         entry.borrow().define()?;
 
         let entry = entry.borrow();

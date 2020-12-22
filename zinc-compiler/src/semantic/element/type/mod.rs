@@ -294,12 +294,13 @@ impl Type {
     pub fn contract(
         location: Location,
         identifier: String,
+        project: zinc_project::ManifestProject,
         fields: Vec<ContractField>,
         scope: Rc<RefCell<Scope>>,
     ) -> Result<Self, Error> {
         let type_id = TYPE_INDEX.next(format!("contract {}", identifier));
 
-        Contract::new(location, identifier, type_id, fields, scope).map(Self::Contract)
+        Contract::new(location, identifier, project, type_id, fields, scope).map(Self::Contract)
     }
 
     ///

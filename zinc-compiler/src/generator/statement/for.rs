@@ -13,14 +13,14 @@ use crate::generator::expression::operand::constant::boolean::Boolean as Boolean
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::r#type::Type;
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 
 use num::BigInt;
 use num::One;
 
 ///
-/// The Zinc VM loop statement.
+/// The generator `for` statement.
 ///
 #[derive(Debug, Clone)]
 pub struct Statement {
@@ -75,7 +75,7 @@ impl Statement {
 }
 
 impl IBytecodeWritable for Statement {
-    fn write_all(self, state: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         let index_type =
             Type::integer(self.index_variable_is_signed, self.index_variable_bitlength);
         let index_size = index_type.size();
@@ -87,7 +87,7 @@ impl IBytecodeWritable for Statement {
             self.index_variable_is_signed,
             self.index_variable_bitlength,
         )
-        .write_all(state.clone());
+        .write_to_zinc_vm(state.clone());
         state.borrow_mut().push_instruction(
             Instruction::Store(zinc_types::Store::new(index_address, index_size)),
             Some(self.location),
@@ -98,7 +98,7 @@ impl IBytecodeWritable for Statement {
             let while_allowed_address = state
                 .borrow_mut()
                 .define_variable(None, Type::boolean().size());
-            while_allowed.write_all(state.clone());
+            while_allowed.write_to_zinc_vm(state.clone());
             state.borrow_mut().push_instruction(
                 Instruction::Store(zinc_types::Store::new(while_allowed_address, 1)),
                 Some(self.location),
@@ -116,14 +116,14 @@ impl IBytecodeWritable for Statement {
         if let (Some(while_condition), Some(while_allowed_address)) =
             (self.while_condition, while_allowed_address)
         {
-            while_condition.write_all(state.clone());
+            while_condition.write_to_zinc_vm(state.clone());
             state
                 .borrow_mut()
                 .push_instruction(Instruction::Not(zinc_types::Not), Some(self.location));
             state
                 .borrow_mut()
                 .push_instruction(Instruction::If(zinc_types::If), Some(self.location));
-            BooleanConstant::new(false).write_all(state.clone());
+            BooleanConstant::new(false).write_to_zinc_vm(state.clone());
             state.borrow_mut().push_instruction(
                 Instruction::Store(zinc_types::Store::new(
                     while_allowed_address,
@@ -145,12 +145,12 @@ impl IBytecodeWritable for Statement {
             state
                 .borrow_mut()
                 .push_instruction(Instruction::If(zinc_types::If), Some(self.location));
-            self.body.write_all(state.clone());
+            self.body.write_to_zinc_vm(state.clone());
             state
                 .borrow_mut()
                 .push_instruction(Instruction::EndIf(zinc_types::EndIf), Some(self.location));
         } else {
-            self.body.write_all(state.clone());
+            self.body.write_to_zinc_vm(state.clone());
         }
 
         if self.is_reversed {
@@ -159,7 +159,7 @@ impl IBytecodeWritable for Statement {
                 Some(self.location),
             );
             IntegerConstant::new_min(self.index_variable_is_signed, self.index_variable_bitlength)
-                .write_all(state.clone());
+                .write_to_zinc_vm(state.clone());
             state
                 .borrow_mut()
                 .push_instruction(Instruction::Gt(zinc_types::Gt), Some(self.location));
@@ -175,7 +175,7 @@ impl IBytecodeWritable for Statement {
                 self.index_variable_is_signed,
                 self.index_variable_bitlength,
             )
-            .write_all(state.clone());
+            .write_to_zinc_vm(state.clone());
             state
                 .borrow_mut()
                 .push_instruction(Instruction::Sub(zinc_types::Sub), Some(self.location));
@@ -192,7 +192,7 @@ impl IBytecodeWritable for Statement {
                 Some(self.location),
             );
             IntegerConstant::new_max(self.index_variable_is_signed, self.index_variable_bitlength)
-                .write_all(state.clone());
+                .write_to_zinc_vm(state.clone());
             state
                 .borrow_mut()
                 .push_instruction(Instruction::Lt(zinc_types::Lt), Some(self.location));
@@ -208,7 +208,7 @@ impl IBytecodeWritable for Statement {
                 self.index_variable_is_signed,
                 self.index_variable_bitlength,
             )
-            .write_all(state.clone());
+            .write_to_zinc_vm(state.clone());
             state
                 .borrow_mut()
                 .push_instruction(Instruction::Add(zinc_types::Add), Some(self.location));

@@ -7,6 +7,7 @@ A typical contract consists of several groups of entities:
 - the constructor
 - public methods
 - private methods
+- built-in methods
 - global variables
 - constants
 
@@ -53,8 +54,10 @@ persistent databases by the Zinc Zandbox server.
 ## The constructor
 
 Each contract must have a constructor, a special function with the name `new`, which
-returns a `Self` contract instance. You must not initialize the implicit storage fields,
-since they are filled automatically.
+returns a `Self` contract instance. The contract instance is not a value, but a reference
+to it, that is, its ETH address of type `u160`.
+
+You must not initialize the implicit storage fields, since they are filled automatically.
 
 ```rust,no_run,noplaypen
 contract Example {
@@ -94,6 +97,28 @@ contract Example {
     fn get_balance(address: u160) -> bool { ... }
 }
 ```
+
+## Builtin methods
+
+Each smart contract includes the built-in `transfer` method, which is used to send
+tokens to another account. The method is mutable, so it can only be called from
+the mutable context.
+
+```rust,no_run,noplaypen
+contract Example {
+    //...
+
+    fn send(mut self, address: u160, amount: u248) -> {
+        self.transfer(
+            address, // recipient address
+            0x0, // zkSync ETH token address
+            amount, // amount in wei
+        );
+    }
+}
+```
+
+The method signature in described in [Appendix D](../appendix/D-intrinsic-functions.md).
 
 ## Global variables
 

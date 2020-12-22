@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM scalar type.
+//! The scalar type.
 //!
 
 pub mod integer;
@@ -12,7 +12,7 @@ use serde::Serialize;
 use self::integer::Type as IntegerType;
 
 ///
-/// The Zinc VM scalar type.
+/// The scalar type.
 ///
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]

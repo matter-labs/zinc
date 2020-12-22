@@ -54,7 +54,7 @@ impl Function {
     }
 
     ///
-    /// The function input arguments total size in the Zinc VM data stack.
+    /// The function input arguments total size in the abstract data stack.
     ///
     pub fn input_size(&self) -> usize {
         self.bindings
@@ -64,7 +64,7 @@ impl Function {
     }
 
     ///
-    /// The function result type size in the Zinc VM data stack.
+    /// The function result type size in the abstract data stack.
     ///
     pub fn output_size(&self) -> usize {
         self.return_type.size()

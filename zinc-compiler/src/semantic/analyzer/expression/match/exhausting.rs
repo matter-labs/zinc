@@ -78,7 +78,9 @@ impl Data {
                 let mut current = self.patterns.keys().cloned().collect::<Vec<BigInt>>();
                 current.sort();
 
-                current == enumeration.values
+                let mut enum_values = enumeration.values.to_owned();
+                enum_values.sort();
+                current == enum_values
             }
             None => false,
         }

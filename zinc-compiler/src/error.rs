@@ -2018,27 +2018,6 @@ impl Error {
     ///
     /// Formats an error `message` with an optional `help` message.
     ///
-    /// The error is locationless, that is, not related to any specific place in the source code.
-    ///
-    #[allow(dead_code)]
-    fn format_message(message: &str, code: Option<usize>, help: Option<&str>) -> String {
-        let mut strings = Vec::with_capacity(8);
-        strings.push(String::new());
-        let code = match code {
-            Some(code) => format!("error[{:04}]", code),
-            None => "error".to_owned(),
-        };
-        strings.push(format!("{}: {}", code.bright_red(), message.bright_white()));
-        if let Some(help) = help {
-            strings.push(format!("{}: {}", "help".bright_white(), help.bright_blue()));
-        }
-        strings.push(String::new());
-        strings.join("\n")
-    }
-
-    ///
-    /// Formats an error `message` with an optional `help` message.
-    ///
     /// The error has a location, that is, points to a specific place in the source code.
     ///
     fn format_line(

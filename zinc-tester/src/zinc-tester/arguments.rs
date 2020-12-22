@@ -16,9 +16,11 @@ pub struct Arguments {
     /// Prints more logs, if passed several times.
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbosity: usize,
-    /// Runs the full testing with trusted setup and proof verification.
-    #[structopt(short = "p", long = "proof-check")]
-    pub proof_check: bool,
+
+    /// Suppresses output, if set.
+    #[structopt(short = "q", long = "quiet")]
+    pub quiet: bool,
+
     /// Runs only tests whose name contains the specified string.
     #[structopt(short = "f", long = "filter")]
     pub filter: Option<String>,

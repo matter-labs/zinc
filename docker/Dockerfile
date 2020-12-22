@@ -1,4 +1,4 @@
-FROM rust:1.47 as zinc-builder
+FROM rust:1.48 as zinc-builder
 COPY . zinc-dev/
 
 WORKDIR /zinc-dev/

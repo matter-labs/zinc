@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM bytecode circuit application.
+//! The bytecode circuit application.
 //!
 
 use std::collections::HashMap;
@@ -12,7 +12,7 @@ use crate::data::r#type::Type;
 use crate::instructions::Instruction;
 
 ///
-/// The circuit application.
+/// The bytecode circuit application.
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Circuit {

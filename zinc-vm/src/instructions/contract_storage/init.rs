@@ -22,7 +22,7 @@ impl<VM: IVirtualMachine> IExecutable<VM> for StorageInit {
         }
         values.reverse();
 
-        let eth_address = vm.storage_init(values, self.field_types)?;
+        let eth_address = vm.storage_init(self.project, values, self.field_types)?;
         vm.push(eth_address.into())?;
 
         Ok(())

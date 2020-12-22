@@ -68,7 +68,7 @@ impl Enumeration {
             .iter()
             .map(|(identifier, _value)| identifier.name.to_owned())
             .collect();
-        let mut bigints: Vec<BigInt> = variants_bigint
+        let bigints: Vec<BigInt> = variants_bigint
             .iter()
             .map(|(_identifier, value)| value.to_owned())
             .collect();
@@ -93,8 +93,7 @@ impl Enumeration {
             location,
         )?;
 
-        bigints.sort();
-        let mut enumeration = Self {
+        let enumeration = Self {
             location: Some(location),
             identifier,
             type_id,
@@ -115,8 +114,6 @@ impl Enumeration {
 
             Scope::define_variant(scope.clone(), identifier, Constant::Integer(constant))?;
         }
-
-        enumeration.values.sort();
 
         Ok(enumeration)
     }

@@ -12,7 +12,7 @@ use num::Zero;
 use zinc_types::Instruction;
 use zinc_types::Push;
 
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::element::constant::integer::Integer as SemanticIntegerConstant;
 
@@ -86,7 +86,7 @@ impl Integer {
 }
 
 impl IBytecodeWritable for Integer {
-    fn write_all(self, state: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         let scalar_type = match (self.is_signed, self.bitlength) {
             (false, zinc_const::bitlength::FIELD) => zinc_types::ScalarType::Field,
             (is_signed, bitlength) => zinc_types::ScalarType::Integer(zinc_types::IntegerType {

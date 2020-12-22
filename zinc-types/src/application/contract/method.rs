@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM bytecode contract application method.
+//! The bytecode contract application method.
 //!
 
 use serde::Deserialize;

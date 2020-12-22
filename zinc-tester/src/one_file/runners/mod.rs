@@ -3,7 +3,6 @@
 //!
 
 pub mod evaluation;
-pub mod proof_check;
 
 use std::path::PathBuf;
 use std::sync::Arc;

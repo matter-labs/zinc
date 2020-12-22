@@ -12,13 +12,14 @@ use zinc_compiler::EntryAnalyzer;
 use zinc_compiler::Error as CompilerError;
 use zinc_compiler::IBytecodeWritable;
 use zinc_compiler::Source;
-use zinc_compiler::State;
+use zinc_compiler::ZincVMState;
 
 use crate::error::Error;
 
 ///
 /// The compiled Zinc instance.
 ///
+#[derive(Debug)]
 pub struct Instance {
     /// The input data template value.
     pub input: zinc_types::Value,
@@ -49,16 +50,23 @@ impl Instance {
         let application = thread::Builder::new()
             .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
             .spawn(move || -> anyhow::Result<zinc_types::Application> {
-                let scope = EntryAnalyzer::define(source, HashMap::new(), false)
+                let project = zinc_project::ManifestProject::new(
+                    name.clone(),
+                    project_type,
+                    semver::Version::new(1, 0, 0),
+                );
+
+                let scope = EntryAnalyzer::define(source, project, HashMap::new(), false)
                     .map_err(CompilerError::Semantic)
                     .map_err(|error| anyhow::anyhow!(error.format()))?;
 
                 let state =
-                    State::new(zinc_project::Manifest::new(name.as_str(), project_type)).wrap();
+                    ZincVMState::new(zinc_project::Manifest::new(name.as_str(), project_type))
+                        .wrap();
                 zinc_compiler::Module::new(scope.borrow().get_intermediate())
-                    .write_all(state.clone());
+                    .write_to_zinc_vm(state.clone());
 
-                Ok(State::unwrap_rc(state).into_application(true))
+                Ok(ZincVMState::unwrap_rc(state).into_application(true))
             })
             .expect(zinc_const::panic::SYNCHRONIZATION)
             .join()

@@ -292,27 +292,6 @@ impl Client {
     }
 
     ///
-    /// Deletes the `contracts` table contents.
-    ///
-    pub async fn delete_contracts(
-        &self,
-        transaction: Option<&mut Transaction<'static, Postgres>>,
-    ) -> Result<()> {
-        const STATEMENT: &str = r#"
-        DELETE FROM zandbox.contracts;
-        "#;
-
-        let query = sqlx::query(STATEMENT);
-
-        match transaction {
-            Some(transaction) => query.execute(transaction).await?,
-            None => query.execute(&self.pool).await?,
-        };
-
-        Ok(())
-    }
-
-    ///
     /// Inserts contract storage fields into the `fields` table.
     ///
     pub async fn insert_fields(
@@ -410,7 +389,55 @@ impl Client {
     }
 
     ///
-    /// Deletes the `field` table contents.
+    /// Deletes the `projects` table contents.
+    ///
+    /// WARNING: only for integration tests!
+    ///
+    pub async fn delete_projects(
+        &self,
+        transaction: Option<&mut Transaction<'static, Postgres>>,
+    ) -> Result<()> {
+        const STATEMENT: &str = r#"
+        DELETE FROM zandbox.projects;
+        "#;
+
+        let query = sqlx::query(STATEMENT);
+
+        match transaction {
+            Some(transaction) => query.execute(transaction).await?,
+            None => query.execute(&self.pool).await?,
+        };
+
+        Ok(())
+    }
+
+    ///
+    /// Deletes the `contracts` table contents.
+    ///
+    /// WARNING: only for integration tests!
+    ///
+    pub async fn delete_contracts(
+        &self,
+        transaction: Option<&mut Transaction<'static, Postgres>>,
+    ) -> Result<()> {
+        const STATEMENT: &str = r#"
+        DELETE FROM zandbox.contracts;
+        "#;
+
+        let query = sqlx::query(STATEMENT);
+
+        match transaction {
+            Some(transaction) => query.execute(transaction).await?,
+            None => query.execute(&self.pool).await?,
+        };
+
+        Ok(())
+    }
+
+    ///
+    /// Deletes the `fields` table contents.
+    ///
+    /// WARNING: only for integration tests!
     ///
     pub async fn delete_fields(
         &self,

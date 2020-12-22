@@ -18,7 +18,6 @@ use crate::semantic::element::r#type::contract::field::Field as ContractFieldTyp
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::r#type::statement::Statement as TypeStatementVariant;
-use crate::semantic::scope::r#type::Type as ScopeType;
 use crate::semantic::scope::Scope;
 
 ///
@@ -106,20 +105,25 @@ impl Analyzer {
             }
         }
 
+        let (project, is_in_dependency) =
+            RefCell::borrow(&scope)
+                .entry()
+                .ok_or(Error::ContractBeyondEntry {
+                    location: statement.location,
+                })?;
+
         let r#type = Type::contract(
             statement.location,
             statement.identifier.name,
+            project.clone(),
             storage_fields.clone(),
             scope.clone(),
         )?;
 
         scope.borrow().define()?;
 
-        let is_dependency = RefCell::borrow(&scope).is_within(ScopeType::Entry {
-            is_dependency: true,
-        });
-
-        let intermediate = GeneratorContractStatement::new(location, storage_fields, is_dependency);
+        let intermediate =
+            GeneratorContractStatement::new(location, project, storage_fields, is_in_dependency);
 
         Ok((r#type, intermediate))
     }

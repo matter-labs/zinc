@@ -2,9 +2,11 @@
 //! The zkSync account public key changer.
 //!
 
+pub(crate) mod arguments;
+
 use colored::Colorize;
 
-static PRIVATE_KEY: &str = "7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
+use self::arguments::Arguments;
 
 const NETWORK: zksync::Network = zksync::Network::Localhost;
 
@@ -13,8 +15,10 @@ const NETWORK: zksync::Network = zksync::Network::Localhost;
 ///
 #[actix_rt::main]
 async fn main() {
+    let args = Arguments::new();
+
     let provider = zksync::RpcProvider::new(NETWORK);
-    let private_key: zksync_types::H256 = PRIVATE_KEY
+    let private_key: zksync_types::H256 = args.private_key["0x".len()..]
         .parse()
         .expect(zinc_const::panic::DATA_CONVERSION);
     let address = zksync_types::tx::PackedEthSignature::address_from_private_key(&private_key)
@@ -47,5 +51,5 @@ async fn main() {
             .unwrap_or_else(|| "Unknown error".to_owned()));
     }
 
-    println!("{}", "OK".bright_green());
+    println!("     {} {}", "Changed".bright_green(), args.private_key);
 }

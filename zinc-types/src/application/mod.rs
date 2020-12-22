@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM bytecode application.
+//! The bytecode application.
 //!
 
 pub mod circuit;
@@ -26,7 +26,7 @@ use self::contract::Contract;
 use self::library::Library;
 
 ///
-/// The Zinc application.
+/// The bytecode application.
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Application {
@@ -128,7 +128,11 @@ impl Application {
                     .into_iter()
                     .map(|field| Value::new(field.r#type).into_json())
                     .collect();
-                let storage = serde_json::Value::Array(fields);
+                let mut storages = HashMap::with_capacity(1);
+                storages.insert(
+                    "0x0000000000000000000000000000000000000000".to_owned(),
+                    serde_json::Value::Array(fields),
+                );
 
                 let transaction = serde_json::json!({
                     "sender": "0x0000000000000000000000000000000000000000",
@@ -141,7 +145,7 @@ impl Application {
 
                 Build::new(
                     bytecode,
-                    InputBuild::new_contract(storage, transaction, arguments),
+                    InputBuild::new_contract(storages, transaction, arguments),
                 )
             }
             Application::Library(library) => {

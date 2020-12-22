@@ -20,7 +20,7 @@ use zinc_types::Instruction;
 
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::r#type::Type;
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
@@ -36,7 +36,7 @@ use self::place::Place;
 use self::r#match::Expression as MatchExpression;
 
 ///
-/// The expression operand which is translated to Zinc VM data.
+/// The expression operand which is translated to some data.
 ///
 #[derive(Debug, Clone)]
 pub enum Operand {
@@ -59,9 +59,9 @@ pub enum Operand {
 }
 
 impl IBytecodeWritable for Operand {
-    fn write_all(self, state: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         match self {
-            Self::Constant(inner) => inner.write_all(state),
+            Self::Constant(inner) => inner.write_to_zinc_vm(state),
             Self::Place(mut inner) => match inner.memory_type {
                 MemoryType::Stack => {
                     let location = inner.identifier.location;
@@ -75,7 +75,7 @@ impl IBytecodeWritable for Operand {
                     let is_indexed = !inner.elements.is_empty();
 
                     if is_indexed {
-                        inner.write_all(state.clone());
+                        inner.write_to_zinc_vm(state.clone());
                         state.borrow_mut().push_instruction(
                             Instruction::LoadByIndex(zinc_types::LoadByIndex::new(
                                 address,
@@ -122,7 +122,7 @@ impl IBytecodeWritable for Operand {
                             false,
                             zinc_const::bitlength::FIELD,
                         )
-                        .write_all(state.clone());
+                        .write_to_zinc_vm(state.clone());
 
                         if !*is_mtreemap {
                             state.borrow_mut().push_instruction(
@@ -137,7 +137,7 @@ impl IBytecodeWritable for Operand {
                     }
 
                     if !inner.elements.is_empty() {
-                        inner.write_all(state.clone());
+                        inner.write_to_zinc_vm(state.clone());
                         state.borrow_mut().push_instruction(
                             Instruction::Slice(zinc_types::Slice::new(element_size, total_size)),
                             Some(location),
@@ -145,12 +145,12 @@ impl IBytecodeWritable for Operand {
                     }
                 }
             },
-            Self::Array(inner) => inner.write_all(state),
-            Self::Group(inner) => inner.write_all(state),
-            Self::List(inner) => inner.write_all(state),
-            Self::Block(inner) => inner.write_all(state),
-            Self::Conditional(inner) => inner.write_all(state),
-            Self::Match(inner) => inner.write_all(state),
+            Self::Array(inner) => inner.write_to_zinc_vm(state),
+            Self::Group(inner) => inner.write_to_zinc_vm(state),
+            Self::List(inner) => inner.write_to_zinc_vm(state),
+            Self::Block(inner) => inner.write_to_zinc_vm(state),
+            Self::Conditional(inner) => inner.write_to_zinc_vm(state),
+            Self::Match(inner) => inner.write_to_zinc_vm(state),
         }
     }
 }

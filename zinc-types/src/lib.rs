@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM bytecode metadata library.
+//! The bytecode metadata library.
 //!
 
 pub(crate) mod application;

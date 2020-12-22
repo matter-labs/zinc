@@ -2,21 +2,15 @@
 //! The Zinc virtual machine subcommand.
 //!
 
-pub mod prove;
 pub mod run;
-pub mod setup;
 pub mod test;
-pub mod verify;
 
 use structopt::StructOpt;
 
 use crate::error::Error;
 
-use self::prove::Command as ProveCommand;
 use self::run::Command as RunCommand;
-use self::setup::Command as SetupCommand;
 use self::test::Command as TestCommand;
-use self::verify::Command as VerifyCommand;
 
 ///
 /// The generic trait used for commands.
@@ -41,12 +35,6 @@ pub enum Command {
     Run(RunCommand),
     /// Executes a unit test.
     Test(TestCommand),
-    /// Generates a pair of proving and verifying keys.
-    Setup(SetupCommand),
-    /// Generates a proof using the proving key.
-    Prove(ProveCommand),
-    /// Verifies a proof using the verifying key.
-    Verify(VerifyCommand),
 }
 
 impl IExecutable for Command {
@@ -56,9 +44,6 @@ impl IExecutable for Command {
         match self {
             Command::Run(inner) => inner.execute(),
             Command::Test(inner) => inner.execute(),
-            Command::Setup(_inner) => Err(Error::ProofVerificationUnavailable),
-            Command::Prove(_inner) => Err(Error::ProofVerificationUnavailable),
-            Command::Verify(_inner) => Err(Error::ProofVerificationUnavailable),
         }
     }
 }

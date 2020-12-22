@@ -40,15 +40,6 @@ pub enum Error {
     #[error("failed to decode an application: {0}")]
     ApplicationDecoding(String),
 
-    /// The hexadecimal data decoding error. Is caused by invalid proofs and keys.
-    #[error("failed to decode {context} hex-code: {error}")]
-    HexDecoding {
-        /// The hexadecimal content description.
-        context: String,
-        /// The inner `hex` error.
-        error: hex::FromHexError,
-    },
-
     /// The input data is invalid.
     #[error("the input data is invalid: expected `{expected}`, found `{found}`")]
     InputDataInvalid {
@@ -84,10 +75,6 @@ pub enum Error {
     /// The library cannot be run as a standalone application.
     #[error("libraries cannot be run as they have no entry points")]
     CannotRunLibrary,
-
-    /// The command is temporarily unavailable.
-    #[error("the proof verification is temporarily unavailable")]
-    ProofVerificationUnavailable,
 }
 
 ///

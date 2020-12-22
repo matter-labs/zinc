@@ -9,11 +9,11 @@ use std::rc::Rc;
 
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::r#type::Type;
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 
 ///
-/// The group expression which is translated to Zinc VM data.
+/// The group expression which is translated to some data.
 ///
 #[derive(Debug, Clone)]
 pub struct Expression {
@@ -31,9 +31,9 @@ impl Expression {
 }
 
 impl IBytecodeWritable for Expression {
-    fn write_all(self, bytecode: Rc<RefCell<State>>) {
+    fn write_to_zinc_vm(self, bytecode: Rc<RefCell<ZincVMState>>) {
         for (_type, expression) in self.expressions.into_iter() {
-            expression.write_all(bytecode.clone());
+            expression.write_to_zinc_vm(bytecode.clone());
         }
     }
 }

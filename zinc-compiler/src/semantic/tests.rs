@@ -27,8 +27,13 @@ pub(crate) fn compile_entry_with_modules(
 ) -> Result<(), Error> {
     let path = PathBuf::from("test.zn");
     let source = Source::test(code, path, modules).expect(zinc_const::panic::TEST_DATA_VALID);
+    let project = zinc_project::ManifestProject::new(
+        "test".to_owned(),
+        zinc_project::ProjectType::Contract,
+        semver::Version::new(1, 0, 0),
+    );
 
-    EntryAnalyzer::define(source, HashMap::new(), false).map_err(Error::Semantic)?;
+    EntryAnalyzer::define(source, project, HashMap::new(), false).map_err(Error::Semantic)?;
 
     Ok(())
 }
@@ -146,7 +151,7 @@ fn main() -> u8 {
     let scope = Scope::new_module(
         zinc_const::file_name::APPLICATION_ENTRY.to_owned(),
         HashMap::new(),
-        false,
+        None,
         false,
     )
     .wrap();
@@ -172,7 +177,7 @@ contract Uniswap {
     let scope = Scope::new_module(
         zinc_const::file_name::APPLICATION_ENTRY.to_owned(),
         HashMap::new(),
-        false,
+        None,
         false,
     )
     .wrap();

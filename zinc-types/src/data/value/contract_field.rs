@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM contract value storage field.
+//! The contract value storage field.
 //!
 
 use serde::Deserialize;

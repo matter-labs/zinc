@@ -121,6 +121,9 @@ pub enum Error {
     #[error("contract {address} already exists")]
     ContractAlreadyExists { address: String },
 
+    #[error("contract instance {address} cannot be fetched twice")]
+    ContractAlreadyFetched { address: String },
+
     #[error("contract method `{found}` does not exist")]
     MethodNotFound { found: String },
 }

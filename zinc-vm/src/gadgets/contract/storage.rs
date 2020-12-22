@@ -151,9 +151,15 @@ where
     pub fn root_hash(&self) -> Result<Scalar<E>, Error> {
         Ok(self.root_hash.clone())
     }
+}
 
-    #[allow(clippy::should_implement_trait)]
-    pub fn as_mut(&mut self) -> &mut S {
+impl<E, S, H> AsMut<S> for StorageGadget<E, S, H>
+where
+    E: IEngine,
+    S: IMerkleTree<E>,
+    H: IMerkleTreeHasher<E>,
+{
+    fn as_mut(&mut self) -> &mut S {
         self.storage.borrow_mut()
     }
 }

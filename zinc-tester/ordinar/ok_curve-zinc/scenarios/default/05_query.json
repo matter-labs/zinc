@@ -1,0 +1,14 @@
+{
+  "type": "contract",
+  "storage": [
+    "0x0",
+    [],
+    [
+      "ETH",
+      "DAI"
+    ],
+    "100"
+  ],
+  "msg": {},
+  "arguments": {}
+}

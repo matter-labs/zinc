@@ -22,7 +22,7 @@ use crate::summary::Summary;
 ///
 /// The integration test directory.
 ///
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Directory {
     /// The directory file paths.
     pub file_paths: Vec<PathBuf>,

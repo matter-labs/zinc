@@ -26,7 +26,7 @@ pub struct Synthesizer<'a, E: IEngine, S: IMerkleTree<E>> {
     pub output: &'a mut Option<Result<Vec<Option<BigInt>>, Error>>,
     pub bytecode: zinc_types::Contract,
     pub method: zinc_types::ContractMethod,
-    pub storage: S,
+    pub storages: HashMap<BigInt, StorageGadget<E, S, Sha256Hasher>>,
     pub keeper: Box<dyn IKeeper>,
     pub transaction: zinc_types::TransactionMsg,
 
@@ -39,22 +39,9 @@ where
     S: IMerkleTree<E>,
 {
     fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
-        let storage = StorageGadget::<_, _, Sha256Hasher>::new(
-            cs.namespace(|| "storage init"),
-            self.storage,
-        )?;
-        let mut storages = HashMap::with_capacity(1);
-        storages.insert(
-            self.inputs
-                .as_ref()
-                .map(|inputs| inputs[0].to_owned())
-                .unwrap_or_default(),
-            storage,
-        );
-
         let mut contract = State::new(
             DedupCS::new(LoggingCS::new(cs)),
-            storages,
+            self.storages,
             self.keeper,
             self.transaction,
         );

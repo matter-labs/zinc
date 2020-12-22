@@ -690,7 +690,6 @@ impl Add for Integer {
             });
         }
 
-        #[allow(clippy::suspicious_arithmetic_impl)]
         let is_literal = self.is_literal && other.is_literal;
         let result = Self {
             location: location_1,
@@ -764,7 +763,6 @@ impl Sub for Integer {
             });
         }
 
-        #[allow(clippy::suspicious_arithmetic_impl)]
         let is_literal = self.is_literal && other.is_literal;
         let result = Self {
             location: location_1,
@@ -838,7 +836,6 @@ impl Mul for Integer {
             });
         }
 
-        #[allow(clippy::suspicious_arithmetic_impl)]
         let is_literal = self.is_literal && other.is_literal;
         let result = Self {
             location: location_1,
@@ -922,7 +919,6 @@ impl Div for Integer {
             });
         }
 
-        #[allow(clippy::suspicious_arithmetic_impl)]
         let is_literal = self.is_literal && other.is_literal;
         let result = Self {
             location: self.location,
@@ -1006,7 +1002,6 @@ impl Rem for Integer {
             });
         }
 
-        #[allow(clippy::suspicious_arithmetic_impl)]
         let is_literal = self.is_literal && other.is_literal;
         let result = Self {
             location: self.location,

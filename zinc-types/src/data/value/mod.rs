@@ -1,5 +1,5 @@
 //!
-//! The Zinc VM template value.
+//! The template value.
 //!
 
 pub mod contract_field;
@@ -24,7 +24,7 @@ use self::contract_field::ContractField;
 use self::scalar::Value as ScalarValue;
 
 ///
-/// The Zinc VM template value.
+/// The template value.
 ///
 /// The representation of the input and output data stored in JSON template files.
 ///

@@ -1,0 +1,7 @@
+[project]
+name = 'factory_transfer'
+type = 'contract'
+version = '0.1.0'
+
+[dependencies]
+internal = '0.1.0'

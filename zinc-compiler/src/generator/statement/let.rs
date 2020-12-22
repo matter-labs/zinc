@@ -10,12 +10,12 @@ use zinc_types::Instruction;
 
 use crate::generator::expression::Expression;
 use crate::generator::r#type::Type;
-use crate::generator::state::State;
+use crate::generator::zinc_vm::State as ZincVMState;
 use crate::generator::IBytecodeWritable;
 use crate::semantic::binding::Binding;
 
 ///
-/// The Zinc VM storage memory allocating statement.
+/// The generator `let` statement.
 ///
 #[derive(Debug, Clone)]
 pub struct Statement {
@@ -41,8 +41,8 @@ impl Statement {
 }
 
 impl IBytecodeWritable for Statement {
-    fn write_all(self, state: Rc<RefCell<State>>) {
-        self.expression.write_all(state.clone());
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
+        self.expression.write_to_zinc_vm(state.clone());
 
         for binding in self.bindings.into_iter().rev() {
             let r#type = match Type::try_from_semantic(&binding.r#type) {

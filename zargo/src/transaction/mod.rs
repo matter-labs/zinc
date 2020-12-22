@@ -52,7 +52,6 @@ pub async fn new_initial(
         .sign_transfer(token, amount, fee, recipient, nonce)
         .await
         .map_err(Error::TransactionSigning)?;
-    let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
     Ok(zinc_types::Transaction::new(
         ZkSyncTx::Transfer(Box::new(transfer)),
@@ -100,7 +99,6 @@ pub async fn try_into_zksync(
         .sign_transfer(token, amount, fee, transaction.recipient, nonce)
         .await
         .map_err(Error::TransactionSigning)?;
-    let signature = signature.expect(zinc_const::panic::DATA_CONVERSION);
 
     Ok(zinc_types::Transaction::new(
         ZkSyncTx::Transfer(Box::new(transfer)),
