@@ -66,8 +66,7 @@ impl State {
     const UNIT_TESTS_INITIAL_CAPACITY: usize = 16;
 
     ///
-    /// Creates a new bytecode instance with the placeholders for the entry `Call` and
-    /// `Exit` instructions.
+    /// Creates a new bytecode generator state instance.
     ///
     pub fn new(manifest: zinc_project::Manifest) -> Self {
         Self {
@@ -95,8 +94,8 @@ impl State {
     ///
     /// Extracts the bytecode from `Rc<RefCell<_>>`.
     ///
-    pub fn unwrap_rc(bytecode: Rc<RefCell<Self>>) -> Self {
-        Rc::try_unwrap(bytecode)
+    pub fn unwrap_rc(state: Rc<RefCell<Self>>) -> Self {
+        Rc::try_unwrap(state)
             .expect(zinc_const::panic::LAST_SHARED_REFERENCE)
             .into_inner()
     }

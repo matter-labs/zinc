@@ -36,12 +36,12 @@ impl Expression {
 }
 
 impl IBytecodeWritable for Expression {
-    fn write_to_zinc_vm(self, bytecode: Rc<RefCell<ZincVMState>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         for statement in self.statements.into_iter() {
-            statement.write_to_zinc_vm(bytecode.clone());
+            statement.write_to_zinc_vm(state.clone());
         }
         if let Some(expression) = self.expression {
-            expression.write_to_zinc_vm(bytecode);
+            expression.write_to_zinc_vm(state);
         }
     }
 }

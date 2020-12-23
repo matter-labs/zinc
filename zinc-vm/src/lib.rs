@@ -11,9 +11,8 @@ mod tests;
 pub(crate) mod constraint_systems;
 pub(crate) mod core;
 pub(crate) mod error;
+pub(crate) mod gadgets;
 pub(crate) mod instructions;
-
-pub mod gadgets;
 
 pub use franklin_crypto::bellman::pairing::bn256::Bn256;
 

@@ -37,13 +37,13 @@ pub enum Statement {
 }
 
 impl IBytecodeWritable for Statement {
-    fn write_to_zinc_vm(self, bytecode: Rc<RefCell<ZincVMState>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         match self {
-            Self::Fn(inner) => inner.write_to_zinc_vm(bytecode),
-            Self::Let(inner) => inner.write_to_zinc_vm(bytecode),
-            Self::Contract(inner) => inner.write_to_zinc_vm(bytecode),
-            Self::For(inner) => inner.write_to_zinc_vm(bytecode),
-            Self::Expression(inner) => inner.write_to_zinc_vm(bytecode),
+            Self::Fn(inner) => inner.write_to_zinc_vm(state),
+            Self::Let(inner) => inner.write_to_zinc_vm(state),
+            Self::Contract(inner) => inner.write_to_zinc_vm(state),
+            Self::For(inner) => inner.write_to_zinc_vm(state),
+            Self::Expression(inner) => inner.write_to_zinc_vm(state),
         }
     }
 }

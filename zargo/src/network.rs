@@ -20,7 +20,7 @@ impl Network {
     pub fn try_into_url(self) -> Result<String, zksync::Network> {
         match self.inner {
             zksync::Network::Localhost => Ok("http://localhost:4001".to_owned()),
-            zksync::Network::Rinkeby => Ok("https://rinkeby2-zandbox.zksync.dev".to_owned()),
+            zksync::Network::Rinkeby => Ok("https://rinkeby3-zandbox.zksync.dev".to_owned()),
             another => Err(another),
         }
     }

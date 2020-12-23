@@ -44,16 +44,16 @@ impl Expression {
 }
 
 impl IBytecodeWritable for Expression {
-    fn write_to_zinc_vm(self, bytecode: Rc<RefCell<ZincVMState>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         match self.variant {
             Variant::List { expressions } => {
                 for expression in expressions.into_iter() {
-                    expression.write_to_zinc_vm(bytecode.clone());
+                    expression.write_to_zinc_vm(state.clone());
                 }
             }
             Variant::Repeated { expression, size } => {
                 for expression in vec![expression; size].into_iter() {
-                    expression.write_to_zinc_vm(bytecode.clone());
+                    expression.write_to_zinc_vm(state.clone());
                 }
             }
         }

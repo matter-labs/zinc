@@ -59,7 +59,7 @@ impl Expression {
 }
 
 impl IBytecodeWritable for Expression {
-    fn write_to_zinc_vm(self, bytecode: Rc<RefCell<ZincVMState>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         let branch_count = self.branches.len();
         let scrutinee_size = self.scrutinee_type.size();
 
@@ -68,45 +68,45 @@ impl IBytecodeWritable for Expression {
             None => (None, None),
         };
 
-        let scrutinee_address = bytecode
+        let scrutinee_address = state
             .borrow_mut()
             .define_variable(binding_name, scrutinee_size);
 
-        self.scrutinee.write_to_zinc_vm(bytecode.clone());
-        bytecode.borrow_mut().push_instruction(
+        self.scrutinee.write_to_zinc_vm(state.clone());
+        state.borrow_mut().push_instruction(
             Instruction::Store(zinc_types::Store::new(scrutinee_address, scrutinee_size)),
             Some(self.location),
         );
 
         for (branch_pattern, branch_expression) in self.branches.into_iter() {
-            bytecode.borrow_mut().push_instruction(
+            state.borrow_mut().push_instruction(
                 Instruction::Load(zinc_types::Load::new(scrutinee_address, scrutinee_size)),
                 Some(self.location),
             );
-            branch_pattern.write_to_zinc_vm(bytecode.clone());
-            bytecode
+            branch_pattern.write_to_zinc_vm(state.clone());
+            state
                 .borrow_mut()
                 .push_instruction(Instruction::Eq(zinc_types::Eq), Some(self.location));
-            bytecode
+            state
                 .borrow_mut()
                 .push_instruction(Instruction::If(zinc_types::If), Some(self.location));
-            branch_expression.write_to_zinc_vm(bytecode.clone());
-            bytecode
+            branch_expression.write_to_zinc_vm(state.clone());
+            state
                 .borrow_mut()
                 .push_instruction(Instruction::Else(zinc_types::Else), Some(self.location));
         }
 
         if let Some(binding_branch) = binding_branch {
-            binding_branch.write_to_zinc_vm(bytecode.clone());
+            binding_branch.write_to_zinc_vm(state.clone());
         } else if let Some(wildcard_branch) = self.wildcard_branch {
-            wildcard_branch.write_to_zinc_vm(bytecode.clone());
+            wildcard_branch.write_to_zinc_vm(state.clone());
         }
 
-        bytecode
+        state
             .borrow_mut()
             .push_instruction(Instruction::EndIf(zinc_types::EndIf), Some(self.location));
         for _ in 0..branch_count - 1 {
-            bytecode
+            state
                 .borrow_mut()
                 .push_instruction(Instruction::EndIf(zinc_types::EndIf), Some(self.location));
         }

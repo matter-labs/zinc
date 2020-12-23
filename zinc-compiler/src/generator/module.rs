@@ -28,9 +28,9 @@ impl Module {
 }
 
 impl IBytecodeWritable for Module {
-    fn write_to_zinc_vm(self, bytecode: Rc<RefCell<ZincVMState>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         for statement in self.statements.into_iter() {
-            statement.write_to_zinc_vm(bytecode.clone());
+            statement.write_to_zinc_vm(state.clone());
         }
     }
 }

@@ -2,6 +2,8 @@
 //! The gadgets.
 //!
 
+#![allow(dead_code)]
+
 pub mod arithmetic;
 pub mod array;
 pub mod auto_const;

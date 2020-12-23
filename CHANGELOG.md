@@ -1,6 +1,6 @@
 # The Zinc changelog
 
-## Version 0.2.1 (2020-12-23)
+## Version 0.2.1 (2020-12-24)
 
 #### Language
 

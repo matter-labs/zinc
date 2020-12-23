@@ -31,9 +31,9 @@ impl Expression {
 }
 
 impl IBytecodeWritable for Expression {
-    fn write_to_zinc_vm(self, bytecode: Rc<RefCell<ZincVMState>>) {
+    fn write_to_zinc_vm(self, state: Rc<RefCell<ZincVMState>>) {
         for (_type, expression) in self.expressions.into_iter() {
-            expression.write_to_zinc_vm(bytecode.clone());
+            expression.write_to_zinc_vm(state.clone());
         }
     }
 }
