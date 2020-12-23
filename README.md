@@ -2,7 +2,7 @@
 
 ## Documentation
 
-The official Zinc book: https://zinc.matterlabs.dev
+The official Zinc book: https://zinc.zksync.io/
 
 ## Gitter
 
@@ -14,58 +14,15 @@ Please discuss here: https://gitter.im/matter-labs/zinc
 2. Unpack its contents to some folder and add the folder to your `PATH` environment variable.
 3. Use the binaries via your favorite terminal.
 
-## Example
+## Getting started
 
 At first, you should install the following binaries to be available through your `PATH`:
 - `zargo` - the Zinc package manager
 - `znc` - the Zinc compiler
 - `zvm` - the Zinc virtual machine
-- `zandbox` - the Zinc smart contract server (mostly for local testing and development)
 
-Then, follow the example to create and use your first circuit:
-
-```bash
-# create a new circuit called 'zircuit'
-zargo new --type circuit zircuit
-cd zircuit/
-
-# write some code in the circuit
-
-# build the circuit
-zargo build
-
-# fill the input JSON template ./data/input.json with values
-
-# runs the circuit to check it without input data
-zargo run
-
-# generate the prover parameters
-zargo setup
-
-# generate the proof
-zargo prove > './data/proof.txt'
-
-# verify the proof
-zargo verify < './data/proof.txt'
-```
-
-**OR**
-
-```bash
-# create a new circuit called 'zircuit'
-zargo new --type circuit zircuit
-cd zircuit/
-
-# write some code in the circuit
-
-# build & run & setup & prove & verify
-zargo proof-check
-
-# fill the input JSON template ./data/input.json with values
-
-# repeat the sequence
-zargo proof-check
-```
+Then, follow the [tutorial](https://zinc.zksync.io/07-smart-contracts/00-overview.html)
+to create and use your first smart contract.
 
 ## Design background
 
