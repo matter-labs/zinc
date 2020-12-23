@@ -1,6 +1,6 @@
 # The Zinc changelog
 
-## Version 0.2.1 (2020-12-22)
+## Version 0.2.1 (2020-12-23)
 
 #### Language
 
@@ -33,6 +33,7 @@
 #### Book
 
 - added the smart contract troubleshooting chapter
+- added the dependency system chapter
 
 #### Source code
 

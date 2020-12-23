@@ -2,94 +2,9 @@
 
 export VERSION_ZINC="${1}"
 
-export TARGET_LINUX='x86_64-unknown-linux-musl'
 export TARGET_MACOS='x86_64-apple-darwin'
 
 mkdir --verbose "zinc-release-${VERSION_ZINC}"
-
-
-
-#######################################################################################################################
-### (DO NOT USE)                                    Windows                                                         ###
-#######################################################################################################################
-
-## Preparation
-#apt-get install --yes 'gcc-mingw-w64-x86-64'
-#rustup target add "${TARGET_WINDOWS}"
-#mkdir --verbose \
-#    --parents "/usr/local/rustup/toolchains/${VERSION_RUST}-x86_64-unknown-linux-gnu/lib/rustlib/${TARGET_WINDOWS}/lib/"
-#cp --verbose --force \
-#    '/usr/x86_64-w64-mingw32/lib/crt2.o' \
-#    '/usr/x86_64-w64-mingw32/lib/dllcrt2.o' \
-#    "/usr/local/rustup/toolchains/${VERSION_RUST}-x86_64-unknown-linux-gnu/lib/rustlib/${TARGET_WINDOWS}/lib/"
-#
-## Building
-#cargo build --verbose --release --target "${TARGET_WINDOWS}"
-#
-## Archiving
-#mkdir --verbose "zinc-${VERSION_ZINC}-windows"
-#mv --verbose --force \
-#    "target/${TARGET_WINDOWS}/release/zargo.exe" \
-#    "target/${TARGET_WINDOWS}/release/znc.exe" \
-#    "target/${TARGET_WINDOWS}/release/zvm.exe" \
-#    "zinc-${VERSION_ZINC}-windows"
-#zip --verbose -r \
-#    "zinc-release-${VERSION_ZINC}/zinc-${VERSION_ZINC}-windows.zip" \
-#    "zinc-${VERSION_ZINC}-windows"
-#
-#cat <<EOT >> '.cargo/config'
-#[target.x86_64-pc-windows-gnu]
-#linker = "x86_64-w64-mingw32-gcc"
-#ar = "x86_64-w64-mingw32-ar"
-#rustflags = [
-#  "-C", "link-arg=-mwindows",
-#]
-#EOT
-
-
-
-#######################################################################################################################
-###                                                      Linux                                                      ###
-#######################################################################################################################
-
-# Preparation
-apt-get install --yes \
-    'musl' \
-    'musl-dev' \
-    'musl-tools'
-rustup target add "${TARGET_LINUX}"
-
-# Building OpenSSL
-wget --verbose \
-  --output-document 'openssl-1.1.1i.tar.gz' \
-  'https://www.openssl.org/source/openssl-1.1.1i.tar.gz'
-tar --verbose --extract --file 'openssl-1.1.1i.tar.gz'
-cd 'openssl-1.1.1i/'
-./config \
-  --prefix='/zinc-dev/openssl-1.1.1i/build/' \
-  --openssldir='/zinc-dev/openssl-1.1.1i/build/' \
-  'shared' \
-  'zlib'
-make -j"$(nproc)" && make install
-cd -
-export OPENSSL_DIR='/zinc-dev/openssl-1.1.1i/build/'
-
-# Building
-cargo build --verbose --release --target "${TARGET_LINUX}"
-
-# Cleanup
-unset OPENSSL_DIR
-
-# Bundling
-mkdir --verbose "zinc-${VERSION_ZINC}-linux"
-mv --verbose --force \
-    "target/${TARGET_LINUX}/release/zargo" \
-    "target/${TARGET_LINUX}/release/znc" \
-    "target/${TARGET_LINUX}/release/zvm" \
-    "zinc-${VERSION_ZINC}-linux"
-tar --verbose \
-    --create --gzip --file "zinc-release-${VERSION_ZINC}/zinc-${VERSION_ZINC}-linux.tar.gz" \
-    "zinc-${VERSION_ZINC}-linux"
 
 
 

@@ -43,6 +43,16 @@ contract Caller {
 }
 ```
 
+## Library project type
+
+The `library` project is simply a collection of types and functions, which cannot
+be run as a separate project. Instead, it can be uploaded to Zandbox and used as
+a dependency. To create a library, initialize a project with the `library` type:
+
+```bash,no_run,noplaypen
+zargo new --type library math
+```
+
 ## Uploading a project
 
 To upload your project to the Zandbox database, simply use the `zargo upload`
