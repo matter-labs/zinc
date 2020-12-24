@@ -30,7 +30,7 @@ impl Directory {
     ///
     /// Initializes a virtual application module from a hard disk directory.
     ///
-    pub fn try_from_path(path: &PathBuf, is_entry: bool) -> anyhow::Result<Self> {
+    pub fn try_from_path(path: &PathBuf, prefix: &PathBuf, is_entry: bool) -> anyhow::Result<Self> {
         let directory = fs::read_dir(&path).with_context(|| path.to_string_lossy().to_string())?;
 
         let name = path
@@ -47,7 +47,7 @@ impl Directory {
             let directory_entry =
                 directory_entry.with_context(|| path.to_string_lossy().to_string())?;
             let path = directory_entry.path();
-            let module = Source::try_from_path(&path, false)
+            let module = Source::try_from_path(&path, prefix, false)
                 .with_context(|| path.to_string_lossy().to_string())?;
             let name = module.name().to_owned();
 
@@ -76,9 +76,16 @@ impl Directory {
         }
 
         if entry_exists {
+            let path = path
+                .strip_prefix(prefix)
+                .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
+                .to_path_buf()
+                .to_string_lossy()
+                .to_string();
+
             Ok(Self {
                 name,
-                path: path.to_string_lossy().to_string(),
+                path,
                 modules,
             })
         } else if is_entry {
@@ -94,7 +101,6 @@ impl Directory {
     pub fn write_to(&self, path: &PathBuf) -> anyhow::Result<()> {
         let mut dir_path = path.to_owned();
         dir_path.push(&self.path);
-        dbg!(&dir_path);
         fs::create_dir_all(&dir_path).with_context(|| dir_path.to_string_lossy().to_string())?;
 
         for (_name, file) in self.modules.iter() {

@@ -39,12 +39,23 @@ fn main_inner() -> anyhow::Result<()> {
 
     let optimize_dead_function_elimination = args.optimize_dead_function_elimination;
 
-    let mut data_directory_path = args.manifest_path.clone();
+    let mut manifest_path = args.manifest_path;
+    if !manifest_path.is_dir()
+        && manifest_path.ends_with(format!(
+            "{}.{}",
+            zinc_const::file_name::MANIFEST,
+            zinc_const::extension::MANIFEST
+        ))
+    {
+        manifest_path.pop();
+    }
+
+    let mut data_directory_path = manifest_path.clone();
     data_directory_path.push(zinc_const::directory::DATA);
     fs::create_dir_all(&data_directory_path)
         .with_context(|| data_directory_path.to_string_lossy().to_string())?;
 
-    let mut target_directory_path = args.manifest_path.clone();
+    let mut target_directory_path = manifest_path.clone();
     target_directory_path.push(if args.optimize_dead_function_elimination {
         zinc_const::directory::TARGET_RELEASE
     } else {
@@ -53,7 +64,7 @@ fn main_inner() -> anyhow::Result<()> {
     fs::create_dir_all(&target_directory_path)
         .with_context(|| target_directory_path.to_string_lossy().to_string())?;
 
-    let mut dependencies_directory_path = args.manifest_path.clone();
+    let mut dependencies_directory_path = manifest_path.clone();
     dependencies_directory_path.push(zinc_const::directory::TARGET_DEPS);
     fs::create_dir_all(&dependencies_directory_path)
         .with_context(|| dependencies_directory_path.to_string_lossy().to_string())?;
@@ -62,7 +73,7 @@ fn main_inner() -> anyhow::Result<()> {
         .stack_size(zinc_const::limit::COMPILER_STACK_SIZE)
         .spawn(move || {
             Bundler::new(
-                args.manifest_path,
+                manifest_path,
                 dependencies_directory_path,
                 optimize_dead_function_elimination,
             )

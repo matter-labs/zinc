@@ -39,13 +39,13 @@ impl Source {
     ///
     /// Initializes a virtual application module representation from the file system.
     ///
-    pub fn try_from_path(path: &PathBuf, is_entry: bool) -> anyhow::Result<Self> {
+    pub fn try_from_path(path: &PathBuf, prefix: &PathBuf, is_entry: bool) -> anyhow::Result<Self> {
         let file_type = fs::metadata(&path)?.file_type();
 
         if file_type.is_dir() {
-            Directory::try_from_path(path, is_entry).map(Self::Directory)
+            Directory::try_from_path(path, prefix, is_entry).map(Self::Directory)
         } else if file_type.is_file() {
-            File::try_from_path(path).map(Self::File)
+            File::try_from_path(path, prefix).map(Self::File)
         } else {
             Err(Error::FileTypeUnknown).with_context(|| path.to_string_lossy().to_string())
         }

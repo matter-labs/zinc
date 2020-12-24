@@ -139,7 +139,8 @@ impl Command {
         }
 
         let source_directory_path = SourceDirectory::path(&manifest_path);
-        let source = zinc_project::Source::try_from_path(&source_directory_path, true)?;
+        let source =
+            zinc_project::Source::try_from_path(&source_directory_path, &manifest_path, true)?;
         let project = zinc_project::Project::new(manifest.clone(), source);
 
         DataDirectory::create(&manifest_path)?;

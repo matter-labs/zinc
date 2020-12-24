@@ -18,7 +18,7 @@
   "arguments": {
     "swap": {
       "withdraw_address": "0xa61464658AfeAf65CccaaFD3a512b69A83B77618",
-      "withdraw_token_address": "0x318093a9b569e332d0224b0e1aec5fa92cc097d3",
+      "withdraw_token_address": "0x8C1f0b5C3D91534848A8DB08C89Aa4f641Debe25",
       "min_withdraw": "0.09_E18"
     }
   }

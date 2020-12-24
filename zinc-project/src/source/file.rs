@@ -29,7 +29,7 @@ impl File {
     ///
     /// Initializes a virtual application module from a hard disk file.
     ///
-    pub fn try_from_path(path: &PathBuf) -> anyhow::Result<Self> {
+    pub fn try_from_path(path: &PathBuf, prefix: &PathBuf) -> anyhow::Result<Self> {
         let mut file = fs::File::open(path).with_context(|| path.to_string_lossy().to_string())?;
 
         let size = file
@@ -57,11 +57,14 @@ impl File {
             .to_string_lossy()
             .to_string();
 
-        Ok(Self {
-            name,
-            path: path.to_string_lossy().to_string(),
-            code,
-        })
+        let path = path
+            .strip_prefix(prefix)
+            .expect(zinc_const::panic::VALIDATED_DURING_SOURCE_CODE_MAPPING)
+            .to_path_buf()
+            .to_string_lossy()
+            .to_string();
+
+        Ok(Self { name, path, code })
     }
 
     ///
