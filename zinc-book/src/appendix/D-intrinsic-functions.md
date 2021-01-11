@@ -42,3 +42,14 @@ Arguments:
 - amount: `u248`
 
 Returns: `()`
+
+## `<Contract>::fetch` function
+
+Loads a contract instance from the Zandbox server.
+
+Is automatically defined as a static function in every smart contract.
+
+Arguments:
+- address: `u160`
+
+Returns: `<Contract>`

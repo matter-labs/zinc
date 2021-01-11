@@ -1,0 +1,64 @@
+//!
+//! The 'dependency_contract_aggregation' contract entry.
+//!
+
+use inner::Inner;
+
+contract Main {
+    pub x: u8;
+    pub y: u8;
+    pub z: u8;
+
+    pub aggregated_a: Inner;
+    pub aggregated_b: Inner;
+    pub aggregated_c: Inner;
+
+    pub fn new(
+        x: u8,
+        y: u8,
+        z: u8,
+
+        aggregated_a: Inner,
+        aggregated_b: Inner,
+        aggregated_c: Inner,
+    ) -> Self {
+        Self {
+            x: x,
+            y: y,
+            z: z,
+
+            aggregated_a: aggregated_a,
+            aggregated_b: aggregated_b,
+            aggregated_c: aggregated_c,
+        }
+    }
+
+    pub fn sum_with_aggregated(self) -> u8 {
+        self.sum() +
+            self.aggregated_a.sum() +
+            self.aggregated_b.sum() +
+            self.aggregated_c.sum()
+    }
+
+    fn sum(self) -> u8 {
+        self.x + self.y + self.z
+    }
+}
+
+#[test]
+fn default() {
+    let instance = Main::new(
+        2, 4, 6,
+        Inner::new(2, 3, 4),
+        Inner::new(4, 4, 4),
+        Inner::new(2, 3, 4),
+    );
+
+    require(instance.sum_with_aggregated() == 42);
+}
+
+#[test]
+#[should_panic]
+fn panic() {
+    require(false);
+}

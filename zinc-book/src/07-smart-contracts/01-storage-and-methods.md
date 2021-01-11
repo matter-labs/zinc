@@ -100,9 +100,14 @@ contract Example {
 
 ## Builtin methods
 
-Each smart contract includes the built-in `transfer` method, which is used to send
-tokens to another account. The method is mutable, so it can only be called from
-the mutable context.
+Each smart contract includes two built-in methods.
+
+The method signatures are described in [Appendix D](../appendix/D-intrinsic-functions.md).
+
+### Transfer
+
+The `transfer` method is used to send tokens to another account. The method is mutable,
+so it can only be called from the mutable context.
 
 ```rust,no_run,noplaypen
 contract Example {
@@ -118,7 +123,21 @@ contract Example {
 }
 ```
 
-The method signature in described in [Appendix D](../appendix/D-intrinsic-functions.md).
+### Fetch
+
+The `fetch` method is used to load a contract instance from the Zandbox server.
+
+```rust,no_run,noplaypen
+contract Example {
+    //...
+
+    pub fn get_balance(self, address: u160, token: u160) -> u248 {
+        let instance = AnotherContract::fetch(address);
+        let (balance, found) = instance.balances.get(token);
+        balance
+    }
+}
+```
 
 ## Global variables
 

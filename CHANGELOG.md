@@ -1,5 +1,25 @@
 # The Zinc changelog
 
+## Version next (2021-XX-XX)
+
+#### Compiler
+
+- fixed incorrect multi-line comment location tracking in some cases
+
+#### Virtual machine
+
+- fixed the bug where contract instance aggregation caused a stack underflow
+- fixed the false-positive type errors in some conditionals
+
+#### Zargo
+
+- improved interface descriptions and help messages
+
+#### Book
+
+- added the `Contract::fetch` function description
+- updated some obsolete information
+
 ## Version 0.2.1 (2020-12-24)
 
 #### Language

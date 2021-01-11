@@ -148,7 +148,10 @@ impl Analyzer {
             .unwrap_or_default();
         let is_method = bindings
             .first()
-            .map(|binding| matches!(binding.r#type, Type::Contract(_)))
+            .map(|binding| {
+                binding.identifier.is_self_lowercase()
+                    && matches!(binding.r#type, Type::Contract(_))
+            })
             .unwrap_or_default();
 
         let role = match scope_type {

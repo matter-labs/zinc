@@ -33,7 +33,7 @@ pub struct Command {
     #[structopt(long = "name")]
     pub name: Option<String>,
 
-    /// Sets the project type, either 'circuit' or 'contract'.
+    /// Sets the project type, either 'circuit', 'contract', or 'library'.
     #[structopt(long = "type")]
     pub r#type: String,
 

@@ -115,6 +115,12 @@ pub fn parse(input: &str) -> Result<Output, Error> {
                     let comment = Comment::new_block(input[2..size - 2].to_owned());
                     return Ok(Output::new(size, lines, column, comment));
                 }
+                Some('\n') => {
+                    size += 1;
+                    column = 1;
+                    lines += 1;
+                    state = State::MultiLine;
+                }
                 Some(_) => {
                     size += 1;
                     column += 1;

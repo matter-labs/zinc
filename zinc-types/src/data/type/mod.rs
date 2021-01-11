@@ -129,7 +129,7 @@ impl Type {
             Self::Array(r#type, size) => r#type.size() * *size,
             Self::Tuple(fields) => fields.iter().map(Self::size).sum(),
             Self::Structure(fields) => fields.iter().map(|(_, r#type)| r#type.size()).sum(),
-            Self::Contract(fields) => fields.iter().map(|field| field.r#type.size()).sum(),
+            Self::Contract(_) => Self::eth_address().size(),
 
             Self::Map { .. } => 0,
         }

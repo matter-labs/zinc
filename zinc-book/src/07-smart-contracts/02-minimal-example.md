@@ -184,7 +184,7 @@ and fill the constructor arguments you are going to pass:
 }
 ```
 
-> Also, put your account private key to the `./data/private_key` file. All deposits
+> Also, put your account private key to the `private_key` file at the project root. All deposits
 > and transfers to the newly created contract will be done from that account.
 > Ensure that your account is unlocked and has enough balance to pay fees.
 > To see how to unlock a new zkSync account, go to the [troubleshooting](./04-troubleshooting.md) chapter.
