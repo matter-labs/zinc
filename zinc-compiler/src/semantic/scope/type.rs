@@ -42,22 +42,13 @@ impl Type {
     /// Checks if the scope is a manually developed module, that is, written in Zinc.
     ///
     pub fn is_module(&self) -> bool {
-        match self {
-            Self::Entry { .. } => true,
-            Self::Module { .. } => true,
-            _ => false,
-        }
+        matches!(self, Self::Entry { .. } | Self::Module { .. })
     }
 
     ///
     /// Checks if the scope is a type implementation, e.g. contract, structure, or enumeration.
     ///
     pub fn is_implementation(&self) -> bool {
-        match self {
-            Self::Contract => true,
-            Self::Structure => true,
-            Self::Enumeration => true,
-            _ => false,
-        }
+        matches!(self, Self::Contract | Self::Structure | Self::Enumeration)
     }
 }

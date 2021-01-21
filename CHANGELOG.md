@@ -10,15 +10,17 @@
 
 - fixed the bug where contract instance aggregation caused a stack underflow
 - fixed the false-positive type errors in some conditionals
+- fixed the incorrect storage address output after manual VM runs
 
 #### Zargo
 
-- improved interface descriptions and help messages
+- changed interface descriptions and help messages
 
 #### Book
 
 - added the `Contract::fetch` function description
-- updated some obsolete information
+- added the `std::collections::MTreeMap` initialization example
+- fixed some obsolete information
 
 ## Version 0.2.1 (2020-12-24)
 

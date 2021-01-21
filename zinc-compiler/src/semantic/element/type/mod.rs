@@ -336,14 +336,13 @@ impl Type {
     /// Checks if the type is scalar (a primitive non-unit type).
     ///
     pub fn is_scalar(&self) -> bool {
-        match self {
-            Self::Boolean(_) => true,
-            Self::IntegerUnsigned { .. } => true,
-            Self::IntegerSigned { .. } => true,
-            Self::Field(_) => true,
-            Self::Enumeration { .. } => true,
-            _ => false,
-        }
+        matches!(self,
+            Self::Boolean(_) |
+            Self::IntegerUnsigned { .. } |
+            Self::IntegerSigned { .. } |
+            Self::Field(_) |
+            Self::Enumeration { .. }
+        )
     }
 
     ///
@@ -351,13 +350,12 @@ impl Type {
     /// enumeration values).
     ///
     pub fn is_scalar_unsigned(&self) -> bool {
-        match self {
-            Self::Boolean(_) => true,
-            Self::IntegerUnsigned { .. } => true,
-            Self::Field(_) => true,
-            Self::Enumeration { .. } => true,
-            _ => false,
-        }
+        matches!(self,
+            Self::Boolean(_) |
+            Self::IntegerUnsigned { .. } |
+            Self::Field(_) |
+            Self::Enumeration { .. }
+        )
     }
 
     ///
@@ -371,12 +369,11 @@ impl Type {
     /// Checks if the type is an unsigned integer one (unsigned integers, fields and enumeration values).
     ///
     pub fn is_integer_unsigned(&self) -> bool {
-        match self {
-            Self::IntegerUnsigned { .. } => true,
-            Self::Field(_) => true,
-            Self::Enumeration { .. } => true,
-            _ => false,
-        }
+        matches!(self,
+            Self::IntegerUnsigned { .. } |
+            Self::Field(_) |
+            Self::Enumeration { .. }
+        )
     }
 
     ///
@@ -415,11 +412,10 @@ impl Type {
     /// Checks if the type is a manually declared function, that is, not an intrinsic one.
     ///
     pub fn is_source_function(&self) -> bool {
-        match self {
-            Self::Function(Function::Runtime(_)) => true,
-            Self::Function(Function::Constant(_)) => true,
-            _ => false,
-        }
+        matches!(self,
+            Self::Function(Function::Runtime(_)) |
+            Self::Function(Function::Constant(_))
+        )
     }
 
     ///

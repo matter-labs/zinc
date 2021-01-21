@@ -162,10 +162,15 @@ impl IExecutable for Command {
                                 for field in fields.into_iter() {
                                     storage_values.push(field.value.into_json());
                                 }
+                                let eth_address =
+                                    eth_address.to_str_radix(zinc_const::base::HEXADECIMAL);
                                 storages.insert(
                                     format!(
-                                        "0x{}",
-                                        eth_address.to_str_radix(zinc_const::base::HEXADECIMAL)
+                                        "0x{}{}",
+                                        "0".repeat(
+                                            zinc_const::size::ETH_ADDRESS * 2 - eth_address.len()
+                                        ),
+                                        eth_address,
                                     ),
                                     serde_json::Value::Array(storage_values),
                                 );

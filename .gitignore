@@ -9,6 +9,8 @@
 /zinc-tester/ordinar/*/data/
 /zinc-tester/ordinar/*/target/debug/
 /zinc-tester/ordinar/*/target/release/
+/zinc-tester/ordinar/*/target/deps/*/data/
+/zinc-tester/ordinar/*/target/deps/*/target/
 
 # Book build
 /zinc-book/build/

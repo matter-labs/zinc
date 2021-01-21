@@ -203,17 +203,16 @@ impl Type {
     /// Checks whether the type is a contract.
     ///
     pub fn is_contract(&self) -> bool {
-        match self.state.borrow().as_ref() {
+        matches!(self.state.borrow().as_ref(),
             Some(State::Declared {
                 inner: TypeStatementVariant::Contract(_),
                 ..
-            }) => true,
+            }) |
             Some(State::Defined {
                 inner: TypeElement::Contract(_),
                 ..
-            }) => true,
-            _ => false,
-        }
+            })
+        )
     }
 
     ///
