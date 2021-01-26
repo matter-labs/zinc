@@ -1,6 +1,6 @@
 # The Zinc changelog
 
-## Version next (2021-XX-XX)
+## Version 0.2.2 (2021-01-26)
 
 #### Compiler
 
@@ -14,7 +14,7 @@
 
 #### Zargo
 
-- changed interface descriptions and help messages
+- fixed interface descriptions and help messages
 
 #### Book
 

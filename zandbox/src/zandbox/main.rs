@@ -36,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(middleware::DefaultHeaders::new().content_type())
-            .wrap(actix_cors::Cors::default())
+            .wrap(actix_cors::Cors::permissive())
             .app_data(web::JsonConfig::default().limit(zinc_const::limit::JSON_PAYLOAD))
             .app_data(data.clone())
             .configure(zandbox::configure)
