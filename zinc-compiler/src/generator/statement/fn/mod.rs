@@ -90,7 +90,12 @@ impl IBytecodeWritable for Statement {
         let output_size = self.output_type.size();
 
         match self.role {
-            Role::CircuitEntry | Role::ContractMethodEntry | Role::ContractConstuctor { .. } => {
+            Role::CircuitEntry
+            | Role::ContractMethodEntry
+            | Role::ContractConstuctor {
+                is_dependency: false,
+                ..
+            } => {
                 state.borrow_mut().start_entry_function(
                     self.location,
                     self.type_id,
@@ -127,7 +132,7 @@ impl IBytecodeWritable for Statement {
         self.body.write_to_zinc_vm(state.clone());
 
         match self.role {
-            Role::ContractConstuctor { project } => {
+            Role::ContractConstuctor { project, .. } => {
                 let field_types: Vec<zinc_types::ContractFieldType> = match self.output_type {
                     Type::Contract { fields } => {
                         fields.into_iter().map(|field| field.into()).collect()

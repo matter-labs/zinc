@@ -17,6 +17,8 @@ pub enum Role {
     ContractConstuctor {
         /// The `project` section of the contract project manifest.
         project: zinc_project::ManifestProject,
+        /// Whether the contract constructor is located in a dependency project.
+        is_dependency: bool,
     },
     /// A contract method entry.
     ContractMethodEntry,

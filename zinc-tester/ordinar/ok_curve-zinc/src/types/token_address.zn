@@ -11,10 +11,10 @@ use crate::constants::MAX_TOKEN_PRECISION;
 /// 
 pub enum TokenAddress {
     ETH = 0x0000000000000000000000000000000000000000,
-    DAI = 0x8C1f0b5C3D91534848A8DB08C89Aa4f641Debe25,
-    wBTC = 0x65924160770041BAF5188840Ed2e8Da4219800D1,
-    BAT = 0x5AC1b7010eFA33F6dFDc81C0a278B1f80EF87ECd,
-    MLTT = 0x83d3e618573F49061bE4248C6B5FCc8b8fd97cD6,
+    DAI = 0xe015cbd9a6f74495d9b568f93a741c1eb602b78b,
+    wBTC = 0x9934eb5a9a83b4ba468cf5739afcd0eb31df825a,
+    BAT = 0x417155b70868b2c0f7e65be0e764ee9384d0a453,
+    MLTT = 0x7ebab6cbe1aafc22c1877feaa1d552b80ca91a09,
 
     Unknown = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,
 }
@@ -26,10 +26,10 @@ impl TokenAddress {
     pub fn from_address(value: Address) -> Self {
         match value {
             0x0000000000000000000000000000000000000000 => Self::ETH,
-            0x8C1f0b5C3D91534848A8DB08C89Aa4f641Debe25 => Self::DAI,
-            0x65924160770041BAF5188840Ed2e8Da4219800D1 => Self::wBTC,
-            0x5AC1b7010eFA33F6dFDc81C0a278B1f80EF87ECd => Self::BAT,
-            0x83d3e618573F49061bE4248C6B5FCc8b8fd97cD6 => Self::MLTT,
+            0xe015cbd9a6f74495d9b568f93a741c1eb602b78b => Self::DAI,
+            0x9934eb5a9a83b4ba468cf5739afcd0eb31df825a => Self::wBTC,
+            0x417155b70868b2c0f7e65be0e764ee9384d0a453 => Self::BAT,
+            0x7ebab6cbe1aafc22c1877feaa1d552b80ca91a09 => Self::MLTT,
 
             another => {
                 // the only way of panicking explicitly

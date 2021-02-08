@@ -1,5 +1,15 @@
 # The Zinc changelog
 
+## Version 0.2.3 (2021-02-08)
+
+#### Compiler
+
+- fixed the dependency contract constructors which were spilled to `input.json`
+
+#### Zargo
+
+- fixed the toolset version check during project downloading
+
 ## Version 0.2.2 (2021-01-26)
 
 #### Compiler

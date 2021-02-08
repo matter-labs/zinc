@@ -90,7 +90,7 @@ pub async fn handle(
             .provider
             .get_tx_fee(
                 zksync_types::TxFeeTypes::ChangePubKey {
-                    onchain_pubkey_auth: true,
+                    onchain_pubkey_auth: false,
                 },
                 initializer.eth_address,
                 token.id,

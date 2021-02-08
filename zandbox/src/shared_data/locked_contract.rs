@@ -139,7 +139,7 @@ impl LockedContract {
                 .provider
                 .get_tx_fee(
                     zksync_types::TxFeeTypes::ChangePubKey {
-                        onchain_pubkey_auth: true,
+                        onchain_pubkey_auth: false,
                     },
                     eth_address,
                     change_pubkey_fee_token.id,

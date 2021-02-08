@@ -66,14 +66,6 @@ impl<'a> Downloader<'a> {
             ))
             .await?;
 
-        if response.zinc_version != env!("CARGO_PKG_VERSION") {
-            anyhow::bail!(Error::CompilerVersionMismatch(
-                format!("{}-{}", name, version),
-                env!("CARGO_PKG_VERSION").to_string(),
-                response.zinc_version,
-            ));
-        }
-
         fs::create_dir_all(&project_path)?;
         response.project.manifest.write_to(&project_path)?;
         response.project.source.write_to(&project_path)?;
@@ -131,11 +123,17 @@ impl<'a> Downloader<'a> {
             ))
             .await?;
 
-        if response.zinc_version != env!("CARGO_PKG_VERSION") {
+        let current_version = semver::Version::parse(env!("CARGO_PKG_VERSION"))
+            .expect(zinc_const::panic::DATA_CONVERSION);
+        let project_version = semver::Version::parse(response.zinc_version.as_str())
+            .expect(zinc_const::panic::DATA_CONVERSION);
+        if project_version.major != current_version.major
+            || project_version.minor != current_version.minor
+        {
             anyhow::bail!(Error::CompilerVersionMismatch(
                 dependency_name,
-                env!("CARGO_PKG_VERSION").to_string(),
-                response.zinc_version,
+                current_version.to_string(),
+                project_version.to_string(),
             ));
         }
 

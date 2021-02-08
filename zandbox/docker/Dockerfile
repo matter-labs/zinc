@@ -2,9 +2,9 @@
 #
 # From the root directory:
 # DOCKER_BUILDKIT=1 docker build -t matterlabs/zandbox -f zandbox/docker/Dockerfile .
-# docker push matterlabs/zandbox:0.2.2
+# docker push matterlabs/zandbox:0.2.3
 
-FROM rust:1.48 as builder
+FROM rust:1.49 as builder
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo install sccache

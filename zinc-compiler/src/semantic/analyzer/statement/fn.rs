@@ -161,6 +161,7 @@ impl Analyzer {
             ScopeType::Contract if statement.is_public => match expected_type {
                 Type::Contract(ref contract) => GeneratorFunctionRole::ContractConstuctor {
                     project: contract.project.to_owned(),
+                    is_dependency: is_in_dependency,
                 },
                 _ => GeneratorFunctionRole::Ordinar,
             },

@@ -7,20 +7,20 @@ type Balance = u248;
 
 enum TokenAddress {
     ETH = 0x0000000000000000000000000000000000000000,
-    DAI = 0x318093a9b569e332d0224b0e1aec5fa92cc097d3,
-    wBTC = 0x21c51d49d7fc8bbc8a0ac008f3865d20222e35df,
-    BAT = 0x76c62afd65d87ba9558d4080d63a3058bec4f8e1,
-    MLTT = 0x1fc9d6daa223b6e58a62fa72e8f1e41e3ab24dfe,
+    DAI = 0xe015cbd9a6f74495d9b568f93a741c1eb602b78b,
+    wBTC = 0x9934eb5a9a83b4ba468cf5739afcd0eb31df825a,
+    BAT = 0x417155b70868b2c0f7e65be0e764ee9384d0a453,
+    MLTT = 0x7ebab6cbe1aafc22c1877feaa1d552b80ca91a09,
 }
 
 impl TokenAddress {
     pub fn is_known(address: Address) -> bool {
         match address {
             0x0000000000000000000000000000000000000000 => true,
-            0x318093a9b569e332d0224b0e1aec5fa92cc097d3 => true,
-            0x21c51d49d7fc8bbc8a0ac008f3865d20222e35df => true,
-            0x76c62afd65d87ba9558d4080d63a3058bec4f8e1 => true,
-            0x1fc9d6daa223b6e58a62fa72e8f1e41e3ab24dfe => true,
+            0xe015cbd9a6f74495d9b568f93a741c1eb602b78b => true,
+            0x9934eb5a9a83b4ba468cf5739afcd0eb31df825a => true,
+            0x417155b70868b2c0f7e65be0e764ee9384d0a453 => true,
+            0x7ebab6cbe1aafc22c1877feaa1d552b80ca91a09 => true,
             _ => false,
         }
     }
