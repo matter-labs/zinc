@@ -1107,7 +1107,7 @@ dependencies = [
 
 [[package]]
 name = "zinc-compiler"
-version = "0.1.5-ING-4"
+version = "0.1.5-ING-MB-5"
 dependencies = [
  "colored",
  "env_logger",

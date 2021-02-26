@@ -9,8 +9,8 @@ use std::rc::Rc;
 use crate::error::Error as CompilerError;
 use crate::generator::Tree;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
-use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
+use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::syntax::tree::Tree as SyntaxTree;
 
 ///
@@ -35,10 +35,14 @@ impl Analyzer {
         }
     }
 
-    pub fn compile(self, program: SyntaxTree) -> Result<(Rc<RefCell<Scope>>, Tree), CompilerError> {
+    pub fn compile(
+        self,
+        program: SyntaxTree,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+    ) -> Result<(Rc<RefCell<Scope>>, Tree), CompilerError> {
         let mut intermediate = Tree::new();
 
-        let mut analyzer = StatementAnalyzer::new(self.scope_stack.top(), HashMap::new());
+        let mut analyzer = StatementAnalyzer::new(self.scope_stack.top(), dependencies);
         for statement in program.statements.into_iter() {
             if let Some(statement) = analyzer
                 .local_mod(statement)

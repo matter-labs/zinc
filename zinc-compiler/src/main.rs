@@ -3,7 +3,7 @@
 //!
 
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::convert::TryFrom;
 use std::ffi::OsString;
 use std::fs::File;
@@ -13,6 +13,7 @@ use std::process;
 use std::rc::Rc;
 
 use failure::Fail;
+use log::debug;
 use structopt::StructOpt;
 
 use zinc_compiler::Bytecode;
@@ -28,28 +29,28 @@ const EXIT_CODE_FAILURE: i32 = 1;
 #[structopt(name = "znc", about = "The Zinc compiler")]
 struct Arguments {
     #[structopt(
-        short = "v",
-        parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity"
+    short = "v",
+    parse(from_occurrences),
+    help = "Shows verbose logs, use multiple times for more verbosity"
     )]
     verbosity: usize,
     #[structopt(
-        long = "witness",
-        parse(from_os_str),
-        help = "The witness template output path"
+    long = "witness",
+    parse(from_os_str),
+    help = "The witness template output path"
     )]
     witness_template_path: PathBuf,
     #[structopt(
-        long = "public-data",
-        parse(from_os_str),
-        help = "The public data template output path"
+    long = "public-data",
+    parse(from_os_str),
+    help = "The public data template output path"
     )]
     public_data_template_path: PathBuf,
     #[structopt(
-        short = "o",
-        long = "output",
-        parse(from_os_str),
-        help = "The *.znb bytecode output path"
+    short = "o",
+    long = "output",
+    parse(from_os_str),
+    help = "The *.znb bytecode output path"
     )]
     bytecode_output_path: PathBuf,
     #[structopt(parse(from_os_str), help = "The *.zn source file names")]
@@ -102,15 +103,88 @@ fn main() {
     })
 }
 
-fn main_inner(args: Arguments) -> Result<(), Error> {
-    zinc_bytecode::logger::init_logger("znc", args.verbosity);
+// Topologically sort the module path into L
 
-    let bytecode = Rc::new(RefCell::new(Bytecode::new()));
+// L ← Empty list that will contain the sorted nodes
+// while exists nodes without a permanent mark do
+//     select an unmarked node n
+//     visit(n)
+//
+// function visit(node n)
+//     if n has a permanent mark then
+//         return
+//     if n has a temporary mark then
+//         stop   (not a DAG)
+//
+//     mark n with a temporary mark
+//
+//     for each node m with an edge from n to m do
+//         visit(m)
+//
+//     remove temporary mark from n
+//     mark n with a permanent mark
+//     add n to head of L
+fn visit(n: PathBuf, L: &mut VecDeque<PathBuf>, temp_marks: &mut Vec<PathBuf>) -> Result<(), Error> {
+    debug!("Visiting {}", n.display());
+    // if n has a permanent mark then
+    //         return
+    if L.contains(&n) {
+        debug!("Already sorted: {}", n.display());
 
-    let mut modules = HashMap::<String, Rc<RefCell<Scope>>>::new();
-    let mut entry_file_path = None;
+        return Ok(());
+    } // already in sorted list
 
-    for source_file_path in args.source_files.into_iter() {
+
+    // if n has a temporary mark then
+    //         stop   (not a DAG)
+    debug!("TEMP MARK - CHECK : {}", n.display());
+    if temp_marks.contains(&n) {
+        debug!("TEMP MARK - CHECK : {}", "FOUND!");
+        return Err(Error::Compiler("Cyclic module dependencies are not supported".to_string()));
+    }
+
+    // mark n with a temporary mark
+    debug!("TEMP MARK - ADD   : {}", n.display());
+    // temp_marks.insert(n.clone(), true);
+    temp_marks.push(n.clone());
+
+
+    //  for each node m with an edge from n to m do
+    //         visit(m)
+    let found_modules = ZincFile::try_from(n.clone())
+        .map_err(Error::Compiler)?
+        .find_modules()
+        .map_err(Error::Compiler)?;
+
+    debug!("Found # modules: {}", found_modules.len());
+
+    for m in found_modules.into_iter() {
+        // We assume that all modules are in the root path, next main.zn.
+        // File name equals: <module name>.zn
+        let module_path = n.with_file_name(m + ".zn");
+        visit(module_path, L, temp_marks)
+            .expect("Compilation failed during module graph ordering");
+    }
+
+    //     remove temporary mark from n
+    debug!("TEMP MARK - REMOVE: {}", n.display());
+    if let Some(pos) = temp_marks.iter().position(|x| *x == n) {
+        temp_marks.remove(pos);
+    }
+
+    //     mark n with a permanent mark. In our case, that is same as adding to head of L
+    //     add n to head of L
+    debug!("Adding to sorted list: {}", n.display());
+    L.push_back(PathBuf::from(&n));
+
+    Ok(())
+}
+
+fn ordered_source_files(source_files: Vec<PathBuf>) -> Result<VecDeque<PathBuf>, Error> {
+    let mut L = VecDeque::<PathBuf>::new();
+    let mut temp_marks = Vec::<PathBuf>::new();
+
+    for source_file_path in source_files.into_iter() {
         let source_file_extension = source_file_path
             .extension()
             .ok_or(FileError::ExtensionNotFound)
@@ -119,7 +193,42 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
             return Err(FileError::ExtensionInvalid(
                 source_file_extension.to_owned(),
             ))
-            .map_err(Error::SourceFile);
+                .map_err(Error::SourceFile);
+        }
+
+        visit(source_file_path, &mut L, &mut temp_marks)
+            .expect("Compilation failed during module graph ordering");
+    }
+    Ok(L)
+}
+
+fn main_inner(args: Arguments) -> Result<(), Error> {
+    zinc_bytecode::logger::init_logger("znc", args.verbosity);
+
+    let ordered_source_files = ordered_source_files(args.source_files)
+        .map_err(|e: Error| -> Error {
+            Error::Compiler("Could not determine ordered source files: ".to_string())
+        })?;
+
+    for file in ordered_source_files.clone().into_iter() {
+        debug!("Ordered file: {}", file.display())
+    }
+
+    let bytecode = Rc::new(RefCell::new(Bytecode::new()));
+
+    let mut modules = HashMap::<String, Rc<RefCell<Scope>>>::new();
+    let mut entry_file_path = None;
+
+    for source_file_path in ordered_source_files.into_iter() {
+        let source_file_extension = source_file_path
+            .extension()
+            .ok_or(FileError::ExtensionNotFound)
+            .map_err(Error::SourceFile)?;
+        if source_file_extension != ZINC_SOURCE_FILE_EXTENSION {
+            return Err(FileError::ExtensionInvalid(
+                source_file_extension.to_owned(),
+            ))
+                .map_err(Error::SourceFile);
         }
 
         let source_file_stem = source_file_path
@@ -139,7 +248,7 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
         log::info!("Compiling {:?}", source_file_path);
         let module = ZincFile::try_from(source_file_path)
             .map_err(Error::Compiler)?
-            .try_into_module(bytecode.clone())
+            .try_into_module(bytecode.clone(), modules.clone())
             .map_err(Error::Compiler)?;
 
         modules.insert(module_name, module);
@@ -198,3 +307,4 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
 
     Ok(())
 }
+
