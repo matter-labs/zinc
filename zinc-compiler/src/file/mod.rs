@@ -98,23 +98,15 @@ impl File {
             .parse(&self.code, Some(next_file_id))
             .map_err(|error| error.format(&lines))?;
 
-        let mut modules = Vec::<String>::new();
-        for statement in syntax_tree.statements.into_iter() {
-            match statement {
-                Statement::Mod(statement) => {
-                    modules.push(statement.identifier.name);
+        Ok(syntax_tree.statements
+            .into_iter()
+            .fold(Vec::new(), |mut modules, statement| {
+                if let Statement::Mod(s) = statement {
+                    modules.push(s.identifier.name);
                 }
-                Statement::Const(_) => { break; }
-                Statement::Type(_) => { break; }
-                Statement::Struct(_) => { break; }
-                Statement::Enum(_) => { break; }
-                Statement::Fn(_) => { break; }
-                Statement::Use(_) => { break; }
-                Statement::Impl(_) => { break; }
-                Statement::Empty(_) => { break; }
-            }
-        }
-        Ok(modules)
+                modules
+            })
+        )
     }
 }
 

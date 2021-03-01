@@ -158,13 +158,12 @@ fn visit(n: PathBuf, L: &mut VecDeque<PathBuf>, temp_marks: &mut Vec<PathBuf>) -
 
     debug!("Found # modules: {}", found_modules.len());
 
-    for m in found_modules.into_iter() {
+    found_modules.into_iter().try_for_each(|m| {
         // We assume that all modules are in the root path, next main.zn.
         // File name equals: <module name>.zn
         let module_path = n.with_file_name(m + ".zn");
         visit(module_path, L, temp_marks)
-            .expect("Compilation failed during module graph ordering");
-    }
+    }).expect("Compilation failed during module graph ordering");
 
     //     remove temporary mark from n
     debug!("TEMP MARK - REMOVE: {}", n.display());
@@ -206,13 +205,11 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
     zinc_bytecode::logger::init_logger("znc", args.verbosity);
 
     let ordered_source_files = ordered_source_files(args.source_files)
-        .map_err(|e: Error| -> Error {
+        .map_err(|e| {
             Error::Compiler("Could not determine ordered source files: ".to_string())
         })?;
 
-    for file in ordered_source_files.clone().into_iter() {
-        debug!("Ordered file: {}", file.display())
-    }
+    ordered_source_files.iter().for_each(|file| debug!("Ordered file: {}", file.display()));
 
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
 
