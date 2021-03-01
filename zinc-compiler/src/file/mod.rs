@@ -116,7 +116,7 @@ impl TryFrom<PathBuf> for File {
     fn try_from(path: PathBuf) -> Result<Self, Self::Error> {
         let mut file = ::std::fs::File::open(&path)
             .map_err(Error::Opening)
-            .map_err(|error| error.to_string())?;
+            .map_err(|error| format!("{}: {}", error.to_string(), path.display()))?;
 
         let size = file
             .metadata()

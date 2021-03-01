@@ -125,7 +125,7 @@ fn main() {
 //     mark n with a permanent mark
 //     add n to head of L
 fn visit(n: PathBuf, L: &mut VecDeque<PathBuf>, temp_marks: &mut Vec<PathBuf>) -> Result<(), Error> {
-    debug!("Visiting {}", n.display());
+    debug!("Visiting module {}", n.display());
     // if n has a permanent mark then
     //         return
     if L.contains(&n) {
@@ -140,7 +140,7 @@ fn visit(n: PathBuf, L: &mut VecDeque<PathBuf>, temp_marks: &mut Vec<PathBuf>) -
     debug!("TEMP MARK - CHECK : {}", n.display());
     if temp_marks.contains(&n) {
         debug!("TEMP MARK - CHECK : {}", "FOUND!");
-        return Err(Error::Compiler("Cyclic module dependencies are not supported".to_string()));
+        return Err(Error::Compiler(format!("Cyclic module dependencies are not supported. Found in: {}", n.display())));
     }
 
     // mark n with a temporary mark
