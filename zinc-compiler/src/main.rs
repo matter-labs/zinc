@@ -145,7 +145,6 @@ fn visit(n: PathBuf, L: &mut VecDeque<PathBuf>, temp_marks: &mut Vec<PathBuf>) -
 
     // mark n with a temporary mark
     debug!("TEMP MARK - ADD   : {}", n.display());
-    // temp_marks.insert(n.clone(), true);
     temp_marks.push(n.clone());
 
 
