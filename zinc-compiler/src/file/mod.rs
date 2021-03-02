@@ -2,8 +2,6 @@
 //! The file reader.
 //!
 
-pub mod error;
-
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -19,13 +17,17 @@ use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 use crate::semantic::analyzer::module::Analyzer as ModuleAnalyzer;
 use crate::semantic::scope::Scope;
 use crate::syntax::parser::Parser;
+use crate::syntax::tree::statement::local_mod::Statement;
 
 use self::error::Error;
 
+pub mod error;
+
 pub struct File {
-    path: PathBuf,
-    code: String,
+    pub path: PathBuf,
+    pub code: String,
 }
+
 
 lazy_static! {
     pub static ref INDEX: RwLock<Vec<PathBuf>> = RwLock::new(Vec::new());
@@ -60,6 +62,7 @@ impl File {
     pub fn try_into_module(
         self,
         bytecode: Rc<RefCell<Bytecode>>,
+        dependencies: HashMap<String, Rc<RefCell<Scope>>>,
     ) -> Result<Rc<RefCell<Scope>>, String> {
         let lines = self.code.lines().collect::<Vec<&str>>();
 
@@ -74,12 +77,36 @@ impl File {
             .map_err(|error| error.format(&lines))?;
 
         let (scope, intermediate) = ModuleAnalyzer::new()
-            .compile(syntax_tree)
+            .compile(syntax_tree, dependencies)
             .map_err(|error| error.format(&lines))?;
 
         intermediate.write_all_to_bytecode(bytecode);
 
         Ok(scope)
+    }
+
+    pub fn find_modules(self) -> Result<Vec<String>, String> {
+        let lines = self.code.lines().collect::<Vec<&str>>();
+
+        let next_file_id = INDEX.read().expect(crate::PANIC_MUTEX_SYNC).len();
+        INDEX
+            .write()
+            .expect(crate::PANIC_MUTEX_SYNC)
+            .push(self.path);
+
+        let syntax_tree = Parser::default()
+            .parse(&self.code, Some(next_file_id))
+            .map_err(|error| error.format(&lines))?;
+
+        Ok(syntax_tree.statements
+            .into_iter()
+            .fold(Vec::new(), |mut modules, statement| {
+                if let Statement::Mod(s) = statement {
+                    modules.push(s.identifier.name);
+                }
+                modules
+            })
+        )
     }
 }
 
@@ -89,7 +116,7 @@ impl TryFrom<PathBuf> for File {
     fn try_from(path: PathBuf) -> Result<Self, Self::Error> {
         let mut file = ::std::fs::File::open(&path)
             .map_err(Error::Opening)
-            .map_err(|error| error.to_string())?;
+            .map_err(|error| format!("{}: {}", error.to_string(), path.display()))?;
 
         let size = file
             .metadata()

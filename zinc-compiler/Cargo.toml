@@ -1,6 +1,6 @@
 [package]
 name = "zinc-compiler"
-version = "0.1.5-ING-4"
+version = "0.1.5-ING-5"
 authors = [
     "hedgar2017 <hedgar2017@gmail.com>",
     "Alexander Movchan <am@matterlabs.dev>",

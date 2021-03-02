@@ -3,6 +3,7 @@
 /.vscode/
 
 # Rust build
+/target-*
 /target/
 /osxcross/
 
