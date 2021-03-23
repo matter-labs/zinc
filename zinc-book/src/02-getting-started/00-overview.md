@@ -17,7 +17,7 @@ The minimal Zinc framework consists of the three tools:
 `zargo` can use the compiler and virtual machine through as subprocesses,
 so you will only need `zargo` to work with your projects.
 
-For more information on `zargo`, check out this [chapter](../10-zargo/00-overview.md).
+For more information on `zargo`, check out this [chapter](../09-zargo/00-overview.md).
 
 ## The Visual Studio Code extension
 

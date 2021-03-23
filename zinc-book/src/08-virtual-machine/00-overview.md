@@ -1,5 +1,8 @@
 # Virtual machine
 
+> The Turing-incomplete VM is not supported anymore. 
+> Please, look forward to the upcoming Turing-complete one.
+
 Zinc code is compiled into bytecode which can be run by Zinc VM.
 
 Zinc VM is a virtual machine that serves three purposes: executing arbitrary

@@ -40,12 +40,7 @@ impl zinc_vm::IContractStorageKeeper for Keeper {
         eth_address: BigInt,
         field_types: Vec<zinc_types::ContractFieldType>,
     ) -> Result<zinc_types::Value, zinc_vm::Error> {
-        let mut runtime = tokio::runtime::Builder::new()
-            .threaded_scheduler()
-            .core_threads(1)
-            .enable_io()
-            .build()
-            .expect(zinc_const::panic::ASYNC_RUNTIME);
+        let mut runtime = tokio::runtime::Runtime::new().expect(zinc_const::panic::ASYNC_RUNTIME);
 
         let eth_address = zinc_types::address_from_slice(eth_address.to_bytes_be().1.as_slice());
         let contract = runtime
