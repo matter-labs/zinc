@@ -50,12 +50,9 @@ fn main(preimage1: u32, preimage2:u32) -> bool {
     dbg!("Digest bytes concatenated: {}", digest_bytes_concatenated);
 
     //check
-    let mut isEqual = false; 
+    let mut isEqual = true; 
      for i in 0..DIGEST_BYTES {
-        if(digest_bytes_multi_input[i] == digest_bytes_concatenated[i]){
-            isEqual = true; 
-        }
-        else{
+        if(digest_bytes_multi_input[i] != digest_bytes_concatenated[i]){
             isEqual = false; 
         }
     }
