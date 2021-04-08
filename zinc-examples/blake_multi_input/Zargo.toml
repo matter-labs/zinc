@@ -1,0 +1,3 @@
+[circuit]
+name = "blake_multi_input"
+version = "0.1.0"

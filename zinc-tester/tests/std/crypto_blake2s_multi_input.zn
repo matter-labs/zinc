@@ -1,0 +1,40 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "preimage1": "42",
+//#         "preimage2": "127"
+//#     },
+//#     "expect": true
+//# } ] }
+
+use std::array::pad;
+use std::convert::to_bits;
+use std::crypto::blake2s;
+use std::crypto::blake2s_multi_input;
+
+const BLAKE2S_HASH_SIZE: u64 = 256;
+const INT32_BITS:u8 = 32; 
+
+fn main(preimage1: u32, preimage2:u32) -> bool {
+    let preimage_bits_1: [bool; INT32_BITS] = to_bits(preimage1);
+    let preimage_bits_2: [bool; INT32_BITS] = to_bits(preimage2);
+    
+    //multi input digest
+    let digest_bits_multi_input = blake2s_multi_input(preimage_bits_1, preimage_bits_2);
+
+    //Concatenated digest
+    let mut preimage_bits_concatenated : [bool; 2 * INT32_BITS] = [false; 2 * INT32_BITS];
+    preimage_bits_concatenated[0..INT32_BITS] = preimage_bits_1;
+    preimage_bits_concatenated[INT32_BITS..(2* INT32_BITS)] = preimage_bits_2; 
+
+    let digest_bits_concatenated = blake2s(preimage_bits_concatenated);
+
+    //check
+    let mut isEqual = true; 
+     for i in 0..BLAKE2S_HASH_SIZE {
+        if(digest_bits_multi_input[i] != digest_bits_concatenated[i]){
+            isEqual = false; 
+        }
+    }
+    isEqual
+}

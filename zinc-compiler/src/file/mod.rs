@@ -28,7 +28,6 @@ pub struct File {
     pub code: String,
 }
 
-
 lazy_static! {
     pub static ref INDEX: RwLock<Vec<PathBuf>> = RwLock::new(Vec::new());
 }
@@ -98,15 +97,15 @@ impl File {
             .parse(&self.code, Some(next_file_id))
             .map_err(|error| error.format(&lines))?;
 
-        Ok(syntax_tree.statements
+        Ok(syntax_tree
+            .statements
             .into_iter()
             .fold(Vec::new(), |mut modules, statement| {
                 if let Statement::Mod(s) = statement {
                     modules.push(s.identifier.name);
                 }
                 modules
-            })
-        )
+            }))
     }
 }
 
