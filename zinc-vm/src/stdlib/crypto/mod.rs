@@ -1,6 +1,9 @@
 mod blake2s;
 pub use blake2s::*;
 
+mod blake2s_multi_input;
+pub use blake2s_multi_input::*;
+
 mod schnorr;
 pub use schnorr::*;
 

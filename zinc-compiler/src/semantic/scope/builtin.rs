@@ -33,6 +33,8 @@ impl BuiltInItems {
         let std_crypto_sha256 = FunctionType::new_std(BuiltinIdentifier::CryptoSha256);
         let std_crypto_pedersen = FunctionType::new_std(BuiltinIdentifier::CryptoPedersen);
         let std_crypto_blake2s = FunctionType::new_std(BuiltinIdentifier::CryptoBlake2s);
+        let std_crypto_blake2s_multi_input =
+            FunctionType::new_std(BuiltinIdentifier::CryptoBlake2sMultiInput);
 
         let mut std_crypto_schnorr = Scope::default();
         let mut std_crypto_schnorr_signature_scope = Scope::default();
@@ -105,6 +107,13 @@ impl BuiltInItems {
             std_crypto_blake2s.identifier(),
             ScopeItem::new(
                 ScopeItemVariant::Type(Type::Function(std_crypto_blake2s)),
+                None,
+            ),
+        );
+        std_crypto_scope.items.insert(
+            std_crypto_blake2s_multi_input.identifier(),
+            ScopeItem::new(
+                ScopeItemVariant::Type(Type::Function(std_crypto_blake2s_multi_input)),
                 None,
             ),
         );

@@ -9,10 +9,10 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::Parser;
 use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 use crate::semantic::analyzer::module::Analyzer as ModuleAnalyzer;
 use crate::semantic::scope::Scope;
+use crate::Parser;
 
 pub static PANIC_TEST_DATA: &str = "Test data is always valid";
 

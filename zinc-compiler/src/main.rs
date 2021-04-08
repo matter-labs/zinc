@@ -29,28 +29,28 @@ const EXIT_CODE_FAILURE: i32 = 1;
 #[structopt(name = "znc", about = "The Zinc compiler")]
 struct Arguments {
     #[structopt(
-    short = "v",
-    parse(from_occurrences),
-    help = "Shows verbose logs, use multiple times for more verbosity"
+        short = "v",
+        parse(from_occurrences),
+        help = "Shows verbose logs, use multiple times for more verbosity"
     )]
     verbosity: usize,
     #[structopt(
-    long = "witness",
-    parse(from_os_str),
-    help = "The witness template output path"
+        long = "witness",
+        parse(from_os_str),
+        help = "The witness template output path"
     )]
     witness_template_path: PathBuf,
     #[structopt(
-    long = "public-data",
-    parse(from_os_str),
-    help = "The public data template output path"
+        long = "public-data",
+        parse(from_os_str),
+        help = "The public data template output path"
     )]
     public_data_template_path: PathBuf,
     #[structopt(
-    short = "o",
-    long = "output",
-    parse(from_os_str),
-    help = "The *.znb bytecode output path"
+        short = "o",
+        long = "output",
+        parse(from_os_str),
+        help = "The *.znb bytecode output path"
     )]
     bytecode_output_path: PathBuf,
     #[structopt(parse(from_os_str), help = "The *.zn source file names")]
@@ -124,7 +124,11 @@ fn main() {
 //     remove temporary mark from n
 //     mark n with a permanent mark
 //     add n to head of L
-fn visit(n: PathBuf, L: &mut VecDeque<PathBuf>, temp_marks: &mut Vec<PathBuf>) -> Result<(), Error> {
+fn visit(
+    n: PathBuf,
+    L: &mut VecDeque<PathBuf>,
+    temp_marks: &mut Vec<PathBuf>,
+) -> Result<(), Error> {
     debug!("Visiting module {}", n.display());
     // if n has a permanent mark then
     //         return
@@ -134,19 +138,20 @@ fn visit(n: PathBuf, L: &mut VecDeque<PathBuf>, temp_marks: &mut Vec<PathBuf>) -
         return Ok(());
     } // already in sorted list
 
-
     // if n has a temporary mark then
     //         stop   (not a DAG)
     debug!("TEMP MARK - CHECK : {}", n.display());
     if temp_marks.contains(&n) {
         debug!("TEMP MARK - CHECK : {}", "FOUND!");
-        return Err(Error::Compiler(format!("Cyclic module dependencies are not supported. Found in: {}", n.display())));
+        return Err(Error::Compiler(format!(
+            "Cyclic module dependencies are not supported. Found in: {}",
+            n.display()
+        )));
     }
 
     // mark n with a temporary mark
     debug!("TEMP MARK - ADD   : {}", n.display());
     temp_marks.push(n.clone());
-
 
     //  for each node m with an edge from n to m do
     //         visit(m)
@@ -157,12 +162,15 @@ fn visit(n: PathBuf, L: &mut VecDeque<PathBuf>, temp_marks: &mut Vec<PathBuf>) -
 
     debug!("Found # modules: {}", found_modules.len());
 
-    found_modules.into_iter().try_for_each(|m| {
-        // We assume that all modules are in the root path, next main.zn.
-        // File name equals: <module name>.zn
-        let module_path = n.with_file_name(m + ".zn");
-        visit(module_path, L, temp_marks)
-    }).expect("Compilation failed during module graph ordering");
+    found_modules
+        .into_iter()
+        .try_for_each(|m| {
+            // We assume that all modules are in the root path, next main.zn.
+            // File name equals: <module name>.zn
+            let module_path = n.with_file_name(m + ".zn");
+            visit(module_path, L, temp_marks)
+        })
+        .expect("Compilation failed during module graph ordering");
 
     //     remove temporary mark from n
     debug!("TEMP MARK - REMOVE: {}", n.display());
@@ -191,7 +199,7 @@ fn ordered_source_files(source_files: Vec<PathBuf>) -> Result<VecDeque<PathBuf>,
             return Err(FileError::ExtensionInvalid(
                 source_file_extension.to_owned(),
             ))
-                .map_err(Error::SourceFile);
+            .map_err(Error::SourceFile);
         }
 
         visit(source_file_path, &mut L, &mut temp_marks)
@@ -204,11 +212,11 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
     zinc_bytecode::logger::init_logger("znc", args.verbosity);
 
     let ordered_source_files = ordered_source_files(args.source_files)
-        .map_err(|e| {
-            Error::Compiler("Could not determine ordered source files: ".to_string())
-        })?;
+        .map_err(|e| Error::Compiler("Could not determine ordered source files: ".to_string()))?;
 
-    ordered_source_files.iter().for_each(|file| debug!("Ordered file: {}", file.display()));
+    ordered_source_files
+        .iter()
+        .for_each(|file| debug!("Ordered file: {}", file.display()));
 
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
 
@@ -224,7 +232,7 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
             return Err(FileError::ExtensionInvalid(
                 source_file_extension.to_owned(),
             ))
-                .map_err(Error::SourceFile);
+            .map_err(Error::SourceFile);
         }
 
         let source_file_stem = source_file_path
@@ -303,4 +311,3 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
 
     Ok(())
 }
-

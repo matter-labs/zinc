@@ -8,11 +8,11 @@ use crate::{Engine, MalformedBytecode, Result};
 
 const BYTE_LENGTH: usize = 8;
 
-pub struct Blake2s {
+pub struct Blake2sMultiInput {
     message_length: usize,
 }
 
-impl Blake2s {
+impl Blake2sMultiInput {
     pub fn new(message_length: usize) -> Result<Self> {
         if message_length % 8 == 0 {
             Ok(Self { message_length })
@@ -42,7 +42,7 @@ impl Blake2s {
 // To overcome the mismatch between the franklin_crypto and the original spec, we added
 // a function in our gadget, reverse_byte_bits(), which reverses the bit order within
 // every byte before and after hashing operation.
-impl<E: Engine> NativeFunction<E> for Blake2s {
+impl<E: Engine> NativeFunction<E> for Blake2sMultiInput {
     fn execute<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,

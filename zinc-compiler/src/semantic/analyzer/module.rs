@@ -9,8 +9,8 @@ use std::rc::Rc;
 use crate::error::Error as CompilerError;
 use crate::generator::Tree;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
-use crate::semantic::scope::Scope;
 use crate::semantic::scope::stack::Stack as ScopeStack;
+use crate::semantic::scope::Scope;
 use crate::syntax::tree::Tree as SyntaxTree;
 
 ///
