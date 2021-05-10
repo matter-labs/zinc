@@ -8,32 +8,40 @@
 //# } ] }
 
 use std::convert::to_bits;
-use std::crypto::blake2s;
-use std::crypto::blake2s_multi_input;
+use std::crypto::pedersen;
+use std::crypto::pedersen_multi_input;
 
-const BLAKE2S_HASH_SIZE: u64 = 256;
+const PEDERSEN_HASH_SIZE: u64 = 254;
 const INT32_BITS:u8 = 32; 
 
 fn main(preimage1: u32, preimage2:u32) -> bool {
+    
     let preimage_bits_1: [bool; INT32_BITS] = to_bits(preimage1);
     let preimage_bits_2: [bool; INT32_BITS] = to_bits(preimage2);
     
     //multi input digest
-    let digest_bits_multi_input = blake2s_multi_input(preimage_bits_1, preimage_bits_2);
+    let digest_multi_input = pedersen_multi_input(preimage_bits_1, preimage_bits_2);
+
+    //Bytes
+    let digest_bits_multi_input = std::convert::to_bits(digest_multi_input.0); 
 
     //Concatenated digest
     let mut preimage_bits_concatenated : [bool; 2 * INT32_BITS] = [false; 2 * INT32_BITS];
     preimage_bits_concatenated[0..INT32_BITS] = preimage_bits_1;
     preimage_bits_concatenated[INT32_BITS..(2* INT32_BITS)] = preimage_bits_2; 
 
-    let digest_bits_concatenated = blake2s(preimage_bits_concatenated);
+    let digest_concatenated = pedersen(preimage_bits_concatenated);
 
-    //check
+    //Bytes
+    let digest_bits_concatenated = std::convert::to_bits(digest_concatenated.0); 
+
+    //Comparison
     let mut isEqual = true; 
-    for i in 0..BLAKE2S_HASH_SIZE {
+    for i in 0..PEDERSEN_HASH_SIZE {
         if(digest_bits_multi_input[i] != digest_bits_concatenated[i]){
             isEqual = false; 
         }
     }
+
     isEqual
 }

@@ -1,6 +1,6 @@
 [package]
 name = "zinc-vm"
-version = "0.1.5-ING-6"
+version = "0.1.5-ING-7"
 authors = [
     "Alexander Movchan <am@matterlabs.dev>",
     "hedgar2017 <hedgar2017@gmail.com>",

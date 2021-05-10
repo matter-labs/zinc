@@ -14,6 +14,7 @@ pub mod convert_to_bits;
 pub mod crypto_blake2s;
 pub mod crypto_blake2s_multi_input;
 pub mod crypto_pedersen;
+pub mod crypto_pedersen_multi_input;
 pub mod crypto_schnorr_signature_verify;
 pub mod crypto_sha256;
 pub mod error;
@@ -37,6 +38,7 @@ use self::convert_to_bits::Function as ToBitsFunction;
 use self::crypto_blake2s::Function as Blake2sFunction;
 use self::crypto_blake2s_multi_input::Function as Blake2sMultiInputFunction;
 use self::crypto_pedersen::Function as PedersenFunction;
+use self::crypto_pedersen_multi_input::Function as PedersenMultiInputFunction;
 use self::crypto_schnorr_signature_verify::Function as SchnorrSignatureVerifyFunction;
 use self::crypto_sha256::Function as Sha256Function;
 use self::ff_invert::Function as FfInvertFunction;
@@ -45,6 +47,7 @@ use self::ff_invert::Function as FfInvertFunction;
 pub enum Function {
     CryptoSha256(Sha256Function),
     CryptoPedersen(PedersenFunction),
+    CryptoPedersenMultiInput(PedersenMultiInputFunction),
     CryptoSchnorrSignatureVerify(SchnorrSignatureVerifyFunction),
     CryptoBlake2s(Blake2sFunction),
     CryptoBlake2sMultiInput(Blake2sMultiInputFunction),
@@ -67,6 +70,9 @@ impl Function {
             BuiltinIdentifier::CryptoSha256 => Self::CryptoSha256(Sha256Function::new(identifier)),
             BuiltinIdentifier::CryptoPedersen => {
                 Self::CryptoPedersen(PedersenFunction::new(identifier))
+            }
+            BuiltinIdentifier::CryptoPedersenMultiInput => {
+                Self::CryptoPedersenMultiInput(PedersenMultiInputFunction::new(identifier))
             }
             BuiltinIdentifier::CryptoSchnorrSignatureVerify => {
                 Self::CryptoSchnorrSignatureVerify(SchnorrSignatureVerifyFunction::new(identifier))
@@ -105,6 +111,7 @@ impl Function {
         match self {
             Self::CryptoSha256(inner) => inner.call(elements),
             Self::CryptoPedersen(inner) => inner.call(elements),
+            Self::CryptoPedersenMultiInput(inner) => inner.call(elements),
             Self::CryptoSchnorrSignatureVerify(inner) => inner.call(elements),
             Self::CryptoBlake2s(inner) => inner.call(elements),
             Self::CryptoBlake2sMultiInput(inner) => inner.call(elements),
@@ -126,6 +133,7 @@ impl Function {
         match self {
             Self::CryptoSha256(inner) => inner.identifier(),
             Self::CryptoPedersen(inner) => inner.identifier(),
+            Self::CryptoPedersenMultiInput(inner) => inner.identifier(),
             Self::CryptoSchnorrSignatureVerify(inner) => inner.identifier(),
             Self::CryptoBlake2s(inner) => inner.identifier(),
             Self::CryptoBlake2sMultiInput(inner) => inner.identifier(),
@@ -147,6 +155,7 @@ impl Function {
         match self {
             Self::CryptoSha256(inner) => inner.builtin_identifier(),
             Self::CryptoPedersen(inner) => inner.builtin_identifier(),
+            Self::CryptoPedersenMultiInput(inner) => inner.builtin_identifier(),
             Self::CryptoSchnorrSignatureVerify(inner) => inner.builtin_identifier(),
             Self::CryptoBlake2s(inner) => inner.builtin_identifier(),
             Self::CryptoBlake2sMultiInput(inner) => inner.builtin_identifier(),
@@ -170,6 +179,7 @@ impl fmt::Display for Function {
         match self {
             Self::CryptoSha256(inner) => write!(f, "{}", inner),
             Self::CryptoPedersen(inner) => write!(f, "{}", inner),
+            Self::CryptoPedersenMultiInput(inner) => write!(f, "{}", inner),
             Self::CryptoSchnorrSignatureVerify(inner) => write!(f, "{}", inner),
             Self::CryptoBlake2s(inner) => write!(f, "{}", inner),
             Self::CryptoBlake2sMultiInput(inner) => write!(f, "{}", inner),
