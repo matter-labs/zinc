@@ -23,6 +23,7 @@ use crate::semantic::element::r#type::function::stdlib::convert_to_bits::Functio
 use crate::semantic::element::r#type::function::stdlib::crypto_blake2s::Function as CryptoBlake2sFunction;
 use crate::semantic::element::r#type::function::stdlib::crypto_blake2s_multi_input::Function as CryptoBlake2sMultiInputFunction;
 use crate::semantic::element::r#type::function::stdlib::crypto_pedersen::Function as CryptoPedersenFunction;
+use crate::semantic::element::r#type::function::stdlib::crypto_pedersen_multi_input::Function as CryptoPedersenMultiInputFunction;
 use crate::semantic::element::r#type::function::stdlib::crypto_schnorr_signature_verify::Function as CryptoSchnorrSignatureVerifyFunction;
 use crate::semantic::element::r#type::function::stdlib::crypto_sha256::Function as CryptoSha256Function;
 use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionTypeError;
@@ -259,6 +260,212 @@ fn main() {
             "pedersen".to_owned(),
             "preimage".to_owned(),
             CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
+            format!(
+                "[bool; N], 0 < N <= {}",
+                crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
+            ),
+            Type::array(Type::boolean(), crate::LIMIT_PEDERSEN_HASH_INPUT_BITS + 1).to_string(),
+        ))),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_crypto_pedersen_multi_input_argument_count_lesser() {
+    let input = r#"
+fn main() {
+    std::crypto::pedersen_multi_input();
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 38),
+        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
+            "pedersen_multi_input".to_owned(),
+            CryptoPedersenMultiInputFunction::ARGUMENT_COUNT,
+            CryptoPedersenMultiInputFunction::ARGUMENT_COUNT - 2,
+        ))),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_crypto_pedersen_multi_input_argument_count_greater() {
+    let input = r#"
+fn main() {
+    std::crypto::pedersen_multi_input([true; 8], [true; 8], 42);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 38),
+        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
+            "pedersen_multi_input".to_owned(),
+            CryptoPedersenMultiInputFunction::ARGUMENT_COUNT,
+            CryptoPedersenMultiInputFunction::ARGUMENT_COUNT + 1,
+        ))),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_crypto_pedersen_multi_input_argument_1_preimage_expected_bit_array() {
+    let input = r#"
+fn main() {
+    std::crypto::pedersen_multi_input(42, [true;8]);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 38),
+        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
+            "pedersen_multi_input".to_owned(),
+            "preimage1".to_owned(),
+            CryptoPedersenMultiInputFunction::ARGUMENT_INDEX_PREIMAGE1 + 1,
+            format!(
+                "[bool; N], 0 < N <= {}",
+                crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
+            ),
+            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+        ))),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_crypto_pedersen_multi_input_argument_2_preimage_expected_bit_array() {
+    let input = r#"
+fn main() {
+    std::crypto::pedersen_multi_input([true;8], 42);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 38),
+        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
+            "pedersen_multi_input".to_owned(),
+            "preimage2".to_owned(),
+            CryptoPedersenMultiInputFunction::ARGUMENT_INDEX_PREIMAGE2 + 1,
+            format!(
+                "[bool; N], 0 < N <= {}",
+                crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
+            ),
+            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+        ))),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_crypto_pedersen_multi_input_argument_1_preimage_expected_bit_array_not_empty() {
+    let input = r#"
+fn main() {
+    std::crypto::pedersen_multi_input([true; 0], [true; 8]);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 38),
+        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
+            "pedersen_multi_input".to_owned(),
+            "preimage1".to_owned(),
+            CryptoPedersenMultiInputFunction::ARGUMENT_INDEX_PREIMAGE1 + 1,
+            format!(
+                "[bool; N], 0 < N <= {}",
+                crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
+            ),
+            Type::array(Type::boolean(), 0).to_string(),
+        ))),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_crypto_pedersen_multi_input_argument_2_preimage_expected_bit_array_not_empty() {
+    let input = r#"
+fn main() {
+    std::crypto::pedersen_multi_input([true; 8], [true; 0]);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 38),
+        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
+            "pedersen_multi_input".to_owned(),
+            "preimage2".to_owned(),
+            CryptoPedersenMultiInputFunction::ARGUMENT_INDEX_PREIMAGE2 + 1,
+            format!(
+                "[bool; N], 0 < N <= {}",
+                crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
+            ),
+            Type::array(Type::boolean(), 0).to_string(),
+        ))),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_crypto_pedersen_multi_input_argument_1_preimage_expected_bit_array_size_limit() {
+    let input = r#"
+fn main() {
+    std::crypto::pedersen_multi_input([true; 513], [true; 8]);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 38),
+        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
+            "pedersen_multi_input".to_owned(),
+            "preimage1".to_owned(),
+            CryptoPedersenMultiInputFunction::ARGUMENT_INDEX_PREIMAGE1 + 1,
+            format!(
+                "[bool; N], 0 < N <= {}",
+                crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
+            ),
+            Type::array(Type::boolean(), crate::LIMIT_PEDERSEN_HASH_INPUT_BITS + 1).to_string(),
+        ))),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_crypto_pedersen_multi_input_argument_2_preimage_expected_bit_array_size_limit() {
+    let input = r#"
+fn main() {
+    std::crypto::pedersen_multi_input([true; 8], [true; 513]);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 38),
+        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
+            "pedersen_multi_input".to_owned(),
+            "preimage2".to_owned(),
+            CryptoPedersenMultiInputFunction::ARGUMENT_INDEX_PREIMAGE2 + 1,
             format!(
                 "[bool; N], 0 < N <= {}",
                 crate::LIMIT_PEDERSEN_HASH_INPUT_BITS

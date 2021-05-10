@@ -12,3 +12,6 @@ pub use sha256::*;
 
 mod pedersen;
 pub use pedersen::*;
+
+mod pedersen_multi_input;
+pub use pedersen_multi_input::*;

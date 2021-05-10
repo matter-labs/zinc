@@ -31,6 +31,9 @@ where
             BuiltinIdentifier::CryptoPedersen => {
                 vm.call_native(stdlib::crypto::Pedersen::new(self.inputs_count)?)
             }
+            BuiltinIdentifier::CryptoPedersenMultiInput => {
+                vm.call_native(stdlib::crypto::PedersenMultiInput::new(self.inputs_count)?)
+            }
             BuiltinIdentifier::ToBits => vm.call_native(stdlib::bits::ToBits),
             BuiltinIdentifier::UnsignedFromBits => {
                 vm.call_native(stdlib::bits::UnsignedFromBits::new(self.inputs_count))

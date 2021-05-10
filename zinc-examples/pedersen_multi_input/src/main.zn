@@ -1,0 +1,65 @@
+//!
+//! The 'pedersen_multi_input' main module.
+//!
+
+use std::crypto::pedersen;
+use std::crypto::pedersen_multi_input;
+use std::convert::to_bits;
+use std::convert::from_bits_unsigned;
+use std::array::pad;
+
+const INT32_BITS:u8 = 32; 
+const DIGEST_BYTES:u8 = 32;
+const BYTE_SIZE:u8 = 8; 
+
+fn main(preimage1: u32, preimage2:u32) -> bool {
+    
+    let preimage_bits_1: [bool; INT32_BITS] = to_bits(preimage1);
+    let preimage_bits_2: [bool; INT32_BITS] = to_bits(preimage2);
+    
+    //multi input digest
+    let digest_multi_input = pedersen_multi_input(preimage_bits_1, preimage_bits_2);
+    //Digest
+    dbg!("Digest multi input: {}", digest_multi_input);
+
+    //Bytes
+    let digest_bits_multi_input = pad(to_bits(digest_multi_input.0), 256, false); 
+        let mut digest_bytes_multi_input = [0; DIGEST_BYTES];   
+    for i in 0..DIGEST_BYTES {
+        let mut bits = [false; BYTE_SIZE];
+        for j in 0..BYTE_SIZE {
+            bits[j] = digest_bits_multi_input[BYTE_SIZE * i + j]; 
+        }
+        digest_bytes_multi_input[i] = from_bits_unsigned(bits); 
+    }
+
+    //Concatenated digest
+    let mut preimage_bits_concatenated : [bool; 2 * INT32_BITS] = [false; 2 * INT32_BITS];
+    preimage_bits_concatenated[0..INT32_BITS] = preimage_bits_1;
+    preimage_bits_concatenated[INT32_BITS..(2* INT32_BITS)] = preimage_bits_2; 
+
+    let digest_concatenated = pedersen(preimage_bits_concatenated);
+    //Digest 
+    dbg!("Digest concatenated: {}", digest_concatenated);
+    
+    //Bytes
+    let digest_bits_concatenated = pad(to_bits(digest_concatenated.0), 256, false); 
+    let mut digest_bytes_concatenated= [0; DIGEST_BYTES];   
+    for i in 0..DIGEST_BYTES {
+        let mut bits = [false; BYTE_SIZE];
+        for j in 0..BYTE_SIZE {
+            bits[j] = digest_bits_concatenated[BYTE_SIZE * i + j]; 
+        }
+        digest_bytes_concatenated[i] = from_bits_unsigned(bits); 
+    }
+
+    //Comparison
+    let mut isEqual = true; 
+    for i in 0..DIGEST_BYTES {
+        if(digest_bytes_multi_input[i] != digest_bytes_concatenated[i]){
+            isEqual = false; 
+        }
+    }
+
+    isEqual
+}
