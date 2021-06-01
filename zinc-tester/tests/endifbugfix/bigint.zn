@@ -1,0 +1,89 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "left": ["0", "0", "0", "1", "1", "0", "0"],
+//#         "right": ["0", "0", "0", "1", "7", "0", "0"]
+//#     },
+//#     "expect": "-1"
+//# } ] }
+
+const BYTE_BITS: u16 = 8;
+
+const U32_BYTES: u16 = 4;
+const U32_BITS: u16 = U32_BYTES * BYTE_BITS;
+
+fn parse_u32(bytes: [u8; U32_BYTES]) -> u32 {
+    let mut bits = [false; U32_BITS];
+    for i in 0..U32_BYTES {
+        let pre_bits = std::convert::to_bits(bytes[i]);
+
+        for j in 0..BYTE_BITS {
+            bits[i * BYTE_BITS + j] = pre_bits[j];
+        }
+    }
+    std::convert::from_bits_unsigned(bits)
+}
+
+//! BigInt field lengths
+const BIG_INT_INTEGER_LENGTH_LENGTH: u16 = U32_BYTES;
+const BIG_INT_INTEGER_LENGTH: u16 = 3;
+
+//! BigInt field offsets
+const BIG_INT_INTEGER_LENGTH_OFFSET: u16 = 0;
+const BIG_INT_INTEGER_OFFSET: u16 =
+    BIG_INT_INTEGER_LENGTH_OFFSET
+        + BIG_INT_INTEGER_LENGTH_LENGTH;
+
+//! BigInt length
+const BIG_INT_LENGTH: u16 =
+    BIG_INT_INTEGER_OFFSET
+        + BIG_INT_INTEGER_LENGTH;
+
+//Type for the ByteArray of the serialized form of BigInt.
+type SerializedBigInt = [u8; BIG_INT_LENGTH];
+
+struct BigInt {
+    integer: [u8; BIG_INT_INTEGER_LENGTH],
+}
+
+impl BigInt {
+    // Compare two BigInts, return -1, 0 or 1 when `this` is smaller, equal or greater than `that`.
+    fn compare(this: BigInt, that: BigInt) -> i8 {
+        let mut result: i8 = 0 as i8;
+        for i in 0..BIG_INT_INTEGER_LENGTH {
+            if result == 0 as i8 {
+                result = if this.integer[i] > that.integer[i] {
+                    1 as i8
+                } else {
+                    if this.integer[i] < that.integer[i] { -1 } else { 0 as i8 }
+                };
+            }
+        }
+        result
+    }
+
+    // Parse a BigInt from the serialized form, only consider the relevant bytes
+    fn deserialize(bytes: SerializedBigInt) -> BigInt {
+        let integer_length = {
+            let mut integer_length_bytes = [0; BIG_INT_INTEGER_LENGTH_LENGTH];
+            for i in 0..BIG_INT_INTEGER_LENGTH_LENGTH {
+                integer_length_bytes[i] = bytes[i + BIG_INT_INTEGER_LENGTH_OFFSET];
+            }
+            parse_u32(integer_length_bytes)
+        };
+        let mut integer = [0; BIG_INT_INTEGER_LENGTH];
+        // for i in 0..BIG_INT_INTEGER_LENGTH {
+        for i in 0..BIG_INT_INTEGER_LENGTH while i as u32 < integer_length {
+            let index = BIG_INT_INTEGER_LENGTH - i - 1 as u16;
+            integer[index] = bytes[i + BIG_INT_INTEGER_OFFSET];
+        }
+
+            BigInt {
+                integer: integer,
+            }
+    }
+}
+
+fn main(left: SerializedBigInt, right: SerializedBigInt) -> i8 {
+    BigInt::compare(BigInt::deserialize(left), BigInt::deserialize(right))
+}

@@ -1,0 +1,30 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#     },
+//#     "expect": "-1"
+//# } ] }
+
+fn pollute_stack(z: u8) {
+}
+
+fn testSingle( ) {
+    if true {
+        let index: u32 = 21;
+    }
+}
+
+fn testPair( ) {
+    if true {
+        let index: u16 = 22;
+    } else {
+        let index: i16 = 23;
+    }
+}
+
+fn main() -> i8 {
+    pollute_stack(8);
+  //  testSingle();
+    testPair();
+    -1
+}
