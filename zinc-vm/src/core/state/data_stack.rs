@@ -151,8 +151,17 @@ impl<E: Engine> DataStack<E> {
                     let cs = ops
                         .constraint_system()
                         .namespace(|| format!("merge address {}", addr));
-                    let value = gadgets::conditional_select(cs, &condition, new, old)?;
-                    self.set(addr, Cell::Value(value))?;
+                    if new.get_type() == old.get_type() {
+                        let value = gadgets::conditional_select(cs, &condition, new, old)?;
+                        self.set(addr, Cell::Value(value))?;
+                    } else {
+                        // Do nothing.
+                        // This can only happen in 2 cases:
+                        // 1) We have trash data on a data stack (result of some other method call)
+                        // 2) We have a bug in Zinc compiler that missed this problem during bytecode generation.
+                        // In first case we can live with trash data, its no more trash than what was created inside IF.
+                        // In second case - bummer, use better compilers.
+                    }
                 }
             }
         }
@@ -184,8 +193,17 @@ impl<E: Engine> DataStack<E> {
                     let cs = ops
                         .constraint_system()
                         .namespace(|| format!("merge address {}", addr));
-                    let value = gadgets::conditional_select(cs, &condition, new, old)?;
-                    self.set(*addr, Cell::Value(value))?;
+                    if new.get_type() == old.get_type() {
+                        let value = gadgets::conditional_select(cs, &condition, new, old)?;
+                        self.set(*addr, Cell::Value(value))?;
+                    } else {
+                        // Do nothing.
+                        // This can only happen in 2 cases:
+                        // 1) We have trash data on a data stack (result of some other method call)
+                        // 2) We have a bug in Zinc compiler that missed this problem during bytecode generation.
+                        // In first case we can live with trash data, its no more trash than what was created inside IF.
+                        // In second case - bummer, use better compilers.
+                    }
                 }
             }
         }
