@@ -4,7 +4,7 @@
 
 To start using the Zinc framework, do the following:
 
-1. Download the latest release for your OS and architecture.
+1. Download the latest [release](https://github.com/matter-labs/zinc/releases) for your OS and architecture.
 2. Add the folder with the binaries to `PATH`.
 3. Use the binaries via your favorite terminal.
 
