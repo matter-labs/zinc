@@ -1,0 +1,30 @@
+name: Build and test
+
+on:
+  push:
+    branches:
+      - ing-fork
+  pull_request:
+    branches:
+      - ing-fork
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build project
+        run: |
+          cargo build
+
+      - name: Run unit tests
+        run: |
+          cargo test
+
+      - name: Run zinc-tester
+        run: |
+          build/debug/zinc-tester
