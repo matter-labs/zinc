@@ -2,9 +2,9 @@
 name = "zandbox"
 version = "0.2.3"
 authors = [
-    "Alex Zarudnyy <a.zarudnyy@matterlabs.dev>",
+    "guanlong huang <gl041188@gmail.com>",
 ]
-edition = "2018"
+edition = "2021"
 description = "The Zandbox server daemon"
 
 [[bin]]
