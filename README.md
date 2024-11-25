@@ -1,5 +1,5 @@
 # The Zinc language
 
-The Zinc programming language for Turing-complete smart contracts will be released soon.
+**Status:** Discontinued
 
-Please, follow our official channels for more information.
+The Zinc project has been discontinued. This repository is archived and will no longer be maintained.
